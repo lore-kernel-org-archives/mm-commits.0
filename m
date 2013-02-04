@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch added to -mm tree
-Date: Mon, 04 Feb 2013 14:51:05 -0800
-Message-ID: <20130204225105.BCF5F5A422F@corp2gmr1-2.hot.corp.google.com>
+Subject: + memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch added to -mm tree
+Date: Mon, 04 Feb 2013 15:04:38 -0800
+Message-ID: <20130204230439.2154931C19C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:61029 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756528Ab3BDWvH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 17:51:07 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so217302vbb.4
-        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 14:51:06 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:62500 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754431Ab3BDXEl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 18:04:41 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so703487qeb.2
+        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 15:04:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.
 
 
 The patch titled
-     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
+     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
+Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
+
+fix used-uninitialised bug
 
 Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Jianguo Wu <wujianguo@huawei.com>
@@ -47,49 +49,27 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ arch/x86/mm/init_64.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
 +++ a/arch/x86/mm/init_64.c
-@@ -918,10 +918,9 @@ remove_pmd_table(pmd_t *pmd_start, unsig
+@@ -993,12 +993,12 @@ remove_pagetable(unsigned long start, un
+ 	bool pgd_changed = false;
+ 
+ 	for (; start < end; start = next) {
++		next = pgd_addr_end(start, end);
++
+ 		pgd = pgd_offset_k(start);
+ 		if (!pgd_present(*pgd))
  			continue;
- 		}
  
--		pte_base = (pte_t *)map_low_page((pte_t *)pmd_page_vaddr(*pmd));
-+		pte_base = (pte_t *)pmd_page_vaddr(*pmd);
- 		remove_pte_table(pte_base, addr, next, direct);
- 		free_pte_table(pte_base, pmd);
--		unmap_low_page(pte_base);
- 	}
- 
- 	/* Call free_pmd_table() in remove_pud_table(). */
-@@ -975,10 +974,9 @@ remove_pud_table(pud_t *pud_start, unsig
- 			continue;
- 		}
- 
--		pmd_base = (pmd_t *)map_low_page((pmd_t *)pud_page_vaddr(*pud));
-+		pmd_base = (pmd_t *)pud_page_vaddr(*pud);
- 		remove_pmd_table(pmd_base, addr, next, direct);
- 		free_pmd_table(pmd_base, pud);
--		unmap_low_page(pmd_base);
- 	}
- 
- 	if (direct)
-@@ -1001,11 +999,10 @@ remove_pagetable(unsigned long start, un
- 
- 		next = pgd_addr_end(start, end);
- 
--		pud = (pud_t *)map_low_page((pud_t *)pgd_page_vaddr(*pgd));
-+		pud = (pud_t *)pgd_page_vaddr(*pgd);
+-		next = pgd_addr_end(start, end);
+-
+ 		pud = (pud_t *)pgd_page_vaddr(*pgd);
  		remove_pud_table(pud, start, next, direct);
  		if (free_pud_table(pud, pgd))
- 			pgd_changed = true;
--		unmap_low_page(pud);
- 	}
- 
- 	if (pgd_changed)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +104,7 @@ memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
