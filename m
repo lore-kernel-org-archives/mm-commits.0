@@ -1,80 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-typo-in-kmemcg-cache-walk-macro.patch removed from -mm tree
-Date: Tue, 05 Feb 2013 12:20:30 -0800
-Message-ID: <20130205202030.AF4E55A406B@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler.patch removed from -mm tree
+Date: Tue, 05 Feb 2013 12:20:39 -0800
+Message-ID: <20130205202039.A1AF431C107@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:38986 "EHLO
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:65421 "EHLO
 	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756633Ab3BEUUb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:31 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so65834ghb.0
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:31 -0800 (PST)
+	with ESMTP id S1755556Ab3BEUUk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:40 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so65665ghb.4
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: jlu@pengutronix.de, a.zummo@towertech.it, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix typo in kmemcg cache walk macro
+     Subject: drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from the alarm irq handler
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-typo-in-kmemcg-cache-walk-macro.patch
+     drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: fix typo in kmemcg cache walk macro
+From: Jan Luebbe <jlu@pengutronix.de>
+Subject: drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from the alarm irq handler
 
-The macro for_each_memcg_cache_index contains a silly yet potentially
-deadly mistake.  Although the macro parameter is _idx, the loop tests are
-done over i, not _idx.
+Previously the alarm event was not propagated into the RTC subsystem.  By
+adding a call to rtc_update_irq, this fixes a timeout problem with the
+hwclock utility.
 
-This hasn't generated any problems so far, because all users use i as a
-loop index.  However, while playing with an extension of the code I ended
-using another loop index and the compiler was quick to complain.
-
-Unfortunately, this is not the kind of thing that testing reveals =(
-
-Signed-off-by: Glauber Costa <glommer@parallels.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-isl1208.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-typo-in-kmemcg-cache-walk-macro include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-typo-in-kmemcg-cache-walk-macro
-+++ a/include/linux/memcontrol.h
-@@ -429,7 +429,7 @@ extern int memcg_limited_groups_array_si
-  * the slab_mutex must be held when looping through those caches
-  */
- #define for_each_memcg_cache_index(_idx)	\
--	for ((_idx) = 0; i < memcg_limited_groups_array_size; (_idx)++)
-+	for ((_idx) = 0; (_idx) < memcg_limited_groups_array_size; (_idx)++)
- 
- static inline bool memcg_kmem_enabled(void)
+diff -puN drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler drivers/rtc/rtc-isl1208.c
+--- a/drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler
++++ a/drivers/rtc/rtc-isl1208.c
+@@ -506,6 +506,7 @@ isl1208_rtc_interrupt(int irq, void *dat
  {
+ 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+ 	struct i2c_client *client = data;
++	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 	int handled = 0, sr, err;
+ 
+ 	/*
+@@ -528,6 +529,8 @@ isl1208_rtc_interrupt(int irq, void *dat
+ 	if (sr & ISL1208_REG_SR_ALM) {
+ 		dev_dbg(&client->dev, "alarm!\n");
+ 
++		rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
++
+ 		/* Clear the alarm */
+ 		sr &= ~ISL1208_REG_SR_ALM;
+ 		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
 _
 
-Patches currently in -mm which might be from glommer@parallels.com are
+Patches currently in -mm which might be from jlu@pengutronix.de are
 
 origin.patch
-linux-next.patch
-cfq-fix-lock-imbalance-with-failed-allocations.patch
-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
-memcg-split-part-of-memcg-creation-to-css_online.patch
-memcg-fast-hierarchy-aware-child-test.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
-memcg-increment-static-branch-right-after-limit-set.patch
-memcg-avoid-dangling-reference-count-in-creation-failure.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 
