@@ -1,201 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + mm-accelerate-munlock-treatment-of-thp-pages.patch added to -mm tree
-Date: Mon, 04 Feb 2013 16:31:11 -0800
-Message-ID: <20130205003112.276B85A406B@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] nilfs2-fix-fix-very-long-mount-time-issue.patch removed from -mm tree
+Date: Tue, 05 Feb 2013 12:20:05 -0800
+Message-ID: <20130205202007.6CABF31C107__15269.057689193$1360095644$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:54029 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754431Ab3BEAbN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 19:31:13 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so948qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 16:31:12 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:50231 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755223Ab3BEUUK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:10 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so65235yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: walken@google.com, aarcange@redhat.com, hughd@google.com, mgorman@suse.de, riel@redhat.com
+To: slava@dubeyko.com, konishi.ryusuke@lab.ntt.co.jp, splavgm@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: accelerate munlock() treatment of THP pages
-has been added to the -mm tree.  Its filename is
-     mm-accelerate-munlock-treatment-of-thp-pages.patch
+     Subject: nilfs2: fix fix very long mount time issue
+has been removed from the -mm tree.  Its filename was
+     nilfs2-fix-fix-very-long-mount-time-issue.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: accelerate munlock() treatment of THP pages
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: nilfs2: fix fix very long mount time issue
 
-munlock_vma_pages_range() was always incrementing addresses by PAGE_SIZE
-at a time.  When munlocking THP pages (or the huge zero page), this
-resulted in taking the mm->page_table_lock 512 times in a row.
+There exists a situation when GC can work in background alone without any
+other filesystem activity during significant time.  The
+nilfs_clean_segments() method calls nilfs_segctor_construct() that updates
+superblocks in the case of NILFS_SC_SUPER_ROOT and THE_NILFS_DISCONTINUED
+flags are set.  But when GC is working alone the nilfs_clean_segments() is
+called with unset THE_NILFS_DISCONTINUED flag.  As a result, the update of
+superblocks doesn't occurred all this time and in the case of SPOR
+superblocks keep very old values of last super root placement.
 
-We can do better by making use of the page_mask returned by
-follow_page_mask (for the huge zero page case), or the size of the page
-munlock_vma_page() operated on (for the true THP page case).
+SYMPTOMS:
 
-Note - I can't currently put my finger on what if anything prevents
-split_huge_page() from operating concurrently on the same page as
-munlock_vma_page(), which would mess up our NR_MLOCK statistics.  Is this
-a latent bug or is there a subtle point I missed here ?
+Trying to mount a NILFS2 volume after SPOR in such environment ends with
+very long mounting time (it can achieve about several hours in some
+cases).
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+REPRODUCING PATH:
+
+1. It needs to use external USB HDD, disable automount and doesn't
+   make any additional filesystem activity on the NILFS2 volume.
+
+2. Generate temporary file with size about 100 - 500 GB (for example,
+   dd if=/dev/zero of=<file_name> bs=1073741824 count=200).  The size of
+   file defines duration of GC working.
+
+3. Then it needs to delete file.
+
+4. Start GC manually by means of command "nilfs-clean -p 0".  When you
+   start GC by means of such way then, at the end, superblocks is updated
+   by once.  So, for simulation of SPOR, it needs to wait sometime (15 -
+   40 minutes) and simply switch off USB HDD manually.
+
+5. Switch on USB HDD again and try to mount NILFS2 volume.  As a
+   result, NILFS2 volume will mount during very long time.
+
+REPRODUCIBILITY: 100%
+
+FIX:
+
+This patch adds checking that superblocks need to update and set
+THE_NILFS_DISCONTINUED flag before nilfs_clean_segments() call.
+
+Reported-by: Sergey Alexandrov <splavgm@gmail.com>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Tested-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- mm/mlock.c    |   32 +++++++++++++++++++++-----------
- 2 files changed, 22 insertions(+), 12 deletions(-)
+ fs/nilfs2/ioctl.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/internal.h~mm-accelerate-munlock-treatment-of-thp-pages mm/internal.h
---- a/mm/internal.h~mm-accelerate-munlock-treatment-of-thp-pages
-+++ a/mm/internal.h
-@@ -195,7 +195,7 @@ static inline int mlocked_vma_newpage(st
-  * must be called with vma's mmap_sem held for read or write, and page locked.
-  */
- extern void mlock_vma_page(struct page *page);
--extern void munlock_vma_page(struct page *page);
-+extern unsigned int munlock_vma_page(struct page *page);
+diff -puN fs/nilfs2/ioctl.c~nilfs2-fix-fix-very-long-mount-time-issue fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-fix-fix-very-long-mount-time-issue
++++ a/fs/nilfs2/ioctl.c
+@@ -664,8 +664,11 @@ static int nilfs_ioctl_clean_segments(st
+ 	if (ret < 0)
+ 		printk(KERN_ERR "NILFS: GC failed during preparation: "
+ 			"cannot read source blocks: err=%d\n", ret);
+-	else
++	else {
++		if (nilfs_sb_need_update(nilfs))
++			set_nilfs_discontinued(nilfs);
+ 		ret = nilfs_clean_segments(inode->i_sb, argv, kbufs);
++	}
  
- /*
-  * Clear the page's PageMlocked().  This can be useful in a situation where
-diff -puN mm/mlock.c~mm-accelerate-munlock-treatment-of-thp-pages mm/mlock.c
---- a/mm/mlock.c~mm-accelerate-munlock-treatment-of-thp-pages
-+++ a/mm/mlock.c
-@@ -102,13 +102,14 @@ void mlock_vma_page(struct page *page)
-  * can't isolate the page, we leave it for putback_lru_page() and vmscan
-  * [page_referenced()/try_to_unmap()] to deal with.
-  */
--void munlock_vma_page(struct page *page)
-+unsigned int munlock_vma_page(struct page *page)
- {
-+	unsigned int nr_pages = hpage_nr_pages(page);
-+
- 	BUG_ON(!PageLocked(page));
- 
- 	if (TestClearPageMlocked(page)) {
--		mod_zone_page_state(page_zone(page), NR_MLOCK,
--				    -hpage_nr_pages(page));
-+		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
- 		if (!isolate_lru_page(page)) {
- 			int ret = SWAP_AGAIN;
- 
-@@ -141,6 +142,8 @@ void munlock_vma_page(struct page *page)
- 				count_vm_event(UNEVICTABLE_PGMUNLOCKED);
- 		}
- 	}
-+
-+	return nr_pages;
- }
- 
- /**
-@@ -159,7 +162,6 @@ long __mlock_vma_pages_range(struct vm_a
- 		unsigned long start, unsigned long end, int *nonblocking)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	unsigned long addr = start;
- 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
- 
-@@ -185,7 +187,7 @@ long __mlock_vma_pages_range(struct vm_a
- 	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
- 		gup_flags |= FOLL_FORCE;
- 
--	return __get_user_pages(current, mm, addr, nr_pages, gup_flags,
-+	return __get_user_pages(current, mm, start, nr_pages, gup_flags,
- 				NULL, NULL, nonblocking);
- }
- 
-@@ -222,13 +224,12 @@ static int __mlock_posix_error_return(lo
- void munlock_vma_pages_range(struct vm_area_struct *vma,
- 			     unsigned long start, unsigned long end)
- {
--	unsigned long addr;
--
--	lru_add_drain();
- 	vma->vm_flags &= ~VM_LOCKED;
- 
--	for (addr = start; addr < end; addr += PAGE_SIZE) {
-+	while (start < end) {
- 		struct page *page;
-+		unsigned int page_mask, page_increm;
-+
- 		/*
- 		 * Although FOLL_DUMP is intended for get_dump_page(),
- 		 * it just so happens that its special treatment of the
-@@ -236,13 +237,22 @@ void munlock_vma_pages_range(struct vm_a
- 		 * suits munlock very well (and if somehow an abnormal page
- 		 * has sneaked into the range, we won't oops here: great).
- 		 */
--		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
-+		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
-+					&page_mask);
- 		if (page && !IS_ERR(page)) {
- 			lock_page(page);
--			munlock_vma_page(page);
-+			lru_add_drain();
-+			/*
-+			 * Any THP page found by follow_page_mask() may have
-+			 * gotten split before reaching munlock_vma_page(),
-+			 * so we need to recompute the page_mask here.
-+			 */
-+			page_mask = munlock_vma_page(page);
- 			unlock_page(page);
- 			put_page(page);
- 		}
-+		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
-+		start += page_increm * PAGE_SIZE;
- 		cond_resched();
- 	}
- }
+ 	nilfs_remove_all_gcinodes(nilfs);
+ 	clear_nilfs_gc_running(nilfs);
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-thp-avoid-dumping-huge-zero-page.patch
-linux-next.patch
-mm-remove-free_area_cache-use-in-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-ia64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch
-mm-use-vm_unmapped_area-on-parisc-architecture.patch
-mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags.patch
-mm-remap_file_pages-fixes.patch
-mm-introduce-mm_populate-for-populating-new-vmas.patch
-mm-use-mm_populate-for-blocking-remap_file_pages.patch
-mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
-mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch
-mm-remove-flags-argument-to-mmap_region.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch
-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
-mm-make-do_mmap_pgoff-return-populate-as-a-size-in-bytes-not-as-a-bool.patch
-mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch
-mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch
-mm-accelerate-mm_populate-treatment-of-thp-pages.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
-mm-remove-free_area_cache.patch
-mm-use-vm_unmapped_area-on-frv-architecture.patch
-mm-use-vm_unmapped_area-on-alpha-architecture.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
-mutex-subsystem-synchro-test-module.patch
+origin.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
 
