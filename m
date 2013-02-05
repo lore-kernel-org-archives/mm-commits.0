@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-break-circular-include-from-linux-mmzoneh-fix.patch added to -mm tree
-Date: Tue, 05 Feb 2013 15:14:28 -0800
-Message-ID: <20130205231430.A7D5E31C214@corp2gmr1-1.hot.corp.google.com>
+Subject: + printk-avoid-softlockups-in-console_unlock-fix.patch added to -mm tree
+Date: Tue, 05 Feb 2013 15:17:50 -0800
+Message-ID: <20130205231751.18CF65A406B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:52240 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754365Ab3BEXOe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 18:14:34 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so87585ghb.2
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 15:14:33 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:38114 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754365Ab3BEXRw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 18:17:52 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so87199qeb.4
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 15:17:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, fweisbec@gmail.com, jack@suse.cz, mingo@elte.hu, rostedt@goodmis.org
 
 
 The patch titled
-     Subject: mm/slub.c: include memory_hotplug.h
+     Subject: printk-avoid-softlockups-in-console_unlock-fix
 has been added to the -mm tree.  Its filename is
-     mm-break-circular-include-from-linux-mmzoneh-fix.patch
+     printk-avoid-softlockups-in-console_unlock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/slub.c: include memory_hotplug.h
+Subject: printk-avoid-softlockups-in-console_unlock-fix
 
-x86_64 allnoconfig:
+i386 allnoconfig:
 
-mm/slub.c: In function 'show_slab_objects':
-mm/slub.c:4281: error: implicit declaration of function 'lock_memory_hotplug'
-mm/slub.c:4322: error: implicit declaration of function 'unlock_memory_hotplug'
+In file included from arch/x86/mm/pgtable_32.c:5:
+include/linux/nmi.h: In function 'max_interrupt_disabled_duration':
+include/linux/nmi.h:70: warning: integer overflow in expression
 
-Cc: liguang <lig.fnst@cn.fujitsu.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/nmi.h |    2 +-
+ printk.c            |    0 
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~mm-break-circular-include-from-linux-mmzoneh-fix mm/slub.c
---- a/mm/slub.c~mm-break-circular-include-from-linux-mmzoneh-fix
-+++ a/mm/slub.c
-@@ -23,6 +23,7 @@
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
- #include <linux/mempolicy.h>
-+#include <linux/memory_hotplug.h>
- #include <linux/ctype.h>
- #include <linux/debugobjects.h>
- #include <linux/kallsyms.h>
+diff -puN include/linux/nmi.h~printk-avoid-softlockups-in-console_unlock-fix include/linux/nmi.h
+--- a/include/linux/nmi.h~printk-avoid-softlockups-in-console_unlock-fix
++++ a/include/linux/nmi.h
+@@ -67,7 +67,7 @@ static inline u64 max_interrupt_disabled
+ static inline u64 max_interrupt_disabled_duration(void)
+ {
+ 	/* About the value we'd get with the default watchdog setting */
+-	return 5 * NSEC_PER_SEC;
++	return 5ULL * NSEC_PER_SEC;
+ }
+ #endif
+ 
+diff -puN kernel/printk.c~printk-avoid-softlockups-in-console_unlock-fix kernel/printk.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -167,4 +173,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+printk-avoid-softlockups-in-console_unlock-fix.patch
 
