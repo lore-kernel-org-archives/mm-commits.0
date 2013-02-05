@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix.patch added to -mm tree
-Date: Tue, 05 Feb 2013 15:55:26 -0800
-Message-ID: <20130205235526.8300831C107@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch added to -mm tree
+Date: Tue, 05 Feb 2013 15:57:14 -0800
+Message-ID: <20130205235714.E69DB31C107@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:63035 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257Ab3BEXz1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 18:55:27 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so92231vea.0
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 15:55:27 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:58439 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053Ab3BEX5Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 18:57:16 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so91775qen.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 15:57:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sasha.levin@oracle.com
+Cc: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix
+     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix
 has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+     mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix
+Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix
 
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: liguang <lig.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- virt/kvm/irq_comm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/gcov/base.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN virt/kvm/irq_comm.c~hlist-drop-the-node-parameter-from-iterators-fix-fix virt/kvm/irq_comm.c
---- a/virt/kvm/irq_comm.c~hlist-drop-the-node-parameter-from-iterators-fix-fix
-+++ a/virt/kvm/irq_comm.c
-@@ -239,13 +239,12 @@ int kvm_set_irq_inatomic(struct kvm *kvm
- bool kvm_irq_has_notifier(struct kvm *kvm, unsigned irqchip, unsigned pin)
- {
- 	struct kvm_irq_ack_notifier *kian;
--	struct hlist_node *n;
- 	int gsi;
+diff -puN kernel/gcov/base.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix kernel/gcov/base.c
+--- a/kernel/gcov/base.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix
++++ a/kernel/gcov/base.c
+@@ -17,6 +17,7 @@
  
- 	rcu_read_lock();
- 	gsi = rcu_dereference(kvm->irq_routing)->chip[irqchip][pin];
- 	if (gsi != -1)
--		hlist_for_each_entry_rcu(kian, n, &kvm->irq_ack_notifier_list,
-+		hlist_for_each_entry_rcu(kian, &kvm->irq_ack_notifier_list,
- 					 link)
- 			if (kian->gsi == gsi) {
- 				rcu_read_unlock();
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/notifier.h>
+ #include <linux/mutex.h>
+ #include "gcov.h"
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +116,7 @@ mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix.patch
+mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
@@ -164,11 +158,11 @@ block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
 
