@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch added to -mm tree
-Date: Mon, 04 Feb 2013 16:12:09 -0800
-Message-ID: <20130205001209.BA10E31C00F@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-accelerate-mm_populate-treatment-of-thp-pages.patch added to -mm tree
+Date: Mon, 04 Feb 2013 16:31:08 -0800
+Message-ID: <20130205003109.667245A406B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:63974 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754572Ab3BEAML (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 19:12:11 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so100210yhr.4
-        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 16:12:10 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:36325 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754431Ab3BEAbK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 19:31:10 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so410992qaj.3
+        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 16:31:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, aarcange@redhat.com, hughd@google.com, mgorman@suse.de, r
 
 
 The patch titled
-     Subject: fix mm: use long type for page counts in mm_populate() and get_user_pages()
+     Subject: mm: accelerate mm_populate() treatment of THP pages
 has been added to the -mm tree.  Its filename is
-     mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch
+     mm-accelerate-mm_populate-treatment-of-thp-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: fix mm: use long type for page counts in mm_populate() and get_user_pages()
+Subject: mm: accelerate mm_populate() treatment of THP pages
 
-Andrew suggested I make the nr_pages argument an unsigned long rather
-than just a long. I was initially worried that nr_pages would be compared
-with signed longs, but this isn't the case, so his suggestion is perfectly
-valid.
+This change adds a follow_page_mask function which is equivalent to
+follow_page, but with an extra page_mask argument.
 
-Sending as a 'fix' change, to be collapsed with the original in -mm.
+follow_page_mask sets *page_mask to HPAGE_PMD_NR - 1 when it encounters a
+THP page, and to 0 in other cases.
+
+__get_user_pages() makes use of this in order to accelerate populating THP
+ranges - that is, when both the pages and vmas arrays are NULL, we don't
+need to iterate HPAGE_PMD_NR times to cover a single THP page (and we also
+avoid taking mm->page_table_lock that many times).
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -51,120 +55,154 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- include/linux/mm.h      |   11 ++++++-----
- mm/hugetlb.c            |    8 ++++----
- mm/memory.c             |   12 ++++++------
- mm/mlock.c              |    2 +-
- 5 files changed, 18 insertions(+), 17 deletions(-)
+ include/linux/mm.h |   13 +++++++++++--
+ mm/memory.c        |   31 +++++++++++++++++++++++--------
+ mm/nommu.c         |    6 ++++--
+ 3 files changed, 38 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
-+++ a/include/linux/hugetlb.h
-@@ -45,7 +45,7 @@ int hugetlb_mempolicy_sysctl_handler(str
- int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
- long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
- 			 struct page **, struct vm_area_struct **,
--			 unsigned long *, long *, long, unsigned int flags);
-+			 unsigned long *, unsigned long *, long, unsigned int);
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *);
- void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-diff -puN include/linux/mm.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
+diff -puN include/linux/mm.h~mm-accelerate-mm_populate-treatment-of-thp-pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-accelerate-mm_populate-treatment-of-thp-pages
 +++ a/include/linux/mm.h
-@@ -1012,12 +1012,13 @@ extern int access_remote_vm(struct mm_st
- 		void *buf, int len, int write);
+@@ -1626,8 +1626,17 @@ int vm_insert_pfn(struct vm_area_struct 
+ int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
  
- long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
--		      unsigned long start, long len, unsigned int foll_flags,
--		      struct page **pages, struct vm_area_struct **vmas,
--		      int *nonblocking);
-+		      unsigned long start, unsigned long nr_pages,
-+		      unsigned int foll_flags, struct page **pages,
-+		      struct vm_area_struct **vmas, int *nonblocking);
- long get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
--		    unsigned long start, long nr_pages, int write, int force,
--		    struct page **pages, struct vm_area_struct **vmas);
-+		    unsigned long start, unsigned long nr_pages,
-+		    int write, int force, struct page **pages,
-+		    struct vm_area_struct **vmas);
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			struct page **pages);
- struct kvec;
-diff -puN mm/hugetlb.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
-+++ a/mm/hugetlb.c
-@@ -2922,12 +2922,12 @@ follow_huge_pud(struct mm_struct *mm, un
- 
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			 struct page **pages, struct vm_area_struct **vmas,
--			 unsigned long *position, long *length, long i,
--			 unsigned int flags)
-+			 unsigned long *position, unsigned long *nr_pages,
-+			 long i, unsigned int flags)
- {
- 	unsigned long pfn_offset;
- 	unsigned long vaddr = *position;
--	long remainder = *length;
-+	unsigned long remainder = *nr_pages;
- 	struct hstate *h = hstate_vma(vma);
- 
- 	spin_lock(&mm->page_table_lock);
-@@ -2997,7 +2997,7 @@ same_page:
- 		}
- 	}
- 	spin_unlock(&mm->page_table_lock);
--	*length = remainder;
-+	*nr_pages = remainder;
- 	*position = vaddr;
- 
- 	return i ? i : -EFAULT;
-diff -puN mm/memory.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix mm/memory.c
---- a/mm/memory.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
+-struct page *follow_page(struct vm_area_struct *, unsigned long address,
+-			unsigned int foll_flags);
++struct page *follow_page_mask(struct vm_area_struct *vma,
++			      unsigned long address, unsigned int foll_flags,
++			      unsigned int *page_mask);
++
++static inline struct page *follow_page(struct vm_area_struct *vma,
++		unsigned long address, unsigned int foll_flags)
++{
++	unsigned int unused_page_mask;
++	return follow_page_mask(vma, address, foll_flags, &unused_page_mask);
++}
++
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+ #define FOLL_TOUCH	0x02	/* mark page accessed */
+ #define FOLL_GET	0x04	/* do get_page on page */
+diff -puN mm/memory.c~mm-accelerate-mm_populate-treatment-of-thp-pages mm/memory.c
+--- a/mm/memory.c~mm-accelerate-mm_populate-treatment-of-thp-pages
 +++ a/mm/memory.c
-@@ -1678,14 +1678,14 @@ static inline int stack_guard_page(struc
-  * you need some special @gup_flags.
+@@ -1462,10 +1462,11 @@ int zap_vma_ptes(struct vm_area_struct *
+ EXPORT_SYMBOL_GPL(zap_vma_ptes);
+ 
+ /**
+- * follow_page - look up a page descriptor from a user-virtual address
++ * follow_page_mask - look up a page descriptor from a user-virtual address
+  * @vma: vm_area_struct mapping @address
+  * @address: virtual address to look up
+  * @flags: flags modifying lookup behaviour
++ * @page_mask: on output, *page_mask is set according to the size of the page
+  *
+  * @flags can have FOLL_ flags set, defined in <linux/mm.h>
+  *
+@@ -1473,8 +1474,9 @@ EXPORT_SYMBOL_GPL(zap_vma_ptes);
+  * an error pointer if there is a mapping to something not represented
+  * by a page descriptor (see also vm_normal_page()).
   */
- long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
--		unsigned long start, long nr_pages, unsigned int gup_flags,
--		struct page **pages, struct vm_area_struct **vmas,
--		int *nonblocking)
-+		unsigned long start, unsigned long nr_pages,
-+		unsigned int gup_flags, struct page **pages,
-+		struct vm_area_struct **vmas, int *nonblocking)
+-struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+-			unsigned int flags)
++struct page *follow_page_mask(struct vm_area_struct *vma,
++			      unsigned long address, unsigned int flags,
++			      unsigned int *page_mask)
+ {
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -1484,6 +1486,8 @@ struct page *follow_page(struct vm_area_
+ 	struct page *page;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
++	*page_mask = 0;
++
+ 	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
+ 	if (!IS_ERR(page)) {
+ 		BUG_ON(flags & FOLL_GET);
+@@ -1530,6 +1534,7 @@ struct page *follow_page(struct vm_area_
+ 				page = follow_trans_huge_pmd(vma, address,
+ 							     pmd, flags);
+ 				spin_unlock(&mm->page_table_lock);
++				*page_mask = HPAGE_PMD_NR - 1;
+ 				goto out;
+ 			}
+ 		} else
+@@ -1684,6 +1689,7 @@ long __get_user_pages(struct task_struct
  {
  	long i;
  	unsigned long vm_flags;
++	unsigned int page_mask;
  
--	if (nr_pages <= 0)
-+	if (!nr_pages)
+ 	if (!nr_pages)
  		return 0;
+@@ -1761,6 +1767,7 @@ long __get_user_pages(struct task_struct
+ 				get_page(page);
+ 			}
+ 			pte_unmap(pte);
++			page_mask = 0;
+ 			goto next_page;
+ 		}
  
- 	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
-@@ -1982,8 +1982,8 @@ int fixup_user_fault(struct task_struct 
-  * See also get_user_pages_fast, for performance critical applications.
-  */
- long get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
--		unsigned long start, long nr_pages, int write, int force,
--		struct page **pages, struct vm_area_struct **vmas)
-+		unsigned long start, unsigned long nr_pages, int write,
-+		int force, struct page **pages, struct vm_area_struct **vmas)
+@@ -1778,6 +1785,7 @@ long __get_user_pages(struct task_struct
+ 		do {
+ 			struct page *page;
+ 			unsigned int foll_flags = gup_flags;
++			unsigned int page_increm;
+ 
+ 			/*
+ 			 * If we have a pending SIGKILL, don't keep faulting
+@@ -1787,7 +1795,8 @@ long __get_user_pages(struct task_struct
+ 				return i ? i : -ERESTARTSYS;
+ 
+ 			cond_resched();
+-			while (!(page = follow_page(vma, start, foll_flags))) {
++			while (!(page = follow_page_mask(vma, start,
++						foll_flags, &page_mask))) {
+ 				int ret;
+ 				unsigned int fault_flags = 0;
+ 
+@@ -1861,13 +1870,19 @@ long __get_user_pages(struct task_struct
+ 
+ 				flush_anon_page(vma, page, start);
+ 				flush_dcache_page(page);
++				page_mask = 0;
+ 			}
+ next_page:
+-			if (vmas)
++			if (vmas) {
+ 				vmas[i] = vma;
+-			i++;
+-			start += PAGE_SIZE;
+-			nr_pages--;
++				page_mask = 0;
++			}
++			page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
++			if (page_increm > nr_pages)
++				page_increm = nr_pages;
++			i += page_increm;
++			start += page_increm * PAGE_SIZE;
++			nr_pages -= page_increm;
+ 		} while (nr_pages && start < vma->vm_end);
+ 	} while (nr_pages);
+ 	return i;
+diff -puN mm/nommu.c~mm-accelerate-mm_populate-treatment-of-thp-pages mm/nommu.c
+--- a/mm/nommu.c~mm-accelerate-mm_populate-treatment-of-thp-pages
++++ a/mm/nommu.c
+@@ -1817,9 +1817,11 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	return ret;
+ }
+ 
+-struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+-			unsigned int foll_flags)
++struct page *follow_page_mask(struct vm_area_struct *vma,
++			      unsigned long address, unsigned int flags,
++			      unsigned int *page_mask)
  {
- 	int flags = FOLL_TOUCH;
++	*page_mask = 0;
+ 	return NULL;
+ }
  
-diff -puN mm/mlock.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix mm/mlock.c
---- a/mm/mlock.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
-+++ a/mm/mlock.c
-@@ -160,7 +160,7 @@ long __mlock_vma_pages_range(struct vm_a
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long addr = start;
--	long nr_pages = (end - start) / PAGE_SIZE;
-+	unsigned long nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
- 
- 	VM_BUG_ON(start & ~PAGE_MASK);
 _
 
 Patches currently in -mm which might be from walken@google.com are
@@ -189,6 +227,8 @@ mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
 mm-make-do_mmap_pgoff-return-populate-as-a-size-in-bytes-not-as-a-bool.patch
 mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch
 mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch
+mm-accelerate-mm_populate-treatment-of-thp-pages.patch
+mm-accelerate-munlock-treatment-of-thp-pages.patch
 mm-remove-free_area_cache.patch
 mm-use-vm_unmapped_area-on-frv-architecture.patch
 mm-use-vm_unmapped_area-on-alpha-architecture.patch
