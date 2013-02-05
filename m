@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-memcg_stock-initialization-to-mem_cgroup_init.patch added to -mm tree
-Date: Tue, 05 Feb 2013 14:01:56 -0800
-Message-ID: <20130205220157.305D05A406B@corp2gmr1-2.hot.corp.google.com>
+Subject: + memcg-cleanup-mem_cgroup_init-comment.patch added to -mm tree
+Date: Tue, 05 Feb 2013 14:01:59 -0800
+Message-ID: <20130205220200.3302931C20C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:57395 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755613Ab3BEWB6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 17:01:58 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so79456qcs.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 14:01:57 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:44957 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755613Ab3BEWCB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 17:02:01 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so79514ghb.0
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 14:02:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mhocko@suse.cz, hannes@cmpxchg.org, htejun@gmail.com, kamezawa.hiroyu@jp.fuj
 
 
 The patch titled
-     Subject: memcg: move memcg_stock initialization to mem_cgroup_init
+     Subject: memcg: cleanup mem_cgroup_init comment
 has been added to the -mm tree.  Its filename is
-     memcg-move-memcg_stock-initialization-to-mem_cgroup_init.patch
+     memcg-cleanup-mem_cgroup_init-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: move memcg_stock initialization to mem_cgroup_init
+Subject: memcg: cleanup mem_cgroup_init comment
 
-memcg_stock are currently initialized during the root cgroup allocation
-which is OK but it pointlessly pollutes memcg allocation code with
-something that can be called when the memcg subsystem is initialized by
-mem_cgroup_init along with other controller specific parts.
-
-This patch wraps the current memcg_stock initialization code into a helper
-calls it from the controller subsystem initialization code.
+We should encourage all memcg controller initialization independent on a
+specific mem_cgroup to be done here rather than exploit css_alloc callback
+and assume that nothing happens before root cgroup is created.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -51,54 +47,29 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-move-memcg_stock-initialization-to-mem_cgroup_init mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-memcg_stock-initialization-to-mem_cgroup_init
+diff -puN mm/memcontrol.c~memcg-cleanup-mem_cgroup_init-comment mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-cleanup-mem_cgroup_init-comment
 +++ a/mm/memcontrol.c
-@@ -2296,6 +2296,17 @@ static void drain_local_stock(struct wor
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
- }
+@@ -6829,10 +6829,12 @@ static void __init enable_swap_cgroup(vo
+ #endif
  
-+static void __init memcg_stock_init(void)
-+{
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu) {
-+		struct memcg_stock_pcp *stock =
-+					&per_cpu(memcg_stock, cpu);
-+		INIT_WORK(&stock->work, drain_local_stock);
-+	}
-+}
-+
  /*
-  * Cache charges(val) which is from res_counter, to local per_cpu area.
-  * This will be consumed by consume_stock() function, later.
-@@ -6091,15 +6102,7 @@ mem_cgroup_css_alloc(struct cgroup *cont
- 
- 	/* root ? */
- 	if (cont->parent == NULL) {
--		int cpu;
--
- 		root_mem_cgroup = memcg;
--		for_each_possible_cpu(cpu) {
--			struct memcg_stock_pcp *stock =
--						&per_cpu(memcg_stock, cpu);
--			INIT_WORK(&stock->work, drain_local_stock);
--		}
--
- 		res_counter_init(&memcg->res, NULL);
- 		res_counter_init(&memcg->memsw, NULL);
- 		res_counter_init(&memcg->kmem, NULL);
-@@ -6836,6 +6839,7 @@ static int __init mem_cgroup_init(void)
- 	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
- 	enable_swap_cgroup();
- 	mem_cgroup_soft_limit_tree_init();
-+	memcg_stock_init();
- 	return 0;
- }
- subsys_initcall(mem_cgroup_init);
+- * The rest of init is performed during ->css_alloc() for root css which
+- * happens before initcalls.  hotcpu_notifier() can't be done together as
+- * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
+- * dependency.  Do it from a subsys_initcall().
++ * subsys_initcall() for memory controller.
++ *
++ * Some parts like hotcpu_notifier() have to be initialized from this context
++ * because of lock dependencies (cgroup_lock -> cpu hotplug) but basically
++ * everything that doesn't depend on a specific mem_cgroup structure should
++ * be initialized from here.
+  */
+ static int __init mem_cgroup_init(void)
+ {
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
