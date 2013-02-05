@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-up-free-swap-space-before-reaching-oom-kill.patch added to -mm tree
-Date: Tue, 05 Feb 2013 13:03:20 -0800
-Message-ID: <20130205210320.C8B985A406B@corp2gmr1-2.hot.corp.google.com>
+Subject: + include-linux-mmzoneh-cleanups-fix.patch added to -mm tree
+Date: Tue, 05 Feb 2013 13:13:20 -0800
+Message-ID: <20130205211321.4965D5A406B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:40492 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755625Ab3BEVDX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 16:03:23 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so71222vea.0
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 13:03:21 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:41388 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754228Ab3BEVNW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 16:13:22 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so72196ves.3
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 13:13:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, hannes@cmpxchg.org, hughd@google.com, riel@redhat.com, semenzato@google.com
+Cc: akpm@linux-foundation.org, linfeng@cn.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     Subject: mm: use up free swap space before reaching OOM kill
+     Subject: include-linux-mmzoneh-cleanups-fix
 has been added to the -mm tree.  Its filename is
-     mm-use-up-free-swap-space-before-reaching-oom-kill.patch
+     include-linux-mmzoneh-cleanups-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,162 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: use up free swap space before reaching OOM kill
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include-linux-mmzoneh-cleanups-fix
 
-Recently, Luigi reported there are lots of free swap space when OOM
-happens.  It's easily reproduced on zram-over-swap, where many instance of
-memory hogs are running and laptop_mode is enabled.  He said there was no
-problem when he disabled laptop_mode.  The problem when I investigate
-problem is following as.
+use zone_idx() some more, further simplify is_highmem()
 
-Assumption for easy explanation: There are no page cache page in system
-because they all are already reclaimed.
-
-1. try_to_free_pages disable may_writepage when laptop_mode is enabled.
-2. shrink_inactive_list isolates victim pages from inactive anon lru list.
-3. shrink_page_list adds them to swapcache via add_to_swap but it doesn't
-   pageout because sc->may_writepage is 0 so the page is rotated back into
-   inactive anon lru list. The add_to_swap made the page Dirty by SetPageDirty.
-4. 3 couldn't reclaim any pages so do_try_to_free_pages increase priority and
-   retry reclaim with higher priority.
-5. shrink_inactlive_list try to isolate victim pages from inactive anon lru list
-   but got failed because it try to isolate pages with ISOLATE_CLEAN mode but
-   inactive anon lru list is full of dirty pages by 3 so it just returns
-   without  any reclaim progress.
-6. do_try_to_free_pages doesn't set may_writepage due to zero total_scanned.
-   Because sc->nr_scanned is increased by shrink_page_list but we don't call
-   shrink_page_list in 5 due to short of isolated pages.
-
-Above loop is continued until OOM happens.
-
-The problem didn't happen before [1] was merged because old logic's
-isolatation in shrink_inactive_list was successful and tried to call
-shrink_page_list to pageout them but it still ends up failed to page out
-by may_writepage.  But important point is that sc->nr_scanned was
-increased although we couldn't swap out them so do_try_to_free_pages could
-set may_writepages.
-
-Since f80c067 ("mm: zone_reclaim: make isolate_lru_page() filter-aware")
-was introduced, it's not a good idea any more to depends on only the
-number of scanned pages for setting may_writepage.  So this patch adds new
-trigger point of setting may_writepage as below DEF_PRIOIRTY - 2 which is
-used to show the significant memory pressure in VM so it's good fit for
-our purpose which would be better to lose power saving or clickety rather
-than OOM killing.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Luigi Semenzato <semenzato@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ include/linux/mmzone.h |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN mm/vmscan.c~mm-use-up-free-swap-space-before-reaching-oom-kill mm/vmscan.c
---- a/mm/vmscan.c~mm-use-up-free-swap-space-before-reaching-oom-kill
-+++ a/mm/vmscan.c
-@@ -2195,6 +2195,13 @@ static unsigned long do_try_to_free_page
- 			goto out;
+diff -puN include/linux/mmzone.h~include-linux-mmzoneh-cleanups-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~include-linux-mmzoneh-cleanups-fix
++++ a/include/linux/mmzone.h
+@@ -859,25 +859,18 @@ static inline int is_normal_idx(enum zon
+  */
+ static inline int is_highmem(struct zone *zone)
+ {
+-#ifdef CONFIG_HIGHMEM
+-	enum zone_type idx = zone_idx(zone);
+-
+-	return idx == ZONE_HIGHMEM ||
+-	       (idx == ZONE_MOVABLE && zone_movable_is_highmem());
+-#else
+-	return 0;
+-#endif
++	return is_highmem_idx(zone_idx(zone));
+ }
  
- 		/*
-+		 * If we're getting trouble reclaiming, start doing
-+		 * writepage even in laptop mode.
-+		 */
-+		if (sc->priority < DEF_PRIORITY - 2)
-+			sc->may_writepage = 1;
-+
-+		/*
- 		 * Try to write back as many pages as we just scanned.  This
- 		 * tends to cause slow streaming writers to write data to the
- 		 * disk smoothly, at the dirtying rate, which is nice.   But
-@@ -2765,12 +2772,10 @@ loop_again:
- 			}
+ static inline int is_normal(struct zone *zone)
+ {
+-	return zone == zone->zone_pgdat->node_zones + ZONE_NORMAL;
++	return zone_idx(zone) == ZONE_NORMAL;
+ }
  
- 			/*
--			 * If we've done a decent amount of scanning and
--			 * the reclaim ratio is low, start doing writepage
--			 * even in laptop mode
-+			 * If we're getting trouble reclaiming, start doing
-+			 * writepage even in laptop mode.
- 			 */
--			if (total_scanned > SWAP_CLUSTER_MAX * 2 &&
--			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
-+			if (sc.priority < DEF_PRIORITY - 2)
- 				sc.may_writepage = 1;
- 
- 			if (zone->all_unreclaimable) {
+ static inline int is_dma32(struct zone *zone)
+ {
+ #ifdef CONFIG_ZONE_DMA32
+-	return zone == zone->zone_pgdat->node_zones + ZONE_DMA32;
++	return zone_idx(zone) == ZONE_DMA32;
+ #else
+ 	return 0;
+ #endif
+@@ -886,7 +879,7 @@ static inline int is_dma32(struct zone *
+ static inline int is_dma(struct zone *zone)
+ {
+ #ifdef CONFIG_ZONE_DMA
+-	return zone == zone->zone_pgdat->node_zones + ZONE_DMA;
++	return zone_idx(zone) == ZONE_DMA;
+ #else
+ 	return 0;
+ #endif
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
 mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
-mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
-mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
-mm-remove-migrate_isolate-check-in-hotpath.patch
-mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
-pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
-block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
-net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
-pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
-usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
-swap-make-each-swap-partition-have-one-address_space.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
 swap-make-each-swap-partition-have-one-address_space-fix.patch
-mm-use-up-free-swap-space-before-reaching-oom-kill.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
