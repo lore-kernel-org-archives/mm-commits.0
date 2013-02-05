@@ -1,91 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-fix-float-creation-of-match-variables.patch removed from -mm tree
-Date: Tue, 05 Feb 2013 12:20:33 -0800
-Message-ID: <20130205202033.9DFC831C1CE@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] samples-seccomp-be-less-stupid-about-cross-compiling.patch removed from -mm tree
+Date: Tue, 05 Feb 2013 12:20:36 -0800
+Message-ID: <20130205202036.C49B631C1CE@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:47932 "EHLO
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:46053 "EHLO
 	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755605Ab3BEUUe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:34 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so77328qah.4
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:34 -0800 (PST)
+	with ESMTP id S1755340Ab3BEUUi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:38 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so77380qah.2
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, heiko.carstens@de.ibm.com, james.l.morris@oracle.com, keescook@chromium.org, wad@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix $Float creation of match variables
+     Subject: samples/seccomp: be less stupid about cross compiling
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-float-creation-of-match-variables.patch
+     samples-seccomp-be-less-stupid-about-cross-compiling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix $Float creation of match variables
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: samples/seccomp: be less stupid about cross compiling
 
-commit 74349bccedb ("checkpatch: add support for floating point
-constants") added an unnecessary match variable that caused tests that
-used a $Constant or $LvalOrFunc to have one too many matches.
+The seccomp filters are currently built for the build host, not for the
+machine that they are going to run on, but they are also built for with
+the -m32 flag if the kernel is built for a 32 bit machine, both of which
+seems rather odd.
 
-This causes problems with usleep_range, min/max and other extended tests.
+It broke allyesconfig on my machine, which is x86-64, but
+building for 32 bit ARM, with this error message:
 
-Avoid using match variables in $Float.
-Avoid using match variables in $Assignment too.
+In file included from /usr/include/stdio.h:28:0,
+                 from samples/seccomp/bpf-fancy.c:15:
+/usr/include/features.h:324:26: fatal error: bits/predefs.h: No such file or directory
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+because there are no 32 bit libc headers installed on this machine.  We
+should really be building all the samples for the target machine rather
+than the build host, but since the infrastructure for that appears to be
+missing right now, let's be a little bit smarter and not pass the '-m32'
+flag to the HOSTCC when cross- compiling.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Acked-by: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ samples/seccomp/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-float-creation-of-match-variables scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-float-creation-of-match-variables
-+++ a/scripts/checkpatch.pl
-@@ -230,12 +230,12 @@ our $Inline	= qr{inline|__always_inline|
- our $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
- our $Lval	= qr{$Ident(?:$Member)*};
+diff -puN samples/seccomp/Makefile~samples-seccomp-be-less-stupid-about-cross-compiling samples/seccomp/Makefile
+--- a/samples/seccomp/Makefile~samples-seccomp-be-less-stupid-about-cross-compiling
++++ a/samples/seccomp/Makefile
+@@ -19,6 +19,7 @@ bpf-direct-objs := bpf-direct.o
  
--our $Float_hex	= qr{(?i:0x[0-9a-f]+p-?[0-9]+[fl]?)};
--our $Float_dec	= qr{(?i:((?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?))};
--our $Float_int	= qr{(?i:[0-9]+e-?[0-9]+[fl]?)};
-+our $Float_hex	= qr{(?i)0x[0-9a-f]+p-?[0-9]+[fl]?};
-+our $Float_dec	= qr{(?i)(?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?};
-+our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[fl]?};
- our $Float	= qr{$Float_hex|$Float_dec|$Float_int};
--our $Constant	= qr{(?:$Float|(?i:(?:0x[0-9a-f]+|[0-9]+)[ul]*))};
--our $Assignment	= qr{(?:\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=)};
-+our $Constant	= qr{$Float|(?i)(?:0x[0-9a-f]+|[0-9]+)[ul]*};
-+our $Assignment	= qr{\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=};
- our $Compare    = qr{<=|>=|==|!=|<|>};
- our $Operators	= qr{
- 			<=|>=|==|!=|
+ # Try to match the kernel target.
+ ifndef CONFIG_64BIT
++ifndef CROSS_COMPILE
+ 
+ # s390 has -m31 flag to build 31 bit binaries
+ ifndef CONFIG_S390
+@@ -35,6 +36,7 @@ HOSTLOADLIBES_bpf-direct += $(MFLAG)
+ HOSTLOADLIBES_bpf-fancy += $(MFLAG)
+ HOSTLOADLIBES_dropper += $(MFLAG)
+ endif
++endif
+ 
+ # Tell kbuild to always build the programs
+ always := $(hostprogs-y)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 origin.patch
 linux-next.patch
-compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
-compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
-compiler-gcc34h-use-gcc_version-macro.patch
-compiler-gcc4h-bugh-remove-duplicate-macros.patch
-bugh-fix-build_bug_on-macro-in-__checker__.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on.patch
-bugh-make-build_bug_on-generate-compile-time-error.patch
-compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
-get_maintainerpl-find-maintainers-for-removed-files.patch
-checkpatch-prefer-dev_level-to-dev_printkkern_level.patch
-checkpatch-warn-on-unnecessary-__devfoo-section-markings.patch
-checkpatch-add-joe-to-maintainers.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-checkpatch-add-check-for-kcalloc-argument-order.patch
-checkpatch-fix-usleep_range-test.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
+swap-add-per-partition-lock-for-swapfile-fix-for-nommu.patch
+idr-make-idr_destroy-imply-idr_remove_all.patch
+idr-deprecate-idr_remove_all.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
 
