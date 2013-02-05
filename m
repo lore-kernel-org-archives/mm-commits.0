@@ -1,50 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tools-vm-add-gitignore-to-ignore-built-binaries.patch removed from -mm tree
-Date: Tue, 05 Feb 2013 12:20:15 -0800
-Message-ID: <20130205202015.822D831C1CE@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] thp-avoid-dumping-huge-zero-page.patch removed from -mm tree
+Date: Tue, 05 Feb 2013 12:20:12 -0800
+Message-ID: <20130205202012.93CCB31C107@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:57530 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756368Ab3BEUUQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:16 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so27141yhr.2
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:15 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34545 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756280Ab3BEUUN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:13 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so65011vcd.3
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm: add .gitignore to ignore built binaries
+     Subject: thp: avoid dumping huge zero page
 has been removed from the -mm tree.  Its filename was
-     tools-vm-add-gitignore-to-ignore-built-binaries.patch
+     thp-avoid-dumping-huge-zero-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: tools/vm: add .gitignore to ignore built binaries
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: avoid dumping huge zero page
 
-There is no .gitignore in tools/vm, so 'git status' always show built
-binaries.  To ignore this, add .gitignore.
+No reason to preserve the huge zero page in core dumps.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Michel Lespinasse <walken@google.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/.gitignore |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/huge_memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN /dev/null tools/vm/.gitignore
---- /dev/null
-+++ a/tools/vm/.gitignore
-@@ -0,0 +1,2 @@
-+slabinfo
-+page-types
+diff -puN mm/huge_memory.c~thp-avoid-dumping-huge-zero-page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-avoid-dumping-huge-zero-page
++++ a/mm/huge_memory.c
+@@ -1257,6 +1257,10 @@ struct page *follow_trans_huge_pmd(struc
+ 	if (flags & FOLL_WRITE && !pmd_write(*pmd))
+ 		goto out;
+ 
++	/* Avoid dumping huge zero page */
++	if ((flags & FOLL_DUMP) && is_huge_zero_pmd(*pmd))
++		return ERR_PTR(-EFAULT);
++
+ 	page = pmd_page(*pmd);
+ 	VM_BUG_ON(!PageHead(page));
+ 	if (flags & FOLL_TOUCH) {
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+linux-next.patch
+mm-huge_memory-use-new-hashtable-implementation.patch
+mm-remove-unused-memclear_highpage_flush.patch
 
