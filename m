@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + printk-avoid-softlockups-in-console_unlock-fix.patch added to -mm tree
-Date: Tue, 05 Feb 2013 15:17:50 -0800
-Message-ID: <20130205231751.18CF65A406B@corp2gmr1-2.hot.corp.google.com>
+Subject: + acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch added to -mm tree
+Date: Tue, 05 Feb 2013 15:24:02 -0800
+Message-ID: <20130205232402.6EEE75A422F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:38114 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754365Ab3BEXRw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 18:17:52 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so87199qeb.4
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 15:17:51 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:37215 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756560Ab3BEXYE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 18:24:04 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so88247yen.5
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 15:24:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fweisbec@gmail.com, jack@suse.cz, mingo@elte.hu, rostedt@goodmis.org
+Cc: akpm@linux-foundation.org, tangchen@cn.fujitsu.com
 
 
 The patch titled
-     Subject: printk-avoid-softlockups-in-console_unlock-fix
+     Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
 has been added to the -mm tree.  Its filename is
-     printk-avoid-softlockups-in-console_unlock-fix.patch
+     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk-avoid-softlockups-in-console_unlock-fix
+Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
 
-i386 allnoconfig:
+mm/page_alloc.c: In function 'cmdline_parse_movablemem_map':
+mm/page_alloc.c:5372: warning: comparison of distinct pointer types lacks a cast
 
-In file included from arch/x86/mm/pgtable_32.c:5:
-include/linux/nmi.h: In function 'max_interrupt_disabled_duration':
-include/linux/nmi.h:70: warning: integer overflow in expression
+not the right fix, but I'm tired of the warning
 
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    2 +-
- printk.c            |    0 
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nmi.h~printk-avoid-softlockups-in-console_unlock-fix include/linux/nmi.h
---- a/include/linux/nmi.h~printk-avoid-softlockups-in-console_unlock-fix
-+++ a/include/linux/nmi.h
-@@ -67,7 +67,7 @@ static inline u64 max_interrupt_disabled
- static inline u64 max_interrupt_disabled_duration(void)
- {
- 	/* About the value we'd get with the default watchdog setting */
--	return 5 * NSEC_PER_SEC;
-+	return 5ULL * NSEC_PER_SEC;
- }
- #endif
+diff -puN mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
++++ a/mm/page_alloc.c
+@@ -5369,7 +5369,7 @@ static int __init cmdline_parse_movablem
+ 	if (!p)
+ 		goto err;
  
-diff -puN kernel/printk.c~printk-avoid-softlockups-in-console_unlock-fix kernel/printk.c
+-	if (!strncmp(p, "acpi", max(4, strlen(p))))
++	if (!strncmp(p, "acpi", max_t(size_t, 4, strlen(p))))
+ 		movablemem_map.acpi = true;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +125,7 @@ drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
 kernel-smpc-cleanups.patch
+printk-avoid-softlockups-in-console_unlock-fix.patch
 backlight-add-lms501kf03-lcd-driver-fix.patch
 backlight-add-lms501kf03-lcd-driver-fix-fix.patch
 backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
@@ -173,5 +168,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-printk-avoid-softlockups-in-console_unlock-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
 
