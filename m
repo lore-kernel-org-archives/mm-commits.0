@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-mmzoneh-cleanups.patch added to -mm tree
-Date: Mon, 04 Feb 2013 16:06:37 -0800
-Message-ID: <20130205000639.6EB015A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch added to -mm tree
+Date: Mon, 04 Feb 2013 16:12:09 -0800
+Message-ID: <20130205001209.BA10E31C00F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:48343 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756133Ab3BEAGm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 19:06:42 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so710073qeb.4
-        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 16:06:41 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:63974 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754572Ab3BEAML (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 19:12:11 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so100210yhr.4
+        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 16:12:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linfeng@cn.fujitsu.com, mel@csn.ul.ie
+Cc: walken@google.com, aarcange@redhat.com, hughd@google.com, mgorman@suse.de, riel@redhat.com
 
 
 The patch titled
-     Subject: include/linux/mmzone.h: cleanups
+     Subject: fix mm: use long type for page counts in mm_populate() and get_user_pages()
 has been added to the -mm tree.  Its filename is
-     include-linux-mmzoneh-cleanups.patch
+     mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,151 +33,170 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/mmzone.h: cleanups
+From: Michel Lespinasse <walken@google.com>
+Subject: fix mm: use long type for page counts in mm_populate() and get_user_pages()
 
-- implement zone_idx() in C to fix its references-args-twice macro bug
+Andrew suggested I make the nr_pages argument an unsigned long rather
+than just a long. I was initially worried that nr_pages would be compared
+with signed longs, but this isn't the case, so his suggestion is perfectly
+valid.
 
-- use zone_idx() in is_highmem() to remove large amounts of silly fluff.
+Sending as a 'fix' change, to be collapsed with the original in -mm.
 
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/hugetlb.h |    2 +-
+ include/linux/mm.h      |   11 ++++++-----
+ mm/hugetlb.c            |    8 ++++----
+ mm/memory.c             |   12 ++++++------
+ mm/mlock.c              |    2 +-
+ 5 files changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/mmzone.h~include-linux-mmzoneh-cleanups include/linux/mmzone.h
---- a/include/linux/mmzone.h~include-linux-mmzoneh-cleanups
-+++ a/include/linux/mmzone.h
-@@ -815,7 +815,10 @@ unsigned long __init node_memmap_size_by
- /*
-  * zone_idx() returns 0 for the ZONE_DMA zone, 1 for the ZONE_NORMAL zone, etc.
-  */
--#define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
-+static inline enum zone_type zone_idx(struct zone *zone)
-+{
-+	return zone - zone->zone_pgdat->node_zones;
-+}
+diff -puN include/linux/hugetlb.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
++++ a/include/linux/hugetlb.h
+@@ -45,7 +45,7 @@ int hugetlb_mempolicy_sysctl_handler(str
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
+ long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
+ 			 struct page **, struct vm_area_struct **,
+-			 unsigned long *, long *, long, unsigned int flags);
++			 unsigned long *, unsigned long *, long, unsigned int);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *);
+ void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+diff -puN include/linux/mm.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
++++ a/include/linux/mm.h
+@@ -1012,12 +1012,13 @@ extern int access_remote_vm(struct mm_st
+ 		void *buf, int len, int write);
  
- static inline int populated_zone(struct zone *zone)
+ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		      unsigned long start, long len, unsigned int foll_flags,
+-		      struct page **pages, struct vm_area_struct **vmas,
+-		      int *nonblocking);
++		      unsigned long start, unsigned long nr_pages,
++		      unsigned int foll_flags, struct page **pages,
++		      struct vm_area_struct **vmas, int *nonblocking);
+ long get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		    unsigned long start, long nr_pages, int write, int force,
+-		    struct page **pages, struct vm_area_struct **vmas);
++		    unsigned long start, unsigned long nr_pages,
++		    int write, int force, struct page **pages,
++		    struct vm_area_struct **vmas);
+ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			struct page **pages);
+ struct kvec;
+diff -puN mm/hugetlb.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
++++ a/mm/hugetlb.c
+@@ -2922,12 +2922,12 @@ follow_huge_pud(struct mm_struct *mm, un
+ 
+ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			 struct page **pages, struct vm_area_struct **vmas,
+-			 unsigned long *position, long *length, long i,
+-			 unsigned int flags)
++			 unsigned long *position, unsigned long *nr_pages,
++			 long i, unsigned int flags)
  {
-@@ -857,10 +860,10 @@ static inline int is_normal_idx(enum zon
- static inline int is_highmem(struct zone *zone)
+ 	unsigned long pfn_offset;
+ 	unsigned long vaddr = *position;
+-	long remainder = *length;
++	unsigned long remainder = *nr_pages;
+ 	struct hstate *h = hstate_vma(vma);
+ 
+ 	spin_lock(&mm->page_table_lock);
+@@ -2997,7 +2997,7 @@ same_page:
+ 		}
+ 	}
+ 	spin_unlock(&mm->page_table_lock);
+-	*length = remainder;
++	*nr_pages = remainder;
+ 	*position = vaddr;
+ 
+ 	return i ? i : -EFAULT;
+diff -puN mm/memory.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix mm/memory.c
+--- a/mm/memory.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
++++ a/mm/memory.c
+@@ -1678,14 +1678,14 @@ static inline int stack_guard_page(struc
+  * you need some special @gup_flags.
+  */
+ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		unsigned long start, long nr_pages, unsigned int gup_flags,
+-		struct page **pages, struct vm_area_struct **vmas,
+-		int *nonblocking)
++		unsigned long start, unsigned long nr_pages,
++		unsigned int gup_flags, struct page **pages,
++		struct vm_area_struct **vmas, int *nonblocking)
  {
- #ifdef CONFIG_HIGHMEM
--	int zone_off = (char *)zone - (char *)zone->zone_pgdat->node_zones;
--	return zone_off == ZONE_HIGHMEM * sizeof(*zone) ||
--	       (zone_off == ZONE_MOVABLE * sizeof(*zone) &&
--		zone_movable_is_highmem());
-+	enum zone_type idx = zone_idx(zone);
-+
-+	return idx == ZONE_HIGHMEM ||
-+	       (idx == ZONE_MOVABLE && zone_movable_is_highmem());
- #else
- 	return 0;
- #endif
+ 	long i;
+ 	unsigned long vm_flags;
+ 
+-	if (nr_pages <= 0)
++	if (!nr_pages)
+ 		return 0;
+ 
+ 	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
+@@ -1982,8 +1982,8 @@ int fixup_user_fault(struct task_struct 
+  * See also get_user_pages_fast, for performance critical applications.
+  */
+ long get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		unsigned long start, long nr_pages, int write, int force,
+-		struct page **pages, struct vm_area_struct **vmas)
++		unsigned long start, unsigned long nr_pages, int write,
++		int force, struct page **pages, struct vm_area_struct **vmas)
+ {
+ 	int flags = FOLL_TOUCH;
+ 
+diff -puN mm/mlock.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix mm/mlock.c
+--- a/mm/mlock.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix
++++ a/mm/mlock.c
+@@ -160,7 +160,7 @@ long __mlock_vma_pages_range(struct vm_a
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long addr = start;
+-	long nr_pages = (end - start) / PAGE_SIZE;
++	unsigned long nr_pages = (end - start) / PAGE_SIZE;
+ 	int gup_flags;
+ 
+ 	VM_BUG_ON(start & ~PAGE_MASK);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+thp-avoid-dumping-huge-zero-page.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-free_area_cache-use-in-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-ia64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch
+mm-use-vm_unmapped_area-on-parisc-architecture.patch
+mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags.patch
+mm-remap_file_pages-fixes.patch
+mm-introduce-mm_populate-for-populating-new-vmas.patch
+mm-use-mm_populate-for-blocking-remap_file_pages.patch
+mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
+mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch
+mm-remove-flags-argument-to-mmap_region.patch
 mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch
+mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
+mm-make-do_mmap_pgoff-return-populate-as-a-size-in-bytes-not-as-a-bool.patch
+mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch
+mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch
+mm-remove-free_area_cache.patch
+mm-use-vm_unmapped_area-on-frv-architecture.patch
+mm-use-vm_unmapped_area-on-alpha-architecture.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
