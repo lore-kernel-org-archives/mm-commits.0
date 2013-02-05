@@ -1,87 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable.patch removed from -mm tree
-Date: Tue, 05 Feb 2013 12:20:42 -0800
-Message-ID: <20130205202042.B723431C107@corp2gmr1-1.hot.corp.google.com>
+Subject: [to-be-updated] mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch removed from -mm tree
+Date: Tue, 05 Feb 2013 12:39:57 -0800
+Message-ID: <20130205203957.D21DA5A422F__42043.5301879936$1360096825$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:53126 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755613Ab3BEUUn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:43 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so65797ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:43 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:33663 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756050Ab3BEUj7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:39:59 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so28123yhz.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:39:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haojian.zhuang@linaro.org, a.zummo@towertech.it, linus.walleij@linaro.org, srinidhi.kasagar@stericsson.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, bfreed@google.com, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, mel@csn.ul.ie, riel@redhat.com, semenzato@google.com, sonnyrao@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pl031.c: fix the missing operation on enable
+     Subject: mm: prevent addition of pages to swap if may_writepage is unset
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable.patch
+     mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Haojian Zhuang <haojian.zhuang@linaro.org>
-Subject: drivers/rtc/rtc-pl031.c: fix the missing operation on enable
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: prevent addition of pages to swap if may_writepage is unset
 
-The RTC control register should be enabled in the process of initializing.
+Recently, Luigi reported there are lots of free swap space when OOM
+happens.  It's easily reproduced on zram-over-swap, where many instance of
+memory hogs are running and laptop_mode is enabled.
 
-Without this patch, I failed to enable RTC in Hisilicon Hi3620 SoC.  The
-register mapping section in RTC is always read as zero.  So I doubt that
-ST guys may already enable this register in bootloader.  So they won't
-meet this issue.
+Luigi reported there was no problem when he disabled laptop_mode.  The
+problem when I investigate problem is following as.
 
-Signed-off-by: Haojian Zhuang <haojian.zhuang@linaro.org>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+try_to_free_pages disable may_writepage if laptop_mode is enabled. 
+shrink_page_list adds lots of anon pages in swap cache by add_to_swap,
+which makes pages Dirty and rotate them to head of inactive LRU without
+pageout.  If it is repeated, inactive anon LRU is full of Dirty and
+SwapCache pages.
+
+In case of that, isolate_lru_pages fails because it try to isolate clean
+page due to may_writepage == 0.
+
+The may_writepage could be 1 only if total_scanned is higher than
+writeback_threshold in do_try_to_free_pages but unfortunately, VM can't
+isolate anon pages from inactive anon lru list by above reason and we
+already reclaimed all file-backed pages.  So it ends up OOM killing.
+
+This patch prevents unnecessary addition of a page to swap cache when
+may_writepage is unset so anoymous lru list isn't full of Dirty/Swapcache
+page.  So the VM can isolate pages from anon lru list, which ends up
+setting may_writepage to 1 and could swap out anon lru pages.  When OOM
+triggers, I confirmed swap space was full.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Luigi Semenzato <semenzato@google.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Bryan Freed <bfreed@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pl031.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable drivers/rtc/rtc-pl031.c
---- a/drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable
-+++ a/drivers/rtc/rtc-pl031.c
-@@ -44,6 +44,7 @@
- #define RTC_YMR		0x34	/* Year match register */
- #define RTC_YLR		0x38	/* Year data load register */
- 
-+#define RTC_CR_EN	(1 << 0)	/* counter enable bit */
- #define RTC_CR_CWEN	(1 << 26)	/* Clockwatch enable bit */
- 
- #define RTC_TCR_EN	(1 << 1) /* Periodic timer enable bit */
-@@ -320,7 +321,7 @@ static int pl031_probe(struct amba_devic
- 	struct pl031_local *ldata;
- 	struct pl031_vendor_data *vendor = id->data;
- 	struct rtc_class_ops *ops = &vendor->ops;
--	unsigned long time;
-+	unsigned long time, data;
- 
- 	ret = amba_request_regions(adev, NULL);
- 	if (ret)
-@@ -345,10 +346,11 @@ static int pl031_probe(struct amba_devic
- 	dev_dbg(&adev->dev, "designer ID = 0x%02x\n", amba_manf(adev));
- 	dev_dbg(&adev->dev, "revision = 0x%01x\n", amba_rev(adev));
- 
-+	data = readl(ldata->base + RTC_CR);
- 	/* Enable the clockwatch on ST Variants */
- 	if (vendor->clockwatch)
--		writel(readl(ldata->base + RTC_CR) | RTC_CR_CWEN,
--		       ldata->base + RTC_CR);
-+		data |= RTC_CR_CWEN;
-+	writel(data | RTC_CR_EN, ldata->base + RTC_CR);
- 
- 	/*
- 	 * On ST PL031 variants, the RTC reset value does not provide correct
+diff -puN mm/vmscan.c~mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset mm/vmscan.c
+--- a/mm/vmscan.c~mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset
++++ a/mm/vmscan.c
+@@ -780,6 +780,8 @@ static unsigned long shrink_page_list(st
+ 		if (PageAnon(page) && !PageSwapCache(page)) {
+ 			if (!(sc->gfp_mask & __GFP_IO))
+ 				goto keep_locked;
++			if (!sc->may_writepage)
++				goto keep_locked;
+ 			if (!add_to_swap(page))
+ 				goto activate_locked;
+ 			may_enter_fs = 1;
 _
 
-Patches currently in -mm which might be from haojian.zhuang@linaro.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-origin.patch
 linux-next.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
+mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
+mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
+mm-remove-migrate_isolate-check-in-hotpath.patch
+mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
+pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
+block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
+net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
+pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
+usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
+swap-make-each-swap-partition-have-one-address_space.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
