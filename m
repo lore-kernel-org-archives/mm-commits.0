@@ -1,67 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler.patch removed from -mm tree
-Date: Tue, 05 Feb 2013 12:20:39 -0800
-Message-ID: <20130205202039.A1AF431C107@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] checkpatch-fix-float-creation-of-match-variables.patch removed from -mm tree
+Date: Tue, 05 Feb 2013 12:20:33 -0800
+Message-ID: <20130205202033.9DFC831C1CE@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:65421 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755556Ab3BEUUk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:40 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so65665ghb.4
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:40 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:47932 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755605Ab3BEUUe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 15:20:34 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so77328qah.4
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 12:20:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlu@pengutronix.de, a.zummo@towertech.it, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from the alarm irq handler
+     Subject: checkpatch: fix $Float creation of match variables
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler.patch
+     checkpatch-fix-float-creation-of-match-variables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Luebbe <jlu@pengutronix.de>
-Subject: drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from the alarm irq handler
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: fix $Float creation of match variables
 
-Previously the alarm event was not propagated into the RTC subsystem.  By
-adding a call to rtc_update_irq, this fixes a timeout problem with the
-hwclock utility.
+commit 74349bccedb ("checkpatch: add support for floating point
+constants") added an unnecessary match variable that caused tests that
+used a $Constant or $LvalOrFunc to have one too many matches.
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@vger.kernel.org>
+This causes problems with usleep_range, min/max and other extended tests.
+
+Avoid using match variables in $Float.
+Avoid using match variables in $Assignment too.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl1208.c |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/checkpatch.pl |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler drivers/rtc/rtc-isl1208.c
---- a/drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler
-+++ a/drivers/rtc/rtc-isl1208.c
-@@ -506,6 +506,7 @@ isl1208_rtc_interrupt(int irq, void *dat
- {
- 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
- 	struct i2c_client *client = data;
-+	struct rtc_device *rtc = i2c_get_clientdata(client);
- 	int handled = 0, sr, err;
+diff -puN scripts/checkpatch.pl~checkpatch-fix-float-creation-of-match-variables scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-float-creation-of-match-variables
++++ a/scripts/checkpatch.pl
+@@ -230,12 +230,12 @@ our $Inline	= qr{inline|__always_inline|
+ our $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
+ our $Lval	= qr{$Ident(?:$Member)*};
  
- 	/*
-@@ -528,6 +529,8 @@ isl1208_rtc_interrupt(int irq, void *dat
- 	if (sr & ISL1208_REG_SR_ALM) {
- 		dev_dbg(&client->dev, "alarm!\n");
- 
-+		rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
-+
- 		/* Clear the alarm */
- 		sr &= ~ISL1208_REG_SR_ALM;
- 		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
+-our $Float_hex	= qr{(?i:0x[0-9a-f]+p-?[0-9]+[fl]?)};
+-our $Float_dec	= qr{(?i:((?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?))};
+-our $Float_int	= qr{(?i:[0-9]+e-?[0-9]+[fl]?)};
++our $Float_hex	= qr{(?i)0x[0-9a-f]+p-?[0-9]+[fl]?};
++our $Float_dec	= qr{(?i)(?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?};
++our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[fl]?};
+ our $Float	= qr{$Float_hex|$Float_dec|$Float_int};
+-our $Constant	= qr{(?:$Float|(?i:(?:0x[0-9a-f]+|[0-9]+)[ul]*))};
+-our $Assignment	= qr{(?:\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=)};
++our $Constant	= qr{$Float|(?i)(?:0x[0-9a-f]+|[0-9]+)[ul]*};
++our $Assignment	= qr{\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=};
+ our $Compare    = qr{<=|>=|==|!=|<|>};
+ our $Operators	= qr{
+ 			<=|>=|==|!=|
 _
 
-Patches currently in -mm which might be from jlu@pengutronix.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+linux-next.patch
+compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
+compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
+compiler-gcc34h-use-gcc_version-macro.patch
+compiler-gcc4h-bugh-remove-duplicate-macros.patch
+bugh-fix-build_bug_on-macro-in-__checker__.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on.patch
+bugh-make-build_bug_on-generate-compile-time-error.patch
+compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
+get_maintainerpl-find-maintainers-for-removed-files.patch
+checkpatch-prefer-dev_level-to-dev_printkkern_level.patch
+checkpatch-warn-on-unnecessary-__devfoo-section-markings.patch
+checkpatch-add-joe-to-maintainers.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+checkpatch-add-check-for-kcalloc-argument-order.patch
+checkpatch-fix-usleep_range-test.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
 
