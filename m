@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-mmzoneh-cleanups-fix.patch added to -mm tree
-Date: Tue, 05 Feb 2013 13:13:20 -0800
-Message-ID: <20130205211321.4965D5A406B@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-break-circular-include-from-linux-mmzoneh.patch added to -mm tree
+Date: Tue, 05 Feb 2013 13:18:05 -0800
+Message-ID: <20130205211805.803AA31C107@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:41388 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754228Ab3BEVNW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 16:13:22 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so72196ves.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 13:13:22 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:35243 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754640Ab3BEVSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 16:18:07 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so72441yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 13:18:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linfeng@cn.fujitsu.com, mel@csn.ul.ie
+Cc: lig.fnst@cn.fujitsu.com, rientjes@google.com
 
 
 The patch titled
-     Subject: include-linux-mmzoneh-cleanups-fix
+     Subject: mm: break circular include from linux/mmzone.h
 has been added to the -mm tree.  Its filename is
-     include-linux-mmzoneh-cleanups-fix.patch
+     mm-break-circular-include-from-linux-mmzoneh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,162 +33,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-mmzoneh-cleanups-fix
+From: liguang <lig.fnst@cn.fujitsu.com>
+Subject: mm: break circular include from linux/mmzone.h
 
-use zone_idx() some more, further simplify is_highmem()
+linux/mmzone.h included linux/memory_hotplug.h, and linux/memory_hotplug.h
+also included linux/mmzone.h, so there's a bad cirlular.
 
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/hwmon/coretemp.c    |    2 ++
+ drivers/hwmon/via-cputemp.c |    2 ++
+ include/linux/mmzone.h      |    1 -
+ kernel/cpu.c                |    1 +
+ kernel/smp.c                |    1 +
+ lib/show_mem.c              |    1 +
+ mm/memory_hotplug.c         |    1 +
+ mm/nobootmem.c              |    1 +
+ mm/sparse.c                 |    1 +
+ 9 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~include-linux-mmzoneh-cleanups-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~include-linux-mmzoneh-cleanups-fix
+diff -puN drivers/hwmon/coretemp.c~mm-break-circular-include-from-linux-mmzoneh drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/drivers/hwmon/coretemp.c
+@@ -36,6 +36,8 @@
+ #include <linux/cpu.h>
+ #include <linux/smp.h>
+ #include <linux/moduleparam.h>
++#include <linux/notifier.h>
++
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ #include <asm/cpu_device_id.h>
+diff -puN drivers/hwmon/via-cputemp.c~mm-break-circular-include-from-linux-mmzoneh drivers/hwmon/via-cputemp.c
+--- a/drivers/hwmon/via-cputemp.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/drivers/hwmon/via-cputemp.c
+@@ -35,6 +35,8 @@
+ #include <linux/list.h>
+ #include <linux/platform_device.h>
+ #include <linux/cpu.h>
++#include <linux/notifier.h>
++
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ #include <asm/cpu_device_id.h>
+diff -puN include/linux/mmzone.h~mm-break-circular-include-from-linux-mmzoneh include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-break-circular-include-from-linux-mmzoneh
 +++ a/include/linux/mmzone.h
-@@ -859,25 +859,18 @@ static inline int is_normal_idx(enum zon
+@@ -768,7 +768,6 @@ static inline bool pgdat_is_empty(pg_dat
+ 	return !pgdat->node_start_pfn && !pgdat->node_spanned_pages;
+ }
+ 
+-#include <linux/memory_hotplug.h>
+ 
+ extern struct mutex zonelists_mutex;
+ void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
+diff -puN kernel/cpu.c~mm-break-circular-include-from-linux-mmzoneh kernel/cpu.c
+--- a/kernel/cpu.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/kernel/cpu.c
+@@ -19,6 +19,7 @@
+ #include <linux/mutex.h>
+ #include <linux/gfp.h>
+ #include <linux/suspend.h>
++#include <linux/memory_hotplug.h>
+ 
+ #include "smpboot.h"
+ 
+diff -puN kernel/smp.c~mm-break-circular-include-from-linux-mmzoneh kernel/smp.c
+--- a/kernel/smp.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/kernel/smp.c
+@@ -12,6 +12,7 @@
+ #include <linux/gfp.h>
+ #include <linux/smp.h>
+ #include <linux/cpu.h>
++#include <linux/notifier.h>
+ 
+ #include "smpboot.h"
+ 
+diff -puN lib/show_mem.c~mm-break-circular-include-from-linux-mmzoneh lib/show_mem.c
+--- a/lib/show_mem.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/lib/show_mem.c
+@@ -6,6 +6,7 @@
   */
- static inline int is_highmem(struct zone *zone)
- {
--#ifdef CONFIG_HIGHMEM
--	enum zone_type idx = zone_idx(zone);
--
--	return idx == ZONE_HIGHMEM ||
--	       (idx == ZONE_MOVABLE && zone_movable_is_highmem());
--#else
--	return 0;
--#endif
-+	return is_highmem_idx(zone_idx(zone));
- }
  
- static inline int is_normal(struct zone *zone)
- {
--	return zone == zone->zone_pgdat->node_zones + ZONE_NORMAL;
-+	return zone_idx(zone) == ZONE_NORMAL;
- }
+ #include <linux/mm.h>
++#include <linux/memory_hotplug.h>
+ #include <linux/nmi.h>
+ #include <linux/quicklist.h>
  
- static inline int is_dma32(struct zone *zone)
- {
- #ifdef CONFIG_ZONE_DMA32
--	return zone == zone->zone_pgdat->node_zones + ZONE_DMA32;
-+	return zone_idx(zone) == ZONE_DMA32;
- #else
- 	return 0;
- #endif
-@@ -886,7 +879,7 @@ static inline int is_dma32(struct zone *
- static inline int is_dma(struct zone *zone)
- {
- #ifdef CONFIG_ZONE_DMA
--	return zone == zone->zone_pgdat->node_zones + ZONE_DMA;
-+	return zone_idx(zone) == ZONE_DMA;
- #else
- 	return 0;
- #endif
+diff -puN mm/memory_hotplug.c~mm-break-circular-include-from-linux-mmzoneh mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/mm/memory_hotplug.c
+@@ -23,6 +23,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/ioport.h>
+ #include <linux/delay.h>
++#include <linux/notifier.h>
+ #include <linux/migrate.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pfn.h>
+diff -puN mm/nobootmem.c~mm-break-circular-include-from-linux-mmzoneh mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/mm/nobootmem.c
+@@ -16,6 +16,7 @@
+ #include <linux/kmemleak.h>
+ #include <linux/range.h>
+ #include <linux/memblock.h>
++#include <linux/memory_hotplug.h>
+ 
+ #include <asm/bug.h>
+ #include <asm/io.h>
+diff -puN mm/sparse.c~mm-break-circular-include-from-linux-mmzoneh mm/sparse.c
+--- a/mm/sparse.c~mm-break-circular-include-from-linux-mmzoneh
++++ a/mm/sparse.c
+@@ -13,6 +13,7 @@
+ #include <asm/dma.h>
+ #include <asm/pgalloc.h>
+ #include <asm/pgtable.h>
++#include <linux/memory_hotplug.h>
+ 
+ /*
+  * Permanent SPARSEMEM data:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lig.fnst@cn.fujitsu.com are
 
-origin.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-break-circular-include-from-linux-mmzoneh.patch
 
