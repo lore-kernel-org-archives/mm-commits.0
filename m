@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-fix.patch added to -mm tree
-Date: Tue, 05 Feb 2013 14:06:39 -0800
-Message-ID: <20130205225821.4B3D231C107@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-break-circular-include-from-linux-mmzoneh-fix.patch added to -mm tree
+Date: Tue, 05 Feb 2013 15:14:28 -0800
+Message-ID: <20130205231430.A7D5E31C214@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:57245 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756112Ab3BEW6Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 17:58:25 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so85727vbb.0
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 14:58:24 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:52240 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754365Ab3BEXOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 18:14:34 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so87585ghb.2
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 15:14:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sasha.levin@oracle.com
+Cc: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-fix
+     Subject: mm/slub.c: include memory_hotplug.h
 has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-fix.patch
+     mm-break-circular-include-from-linux-mmzoneh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-fix
+Subject: mm/slub.c: include memory_hotplug.h
 
-Cc: Sasha Levin <sasha.levin@oracle.com>
+x86_64 allnoconfig:
+
+mm/slub.c: In function 'show_slab_objects':
+mm/slub.c:4281: error: implicit declaration of function 'lock_memory_hotplug'
+mm/slub.c:4322: error: implicit declaration of function 'unlock_memory_hotplug'
+
+Cc: liguang <lig.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/devinet.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/ipv4/devinet.c~hlist-drop-the-node-parameter-from-iterators-fix net/ipv4/devinet.c
---- a/net/ipv4/devinet.c~hlist-drop-the-node-parameter-from-iterators-fix
-+++ a/net/ipv4/devinet.c
-@@ -587,7 +587,6 @@ static void check_lifetime(struct work_s
- {
- 	unsigned long now, next, next_sec, next_sched;
- 	struct in_ifaddr *ifa;
--	struct hlist_node *node;
- 	int i;
- 
- 	now = jiffies;
-@@ -595,8 +594,7 @@ static void check_lifetime(struct work_s
- 
- 	rcu_read_lock();
- 	for (i = 0; i < IN4_ADDR_HSIZE; i++) {
--		hlist_for_each_entry_rcu(ifa, node,
--					 &inet_addr_lst[i], hash) {
-+		hlist_for_each_entry_rcu(ifa, &inet_addr_lst[i], hash) {
- 			unsigned long age;
- 
- 			if (ifa->ifa_flags & IFA_F_PERMANENT)
+diff -puN mm/slub.c~mm-break-circular-include-from-linux-mmzoneh-fix mm/slub.c
+--- a/mm/slub.c~mm-break-circular-include-from-linux-mmzoneh-fix
++++ a/mm/slub.c
+@@ -23,6 +23,7 @@
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
+ #include <linux/mempolicy.h>
++#include <linux/memory_hotplug.h>
+ #include <linux/ctype.h>
+ #include <linux/debugobjects.h>
+ #include <linux/kallsyms.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +120,7 @@ mm-rename-page-struct-field-helpers-fix.patch
 mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
+mm-break-circular-include-from-linux-mmzoneh-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
@@ -163,11 +160,11 @@ block-aio-batch-completion-for-bios-kiocbs-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-hlist-drop-the-node-parameter-from-iterators-fix.patch
 
