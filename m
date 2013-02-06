@@ -1,59 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix.patch added to -mm tree
-Date: Wed, 06 Feb 2013 13:32:35 -0800
-Message-ID: <20130206213236.3210031C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-dropped] mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2013 13:34:04 -0800
+Message-ID: <20130206213404.D53A05A42B7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:45654 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758364Ab3BFVch (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:32:37 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so202601qcr.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:32:36 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:57919 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758149Ab3BFVeG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:34:06 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so202545ghb.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:34:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com
+To: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix.patch
+     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix
+has been removed from the -mm tree.  Its filename was
+     mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-break-circular-include-from-linux-mmzoneh.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix
+Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix
 
 Cc: liguang <lig.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-iopoll.c |    1 +
+ kernel/gcov/base.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN block/blk-iopoll.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix block/blk-iopoll.c
---- a/block/blk-iopoll.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix
-+++ a/block/blk-iopoll.c
-@@ -7,6 +7,7 @@
+diff -puN kernel/gcov/base.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix kernel/gcov/base.c
+--- a/kernel/gcov/base.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix
++++ a/kernel/gcov/base.c
+@@ -17,6 +17,7 @@
+ 
  #include <linux/init.h>
- #include <linux/bio.h>
- #include <linux/blkdev.h>
+ #include <linux/module.h>
 +#include <linux/notifier.h>
- #include <linux/interrupt.h>
- #include <linux/cpu.h>
- #include <linux/blk-iopoll.h>
+ #include <linux/mutex.h>
+ #include "gcov.h"
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,8 +106,7 @@ mm-rename-page-struct-field-helpers-fix.patch
 mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
-mm-break-circular-include-from-linux-mmzoneh-fix.patch
-mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
+mm-break-circular-include-from-linux-mmzoneh.patch
 mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix.patch
