@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ib-qib-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:28 -0800
-Message-ID: <20130206223829.2129431C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + dm-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:30 -0800
+Message-ID: <20130206223831.2901031C231@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:61365 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWia (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:30 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so95357ggi.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:29 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:37780 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWic (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:32 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so209776vch.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, infinipath@intel.com
+Cc: tj@kernel.org, agk@redhat.com
 
 
 The patch titled
-     Subject: IB/qib: convert to idr_alloc()
+     Subject: dm: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     ib-qib-convert-to-idr_alloc.patch
+     dm-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,101 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/qib: convert to idr_alloc()
+Subject: dm: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Mike Marciniszyn <infinipath@intel.com>
+Cc: Alasdair Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/qib/qib_init.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ drivers/md/dm.c |   54 ++++++++++++----------------------------------
+ 1 file changed, 15 insertions(+), 39 deletions(-)
 
-diff -puN drivers/infiniband/hw/qib/qib_init.c~ib-qib-convert-to-idr_alloc drivers/infiniband/hw/qib/qib_init.c
---- a/drivers/infiniband/hw/qib/qib_init.c~ib-qib-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/qib/qib_init.c
-@@ -1060,22 +1060,23 @@ struct qib_devdata *qib_alloc_devdata(st
- 	struct qib_devdata *dd;
- 	int ret;
+diff -puN drivers/md/dm.c~dm-convert-to-idr_alloc drivers/md/dm.c
+--- a/drivers/md/dm.c~dm-convert-to-idr_alloc
++++ a/drivers/md/dm.c
+@@ -1801,62 +1801,38 @@ static void free_minor(int minor)
+  */
+ static int specific_minor(int minor)
+ {
+-	int r, m;
++	int r;
  
--	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
--		dd = ERR_PTR(-ENOMEM);
--		goto bail;
+ 	if (minor >= (1 << MINORBITS))
+ 		return -EINVAL;
+ 
+-	r = idr_pre_get(&_minor_idr, GFP_KERNEL);
+-	if (!r)
+-		return -ENOMEM;
+-
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&_minor_lock);
+ 
+-	if (idr_find(&_minor_idr, minor)) {
+-		r = -EBUSY;
+-		goto out;
 -	}
 -
- 	dd = (struct qib_devdata *) ib_alloc_device(sizeof(*dd) + extra);
- 	if (!dd) {
- 		dd = ERR_PTR(-ENOMEM);
- 		goto bail;
- 	}
+-	r = idr_get_new_above(&_minor_idr, MINOR_ALLOCED, minor, &m);
+-	if (r)
+-		goto out;
+-
+-	if (m != minor) {
+-		idr_remove(&_minor_idr, m);
+-		r = -EBUSY;
+-		goto out;
+-	}
++	r = idr_alloc(&_minor_idr, MINOR_ALLOCED, minor, minor + 1, GFP_NOWAIT);
+ 
+-out:
+ 	spin_unlock(&_minor_lock);
+-	return r;
++	idr_preload_end();
++	if (r < 0)
++		return r == -ENOSPC ? -EBUSY : r;
++	return 0;
+ }
+ 
+ static int next_free_minor(int *minor)
+ {
+-	int r, m;
+-
+-	r = idr_pre_get(&_minor_idr, GFP_KERNEL);
+-	if (!r)
+-		return -ENOMEM;
++	int r;
  
 +	idr_preload(GFP_KERNEL);
- 	spin_lock_irqsave(&qib_devs_lock, flags);
--	ret = idr_get_new(&qib_unit_table, dd, &dd->unit);
--	if (ret >= 0)
-+
-+	ret = idr_alloc(&qib_unit_table, dd, 0, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
-+		dd->unit = ret;
- 		list_add(&dd->list, &qib_dev_list);
-+	}
-+
- 	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+	idr_preload_end();
+ 	spin_lock(&_minor_lock);
  
- 	if (ret < 0) {
- 		qib_early_err(&pdev->dev,
-@@ -1180,11 +1181,6 @@ static int __init qlogic_ib_init(void)
- 	 * the PCI subsystem.
- 	 */
- 	idr_init(&qib_unit_table);
--	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
--		pr_err("idr_pre_get() failed\n");
--		ret = -ENOMEM;
--		goto bail_cq_wq;
+-	r = idr_get_new(&_minor_idr, MINOR_ALLOCED, &m);
+-	if (r)
+-		goto out;
+-
+-	if (m >= (1 << MINORBITS)) {
+-		idr_remove(&_minor_idr, m);
+-		r = -ENOSPC;
+-		goto out;
 -	}
++	r = idr_alloc(&_minor_idr, MINOR_ALLOCED, 0, 1 << MINORBITS, GFP_NOWAIT);
  
- 	ret = pci_register_driver(&qib_driver);
- 	if (ret < 0) {
-@@ -1199,7 +1195,6 @@ static int __init qlogic_ib_init(void)
+-	*minor = m;
+-
+-out:
+ 	spin_unlock(&_minor_lock);
+-	return r;
++	idr_preload_end();
++	if (r < 0)
++		return r;
++	*minor = r;
++	return 0;
+ }
  
- bail_unit:
- 	idr_destroy(&qib_unit_table);
--bail_cq_wq:
- 	destroy_workqueue(qib_cq_wq);
- bail_dev:
- 	qib_dev_cleanup();
+ static const struct block_device_operations dm_blk_dops;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
