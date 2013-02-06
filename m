@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:46 -0800
-Message-ID: <20130206223847.2DEAA5A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + macvtap-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:49 -0800
+Message-ID: <20130206223850.228CD31C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:41988 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758221Ab3BFWis (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:48 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so209730qcr.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:47 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:63919 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758268Ab3BFWiw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:52 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so209710vea.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, dwmw2@infradead.org, ezequiel.garcia@free-electrons.com
+Cc: tj@kernel.org, jasowang@redhat.com, mst@redhat.com
 
 
 The patch titled
-     Subject: mtd: convert to idr_alloc()
+     Subject: macvtap: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     mtd-convert-to-idr_alloc.patch
+     macvtap-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mtd: convert to idr_alloc()
+Subject: macvtap: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/net/macvtap.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN drivers/mtd/mtdcore.c~mtd-convert-to-idr_alloc drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~mtd-convert-to-idr_alloc
-+++ a/drivers/mtd/mtdcore.c
-@@ -349,13 +349,8 @@ int add_mtd_device(struct mtd_info *mtd)
- 	BUG_ON(mtd->writesize == 0);
- 	mutex_lock(&mtd_table_mutex);
+diff -puN drivers/net/macvtap.c~macvtap-convert-to-idr_alloc drivers/net/macvtap.c
+--- a/drivers/net/macvtap.c~macvtap-convert-to-idr_alloc
++++ a/drivers/net/macvtap.c
+@@ -279,28 +279,17 @@ static int macvtap_receive(struct sk_buf
+ static int macvtap_get_minor(struct macvlan_dev *vlan)
+ {
+ 	int retval = -ENOMEM;
+-	int id;
  
--	do {
--		if (!idr_pre_get(&mtd_idr, GFP_KERNEL))
--			goto fail_locked;
--		error = idr_get_new(&mtd_idr, mtd, &i);
--	} while (error == -EAGAIN);
+ 	mutex_lock(&minor_lock);
+-	if (idr_pre_get(&minor_idr, GFP_KERNEL) == 0)
+-		goto exit;
 -
--	if (error)
-+	i = idr_alloc(&mtd_idr, mtd, 0, 0, GFP_KERNEL);
-+	if (i < 0)
- 		goto fail_locked;
+-	retval = idr_get_new_above(&minor_idr, vlan, 1, &id);
+-	if (retval < 0) {
+-		if (retval == -EAGAIN)
+-			retval = -ENOMEM;
+-		goto exit;
+-	}
+-	if (id < MACVTAP_NUM_DEVS) {
+-		vlan->minor = id;
+-	} else {
++	retval = idr_alloc(&minor_idr, vlan, 1, MACVTAP_NUM_DEVS, GFP_KERNEL);
++	if (retval >= 0) {
++		vlan->minor = retval;
++	} else if (retval == -ENOSPC) {
+ 		printk(KERN_ERR "too many macvtap devices\n");
+ 		retval = -EINVAL;
+-		idr_remove(&minor_idr, id);
+ 	}
+-exit:
+ 	mutex_unlock(&minor_lock);
+-	return retval;
++	return retval < 0 ? retval : 0;
+ }
  
- 	mtd->index = i;
+ static void macvtap_free_minor(struct macvlan_dev *vlan)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
