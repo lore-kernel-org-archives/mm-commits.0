@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:19 -0800
-Message-ID: <20130206223720.2EC435A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + block-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:22 -0800
+Message-ID: <20130206223723.2ADC031C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:46926 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163Ab3BFWhV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:21 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so209842vea.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:20 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:42354 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755163Ab3BFWhY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:24 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so209900yen.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, axboe@kernel.dk, stable@vger.kernel.org
+Cc: tj@kernel.org, axboe@kernel.dk
 
 
 The patch titled
-     Subject: block: fix synchronization and limit check in blk_alloc_devt()
+     Subject: block: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
+     block-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,111 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: block: fix synchronization and limit check in blk_alloc_devt()
+Subject: block: convert to idr_alloc()
 
-idr allocation in blk_alloc_devt() wasn't synchronized against lookup
-and removal, and its limit check was off by one - 1 << MINORBITS is
-the number of minors allowed, not the maximum allowed minor.
-
-Add locking and rename MAX_EXT_DEVT to NR_EXT_DEVT and fix limit
-checking.
+Convert to the much saner new idr interface.  Both bsg and genhd
+protect idr w/ mutex making preloading unnecessary.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Acked-by: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ block/bsg.c   |   26 +++++++++-----------------
+ block/genhd.c |   21 ++++++---------------
+ 2 files changed, 15 insertions(+), 32 deletions(-)
 
-diff -puN block/genhd.c~block-fix-synchronization-and-limit-check-in-blk_alloc_devt block/genhd.c
---- a/block/genhd.c~block-fix-synchronization-and-limit-check-in-blk_alloc_devt
-+++ a/block/genhd.c
-@@ -26,7 +26,7 @@ static DEFINE_MUTEX(block_class_lock);
- struct kobject *block_depr;
+diff -puN block/bsg.c~block-convert-to-idr_alloc block/bsg.c
+--- a/block/bsg.c~block-convert-to-idr_alloc
++++ a/block/bsg.c
+@@ -997,7 +997,7 @@ int bsg_register_queue(struct request_qu
+ {
+ 	struct bsg_class_device *bcd;
+ 	dev_t dev;
+-	int ret, minor;
++	int ret;
+ 	struct device *class_dev = NULL;
+ 	const char *devname;
  
- /* for extended dynamic devt allocation, currently only one major is used */
--#define MAX_EXT_DEVT		(1 << MINORBITS)
-+#define NR_EXT_DEVT		(1 << MINORBITS)
+@@ -1017,23 +1017,16 @@ int bsg_register_queue(struct request_qu
  
- /* For extended devt allocation.  ext_devt_mutex prevents look up
-  * results from going away underneath its user.
-@@ -425,19 +425,16 @@ int blk_alloc_devt(struct hd_struct *par
- 			return -ENOMEM;
- 		mutex_lock(&ext_devt_mutex);
- 		rc = idr_get_new(&ext_devt_idr, part, &idx);
-+		if (!rc && idx >= NR_EXT_DEVT) {
-+			idr_remove(&ext_devt_idr, idx);
-+			rc = -EBUSY;
+ 	mutex_lock(&bsg_mutex);
+ 
+-	ret = idr_pre_get(&bsg_minor_idr, GFP_KERNEL);
+-	if (!ret) {
+-		ret = -ENOMEM;
++	ret = idr_alloc(&bsg_minor_idr, bcd, 0, BSG_MAX_DEVS, GFP_KERNEL);
++	if (ret < 0) {
++		if (ret == -ENOSPC) {
++			printk(KERN_ERR "bsg: too many bsg devices\n");
++			ret = -EINVAL;
 +		}
- 		mutex_unlock(&ext_devt_mutex);
- 	} while (rc == -EAGAIN);
+ 		goto unlock;
+ 	}
  
- 	if (rc)
- 		return rc;
- 
--	if (idx > MAX_EXT_DEVT) {
--		mutex_lock(&ext_devt_mutex);
--		idr_remove(&ext_devt_idr, idx);
--		mutex_unlock(&ext_devt_mutex);
--		return -EBUSY;
+-	ret = idr_get_new(&bsg_minor_idr, bcd, &minor);
+-	if (ret < 0)
+-		goto unlock;
+-
+-	if (minor >= BSG_MAX_DEVS) {
+-		printk(KERN_ERR "bsg: too many bsg devices\n");
+-		ret = -EINVAL;
+-		goto remove_idr;
 -	}
 -
+-	bcd->minor = minor;
++	bcd->minor = ret;
+ 	bcd->queue = q;
+ 	bcd->parent = get_device(parent);
+ 	bcd->release = release;
+@@ -1059,8 +1052,7 @@ unregister_class_dev:
+ 	device_unregister(class_dev);
+ put_dev:
+ 	put_device(parent);
+-remove_idr:
+-	idr_remove(&bsg_minor_idr, minor);
++	idr_remove(&bsg_minor_idr, bcd->minor);
+ unlock:
+ 	mutex_unlock(&bsg_mutex);
+ 	return ret;
+diff -puN block/genhd.c~block-convert-to-idr_alloc block/genhd.c
+--- a/block/genhd.c~block-convert-to-idr_alloc
++++ a/block/genhd.c
+@@ -411,7 +411,7 @@ static int blk_mangle_minor(int minor)
+ int blk_alloc_devt(struct hd_struct *part, dev_t *devt)
+ {
+ 	struct gendisk *disk = part_to_disk(part);
+-	int idx, rc;
++	int idx;
+ 
+ 	/* in consecutive minor range? */
+ 	if (part->partno < disk->minors) {
+@@ -420,20 +420,11 @@ int blk_alloc_devt(struct hd_struct *par
+ 	}
+ 
+ 	/* allocate ext devt */
+-	do {
+-		if (!idr_pre_get(&ext_devt_idr, GFP_KERNEL))
+-			return -ENOMEM;
+-		mutex_lock(&ext_devt_mutex);
+-		rc = idr_get_new(&ext_devt_idr, part, &idx);
+-		if (!rc && idx >= NR_EXT_DEVT) {
+-			idr_remove(&ext_devt_idr, idx);
+-			rc = -EBUSY;
+-		}
+-		mutex_unlock(&ext_devt_mutex);
+-	} while (rc == -EAGAIN);
+-
+-	if (rc)
+-		return rc;
++	mutex_lock(&ext_devt_mutex);
++	idx = idr_alloc(&ext_devt_idr, part, 0, NR_EXT_DEVT, GFP_KERNEL);
++	mutex_unlock(&ext_devt_mutex);
++	if (idx < 0)
++		return idx == -ENOSPC ? -EBUSY : idx;
+ 
  	*devt = MKDEV(BLOCK_EXT_MAJOR, blk_mangle_minor(idx));
  	return 0;
- }
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
