@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch added to -mm tree
-Date: Wed, 06 Feb 2013 13:47:41 -0800
-Message-ID: <20130206214742.568305A424B@corp2gmr1-2.hot.corp.google.com>
+Subject: + aio-dont-include-aioh-in-schedh-fix-3-fix.patch added to -mm tree
+Date: Wed, 06 Feb 2013 13:44:27 -0800
+Message-ID: <20130206214428.6957D31C15E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:61490 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755931Ab3BFVrn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:47:43 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so203490qcr.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:47:42 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:64867 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758713Ab3BFVo3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:44:29 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so203301yen.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:44:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, sasha.levin@oracle.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, koverstreet@google.com
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
+     Subject: aio-dont-include-aioh-in-schedh-fix-3-fix
 has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+     aio-dont-include-aioh-in-schedh-fix-3-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
+Subject: aio-dont-include-aioh-in-schedh-fix-3-fix
 
-fix warnings
+fix build
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c             |    1 -
- net/batman-adv/originator.c |    1 -
- 2 files changed, 2 deletions(-)
+ include/linux/pid_namespace.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix kernel/cgroup.c
---- a/kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
-+++ a/kernel/cgroup.c
-@@ -1610,7 +1610,6 @@ static struct dentry *cgroup_mount(struc
- 		struct cgroupfs_root *existing_root;
- 		const struct cred *cred;
- 		int i;
--		struct hlist_node *node;
- 		struct css_set *cg;
- 
- 		BUG_ON(sb->s_root != NULL);
-diff -puN net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix net/batman-adv/originator.c
---- a/net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
-+++ a/net/batman-adv/originator.c
-@@ -408,7 +408,6 @@ int batadv_orig_seq_print_text(struct se
- 	struct net_device *net_dev = (struct net_device *)seq->private;
- 	struct batadv_priv *bat_priv = netdev_priv(net_dev);
- 	struct batadv_hashtable *hash = bat_priv->orig_hash;
--	struct hlist_node *node_tmp;
- 	struct hlist_head *head;
- 	struct batadv_hard_iface *primary_if;
- 	struct batadv_orig_node *orig_node;
+diff -puN include/linux/pid_namespace.h~aio-dont-include-aioh-in-schedh-fix-3-fix include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~aio-dont-include-aioh-in-schedh-fix-3-fix
++++ a/include/linux/pid_namespace.h
+@@ -4,6 +4,7 @@
+ #include <linux/sched.h>
+ #include <linux/bug.h>
+ #include <linux/mm.h>
++#include <linux/workqueue.h>
+ #include <linux/threads.h>
+ #include <linux/nsproxy.h>
+ #include <linux/kref.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,7 +154,6 @@ aio-dont-include-aioh-in-schedh-fix.patch
 aio-dont-include-aioh-in-schedh-fix-fix.patch
 aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
 aio-kill-ki_retry-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
@@ -174,7 +161,6 @@ block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
