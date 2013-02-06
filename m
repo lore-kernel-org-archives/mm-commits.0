@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:03 -0800
-Message-ID: <20130206223804.255F05A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + drm-vmwgfx-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:00 -0800
+Message-ID: <20130206223801.2A3005A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:53933 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWiF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:05 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so209882qeb.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:04 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:54212 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWiC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:02 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so94935yhz.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, khali@linux-fr.org
+Cc: tj@kernel.org, airlied@linux.ie
 
 
 The patch titled
-     Subject: i2c: convert to idr_alloc()
+     Subject: drm/vmwgfx: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     i2c-convert-to-idr_alloc.patch
+     drm-vmwgfx-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: i2c: convert to idr_alloc()
+Subject: drm/vmwgfx: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/i2c-core.c |   45 ++++++++-------------------------------
- 1 file changed, 10 insertions(+), 35 deletions(-)
+ drivers/gpu/drm/vmwgfx/vmwgfx_resource.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc
-+++ a/drivers/i2c/i2c-core.c
-@@ -935,25 +935,16 @@ out_list:
-  */
- int i2c_add_adapter(struct i2c_adapter *adapter)
- {
--	int	id, res = 0;
--
--retry:
--	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) == 0)
--		return -ENOMEM;
-+	int res;
+diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drm-vmwgfx-convert-to-idr_alloc drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drm-vmwgfx-convert-to-idr_alloc
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+@@ -177,17 +177,16 @@ int vmw_resource_alloc_id(struct vmw_res
  
- 	mutex_lock(&core_lock);
--	/* "above" here means "above or equal to", sigh */
--	res = idr_get_new_above(&i2c_adapter_idr, adapter,
--				__i2c_first_dynamic_bus_num, &id);
-+	res = idr_alloc(&i2c_adapter_idr, adapter,
-+			__i2c_first_dynamic_bus_num, 0, GFP_KERNEL);
- 	mutex_unlock(&core_lock);
--
--	if (res < 0) {
--		if (res == -EAGAIN)
--			goto retry;
-+	if (res < 0)
- 		return res;
--	}
+ 	BUG_ON(res->id != -1);
  
--	adapter->nr = id;
-+	adapter->nr = res;
- 	return i2c_register_adapter(adapter);
+-	do {
+-		if (unlikely(idr_pre_get(idr, GFP_KERNEL) == 0))
+-			return -ENOMEM;
+-
+-		write_lock(&dev_priv->resource_lock);
+-		ret = idr_get_new_above(idr, res, 1, &res->id);
+-		write_unlock(&dev_priv->resource_lock);
++	idr_preload(GFP_KERNEL);
++	write_lock(&dev_priv->resource_lock);
+ 
+-	} while (ret == -EAGAIN);
++	ret = idr_alloc(idr, res, 1, 0, GFP_NOWAIT);
++	if (ret >= 0)
++		res->id = ret;
+ 
+-	return ret;
++	write_unlock(&dev_priv->resource_lock);
++	idr_preload_end();
++	return ret < 0 ? ret : 0;
  }
- EXPORT_SYMBOL(i2c_add_adapter);
-@@ -984,33 +975,17 @@ EXPORT_SYMBOL(i2c_add_adapter);
- int i2c_add_numbered_adapter(struct i2c_adapter *adap)
- {
- 	int	id;
--	int	status;
  
- 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
- 		return i2c_add_adapter(adap);
--	if (adap->nr & ~MAX_IDR_MASK)
--		return -EINVAL;
--
--retry:
--	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) == 0)
--		return -ENOMEM;
- 
- 	mutex_lock(&core_lock);
--	/* "above" here means "above or equal to", sigh;
--	 * we need the "equal to" result to force the result
--	 */
--	status = idr_get_new_above(&i2c_adapter_idr, adap, adap->nr, &id);
--	if (status == 0 && id != adap->nr) {
--		status = -EBUSY;
--		idr_remove(&i2c_adapter_idr, id);
--	}
-+	id = idr_alloc(&i2c_adapter_idr, adap, adap->nr, adap->nr + 1,
-+		       GFP_KERNEL);
- 	mutex_unlock(&core_lock);
--	if (status == -EAGAIN)
--		goto retry;
--
--	if (status == 0)
--		status = i2c_register_adapter(adap);
--	return status;
-+	if (id < 0)
-+		return id == -ENOSPC ? -EBUSY : id;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(i2c_add_numbered_adapter);
- 
+ /**
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
