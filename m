@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drbd-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:31 -0800
-Message-ID: <20130206223732.212365A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + block-loop-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:25 -0800
+Message-ID: <20130206223726.1D2D131C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:64090 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163Ab3BFWhd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:33 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so209790vbb.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:32 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:50452 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755163Ab3BFWh1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:27 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so221985qah.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org
+Cc: tj@kernel.org, axboe@kernel.dk
 
 
 The patch titled
-     Subject: drbd: convert to idr_alloc()
+     Subject: block/loop: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     drbd-convert-to-idr_alloc.patch
+     block-loop-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: drbd: convert to idr_alloc()
+Subject: block/loop: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
-Only compile tested.
-
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_main.c |   29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+ drivers/block/loop.c |   23 +++++------------------
+ 1 file changed, 5 insertions(+), 18 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_main.c~drbd-convert-to-idr_alloc drivers/block/drbd/drbd_main.c
---- a/drivers/block/drbd/drbd_main.c~drbd-convert-to-idr_alloc
-+++ a/drivers/block/drbd/drbd_main.c
-@@ -2660,25 +2660,24 @@ enum drbd_ret_code conn_new_minor(struct
- 	mdev->read_requests = RB_ROOT;
- 	mdev->write_requests = RB_ROOT;
+diff -puN drivers/block/loop.c~block-loop-convert-to-idr_alloc drivers/block/loop.c
+--- a/drivers/block/loop.c~block-loop-convert-to-idr_alloc
++++ a/drivers/block/loop.c
+@@ -1611,30 +1611,17 @@ static int loop_add(struct loop_device *
+ 	if (!lo)
+ 		goto out;
  
--	if (!idr_pre_get(&minors, GFP_KERNEL))
--		goto out_no_minor_idr;
--	if (idr_get_new_above(&minors, mdev, minor, &minor_got))
-+	minor_got = idr_alloc(&minors, mdev, minor, minor + 1, GFP_KERNEL);
-+	if (minor_got < 0) {
-+		if (minor_got == -ENOSPC) {
-+			err = ERR_MINOR_EXISTS;
-+			drbd_msg_put_info("requested minor exists already");
-+		}
- 		goto out_no_minor_idr;
--	if (minor_got != minor) {
--		err = ERR_MINOR_EXISTS;
--		drbd_msg_put_info("requested minor exists already");
--		goto out_idr_remove_minor;
+-	if (!idr_pre_get(&loop_index_idr, GFP_KERNEL))
+-		goto out_free_dev;
+-
++	/* allocate id, if @id >= 0, we're requesting that specific id */
+ 	if (i >= 0) {
+-		int m;
+-
+-		/* create specific i in the index */
+-		err = idr_get_new_above(&loop_index_idr, lo, i, &m);
+-		if (err >= 0 && i != m) {
+-			idr_remove(&loop_index_idr, m);
++		err = idr_alloc(&loop_index_idr, lo, i, i + 1, GFP_KERNEL);
++		if (err == -ENOSPC)
+ 			err = -EEXIST;
+-		}
+-	} else if (i == -1) {
+-		int m;
+-
+-		/* get next free nr */
+-		err = idr_get_new(&loop_index_idr, lo, &m);
+-		if (err >= 0)
+-			i = m;
+ 	} else {
+-		err = -EINVAL;
++		err = idr_alloc(&loop_index_idr, lo, 0, 0, GFP_KERNEL);
  	}
+ 	if (err < 0)
+ 		goto out_free_dev;
++	i = err;
  
--	if (!idr_pre_get(&tconn->volumes, GFP_KERNEL))
--		goto out_idr_remove_minor;
--	if (idr_get_new_above(&tconn->volumes, mdev, vnr, &vnr_got))
-+	vnr_got = idr_alloc(&tconn->volumes, mdev, vnr, vnr + 1, GFP_KERNEL);
-+	if (vnr_got < 0) {
-+		if (vnr_got == -ENOSPC) {
-+			err = ERR_INVALID_REQUEST;
-+			drbd_msg_put_info("requested volume exists already");
-+		}
- 		goto out_idr_remove_minor;
--	if (vnr_got != vnr) {
--		err = ERR_INVALID_REQUEST;
--		drbd_msg_put_info("requested volume exists already");
--		goto out_idr_remove_vol;
- 	}
-+
- 	add_disk(disk);
- 	kref_init(&mdev->kref); /* one ref for both idrs and the the add_disk */
- 
-@@ -2689,8 +2688,6 @@ enum drbd_ret_code conn_new_minor(struct
- 
- 	return NO_ERROR;
- 
--out_idr_remove_vol:
--	idr_remove(&tconn->volumes, vnr_got);
- out_idr_remove_minor:
- 	idr_remove(&minors, minor_got);
- 	synchronize_rcu();
+ 	lo->lo_queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!lo->lo_queue)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
