@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-dont-use-idr_remove_all.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:36:59 -0800
-Message-ID: <20130206223700.2C4265A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + idr-refactor-idr_get_new_above.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:14 -0800
+Message-ID: <20130206223715.18A0C31C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:50047 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758005Ab3BFWhB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:01 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so210293ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:00 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:47414 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755163Ab3BFWhQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:16 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so209792vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org
+Cc: tj@kernel.org
 
 
 The patch titled
-     Subject: inotify: don't use idr_remove_all()
+     Subject: idr: refactor idr_get_new_above()
 has been added to the -mm tree.  Its filename is
-     inotify-dont-use-idr_remove_all.patch
+     idr-refactor-idr_get_new_above.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: inotify: don't use idr_remove_all()
+Subject: idr: refactor idr_get_new_above()
 
-idr_destroy() can destroy idr by itself and idr_remove_all() is being
-deprecated.  Drop its usage.
+Move slot filling to idr_fill_slot() from idr_get_new_above_int() and
+make idr_get_new_above() directly call it.  idr_get_new_above_int() is
+no longer needed and removed.
+
+This will be used to implement a new ID allocation interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Eric Paris <eparis@parisplace.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_fsnotify.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/idr.c |   32 +++++++++++++-------------------
+ 1 file changed, 13 insertions(+), 19 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all fs/notify/inotify/inotify_fsnotify.c
---- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all
-+++ a/fs/notify/inotify/inotify_fsnotify.c
-@@ -197,7 +197,6 @@ static void inotify_free_group_priv(stru
+diff -puN lib/idr.c~idr-refactor-idr_get_new_above lib/idr.c
+--- a/lib/idr.c~idr-refactor-idr_get_new_above
++++ a/lib/idr.c
+@@ -278,24 +278,15 @@ build_up:
+ 	return(v);
+ }
+ 
+-static int idr_get_new_above_int(struct idr *idp, void *ptr, int starting_id)
+-{
+-	struct idr_layer *pa[MAX_IDR_LEVEL];
+-	int id;
+-
+-	id = idr_get_empty_slot(idp, starting_id, pa);
+-	if (id >= 0) {
+-		/*
+-		 * Successfully found an empty slot.  Install the user
+-		 * pointer and mark the slot full.
+-		 */
+-		rcu_assign_pointer(pa[0]->ary[id & IDR_MASK],
+-				(struct idr_layer *)ptr);
+-		pa[0]->count++;
+-		idr_mark_full(pa, id);
+-	}
+-
+-	return id;
++/*
++ * @id and @pa are from a successful allocation from idr_get_empty_slot().
++ * Install the user pointer @ptr and mark the slot full.
++ */
++static void idr_fill_slot(void *ptr, int id, struct idr_layer **pa)
++{
++	rcu_assign_pointer(pa[0]->ary[id & IDR_MASK], (struct idr_layer *)ptr);
++	pa[0]->count++;
++	idr_mark_full(pa, id);
+ }
+ 
+ /**
+@@ -318,11 +309,14 @@ static int idr_get_new_above_int(struct 
+  */
+ int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id)
  {
- 	/* ideally the idr is empty and we won't hit the BUG in the callback */
- 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
--	idr_remove_all(&group->inotify_data.idr);
- 	idr_destroy(&group->inotify_data.idr);
- 	atomic_dec(&group->inotify_data.user->inotify_devs);
- 	free_uid(group->inotify_data.user);
++	struct idr_layer *pa[MAX_IDR_LEVEL];
+ 	int rv;
+ 
+-	rv = idr_get_new_above_int(idp, ptr, starting_id);
++	rv = idr_get_empty_slot(idp, starting_id, pa);
+ 	if (rv < 0)
+ 		return rv == -ENOMEM ? -EAGAIN : rv;
++
++	idr_fill_slot(ptr, rv, pa);
+ 	*id = rv;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
