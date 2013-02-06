@@ -1,74 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2013 13:34:16 -0800
-Message-ID: <20130206213417.1EEFB31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-dropped] mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2013 13:34:19 -0800
+Message-ID: <20130206213420.19FEE5A4173@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:33049 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758539Ab3BFVeS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:34:18 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so91182yhr.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:34:17 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:57342 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758539Ab3BFVeV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:34:21 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so202403ghb.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:34:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix
+     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix.patch
+     mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix.patch
 
 This patch was dropped because it was folded into mm-break-circular-include-from-linux-mmzoneh.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix
+Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix
 
 Cc: liguang <lig.fnst@cn.fujitsu.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c                           |    1 +
- arch/powerpc/platforms/pseries/hotplug-memory.c |    1 +
- mm/bootmem.c                                    |    1 +
- 3 files changed, 3 insertions(+)
+ block/blk-iopoll.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/mm/mem.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix
-+++ a/arch/powerpc/mm/mem.c
-@@ -28,6 +28,7 @@
- #include <linux/stddef.h>
+diff -puN block/blk-iopoll.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix block/blk-iopoll.c
+--- a/block/blk-iopoll.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix
++++ a/block/blk-iopoll.c
+@@ -7,6 +7,7 @@
  #include <linux/init.h>
- #include <linux/bootmem.h>
-+#include <linux/memory_hotplug.h>
- #include <linux/highmem.h>
- #include <linux/initrd.h>
- #include <linux/pagemap.h>
-diff -puN arch/powerpc/platforms/pseries/hotplug-memory.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix arch/powerpc/platforms/pseries/hotplug-memory.c
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix
-+++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -11,6 +11,7 @@
- 
- #include <linux/of.h>
- #include <linux/memblock.h>
-+#include <linux/memory_hotplug.h>
- #include <linux/vmalloc.h>
- #include <linux/memory.h>
- 
-diff -puN mm/bootmem.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix mm/bootmem.c
---- a/mm/bootmem.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix
-+++ a/mm/bootmem.c
-@@ -12,6 +12,7 @@
- #include <linux/pfn.h>
- #include <linux/slab.h>
- #include <linux/bootmem.h>
-+#include <linux/memory_hotplug.h>
- #include <linux/export.h>
- #include <linux/kmemleak.h>
- #include <linux/range.h>
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
++#include <linux/notifier.h>
+ #include <linux/interrupt.h>
+ #include <linux/cpu.h>
+ #include <linux/blk-iopoll.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,7 +107,6 @@ mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 mm-break-circular-include-from-linux-mmzoneh.patch
-mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
