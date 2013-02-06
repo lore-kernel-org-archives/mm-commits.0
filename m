@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dmaengine-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:36 -0800
-Message-ID: <20130206223737.24EDB31C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + gpio-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:44 -0800
+Message-ID: <20130206223745.328D931C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:45824 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755294Ab3BFWhl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:41 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so209800vbb.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:37 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:46644 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWhq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:46 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so221884qah.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, djbw@fb.com
+Cc: tj@kernel.org, grant.likely@secretlab.ca, linus.walleij@linaro.org
 
 
 The patch titled
-     Subject: dmaengine: convert to idr_alloc()
+     Subject: gpio: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     dmaengine-convert-to-idr_alloc.patch
+     gpio-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dmaengine: convert to idr_alloc()
+Subject: gpio: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Dan Williams <djbw@fb.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ drivers/gpio/gpiolib.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/dma/dmaengine.c~dmaengine-convert-to-idr_alloc drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~dmaengine-convert-to-idr_alloc
-+++ a/drivers/dma/dmaengine.c
-@@ -686,18 +686,14 @@ static int get_dma_id(struct dma_device 
- {
- 	int rc;
+diff -puN drivers/gpio/gpiolib.c~gpio-convert-to-idr_alloc drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-convert-to-idr_alloc
++++ a/drivers/gpio/gpiolib.c
+@@ -358,15 +358,10 @@ static int gpio_setup_irq(struct gpio_de
+ 			goto err_out;
+ 		}
  
-- idr_retry:
--	if (!idr_pre_get(&dma_idr, GFP_KERNEL))
--		return -ENOMEM;
- 	mutex_lock(&dma_list_mutex);
--	rc = idr_get_new(&dma_idr, NULL, &device->dev_id);
--	mutex_unlock(&dma_list_mutex);
--	if (rc == -EAGAIN)
--		goto idr_retry;
--	else if (rc != 0)
--		return rc;
+-		do {
+-			ret = -ENOMEM;
+-			if (idr_pre_get(&dirent_idr, GFP_KERNEL))
+-				ret = idr_get_new_above(&dirent_idr, value_sd,
+-							1, &id);
+-		} while (ret == -EAGAIN);
+-
+-		if (ret)
++		ret = idr_alloc(&dirent_idr, value_sd, 1, 0, GFP_KERNEL);
++		if (ret < 0)
+ 			goto free_sd;
++		id = ret;
  
--	return 0;
-+	rc = idr_alloc(&dma_idr, NULL, 0, 0, GFP_KERNEL);
-+	if (rc >= 0)
-+		device->dev_id = rc;
-+
-+	mutex_unlock(&dma_list_mutex);
-+	return rc < 0 ? rc : 0;
- }
- 
- /**
+ 		desc->flags &= GPIO_FLAGS_MASK;
+ 		desc->flags |= (unsigned long)id << ID_SHIFT;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
