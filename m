@@ -1,61 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-support-of-rtc-mv-for-mvebu-socs.patch removed from -mm tree
-Date: Wed, 06 Feb 2013 12:22:03 -0800
-Message-ID: <20130206202205.4F36D31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [failures] printk-avoid-softlockups-in-console_unlock-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2013 12:26:17 -0800
+Message-ID: <20130206202618.37BE931C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:37799 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756913Ab3BFUWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 15:22:09 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so193343vcd.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 12:22:08 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:60531 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757940Ab3BFU0U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 15:26:20 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so193999vch.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 12:26:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregory.clement@free-electrons.com, andrew@lunn.ch, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fweisbec@gmail.com, jack@suse.cz, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: add support of rtc-mv for MVEBU SoCs
+     Subject: printk-avoid-softlockups-in-console_unlock-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-add-support-of-rtc-mv-for-mvebu-socs.patch
+     printk-avoid-softlockups-in-console_unlock-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: rtc: add support of rtc-mv for MVEBU SoCs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: printk-avoid-softlockups-in-console_unlock-fix
 
-The Armada 370 and Armada XP Socs have the same controller that the one
-used in the orion platforms.  This patch enables the selection of rtc-mv
-with mvebu platforms.
+i386 allnoconfig:
 
-Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Acked-by: Andrew Lunn <andrew@lunn.ch>
-Cc: Russell King <linux@arm.linux.org.uk>
+In file included from arch/x86/mm/pgtable_32.c:5:
+include/linux/nmi.h: In function 'max_interrupt_disabled_duration':
+include/linux/nmi.h:70: warning: integer overflow in expression
+
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    2 +-
+ include/linux/nmi.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-of-rtc-mv-for-mvebu-socs drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-of-rtc-mv-for-mvebu-socs
-+++ a/drivers/rtc/Kconfig
-@@ -1065,7 +1065,7 @@ config RTC_DRV_TX4939
+diff -puN include/linux/nmi.h~printk-avoid-softlockups-in-console_unlock-fix include/linux/nmi.h
+--- a/include/linux/nmi.h~printk-avoid-softlockups-in-console_unlock-fix
++++ a/include/linux/nmi.h
+@@ -67,7 +67,7 @@ static inline u64 max_interrupt_disabled
+ static inline u64 max_interrupt_disabled_duration(void)
+ {
+ 	/* About the value we'd get with the default watchdog setting */
+-	return 5 * NSEC_PER_SEC;
++	return 5ULL * NSEC_PER_SEC;
+ }
+ #endif
  
- config RTC_DRV_MV
- 	tristate "Marvell SoC RTC"
--	depends on ARCH_KIRKWOOD || ARCH_DOVE
-+	depends on ARCH_KIRKWOOD || ARCH_DOVE || ARCH_MVEBU
- 	help
- 	  If you say yes here you will get support for the in-chip RTC
- 	  that can be found in some of Marvell's SoC devices, such as
 _
 
-Patches currently in -mm which might be from gregory.clement@free-electrons.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-arm-mvebu-add-rtc-support-for-armada-370-and-armada-xp.patch
-arm-mvebu-update-defconfig-with-marvell-rtc-support.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+mm-break-circular-include-from-linux-mmzoneh-fix.patch
+mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
+mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
