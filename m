@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + misc-c2port-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:38 -0800
-Message-ID: <20130206223839.2C0285A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + misc-tifm_core-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:41 -0800
+Message-ID: <20130206223842.2597031C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:55586 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758221Ab3BFWik (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:40 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so209806vea.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:39 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37074 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758221Ab3BFWin (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:43 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so209861vbi.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, arnd@arndb.de, giometti@linux.it
+Cc: tj@kernel.org, arnd@arndb.de, oakad@yahoo.com
 
 
 The patch titled
-     Subject: misc/c2port: convert to idr_alloc()
+     Subject: misc/tifm_core: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     misc-c2port-convert-to-idr_alloc.patch
+     misc-tifm_core-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: misc/c2port: convert to idr_alloc()
+Subject: misc/tifm_core: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
@@ -42,67 +42,36 @@ Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Rodolfo Giometti <giometti@linux.it>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/c2port/core.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ drivers/misc/tifm_core.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/c2port/core.c~misc-c2port-convert-to-idr_alloc drivers/misc/c2port/core.c
---- a/drivers/misc/c2port/core.c~misc-c2port-convert-to-idr_alloc
-+++ a/drivers/misc/c2port/core.c
-@@ -885,7 +885,7 @@ struct c2port_device *c2port_device_regi
- 					struct c2port_ops *ops, void *devdata)
+diff -puN drivers/misc/tifm_core.c~misc-tifm_core-convert-to-idr_alloc drivers/misc/tifm_core.c
+--- a/drivers/misc/tifm_core.c~misc-tifm_core-convert-to-idr_alloc
++++ a/drivers/misc/tifm_core.c
+@@ -196,13 +196,14 @@ int tifm_add_adapter(struct tifm_adapter
  {
- 	struct c2port_device *c2dev;
--	int id, ret;
-+	int ret;
+ 	int rc;
  
- 	if (unlikely(!ops) || unlikely(!ops->access) || \
- 		unlikely(!ops->c2d_dir) || unlikely(!ops->c2ck_set) || \
-@@ -897,22 +897,18 @@ struct c2port_device *c2port_device_regi
- 	if (unlikely(!c2dev))
- 		return ERR_PTR(-ENOMEM);
- 
--	ret = idr_pre_get(&c2port_idr, GFP_KERNEL);
--	if (!ret) {
--		ret = -ENOMEM;
--		goto error_idr_get_new;
--	}
+-	if (!idr_pre_get(&tifm_adapter_idr, GFP_KERNEL))
+-		return -ENOMEM;
 -
 +	idr_preload(GFP_KERNEL);
- 	spin_lock_irq(&c2port_idr_lock);
--	ret = idr_get_new(&c2port_idr, c2dev, &id);
-+	ret = idr_alloc(&c2port_idr, c2dev, 0, 0, GFP_NOWAIT);
- 	spin_unlock_irq(&c2port_idr_lock);
+ 	spin_lock(&tifm_adapter_lock);
+-	rc = idr_get_new(&tifm_adapter_idr, fm, &fm->id);
++	rc = idr_alloc(&tifm_adapter_idr, fm, 0, 0, GFP_NOWAIT);
++	if (rc >= 0)
++		fm->id = rc;
+ 	spin_unlock(&tifm_adapter_lock);
+-	if (rc)
 +	idr_preload_end();
++	if (rc < 0)
+ 		return rc;
  
- 	if (ret < 0)
--		goto error_idr_get_new;
--	c2dev->id = id;
-+		goto error_idr_alloc;
-+	c2dev->id = ret;
- 
- 	c2dev->dev = device_create(c2port_class, NULL, 0, c2dev,
--					"c2port%d", id);
-+				   "c2port%d", c2dev->id);
- 	if (unlikely(IS_ERR(c2dev->dev))) {
- 		ret = PTR_ERR(c2dev->dev);
- 		goto error_device_create;
-@@ -946,10 +942,10 @@ error_device_create_bin_file:
- 
- error_device_create:
- 	spin_lock_irq(&c2port_idr_lock);
--	idr_remove(&c2port_idr, id);
-+	idr_remove(&c2port_idr, c2dev->id);
- 	spin_unlock_irq(&c2port_idr_lock);
- 
--error_idr_get_new:
-+error_idr_alloc:
- 	kfree(c2dev);
- 
- 	return ERR_PTR(ret);
+ 	dev_set_name(&fm->dev, "tifm%u", fm->id);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
