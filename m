@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:35 -0800
-Message-ID: <20130206223836.2B24231C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + misc-c2port-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:38 -0800
+Message-ID: <20130206223839.2C0285A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:38732 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWih (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:37 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so221942qah.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:36 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:55586 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758221Ab3BFWik (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:40 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so209806vea.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, sameo@linux.intel.com
+Cc: tj@kernel.org, arnd@arndb.de, giometti@linux.it
 
 
 The patch titled
-     Subject: mfd: convert to idr_alloc()
+     Subject: misc/c2port: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     mfd-convert-to-idr_alloc.patch
+     misc-c2port-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mfd: convert to idr_alloc()
+Subject: misc/c2port: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/rtsx_pcr.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/misc/c2port/core.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN drivers/mfd/rtsx_pcr.c~mfd-convert-to-idr_alloc drivers/mfd/rtsx_pcr.c
---- a/drivers/mfd/rtsx_pcr.c~mfd-convert-to-idr_alloc
-+++ a/drivers/mfd/rtsx_pcr.c
-@@ -1061,15 +1061,14 @@ static int rtsx_pci_probe(struct pci_dev
- 	}
- 	handle->pcr = pcr;
+diff -puN drivers/misc/c2port/core.c~misc-c2port-convert-to-idr_alloc drivers/misc/c2port/core.c
+--- a/drivers/misc/c2port/core.c~misc-c2port-convert-to-idr_alloc
++++ a/drivers/misc/c2port/core.c
+@@ -885,7 +885,7 @@ struct c2port_device *c2port_device_regi
+ 					struct c2port_ops *ops, void *devdata)
+ {
+ 	struct c2port_device *c2dev;
+-	int id, ret;
++	int ret;
  
--	if (!idr_pre_get(&rtsx_pci_idr, GFP_KERNEL)) {
+ 	if (unlikely(!ops) || unlikely(!ops->access) || \
+ 		unlikely(!ops->c2d_dir) || unlikely(!ops->c2ck_set) || \
+@@ -897,22 +897,18 @@ struct c2port_device *c2port_device_regi
+ 	if (unlikely(!c2dev))
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	ret = idr_pre_get(&c2port_idr, GFP_KERNEL);
+-	if (!ret) {
 -		ret = -ENOMEM;
--		goto free_handle;
+-		goto error_idr_get_new;
 -	}
 -
 +	idr_preload(GFP_KERNEL);
- 	spin_lock(&rtsx_pci_lock);
--	ret = idr_get_new(&rtsx_pci_idr, pcr, &pcr->id);
-+	ret = idr_alloc(&rtsx_pci_idr, pcr, 0, 0, GFP_NOWAIT);
-+	if (ret >= 0)
-+		pcr->id = ret;
- 	spin_unlock(&rtsx_pci_lock);
--	if (ret)
+ 	spin_lock_irq(&c2port_idr_lock);
+-	ret = idr_get_new(&c2port_idr, c2dev, &id);
++	ret = idr_alloc(&c2port_idr, c2dev, 0, 0, GFP_NOWAIT);
+ 	spin_unlock_irq(&c2port_idr_lock);
 +	idr_preload_end();
-+	if (ret < 0)
- 		goto free_handle;
  
- 	pcr->pci = pcidev;
+ 	if (ret < 0)
+-		goto error_idr_get_new;
+-	c2dev->id = id;
++		goto error_idr_alloc;
++	c2dev->id = ret;
+ 
+ 	c2dev->dev = device_create(c2port_class, NULL, 0, c2dev,
+-					"c2port%d", id);
++				   "c2port%d", c2dev->id);
+ 	if (unlikely(IS_ERR(c2dev->dev))) {
+ 		ret = PTR_ERR(c2dev->dev);
+ 		goto error_device_create;
+@@ -946,10 +942,10 @@ error_device_create_bin_file:
+ 
+ error_device_create:
+ 	spin_lock_irq(&c2port_idr_lock);
+-	idr_remove(&c2port_idr, id);
++	idr_remove(&c2port_idr, c2dev->id);
+ 	spin_unlock_irq(&c2port_idr_lock);
+ 
+-error_idr_get_new:
++error_idr_alloc:
+ 	kfree(c2dev);
+ 
+ 	return ERR_PTR(ret);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
