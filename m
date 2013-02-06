@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rpmsg-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:02 -0800
-Message-ID: <20130206223903.28BEB31C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + ocfs2-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:32 -0800
+Message-ID: <20130206223933.2832D31C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:48935 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758344Ab3BFWjE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:04 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so209731vea.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:03 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:33232 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757789Ab3BFWje (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:34 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so209991vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ohad@wizery.com
+Cc: tj@kernel.org, jlbec@evilplan.org, mfasheh@suse.com
 
 
 The patch titled
-     Subject: rpmsg: convert to idr_alloc()
+     Subject: ocfs2: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     rpmsg-convert-to-idr_alloc.patch
+     ocfs2-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: rpmsg: convert to idr_alloc()
+Subject: ocfs2: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rpmsg/virtio_rpmsg_bus.c |   30 +++++++++++------------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
+ fs/ocfs2/cluster/tcp.c |   32 +++++++++++++-------------------
+ 1 file changed, 13 insertions(+), 19 deletions(-)
 
-diff -puN drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-convert-to-idr_alloc drivers/rpmsg/virtio_rpmsg_bus.c
---- a/drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-convert-to-idr_alloc
-+++ a/drivers/rpmsg/virtio_rpmsg_bus.c
-@@ -213,13 +213,10 @@ static struct rpmsg_endpoint *__rpmsg_cr
- 		struct rpmsg_channel *rpdev, rpmsg_rx_cb_t cb,
- 		void *priv, u32 addr)
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -304,28 +304,22 @@ static u8 o2net_num_from_nn(struct o2net
+ 
+ static int o2net_prep_nsw(struct o2net_node *nn, struct o2net_status_wait *nsw)
  {
--	int err, tmpaddr, request;
-+	int id_min, id_max, id;
- 	struct rpmsg_endpoint *ept;
- 	struct device *dev = rpdev ? &rpdev->dev : &vrp->vdev->dev;
- 
--	if (!idr_pre_get(&vrp->endpoints, GFP_KERNEL))
--		return NULL;
+-	int ret = 0;
 -
- 	ept = kzalloc(sizeof(*ept), GFP_KERNEL);
- 	if (!ept) {
- 		dev_err(dev, "failed to kzalloc a new ept\n");
-@@ -234,31 +231,28 @@ static struct rpmsg_endpoint *__rpmsg_cr
- 	ept->priv = priv;
+-	do {
+-		if (!idr_pre_get(&nn->nn_status_idr, GFP_ATOMIC)) {
+-			ret = -EAGAIN;
+-			break;
+-		}
+-		spin_lock(&nn->nn_lock);
+-		ret = idr_get_new(&nn->nn_status_idr, nsw, &nsw->ns_id);
+-		if (ret == 0)
+-			list_add_tail(&nsw->ns_node_item,
+-				      &nn->nn_status_list);
+-		spin_unlock(&nn->nn_lock);
+-	} while (ret == -EAGAIN);
++	int ret;
  
- 	/* do we need to allocate a local address ? */
--	request = addr == RPMSG_ADDR_ANY ? RPMSG_RESERVED_ADDRESSES : addr;
-+	if (addr == RPMSG_ADDR_ANY) {
-+		id_min = RPMSG_RESERVED_ADDRESSES;
-+		id_max = 0;
-+	} else {
-+		id_min = addr;
-+		id_max = addr + 1;
-+	}
- 
- 	mutex_lock(&vrp->endpoints_lock);
- 
- 	/* bind the endpoint to an rpmsg address (and allocate one if needed) */
--	err = idr_get_new_above(&vrp->endpoints, ept, request, &tmpaddr);
--	if (err) {
--		dev_err(dev, "idr_get_new_above failed: %d\n", err);
-+	id = idr_alloc(&vrp->endpoints, ept, id_min, id_max, GFP_KERNEL);
-+	if (id < 0) {
-+		dev_err(dev, "idr_alloc failed: %d\n", id);
- 		goto free_ept;
+-	if (ret == 0)  {
+-		init_waitqueue_head(&nsw->ns_wq);
+-		nsw->ns_sys_status = O2NET_ERR_NONE;
+-		nsw->ns_status = 0;
++	spin_lock(&nn->nn_lock);
++	ret = idr_alloc(&nn->nn_status_idr, nsw, 0, 0, GFP_ATOMIC);
++	if (ret >= 0) {
++		nsw->ns_id = ret;
++		list_add_tail(&nsw->ns_node_item, &nn->nn_status_list);
  	}
--
--	/* make sure the user's address request is fulfilled, if relevant */
--	if (addr != RPMSG_ADDR_ANY && tmpaddr != addr) {
--		dev_err(dev, "address 0x%x already in use\n", addr);
--		goto rem_idr;
--	}
--
--	ept->addr = tmpaddr;
-+	ept->addr = id;
++	spin_unlock(&nn->nn_lock);
++	if (ret < 0)
++		return ret;
  
- 	mutex_unlock(&vrp->endpoints_lock);
+-	return ret;
++	init_waitqueue_head(&nsw->ns_wq);
++	nsw->ns_sys_status = O2NET_ERR_NONE;
++	nsw->ns_status = 0;
++	return 0;
+ }
  
- 	return ept;
- 
--rem_idr:
--	idr_remove(&vrp->endpoints, request);
- free_ept:
- 	mutex_unlock(&vrp->endpoints_lock);
- 	kref_put(&ept->refcount, __ept_release);
+ static void o2net_complete_nsw_locked(struct o2net_node *nn,
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
