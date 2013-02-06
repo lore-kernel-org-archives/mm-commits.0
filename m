@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + idr-fix-a-subtle-bug-in-idr_get_next.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:36:30 -0800
-Message-ID: <20130206223631.4CB725A42B7@corp2gmr1-2.hot.corp.google.com>
+Subject: + idr-make-idr_destroy-imply-idr_remove_all.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:36:33 -0800
+Message-ID: <20130206223634.23CF05A42B7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:41139 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWgc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:32 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so209773vea.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:31 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:63022 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWgf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:35 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so209728vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, kamezawa.hiroyu@jp.fujitsu.com, stable@vger.kernel.org, teigland@redhat.com
+Cc: tj@kernel.org
 
 
 The patch titled
-     Subject: idr: fix a subtle bug in idr_get_next()
+     Subject: idr: make idr_destroy() imply idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     idr-fix-a-subtle-bug-in-idr_get_next.patch
+     idr-make-idr_destroy-imply-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: idr: fix a subtle bug in idr_get_next()
+Subject: idr: make idr_destroy() imply idr_remove_all()
 
-The iteration logic of idr_get_next() is borrowed mostly verbatim from
-idr_for_each().  It walks down the tree looking for the slot matching
-the current ID.  If the matching slot is not found, the ID is
-incremented by the distance of single slot at the given level and
-repeats.
+idr is silly in quite a few ways, one of which is how it's supposed to
+be destroyed - idr_destroy() doesn't release IDs and doesn't even
+whine if the idr isn't empty.  If the caller forgets idr_remove_all(),
+it simply leaks memory.
 
-The implementation assumes that during the whole iteration id is
-aligned to the layer boundaries of the level closest to the leaf,
-which is true for all iterations starting from zero or an existing
-element and thus is fine for idr_for_each().
+Even ida gets this wrong and leaks memory on destruction.  There is
+absoltely no reason not to call idr_remove_all() from idr_destroy().
+Nobody is abusing idr_destroy() for shrinking free layer buffer and
+continues to use idr after idr_destroy(), so it's safe to do
+remove_all from destroy.
 
-However, idr_get_next() may be given any point and if the starting id
-hits in the middle of a non-existent layer, increment to the next
-layer will end up skipping the same offset into it.  For example, an
-IDR with IDs filled between [64, 127] would look like the following.
+In the whole kernel, there is only one place where idr_remove_all() is
+legitimiately used without following idr_destroy() while there are
+quite a few places where the caller forgets either idr_remove_all() or
+idr_destroy() leaking memory.
 
-          [  0  64 ... ]
-       /----/   |
-       |        |
-      NULL    [ 64 ... 127 ]
-
-If idr_get_next() is called with 63 as the starting point, it will try
-to follow down the pointer from 0.  As it is NULL, it will then try to
-proceed to the next slot in the same level by adding the slot distance
-at that level which is 64 - making the next try 127.  It goes around
-the loop and finds and returns 127 skipping [64, 126].
-
-Note that this bug also triggers in idr_for_each_entry() loop which
-deletes during iteration as deletions can make layers go away leaving
-the iteration with unaligned ID into missing layers.
-
-Fix it by ensuring proceeding to the next slot doesn't carry over the
-unaligned offset - ie. use round_up(id + 1, slot_distance) instead of
-id += slot_distance.
+This patch makes idr_destroy() call idr_destroy_all() and updates the
+function description accordingly.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: David Teigland <teigland@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ lib/idr.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-a-subtle-bug-in-idr_get_next lib/idr.c
---- a/lib/idr.c~idr-fix-a-subtle-bug-in-idr_get_next
+diff -puN lib/idr.c~idr-make-idr_destroy-imply-idr_remove_all lib/idr.c
+--- a/lib/idr.c~idr-make-idr_destroy-imply-idr_remove_all
 +++ a/lib/idr.c
-@@ -625,7 +625,14 @@ void *idr_get_next(struct idr *idp, int 
- 			return p;
- 		}
- 
--		id += 1 << n;
-+		/*
-+		 * Proceed to the next layer at the current level.  Unlike
-+		 * idr_for_each(), @id isn't guaranteed to be aligned to
-+		 * layer boundary at this point and adding 1 << n may
-+		 * incorrectly skip IDs.  Make sure we jump to the
-+		 * beginning of the next layer using round_up().
-+		 */
-+		id = round_up(id + 1, 1 << n);
- 		while (n < fls(id)) {
- 			n += IDR_BITS;
- 			p = *--paa;
+@@ -436,15 +436,6 @@ EXPORT_SYMBOL(idr_remove);
+ /**
+  * idr_remove_all - remove all ids from the given idr tree
+  * @idp: idr handle
+- *
+- * idr_destroy() only frees up unused, cached idp_layers, but this
+- * function will remove all id mappings and leave all idp_layers
+- * unused.
+- *
+- * A typical clean-up sequence for objects stored in an idr tree will
+- * use idr_for_each() to free all objects, if necessay, then
+- * idr_remove_all() to remove all ids, and idr_destroy() to free
+- * up the cached idr_layers.
+  */
+ void idr_remove_all(struct idr *idp)
+ {
+@@ -484,9 +475,20 @@ EXPORT_SYMBOL(idr_remove_all);
+ /**
+  * idr_destroy - release all cached layers within an idr tree
+  * @idp: idr handle
++ *
++ * Free all id mappings and all idp_layers.  After this function, @idp is
++ * completely unused and can be freed / recycled.  The caller is
++ * responsible for ensuring that no one else accesses @idp during or after
++ * idr_destroy().
++ *
++ * A typical clean-up sequence for objects stored in an idr tree will use
++ * idr_for_each() to free all objects, if necessay, then idr_destroy() to
++ * free up the id mappings and cached idr_layers.
+  */
+ void idr_destroy(struct idr *idp)
+ {
++	idr_remove_all(idp);
++
+ 	while (idp->id_free_cnt) {
+ 		struct idr_layer *p = get_from_free_list(idp);
+ 		kmem_cache_free(idr_layer_cache, p);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
