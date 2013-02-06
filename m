@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ib-mlx4-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:22 -0800
-Message-ID: <20130206223823.2FF0E31C214@corp2gmr1-1.hot.corp.google.com>
+Subject: + ib-qib-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:28 -0800
+Message-ID: <20130206223829.2129431C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:57155 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWiY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:24 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so209806ves.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:23 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:61365 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWia (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:30 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so95357ggi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, jackm@dev.mellanox.co.il, ogerlitz@mellanox.com, roland@purestorage.com
+Cc: tj@kernel.org, infinipath@intel.com
 
 
 The patch titled
-     Subject: IB/mlx4: convert to idr_alloc()
+     Subject: IB/qib: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     ib-mlx4-convert-to-idr_alloc.patch
+     ib-qib-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/mlx4: convert to idr_alloc()
+Subject: IB/qib: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Roland Dreier <roland@purestorage.com>
+Cc: Mike Marciniszyn <infinipath@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/mlx4/cm.c |   32 ++++++++++++++----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/qib/qib_init.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN drivers/infiniband/hw/mlx4/cm.c~ib-mlx4-convert-to-idr_alloc drivers/infiniband/hw/mlx4/cm.c
---- a/drivers/infiniband/hw/mlx4/cm.c~ib-mlx4-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/mlx4/cm.c
-@@ -203,7 +203,7 @@ static void sl_id_map_add(struct ib_devi
- static struct id_map_entry *
- id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
- {
--	int ret, id;
-+	int ret;
- 	static int next_id;
- 	struct id_map_entry *ent;
- 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
-@@ -220,25 +220,23 @@ id_map_alloc(struct ib_device *ibdev, in
- 	ent->dev = to_mdev(ibdev);
- 	INIT_DELAYED_WORK(&ent->timeout, id_map_ent_timeout);
+diff -puN drivers/infiniband/hw/qib/qib_init.c~ib-qib-convert-to-idr_alloc drivers/infiniband/hw/qib/qib_init.c
+--- a/drivers/infiniband/hw/qib/qib_init.c~ib-qib-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/qib/qib_init.c
+@@ -1060,22 +1060,23 @@ struct qib_devdata *qib_alloc_devdata(st
+ 	struct qib_devdata *dd;
+ 	int ret;
  
--	do {
--		spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
--		ret = idr_get_new_above(&sriov->pv_id_table, ent,
--					next_id, &id);
--		if (!ret) {
--			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
--			ent->pv_cm_id = (u32)id;
--			sl_id_map_add(ibdev, ent);
--		}
-+	idr_preload(GFP_KERNEL);
-+	spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
- 
--		spin_unlock(&sriov->id_map_lock);
--	} while (ret == -EAGAIN && idr_pre_get(&sriov->pv_id_table, GFP_KERNEL));
--	/*the function idr_get_new_above can return -ENOSPC, so don't insert in that case.*/
--	if (!ret) {
--		spin_lock(&sriov->id_map_lock);
-+	ret = idr_alloc(&sriov->pv_id_table, ent, next_id, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
-+		next_id = ((unsigned)ret + 1) & MAX_IDR_MASK;
-+		ent->pv_cm_id = (u32)ret;
-+		sl_id_map_add(ibdev, ent);
- 		list_add_tail(&ent->list, &sriov->cm_list);
--		spin_unlock(&sriov->id_map_lock);
--		return ent;
+-	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
+-		dd = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+ 	dd = (struct qib_devdata *) ib_alloc_device(sizeof(*dd) + extra);
+ 	if (!dd) {
+ 		dd = ERR_PTR(-ENOMEM);
+ 		goto bail;
  	}
+ 
++	idr_preload(GFP_KERNEL);
+ 	spin_lock_irqsave(&qib_devs_lock, flags);
+-	ret = idr_get_new(&qib_unit_table, dd, &dd->unit);
+-	if (ret >= 0)
 +
-+	spin_unlock(&sriov->id_map_lock);
++	ret = idr_alloc(&qib_unit_table, dd, 0, 0, GFP_NOWAIT);
++	if (ret >= 0) {
++		dd->unit = ret;
+ 		list_add(&dd->list, &qib_dev_list);
++	}
++
+ 	spin_unlock_irqrestore(&qib_devs_lock, flags);
 +	idr_preload_end();
-+
-+	if (ret >= 0)
-+		return ent;
-+
- 	/*error flow*/
- 	kfree(ent);
- 	mlx4_ib_warn(ibdev, "No more space in the idr (err:0x%x)\n", ret);
+ 
+ 	if (ret < 0) {
+ 		qib_early_err(&pdev->dev,
+@@ -1180,11 +1181,6 @@ static int __init qlogic_ib_init(void)
+ 	 * the PCI subsystem.
+ 	 */
+ 	idr_init(&qib_unit_table);
+-	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
+-		pr_err("idr_pre_get() failed\n");
+-		ret = -ENOMEM;
+-		goto bail_cq_wq;
+-	}
+ 
+ 	ret = pci_register_driver(&qib_driver);
+ 	if (ret < 0) {
+@@ -1199,7 +1195,6 @@ static int __init qlogic_ib_init(void)
+ 
+ bail_unit:
+ 	idr_destroy(&qib_unit_table);
+-bail_cq_wq:
+ 	destroy_workqueue(qib_cq_wq);
+ bail_dev:
+ 	qib_dev_cleanup();
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
