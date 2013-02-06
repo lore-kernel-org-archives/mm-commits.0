@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + atm-nicstar-dont-use-idr_remove_all.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:36:35 -0800
-Message-ID: <20130206223636.2C8F631C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + block-loop-dont-use-idr_remove_all.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:36:38 -0800
+Message-ID: <20130206223639.1AFEA5A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:38771 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWgh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:37 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so209521yen.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:36 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:45085 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWgk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:40 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so209731vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, chas@cmf.nrl.navy.mil, davem@davemloft.net
+Cc: tj@kernel.org, axboe@kernel.dk
 
 
 The patch titled
-     Subject: atm/nicstar: don't use idr_remove_all()
+     Subject: block/loop: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     atm-nicstar-dont-use-idr_remove_all.patch
+     block-loop-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: atm/nicstar: don't use idr_remove_all()
+Subject: block/loop: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
 deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
-Cc: David Miller <davem@davemloft.net>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/nicstar.c |    1 -
+ drivers/block/loop.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/atm/nicstar.c~atm-nicstar-dont-use-idr_remove_all drivers/atm/nicstar.c
---- a/drivers/atm/nicstar.c~atm-nicstar-dont-use-idr_remove_all
-+++ a/drivers/atm/nicstar.c
-@@ -251,7 +251,6 @@ static void nicstar_remove_one(struct pc
- 		if (card->scd2vc[j] != NULL)
- 			free_scq(card, card->scd2vc[j]->scq, card->scd2vc[j]->tx_vcc);
- 	}
--	idr_remove_all(&card->idr);
- 	idr_destroy(&card->idr);
- 	pci_free_consistent(card->pcidev, NS_RSQSIZE + NS_RSQ_ALIGNMENT,
- 			    card->rsq.org, card->rsq.dma);
+diff -puN drivers/block/loop.c~block-loop-dont-use-idr_remove_all drivers/block/loop.c
+--- a/drivers/block/loop.c~block-loop-dont-use-idr_remove_all
++++ a/drivers/block/loop.c
+@@ -1908,7 +1908,6 @@ static void __exit loop_exit(void)
+ 	range = max_loop ? max_loop << part_shift : 1UL << MINORBITS;
+ 
+ 	idr_for_each(&loop_index_idr, &loop_exit_cb, NULL);
+-	idr_remove_all(&loop_index_idr);
+ 	idr_destroy(&loop_index_idr);
+ 
+ 	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), range);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
