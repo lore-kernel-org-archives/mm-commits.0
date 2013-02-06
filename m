@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:32 -0800
-Message-ID: <20130206223933.2832D31C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + dlm-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:26 -0800
+Message-ID: <20130206223927.29D2931C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:33232 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757789Ab3BFWje (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:34 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so209991vbi.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:33 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:34176 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757789Ab3BFWj2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:28 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so210056qcr.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, jlbec@evilplan.org, mfasheh@suse.com
+Cc: tj@kernel.org
 
 
 The patch titled
-     Subject: ocfs2: convert to idr_alloc()
+     Subject: dlm: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     ocfs2-convert-to-idr_alloc.patch
+     dlm-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: ocfs2: convert to idr_alloc()
+Subject: dlm: convert to idr_alloc()
 
-Convert to the much saner new idr interface.
+Convert to the much saner new idr interface.  Error return values from
+recover_idr_add() mix -1 and -errno.  The conversion doesn't change
+that but it looks iffy.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |   32 +++++++++++++-------------------
- 1 file changed, 13 insertions(+), 19 deletions(-)
+ fs/dlm/lock.c    |   18 ++++++------------
+ fs/dlm/recover.c |   27 +++++++++++++--------------
+ 2 files changed, 19 insertions(+), 26 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -304,28 +304,22 @@ static u8 o2net_num_from_nn(struct o2net
- 
- static int o2net_prep_nsw(struct o2net_node *nn, struct o2net_status_wait *nsw)
+diff -puN fs/dlm/lock.c~dlm-convert-to-idr_alloc fs/dlm/lock.c
+--- a/fs/dlm/lock.c~dlm-convert-to-idr_alloc
++++ a/fs/dlm/lock.c
+@@ -1183,7 +1183,7 @@ static void detach_lkb(struct dlm_lkb *l
+ static int create_lkb(struct dlm_ls *ls, struct dlm_lkb **lkb_ret)
  {
--	int ret = 0;
+ 	struct dlm_lkb *lkb;
+-	int rv, id;
++	int rv;
+ 
+ 	lkb = dlm_allocate_lkb(ls);
+ 	if (!lkb)
+@@ -1199,19 +1199,13 @@ static int create_lkb(struct dlm_ls *ls,
+ 	mutex_init(&lkb->lkb_cb_mutex);
+ 	INIT_WORK(&lkb->lkb_cb_work, dlm_callback_work);
+ 
+- retry:
+-	rv = idr_pre_get(&ls->ls_lkbidr, GFP_NOFS);
+-	if (!rv)
+-		return -ENOMEM;
 -
--	do {
--		if (!idr_pre_get(&nn->nn_status_idr, GFP_ATOMIC)) {
--			ret = -EAGAIN;
--			break;
--		}
--		spin_lock(&nn->nn_lock);
--		ret = idr_get_new(&nn->nn_status_idr, nsw, &nsw->ns_id);
--		if (ret == 0)
--			list_add_tail(&nsw->ns_node_item,
--				      &nn->nn_status_list);
--		spin_unlock(&nn->nn_lock);
--	} while (ret == -EAGAIN);
-+	int ret;
++	idr_preload(GFP_NOFS);
+ 	spin_lock(&ls->ls_lkbidr_spin);
+-	rv = idr_get_new_above(&ls->ls_lkbidr, lkb, 1, &id);
+-	if (!rv)
+-		lkb->lkb_id = id;
++	rv = idr_alloc(&ls->ls_lkbidr, lkb, 1, 0, GFP_NOWAIT);
++	if (rv >= 0)
++		lkb->lkb_id = rv;
+ 	spin_unlock(&ls->ls_lkbidr_spin);
+-
+-	if (rv == -EAGAIN)
+-		goto retry;
++	idr_preload_end();
  
--	if (ret == 0)  {
--		init_waitqueue_head(&nsw->ns_wq);
--		nsw->ns_sys_status = O2NET_ERR_NONE;
--		nsw->ns_status = 0;
-+	spin_lock(&nn->nn_lock);
-+	ret = idr_alloc(&nn->nn_status_idr, nsw, 0, 0, GFP_ATOMIC);
-+	if (ret >= 0) {
-+		nsw->ns_id = ret;
-+		list_add_tail(&nsw->ns_node_item, &nn->nn_status_list);
+ 	if (rv < 0) {
+ 		log_error(ls, "create_lkb idr error %d", rv);
+diff -puN fs/dlm/recover.c~dlm-convert-to-idr_alloc fs/dlm/recover.c
+--- a/fs/dlm/recover.c~dlm-convert-to-idr_alloc
++++ a/fs/dlm/recover.c
+@@ -305,27 +305,26 @@ static int recover_idr_empty(struct dlm_
+ static int recover_idr_add(struct dlm_rsb *r)
+ {
+ 	struct dlm_ls *ls = r->res_ls;
+-	int rv, id;
+-
+-	rv = idr_pre_get(&ls->ls_recover_idr, GFP_NOFS);
+-	if (!rv)
+-		return -ENOMEM;
++	int rv;
+ 
++	idr_preload(GFP_NOFS);
+ 	spin_lock(&ls->ls_recover_idr_lock);
+ 	if (r->res_id) {
+-		spin_unlock(&ls->ls_recover_idr_lock);
+-		return -1;
+-	}
+-	rv = idr_get_new_above(&ls->ls_recover_idr, r, 1, &id);
+-	if (rv) {
+-		spin_unlock(&ls->ls_recover_idr_lock);
+-		return rv;
++		rv = -1;
++		goto out_unlock;
  	}
-+	spin_unlock(&nn->nn_lock);
-+	if (ret < 0)
-+		return ret;
- 
--	return ret;
-+	init_waitqueue_head(&nsw->ns_wq);
-+	nsw->ns_sys_status = O2NET_ERR_NONE;
-+	nsw->ns_status = 0;
-+	return 0;
+-	r->res_id = id;
++	rv = idr_alloc(&ls->ls_recover_idr, r, 1, 0, GFP_NOWAIT);
++	if (rv < 0)
++		goto out_unlock;
++
++	r->res_id = rv;
+ 	ls->ls_recover_list_count++;
+ 	dlm_hold_rsb(r);
++	rv = 0;
++out_unlock:
+ 	spin_unlock(&ls->ls_recover_idr_lock);
+-	return 0;
++	idr_preload_end();
++	return rv;
  }
  
- static void o2net_complete_nsw_locked(struct o2net_node *nn,
+ static void recover_idr_del(struct dlm_rsb *r)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
