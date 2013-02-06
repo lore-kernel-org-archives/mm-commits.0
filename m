@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + firewire-add-minor-number-range-check-to-fw_device_init.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:39 -0800
-Message-ID: <20130206223740.2EAEB5A42B9__43682.1986725137$1360190288$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: + dmaengine-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:36 -0800
+Message-ID: <20130206223737.24EDB31C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:50525 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757801Ab3BFWhl (ORCPT
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:45824 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755294Ab3BFWhl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:41 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so210635qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:40 -0800 (PST)
+Received: by mail-vb0-f73.google.com with SMTP id fj18so209800vbb.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, stable@vger.kernel.org, stefanr@s5r6.in-berlin.de
+Cc: tj@kernel.org, djbw@fb.com
 
 
 The patch titled
-     Subject: firewire: add minor number range check to fw_device_init()
+     Subject: dmaengine: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     firewire-add-minor-number-range-check-to-fw_device_init.patch
+     dmaengine-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: firewire: add minor number range check to fw_device_init()
+Subject: dmaengine: convert to idr_alloc()
 
-fw_device_init() didn't check whether the allocated minor number isn't
-too large.  Fail if it goes overflows MINORBITS.
+Convert to the much saner new idr interface.
+
+Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Suggested-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: <stable@vger.kernel.org>
+Cc: Dan Williams <djbw@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/core-device.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/dma/dmaengine.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/firewire/core-device.c~firewire-add-minor-number-range-check-to-fw_device_init drivers/firewire/core-device.c
---- a/drivers/firewire/core-device.c~firewire-add-minor-number-range-check-to-fw_device_init
-+++ a/drivers/firewire/core-device.c
-@@ -1020,6 +1020,10 @@ static void fw_device_init(struct work_s
- 	ret = idr_pre_get(&fw_device_idr, GFP_KERNEL) ?
- 	      idr_get_new(&fw_device_idr, device, &minor) :
- 	      -ENOMEM;
-+	if (minor >= 1 << MINORBITS) {
-+		idr_remove(&fw_device_idr, minor);
-+		minor = -ENOSPC;
-+	}
- 	up_write(&fw_device_rwsem);
+diff -puN drivers/dma/dmaengine.c~dmaengine-convert-to-idr_alloc drivers/dma/dmaengine.c
+--- a/drivers/dma/dmaengine.c~dmaengine-convert-to-idr_alloc
++++ a/drivers/dma/dmaengine.c
+@@ -686,18 +686,14 @@ static int get_dma_id(struct dma_device 
+ {
+ 	int rc;
  
- 	if (ret < 0)
+- idr_retry:
+-	if (!idr_pre_get(&dma_idr, GFP_KERNEL))
+-		return -ENOMEM;
+ 	mutex_lock(&dma_list_mutex);
+-	rc = idr_get_new(&dma_idr, NULL, &device->dev_id);
+-	mutex_unlock(&dma_list_mutex);
+-	if (rc == -EAGAIN)
+-		goto idr_retry;
+-	else if (rc != 0)
+-		return rc;
+ 
+-	return 0;
++	rc = idr_alloc(&dma_idr, NULL, 0, 0, GFP_KERNEL);
++	if (rc >= 0)
++		device->dev_id = rc;
++
++	mutex_unlock(&dma_list_mutex);
++	return rc < 0 ? rc : 0;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
