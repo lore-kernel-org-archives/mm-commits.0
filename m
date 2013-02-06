@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + remoteproc-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:59 -0800
-Message-ID: <20130206223900.2F62531C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + pps-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:57 -0800
+Message-ID: <20130206223858.22EDD5A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:37673 "EHLO
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:33160 "EHLO
 	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758226Ab3BFWjB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:01 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so209719vcd.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:00 -0800 (PST)
+	with ESMTP id S1758313Ab3BFWi7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:59 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so209634vcd.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ohad@wizery.com
+Cc: tj@kernel.org, giometti@enneenne.com
 
 
 The patch titled
-     Subject: remoteproc: convert to idr_alloc()
+     Subject: pps: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     remoteproc-convert-to-idr_alloc.patch
+     pps-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,89 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: remoteproc: convert to idr_alloc()
+Subject: pps: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/remoteproc/remoteproc_core.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/pps/kapi.c |    2 +-
+ drivers/pps/pps.c  |   36 ++++++++++++++----------------------
+ 2 files changed, 15 insertions(+), 23 deletions(-)
 
-diff -puN drivers/remoteproc/remoteproc_core.c~remoteproc-convert-to-idr_alloc drivers/remoteproc/remoteproc_core.c
---- a/drivers/remoteproc/remoteproc_core.c~remoteproc-convert-to-idr_alloc
-+++ a/drivers/remoteproc/remoteproc_core.c
-@@ -199,11 +199,6 @@ int rproc_alloc_vring(struct rproc_vdev 
- 	/* actual size of vring (in bytes) */
- 	size = PAGE_ALIGN(vring_size(rvring->len, rvring->align));
+diff -puN drivers/pps/kapi.c~pps-convert-to-idr_alloc drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-convert-to-idr_alloc
++++ a/drivers/pps/kapi.c
+@@ -102,7 +102,7 @@ struct pps_device *pps_register_source(s
+ 		goto pps_register_source_exit;
+ 	}
  
--	if (!idr_pre_get(&rproc->notifyids, GFP_KERNEL)) {
--		dev_err(dev, "idr_pre_get failed\n");
+-	/* These initializations must be done before calling idr_get_new()
++	/* These initializations must be done before calling idr_alloc()
+ 	 * in order to avoid reces into pps_event().
+ 	 */
+ 	pps->params.api_version = PPS_API_VERS;
+diff -puN drivers/pps/pps.c~pps-convert-to-idr_alloc drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-convert-to-idr_alloc
++++ a/drivers/pps/pps.c
+@@ -290,29 +290,21 @@ int pps_register_cdev(struct pps_device 
+ 	dev_t devt;
+ 
+ 	mutex_lock(&pps_idr_lock);
+-	/* Get new ID for the new PPS source */
+-	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
+-		mutex_unlock(&pps_idr_lock);
 -		return -ENOMEM;
 -	}
 -
- 	/*
- 	 * Allocate non-cacheable memory for the vring. In the future
- 	 * this call will also configure the IOMMU for us
-@@ -221,12 +216,13 @@ int rproc_alloc_vring(struct rproc_vdev 
- 	 * TODO: let the rproc know the notifyid of this vring
- 	 * TODO: support predefined notifyids (via resource table)
+-	/* Now really allocate the PPS source.
+-	 * After idr_get_new() calling the new source will be freely available
+-	 * into the kernel.
++	/*
++	 * Get new ID for the new PPS source.  After idr_alloc() calling
++	 * the new source will be freely available into the kernel.
  	 */
--	ret = idr_get_new(&rproc->notifyids, rvring, &notifyid);
-+	ret = idr_alloc(&rproc->notifyids, rvring, 0, 0, GFP_KERNEL);
- 	if (ret) {
--		dev_err(dev, "idr_get_new failed: %d\n", ret);
-+		dev_err(dev, "idr_alloc failed: %d\n", ret);
- 		dma_free_coherent(dev->parent, size, va, dma);
- 		return ret;
+-	err = idr_get_new(&pps_idr, pps, &pps->id);
+-	mutex_unlock(&pps_idr_lock);
+-
+-	if (err < 0)
+-		return err;
+-
+-	pps->id &= MAX_IDR_MASK;
+-	if (pps->id >= PPS_MAX_SOURCES) {
+-		pr_err("%s: too many PPS sources in the system\n",
+-					pps->info.name);
+-		err = -EBUSY;
+-		goto free_idr;
++	err = idr_alloc(&pps_idr, pps, 0, PPS_MAX_SOURCES, GFP_KERNEL);
++	if (err < 0) {
++		if (err == -ENOSPC) {
++			pr_err("%s: too many PPS sources in the system\n",
++			       pps->info.name);
++			err = -EBUSY;
++		}
++		goto out_unlock;
  	}
-+	notifyid = ret;
++	pps->id = err;
++	mutex_unlock(&pps_idr_lock);
  
- 	/* Store largest notifyid */
- 	rproc->max_notifyid = max(rproc->max_notifyid, notifyid);
+ 	devt = MKDEV(MAJOR(pps_devt), pps->id);
+ 
+@@ -345,8 +337,8 @@ del_cdev:
+ free_idr:
+ 	mutex_lock(&pps_idr_lock);
+ 	idr_remove(&pps_idr, pps->id);
++out_unlock:
+ 	mutex_unlock(&pps_idr_lock);
+-
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
