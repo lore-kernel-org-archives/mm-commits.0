@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dont-include-aioh-in-schedh-fix-3-fix.patch added to -mm tree
-Date: Wed, 06 Feb 2013 13:44:27 -0800
-Message-ID: <20130206214428.6957D31C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: + acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch added to -mm tree
+Date: Wed, 06 Feb 2013 13:52:43 -0800
+Message-ID: <20130206215244.155F031C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:64867 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758713Ab3BFVo3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:44:29 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so203301yen.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:44:28 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:33377 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755931Ab3BFVwp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:52:45 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so217035qaj.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:52:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, koverstreet@google.com
+Cc: akpm@linux-foundation.org, tangchen@cn.fujitsu.com
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix-3-fix
+     Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix
 has been added to the -mm tree.  Its filename is
-     aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix-3-fix
+Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix
 
-fix build
+use strcmp()
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pid_namespace.h~aio-dont-include-aioh-in-schedh-fix-3-fix include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~aio-dont-include-aioh-in-schedh-fix-3-fix
-+++ a/include/linux/pid_namespace.h
-@@ -4,6 +4,7 @@
- #include <linux/sched.h>
- #include <linux/bug.h>
- #include <linux/mm.h>
-+#include <linux/workqueue.h>
- #include <linux/threads.h>
- #include <linux/nsproxy.h>
- #include <linux/kref.h>
+diff -puN mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix
++++ a/mm/page_alloc.c
+@@ -5313,7 +5313,7 @@ static int __init cmdline_parse_movablem
+ 	if (!p)
+ 		goto err;
+ 
+-	if (!strncmp(p, "acpi", max_t(size_t, 4, strlen(p))))
++	if (!strcmp(p, "acpi"))
+ 		movablemem_map.acpi = true;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +104,7 @@ page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
 memory-failure-do-code-refactor-of-soft_offline_page.patch
 memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
 mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
@@ -154,6 +155,7 @@ aio-dont-include-aioh-in-schedh-fix.patch
 aio-dont-include-aioh-in-schedh-fix-fix.patch
 aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
 aio-kill-ki_retry-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
@@ -161,6 +163,7 @@ block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
