@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drm-sis-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:56 -0800
-Message-ID: <20130206223757.21FBC5A42CB@corp2gmr1-2.hot.corp.google.com>
+Subject: + drm-i915-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:53 -0800
+Message-ID: <20130206223754.215845A42CB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:40916 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWh6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:58 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so209735vea.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:57 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:62508 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWhz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:55 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so209604ves.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, airlied@linux.ie
+Cc: tj@kernel.org, airlied@linux.ie, daniel.vetter@ffwll.ch
 
 
 The patch titled
-     Subject: drm/sis: convert to idr_alloc()
+     Subject: drm/i915: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     drm-sis-convert-to-idr_alloc.patch
+     drm-i915-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: drm/sis: convert to idr_alloc()
+Subject: drm/i915: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/sis/sis_mm.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/i915/i915_gem_context.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN drivers/gpu/drm/sis/sis_mm.c~drm-sis-convert-to-idr_alloc drivers/gpu/drm/sis/sis_mm.c
---- a/drivers/gpu/drm/sis/sis_mm.c~drm-sis-convert-to-idr_alloc
-+++ a/drivers/gpu/drm/sis/sis_mm.c
-@@ -128,17 +128,10 @@ static int sis_drm_alloc(struct drm_devi
- 	if (retval)
- 		goto fail_alloc;
+diff -puN drivers/gpu/drm/i915/i915_gem_context.c~drm-i915-convert-to-idr_alloc drivers/gpu/drm/i915/i915_gem_context.c
+--- a/drivers/gpu/drm/i915/i915_gem_context.c~drm-i915-convert-to-idr_alloc
++++ a/drivers/gpu/drm/i915/i915_gem_context.c
+@@ -144,7 +144,7 @@ create_hw_context(struct drm_device *dev
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct i915_hw_context *ctx;
+-	int ret, id;
++	int ret;
+ 
+ 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+ 	if (ctx == NULL)
+@@ -169,22 +169,11 @@ create_hw_context(struct drm_device *dev
+ 
+ 	ctx->file_priv = file_priv;
  
 -again:
--	if (idr_pre_get(&dev_priv->object_idr, GFP_KERNEL) == 0) {
--		retval = -ENOMEM;
--		goto fail_idr;
+-	if (idr_pre_get(&file_priv->context_idr, GFP_KERNEL) == 0) {
+-		ret = -ENOMEM;
+-		DRM_DEBUG_DRIVER("idr allocation failed\n");
+-		goto err_out;
 -	}
 -
--	retval = idr_get_new_above(&dev_priv->object_idr, item, 1, &user_key);
--	if (retval == -EAGAIN)
+-	ret = idr_get_new_above(&file_priv->context_idr, ctx,
+-				DEFAULT_CONTEXT_ID + 1, &id);
+-	if (ret == 0)
+-		ctx->id = id;
+-
+-	if (ret == -EAGAIN)
 -		goto again;
--	if (retval)
-+	retval = idr_alloc(&dev_priv->object_idr, item, 1, 0, GFP_KERNEL);
-+	if (retval < 0)
- 		goto fail_idr;
-+	user_key = retval;
+-	else if (ret)
++	ret = idr_alloc(&file_priv->context_idr, ctx, DEFAULT_CONTEXT_ID + 1, 0,
++			GFP_KERNEL);
++	if (ret < 0)
+ 		goto err_out;
++	ctx->id = ret;
  
- 	list_add(&item->owner_list, &file_priv->obj_list);
- 	mutex_unlock(&dev->struct_mutex);
+ 	return ctx;
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
