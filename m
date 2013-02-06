@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dm-dont-use-idr_remove_all.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:36:45 -0800
-Message-ID: <20130206223646.20BB65A42B7@corp2gmr1-2.hot.corp.google.com>
+Subject: + rpmsg-dont-use-idr_remove_all.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:36:49 -0800
+Message-ID: <20130206223650.1E56F31C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:63532 "EHLO
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:63503 "EHLO
 	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWgr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:47 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so95011yhz.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:46 -0800 (PST)
+	with ESMTP id S1757844Ab3BFWgv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:51 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so95154yhz.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, agk@redhat.com
+Cc: tj@kernel.org, ohad@wizery.com
 
 
 The patch titled
-     Subject: dm: don't use idr_remove_all()
+     Subject: rpmsg: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     dm-dont-use-idr_remove_all.patch
+     rpmsg-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dm: don't use idr_remove_all()
+Subject: rpmsg: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
 deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm.c |    1 -
+ drivers/rpmsg/virtio_rpmsg_bus.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/md/dm.c~dm-dont-use-idr_remove_all drivers/md/dm.c
---- a/drivers/md/dm.c~dm-dont-use-idr_remove_all
-+++ a/drivers/md/dm.c
-@@ -318,7 +318,6 @@ static void __exit dm_exit(void)
- 	/*
- 	 * Should be empty by this point.
- 	 */
--	idr_remove_all(&_minor_idr);
- 	idr_destroy(&_minor_idr);
- }
+diff -puN drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-dont-use-idr_remove_all drivers/rpmsg/virtio_rpmsg_bus.c
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-dont-use-idr_remove_all
++++ a/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -1036,7 +1036,6 @@ static void rpmsg_remove(struct virtio_d
+ 	if (vrp->ns_ept)
+ 		__rpmsg_destroy_ept(vrp, vrp->ns_ept);
  
+-	idr_remove_all(&vrp->endpoints);
+ 	idr_destroy(&vrp->endpoints);
+ 
+ 	vdev->config->del_vqs(vrp->vdev);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
