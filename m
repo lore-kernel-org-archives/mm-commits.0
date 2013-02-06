@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ib-cxgb3-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:12 -0800
-Message-ID: <20130206223813.220E35A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + ib-ehca-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:17 -0800
+Message-ID: <20130206223817.E79285A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:40534 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWiO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:14 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so210343ghb.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:13 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:45659 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWiT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:19 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so209892vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, swise@opengridcomputing.com
+Cc: tj@kernel.org, hnguyen@de.ibm.com, raisch@de.ibm.com
 
 
 The patch titled
-     Subject: IB/cxgb3: convert to idr_alloc()
+     Subject: IB/ehca: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     ib-cxgb3-convert-to-idr_alloc.patch
+     ib-ehca-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,122 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/cxgb3: convert to idr_alloc()
+Subject: IB/ehca: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/cxgb3/iwch.h |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/ehca/ehca_cq.c |   27 +++++--------------
+ drivers/infiniband/hw/ehca/ehca_qp.c |   34 +++++++++++--------------
+ 2 files changed, 22 insertions(+), 39 deletions(-)
 
-diff -puN drivers/infiniband/hw/cxgb3/iwch.h~ib-cxgb3-convert-to-idr_alloc drivers/infiniband/hw/cxgb3/iwch.h
---- a/drivers/infiniband/hw/cxgb3/iwch.h~ib-cxgb3-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/cxgb3/iwch.h
-@@ -153,19 +153,17 @@ static inline int insert_handle(struct i
- 				void *handle, u32 id)
- {
- 	int ret;
--	int newid;
+diff -puN drivers/infiniband/hw/ehca/ehca_cq.c~ib-ehca-convert-to-idr_alloc drivers/infiniband/hw/ehca/ehca_cq.c
+--- a/drivers/infiniband/hw/ehca/ehca_cq.c~ib-ehca-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/ehca/ehca_cq.c
+@@ -128,7 +128,7 @@ struct ib_cq *ehca_create_cq(struct ib_d
+ 	void *vpage;
+ 	u32 counter;
+ 	u64 rpage, cqx_fec, h_ret;
+-	int ipz_rc, ret, i;
++	int ipz_rc, i;
+ 	unsigned long flags;
+ 
+ 	if (cqe >= 0xFFFFFFFF - 64 - additional_cqe)
+@@ -163,32 +163,19 @@ struct ib_cq *ehca_create_cq(struct ib_d
+ 	adapter_handle = shca->ipz_hca_handle;
+ 	param.eq_handle = shca->eq.ipz_eq_handle;
  
 -	do {
--		if (!idr_pre_get(idr, GFP_KERNEL)) {
--			return -ENOMEM;
+-		if (!idr_pre_get(&ehca_cq_idr, GFP_KERNEL)) {
+-			cq = ERR_PTR(-ENOMEM);
+-			ehca_err(device, "Can't reserve idr nr. device=%p",
+-				 device);
+-			goto create_cq_exit1;
 -		}
--		spin_lock_irq(&rhp->lock);
--		ret = idr_get_new_above(idr, handle, id, &newid);
--		BUG_ON(newid != id);
--		spin_unlock_irq(&rhp->lock);
+-
+-		write_lock_irqsave(&ehca_cq_idr_lock, flags);
+-		ret = idr_get_new(&ehca_cq_idr, my_cq, &my_cq->token);
+-		write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
 -	} while (ret == -EAGAIN);
 +	idr_preload(GFP_KERNEL);
-+	spin_lock_irq(&rhp->lock);
-+
-+	ret = idr_alloc(idr, handle, id, id + 1, GFP_NOWAIT);
-+
-+	spin_unlock_irq(&rhp->lock);
++	write_lock_irqsave(&ehca_cq_idr_lock, flags);
++	my_cq->token = idr_alloc(&ehca_cq_idr, my_cq, 0, 0x2000000, GFP_NOWAIT);
++	write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
 +	idr_preload_end();
  
--	return ret;
-+	BUG_ON(ret == -ENOSPC);
-+	return ret < 0 ? ret : 0;
- }
+-	if (ret) {
++	if (my_cq->token < 0) {
+ 		cq = ERR_PTR(-ENOMEM);
+ 		ehca_err(device, "Can't allocate new idr entry. device=%p",
+ 			 device);
+ 		goto create_cq_exit1;
+ 	}
  
- static inline void remove_handle(struct iwch_dev *rhp, struct idr *idr, u32 id)
+-	if (my_cq->token > 0x1FFFFFF) {
+-		cq = ERR_PTR(-ENOMEM);
+-		ehca_err(device, "Invalid number of cq. device=%p", device);
+-		goto create_cq_exit2;
+-	}
+-
+ 	/*
+ 	 * CQs maximum depth is 4GB-64, but we need additional 20 as buffer
+ 	 * for receiving errors CQEs.
+diff -puN drivers/infiniband/hw/ehca/ehca_qp.c~ib-ehca-convert-to-idr_alloc drivers/infiniband/hw/ehca/ehca_qp.c
+--- a/drivers/infiniband/hw/ehca/ehca_qp.c~ib-ehca-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/ehca/ehca_qp.c
+@@ -636,30 +636,26 @@ static struct ehca_qp *internal_create_q
+ 		my_qp->send_cq =
+ 			container_of(init_attr->send_cq, struct ehca_cq, ib_cq);
+ 
+-	do {
+-		if (!idr_pre_get(&ehca_qp_idr, GFP_KERNEL)) {
++	idr_preload(GFP_KERNEL);
++	write_lock_irqsave(&ehca_qp_idr_lock, flags);
++
++	ret = idr_alloc(&ehca_qp_idr, my_qp, 0, 0x2000000, GFP_NOWAIT);
++	if (ret >= 0)
++		my_qp->token = ret;
++
++	write_unlock_irqrestore(&ehca_qp_idr_lock, flags);
++	idr_preload_end();
++	if (ret < 0) {
++		if (ret == -ENOSPC) {
++			ret = -EINVAL;
++			ehca_err(pd->device, "Invalid number of qp");
++		} else {
+ 			ret = -ENOMEM;
+-			ehca_err(pd->device, "Can't reserve idr resources.");
+-			goto create_qp_exit0;
++			ehca_err(pd->device, "Can't allocate new idr entry.");
+ 		}
+-
+-		write_lock_irqsave(&ehca_qp_idr_lock, flags);
+-		ret = idr_get_new(&ehca_qp_idr, my_qp, &my_qp->token);
+-		write_unlock_irqrestore(&ehca_qp_idr_lock, flags);
+-	} while (ret == -EAGAIN);
+-
+-	if (ret) {
+-		ret = -ENOMEM;
+-		ehca_err(pd->device, "Can't allocate new idr entry.");
+ 		goto create_qp_exit0;
+ 	}
+ 
+-	if (my_qp->token > 0x1FFFFFF) {
+-		ret = -EINVAL;
+-		ehca_err(pd->device, "Invalid number of qp");
+-		goto create_qp_exit1;
+-	}
+-
+ 	if (has_srq)
+ 		parms.srq_token = my_qp->token;
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
