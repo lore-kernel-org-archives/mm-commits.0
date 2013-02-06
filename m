@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-lpfc-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:14 -0800
-Message-ID: <20130206223915.3226F5A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + uio-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:20 -0800
+Message-ID: <20130206223921.26B9E5A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:59847 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754839Ab3BFWjQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:16 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so222061qaj.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:15 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:35863 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756368Ab3BFWjW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:22 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so209853qen.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, James.Bottomley@HansenPartnership.com, james.smart@emulex.com
+Cc: tj@kernel.org, gregkh@linuxfoundation.org, hjk@hansjkoch.de
 
 
 The patch titled
-     Subject: scsi/lpfc: convert to idr_alloc()
+     Subject: uio: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     scsi-lpfc-convert-to-idr_alloc.patch
+     uio-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: scsi/lpfc: convert to idr_alloc()
+Subject: uio: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: James Smart <james.smart@emulex.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Hans J. Koch" <hjk@hansjkoch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/uio/uio.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-convert-to-idr_alloc drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-convert-to-idr_alloc
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -3165,14 +3165,10 @@ destroy_port(struct lpfc_vport *vport)
- int
- lpfc_get_instance(void)
+diff -puN drivers/uio/uio.c~uio-convert-to-idr_alloc drivers/uio/uio.c
+--- a/drivers/uio/uio.c~uio-convert-to-idr_alloc
++++ a/drivers/uio/uio.c
+@@ -369,26 +369,15 @@ static void uio_dev_del_attributes(struc
+ static int uio_get_minor(struct uio_device *idev)
  {
--	int instance = 0;
-+	int ret;
+ 	int retval = -ENOMEM;
+-	int id;
  
--	/* Assign an unused number */
--	if (!idr_pre_get(&lpfc_hba_index, GFP_KERNEL))
--		return -1;
--	if (idr_get_new(&lpfc_hba_index, NULL, &instance))
--		return -1;
--	return instance;
-+	ret = idr_alloc(&lpfc_hba_index, NULL, 0, 0, GFP_KERNEL);
-+	return ret < 0 ? -1 : ret;
+ 	mutex_lock(&minor_lock);
+-	if (idr_pre_get(&uio_idr, GFP_KERNEL) == 0)
+-		goto exit;
+-
+-	retval = idr_get_new(&uio_idr, idev, &id);
+-	if (retval < 0) {
+-		if (retval == -EAGAIN)
+-			retval = -ENOMEM;
+-		goto exit;
+-	}
+-	if (id < UIO_MAX_DEVICES) {
+-		idev->minor = id;
+-	} else {
++	retval = idr_alloc(&uio_idr, idev, 0, UIO_MAX_DEVICES, GFP_KERNEL);
++	if (retval >= 0) {
++		idev->minor = retval;
++	} else if (retval == -ENOSPC) {
+ 		dev_err(idev->dev, "too many uio devices\n");
+ 		retval = -EINVAL;
+-		idr_remove(&uio_idr, id);
+ 	}
+-exit:
+ 	mutex_unlock(&minor_lock);
+ 	return retval;
  }
- 
- /**
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
