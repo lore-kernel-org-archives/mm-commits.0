@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + idr-cosmetic-updates-to-struct-initializer-definitions.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:06 -0800
-Message-ID: <20130206223707.26D5631C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + idr-deprecate-idr_remove_all.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:04 -0800
+Message-ID: <20130206223705.2309231C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:39198 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758149Ab3BFWhI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:08 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so209561yen.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:07 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:58956 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758140Ab3BFWhG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:06 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so221743qaj.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: tj@kernel.org
 
 
 The patch titled
-     Subject: idr: cosmetic updates to struct / initializer definitions
+     Subject: idr: deprecate idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     idr-cosmetic-updates-to-struct-initializer-definitions.patch
+     idr-deprecate-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: idr: cosmetic updates to struct / initializer definitions
+Subject: idr: deprecate idr_remove_all()
 
-* Tab align fields like a normal person.
+There was only one legitimate use of idr_remove_all() and a lot more
+of incorrect uses (or lack of it).  Now that idr_destroy() implies
+idr_remove_all() and all the in-kernel users updated not to use it,
+there's no reason to keep it around.  Mark it deprecated so that we
+can later unexport it.
 
-* Drop the unnecessary 0 inits from IDR_INIT().
-
-This patch is purely cosmetic.
+idr_remove_all() is made an inline function calling __idr_remove_all()
+to avoid triggering deprecated warning on EXPORT_SYMBOL().
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ include/linux/idr.h |   14 +++++++++++++-
+ lib/idr.c           |   10 +++-------
+ 2 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/idr.h~idr-cosmetic-updates-to-struct-initializer-definitions include/linux/idr.h
---- a/include/linux/idr.h~idr-cosmetic-updates-to-struct-initializer-definitions
+diff -puN include/linux/idr.h~idr-deprecate-idr_remove_all include/linux/idr.h
+--- a/include/linux/idr.h~idr-deprecate-idr_remove_all
 +++ a/include/linux/idr.h
-@@ -49,28 +49,24 @@
- #define MAX_IDR_FREE (MAX_IDR_LEVEL * 2)
+@@ -110,10 +110,22 @@ int idr_for_each(struct idr *idp,
+ void *idr_get_next(struct idr *idp, int *nextid);
+ void *idr_replace(struct idr *idp, void *ptr, int id);
+ void idr_remove(struct idr *idp, int id);
+-void idr_remove_all(struct idr *idp);
+ void idr_destroy(struct idr *idp);
+ void idr_init(struct idr *idp);
  
- struct idr_layer {
--	unsigned long		 bitmap; /* A zero bit means "space here" */
-+	unsigned long		bitmap;	/* A zero bit means "space here" */
- 	struct idr_layer __rcu	*ary[1<<IDR_BITS];
--	int			 count;	 /* When zero, we can release it */
--	int			 layer;	 /* distance from leaf */
--	struct rcu_head		 rcu_head;
-+	int			count;	/* When zero, we can release it */
-+	int			layer;	/* distance from leaf */
-+	struct rcu_head		rcu_head;
- };
++void __idr_remove_all(struct idr *idp);	/* don't use */
++
++/**
++ * idr_remove_all - remove all ids from the given idr tree
++ * @idp: idr handle
++ *
++ * If you're trying to destroy @idp, calling idr_destroy() is enough.
++ * This is going away.  Don't use.
++ */
++static inline void __deprecated idr_remove_all(struct idr *idp)
++{
++	__idr_remove_all(idp);
++}
  
- struct idr {
--	struct idr_layer __rcu *top;
--	struct idr_layer *id_free;
--	int		  layers; /* only valid without concurrent changes */
--	int		  id_free_cnt;
--	spinlock_t	  lock;
-+	struct idr_layer __rcu	*top;
-+	struct idr_layer	*id_free;
-+	int			layers;	/* only valid w/o concurrent changes */
-+	int			id_free_cnt;
-+	spinlock_t		lock;
- };
- 
--#define IDR_INIT(name)						\
--{								\
--	.top		= NULL,					\
--	.id_free	= NULL,					\
--	.layers 	= 0,					\
--	.id_free_cnt	= 0,					\
--	.lock		= __SPIN_LOCK_UNLOCKED(name.lock),	\
-+#define IDR_INIT(name)							\
-+{									\
-+	.lock			= __SPIN_LOCK_UNLOCKED(name.lock),	\
+ /*
+  * IDA - IDR based id allocator, use when translation from id to
+diff -puN lib/idr.c~idr-deprecate-idr_remove_all lib/idr.c
+--- a/lib/idr.c~idr-deprecate-idr_remove_all
++++ a/lib/idr.c
+@@ -433,11 +433,7 @@ void idr_remove(struct idr *idp, int id)
  }
- #define DEFINE_IDR(name)	struct idr name = IDR_INIT(name)
+ EXPORT_SYMBOL(idr_remove);
  
+-/**
+- * idr_remove_all - remove all ids from the given idr tree
+- * @idp: idr handle
+- */
+-void idr_remove_all(struct idr *idp)
++void __idr_remove_all(struct idr *idp)
+ {
+ 	int n, id, max;
+ 	int bt_mask;
+@@ -470,7 +466,7 @@ void idr_remove_all(struct idr *idp)
+ 	}
+ 	idp->layers = 0;
+ }
+-EXPORT_SYMBOL(idr_remove_all);
++EXPORT_SYMBOL(__idr_remove_all);
+ 
+ /**
+  * idr_destroy - release all cached layers within an idr tree
+@@ -487,7 +483,7 @@ EXPORT_SYMBOL(idr_remove_all);
+  */
+ void idr_destroy(struct idr *idp)
+ {
+-	idr_remove_all(idp);
++	__idr_remove_all(idp);
+ 
+ 	while (idp->id_free_cnt) {
+ 		struct idr_layer *p = get_from_free_list(idp);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
