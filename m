@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:38 -0800
-Message-ID: <20130206223939.299655A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + net-9p-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:46 -0800
+Message-ID: <20130206223947.369995A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:63533 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755699Ab3BFWjk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:40 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so209811qcs.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:39 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:58715 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755294Ab3BFWjs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:48 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so209712vch.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, lizefan@huawei.com
+Cc: tj@kernel.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
 
 
 The patch titled
-     Subject: cgroup: convert to idr_alloc()
+     Subject: net/9p: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     cgroup-convert-to-idr_alloc.patch
+     net-9p-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: cgroup: convert to idr_alloc()
+Subject: net/9p: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Li Zefan <lizefan@huawei.com>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ net/9p/util.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-convert-to-idr_alloc kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-convert-to-idr_alloc
-+++ a/kernel/cgroup.c
-@@ -5284,7 +5284,7 @@ EXPORT_SYMBOL_GPL(free_css_id);
- static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
+diff -puN net/9p/util.c~net-9p-convert-to-idr_alloc net/9p/util.c
+--- a/net/9p/util.c~net-9p-convert-to-idr_alloc
++++ a/net/9p/util.c
+@@ -87,23 +87,18 @@ EXPORT_SYMBOL(p9_idpool_destroy);
+ 
+ int p9_idpool_get(struct p9_idpool *p)
  {
- 	struct css_id *newid;
--	int myid, error, size;
-+	int ret, size;
+-	int i = 0;
+-	int error;
++	int i;
+ 	unsigned long flags;
  
- 	BUG_ON(!ss->use_id);
+-retry:
+-	if (idr_pre_get(&p->pool, GFP_NOFS) == 0)
+-		return -1;
+-
++	idr_preload(GFP_NOFS);
+ 	spin_lock_irqsave(&p->lock, flags);
  
-@@ -5292,35 +5292,24 @@ static struct css_id *get_new_cssid(stru
- 	newid = kzalloc(size, GFP_KERNEL);
- 	if (!newid)
- 		return ERR_PTR(-ENOMEM);
--	/* get id */
--	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
--		error = -ENOMEM;
--		goto err_out;
--	}
-+
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&ss->id_lock);
- 	/* Don't use 0. allocates an ID of 1-65535 */
--	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
-+	ret = idr_alloc(&ss->idr, newid, 1, CSS_ID_MAX + 1, GFP_NOWAIT);
- 	spin_unlock(&ss->id_lock);
+ 	/* no need to store exactly p, we just need something non-null */
+-	error = idr_get_new(&p->pool, p, &i);
+-	spin_unlock_irqrestore(&p->lock, flags);
++	i = idr_alloc(&p->pool, p, 0, 0, GFP_NOWAIT);
+ 
+-	if (error == -EAGAIN)
+-		goto retry;
+-	else if (error)
++	spin_unlock_irqrestore(&p->lock, flags);
 +	idr_preload_end();
++	if (i < 0)
+ 		return -1;
  
- 	/* Returns error when there are no free spaces for new ID.*/
--	if (error) {
--		error = -ENOSPC;
-+	if (ret < 0)
- 		goto err_out;
--	}
--	if (myid > CSS_ID_MAX)
--		goto remove_idr;
- 
--	newid->id = myid;
-+	newid->id = ret;
- 	newid->depth = depth;
- 	return newid;
--remove_idr:
--	error = -ENOSPC;
--	spin_lock(&ss->id_lock);
--	idr_remove(&ss->idr, myid);
--	spin_unlock(&ss->id_lock);
- err_out:
- 	kfree(newid);
--	return ERR_PTR(error);
-+	return ERR_PTR(ret);
- 
- }
- 
+ 	p9_debug(P9_DEBUG_MUX, " id %d pool %p\n", i, p);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
