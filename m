@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:44 -0800
-Message-ID: <20130206223845.2036931C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + mtd-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:46 -0800
+Message-ID: <20130206223847.2DEAA5A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:43334 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758238Ab3BFWiq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:46 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so210399ghb.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:45 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:41988 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758221Ab3BFWis (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:48 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so209730qcr.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, cjb@laptop.org
+Cc: tj@kernel.org, dwmw2@infradead.org, ezequiel.garcia@free-electrons.com
 
 
 The patch titled
-     Subject: mmc: convert to idr_alloc()
+     Subject: mtd: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     mmc-convert-to-idr_alloc.patch
+     mtd-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mmc: convert to idr_alloc()
+Subject: mtd: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Chris Ball <cjb@laptop.org>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/host.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/mtd/mtdcore.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/mmc/core/host.c~mmc-convert-to-idr_alloc drivers/mmc/core/host.c
---- a/drivers/mmc/core/host.c~mmc-convert-to-idr_alloc
-+++ a/drivers/mmc/core/host.c
-@@ -306,19 +306,20 @@ struct mmc_host *mmc_alloc_host(int extr
- 	int err;
- 	struct mmc_host *host;
+diff -puN drivers/mtd/mtdcore.c~mtd-convert-to-idr_alloc drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~mtd-convert-to-idr_alloc
++++ a/drivers/mtd/mtdcore.c
+@@ -349,13 +349,8 @@ int add_mtd_device(struct mtd_info *mtd)
+ 	BUG_ON(mtd->writesize == 0);
+ 	mutex_lock(&mtd_table_mutex);
  
--	if (!idr_pre_get(&mmc_host_idr, GFP_KERNEL))
--		return NULL;
+-	do {
+-		if (!idr_pre_get(&mtd_idr, GFP_KERNEL))
+-			goto fail_locked;
+-		error = idr_get_new(&mtd_idr, mtd, &i);
+-	} while (error == -EAGAIN);
 -
- 	host = kzalloc(sizeof(struct mmc_host) + extra, GFP_KERNEL);
- 	if (!host)
- 		return NULL;
+-	if (error)
++	i = idr_alloc(&mtd_idr, mtd, 0, 0, GFP_KERNEL);
++	if (i < 0)
+ 		goto fail_locked;
  
- 	/* scanning will be enabled when we're ready */
- 	host->rescan_disable = 1;
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&mmc_host_lock);
--	err = idr_get_new(&mmc_host_idr, host, &host->index);
-+	err = idr_alloc(&mmc_host_idr, host, 0, 0, GFP_NOWAIT);
-+	if (err >= 0)
-+		host->index = err;
- 	spin_unlock(&mmc_host_lock);
--	if (err)
-+	idr_preload_end();
-+	if (err < 0)
- 		goto free;
- 
- 	dev_set_name(&host->class_dev, "mmc%d", host->index);
+ 	mtd->index = i;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
