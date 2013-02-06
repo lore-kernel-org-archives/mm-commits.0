@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + events-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:41 -0800
-Message-ID: <20130206223942.3CD6531C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + nfs4client-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:55 -0800
+Message-ID: <20130206223956.28EA85A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:62476 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755699Ab3BFWjn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:43 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so222093qaj.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:42 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:63645 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754960Ab3BFWj5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:57 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so210025qeb.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, a.p.zijlstra@chello.nl, acme@ghostprotocols.net, mingo@redhat.com, paulus@samba.org
+Cc: tj@kernel.org, Trond.Myklebust@netapp.com
 
 
 The patch titled
-     Subject: events: convert to idr_alloc()
+     Subject: nfs4client: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     events-convert-to-idr_alloc.patch
+     nfs4client-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: events: convert to idr_alloc()
+Subject: nfs4client: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/core.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ fs/nfs/nfs4client.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN kernel/events/core.c~events-convert-to-idr_alloc kernel/events/core.c
---- a/kernel/events/core.c~events-convert-to-idr_alloc
-+++ a/kernel/events/core.c
-@@ -5965,13 +5965,9 @@ int perf_pmu_register(struct pmu *pmu, c
- 	pmu->name = name;
+diff -puN fs/nfs/nfs4client.c~nfs4client-convert-to-idr_alloc fs/nfs/nfs4client.c
+--- a/fs/nfs/nfs4client.c~nfs4client-convert-to-idr_alloc
++++ a/fs/nfs/nfs4client.c
+@@ -29,15 +29,14 @@ static int nfs_get_cb_ident_idr(struct n
  
- 	if (type < 0) {
--		int err = idr_pre_get(&pmu_idr, GFP_KERNEL);
--		if (!err)
--			goto free_pdc;
--
--		err = idr_get_new_above(&pmu_idr, pmu, PERF_TYPE_MAX, &type);
--		if (err) {
--			ret = err;
-+		type = idr_alloc(&pmu_idr, pmu, PERF_TYPE_MAX, 0, GFP_KERNEL);
-+		if (type < 0) {
-+			ret = type;
- 			goto free_pdc;
- 		}
- 	}
+ 	if (clp->rpc_ops->version != 4 || minorversion != 0)
+ 		return ret;
+-retry:
+-	if (!idr_pre_get(&nn->cb_ident_idr, GFP_KERNEL))
+-		return -ENOMEM;
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&nn->nfs_client_lock);
+-	ret = idr_get_new(&nn->cb_ident_idr, clp, &clp->cl_cb_ident);
++	ret = idr_alloc(&nn->cb_ident_idr, clp, 0, 0, GFP_NOWAIT);
++	if (ret >= 0)
++		clp->cl_cb_ident = ret;
+ 	spin_unlock(&nn->nfs_client_lock);
+-	if (ret == -EAGAIN)
+-		goto retry;
+-	return ret;
++	idr_preload_end();
++	return ret < 0 ? ret : 0;
+ }
+ 
+ #ifdef CONFIG_NFS_V4_1
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
