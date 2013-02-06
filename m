@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drm-i915-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:53 -0800
-Message-ID: <20130206223754.215845A42CB@corp2gmr1-2.hot.corp.google.com>
+Subject: + drm-exynos-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:50 -0800
+Message-ID: <20130206223751.2FDFB31C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:62508 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWhz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:55 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so209604ves.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:54 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:40743 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWhw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:52 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so209644qcr.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, airlied@linux.ie, daniel.vetter@ffwll.ch
+Cc: tj@kernel.org, airlied@linux.ie, kgene.kim@samsung.com
 
 
 The patch titled
-     Subject: drm/i915: convert to idr_alloc()
+     Subject: drm/exynos: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     drm-i915-convert-to-idr_alloc.patch
+     drm-exynos-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: drm/i915: convert to idr_alloc()
+Subject: drm/exynos: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: David Airlie <airlied@linux.ie>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gem_context.c |   21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ drivers/gpu/drm/exynos/exynos_drm_ipp.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_gem_context.c~drm-i915-convert-to-idr_alloc drivers/gpu/drm/i915/i915_gem_context.c
---- a/drivers/gpu/drm/i915/i915_gem_context.c~drm-i915-convert-to-idr_alloc
-+++ a/drivers/gpu/drm/i915/i915_gem_context.c
-@@ -144,7 +144,7 @@ create_hw_context(struct drm_device *dev
- {
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 	struct i915_hw_context *ctx;
--	int ret, id;
-+	int ret;
+diff -puN drivers/gpu/drm/exynos/exynos_drm_ipp.c~drm-exynos-convert-to-idr_alloc drivers/gpu/drm/exynos/exynos_drm_ipp.c
+--- a/drivers/gpu/drm/exynos/exynos_drm_ipp.c~drm-exynos-convert-to-idr_alloc
++++ a/drivers/gpu/drm/exynos/exynos_drm_ipp.c
+@@ -137,21 +137,15 @@ static int ipp_create_id(struct idr *id_
  
- 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (ctx == NULL)
-@@ -169,22 +169,11 @@ create_hw_context(struct drm_device *dev
- 
- 	ctx->file_priv = file_priv;
+ 	DRM_DEBUG_KMS("%s\n", __func__);
  
 -again:
--	if (idr_pre_get(&file_priv->context_idr, GFP_KERNEL) == 0) {
--		ret = -ENOMEM;
--		DRM_DEBUG_DRIVER("idr allocation failed\n");
--		goto err_out;
+-	/* ensure there is space available to allocate a handle */
+-	if (idr_pre_get(id_idr, GFP_KERNEL) == 0) {
+-		DRM_ERROR("failed to get idr.\n");
+-		return -ENOMEM;
 -	}
 -
--	ret = idr_get_new_above(&file_priv->context_idr, ctx,
--				DEFAULT_CONTEXT_ID + 1, &id);
--	if (ret == 0)
--		ctx->id = id;
--
+ 	/* do the allocation under our mutexlock */
+ 	mutex_lock(lock);
+-	ret = idr_get_new_above(id_idr, obj, 1, (int *)idp);
++	ret = idr_alloc(id_idr, obj, 1, 0, GFP_KERNEL);
+ 	mutex_unlock(lock);
 -	if (ret == -EAGAIN)
 -		goto again;
--	else if (ret)
-+	ret = idr_alloc(&file_priv->context_idr, ctx, DEFAULT_CONTEXT_ID + 1, 0,
-+			GFP_KERNEL);
 +	if (ret < 0)
- 		goto err_out;
-+	ctx->id = ret;
++		return ret;
  
- 	return ctx;
+-	return ret;
++	*idp = ret;
++	return 0;
+ }
  
+ static void *ipp_find_obj(struct idr *id_idr, struct mutex *lock, u32 id)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
