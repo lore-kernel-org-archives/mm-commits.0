@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + net-change-type-of-virtio_chan-p9_max_pages.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:49:23 -0800
-Message-ID: <20130206224923.EA2C031C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: + nfs-idr_destroy-no-longer-needs-idr_remove_all.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:35:18 -0800
+Message-ID: <20130206232702.82C5431C265@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:60372 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757961Ab3BFWtZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:49:25 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so211626qcr.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:49:24 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:53744 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755489Ab3BFX1H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 18:27:07 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so215570ghb.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 15:27:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhangyanfei@cn.fujitsu.com, davem@davemloft.net, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
+Cc: tj@kernel.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     Subject: net: change type of virtio_chan->p9_max_pages
+     Subject: nfs: idr_destroy() no longer needs idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     net-change-type-of-virtio_chan-p9_max_pages.patch
+     nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: net: change type of virtio_chan->p9_max_pages
+From: Tejun Heo <tj@kernel.org>
+Subject: nfs: idr_destroy() no longer needs idr_remove_all()
 
-This member of struct virtio_chan is calculated from nr_free_buffer_pages
-so change its type to unsigned long in case of overflow.
+idr_destroy() can destroy idr by itself and idr_remove_all() is being
+deprecated.  Drop reference to idr_remove_all().  Note that the code
+wasn't completely correct before because idr_remove() on all entries
+doesn't necessarily release all idr_layers which could lead to memory
+leak.
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_virtio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/client.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN net/9p/trans_virtio.c~net-change-type-of-virtio_chan-p9_max_pages net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~net-change-type-of-virtio_chan-p9_max_pages
-+++ a/net/9p/trans_virtio.c
-@@ -87,7 +87,7 @@ struct virtio_chan {
- 	/* This is global limit. Since we don't have a global structure,
- 	 * will be placing it in each channel.
- 	 */
--	int p9_max_pages;
-+	unsigned long p9_max_pages;
- 	/* Scatterlist: can be too big for stack. */
- 	struct scatterlist sg[VIRTQUEUE_NUM];
+diff -puN fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all fs/nfs/client.c
+--- a/fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all
++++ a/fs/nfs/client.c
+@@ -197,7 +197,6 @@ error_0:
+ EXPORT_SYMBOL_GPL(nfs_alloc_client);
  
+ #if IS_ENABLED(CONFIG_NFS_V4)
+-/* idr_remove_all is not needed as all id's are removed by nfs_put_client */
+ void nfs_cleanup_cb_ident_idr(struct net *net)
+ {
+ 	struct nfs_net *nn = net_generic(net, nfs_net_id);
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
-mm-fix-return-type-for-functions-nr_free__pages.patch
-ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages.patch
-fs-bufferc-change-type-of-max_buffer_heads-to-unsigned-long.patch
-fs-nfsd-change-type-of-max_delegations-nfsd_drc_max_mem-and-nfsd_drc_mem_used.patch
-vmscan-change-type-of-vm_total_pages-to-unsigned-long.patch
-net-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-net-change-type-of-virtio_chan-p9_max_pages.patch
-binfmt_elf-remove-unused-argument-in-fill_elf_header.patch
-kexec-get-rid-of-duplicate-check-for-hole_end.patch
+linux-next.patch
+cfq-fix-lock-imbalance-with-failed-allocations.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
+memcg-clean-up-swap-accounting-initialization-code.patch
+memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
+memcg-split-part-of-memcg-creation-to-css_online.patch
+memcg-fast-hierarchy-aware-child-test.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
+memcg-increment-static-branch-right-after-limit-set.patch
+memcg-avoid-dangling-reference-count-in-creation-failure.patch
+idr-fix-a-subtle-bug-in-idr_get_next.patch
+idr-make-idr_destroy-imply-idr_remove_all.patch
+atm-nicstar-dont-use-idr_remove_all.patch
+block-loop-dont-use-idr_remove_all.patch
+firewire-dont-use-idr_remove_all.patch
+drm-dont-use-idr_remove_all.patch
+dm-dont-use-idr_remove_all.patch
+remoteproc-dont-use-idr_remove_all.patch
+rpmsg-dont-use-idr_remove_all.patch
+dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
+dlm-dont-use-idr_remove_all.patch
+nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
+inotify-dont-use-idr_remove_all.patch
+cgroup-dont-use-idr_remove_all.patch
+idr-deprecate-idr_remove_all.patch
+idr-cosmetic-updates-to-struct-initializer-definitions.patch
+idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch
+idr-remove-_idr_rc_to_errno-hack.patch
+idr-refactor-idr_get_new_above.patch
+idr-implement-idr_preload-and-idr_alloc.patch
+block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
+block-convert-to-idr_alloc.patch
+block-loop-convert-to-idr_alloc.patch
+atm-nicstar-convert-to-idr_alloc.patch
+drbd-convert-to-idr_alloc.patch
+dca-convert-to-idr_alloc.patch
+dmaengine-convert-to-idr_alloc.patch
+firewire-add-minor-number-range-check-to-fw_device_init.patch
+firewire-convert-to-idr_alloc.patch
+gpio-convert-to-idr_alloc.patch
+drm-convert-to-idr_alloc.patch
+drm-exynos-convert-to-idr_alloc.patch
+drm-i915-convert-to-idr_alloc.patch
+drm-sis-convert-to-idr_alloc.patch
+drm-via-convert-to-idr_alloc.patch
+drm-vmwgfx-convert-to-idr_alloc.patch
+i2c-convert-to-idr_alloc.patch
+ib-core-convert-to-idr_alloc.patch
+ib-amso1100-convert-to-idr_alloc.patch
+ib-cxgb3-convert-to-idr_alloc.patch
+ib-cxgb4-convert-to-idr_alloc.patch
+ib-ehca-convert-to-idr_alloc.patch
+ib-ipath-convert-to-idr_alloc.patch
+ib-mlx4-convert-to-idr_alloc.patch
+ib-ocrdma-convert-to-idr_alloc.patch
+ib-qib-convert-to-idr_alloc.patch
+dm-convert-to-idr_alloc.patch
+memstick-convert-to-idr_alloc.patch
+mfd-convert-to-idr_alloc.patch
+misc-c2port-convert-to-idr_alloc.patch
+misc-tifm_core-convert-to-idr_alloc.patch
+mmc-convert-to-idr_alloc.patch
+mtd-convert-to-idr_alloc.patch
+macvtap-convert-to-idr_alloc.patch
+ppp-convert-to-idr_alloc.patch
+power-convert-to-idr_alloc.patch
+pps-convert-to-idr_alloc.patch
+remoteproc-convert-to-idr_alloc.patch
+rpmsg-convert-to-idr_alloc.patch
+scsi-bfa-convert-to-idr_alloc.patch
+scsi-convert-to-idr_alloc.patch
+target-iscsi-convert-to-idr_alloc.patch
+scsi-lpfc-convert-to-idr_alloc.patch
+thermal-convert-to-idr_alloc.patch
+uio-convert-to-idr_alloc.patch
+vfio-convert-to-idr_alloc.patch
+dlm-convert-to-idr_alloc.patch
+inotify-convert-to-idr_alloc.patch
+ocfs2-convert-to-idr_alloc.patch
+ipc-convert-to-idr_alloc.patch
+cgroup-convert-to-idr_alloc.patch
+events-convert-to-idr_alloc.patch
+posix-timers-convert-to-idr_alloc.patch
+net-9p-convert-to-idr_alloc.patch
+mac80211-convert-to-idr_alloc.patch
+sctp-convert-to-idr_alloc.patch
+nfs4client-convert-to-idr_alloc.patch
 
