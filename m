@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + firewire-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:42 -0800
-Message-ID: <20130206223743.01D095A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + firewire-add-minor-number-range-check-to-fw_device_init.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:39 -0800
+Message-ID: <20130206223740.2EAEB5A42B9__43682.1986725137$1360190288$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:45874 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755294Ab3BFWho (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:44 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so210416ghb.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:43 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:50525 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757801Ab3BFWhl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:41 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so210635qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, stefanr@s5r6.in-berlin.de
+Cc: tj@kernel.org, stable@vger.kernel.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     Subject: firewire: convert to idr_alloc()
+     Subject: firewire: add minor number range check to fw_device_init()
 has been added to the -mm tree.  Its filename is
-     firewire-convert-to-idr_alloc.patch
+     firewire-add-minor-number-range-check-to-fw_device_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: firewire: convert to idr_alloc()
+Subject: firewire: add minor number range check to fw_device_init()
 
-Convert to the much saner new idr interface.
-
-Only compile tested.
-
-v2: Stefan pointed out that add_client_resource() may be called from
-    non-process context.  Preload iff @gfp_mask contains __GFP_WAIT.
-    Also updated to include minor upper limit check.
+fw_device_init() didn't check whether the allocated minor number isn't
+too large.  Fail if it goes overflows MINORBITS.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Suggested-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/core-cdev.c   |   19 ++++++++++---------
- drivers/firewire/core-device.c |    8 +-------
- 2 files changed, 11 insertions(+), 16 deletions(-)
+ drivers/firewire/core-device.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/firewire/core-cdev.c~firewire-convert-to-idr_alloc drivers/firewire/core-cdev.c
---- a/drivers/firewire/core-cdev.c~firewire-convert-to-idr_alloc
-+++ a/drivers/firewire/core-cdev.c
-@@ -487,27 +487,28 @@ static int ioctl_get_info(struct client 
- static int add_client_resource(struct client *client,
- 			       struct client_resource *resource, gfp_t gfp_mask)
- {
-+	bool preload = gfp_mask & __GFP_WAIT;
- 	unsigned long flags;
- 	int ret;
- 
-- retry:
--	if (idr_pre_get(&client->resource_idr, gfp_mask) == 0)
--		return -ENOMEM;
--
-+	if (preload)
-+		idr_preload(gfp_mask);
- 	spin_lock_irqsave(&client->lock, flags);
-+
- 	if (client->in_shutdown)
- 		ret = -ECANCELED;
- 	else
--		ret = idr_get_new(&client->resource_idr, resource,
--				  &resource->handle);
-+		ret = idr_alloc(&client->resource_idr, resource, 0, 0,
-+				GFP_NOWAIT);
- 	if (ret >= 0) {
-+		resource->handle = ret;
- 		client_get(client);
- 		schedule_if_iso_resource(resource);
- 	}
--	spin_unlock_irqrestore(&client->lock, flags);
- 
--	if (ret == -EAGAIN)
--		goto retry;
-+	spin_unlock_irqrestore(&client->lock, flags);
-+	if (preload)
-+		idr_preload_end();
- 
- 	return ret < 0 ? ret : 0;
- }
-diff -puN drivers/firewire/core-device.c~firewire-convert-to-idr_alloc drivers/firewire/core-device.c
---- a/drivers/firewire/core-device.c~firewire-convert-to-idr_alloc
+diff -puN drivers/firewire/core-device.c~firewire-add-minor-number-range-check-to-fw_device_init drivers/firewire/core-device.c
+--- a/drivers/firewire/core-device.c~firewire-add-minor-number-range-check-to-fw_device_init
 +++ a/drivers/firewire/core-device.c
-@@ -1017,13 +1017,7 @@ static void fw_device_init(struct work_s
- 
- 	fw_device_get(device);
- 	down_write(&fw_device_rwsem);
--	ret = idr_pre_get(&fw_device_idr, GFP_KERNEL) ?
--	      idr_get_new(&fw_device_idr, device, &minor) :
--	      -ENOMEM;
--	if (minor >= 1 << MINORBITS) {
--		idr_remove(&fw_device_idr, minor);
--		minor = -ENOSPC;
--	}
-+	ret = idr_alloc(&fw_device_idr, device, 0, 1 << MINORBITS, GFP_KERNEL);
+@@ -1020,6 +1020,10 @@ static void fw_device_init(struct work_s
+ 	ret = idr_pre_get(&fw_device_idr, GFP_KERNEL) ?
+ 	      idr_get_new(&fw_device_idr, device, &minor) :
+ 	      -ENOMEM;
++	if (minor >= 1 << MINORBITS) {
++		idr_remove(&fw_device_idr, minor);
++		minor = -ENOSPC;
++	}
  	up_write(&fw_device_rwsem);
  
  	if (ret < 0)
