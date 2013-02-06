@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-bfa-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:05 -0800
-Message-ID: <20130206223906.3084531C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + scsi-lpfc-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:14 -0800
+Message-ID: <20130206223915.3226F5A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:43628 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758102Ab3BFWjH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:07 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so209952vbi.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:06 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:59847 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754839Ab3BFWjQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:16 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so222061qaj.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, James.Bottomley@HansenPartnership.com, kgudipat@brocade.com
+Cc: tj@kernel.org, James.Bottomley@HansenPartnership.com, james.smart@emulex.com
 
 
 The patch titled
-     Subject: scsi/bfa: convert to idr_alloc()
+     Subject: scsi/lpfc: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     scsi-bfa-convert-to-idr_alloc.patch
+     scsi-lpfc-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: scsi/bfa: convert to idr_alloc()
+Subject: scsi/lpfc: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Krishna C Gudipati <kgudipat@brocade.com>
+Cc: James Smart <james.smart@emulex.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/bfa/bfad_im.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/scsi/lpfc/lpfc_init.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/scsi/bfa/bfad_im.c~scsi-bfa-convert-to-idr_alloc drivers/scsi/bfa/bfad_im.c
---- a/drivers/scsi/bfa/bfad_im.c~scsi-bfa-convert-to-idr_alloc
-+++ a/drivers/scsi/bfa/bfad_im.c
-@@ -523,20 +523,13 @@ bfad_im_scsi_host_alloc(struct bfad_s *b
- 	int error = 1;
+diff -puN drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-convert-to-idr_alloc drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-convert-to-idr_alloc
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -3165,14 +3165,10 @@ destroy_port(struct lpfc_vport *vport)
+ int
+ lpfc_get_instance(void)
+ {
+-	int instance = 0;
++	int ret;
  
- 	mutex_lock(&bfad_mutex);
--	if (!idr_pre_get(&bfad_im_port_index, GFP_KERNEL)) {
-+	error = idr_alloc(&bfad_im_port_index, im_port, 0, 0, GFP_KERNEL);
-+	if (error < 0) {
- 		mutex_unlock(&bfad_mutex);
--		printk(KERN_WARNING "idr_pre_get failure\n");
-+		printk(KERN_WARNING "idr_alloc failure\n");
- 		goto out;
- 	}
--
--	error = idr_get_new(&bfad_im_port_index, im_port,
--					 &im_port->idr_id);
--	if (error) {
--		mutex_unlock(&bfad_mutex);
--		printk(KERN_WARNING "idr_get_new failure\n");
--		goto out;
--	}
--
-+	im_port->idr_id = error;
- 	mutex_unlock(&bfad_mutex);
+-	/* Assign an unused number */
+-	if (!idr_pre_get(&lpfc_hba_index, GFP_KERNEL))
+-		return -1;
+-	if (idr_get_new(&lpfc_hba_index, NULL, &instance))
+-		return -1;
+-	return instance;
++	ret = idr_alloc(&lpfc_hba_index, NULL, 0, 0, GFP_KERNEL);
++	return ret < 0 ? -1 : ret;
+ }
  
- 	im_port->shost = bfad_scsi_host_alloc(im_port, bfad);
+ /**
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
