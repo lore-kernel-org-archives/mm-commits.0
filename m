@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bufferc-change-type-of-max_buffer_heads-to-unsigned-long.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:49:13 -0800
-Message-ID: <20130206224914.2EC1031C00F@corp2gmr1-1.hot.corp.google.com>
+Subject: + net-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:49:20 -0800
+Message-ID: <20130206224921.2A07E31C00F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:49012 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755931Ab3BFWtP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:49:15 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so210975qen.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:49:14 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:60026 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757961Ab3BFWtW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:49:22 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so210846qeb.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:49:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhangyanfei@cn.fujitsu.com
+Cc: zhangyanfei@cn.fujitsu.com, davem@davemloft.net, horms@verge.net.au, ja@ssi.bg
 
 
 The patch titled
-     Subject: fs/buffer.c: change type of max_buffer_heads to unsigned long
+     Subject: net: change type of netns_ipvs->sysctl_sync_qlen_max
 has been added to the -mm tree.  Its filename is
-     fs-bufferc-change-type-of-max_buffer_heads-to-unsigned-long.patch
+     net-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: fs/buffer.c: change type of max_buffer_heads to unsigned long
+Subject: net: change type of netns_ipvs->sysctl_sync_qlen_max
 
-max_buffer_heads is calculated from nr_free_buffer_pages(), so change its
-type to unsigned long in case of overflow.
+This member of struct netns_ipvs is calculated from nr_free_buffer_pages
+so change its type to unsigned long in case of overflow.
 
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Julian Anastasov <ja@ssi.bg>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/net/ip_vs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~fs-bufferc-change-type-of-max_buffer_heads-to-unsigned-long fs/buffer.c
---- a/fs/buffer.c~fs-bufferc-change-type-of-max_buffer_heads-to-unsigned-long
-+++ a/fs/buffer.c
-@@ -3237,7 +3237,7 @@ static struct kmem_cache *bh_cachep __re
-  * Once the number of bh's in the machine exceeds this level, we start
-  * stripping them in writeback.
-  */
--static int max_buffer_heads;
-+static unsigned long max_buffer_heads;
- 
- int buffer_heads_over_limit;
- 
-@@ -3353,7 +3353,7 @@ EXPORT_SYMBOL(bh_submit_read);
- 
- void __init buffer_init(void)
- {
--	int nrpages;
-+	unsigned long nrpages;
- 
- 	bh_cachep = kmem_cache_create("buffer_head",
- 			sizeof(struct buffer_head), 0,
+diff -puN include/net/ip_vs.h~net-change-type-of-netns_ipvs-sysctl_sync_qlen_max include/net/ip_vs.h
+--- a/include/net/ip_vs.h~net-change-type-of-netns_ipvs-sysctl_sync_qlen_max
++++ a/include/net/ip_vs.h
+@@ -966,7 +966,7 @@ struct netns_ipvs {
+ 	int			sysctl_snat_reroute;
+ 	int			sysctl_sync_ver;
+ 	int			sysctl_sync_ports;
+-	int			sysctl_sync_qlen_max;
++	unsigned long		sysctl_sync_qlen_max;
+ 	int			sysctl_sync_sock_size;
+ 	int			sysctl_cache_bypass;
+ 	int			sysctl_expire_nodest_conn;
 _
 
 Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
