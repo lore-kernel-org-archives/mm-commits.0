@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:29 -0800
-Message-ID: <20130206223930.32B5B5A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipc-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:35 -0800
+Message-ID: <20130206223936.327B95A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:46930 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757789Ab3BFWjb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:31 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so209693vch.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:30 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:44146 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699Ab3BFWjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:37 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so209919qen.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org
+Cc: tj@kernel.org, ebiederm@xmission.com, jmorris@namei.org, skinsbursky@parallels.com
 
 
 The patch titled
-     Subject: inotify: convert to idr_alloc()
+     Subject: ipc: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     inotify-convert-to-idr_alloc.patch
+     ipc-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,110 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: inotify: convert to idr_alloc()
+Subject: ipc: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
-Note that the adhoc cyclic id allocation is buggy.  If wraparound
-happens, the previous code with idr_get_new_above() may segfault and
-the converted code will trigger WARN and return -EINVAL.  Even if it's
-fixed to wrap to zero, the code will be prone to unnecessary -ENOSPC
-failures after the first wraparound.  We probably need to implement
-proper cyclic support in idr.
+The new interface doesn't directly translate to the way idr_pre_get()
+was used around ipc_addid() as preloading disables preemption.  From
+my cursory reading, it seems like we should be able to do all
+allocation from ipc_addid(), so I moved it there.  Can you please
+check whether this would be okay?  If this is wrong and ipc_addid()
+should be allowed to be called from non-sleepable context, I'd suggest
+allocating id itself in the outer functions and later install the
+pointer using idr_replace().
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Eric Paris <eparis@parisplace.org>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ ipc/util.c |   30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-convert-to-idr_alloc fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-convert-to-idr_alloc
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -364,22 +364,20 @@ static int inotify_add_to_idr(struct idr
+diff -puN ipc/util.c~ipc-convert-to-idr_alloc ipc/util.c
+--- a/ipc/util.c~ipc-convert-to-idr_alloc
++++ a/ipc/util.c
+@@ -252,7 +252,7 @@ int ipc_addid(struct ipc_ids* ids, struc
  {
- 	int ret;
+ 	kuid_t euid;
+ 	kgid_t egid;
+-	int id, err;
++	int id;
+ 	int next_id = ids->next_id;
  
--	do {
--		if (unlikely(!idr_pre_get(idr, GFP_KERNEL)))
--			return -ENOMEM;
--
--		spin_lock(idr_lock);
--		ret = idr_get_new_above(idr, i_mark, *last_wd + 1,
--					&i_mark->wd);
+ 	if (size > IPCMNI)
+@@ -261,17 +261,21 @@ int ipc_addid(struct ipc_ids* ids, struc
+ 	if (ids->in_use >= size)
+ 		return -ENOSPC;
+ 
 +	idr_preload(GFP_KERNEL);
-+	spin_lock(idr_lock);
 +
-+	ret = idr_alloc(idr, i_mark, *last_wd + 1, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
- 		/* we added the mark to the idr, take a reference */
--		if (!ret) {
--			*last_wd = i_mark->wd;
--			fsnotify_get_mark(&i_mark->fsn_mark);
--		}
--		spin_unlock(idr_lock);
--	} while (ret == -EAGAIN);
-+		i_mark->wd = ret;
-+		*last_wd = i_mark->wd;
-+		fsnotify_get_mark(&i_mark->fsn_mark);
-+	}
+ 	spin_lock_init(&new->lock);
+ 	new->deleted = 0;
+ 	rcu_read_lock();
+ 	spin_lock(&new->lock);
  
--	return ret;
-+	spin_unlock(idr_lock);
+-	err = idr_get_new_above(&ids->ipcs_idr, new,
+-				(next_id < 0) ? 0 : ipcid_to_idx(next_id), &id);
+-	if (err) {
++	id = idr_alloc(&ids->ipcs_idr, new,
++		       (next_id < 0) ? 0 : ipcid_to_idx(next_id), 0,
++		       GFP_NOWAIT);
 +	idr_preload_end();
-+	return ret < 0 ? ret : 0;
++	if (id < 0) {
+ 		spin_unlock(&new->lock);
+ 		rcu_read_unlock();
+-		return err;
++		return id;
+ 	}
+ 
+ 	ids->in_use++;
+@@ -307,19 +311,10 @@ static int ipcget_new(struct ipc_namespa
+ 		struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	int err;
+-retry:
+-	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
+-
+-	if (!err)
+-		return -ENOMEM;
+ 
+ 	down_write(&ids->rw_mutex);
+ 	err = ops->getnew(ns, params);
+ 	up_write(&ids->rw_mutex);
+-
+-	if (err == -EAGAIN)
+-		goto retry;
+-
+ 	return err;
  }
  
- static struct inotify_inode_mark *inotify_idr_find_locked(struct fsnotify_group *group,
+@@ -375,9 +370,7 @@ static int ipcget_public(struct ipc_name
+ {
+ 	struct kern_ipc_perm *ipcp;
+ 	int flg = params->flg;
+-	int err;
+-retry:
+-	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
++	int err = 0;
+ 
+ 	/*
+ 	 * Take the lock as a writer since we are potentially going to add
+@@ -413,9 +406,6 @@ retry:
+ 	}
+ 	up_write(&ids->rw_mutex);
+ 
+-	if (err == -EAGAIN)
+-		goto retry;
+-
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
