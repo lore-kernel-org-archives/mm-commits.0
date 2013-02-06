@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drm-exynos-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:50 -0800
-Message-ID: <20130206223751.2FDFB31C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + drm-via-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:58 -0800
+Message-ID: <20130206223759.2D35231C214@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:40743 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWhw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:52 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so209644qcr.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:51 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:42804 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWiA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:00 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so209587vch.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, airlied@linux.ie, kgene.kim@samsung.com
+Cc: tj@kernel.org, airlied@linux.ie
 
 
 The patch titled
-     Subject: drm/exynos: convert to idr_alloc()
+     Subject: drm/via: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     drm-exynos-convert-to-idr_alloc.patch
+     drm-via-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: drm/exynos: convert to idr_alloc()
+Subject: drm/via: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
@@ -42,43 +42,36 @@ Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Cc: David Airlie <airlied@linux.ie>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/exynos/exynos_drm_ipp.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/gpu/drm/via/via_mm.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/gpu/drm/exynos/exynos_drm_ipp.c~drm-exynos-convert-to-idr_alloc drivers/gpu/drm/exynos/exynos_drm_ipp.c
---- a/drivers/gpu/drm/exynos/exynos_drm_ipp.c~drm-exynos-convert-to-idr_alloc
-+++ a/drivers/gpu/drm/exynos/exynos_drm_ipp.c
-@@ -137,21 +137,15 @@ static int ipp_create_id(struct idr *id_
- 
- 	DRM_DEBUG_KMS("%s\n", __func__);
+diff -puN drivers/gpu/drm/via/via_mm.c~drm-via-convert-to-idr_alloc drivers/gpu/drm/via/via_mm.c
+--- a/drivers/gpu/drm/via/via_mm.c~drm-via-convert-to-idr_alloc
++++ a/drivers/gpu/drm/via/via_mm.c
+@@ -148,17 +148,10 @@ int via_mem_alloc(struct drm_device *dev
+ 	if (retval)
+ 		goto fail_alloc;
  
 -again:
--	/* ensure there is space available to allocate a handle */
--	if (idr_pre_get(id_idr, GFP_KERNEL) == 0) {
--		DRM_ERROR("failed to get idr.\n");
--		return -ENOMEM;
+-	if (idr_pre_get(&dev_priv->object_idr, GFP_KERNEL) == 0) {
+-		retval = -ENOMEM;
+-		goto fail_idr;
 -	}
 -
- 	/* do the allocation under our mutexlock */
- 	mutex_lock(lock);
--	ret = idr_get_new_above(id_idr, obj, 1, (int *)idp);
-+	ret = idr_alloc(id_idr, obj, 1, 0, GFP_KERNEL);
- 	mutex_unlock(lock);
--	if (ret == -EAGAIN)
+-	retval = idr_get_new_above(&dev_priv->object_idr, item, 1, &user_key);
+-	if (retval == -EAGAIN)
 -		goto again;
-+	if (ret < 0)
-+		return ret;
+-	if (retval)
++	retval = idr_alloc(&dev_priv->object_idr, item, 1, 0, GFP_KERNEL);
++	if (retval < 0)
+ 		goto fail_idr;
++	user_key = retval;
  
--	return ret;
-+	*idp = ret;
-+	return 0;
- }
- 
- static void *ipp_find_obj(struct idr *id_idr, struct mutex *lock, u32 id)
+ 	list_add(&item->owner_list, &file_priv->obj_list);
+ 	mutex_unlock(&dev->struct_mutex);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
