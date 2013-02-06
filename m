@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix.patch added to -mm tree
-Date: Wed, 06 Feb 2013 12:58:11 -0800
-Message-ID: <20130206205811.85B4D5A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + coredump-remove-redundant-defines-for-dumpable-states.patch added to -mm tree
+Date: Wed, 06 Feb 2013 13:24:03 -0800
+Message-ID: <20130206212403.83E8131C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:60745 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755294Ab3BFU6M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 15:58:12 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so197898vch.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 12:58:12 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:45048 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758176Ab3BFVYF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:24:05 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so201091vea.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:24:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, lig.fnst@cn.fujitsu.com
+Cc: keescook@chromium.org, alan@linux.intel.com, dledford@redhat.com, ebiederm@xmission.com, gang.chen@asianux.com, james.l.morris@oracle.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix
+     Subject: coredump: remove redundant defines for dumpable states
 has been added to the -mm tree.  Its filename is
-     mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix.patch
+     coredump-remove-redundant-defines-for-dumpable-states.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: coredump: remove redundant defines for dumpable states
 
-Cc: liguang <lig.fnst@cn.fujitsu.com>
+The existing SUID_DUMP_* defines duplicate the newer SUID_DUMPABLE_*
+defines introduced in 54b501992dd ("coredump: warn about unsafe
+suid_dumpable / core_pattern combo").  Remove the new ones, and use the
+prior values instead.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Chen Gang <gang.chen@asianux.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: James Morris <james.l.morris@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/da9030_battery.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/coredump.c         |    2 +-
+ fs/exec.c             |   10 +++++-----
+ fs/proc/internal.h    |    3 ++-
+ include/linux/sched.h |    5 -----
+ kernel/sysctl.c       |    2 +-
+ 5 files changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN kernel/jump_label.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix kernel/jump_label.c
-diff -puN drivers/power/da9030_battery.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix drivers/power/da9030_battery.c
---- a/drivers/power/da9030_battery.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix
-+++ a/drivers/power/da9030_battery.c
-@@ -15,6 +15,7 @@
- #include <linux/types.h>
- #include <linux/device.h>
- #include <linux/workqueue.h>
-+#include <linux/notifier.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/power_supply.h>
-_
-
-Patches currently in -mm which might be from mhocko@suse.cz are
-
-origin.patch
-linux-next.patch
-memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
-mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
-mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
-mm-vmscan-improve-comment-on-low-page-cache-handling.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmksm-use-new-hashtable-implementation.patch
-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix.patch
-memory-hotplug-remove-memmap-of-sparse-vmemmap-fix.patch
-acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix.patch
-mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
-mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
-mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
-mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
-pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
-block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
-net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
-pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
-usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
-memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
-memcg-clean-up-swap-accounting-initialization-code.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
-memcg-split-part-of-memcg-creation-to-css_online.patch
-memcg-fast-hierarchy-aware-child-test.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
-memcg-increment-static-branch-right-after-limit-set.patch
-memcg-avoid-dangling-reference-count-in-creation-failure.patch
-mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch
-memcg-move-mem_cgroup_soft_limit_tree_init-to-mem_cgroup_init.patch
-memcg-move-memcg_stock-initialization-to-mem_cgroup_init.patch
-memcg-cleanup-mem_cgroup_init-comment.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
-mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix.patch
-
+diff -puN fs/coredump.c~coredump-remove-redundant-defines-for-dumpable-states fs/coredump.c
+--- a/fs/coredump.c~coredump-remove-redundant-defines-for-dumpable-states
++++ a/fs/coredump.c
+@@ -501,7 +501,7 @@ void do_coredump(siginfo_t *siginfo)
+ 	 * so we dump it as root in mode 2, and only into a controlled
+ 	 * environment (pipe handler or fully qualified path).
+ 	 */
+-	if (__get_dumpable(cprm.mm_flags) == SUID_DUMPABLE_SAFE) {
++	if (__get_dumpable(cprm.mm_flags) == SUID_DUMP_ROOT) {
+ 		/* Setuid core dump mode */
+ 		flag = O_EXCL;		/* Stop rewrite attacks */
+ 		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
+diff -puN fs/exec.c~coredump-remove-redundant-defines-for-dumpable-states fs/exec.c
+--- a/fs/exec.c~coredump-remove-redundant-defines-for-dumpable-states
++++ a/fs/exec.c
+@@ -1111,7 +1111,7 @@ void setup_new_exec(struct linux_binprm 
+ 	current->sas_ss_sp = current->sas_ss_size = 0;
+ 
+ 	if (uid_eq(current_euid(), current_uid()) && gid_eq(current_egid(), current_gid()))
+-		set_dumpable(current->mm, SUID_DUMPABLE_ENABLED);
++		set_dumpable(current->mm, SUID_DUMP_USER);
+ 	else
+ 		set_dumpable(current->mm, suid_dumpable);
+ 
+@@ -1639,17 +1639,17 @@ EXPORT_SYMBOL(set_binfmt);
+ void set_dumpable(struct mm_struct *mm, int value)
+ {
+ 	switch (value) {
+-	case SUID_DUMPABLE_DISABLED:
++	case SUID_DUMP_DISABLE:
+ 		clear_bit(MMF_DUMPABLE, &mm->flags);
+ 		smp_wmb();
+ 		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
+ 		break;
+-	case SUID_DUMPABLE_ENABLED:
++	case SUID_DUMP_USER:
+ 		set_bit(MMF_DUMPABLE, &mm->flags);
+ 		smp_wmb();
+ 		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
+ 		break;
+-	case SUID_DUMPABLE_SAFE:
++	case SUID_DUMP_ROOT:
+ 		set_bit(MMF_DUMP_SECURELY, &mm->flags);
+ 		smp_wmb();
+ 		set_bit(MMF_DUMPABLE, &mm->flags);
+@@ -1662,7 +1662,7 @@ int __get_dumpable(unsigned long mm_flag
+ 	int ret;
+ 
+ 	ret = mm_flags & MMF_DUMPABLE_MASK;
+-	return (ret > SUID_DUMPABLE_ENABLED) ? SUID_DUMPABLE_SAFE : ret;
++	return (ret > SUID_DUMP_USER) ? SUID_DUMP_ROOT : ret;
+ }
+ 
+ int get_dumpable(struct mm_struct *mm)
+diff -puN fs/proc/internal.h~coredump-remove-redundant-defines-for-dumpable-states fs/proc/internal.h
+--- a/fs/proc/internal.h~coredump-remove-redundant-defines-for-dumpable-states
++++ a/fs/proc/internal.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/proc_fs.h>
++#include <linux/binfmts.h>
+ struct  ctl_table_header;
+ struct  mempolicy;
+ 
+@@ -108,7 +109,7 @@ static inline int task_dumpable(struct t
+ 	if (mm)
+ 		dumpable = get_dumpable(mm);
+ 	task_unlock(task);
+-	if (dumpable == SUID_DUMPABLE_ENABLED)
++	if (dumpable == SUID_DUMP_USER)
+ 		return 1;
+ 	return 0;
+ }
+diff -puN include/linux/sched.h~coredump-remove-redundant-defines-for-dumpable-states include/linux/sched.h
+--- a/include/linux/sched.h~coredump-remove-redundant-defines-for-dumpable-states
++++ a/include/linux/sched.h
+@@ -375,11 +375,6 @@ static inline void arch_pick_mmap_layout
+ extern void set_dumpable(struct mm_struct *mm, int value);
+ extern int get_dumpable(struct mm_struct *mm);
+ 
+-/* get/set_dumpable() values */
+-#define SUID_DUMPABLE_DISABLED	0
+-#define SUID_DUMPABLE_ENABLED	1
+-#define SUID_DUMPABLE_SAFE	2
