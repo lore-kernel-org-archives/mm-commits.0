@@ -1,49 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2013 13:34:04 -0800
-Message-ID: <20130206213404.D53A05A42B7@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-dropped] mm-break-circular-include-from-linux-mmzoneh-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2013 13:34:01 -0800
+Message-ID: <20130206213401.8E5E05A42B7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:57919 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758149Ab3BFVeG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:34:06 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so202545ghb.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:34:05 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:62126 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758149Ab3BFVeD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 16:34:03 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so202837qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 13:34:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix
+     Subject: mm/slub.c: include memory_hotplug.h
 has been removed from the -mm tree.  Its filename was
-     mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
+     mm-break-circular-include-from-linux-mmzoneh-fix.patch
 
 This patch was dropped because it was folded into mm-break-circular-include-from-linux-mmzoneh.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix
+Subject: mm/slub.c: include memory_hotplug.h
+
+x86_64 allnoconfig:
+
+mm/slub.c: In function 'show_slab_objects':
+mm/slub.c:4281: error: implicit declaration of function 'lock_memory_hotplug'
+mm/slub.c:4322: error: implicit declaration of function 'unlock_memory_hotplug'
 
 Cc: liguang <lig.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/base.c |    1 +
+ mm/slub.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/gcov/base.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix kernel/gcov/base.c
---- a/kernel/gcov/base.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix
-+++ a/kernel/gcov/base.c
-@@ -17,6 +17,7 @@
- 
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/notifier.h>
- #include <linux/mutex.h>
- #include "gcov.h"
- 
+diff -puN mm/slub.c~mm-break-circular-include-from-linux-mmzoneh-fix mm/slub.c
+--- a/mm/slub.c~mm-break-circular-include-from-linux-mmzoneh-fix
++++ a/mm/slub.c
+@@ -23,6 +23,7 @@
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
+ #include <linux/mempolicy.h>
++#include <linux/memory_hotplug.h>
+ #include <linux/ctype.h>
+ #include <linux/debugobjects.h>
+ #include <linux/kallsyms.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +113,7 @@ mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 mm-break-circular-include-from-linux-mmzoneh.patch
+mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix-fix-fix-fix-fix.patch
