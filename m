@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + net-9p-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:46 -0800
-Message-ID: <20130206223947.369995A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + posix-timers-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:44 -0800
+Message-ID: <20130206223945.22C5F31C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:58715 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755294Ab3BFWjs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:48 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so209712vch.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:47 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:34416 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755383Ab3BFWjq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:46 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so222098qaj.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
+Cc: tj@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: net/9p: convert to idr_alloc()
+     Subject: posix-timers: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     net-9p-convert-to-idr_alloc.patch
+     posix-timers-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: net/9p: convert to idr_alloc()
+Subject: posix-timers: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/util.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ kernel/posix-timers.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN net/9p/util.c~net-9p-convert-to-idr_alloc net/9p/util.c
---- a/net/9p/util.c~net-9p-convert-to-idr_alloc
-+++ a/net/9p/util.c
-@@ -87,23 +87,18 @@ EXPORT_SYMBOL(p9_idpool_destroy);
+diff -puN kernel/posix-timers.c~posix-timers-convert-to-idr_alloc kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-convert-to-idr_alloc
++++ a/kernel/posix-timers.c
+@@ -552,24 +552,22 @@ SYSCALL_DEFINE3(timer_create, const cloc
+ 		return -EAGAIN;
  
- int p9_idpool_get(struct p9_idpool *p)
- {
--	int i = 0;
--	int error;
-+	int i;
- 	unsigned long flags;
- 
--retry:
--	if (idr_pre_get(&p->pool, GFP_NOFS) == 0)
--		return -1;
--
-+	idr_preload(GFP_NOFS);
- 	spin_lock_irqsave(&p->lock, flags);
- 
- 	/* no need to store exactly p, we just need something non-null */
--	error = idr_get_new(&p->pool, p, &i);
--	spin_unlock_irqrestore(&p->lock, flags);
-+	i = idr_alloc(&p->pool, p, 0, 0, GFP_NOWAIT);
- 
--	if (error == -EAGAIN)
--		goto retry;
--	else if (error)
-+	spin_unlock_irqrestore(&p->lock, flags);
+ 	spin_lock_init(&new_timer->it_lock);
+- retry:
+-	if (unlikely(!idr_pre_get(&posix_timers_id, GFP_KERNEL))) {
+-		error = -EAGAIN;
+-		goto out;
+-	}
++
++	idr_preload(GFP_KERNEL);
+ 	spin_lock_irq(&idr_lock);
+-	error = idr_get_new(&posix_timers_id, new_timer, &new_timer_id);
++	error = idr_alloc(&posix_timers_id, new_timer, 0, 0, GFP_NOWAIT);
+ 	spin_unlock_irq(&idr_lock);
+-	if (error) {
+-		if (error == -EAGAIN)
+-			goto retry;
 +	idr_preload_end();
-+	if (i < 0)
- 		return -1;
++	if (error < 0) {
+ 		/*
+ 		 * Weird looking, but we return EAGAIN if the IDR is
+ 		 * full (proper POSIX return value for this)
+ 		 */
+-		error = -EAGAIN;
++		if (error == -ENOSPC)
++			error = -EAGAIN;
+ 		goto out;
+ 	}
++	new_timer_id = error;
  
- 	p9_debug(P9_DEBUG_MUX, " id %d pool %p\n", i, p);
+ 	it_id_set = IT_ID_SET;
+ 	new_timer->it_id = (timer_t) new_timer_id;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
