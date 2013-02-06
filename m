@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:35 -0800
-Message-ID: <20130206223936.327B95A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + cgroup-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:38 -0800
+Message-ID: <20130206223939.299655A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:44146 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755699Ab3BFWjh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:37 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so209919qen.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:36 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:63533 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699Ab3BFWjk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:40 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so209811qcs.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ebiederm@xmission.com, jmorris@namei.org, skinsbursky@parallels.com
+Cc: tj@kernel.org, lizefan@huawei.com
 
 
 The patch titled
-     Subject: ipc: convert to idr_alloc()
+     Subject: cgroup: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     ipc-convert-to-idr_alloc.patch
+     cgroup-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: ipc: convert to idr_alloc()
+Subject: cgroup: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
-
-The new interface doesn't directly translate to the way idr_pre_get()
-was used around ipc_addid() as preloading disables preemption.  From
-my cursory reading, it seems like we should be able to do all
-allocation from ipc_addid(), so I moved it there.  Can you please
-check whether this would be okay?  If this is wrong and ipc_addid()
-should be allowed to be called from non-sleepable context, I'd suggest
-allocating id itself in the outer functions and later install the
-pointer using idr_replace().
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: James Morris <jmorris@namei.org>
+Acked-by: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+ kernel/cgroup.c |   27 ++++++++-------------------
+ 1 file changed, 8 insertions(+), 19 deletions(-)
 
-diff -puN ipc/util.c~ipc-convert-to-idr_alloc ipc/util.c
---- a/ipc/util.c~ipc-convert-to-idr_alloc
-+++ a/ipc/util.c
-@@ -252,7 +252,7 @@ int ipc_addid(struct ipc_ids* ids, struc
+diff -puN kernel/cgroup.c~cgroup-convert-to-idr_alloc kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-convert-to-idr_alloc
++++ a/kernel/cgroup.c
+@@ -5284,7 +5284,7 @@ EXPORT_SYMBOL_GPL(free_css_id);
+ static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
  {
- 	kuid_t euid;
- 	kgid_t egid;
--	int id, err;
-+	int id;
- 	int next_id = ids->next_id;
+ 	struct css_id *newid;
+-	int myid, error, size;
++	int ret, size;
  
- 	if (size > IPCMNI)
-@@ -261,17 +261,21 @@ int ipc_addid(struct ipc_ids* ids, struc
- 	if (ids->in_use >= size)
- 		return -ENOSPC;
+ 	BUG_ON(!ss->use_id);
  
-+	idr_preload(GFP_KERNEL);
+@@ -5292,35 +5292,24 @@ static struct css_id *get_new_cssid(stru
+ 	newid = kzalloc(size, GFP_KERNEL);
+ 	if (!newid)
+ 		return ERR_PTR(-ENOMEM);
+-	/* get id */
+-	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
+-		error = -ENOMEM;
+-		goto err_out;
+-	}
 +
- 	spin_lock_init(&new->lock);
- 	new->deleted = 0;
- 	rcu_read_lock();
- 	spin_lock(&new->lock);
- 
--	err = idr_get_new_above(&ids->ipcs_idr, new,
--				(next_id < 0) ? 0 : ipcid_to_idx(next_id), &id);
--	if (err) {
-+	id = idr_alloc(&ids->ipcs_idr, new,
-+		       (next_id < 0) ? 0 : ipcid_to_idx(next_id), 0,
-+		       GFP_NOWAIT);
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&ss->id_lock);
+ 	/* Don't use 0. allocates an ID of 1-65535 */
+-	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
++	ret = idr_alloc(&ss->idr, newid, 1, CSS_ID_MAX + 1, GFP_NOWAIT);
+ 	spin_unlock(&ss->id_lock);
 +	idr_preload_end();
-+	if (id < 0) {
- 		spin_unlock(&new->lock);
- 		rcu_read_unlock();
--		return err;
-+		return id;
- 	}
  
- 	ids->in_use++;
-@@ -307,19 +311,10 @@ static int ipcget_new(struct ipc_namespa
- 		struct ipc_ops *ops, struct ipc_params *params)
- {
- 	int err;
--retry:
--	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
--
--	if (!err)
--		return -ENOMEM;
+ 	/* Returns error when there are no free spaces for new ID.*/
+-	if (error) {
+-		error = -ENOSPC;
++	if (ret < 0)
+ 		goto err_out;
+-	}
+-	if (myid > CSS_ID_MAX)
+-		goto remove_idr;
  
- 	down_write(&ids->rw_mutex);
- 	err = ops->getnew(ns, params);
- 	up_write(&ids->rw_mutex);
--
--	if (err == -EAGAIN)
--		goto retry;
--
- 	return err;
- }
+-	newid->id = myid;
++	newid->id = ret;
+ 	newid->depth = depth;
+ 	return newid;
+-remove_idr:
+-	error = -ENOSPC;
+-	spin_lock(&ss->id_lock);
+-	idr_remove(&ss->idr, myid);
+-	spin_unlock(&ss->id_lock);
+ err_out:
+ 	kfree(newid);
+-	return ERR_PTR(error);
++	return ERR_PTR(ret);
  
-@@ -375,9 +370,7 @@ static int ipcget_public(struct ipc_name
- {
- 	struct kern_ipc_perm *ipcp;
- 	int flg = params->flg;
--	int err;
--retry:
--	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
-+	int err = 0;
- 
- 	/*
- 	 * Take the lock as a writer since we are potentially going to add
-@@ -413,9 +406,6 @@ retry:
- 	}
- 	up_write(&ids->rw_mutex);
- 
--	if (err == -EAGAIN)
--		goto retry;
--
- 	return err;
  }
  
 _
