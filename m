@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + uio-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:20 -0800
-Message-ID: <20130206223921.26B9E5A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + vfio-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:23 -0800
+Message-ID: <20130206223924.2B1B131C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:35863 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756368Ab3BFWjW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:22 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so209853qen.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:21 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37531 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757593Ab3BFWjZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:25 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so209976vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, gregkh@linuxfoundation.org, hjk@hansjkoch.de
+Cc: tj@kernel.org, alex.williamson@redhat.com
 
 
 The patch titled
-     Subject: uio: convert to idr_alloc()
+     Subject: vfio: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     uio-convert-to-idr_alloc.patch
+     vfio-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: uio: convert to idr_alloc()
+Subject: vfio: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
+v2: Restore accidentally dropped "index 0" comment as suggested by
+    Alex.
+
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Hans J. Koch" <hjk@hansjkoch.de>
+Acked-by: Alex Williamson <alex.williamson@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uio/uio.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ drivers/vfio/vfio.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff -puN drivers/uio/uio.c~uio-convert-to-idr_alloc drivers/uio/uio.c
---- a/drivers/uio/uio.c~uio-convert-to-idr_alloc
-+++ a/drivers/uio/uio.c
-@@ -369,26 +369,15 @@ static void uio_dev_del_attributes(struc
- static int uio_get_minor(struct uio_device *idev)
+diff -puN drivers/vfio/vfio.c~vfio-convert-to-idr_alloc drivers/vfio/vfio.c
+--- a/drivers/vfio/vfio.c~vfio-convert-to-idr_alloc
++++ a/drivers/vfio/vfio.c
+@@ -139,23 +139,8 @@ EXPORT_SYMBOL_GPL(vfio_unregister_iommu_
+  */
+ static int vfio_alloc_group_minor(struct vfio_group *group)
  {
- 	int retval = -ENOMEM;
--	int id;
- 
- 	mutex_lock(&minor_lock);
--	if (idr_pre_get(&uio_idr, GFP_KERNEL) == 0)
--		goto exit;
+-	int ret, minor;
 -
--	retval = idr_get_new(&uio_idr, idev, &id);
--	if (retval < 0) {
--		if (retval == -EAGAIN)
--			retval = -ENOMEM;
--		goto exit;
+-again:
+-	if (unlikely(idr_pre_get(&vfio.group_idr, GFP_KERNEL) == 0))
+-		return -ENOMEM;
+-
+ 	/* index 0 is used by /dev/vfio/vfio */
+-	ret = idr_get_new_above(&vfio.group_idr, group, 1, &minor);
+-	if (ret == -EAGAIN)
+-		goto again;
+-	if (ret || minor > MINORMASK) {
+-		if (minor > MINORMASK)
+-			idr_remove(&vfio.group_idr, minor);
+-		return -ENOSPC;
 -	}
--	if (id < UIO_MAX_DEVICES) {
--		idev->minor = id;
--	} else {
-+	retval = idr_alloc(&uio_idr, idev, 0, UIO_MAX_DEVICES, GFP_KERNEL);
-+	if (retval >= 0) {
-+		idev->minor = retval;
-+	} else if (retval == -ENOSPC) {
- 		dev_err(idev->dev, "too many uio devices\n");
- 		retval = -EINVAL;
--		idr_remove(&uio_idr, id);
- 	}
--exit:
- 	mutex_unlock(&minor_lock);
- 	return retval;
+-
+-	return minor;
++	return idr_alloc(&vfio.group_idr, group, 1, MINORMASK + 1, GFP_KERNEL);
  }
+ 
+ static void vfio_free_group_minor(int minor)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
