@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:36:51 -0800
-Message-ID: <20130206223652.2F1B531C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + nfs-idr_destroy-no-longer-needs-idr_remove_all.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:36:57 -0800
+Message-ID: <20130206223658.2455231C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:50223 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWgx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:53 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so95157yhz.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:52 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:36095 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWg7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:36:59 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so209687yen.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:36:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ccaulfie@redhat.com, teigland@redhat.com
+Cc: tj@kernel.org, bfields@fieldses.org
 
 
 The patch titled
-     Subject: dlm: use idr_for_each_entry() in recover_idr_clear() error path
+     Subject: nfs: idr_destroy() no longer needs idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
+     nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dlm: use idr_for_each_entry() in recover_idr_clear() error path
+Subject: nfs: idr_destroy() no longer needs idr_remove_all()
 
-Convert recover_idr_clear() to use idr_for_each_entry() instead of
-idr_for_each().  It's somewhat less efficient this way but it
-shouldn't matter in an error path.  This is to help with deprecation
-of idr_remove_all().
-
-Only compile tested.
+idr_destroy() can destroy idr by itself and idr_remove_all() is being
+deprecated.  Drop reference to idr_remove_all().  Note that the code
+wasn't completely correct before because idr_remove() on all entries
+doesn't necessarily release all idr_layers which could lead to memory
+leak.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Christine Caulfield <ccaulfie@redhat.com>
-Cc: David Teigland <teigland@redhat.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/recover.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ fs/nfs/client.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/dlm/recover.c~dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path fs/dlm/recover.c
---- a/fs/dlm/recover.c~dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path
-+++ a/fs/dlm/recover.c
-@@ -351,23 +351,20 @@ static struct dlm_rsb *recover_idr_find(
- 	return r;
- }
+diff -puN fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all fs/nfs/client.c
+--- a/fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all
++++ a/fs/nfs/client.c
+@@ -197,7 +197,6 @@ error_0:
+ EXPORT_SYMBOL_GPL(nfs_alloc_client);
  
--static int recover_idr_clear_rsb(int id, void *p, void *data)
-+static void recover_idr_clear(struct dlm_ls *ls)
+ #if IS_ENABLED(CONFIG_NFS_V4)
+-/* idr_remove_all is not needed as all id's are removed by nfs_put_client */
+ void nfs_cleanup_cb_ident_idr(struct net *net)
  {
--	struct dlm_ls *ls = data;
--	struct dlm_rsb *r = p;
-+	struct dlm_rsb *r;
-+	int id;
- 
--	r->res_id = 0;
--	r->res_recover_locks_count = 0;
--	ls->ls_recover_list_count--;
-+	spin_lock(&ls->ls_recover_idr_lock);
- 
--	dlm_put_rsb(r);
--	return 0;
--}
-+	idr_for_each_entry(&ls->ls_recover_idr, r, id) {
-+		r->res_id = 0;
-+		r->res_recover_locks_count = 0;
-+		ls->ls_recover_list_count--;
- 
--static void recover_idr_clear(struct dlm_ls *ls)
--{
--	spin_lock(&ls->ls_recover_idr_lock);
--	idr_for_each(&ls->ls_recover_idr, recover_idr_clear_rsb, ls);
-+		dlm_put_rsb(r);
-+	}
- 	idr_remove_all(&ls->ls_recover_idr);
- 
- 	if (ls->ls_recover_list_count != 0) {
+ 	struct nfs_net *nn = net_generic(net, nfs_net_id);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
