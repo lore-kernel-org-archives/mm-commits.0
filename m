@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-dont-use-idr_remove_all.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:02 -0800
-Message-ID: <20130206223703.115B15A42CD@corp2gmr1-2.hot.corp.google.com>
+Subject: + inotify-dont-use-idr_remove_all.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:36:59 -0800
+Message-ID: <20130206223700.2C4265A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:45852 "EHLO
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:50047 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758005Ab3BFWhE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:04 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so210136ghb.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:03 -0800 (PST)
+	with ESMTP id S1758005Ab3BFWhB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:01 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so210293ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, lizefan@huawei.com
+Cc: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org
 
 
 The patch titled
-     Subject: cgroup: don't use idr_remove_all()
+     Subject: inotify: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     cgroup-dont-use-idr_remove_all.patch
+     inotify-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: cgroup: don't use idr_remove_all()
+Subject: inotify: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
 deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Li Zefan <lizefan@huawei.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/notify/inotify/inotify_fsnotify.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroup-dont-use-idr_remove_all kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-dont-use-idr_remove_all
-+++ a/kernel/cgroup.c
-@@ -4582,10 +4582,8 @@ void cgroup_unload_subsys(struct cgroup_
- 	offline_css(ss, dummytop);
- 	ss->active = 0;
- 
--	if (ss->use_id) {
--		idr_remove_all(&ss->idr);
-+	if (ss->use_id)
- 		idr_destroy(&ss->idr);
--	}
- 
- 	/* deassign the subsys_id */
- 	subsys[ss->subsys_id] = NULL;
+diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all fs/notify/inotify/inotify_fsnotify.c
+--- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all
++++ a/fs/notify/inotify/inotify_fsnotify.c
+@@ -197,7 +197,6 @@ static void inotify_free_group_priv(stru
+ {
+ 	/* ideally the idr is empty and we won't hit the BUG in the callback */
+ 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
+-	idr_remove_all(&group->inotify_data.idr);
+ 	idr_destroy(&group->inotify_data.idr);
+ 	atomic_dec(&group->inotify_data.user->inotify_devs);
+ 	free_uid(group->inotify_data.user);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
