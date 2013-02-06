@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + vfio-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:23 -0800
-Message-ID: <20130206223924.2B1B131C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + rpmsg-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:02 -0800
+Message-ID: <20130206223903.28BEB31C1FF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:37531 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757593Ab3BFWjZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:25 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so209976vbi.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:24 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:48935 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758344Ab3BFWjE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:04 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so209731vea.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, alex.williamson@redhat.com
+Cc: tj@kernel.org, ohad@wizery.com
 
 
 The patch titled
-     Subject: vfio: convert to idr_alloc()
+     Subject: rpmsg: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     vfio-convert-to-idr_alloc.patch
+     rpmsg-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,81 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: vfio: convert to idr_alloc()
+Subject: rpmsg: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
-v2: Restore accidentally dropped "index 0" comment as suggested by
-    Alex.
-
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Alex Williamson <alex.williamson@redhat.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/vfio.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/rpmsg/virtio_rpmsg_bus.c |   30 +++++++++++------------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
-diff -puN drivers/vfio/vfio.c~vfio-convert-to-idr_alloc drivers/vfio/vfio.c
---- a/drivers/vfio/vfio.c~vfio-convert-to-idr_alloc
-+++ a/drivers/vfio/vfio.c
-@@ -139,23 +139,8 @@ EXPORT_SYMBOL_GPL(vfio_unregister_iommu_
-  */
- static int vfio_alloc_group_minor(struct vfio_group *group)
+diff -puN drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-convert-to-idr_alloc drivers/rpmsg/virtio_rpmsg_bus.c
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-convert-to-idr_alloc
++++ a/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -213,13 +213,10 @@ static struct rpmsg_endpoint *__rpmsg_cr
+ 		struct rpmsg_channel *rpdev, rpmsg_rx_cb_t cb,
+ 		void *priv, u32 addr)
  {
--	int ret, minor;
+-	int err, tmpaddr, request;
++	int id_min, id_max, id;
+ 	struct rpmsg_endpoint *ept;
+ 	struct device *dev = rpdev ? &rpdev->dev : &vrp->vdev->dev;
+ 
+-	if (!idr_pre_get(&vrp->endpoints, GFP_KERNEL))
+-		return NULL;
 -
--again:
--	if (unlikely(idr_pre_get(&vfio.group_idr, GFP_KERNEL) == 0))
--		return -ENOMEM;
+ 	ept = kzalloc(sizeof(*ept), GFP_KERNEL);
+ 	if (!ept) {
+ 		dev_err(dev, "failed to kzalloc a new ept\n");
+@@ -234,31 +231,28 @@ static struct rpmsg_endpoint *__rpmsg_cr
+ 	ept->priv = priv;
+ 
+ 	/* do we need to allocate a local address ? */
+-	request = addr == RPMSG_ADDR_ANY ? RPMSG_RESERVED_ADDRESSES : addr;
++	if (addr == RPMSG_ADDR_ANY) {
++		id_min = RPMSG_RESERVED_ADDRESSES;
++		id_max = 0;
++	} else {
++		id_min = addr;
++		id_max = addr + 1;
++	}
+ 
+ 	mutex_lock(&vrp->endpoints_lock);
+ 
+ 	/* bind the endpoint to an rpmsg address (and allocate one if needed) */
+-	err = idr_get_new_above(&vrp->endpoints, ept, request, &tmpaddr);
+-	if (err) {
+-		dev_err(dev, "idr_get_new_above failed: %d\n", err);
++	id = idr_alloc(&vrp->endpoints, ept, id_min, id_max, GFP_KERNEL);
++	if (id < 0) {
++		dev_err(dev, "idr_alloc failed: %d\n", id);
+ 		goto free_ept;
+ 	}
 -
- 	/* index 0 is used by /dev/vfio/vfio */
--	ret = idr_get_new_above(&vfio.group_idr, group, 1, &minor);
--	if (ret == -EAGAIN)
--		goto again;
--	if (ret || minor > MINORMASK) {
--		if (minor > MINORMASK)
--			idr_remove(&vfio.group_idr, minor);
--		return -ENOSPC;
+-	/* make sure the user's address request is fulfilled, if relevant */
+-	if (addr != RPMSG_ADDR_ANY && tmpaddr != addr) {
+-		dev_err(dev, "address 0x%x already in use\n", addr);
+-		goto rem_idr;
 -	}
 -
--	return minor;
-+	return idr_alloc(&vfio.group_idr, group, 1, MINORMASK + 1, GFP_KERNEL);
- }
+-	ept->addr = tmpaddr;
++	ept->addr = id;
  
- static void vfio_free_group_minor(int minor)
+ 	mutex_unlock(&vrp->endpoints_lock);
+ 
+ 	return ept;
+ 
+-rem_idr:
+-	idr_remove(&vrp->endpoints, request);
+ free_ept:
+ 	mutex_unlock(&vrp->endpoints_lock);
+ 	kref_put(&ept->refcount, __ept_release);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
