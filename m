@@ -1,53 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] remoteproc-dont-use-idr_remove_all.patch removed from -mm tree
-Date: Wed, 06 Feb 2013 14:00:54 -0800
-Message-ID: <20130206220054.9996631C102@corp2gmr1-1.hot.corp.google.com>
+Subject: [to-be-updated] dlm-dont-use-idr_remove_all.patch removed from -mm tree
+Date: Wed, 06 Feb 2013 14:01:03 -0800
+Message-ID: <20130206220103.A886031C15E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:33498 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932085Ab3BFWA4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:00:56 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so206101ves.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:00:55 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:44410 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932085Ab3BFWBE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:01:04 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so206167yen.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:01:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, ohad@wizery.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, ccaulfie@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: remoteproc: don't use idr_remove_all()
+     Subject: dlm: don't use idr_remove_all()
 has been removed from the -mm tree.  Its filename was
-     remoteproc-dont-use-idr_remove_all.patch
+     dlm-dont-use-idr_remove_all.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: remoteproc: don't use idr_remove_all()
+Subject: dlm: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
-deprecated.  Drop its usage.
+deprecated.
+
+The conversion isn't completely trivial for recover_idr_clear() as it's
+the only place in kernel which makes legitimate use of idr_remove_all()
+w/o idr_destroy().  Replace it with idr_remove() call inside
+idr_for_each_entry() loop.  It goes on top so that it matches the
+operation order in recover_idr_del().
+
+Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/remoteproc/remoteproc_core.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/dlm/lockspace.c |    1 -
+ fs/dlm/recover.c   |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/remoteproc/remoteproc_core.c~remoteproc-dont-use-idr_remove_all drivers/remoteproc/remoteproc_core.c
---- a/drivers/remoteproc/remoteproc_core.c~remoteproc-dont-use-idr_remove_all
-+++ a/drivers/remoteproc/remoteproc_core.c
-@@ -1180,7 +1180,6 @@ static void rproc_type_release(struct de
+diff -puN fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all fs/dlm/lockspace.c
+--- a/fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all
++++ a/fs/dlm/lockspace.c
+@@ -796,7 +796,6 @@ static int release_lockspace(struct dlm_
+ 	 */
  
- 	rproc_delete_debug_dir(rproc);
+ 	idr_for_each(&ls->ls_lkbidr, lkb_idr_free, ls);
+-	idr_remove_all(&ls->ls_lkbidr);
+ 	idr_destroy(&ls->ls_lkbidr);
  
--	idr_remove_all(&rproc->notifyids);
- 	idr_destroy(&rproc->notifyids);
+ 	/*
+diff -puN fs/dlm/recover.c~dlm-dont-use-idr_remove_all fs/dlm/recover.c
+--- a/fs/dlm/recover.c~dlm-dont-use-idr_remove_all
++++ a/fs/dlm/recover.c
+@@ -359,13 +359,13 @@ static void recover_idr_clear(struct dlm
+ 	spin_lock(&ls->ls_recover_idr_lock);
  
- 	if (rproc->index >= 0)
+ 	idr_for_each_entry(&ls->ls_recover_idr, r, id) {
++		idr_remove(&ls->ls_recover_idr, id);
+ 		r->res_id = 0;
+ 		r->res_recover_locks_count = 0;
+ 		ls->ls_recover_list_count--;
+ 
+ 		dlm_put_rsb(r);
+ 	}
+-	idr_remove_all(&ls->ls_recover_idr);
+ 
+ 	if (ls->ls_recover_list_count != 0) {
+ 		log_error(ls, "warning: recover_list_count %d",
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
@@ -64,9 +92,6 @@ memcg-fast-hierarchy-aware-child-test-fix.patch
 memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
 memcg-increment-static-branch-right-after-limit-set.patch
 memcg-avoid-dangling-reference-count-in-creation-failure.patch
-rpmsg-dont-use-idr_remove_all.patch
-dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
-dlm-dont-use-idr_remove_all.patch
 nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
 inotify-dont-use-idr_remove_all.patch
 cgroup-dont-use-idr_remove_all.patch
