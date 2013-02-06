@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:44 -0800
-Message-ID: <20130206223745.328D931C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + drm-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:47 -0800
+Message-ID: <20130206223748.3D8085A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:46644 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWhq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:46 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so221884qah.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:45 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:64799 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWht (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:49 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so209619vea.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, grant.likely@secretlab.ca, linus.walleij@linaro.org
+Cc: tj@kernel.org, airlied@linux.ie
 
 
 The patch titled
-     Subject: gpio: convert to idr_alloc()
+     Subject: drm: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     gpio-convert-to-idr_alloc.patch
+     drm-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,197 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: gpio: convert to idr_alloc()
+Subject: drm: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
+* drm_ctxbitmap_next() error handling in drm_addctx() seems broken.
+  drm_ctxbitmap_next() return -errno on failure not -1.
+
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/drm_context.c |   17 ++-------------
+ drivers/gpu/drm/drm_crtc.c    |   19 +++--------------
+ drivers/gpu/drm/drm_gem.c     |   35 +++++++++++---------------------
+ drivers/gpu/drm/drm_stub.c    |   19 +----------------
+ 4 files changed, 22 insertions(+), 68 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpio-convert-to-idr_alloc drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-convert-to-idr_alloc
-+++ a/drivers/gpio/gpiolib.c
-@@ -358,15 +358,10 @@ static int gpio_setup_irq(struct gpio_de
- 			goto err_out;
- 		}
+diff -puN drivers/gpu/drm/drm_context.c~drm-convert-to-idr_alloc drivers/gpu/drm/drm_context.c
+--- a/drivers/gpu/drm/drm_context.c~drm-convert-to-idr_alloc
++++ a/drivers/gpu/drm/drm_context.c
+@@ -74,24 +74,13 @@ void drm_ctxbitmap_free(struct drm_devic
+  */
+ static int drm_ctxbitmap_next(struct drm_device * dev)
+ {
+-	int new_id;
+ 	int ret;
  
--		do {
--			ret = -ENOMEM;
--			if (idr_pre_get(&dirent_idr, GFP_KERNEL))
--				ret = idr_get_new_above(&dirent_idr, value_sd,
--							1, &id);
--		} while (ret == -EAGAIN);
+-again:
+-	if (idr_pre_get(&dev->ctx_idr, GFP_KERNEL) == 0) {
+-		DRM_ERROR("Out of memory expanding drawable idr\n");
+-		return -ENOMEM;
+-	}
+ 	mutex_lock(&dev->struct_mutex);
+-	ret = idr_get_new_above(&dev->ctx_idr, NULL,
+-				DRM_RESERVED_CONTEXTS, &new_id);
++	ret = idr_alloc(&dev->ctx_idr, NULL, DRM_RESERVED_CONTEXTS, 0,
++			GFP_KERNEL);
+ 	mutex_unlock(&dev->struct_mutex);
+-	if (ret == -EAGAIN)
+-		goto again;
+-	else if (ret)
+-		return ret;
 -
--		if (ret)
-+		ret = idr_alloc(&dirent_idr, value_sd, 1, 0, GFP_KERNEL);
-+		if (ret < 0)
- 			goto free_sd;
-+		id = ret;
+-	return new_id;
++	return ret;
+ }
  
- 		desc->flags &= GPIO_FLAGS_MASK;
- 		desc->flags |= (unsigned long)id << ID_SHIFT;
+ /**
+diff -puN drivers/gpu/drm/drm_crtc.c~drm-convert-to-idr_alloc drivers/gpu/drm/drm_crtc.c
+--- a/drivers/gpu/drm/drm_crtc.c~drm-convert-to-idr_alloc
++++ a/drivers/gpu/drm/drm_crtc.c
+@@ -252,32 +252,21 @@ char *drm_get_connector_status_name(enum
+ static int drm_mode_object_get(struct drm_device *dev,
+ 			       struct drm_mode_object *obj, uint32_t obj_type)
+ {
+-	int new_id = 0;
+ 	int ret;
+ 
+-again:
+-	if (idr_pre_get(&dev->mode_config.crtc_idr, GFP_KERNEL) == 0) {
+-		DRM_ERROR("Ran out memory getting a mode number\n");
+-		return -ENOMEM;
+-	}
+-
+ 	mutex_lock(&dev->mode_config.idr_mutex);
+-	ret = idr_get_new_above(&dev->mode_config.crtc_idr, obj, 1, &new_id);
+-
+-	if (!ret) {
++	ret = idr_alloc(&dev->mode_config.crtc_idr, obj, 1, 0, GFP_KERNEL);
++	if (ret >= 0) {
+ 		/*
+ 		 * Set up the object linking under the protection of the idr
+ 		 * lock so that other users can't see inconsistent state.
+ 		 */
+-		obj->id = new_id;
++		obj->id = ret;
+ 		obj->type = obj_type;
+ 	}
+ 	mutex_unlock(&dev->mode_config.idr_mutex);
+ 
+-	if (ret == -EAGAIN)
+-		goto again;
+-
+-	return ret;
++	return ret < 0 ? ret : 0;
+ }
+ 
+ /**
+diff -puN drivers/gpu/drm/drm_gem.c~drm-convert-to-idr_alloc drivers/gpu/drm/drm_gem.c
+--- a/drivers/gpu/drm/drm_gem.c~drm-convert-to-idr_alloc
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -270,21 +270,19 @@ drm_gem_handle_create(struct drm_file *f
+ 	int ret;
+ 
+ 	/*
+-	 * Get the user-visible handle using idr.
++	 * Get the user-visible handle using idr.  Preload and perform
++	 * allocation under our spinlock.
+ 	 */
+-again:
+-	/* ensure there is space available to allocate a handle */
+-	if (idr_pre_get(&file_priv->object_idr, GFP_KERNEL) == 0)
+-		return -ENOMEM;
+-
+-	/* do the allocation under our spinlock */
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&file_priv->table_lock);
+-	ret = idr_get_new_above(&file_priv->object_idr, obj, 1, (int *)handlep);
++
++	ret = idr_alloc(&file_priv->object_idr, obj, 1, 0, GFP_NOWAIT);
++
+ 	spin_unlock(&file_priv->table_lock);
+-	if (ret == -EAGAIN)
+-		goto again;
+-	else if (ret)
++	idr_preload_end();
++	if (ret < 0)
+ 		return ret;
++	*handlep = ret;
+ 
+ 	drm_gem_object_handle_reference(obj);
+ 
+@@ -451,22 +449,15 @@ drm_gem_flink_ioctl(struct drm_device *d
+ 	if (obj == NULL)
+ 		return -ENOENT;
+ 
+-again:
+-	if (idr_pre_get(&dev->object_name_idr, GFP_KERNEL) == 0) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
+-
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&dev->object_name_lock);
+ 	if (!obj->name) {
+-		ret = idr_get_new_above(&dev->object_name_idr, obj, 1,
+-					&obj->name);
++		ret = idr_alloc(&dev->object_name_idr, obj, 1, 0, GFP_NOWAIT);
++		obj->name = ret;
+ 		args->name = (uint64_t) obj->name;
+ 		spin_unlock(&dev->object_name_lock);
+ 
+-		if (ret == -EAGAIN)
+-			goto again;
+-		else if (ret)
++		if (ret < 0)
+ 			goto err;
+ 
+ 		/* Allocate a reference for the name table.  */
+diff -puN drivers/gpu/drm/drm_stub.c~drm-convert-to-idr_alloc drivers/gpu/drm/drm_stub.c
+--- a/drivers/gpu/drm/drm_stub.c~drm-convert-to-idr_alloc
++++ a/drivers/gpu/drm/drm_stub.c
+@@ -109,7 +109,6 @@ EXPORT_SYMBOL(drm_ut_debug_printk);
+ 
+ static int drm_minor_get_id(struct drm_device *dev, int type)
+ {
+-	int new_id;
+ 	int ret;
+ 	int base = 0, limit = 63;
+ 
+@@ -121,25 +120,11 @@ static int drm_minor_get_id(struct drm_d
+                 limit = base + 255;
+         }
+ 
+-again:
+-	if (idr_pre_get(&drm_minors_idr, GFP_KERNEL) == 0) {
+-		DRM_ERROR("Out of memory expanding drawable idr\n");
+-		return -ENOMEM;
+-	}
+ 	mutex_lock(&dev->struct_mutex);
+-	ret = idr_get_new_above(&drm_minors_idr, NULL,
+-				base, &new_id);
++	ret = idr_alloc(&drm_minors_idr, NULL, base, limit, GFP_KERNEL);
+ 	mutex_unlock(&dev->struct_mutex);
+-	if (ret == -EAGAIN)
+-		goto again;
+-	else if (ret)
+-		return ret;
+ 
+-	if (new_id >= limit) {
+-		idr_remove(&drm_minors_idr, new_id);
+-		return -EINVAL;
+-	}
+-	return new_id;
++	return ret == -ENOSPC ? -EINVAL : ret;
+ }
+ 
+ struct drm_master *drm_master_create(struct drm_minor *minor)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
