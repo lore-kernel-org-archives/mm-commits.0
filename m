@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:22 -0800
-Message-ID: <20130206223723.2ADC031C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + drbd-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:31 -0800
+Message-ID: <20130206223732.212365A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:42354 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163Ab3BFWhY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:24 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so209900yen.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:23 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:64090 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755163Ab3BFWhd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:33 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so209790vbb.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, axboe@kernel.dk
+Cc: tj@kernel.org
 
 
 The patch titled
-     Subject: block: convert to idr_alloc()
+     Subject: drbd: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     block-convert-to-idr_alloc.patch
+     drbd-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: block: convert to idr_alloc()
+Subject: drbd: convert to idr_alloc()
 
-Convert to the much saner new idr interface.  Both bsg and genhd
-protect idr w/ mutex making preloading unnecessary.
+Convert to the much saner new idr interface.
+
+Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bsg.c   |   26 +++++++++-----------------
- block/genhd.c |   21 ++++++---------------
- 2 files changed, 15 insertions(+), 32 deletions(-)
+ drivers/block/drbd/drbd_main.c |   29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN block/bsg.c~block-convert-to-idr_alloc block/bsg.c
---- a/block/bsg.c~block-convert-to-idr_alloc
-+++ a/block/bsg.c
-@@ -997,7 +997,7 @@ int bsg_register_queue(struct request_qu
- {
- 	struct bsg_class_device *bcd;
- 	dev_t dev;
--	int ret, minor;
-+	int ret;
- 	struct device *class_dev = NULL;
- 	const char *devname;
+diff -puN drivers/block/drbd/drbd_main.c~drbd-convert-to-idr_alloc drivers/block/drbd/drbd_main.c
+--- a/drivers/block/drbd/drbd_main.c~drbd-convert-to-idr_alloc
++++ a/drivers/block/drbd/drbd_main.c
+@@ -2660,25 +2660,24 @@ enum drbd_ret_code conn_new_minor(struct
+ 	mdev->read_requests = RB_ROOT;
+ 	mdev->write_requests = RB_ROOT;
  
-@@ -1017,23 +1017,16 @@ int bsg_register_queue(struct request_qu
- 
- 	mutex_lock(&bsg_mutex);
- 
--	ret = idr_pre_get(&bsg_minor_idr, GFP_KERNEL);
--	if (!ret) {
--		ret = -ENOMEM;
-+	ret = idr_alloc(&bsg_minor_idr, bcd, 0, BSG_MAX_DEVS, GFP_KERNEL);
-+	if (ret < 0) {
-+		if (ret == -ENOSPC) {
-+			printk(KERN_ERR "bsg: too many bsg devices\n");
-+			ret = -EINVAL;
+-	if (!idr_pre_get(&minors, GFP_KERNEL))
+-		goto out_no_minor_idr;
+-	if (idr_get_new_above(&minors, mdev, minor, &minor_got))
++	minor_got = idr_alloc(&minors, mdev, minor, minor + 1, GFP_KERNEL);
++	if (minor_got < 0) {
++		if (minor_got == -ENOSPC) {
++			err = ERR_MINOR_EXISTS;
++			drbd_msg_put_info("requested minor exists already");
 +		}
- 		goto unlock;
+ 		goto out_no_minor_idr;
+-	if (minor_got != minor) {
+-		err = ERR_MINOR_EXISTS;
+-		drbd_msg_put_info("requested minor exists already");
+-		goto out_idr_remove_minor;
  	}
  
--	ret = idr_get_new(&bsg_minor_idr, bcd, &minor);
--	if (ret < 0)
--		goto unlock;
--
--	if (minor >= BSG_MAX_DEVS) {
--		printk(KERN_ERR "bsg: too many bsg devices\n");
--		ret = -EINVAL;
--		goto remove_idr;
--	}
--
--	bcd->minor = minor;
-+	bcd->minor = ret;
- 	bcd->queue = q;
- 	bcd->parent = get_device(parent);
- 	bcd->release = release;
-@@ -1059,8 +1052,7 @@ unregister_class_dev:
- 	device_unregister(class_dev);
- put_dev:
- 	put_device(parent);
--remove_idr:
--	idr_remove(&bsg_minor_idr, minor);
-+	idr_remove(&bsg_minor_idr, bcd->minor);
- unlock:
- 	mutex_unlock(&bsg_mutex);
- 	return ret;
-diff -puN block/genhd.c~block-convert-to-idr_alloc block/genhd.c
---- a/block/genhd.c~block-convert-to-idr_alloc
-+++ a/block/genhd.c
-@@ -411,7 +411,7 @@ static int blk_mangle_minor(int minor)
- int blk_alloc_devt(struct hd_struct *part, dev_t *devt)
- {
- 	struct gendisk *disk = part_to_disk(part);
--	int idx, rc;
-+	int idx;
- 
- 	/* in consecutive minor range? */
- 	if (part->partno < disk->minors) {
-@@ -420,20 +420,11 @@ int blk_alloc_devt(struct hd_struct *par
+-	if (!idr_pre_get(&tconn->volumes, GFP_KERNEL))
+-		goto out_idr_remove_minor;
+-	if (idr_get_new_above(&tconn->volumes, mdev, vnr, &vnr_got))
++	vnr_got = idr_alloc(&tconn->volumes, mdev, vnr, vnr + 1, GFP_KERNEL);
++	if (vnr_got < 0) {
++		if (vnr_got == -ENOSPC) {
++			err = ERR_INVALID_REQUEST;
++			drbd_msg_put_info("requested volume exists already");
++		}
+ 		goto out_idr_remove_minor;
+-	if (vnr_got != vnr) {
+-		err = ERR_INVALID_REQUEST;
+-		drbd_msg_put_info("requested volume exists already");
+-		goto out_idr_remove_vol;
  	}
++
+ 	add_disk(disk);
+ 	kref_init(&mdev->kref); /* one ref for both idrs and the the add_disk */
  
- 	/* allocate ext devt */
--	do {
--		if (!idr_pre_get(&ext_devt_idr, GFP_KERNEL))
--			return -ENOMEM;
--		mutex_lock(&ext_devt_mutex);
--		rc = idr_get_new(&ext_devt_idr, part, &idx);
--		if (!rc && idx >= NR_EXT_DEVT) {
--			idr_remove(&ext_devt_idr, idx);
--			rc = -EBUSY;
--		}
--		mutex_unlock(&ext_devt_mutex);
--	} while (rc == -EAGAIN);
--
--	if (rc)
--		return rc;
-+	mutex_lock(&ext_devt_mutex);
-+	idx = idr_alloc(&ext_devt_idr, part, 0, NR_EXT_DEVT, GFP_KERNEL);
-+	mutex_unlock(&ext_devt_mutex);
-+	if (idx < 0)
-+		return idx == -ENOSPC ? -EBUSY : idx;
+@@ -2689,8 +2688,6 @@ enum drbd_ret_code conn_new_minor(struct
  
- 	*devt = MKDEV(BLOCK_EXT_MAJOR, blk_mangle_minor(idx));
- 	return 0;
+ 	return NO_ERROR;
+ 
+-out_idr_remove_vol:
+-	idr_remove(&tconn->volumes, vnr_got);
+ out_idr_remove_minor:
+ 	idr_remove(&minors, minor_got);
+ 	synchronize_rcu();
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
