@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + target-iscsi-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:11 -0800
-Message-ID: <20130206223912.308B05A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + thermal-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:17 -0800
+Message-ID: <20130206223918.22E7031C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:63564 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756368Ab3BFWjN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:13 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so95125yhz.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:12 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45533 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758005Ab3BFWjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:19 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so222067qaj.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, James.Bottomley@HansenPartnership.com, nab@linux-iscsi.org
+Cc: tj@kernel.org, rui.zhang@intel.com
 
 
 The patch titled
-     Subject: target/iscsi: convert to idr_alloc()
+     Subject: thermal: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     target-iscsi-convert-to-idr_alloc.patch
+     thermal-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: target/iscsi: convert to idr_alloc()
+Subject: thermal: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Nicholas A. Bellinger <nab@linux-iscsi.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/target/iscsi/iscsi_target.c       |   15 ++++++++-------
- drivers/target/iscsi/iscsi_target_login.c |   15 ++++++---------
- 2 files changed, 14 insertions(+), 16 deletions(-)
+ drivers/thermal/cpu_cooling.c |   17 +++++------------
+ drivers/thermal/thermal_sys.c |   17 +++++------------
+ 2 files changed, 10 insertions(+), 24 deletions(-)
 
-diff -puN drivers/target/iscsi/iscsi_target.c~target-iscsi-convert-to-idr_alloc drivers/target/iscsi/iscsi_target.c
---- a/drivers/target/iscsi/iscsi_target.c~target-iscsi-convert-to-idr_alloc
-+++ a/drivers/target/iscsi/iscsi_target.c
-@@ -144,23 +144,24 @@ struct iscsi_tiqn *iscsit_add_tiqn(unsig
- 	spin_lock_init(&tiqn->login_stats.lock);
- 	spin_lock_init(&tiqn->logout_stats.lock);
- 
--	if (!idr_pre_get(&tiqn_idr, GFP_KERNEL)) {
--		pr_err("idr_pre_get() for tiqn_idr failed\n");
--		kfree(tiqn);
--		return ERR_PTR(-ENOMEM);
--	}
- 	tiqn->tiqn_state = TIQN_STATE_ACTIVE;
- 
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&tiqn_lock);
--	ret = idr_get_new(&tiqn_idr, NULL, &tiqn->tiqn_index);
-+
-+	ret = idr_alloc(&tiqn_idr, NULL, 0, 0, GFP_NOWAIT);
- 	if (ret < 0) {
--		pr_err("idr_get_new() failed for tiqn->tiqn_index\n");
-+		pr_err("idr_alloc() failed for tiqn->tiqn_index\n");
- 		spin_unlock(&tiqn_lock);
-+		idr_preload_end();
- 		kfree(tiqn);
- 		return ERR_PTR(ret);
- 	}
-+	tiqn->tiqn_index = ret;
- 	list_add_tail(&tiqn->tiqn_list, &g_tiqn_list);
-+
- 	spin_unlock(&tiqn_lock);
-+	idr_preload_end();
- 
- 	pr_debug("CORE[0] - Added iSCSI Target IQN: %s\n", tiqn->tiqn);
- 
-diff -puN drivers/target/iscsi/iscsi_target_login.c~target-iscsi-convert-to-idr_alloc drivers/target/iscsi/iscsi_target_login.c
---- a/drivers/target/iscsi/iscsi_target_login.c~target-iscsi-convert-to-idr_alloc
-+++ a/drivers/target/iscsi/iscsi_target_login.c
-@@ -247,19 +247,16 @@ static int iscsi_login_zero_tsih_s1(
- 	spin_lock_init(&sess->session_usage_lock);
- 	spin_lock_init(&sess->ttt_lock);
- 
--	if (!idr_pre_get(&sess_idr, GFP_KERNEL)) {
--		pr_err("idr_pre_get() for sess_idr failed\n");
--		iscsit_tx_login_rsp(conn, ISCSI_STATUS_CLS_TARGET_ERR,
--				ISCSI_LOGIN_STATUS_NO_RESOURCES);
--		kfree(sess);
+diff -puN drivers/thermal/cpu_cooling.c~thermal-convert-to-idr_alloc drivers/thermal/cpu_cooling.c
+--- a/drivers/thermal/cpu_cooling.c~thermal-convert-to-idr_alloc
++++ a/drivers/thermal/cpu_cooling.c
+@@ -73,21 +73,14 @@ static struct cpufreq_cooling_device *no
+  */
+ static int get_idr(struct idr *idr, int *id)
+ {
+-	int err;
+-again:
+-	if (unlikely(idr_pre_get(idr, GFP_KERNEL) == 0))
 -		return -ENOMEM;
--	}
-+	idr_preload(GFP_KERNEL);
- 	spin_lock_bh(&sess_idr_lock);
--	ret = idr_get_new(&sess_idr, NULL, &sess->session_index);
-+	ret = idr_alloc(&sess_idr, NULL, 0, 0, GFP_NOWAIT);
-+	if (ret >= 0)
-+		sess->session_index = ret;
- 	spin_unlock_bh(&sess_idr_lock);
-+	idr_preload_end();
++	int ret;
  
- 	if (ret < 0) {
--		pr_err("idr_get_new() for sess_idr failed\n");
-+		pr_err("idr_alloc() for sess_idr failed\n");
- 		iscsit_tx_login_rsp(conn, ISCSI_STATUS_CLS_TARGET_ERR,
- 				ISCSI_LOGIN_STATUS_NO_RESOURCES);
- 		kfree(sess);
+ 	mutex_lock(&cooling_cpufreq_lock);
+-	err = idr_get_new(idr, NULL, id);
++	ret = idr_alloc(idr, NULL, 0, 0, GFP_KERNEL);
+ 	mutex_unlock(&cooling_cpufreq_lock);
+-
+-	if (unlikely(err == -EAGAIN))
+-		goto again;
+-	else if (unlikely(err))
+-		return err;
+-
+-	*id = *id & MAX_IDR_MASK;
++	if (unlikely(ret < 0))
++		return ret;
++	*id = ret;
+ 	return 0;
+ }
+ 
+diff -puN drivers/thermal/thermal_sys.c~thermal-convert-to-idr_alloc drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-convert-to-idr_alloc
++++ a/drivers/thermal/thermal_sys.c
+@@ -131,23 +131,16 @@ EXPORT_SYMBOL_GPL(thermal_unregister_gov
+ 
+ static int get_idr(struct idr *idr, struct mutex *lock, int *id)
+ {
+-	int err;
+-
+-again:
+-	if (unlikely(idr_pre_get(idr, GFP_KERNEL) == 0))
+-		return -ENOMEM;
++	int ret;
+ 
+ 	if (lock)
+ 		mutex_lock(lock);
+-	err = idr_get_new(idr, NULL, id);
++	ret = idr_alloc(idr, NULL, 0, 0, GFP_KERNEL);
+ 	if (lock)
+ 		mutex_unlock(lock);
+-	if (unlikely(err == -EAGAIN))
+-		goto again;
+-	else if (unlikely(err))
+-		return err;
+-
+-	*id = *id & MAX_IDR_MASK;
++	if (unlikely(ret < 0))
++		return ret;
++	*id = ret;
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
