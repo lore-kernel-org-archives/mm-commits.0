@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dm-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:30 -0800
-Message-ID: <20130206223831.2901031C231@corp2gmr1-1.hot.corp.google.com>
+Subject: + ib-ocrdma-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:25 -0800
+Message-ID: <20130206223826.20F9F5A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:37780 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWic (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:32 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so209776vch.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:31 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64682 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWi1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:27 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so210714qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, agk@redhat.com
+Cc: tj@kernel.org, roland@purestorage.com
 
 
 The patch titled
-     Subject: dm: convert to idr_alloc()
+     Subject: IB/ocrdma: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     dm-convert-to-idr_alloc.patch
+     ib-ocrdma-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dm: convert to idr_alloc()
+Subject: IB/ocrdma: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm.c |   54 ++++++++++++----------------------------------
- 1 file changed, 15 insertions(+), 39 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/md/dm.c~dm-convert-to-idr_alloc drivers/md/dm.c
---- a/drivers/md/dm.c~dm-convert-to-idr_alloc
-+++ a/drivers/md/dm.c
-@@ -1801,62 +1801,38 @@ static void free_minor(int minor)
-  */
- static int specific_minor(int minor)
+diff -puN drivers/infiniband/hw/ocrdma/ocrdma_main.c~ib-ocrdma-convert-to-idr_alloc drivers/infiniband/hw/ocrdma/ocrdma_main.c
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c~ib-ocrdma-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -51,18 +51,6 @@ static DEFINE_IDR(ocrdma_dev_id);
+ 
+ static union ib_gid ocrdma_zero_sgid;
+ 
+-static int ocrdma_get_instance(void)
+-{
+-	int instance = 0;
+-
+-	/* Assign an unused number */
+-	if (!idr_pre_get(&ocrdma_dev_id, GFP_KERNEL))
+-		return -1;
+-	if (idr_get_new(&ocrdma_dev_id, NULL, &instance))
+-		return -1;
+-	return instance;
+-}
+-
+ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
  {
--	int r, m;
-+	int r;
+ 	u8 mac_addr[6];
+@@ -416,7 +404,7 @@ static struct ocrdma_dev *ocrdma_add(str
+ 		goto idr_err;
  
- 	if (minor >= (1 << MINORBITS))
- 		return -EINVAL;
+ 	memcpy(&dev->nic_info, dev_info, sizeof(*dev_info));
+-	dev->id = ocrdma_get_instance();
++	dev->id = idr_alloc(&ocrdma_dev_id, NULL, 0, 0, GFP_KERNEL);
+ 	if (dev->id < 0)
+ 		goto idr_err;
  
--	r = idr_pre_get(&_minor_idr, GFP_KERNEL);
--	if (!r)
--		return -ENOMEM;
--
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&_minor_lock);
- 
--	if (idr_find(&_minor_idr, minor)) {
--		r = -EBUSY;
--		goto out;
--	}
--
--	r = idr_get_new_above(&_minor_idr, MINOR_ALLOCED, minor, &m);
--	if (r)
--		goto out;
--
--	if (m != minor) {
--		idr_remove(&_minor_idr, m);
--		r = -EBUSY;
--		goto out;
--	}
-+	r = idr_alloc(&_minor_idr, MINOR_ALLOCED, minor, minor + 1, GFP_NOWAIT);
- 
--out:
- 	spin_unlock(&_minor_lock);
--	return r;
-+	idr_preload_end();
-+	if (r < 0)
-+		return r == -ENOSPC ? -EBUSY : r;
-+	return 0;
- }
- 
- static int next_free_minor(int *minor)
- {
--	int r, m;
--
--	r = idr_pre_get(&_minor_idr, GFP_KERNEL);
--	if (!r)
--		return -ENOMEM;
-+	int r;
- 
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&_minor_lock);
- 
--	r = idr_get_new(&_minor_idr, MINOR_ALLOCED, &m);
--	if (r)
--		goto out;
--
--	if (m >= (1 << MINORBITS)) {
--		idr_remove(&_minor_idr, m);
--		r = -ENOSPC;
--		goto out;
--	}
-+	r = idr_alloc(&_minor_idr, MINOR_ALLOCED, 0, 1 << MINORBITS, GFP_NOWAIT);
- 
--	*minor = m;
--
--out:
- 	spin_unlock(&_minor_lock);
--	return r;
-+	idr_preload_end();
-+	if (r < 0)
-+		return r;
-+	*minor = r;
-+	return 0;
- }
- 
- static const struct block_device_operations dm_blk_dops;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
