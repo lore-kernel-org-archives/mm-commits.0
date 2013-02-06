@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pps-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:57 -0800
-Message-ID: <20130206223858.22EDD5A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + target-iscsi-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:11 -0800
+Message-ID: <20130206223912.308B05A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:33160 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758313Ab3BFWi7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:59 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so209634vcd.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:58 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:63564 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756368Ab3BFWjN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:13 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so95125yhz.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, giometti@enneenne.com
+Cc: tj@kernel.org, James.Bottomley@HansenPartnership.com, nab@linux-iscsi.org
 
 
 The patch titled
-     Subject: pps: convert to idr_alloc()
+     Subject: target/iscsi: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     pps-convert-to-idr_alloc.patch
+     target-iscsi-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: pps: convert to idr_alloc()
+Subject: target/iscsi: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
+Cc: Nicholas A. Bellinger <nab@linux-iscsi.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kapi.c |    2 +-
- drivers/pps/pps.c  |   36 ++++++++++++++----------------------
- 2 files changed, 15 insertions(+), 23 deletions(-)
+ drivers/target/iscsi/iscsi_target.c       |   15 ++++++++-------
+ drivers/target/iscsi/iscsi_target_login.c |   15 ++++++---------
+ 2 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN drivers/pps/kapi.c~pps-convert-to-idr_alloc drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-convert-to-idr_alloc
-+++ a/drivers/pps/kapi.c
-@@ -102,7 +102,7 @@ struct pps_device *pps_register_source(s
- 		goto pps_register_source_exit;
+diff -puN drivers/target/iscsi/iscsi_target.c~target-iscsi-convert-to-idr_alloc drivers/target/iscsi/iscsi_target.c
+--- a/drivers/target/iscsi/iscsi_target.c~target-iscsi-convert-to-idr_alloc
++++ a/drivers/target/iscsi/iscsi_target.c
+@@ -144,23 +144,24 @@ struct iscsi_tiqn *iscsit_add_tiqn(unsig
+ 	spin_lock_init(&tiqn->login_stats.lock);
+ 	spin_lock_init(&tiqn->logout_stats.lock);
+ 
+-	if (!idr_pre_get(&tiqn_idr, GFP_KERNEL)) {
+-		pr_err("idr_pre_get() for tiqn_idr failed\n");
+-		kfree(tiqn);
+-		return ERR_PTR(-ENOMEM);
+-	}
+ 	tiqn->tiqn_state = TIQN_STATE_ACTIVE;
+ 
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&tiqn_lock);
+-	ret = idr_get_new(&tiqn_idr, NULL, &tiqn->tiqn_index);
++
++	ret = idr_alloc(&tiqn_idr, NULL, 0, 0, GFP_NOWAIT);
+ 	if (ret < 0) {
+-		pr_err("idr_get_new() failed for tiqn->tiqn_index\n");
++		pr_err("idr_alloc() failed for tiqn->tiqn_index\n");
+ 		spin_unlock(&tiqn_lock);
++		idr_preload_end();
+ 		kfree(tiqn);
+ 		return ERR_PTR(ret);
  	}
++	tiqn->tiqn_index = ret;
+ 	list_add_tail(&tiqn->tiqn_list, &g_tiqn_list);
++
+ 	spin_unlock(&tiqn_lock);
++	idr_preload_end();
  
--	/* These initializations must be done before calling idr_get_new()
-+	/* These initializations must be done before calling idr_alloc()
- 	 * in order to avoid reces into pps_event().
- 	 */
- 	pps->params.api_version = PPS_API_VERS;
-diff -puN drivers/pps/pps.c~pps-convert-to-idr_alloc drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-convert-to-idr_alloc
-+++ a/drivers/pps/pps.c
-@@ -290,29 +290,21 @@ int pps_register_cdev(struct pps_device 
- 	dev_t devt;
+ 	pr_debug("CORE[0] - Added iSCSI Target IQN: %s\n", tiqn->tiqn);
  
- 	mutex_lock(&pps_idr_lock);
--	/* Get new ID for the new PPS source */
--	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
--		mutex_unlock(&pps_idr_lock);
+diff -puN drivers/target/iscsi/iscsi_target_login.c~target-iscsi-convert-to-idr_alloc drivers/target/iscsi/iscsi_target_login.c
+--- a/drivers/target/iscsi/iscsi_target_login.c~target-iscsi-convert-to-idr_alloc
++++ a/drivers/target/iscsi/iscsi_target_login.c
+@@ -247,19 +247,16 @@ static int iscsi_login_zero_tsih_s1(
+ 	spin_lock_init(&sess->session_usage_lock);
+ 	spin_lock_init(&sess->ttt_lock);
+ 
+-	if (!idr_pre_get(&sess_idr, GFP_KERNEL)) {
+-		pr_err("idr_pre_get() for sess_idr failed\n");
+-		iscsit_tx_login_rsp(conn, ISCSI_STATUS_CLS_TARGET_ERR,
+-				ISCSI_LOGIN_STATUS_NO_RESOURCES);
+-		kfree(sess);
 -		return -ENOMEM;
 -	}
--
--	/* Now really allocate the PPS source.
--	 * After idr_get_new() calling the new source will be freely available
--	 * into the kernel.
-+	/*
-+	 * Get new ID for the new PPS source.  After idr_alloc() calling
-+	 * the new source will be freely available into the kernel.
- 	 */
--	err = idr_get_new(&pps_idr, pps, &pps->id);
--	mutex_unlock(&pps_idr_lock);
--
--	if (err < 0)
--		return err;
--
--	pps->id &= MAX_IDR_MASK;
--	if (pps->id >= PPS_MAX_SOURCES) {
--		pr_err("%s: too many PPS sources in the system\n",
--					pps->info.name);
--		err = -EBUSY;
--		goto free_idr;
-+	err = idr_alloc(&pps_idr, pps, 0, PPS_MAX_SOURCES, GFP_KERNEL);
-+	if (err < 0) {
-+		if (err == -ENOSPC) {
-+			pr_err("%s: too many PPS sources in the system\n",
-+			       pps->info.name);
-+			err = -EBUSY;
-+		}
-+		goto out_unlock;
- 	}
-+	pps->id = err;
-+	mutex_unlock(&pps_idr_lock);
++	idr_preload(GFP_KERNEL);
+ 	spin_lock_bh(&sess_idr_lock);
+-	ret = idr_get_new(&sess_idr, NULL, &sess->session_index);
++	ret = idr_alloc(&sess_idr, NULL, 0, 0, GFP_NOWAIT);
++	if (ret >= 0)
++		sess->session_index = ret;
+ 	spin_unlock_bh(&sess_idr_lock);
++	idr_preload_end();
  
- 	devt = MKDEV(MAJOR(pps_devt), pps->id);
- 
-@@ -345,8 +337,8 @@ del_cdev:
- free_idr:
- 	mutex_lock(&pps_idr_lock);
- 	idr_remove(&pps_idr, pps->id);
-+out_unlock:
- 	mutex_unlock(&pps_idr_lock);
--
- 	return err;
- }
- 
+ 	if (ret < 0) {
+-		pr_err("idr_get_new() for sess_idr failed\n");
++		pr_err("idr_alloc() for sess_idr failed\n");
+ 		iscsit_tx_login_rsp(conn, ISCSI_STATUS_CLS_TARGET_ERR,
+ 				ISCSI_LOGIN_STATUS_NO_RESOURCES);
+ 		kfree(sess);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
