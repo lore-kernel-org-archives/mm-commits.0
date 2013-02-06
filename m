@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ib-ocrdma-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:25 -0800
-Message-ID: <20130206223826.20F9F5A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + memstick-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:33 -0800
+Message-ID: <20130206223834.222DA31C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:64682 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3BFWi1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:27 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so210714qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:26 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:43039 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757844Ab3BFWif (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:35 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so209909qeb.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, roland@purestorage.com
+Cc: tj@kernel.org, oakad@yahoo.com
 
 
 The patch titled
-     Subject: IB/ocrdma: convert to idr_alloc()
+     Subject: memstick: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     ib-ocrdma-convert-to-idr_alloc.patch
+     memstick-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,81 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/ocrdma: convert to idr_alloc()
+Subject: memstick: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Roland Dreier <roland@purestorage.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ocrdma/ocrdma_main.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/memstick/core/memstick.c    |   21 ++++++++++-----------
+ drivers/memstick/core/mspro_block.c |   17 +++--------------
+ 2 files changed, 13 insertions(+), 25 deletions(-)
 
-diff -puN drivers/infiniband/hw/ocrdma/ocrdma_main.c~ib-ocrdma-convert-to-idr_alloc drivers/infiniband/hw/ocrdma/ocrdma_main.c
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c~ib-ocrdma-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -51,18 +51,6 @@ static DEFINE_IDR(ocrdma_dev_id);
- 
- static union ib_gid ocrdma_zero_sgid;
- 
--static int ocrdma_get_instance(void)
--{
--	int instance = 0;
--
--	/* Assign an unused number */
--	if (!idr_pre_get(&ocrdma_dev_id, GFP_KERNEL))
--		return -1;
--	if (idr_get_new(&ocrdma_dev_id, NULL, &instance))
--		return -1;
--	return instance;
--}
--
- void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
+diff -puN drivers/memstick/core/memstick.c~memstick-convert-to-idr_alloc drivers/memstick/core/memstick.c
+--- a/drivers/memstick/core/memstick.c~memstick-convert-to-idr_alloc
++++ a/drivers/memstick/core/memstick.c
+@@ -512,18 +512,17 @@ int memstick_add_host(struct memstick_ho
  {
- 	u8 mac_addr[6];
-@@ -416,7 +404,7 @@ static struct ocrdma_dev *ocrdma_add(str
- 		goto idr_err;
+ 	int rc;
  
- 	memcpy(&dev->nic_info, dev_info, sizeof(*dev_info));
--	dev->id = ocrdma_get_instance();
-+	dev->id = idr_alloc(&ocrdma_dev_id, NULL, 0, 0, GFP_KERNEL);
- 	if (dev->id < 0)
- 		goto idr_err;
+-	while (1) {
+-		if (!idr_pre_get(&memstick_host_idr, GFP_KERNEL))
+-			return -ENOMEM;
++	idr_preload(GFP_KERNEL);
++	spin_lock(&memstick_host_lock);
  
+-		spin_lock(&memstick_host_lock);
+-		rc = idr_get_new(&memstick_host_idr, host, &host->id);
+-		spin_unlock(&memstick_host_lock);
+-		if (!rc)
+-			break;
+-		else if (rc != -EAGAIN)
+-			return rc;
+-	}
++	rc = idr_alloc(&memstick_host_idr, host, 0, 0, GFP_NOWAIT);
++	if (rc >= 0)
++		host->id = rc;
++
++	spin_unlock(&memstick_host_lock);
++	idr_preload_end();
++	if (rc < 0)
++		return rc;
+ 
+ 	dev_set_name(&host->dev, "memstick%u", host->id);
+ 
+diff -puN drivers/memstick/core/mspro_block.c~memstick-convert-to-idr_alloc drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-convert-to-idr_alloc
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1213,21 +1213,10 @@ static int mspro_block_init_disk(struct 
+ 	msb->page_size = be16_to_cpu(sys_info->unit_size);
+ 
+ 	mutex_lock(&mspro_block_disk_lock);
+-	if (!idr_pre_get(&mspro_block_disk_idr, GFP_KERNEL)) {
+-		mutex_unlock(&mspro_block_disk_lock);
+-		return -ENOMEM;
+-	}
+-
+-	rc = idr_get_new(&mspro_block_disk_idr, card, &disk_id);
++	disk_id = idr_alloc(&mspro_block_disk_idr, card, 0, 256, GFP_KERNEL);
+ 	mutex_unlock(&mspro_block_disk_lock);
+-
+-	if (rc)
+-		return rc;
+-
+-	if ((disk_id << MSPRO_BLOCK_PART_SHIFT) > 255) {
+-		rc = -ENOSPC;
+-		goto out_release_id;
+-	}
++	if (disk_id < 0)
++		return disk_id;
+ 
+ 	msb->disk = alloc_disk(1 << MSPRO_BLOCK_PART_SHIFT);
+ 	if (!msb->disk) {
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
