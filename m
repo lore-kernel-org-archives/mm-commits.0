@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dca-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:33 -0800
-Message-ID: <20130206223734.3557B5A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + firewire-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:42 -0800
+Message-ID: <20130206223743.01D095A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:49630 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163Ab3BFWhf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:35 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so209571ves.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:34 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:45874 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755294Ab3BFWho (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:44 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so210416ghb.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, maciej.sosnowski@intel.com, paul.gortmaker@windriver.com, shannon.nelson@intel.com
+Cc: tj@kernel.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     Subject: dca: convert to idr_alloc()
+     Subject: firewire: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     dca-convert-to-idr_alloc.patch
+     firewire-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dca: convert to idr_alloc()
+Subject: firewire: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
+v2: Stefan pointed out that add_client_resource() may be called from
+    non-process context.  Preload iff @gfp_mask contains __GFP_WAIT.
+    Also updated to include minor upper limit check.
+
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dca/dca-sysfs.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ drivers/firewire/core-cdev.c   |   19 ++++++++++---------
+ drivers/firewire/core-device.c |    8 +-------
+ 2 files changed, 11 insertions(+), 16 deletions(-)
 
-diff -puN drivers/dca/dca-sysfs.c~dca-convert-to-idr_alloc drivers/dca/dca-sysfs.c
---- a/drivers/dca/dca-sysfs.c~dca-convert-to-idr_alloc
-+++ a/drivers/dca/dca-sysfs.c
-@@ -53,22 +53,19 @@ void dca_sysfs_remove_req(struct dca_pro
- int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev)
+diff -puN drivers/firewire/core-cdev.c~firewire-convert-to-idr_alloc drivers/firewire/core-cdev.c
+--- a/drivers/firewire/core-cdev.c~firewire-convert-to-idr_alloc
++++ a/drivers/firewire/core-cdev.c
+@@ -487,27 +487,28 @@ static int ioctl_get_info(struct client 
+ static int add_client_resource(struct client *client,
+ 			       struct client_resource *resource, gfp_t gfp_mask)
  {
- 	struct device *cd;
--	int err = 0;
-+	int ret;
++	bool preload = gfp_mask & __GFP_WAIT;
+ 	unsigned long flags;
+ 	int ret;
  
--idr_try_again:
--	if (!idr_pre_get(&dca_idr, GFP_KERNEL))
+- retry:
+-	if (idr_pre_get(&client->resource_idr, gfp_mask) == 0)
 -		return -ENOMEM;
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&dca_idr_lock);
--	err = idr_get_new(&dca_idr, dca, &dca->id);
+-
++	if (preload)
++		idr_preload(gfp_mask);
+ 	spin_lock_irqsave(&client->lock, flags);
 +
-+	ret = idr_alloc(&dca_idr, dca, 0, 0, GFP_NOWAIT);
-+	if (ret >= 0)
-+		dca->id = ret;
-+
- 	spin_unlock(&dca_idr_lock);
--	switch (err) {
--	case 0:
--		break;
--	case -EAGAIN:
--		goto idr_try_again;
--	default:
--		return err;
--	}
-+	idr_preload_end();
-+	if (ret < 0)
-+		return ret;
+ 	if (client->in_shutdown)
+ 		ret = -ECANCELED;
+ 	else
+-		ret = idr_get_new(&client->resource_idr, resource,
+-				  &resource->handle);
++		ret = idr_alloc(&client->resource_idr, resource, 0, 0,
++				GFP_NOWAIT);
+ 	if (ret >= 0) {
++		resource->handle = ret;
+ 		client_get(client);
+ 		schedule_if_iso_resource(resource);
+ 	}
+-	spin_unlock_irqrestore(&client->lock, flags);
  
- 	cd = device_create(dca_class, dev, MKDEV(0, 0), NULL, "dca%d", dca->id);
- 	if (IS_ERR(cd)) {
+-	if (ret == -EAGAIN)
+-		goto retry;
++	spin_unlock_irqrestore(&client->lock, flags);
++	if (preload)
++		idr_preload_end();
+ 
+ 	return ret < 0 ? ret : 0;
+ }
+diff -puN drivers/firewire/core-device.c~firewire-convert-to-idr_alloc drivers/firewire/core-device.c
+--- a/drivers/firewire/core-device.c~firewire-convert-to-idr_alloc
++++ a/drivers/firewire/core-device.c
+@@ -1017,13 +1017,7 @@ static void fw_device_init(struct work_s
+ 
+ 	fw_device_get(device);
+ 	down_write(&fw_device_rwsem);
+-	ret = idr_pre_get(&fw_device_idr, GFP_KERNEL) ?
+-	      idr_get_new(&fw_device_idr, device, &minor) :
+-	      -ENOMEM;
+-	if (minor >= 1 << MINORBITS) {
+-		idr_remove(&fw_device_idr, minor);
+-		minor = -ENOSPC;
+-	}
++	ret = idr_alloc(&fw_device_idr, device, 0, 1 << MINORBITS, GFP_KERNEL);
+ 	up_write(&fw_device_rwsem);
+ 
+ 	if (ret < 0)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
