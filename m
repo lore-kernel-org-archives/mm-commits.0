@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + atm-nicstar-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:37:28 -0800
-Message-ID: <20130206223729.2BBCD31C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + dca-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:37:33 -0800
+Message-ID: <20130206223734.3557B5A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:57450 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163Ab3BFWha (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:30 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so209745qen.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:29 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:49630 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755163Ab3BFWhf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:37:35 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so209571ves.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:37:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, chas@cmf.nrl.navy.mil, fengguang.wu@intel.com
+Cc: tj@kernel.org, maciej.sosnowski@intel.com, paul.gortmaker@windriver.com, shannon.nelson@intel.com
 
 
 The patch titled
-     Subject: atm/nicstar: convert to idr_alloc()
+     Subject: dca: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     atm-nicstar-convert-to-idr_alloc.patch
+     dca-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: atm/nicstar: convert to idr_alloc()
+Subject: dca: convert to idr_alloc()
 
-Convert to the much saner new idr interface.  The existing code looks
-buggy to me - ID 0 is treated as no-ID but allocation specifies 0 as
-lower limit and there's no error handling after partial success.  This
-conversion keeps the bugs unchanged.
+Convert to the much saner new idr interface.
 
 Only compile tested.
 
-v2: id1 and id2 are now directly used for -errno return and thus
-    should be signed.  Make them int instead of u32.  This was spotted
-    by kbuild test robot.
-
-v3: Further simplify as suggested by Chas Williams.
-
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Chas Williams <chas@cmf.nrl.navy.mil>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/nicstar.c |   24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ drivers/dca/dca-sysfs.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN drivers/atm/nicstar.c~atm-nicstar-convert-to-idr_alloc drivers/atm/nicstar.c
---- a/drivers/atm/nicstar.c~atm-nicstar-convert-to-idr_alloc
-+++ a/drivers/atm/nicstar.c
-@@ -949,11 +949,10 @@ static void free_scq(ns_dev *card, scq_i
- static void push_rxbufs(ns_dev * card, struct sk_buff *skb)
+diff -puN drivers/dca/dca-sysfs.c~dca-convert-to-idr_alloc drivers/dca/dca-sysfs.c
+--- a/drivers/dca/dca-sysfs.c~dca-convert-to-idr_alloc
++++ a/drivers/dca/dca-sysfs.c
+@@ -53,22 +53,19 @@ void dca_sysfs_remove_req(struct dca_pro
+ int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev)
  {
- 	struct sk_buff *handle1, *handle2;
--	u32 id1 = 0, id2 = 0;
-+	int id1, id2;
- 	u32 addr1, addr2;
- 	u32 stat;
- 	unsigned long flags;
--	int err;
+ 	struct device *cd;
+-	int err = 0;
++	int ret;
  
- 	/* *BARF* */
- 	handle2 = NULL;
-@@ -1026,23 +1025,12 @@ static void push_rxbufs(ns_dev * card, s
- 				card->lbfqc += 2;
- 		}
+-idr_try_again:
+-	if (!idr_pre_get(&dca_idr, GFP_KERNEL))
+-		return -ENOMEM;
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&dca_idr_lock);
+-	err = idr_get_new(&dca_idr, dca, &dca->id);
++
++	ret = idr_alloc(&dca_idr, dca, 0, 0, GFP_NOWAIT);
++	if (ret >= 0)
++		dca->id = ret;
++
+ 	spin_unlock(&dca_idr_lock);
+-	switch (err) {
+-	case 0:
+-		break;
+-	case -EAGAIN:
+-		goto idr_try_again;
+-	default:
+-		return err;
+-	}
++	idr_preload_end();
++	if (ret < 0)
++		return ret;
  
--		do {
--			if (!idr_pre_get(&card->idr, GFP_ATOMIC)) {
--				printk(KERN_ERR
--				       "nicstar%d: no free memory for idr\n",
--				       card->index);
--				goto out;
--			}
--
--			if (!id1)
--				err = idr_get_new_above(&card->idr, handle1, 0, &id1);
--
--			if (!id2 && err == 0)
--				err = idr_get_new_above(&card->idr, handle2, 0, &id2);
--
--		} while (err == -EAGAIN);
-+		id1 = idr_alloc(&card->idr, handle1, 0, 0, GFP_ATOMIC);
-+		if (id1 < 0)
-+			goto out;
- 
--		if (err)
-+		id2 = idr_alloc(&card->idr, handle2, 0, 0, GFP_ATOMIC);
-+		if (id2 < 0)
- 			goto out;
- 
- 		spin_lock_irqsave(&card->res_lock, flags);
+ 	cd = device_create(dca_class, dev, MKDEV(0, 0), NULL, "dca%d", dca->id);
+ 	if (IS_ERR(cd)) {
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
