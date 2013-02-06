@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:49 -0800
-Message-ID: <20130206223950.3105031C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + events-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:41 -0800
+Message-ID: <20130206223942.3CD6531C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:38778 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757789Ab3BFWjv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:51 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so210036vch.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:50 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:62476 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699Ab3BFWjn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:43 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so222093qaj.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, johannes@sipsolutions.net
+Cc: tj@kernel.org, a.p.zijlstra@chello.nl, acme@ghostprotocols.net, mingo@redhat.com, paulus@samba.org
 
 
 The patch titled
-     Subject: mac80211: convert to idr_alloc()
+     Subject: events: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     mac80211-convert-to-idr_alloc.patch
+     events-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mac80211: convert to idr_alloc()
+Subject: events: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/main.c |    2 --
- net/mac80211/tx.c   |   18 ++++--------------
- 2 files changed, 4 insertions(+), 16 deletions(-)
+ kernel/events/core.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN net/mac80211/main.c~mac80211-convert-to-idr_alloc net/mac80211/main.c
---- a/net/mac80211/main.c~mac80211-convert-to-idr_alloc
-+++ a/net/mac80211/main.c
-@@ -647,8 +647,6 @@ struct ieee80211_hw *ieee80211_alloc_hw(
+diff -puN kernel/events/core.c~events-convert-to-idr_alloc kernel/events/core.c
+--- a/kernel/events/core.c~events-convert-to-idr_alloc
++++ a/kernel/events/core.c
+@@ -5965,13 +5965,9 @@ int perf_pmu_register(struct pmu *pmu, c
+ 	pmu->name = name;
  
- 	spin_lock_init(&local->ack_status_lock);
- 	idr_init(&local->ack_status_frames);
--	/* preallocate at least one entry */
--	idr_pre_get(&local->ack_status_frames, GFP_KERNEL);
- 
- 	sta_info_init(local);
- 
-diff -puN net/mac80211/tx.c~mac80211-convert-to-idr_alloc net/mac80211/tx.c
---- a/net/mac80211/tx.c~mac80211-convert-to-idr_alloc
-+++ a/net/mac80211/tx.c
-@@ -1999,24 +1999,14 @@ netdev_tx_t ieee80211_subif_start_xmit(s
- 		skb = skb_clone(skb, GFP_ATOMIC);
- 		if (skb) {
- 			unsigned long flags;
--			int id, r;
-+			int id;
- 
- 			spin_lock_irqsave(&local->ack_status_lock, flags);
--			r = idr_get_new_above(&local->ack_status_frames,
--					      orig_skb, 1, &id);
--			if (r == -EAGAIN) {
--				idr_pre_get(&local->ack_status_frames,
--					    GFP_ATOMIC);
--				r = idr_get_new_above(&local->ack_status_frames,
--						      orig_skb, 1, &id);
--			}
--			if (WARN_ON(!id) || id > 0xffff) {
--				idr_remove(&local->ack_status_frames, id);
--				r = -ERANGE;
--			}
-+			id = idr_alloc(&local->ack_status_frames, orig_skb,
-+				       1, 0x10000, GFP_ATOMIC);
- 			spin_unlock_irqrestore(&local->ack_status_lock, flags);
- 
--			if (!r) {
-+			if (id >= 0) {
- 				info_id = id;
- 				info_flags |= IEEE80211_TX_CTL_REQ_TX_STATUS;
- 			} else if (skb_shared(skb)) {
+ 	if (type < 0) {
+-		int err = idr_pre_get(&pmu_idr, GFP_KERNEL);
+-		if (!err)
+-			goto free_pdc;
+-
+-		err = idr_get_new_above(&pmu_idr, pmu, PERF_TYPE_MAX, &type);
+-		if (err) {
+-			ret = err;
++		type = idr_alloc(&pmu_idr, pmu, PERF_TYPE_MAX, 0, GFP_KERNEL);
++		if (type < 0) {
++			ret = type;
+ 			goto free_pdc;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
