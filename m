@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + power-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:54 -0800
-Message-ID: <20130206223855.3644A5A4277@corp2gmr1-2.hot.corp.google.com>
+Subject: + remoteproc-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:59 -0800
+Message-ID: <20130206223900.2F62531C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:41564 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758313Ab3BFWi4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:56 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so209798vch.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:55 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:37673 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758226Ab3BFWjB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:01 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so209719vcd.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, cbou@mail.ru, dwmw2@infradead.org
+Cc: tj@kernel.org, ohad@wizery.com
 
 
 The patch titled
-     Subject: power: convert to idr_alloc()
+     Subject: remoteproc: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     power-convert-to-idr_alloc.patch
+     remoteproc-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: power: convert to idr_alloc()
+Subject: remoteproc: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Anton Vorontsov <cbou@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/bq2415x_charger.c |   11 +++--------
- drivers/power/bq27x00_battery.c |    9 +++------
- drivers/power/ds2782_battery.c  |    9 ++-------
- 3 files changed, 8 insertions(+), 21 deletions(-)
+ drivers/remoteproc/remoteproc_core.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/power/bq2415x_charger.c~power-convert-to-idr_alloc drivers/power/bq2415x_charger.c
---- a/drivers/power/bq2415x_charger.c~power-convert-to-idr_alloc
-+++ a/drivers/power/bq2415x_charger.c
-@@ -1504,16 +1504,11 @@ static int bq2415x_probe(struct i2c_clie
- 	}
+diff -puN drivers/remoteproc/remoteproc_core.c~remoteproc-convert-to-idr_alloc drivers/remoteproc/remoteproc_core.c
+--- a/drivers/remoteproc/remoteproc_core.c~remoteproc-convert-to-idr_alloc
++++ a/drivers/remoteproc/remoteproc_core.c
+@@ -199,11 +199,6 @@ int rproc_alloc_vring(struct rproc_vdev 
+ 	/* actual size of vring (in bytes) */
+ 	size = PAGE_ALIGN(vring_size(rvring->len, rvring->align));
  
- 	/* Get new ID for the new device */
--	ret = idr_pre_get(&bq2415x_id, GFP_KERNEL);
--	if (ret == 0)
+-	if (!idr_pre_get(&rproc->notifyids, GFP_KERNEL)) {
+-		dev_err(dev, "idr_pre_get failed\n");
 -		return -ENOMEM;
--
- 	mutex_lock(&bq2415x_id_mutex);
--	ret = idr_get_new(&bq2415x_id, client, &num);
-+	num = idr_alloc(&bq2415x_id, client, 0, 0, GFP_KERNEL);
- 	mutex_unlock(&bq2415x_id_mutex);
--
--	if (ret < 0)
--		return ret;
-+	if (num < 0)
-+		return num;
- 
- 	name = kasprintf(GFP_KERNEL, "%s-%d", id->name, num);
- 	if (!name) {
-diff -puN drivers/power/bq27x00_battery.c~power-convert-to-idr_alloc drivers/power/bq27x00_battery.c
---- a/drivers/power/bq27x00_battery.c~power-convert-to-idr_alloc
-+++ a/drivers/power/bq27x00_battery.c
-@@ -791,14 +791,11 @@ static int bq27x00_battery_probe(struct 
- 	int retval = 0;
- 
- 	/* Get new ID for the new battery device */
--	retval = idr_pre_get(&battery_id, GFP_KERNEL);
--	if (retval == 0)
--		return -ENOMEM;
- 	mutex_lock(&battery_mutex);
--	retval = idr_get_new(&battery_id, client, &num);
-+	num = idr_alloc(&battery_id, client, 0, 0, GFP_KERNEL);
- 	mutex_unlock(&battery_mutex);
--	if (retval < 0)
--		return retval;
-+	if (num < 0)
-+		return num;
- 
- 	name = kasprintf(GFP_KERNEL, "%s-%d", id->name, num);
- 	if (!name) {
-diff -puN drivers/power/ds2782_battery.c~power-convert-to-idr_alloc drivers/power/ds2782_battery.c
---- a/drivers/power/ds2782_battery.c~power-convert-to-idr_alloc
-+++ a/drivers/power/ds2782_battery.c
-@@ -395,17 +395,12 @@ static int ds278x_battery_probe(struct i
- 	}
- 
- 	/* Get an ID for this battery */
--	ret = idr_pre_get(&battery_id, GFP_KERNEL);
--	if (ret == 0) {
--		ret = -ENOMEM;
--		goto fail_id;
 -	}
 -
- 	mutex_lock(&battery_lock);
--	ret = idr_get_new(&battery_id, client, &num);
-+	ret = idr_alloc(&battery_id, client, 0, 0, GFP_KERNEL);
- 	mutex_unlock(&battery_lock);
- 	if (ret < 0)
- 		goto fail_id;
-+	num = ret;
+ 	/*
+ 	 * Allocate non-cacheable memory for the vring. In the future
+ 	 * this call will also configure the IOMMU for us
+@@ -221,12 +216,13 @@ int rproc_alloc_vring(struct rproc_vdev 
+ 	 * TODO: let the rproc know the notifyid of this vring
+ 	 * TODO: support predefined notifyids (via resource table)
+ 	 */
+-	ret = idr_get_new(&rproc->notifyids, rvring, &notifyid);
++	ret = idr_alloc(&rproc->notifyids, rvring, 0, 0, GFP_KERNEL);
+ 	if (ret) {
+-		dev_err(dev, "idr_get_new failed: %d\n", ret);
++		dev_err(dev, "idr_alloc failed: %d\n", ret);
+ 		dma_free_coherent(dev->parent, size, va, dma);
+ 		return ret;
+ 	}
++	notifyid = ret;
  
- 	info = kzalloc(sizeof(*info), GFP_KERNEL);
- 	if (!info) {
+ 	/* Store largest notifyid */
+ 	rproc->max_notifyid = max(rproc->max_notifyid, notifyid);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
