@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch added to -mm tree
-Date: Tue, 05 Feb 2013 16:00:37 -0800
-Message-ID: <20130206000037.A22EA31C257@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix.patch added to -mm tree
+Date: Tue, 05 Feb 2013 16:13:44 -0800
+Message-ID: <20130206001344.B70D55A406B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:49563 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053Ab3BFAAi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 19:00:38 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so92132qen.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 16:00:38 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:61621 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294Ab3BFANq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Feb 2013 19:13:46 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so93189vbb.4
+        for <mm-commits@vger.kernel.org>; Tue, 05 Feb 2013 16:13:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agk@redhat.com, neilb@suse.de
+Cc: akpm@linux-foundation.org, lig.fnst@cn.fujitsu.com
 
 
 The patch titled
-     Subject: drivers/md/persistent-data/dm-transaction-manager.c: rename HASH_SIZE
+     Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+     mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/md/persistent-data/dm-transaction-manager.c: rename HASH_SIZE
+Subject: mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix
 
-drivers/md/persistent-data/dm-transaction-manager.c:28:1: warning: "HASH_SIZE" redefined
-In file included from include/linux/elevator.h:5,
-                 from include/linux/blkdev.h:216,
-                 from drivers/md/persistent-data/dm-block-manager.h:11,
-                 from drivers/md/persistent-data/dm-transaction-manager.h:10,
-                 from drivers/md/persistent-data/dm-transaction-manager.c:6:
-include/linux/hashtable.h:22:1: warning: this is the location of the previous definition
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Neil Brown <neilb@suse.de>
+drivers/input/keyboard/adp5520-keys.c:19: error: field 'notifier' has incomplete type
+drivers/input/keyboard/adp5520-keys.c: In function 'adp5520_keys_notifier':
+drivers/input/keyboard/adp5520-keys.c:43: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/input/keyboard/adp5520-keys.c:43: warning: initialization from incompatible pointer type
+
+Cc: liguang <lig.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/persistent-data/dm-transaction-manager.c |   14 +++++-----
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/input/keyboard/adp5520-keys.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/md/persistent-data/dm-transaction-manager.c~drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size drivers/md/persistent-data/dm-transaction-manager.c
---- a/drivers/md/persistent-data/dm-transaction-manager.c~drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size
-+++ a/drivers/md/persistent-data/dm-transaction-manager.c
-@@ -25,8 +25,8 @@ struct shadow_info {
- /*
-  * It would be nice if we scaled with the size of transaction.
-  */
--#define HASH_SIZE 256
--#define HASH_MASK (HASH_SIZE - 1)
-+#define DM_HASH_SIZE 256
-+#define DM_HASH_MASK (DM_HASH_SIZE - 1)
- 
- struct dm_transaction_manager {
- 	int is_clone;
-@@ -36,7 +36,7 @@ struct dm_transaction_manager {
- 	struct dm_space_map *sm;
- 
- 	spinlock_t lock;
--	struct hlist_head buckets[HASH_SIZE];
-+	struct hlist_head buckets[DM_HASH_SIZE];
- };
- 
- /*----------------------------------------------------------------*/
-@@ -44,7 +44,7 @@ struct dm_transaction_manager {
- static int is_shadow(struct dm_transaction_manager *tm, dm_block_t b)
- {
- 	int r = 0;
--	unsigned bucket = dm_hash_block(b, HASH_MASK);
-+	unsigned bucket = dm_hash_block(b, DM_HASH_MASK);
- 	struct shadow_info *si;
- 	struct hlist_node *n;
- 
-@@ -71,7 +71,7 @@ static void insert_shadow(struct dm_tran
- 	si = kmalloc(sizeof(*si), GFP_NOIO);
- 	if (si) {
- 		si->where = b;
--		bucket = dm_hash_block(b, HASH_MASK);
-+		bucket = dm_hash_block(b, DM_HASH_MASK);
- 		spin_lock(&tm->lock);
- 		hlist_add_head(&si->hlist, tm->buckets + bucket);
- 		spin_unlock(&tm->lock);
-@@ -86,7 +86,7 @@ static void wipe_shadow_table(struct dm_
- 	int i;
- 
- 	spin_lock(&tm->lock);
--	for (i = 0; i < HASH_SIZE; i++) {
-+	for (i = 0; i < DM_HASH_SIZE; i++) {
- 		bucket = tm->buckets + i;
- 		hlist_for_each_entry_safe(si, n, tmp, bucket, hlist)
- 			kfree(si);
-@@ -115,7 +115,7 @@ static struct dm_transaction_manager *dm
- 	tm->sm = sm;
- 
- 	spin_lock_init(&tm->lock);
--	for (i = 0; i < HASH_SIZE; i++)
-+	for (i = 0; i < DM_HASH_SIZE; i++)
- 		INIT_HLIST_HEAD(tm->buckets + i);
- 
- 	return tm;
+diff -puN drivers/input/keyboard/adp5520-keys.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix drivers/input/keyboard/adp5520-keys.c
+--- a/drivers/input/keyboard/adp5520-keys.c~mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix
++++ a/drivers/input/keyboard/adp5520-keys.c
+@@ -10,6 +10,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/notifier.h>
+ #include <linux/input.h>
+ #include <linux/mfd/adp5520.h>
+ #include <linux/slab.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,6 +70,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
 i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
@@ -173,6 +123,7 @@ include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix.patch
 mm-break-circular-include-from-linux-mmzoneh-fix-fix.patch
+mm-break-circular-include-from-linux-mmzoneh-fix-fix-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
@@ -221,5 +172,4 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
 
