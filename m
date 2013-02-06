@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:39:44 -0800
-Message-ID: <20130206223945.22C5F31C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + mac80211-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:39:49 -0800
+Message-ID: <20130206223950.3105031C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:34416 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755383Ab3BFWjq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:46 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so222098qaj.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:45 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:38778 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757789Ab3BFWjv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:39:51 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so210036vch.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:39:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, tglx@linutronix.de
+Cc: tj@kernel.org, johannes@sipsolutions.net
 
 
 The patch titled
-     Subject: posix-timers: convert to idr_alloc()
+     Subject: mac80211: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     posix-timers-convert-to-idr_alloc.patch
+     mac80211-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: posix-timers: convert to idr_alloc()
+Subject: mac80211: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ net/mac80211/main.c |    2 --
+ net/mac80211/tx.c   |   18 ++++--------------
+ 2 files changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-convert-to-idr_alloc kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-convert-to-idr_alloc
-+++ a/kernel/posix-timers.c
-@@ -552,24 +552,22 @@ SYSCALL_DEFINE3(timer_create, const cloc
- 		return -EAGAIN;
+diff -puN net/mac80211/main.c~mac80211-convert-to-idr_alloc net/mac80211/main.c
+--- a/net/mac80211/main.c~mac80211-convert-to-idr_alloc
++++ a/net/mac80211/main.c
+@@ -647,8 +647,6 @@ struct ieee80211_hw *ieee80211_alloc_hw(
  
- 	spin_lock_init(&new_timer->it_lock);
-- retry:
--	if (unlikely(!idr_pre_get(&posix_timers_id, GFP_KERNEL))) {
--		error = -EAGAIN;
--		goto out;
--	}
-+
-+	idr_preload(GFP_KERNEL);
- 	spin_lock_irq(&idr_lock);
--	error = idr_get_new(&posix_timers_id, new_timer, &new_timer_id);
-+	error = idr_alloc(&posix_timers_id, new_timer, 0, 0, GFP_NOWAIT);
- 	spin_unlock_irq(&idr_lock);
--	if (error) {
--		if (error == -EAGAIN)
--			goto retry;
-+	idr_preload_end();
-+	if (error < 0) {
- 		/*
- 		 * Weird looking, but we return EAGAIN if the IDR is
- 		 * full (proper POSIX return value for this)
- 		 */
--		error = -EAGAIN;
-+		if (error == -ENOSPC)
-+			error = -EAGAIN;
- 		goto out;
- 	}
-+	new_timer_id = error;
+ 	spin_lock_init(&local->ack_status_lock);
+ 	idr_init(&local->ack_status_frames);
+-	/* preallocate at least one entry */
+-	idr_pre_get(&local->ack_status_frames, GFP_KERNEL);
  
- 	it_id_set = IT_ID_SET;
- 	new_timer->it_id = (timer_t) new_timer_id;
+ 	sta_info_init(local);
+ 
+diff -puN net/mac80211/tx.c~mac80211-convert-to-idr_alloc net/mac80211/tx.c
+--- a/net/mac80211/tx.c~mac80211-convert-to-idr_alloc
++++ a/net/mac80211/tx.c
+@@ -1999,24 +1999,14 @@ netdev_tx_t ieee80211_subif_start_xmit(s
+ 		skb = skb_clone(skb, GFP_ATOMIC);
+ 		if (skb) {
+ 			unsigned long flags;
+-			int id, r;
++			int id;
+ 
+ 			spin_lock_irqsave(&local->ack_status_lock, flags);
+-			r = idr_get_new_above(&local->ack_status_frames,
+-					      orig_skb, 1, &id);
+-			if (r == -EAGAIN) {
+-				idr_pre_get(&local->ack_status_frames,
+-					    GFP_ATOMIC);
+-				r = idr_get_new_above(&local->ack_status_frames,
+-						      orig_skb, 1, &id);
+-			}
+-			if (WARN_ON(!id) || id > 0xffff) {
+-				idr_remove(&local->ack_status_frames, id);
+-				r = -ERANGE;
+-			}
++			id = idr_alloc(&local->ack_status_frames, orig_skb,
++				       1, 0x10000, GFP_ATOMIC);
+ 			spin_unlock_irqrestore(&local->ack_status_lock, flags);
+ 
+-			if (!r) {
++			if (id >= 0) {
+ 				info_id = id;
+ 				info_flags |= IEEE80211_TX_CTL_REQ_TX_STATUS;
+ 			} else if (skb_shared(skb)) {
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
