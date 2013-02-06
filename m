@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + macvtap-convert-to-idr_alloc.patch added to -mm tree
-Date: Wed, 06 Feb 2013 14:38:49 -0800
-Message-ID: <20130206223850.228CD31C1FF@corp2gmr1-1.hot.corp.google.com>
+Subject: + ppp-convert-to-idr_alloc.patch added to -mm tree
+Date: Wed, 06 Feb 2013 14:38:52 -0800
+Message-ID: <20130206223853.2250F5A42B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:63919 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758268Ab3BFWiw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:52 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so209710vea.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:50 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:56473 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758300Ab3BFWiy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 17:38:54 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so210515ghb.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 14:38:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, jasowang@redhat.com, mst@redhat.com
+Cc: tj@kernel.org, paulus@samba.org
 
 
 The patch titled
-     Subject: macvtap: convert to idr_alloc()
+     Subject: ppp: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     macvtap-convert-to-idr_alloc.patch
+     ppp-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: macvtap: convert to idr_alloc()
+Subject: ppp: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/macvtap.c |   21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ drivers/net/ppp/ppp_generic.c |   33 +++-----------------------------
+ 1 file changed, 4 insertions(+), 29 deletions(-)
 
-diff -puN drivers/net/macvtap.c~macvtap-convert-to-idr_alloc drivers/net/macvtap.c
---- a/drivers/net/macvtap.c~macvtap-convert-to-idr_alloc
-+++ a/drivers/net/macvtap.c
-@@ -279,28 +279,17 @@ static int macvtap_receive(struct sk_buf
- static int macvtap_get_minor(struct macvlan_dev *vlan)
- {
- 	int retval = -ENOMEM;
--	int id;
+diff -puN drivers/net/ppp/ppp_generic.c~ppp-convert-to-idr_alloc drivers/net/ppp/ppp_generic.c
+--- a/drivers/net/ppp/ppp_generic.c~ppp-convert-to-idr_alloc
++++ a/drivers/net/ppp/ppp_generic.c
+@@ -2946,46 +2946,21 @@ static void __exit ppp_cleanup(void)
+  * by holding all_ppp_mutex
+  */
  
- 	mutex_lock(&minor_lock);
--	if (idr_pre_get(&minor_idr, GFP_KERNEL) == 0)
--		goto exit;
+-static int __unit_alloc(struct idr *p, void *ptr, int n)
+-{
+-	int unit, err;
 -
--	retval = idr_get_new_above(&minor_idr, vlan, 1, &id);
--	if (retval < 0) {
--		if (retval == -EAGAIN)
--			retval = -ENOMEM;
--		goto exit;
+-again:
+-	if (!idr_pre_get(p, GFP_KERNEL)) {
+-		pr_err("PPP: No free memory for idr\n");
+-		return -ENOMEM;
 -	}
--	if (id < MACVTAP_NUM_DEVS) {
--		vlan->minor = id;
--	} else {
-+	retval = idr_alloc(&minor_idr, vlan, 1, MACVTAP_NUM_DEVS, GFP_KERNEL);
-+	if (retval >= 0) {
-+		vlan->minor = retval;
-+	} else if (retval == -ENOSPC) {
- 		printk(KERN_ERR "too many macvtap devices\n");
- 		retval = -EINVAL;
--		idr_remove(&minor_idr, id);
- 	}
--exit:
- 	mutex_unlock(&minor_lock);
--	return retval;
-+	return retval < 0 ? retval : 0;
+-
+-	err = idr_get_new_above(p, ptr, n, &unit);
+-	if (err < 0) {
+-		if (err == -EAGAIN)
+-			goto again;
+-		return err;
+-	}
+-
+-	return unit;
+-}
+-
+ /* associate pointer with specified number */
+ static int unit_set(struct idr *p, void *ptr, int n)
+ {
+ 	int unit;
+ 
+-	unit = __unit_alloc(p, ptr, n);
+-	if (unit < 0)
+-		return unit;
+-	else if (unit != n) {
+-		idr_remove(p, unit);
+-		return -EINVAL;
+-	}
+-
++	unit = idr_alloc(p, ptr, n, n + 1, GFP_KERNEL);
++	if (unit == -ENOSPC)
++		unit = -EINVAL;
+ 	return unit;
  }
  
- static void macvtap_free_minor(struct macvlan_dev *vlan)
+ /* get new free unit number and associate pointer with it */
+ static int unit_get(struct idr *p, void *ptr)
+ {
+-	return __unit_alloc(p, ptr, 0);
++	return idr_alloc(p, ptr, 0, 0, GFP_KERNEL);
+ }
+ 
+ /* put unit number back to a pool */
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
