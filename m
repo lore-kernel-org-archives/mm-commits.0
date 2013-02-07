@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-redo-kvm.patch added to -mm tree
-Date: Thu, 07 Feb 2013 13:15:32 -0800
-Message-ID: <20130207211534.0DDF91CA1CE@corp2gmr1-1.eem.corp.google.com>
+Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2013 13:34:39 -0800
+Message-ID: <20130207213440.8B5FA1E424B@corp2gmr1-2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f73.google.com ([74.125.83.73]:51949 "EHLO
-	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758877Ab3BGVPi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 16:15:38 -0500
-Received: by mail-ee0-f73.google.com with SMTP id c41so207118eek.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 13:15:37 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:35299 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422631Ab3BGVen (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 16:34:43 -0500
+Received: by mail-ea0-f202.google.com with SMTP id a1so208392eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 13:34:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foudnation.org, gleb@redhat.com, mtosatti@redhat.com, sasha.levin@oracle.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, sasha.levin@oracle.com, tj@kernel.org
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-redo-kvm
+     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-redo-kvm.patch
+     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,130 +33,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foudnation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-redo-kvm
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix
 
-Redo intrusive kvm changes
+drop bogus change from net/ipv4/raw.c
 
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Gleb Natapov <gleb@redhat.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ net/ipv4/raw.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~hlist-drop-the-node-parameter-from-iterators-redo-kvm arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~hlist-drop-the-node-parameter-from-iterators-redo-kvm
-+++ a/arch/x86/kvm/mmu.c
-@@ -1658,13 +1658,13 @@ static int kvm_mmu_prepare_zap_page(stru
- static void kvm_mmu_commit_zap_page(struct kvm *kvm,
- 				    struct list_head *invalid_list);
- 
--#define for_each_gfn_sp(kvm, sp, gfn, pos)				\
--  hlist_for_each_entry(sp, pos,						\
-+#define for_each_gfn_sp(kvm, sp, gfn)					\
-+  hlist_for_each_entry(sp,						\
-    &(kvm)->arch.mmu_page_hash[kvm_page_table_hashfn(gfn)], hash_link)	\
- 	if ((sp)->gfn != (gfn)) {} else
- 
--#define for_each_gfn_indirect_valid_sp(kvm, sp, gfn, pos)		\
--  hlist_for_each_entry(sp, pos,						\
-+#define for_each_gfn_indirect_valid_sp(kvm, sp, gfn)			\
-+  hlist_for_each_entry(sp,						\
-    &(kvm)->arch.mmu_page_hash[kvm_page_table_hashfn(gfn)], hash_link)	\
- 		if ((sp)->gfn != (gfn) || (sp)->role.direct ||		\
- 			(sp)->role.invalid) {} else
-@@ -1720,11 +1720,10 @@ static int kvm_sync_page(struct kvm_vcpu
- static void kvm_sync_pages(struct kvm_vcpu *vcpu,  gfn_t gfn)
- {
- 	struct kvm_mmu_page *s;
--	struct hlist_node *node;
- 	LIST_HEAD(invalid_list);
- 	bool flush = false;
- 
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn) {
- 		if (!s->unsync)
- 			continue;
- 
-@@ -1862,7 +1861,6 @@ static struct kvm_mmu_page *kvm_mmu_get_
- 	union kvm_mmu_page_role role;
- 	unsigned quadrant;
- 	struct kvm_mmu_page *sp;
--	struct hlist_node *node;
- 	bool need_sync = false;
- 
- 	role = vcpu->arch.mmu.base_role;
-@@ -1877,7 +1875,7 @@ static struct kvm_mmu_page *kvm_mmu_get_
- 		quadrant &= (1 << ((PT32_PT_BITS - PT64_PT_BITS) * level)) - 1;
- 		role.quadrant = quadrant;
+diff -puN net/ipv4/raw.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix net/ipv4/raw.c
+--- a/net/ipv4/raw.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix
++++ a/net/ipv4/raw.c
+@@ -120,11 +120,6 @@ static struct sock *__raw_v4_lookup(stru
+ 		    !(sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif))
+ 			goto found; /* gotcha */
  	}
--	for_each_gfn_sp(vcpu->kvm, sp, gfn, node) {
-+	for_each_gfn_sp(vcpu->kvm, sp, gfn) {
- 		if (!need_sync && sp->unsync)
- 			need_sync = true;
- 
-@@ -2166,14 +2164,13 @@ void kvm_mmu_change_mmu_pages(struct kvm
- int kvm_mmu_unprotect_page(struct kvm *kvm, gfn_t gfn)
- {
- 	struct kvm_mmu_page *sp;
--	struct hlist_node *node;
- 	LIST_HEAD(invalid_list);
- 	int r;
- 
- 	pgprintk("%s: looking for gfn %llx\n", __func__, gfn);
- 	r = 0;
- 	spin_lock(&kvm->mmu_lock);
--	for_each_gfn_indirect_valid_sp(kvm, sp, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(kvm, sp, gfn) {
- 		pgprintk("%s: gfn %llx role %x\n", __func__, gfn,
- 			 sp->role.word);
- 		r = 1;
-@@ -2303,9 +2300,8 @@ static void __kvm_unsync_page(struct kvm
- static void kvm_unsync_pages(struct kvm_vcpu *vcpu,  gfn_t gfn)
- {
- 	struct kvm_mmu_page *s;
--	struct hlist_node *node;
- 
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn) {
- 		if (s->unsync)
- 			continue;
- 		WARN_ON(s->role.level != PT_PAGE_TABLE_LEVEL);
-@@ -2317,10 +2313,9 @@ static int mmu_need_write_protect(struct
- 				  bool can_unsync)
- {
- 	struct kvm_mmu_page *s;
--	struct hlist_node *node;
- 	bool need_unsync = false;
- 
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn) {
- 		if (!can_unsync)
- 			return 1;
- 
-@@ -3955,7 +3950,6 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
- 	gfn_t gfn = gpa >> PAGE_SHIFT;
- 	union kvm_mmu_page_role mask = { .word = 0 };
- 	struct kvm_mmu_page *sp;
--	struct hlist_node *node;
- 	LIST_HEAD(invalid_list);
- 	u64 entry, gentry, *spte;
- 	int npte;
-@@ -3986,7 +3980,7 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
- 	kvm_mmu_audit(vcpu, AUDIT_PRE_PTE_WRITE);
- 
- 	mask.cr0_wp = mask.cr4_pae = mask.nxe = 1;
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, sp, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, sp, gfn) {
- 		if (detect_write_misaligned(sp, gpa, bytes) ||
- 		      detect_write_flooding(sp)) {
- 			zap_page |= !!kvm_mmu_prepare_zap_page(vcpu->kvm, sp,
+-	sk_for_each_from (sk) {
+-		struct inet_sock *inet=inet_sk(sk);
+-		if (net_eq(sock_net(sk), net) && inet->inet_num == num && !(inet->inet_daddr && inet->inet_daddr != raddr) && !(inet->inet_rcv_saddr && inet->inet_rcv_saddr != laddr) && !(sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif))
+-			goto found;
+-		}
+ 	sk = NULL;
+ found:
+ 	return sk;
 _
 
-Patches currently in -mm which might be from akpm@linux-foudnation.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hlist-drop-the-node-parameter-from-iterators-redo-kvm.patch
+origin.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
