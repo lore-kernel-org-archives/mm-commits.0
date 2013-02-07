@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-add-freeze-protection-to-ocfs2_file_splice_write.patch added to -mm tree
-Date: Thu, 07 Feb 2013 14:16:26 -0800
-Message-ID: <20130207221627.286941E40F3@corp2gmr1-2.eem.corp.google.com>
+Subject: + i2c-convert-to-idr_alloc-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2013 14:18:32 -0800
+Message-ID: <20130207221833.BEAA61CA15E@corp2gmr1-1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f201.google.com ([209.85.212.201]:65078 "EHLO
-	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422655Ab3BGWQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 17:16:29 -0500
-Received: by mail-wi0-f201.google.com with SMTP id hm6so7006wib.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 14:16:28 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:65347 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422715Ab3BGWSg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 17:18:36 -0500
+Received: by mail-lb0-f202.google.com with SMTP id c1so225009lbg.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 14:18:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, viro@zeniv.linux.org.uk
+Cc: tj@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org
 
 
 The patch titled
-     Subject: ocfs2: add freeze protection to ocfs2_file_splice_write()
+     Subject: i2c-convert-to-idr_alloc-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-freeze-protection-to-ocfs2_file_splice_write.patch
+     i2c-convert-to-idr_alloc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: add freeze protection to ocfs2_file_splice_write()
+From: Tejun Heo <tj@kernel.org>
+Subject: i2c-convert-to-idr_alloc-fix
 
-ocfs2_file_splice_write() was missed when adding freeze protection to all
-write paths. Fix that.
+v2: The original conversion accidentally dropped a call to
+    i2c_register_adapter() in i2c_add_numbered_adapter() leaving @adap
+    uninitialized and unregistered.  Reported by Mark Brown.  Fix it.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Acked-by: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/i2c/i2c-core.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-add-freeze-protection-to-ocfs2_file_splice_write fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-add-freeze-protection-to-ocfs2_file_splice_write
-+++ a/fs/ocfs2/file.c
-@@ -2467,6 +2467,9 @@ static ssize_t ocfs2_file_splice_write(s
- 			out->f_path.dentry->d_name.len,
- 			out->f_path.dentry->d_name.name, len);
+diff -puN drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc-fix drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc-fix
++++ a/drivers/i2c/i2c-core.c
+@@ -978,6 +978,8 @@ int i2c_add_numbered_adapter(struct i2c_
  
-+	if (!sb_start_file_write(out))
-+		return -EAGAIN;
-+
- 	if (pipe->inode)
- 		mutex_lock_nested(&pipe->inode->i_mutex, I_MUTEX_PARENT);
+ 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
+ 		return i2c_add_adapter(adap);
++	if (adap->nr & ~MAX_IDR_MASK)
++		return -EINVAL;
  
-@@ -2505,6 +2508,7 @@ static ssize_t ocfs2_file_splice_write(s
- 
- 		balance_dirty_pages_ratelimited(mapping);
- 	}
-+	sb_end_write(inode->i_sb);
- 
- 	return ret;
+ 	mutex_lock(&core_lock);
+ 	id = idr_alloc(&i2c_adapter_idr, adap, adap->nr, adap->nr + 1,
+@@ -985,7 +987,7 @@ int i2c_add_numbered_adapter(struct i2c_
+ 	mutex_unlock(&core_lock);
+ 	if (id < 0)
+ 		return id == -ENOSPC ? -EBUSY : id;
+-	return 0;
++	return i2c_register_adapter(adap);
  }
+ EXPORT_SYMBOL_GPL(i2c_add_numbered_adapter);
+ 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from tj@kernel.org are
 
 linux-next.patch
-ocfs2-add-freeze-protection-to-ocfs2_file_splice_write.patch
-fs-change-return-values-from-eacces-to-eperm.patch
-bdi-allow-block-devices-to-say-that-they-require-stable-page-writes.patch
-mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it.patch
-9pfs-fix-filesystem-to-wait-for-stable-page-writeback.patch
-block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write.patch
-ocfs2-wait-for-page-writeback-to-provide-stable-pages.patch
-ubifs-wait-for-page-writeback-to-provide-stable-pages.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
-hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
-hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file.patch
-ocfs2-fix-possible-use-after-free-with-aio.patch
-fs-direct-ioc-fix-possible-use-after-free-with-aio.patch
+cfq-fix-lock-imbalance-with-failed-allocations.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
+memcg-clean-up-swap-accounting-initialization-code.patch
+memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
+memcg-split-part-of-memcg-creation-to-css_online.patch
+memcg-fast-hierarchy-aware-child-test.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
+memcg-increment-static-branch-right-after-limit-set.patch
+memcg-avoid-dangling-reference-count-in-creation-failure.patch
+idr-fix-a-subtle-bug-in-idr_get_next.patch
+idr-make-idr_destroy-imply-idr_remove_all.patch
+atm-nicstar-dont-use-idr_remove_all.patch
+block-loop-dont-use-idr_remove_all.patch
+firewire-dont-use-idr_remove_all.patch
+drm-dont-use-idr_remove_all.patch
+dm-dont-use-idr_remove_all.patch
+remoteproc-dont-use-idr_remove_all.patch
+rpmsg-dont-use-idr_remove_all.patch
+dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
+dlm-dont-use-idr_remove_all.patch
+nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
+inotify-dont-use-idr_remove_all.patch
+cgroup-dont-use-idr_remove_all.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+idr-deprecate-idr_remove_all.patch
+idr-cosmetic-updates-to-struct-initializer-definitions.patch
+idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch
+idr-remove-_idr_rc_to_errno-hack.patch
+idr-refactor-idr_get_new_above.patch
+idr-implement-idr_preload-and-idr_alloc.patch
+block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
+block-convert-to-idr_alloc.patch
+block-loop-convert-to-idr_alloc.patch
+atm-nicstar-convert-to-idr_alloc.patch
+drbd-convert-to-idr_alloc.patch
+dca-convert-to-idr_alloc.patch
+dmaengine-convert-to-idr_alloc.patch
+firewire-add-minor-number-range-check-to-fw_device_init.patch
+firewire-convert-to-idr_alloc.patch
+gpio-convert-to-idr_alloc.patch
+drm-convert-to-idr_alloc.patch
+drm-exynos-convert-to-idr_alloc.patch
+drm-i915-convert-to-idr_alloc.patch
+drm-sis-convert-to-idr_alloc.patch
+drm-via-convert-to-idr_alloc.patch
+drm-vmwgfx-convert-to-idr_alloc.patch
+i2c-convert-to-idr_alloc.patch
+i2c-convert-to-idr_alloc-fix.patch
+ib-core-convert-to-idr_alloc.patch
+ib-amso1100-convert-to-idr_alloc.patch
+ib-cxgb3-convert-to-idr_alloc.patch
+ib-cxgb4-convert-to-idr_alloc.patch
+ib-ehca-convert-to-idr_alloc.patch
+ib-ipath-convert-to-idr_alloc.patch
+ib-mlx4-convert-to-idr_alloc.patch
+ib-ocrdma-convert-to-idr_alloc.patch
+ib-qib-convert-to-idr_alloc.patch
+dm-convert-to-idr_alloc.patch
+memstick-convert-to-idr_alloc.patch
+mfd-convert-to-idr_alloc.patch
+misc-c2port-convert-to-idr_alloc.patch
+misc-tifm_core-convert-to-idr_alloc.patch
+mmc-convert-to-idr_alloc.patch
+mtd-convert-to-idr_alloc.patch
+macvtap-convert-to-idr_alloc.patch
+ppp-convert-to-idr_alloc.patch
+power-convert-to-idr_alloc.patch
+pps-convert-to-idr_alloc.patch
+remoteproc-convert-to-idr_alloc.patch
+rpmsg-convert-to-idr_alloc.patch
+scsi-bfa-convert-to-idr_alloc.patch
+scsi-convert-to-idr_alloc.patch
+target-iscsi-convert-to-idr_alloc.patch
+scsi-lpfc-convert-to-idr_alloc.patch
+thermal-convert-to-idr_alloc.patch
+uio-convert-to-idr_alloc.patch
+vfio-convert-to-idr_alloc.patch
+dlm-convert-to-idr_alloc.patch
+inotify-convert-to-idr_alloc.patch
+ocfs2-convert-to-idr_alloc.patch
+ipc-convert-to-idr_alloc.patch
+cgroup-convert-to-idr_alloc.patch
+events-convert-to-idr_alloc.patch
+posix-timers-convert-to-idr_alloc.patch
+net-9p-convert-to-idr_alloc.patch
+mac80211-convert-to-idr_alloc.patch
+sctp-convert-to-idr_alloc.patch
+nfs4client-convert-to-idr_alloc.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 
