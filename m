@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2013 15:26:53 -0800
-Message-ID: <20130207232654.820631E407C@corp2gmr1-2.eem.corp.google.com>
+Subject: + fs-proc-clean-up-printks-fix-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2013 15:49:42 -0800
+Message-ID: <20130207234943.B39A71CA259@corp2gmr1-1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f201.google.com ([209.85.217.201]:42601 "EHLO
-	mail-lb0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759536Ab3BGX05 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 18:26:57 -0500
-Received: by mail-lb0-f201.google.com with SMTP id gi11so227431lbb.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 15:26:55 -0800 (PST)
+Received: from mail-la0-f73.google.com ([209.85.215.73]:60365 "EHLO
+	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab3BGXtq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 18:49:46 -0500
+Received: by mail-la0-f73.google.com with SMTP id eb20so200221lab.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 15:49:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rdunlap@infradead.org, zhangyanfei@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, joe@perches.com
 
 
 The patch titled
-     Subject: mm-accurately-document-nr_free__pages-functions-with-code-comments-fix
+     Subject: fs-proc-clean-up-printks-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+     fs-proc-clean-up-printks-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-accurately-document-nr_free__pages-functions-with-code-comments-fix
+Subject: fs-proc-clean-up-printks-fix-fix
 
-tweak comments
-
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ fs/proc/generic.c     |    4 ++--
+ fs/proc/proc_sysctl.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-accurately-document-nr_free__pages-functions-with-code-comments-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-accurately-document-nr_free__pages-functions-with-code-comments-fix
-+++ a/mm/page_alloc.c
-@@ -2813,12 +2813,12 @@ void free_pages_exact(void *virt, size_t
- EXPORT_SYMBOL(free_pages_exact);
- 
- /**
-- * nr_free_zone_pages - get pages that is beyond high watermark
-+ * nr_free_zone_pages - count number of pages beyond high watermark
-  * @offset: The zone index of the highest zone
-  *
-- * The function counts pages which are beyond high watermark within
-- * all zones at or below a given zone index. For each zone, the
-- * amount of pages is calculated as:
-+ * nr_free_zone_pages() counts the number of counts pages which are beyond the
-+ * high watermark within all zones at or below a given zone index.  For each
-+ * zone, the number of pages is calculated as:
-  *     present_pages - high_pages
-  */
- static unsigned long nr_free_zone_pages(int offset)
-@@ -2842,10 +2842,10 @@ static unsigned long nr_free_zone_pages(
+diff -puN fs/proc/generic.c~fs-proc-clean-up-printks-fix-fix fs/proc/generic.c
+--- a/fs/proc/generic.c~fs-proc-clean-up-printks-fix-fix
++++ a/fs/proc/generic.c
+@@ -829,8 +829,8 @@ void remove_proc_entry(const char *name,
+ 		parent->nlink--;
+ 	de->nlink = 0;
+ 	WARN(de->subdir, "%s: removing non-empty directory "
+-			"'%s/%s', leaking at least '%s'\n", __func__,
+-			de->parent->name, de->name, de->subdir->name);
++			 "'%s/%s', leaking at least '%s'\n", __func__,
++			 de->parent->name, de->name, de->subdir->name);
+ 	pde_put(de);
  }
+ EXPORT_SYMBOL(remove_proc_entry);
+diff -puN fs/proc/proc_sysctl.c~fs-proc-clean-up-printks-fix-fix fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~fs-proc-clean-up-printks-fix-fix
++++ a/fs/proc/proc_sysctl.c
+@@ -997,7 +997,7 @@ static int sysctl_err(const char *path, 
+ 	vaf.va = &args;
  
- /**
-- * nr_free_buffer_pages - get pages that is beyond high watermark
-+ * nr_free_buffer_pages - count number of pages beyond high watermark
-  *
-- * The function counts pages which are beyond high watermark within
-- * ZONE_DMA and ZONE_NORMAL.
-+ * nr_free_buffer_pages() counts the number of pages which are beyond the high
-+ * watermark within ZONE_DMA and ZONE_NORMAL.
-  */
- unsigned long nr_free_buffer_pages(void)
- {
-@@ -2854,10 +2854,10 @@ unsigned long nr_free_buffer_pages(void)
- EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
+ 	pr_err("sysctl table check failed: %s/%s %pV\n",
+-			path, table->procname, &vaf);
++	       path, table->procname, &vaf);
  
- /**
-- * nr_free_pagecache_pages - get pages that is beyond high watermark
-+ * nr_free_pagecache_pages - count number of pages beyond high watermark
-  *
-- * The function counts pages which are beyond high watermark within
-- * all zones.
-+ * nr_free_pagecache_pages() counts the number of pages which are beyond the
-+ * high watermark within all zones.
-  */
- unsigned long nr_free_pagecache_pages(void)
- {
+ 	va_end(args);
+ 	return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -180,6 +156,7 @@ signal-allow-to-send-any-siginfo-to-itself-fix.patch
 signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
 fs-proc-clean-up-printks.patch
 fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
 fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
 fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
 nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
