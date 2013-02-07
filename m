@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-stop-warning-on-memcg_propagate_kmem.patch added to -mm tree
-Date: Wed, 06 Feb 2013 16:22:37 -0800
-Message-ID: <20130207002237.CAE3931C208@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch added to -mm tree
+Date: Wed, 06 Feb 2013 16:24:25 -0800
+Message-ID: <20130207002425.A147831C15E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:63924 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758552Ab3BGAWj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 19:22:39 -0500
-Received: by mail-oa0-f73.google.com with SMTP id o6so390665oag.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 16:22:38 -0800 (PST)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:61972 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751964Ab3BGAY1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 19:24:27 -0500
+Received: by mail-oa0-f74.google.com with SMTP id k14so390641oag.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 16:24:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, glommer@parallels.com, mhocko@suse.cz
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: memcg: stop warning on memcg_propagate_kmem
+     Subject: drivers/video/backlight/lm3630_bl.c: remove ret = -EIO of lm3630_backlight_register()
 has been added to the -mm tree.  Its filename is
-     memcg-stop-warning-on-memcg_propagate_kmem.patch
+     drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg: stop warning on memcg_propagate_kmem
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/lm3630_bl.c: remove ret = -EIO of lm3630_backlight_register()
 
-Whilst I run the risk of a flogging for disloyalty to the Lord of Sealand,
-I do have CONFIG_MEMCG=y CONFIG_MEMCG_KMEM not set, and grow tired of the
-"mm/memcontrol.c:4972:12: warning: `memcg_propagate_kmem' defined but not
-used [-Wunused-function]" seen in 3.8-rc: move the #ifdef outwards.
+There is no need to return -EIO, because backlight_device_register()
+already returns correct error values.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Glauber Costa <glommer@parallels.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
+ drivers/video/backlight/lm3630_bl.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-stop-warning-on-memcg_propagate_kmem mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-stop-warning-on-memcg_propagate_kmem
-+++ a/mm/memcontrol.c
-@@ -5023,6 +5023,7 @@ out:
- 	return ret;
- }
- 
-+#ifdef CONFIG_MEMCG_KMEM
- static int memcg_propagate_kmem(struct mem_cgroup *memcg)
- {
- 	int ret = 0;
-@@ -5031,7 +5032,6 @@ static int memcg_propagate_kmem(struct m
- 		goto out;
- 
- 	memcg->kmem_account_flags = parent->kmem_account_flags;
--#ifdef CONFIG_MEMCG_KMEM
- 	/*
- 	 * When that happen, we need to disable the static branch only on those
- 	 * memcgs that enabled it. To achieve this, we would be forced to
-@@ -5057,10 +5057,10 @@ static int memcg_propagate_kmem(struct m
- 	mutex_lock(&set_limit_mutex);
- 	ret = memcg_update_cache_sizes(memcg);
- 	mutex_unlock(&set_limit_mutex);
--#endif
- out:
- 	return ret;
- }
-+#endif /* CONFIG_MEMCG_KMEM */
- 
- /*
-  * The user of this function is...
+diff -puN drivers/video/backlight/lm3630_bl.c~drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register drivers/video/backlight/lm3630_bl.c
+--- a/drivers/video/backlight/lm3630_bl.c~drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register
++++ a/drivers/video/backlight/lm3630_bl.c
+@@ -320,7 +320,7 @@ static int lm3630_backlight_register(str
+ 		    backlight_device_register(name, pchip->dev, pchip,
+ 					      &lm3630_bank_a_ops, &props);
+ 		if (IS_ERR(pchip->bled1))
+-			return -EIO;
++			return PTR_ERR(pchip->bled1);
+ 		break;
+ 	case BLED_2:
+ 		props.brightness = pdata->init_brt_led2;
+@@ -329,7 +329,7 @@ static int lm3630_backlight_register(str
+ 		    backlight_device_register(name, pchip->dev, pchip,
+ 					      &lm3630_bank_b_ops, &props);
+ 		if (IS_ERR(pchip->bled2))
+-			return -EIO;
++			return PTR_ERR(pchip->bled2);
+ 		break;
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-mm-dont-overwrite-mm-def_flags-in-do_mlockall.patch
 linux-next.patch
-revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
-pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
-mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
-mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
-mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
-mm-vmscan-improve-comment-on-low-page-cache-handling.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmksm-use-new-hashtable-implementation.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix-fix.patch
-mm-avoid-calling-pgdat_balanced-needlessly.patch
-mm-numa-fix-minor-typo-in-numa_next_scan.patch
-mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing.patch
-mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch
-mm-move-page-flags-layout-to-separate-header.patch
-mm-fold-page-_last_nid-into-page-flags-where-possible.patch
-mm-numa-cleanup-flow-of-transhuge-page-migration.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-swap-make-each-swap-partition-have-one-address_space-fix-fix.patch
-swap-add-per-partition-lock-for-swapfile.patch
-swap-add-per-partition-lock-for-swapfile-fix-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-ksm-allow-trees-per-numa-node.patch
-ksm-add-sysfs-abi-documentation.patch
-ksm-trivial-tidyups.patch
-ksm-trivial-tidyups-fix.patch
-ksm-reorganize-ksm_check_stable_tree.patch
-ksm-get_ksm_page-locked.patch
-ksm-remove-old-stable-nodes-more-thoroughly.patch
-ksm-make-ksm-page-migration-possible.patch
-ksm-make-merge_across_nodes-migration-safe.patch
-ksm-enable-ksm-page-migration.patch
-mm-remove-offlining-arg-to-migrate_pages.patch
-ksm-stop-hotremove-lockdep-warning.patch
-mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch
-mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix.patch
-mm-accelerate-mm_populate-treatment-of-thp-pages.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
-mm-shmem-use-new-radix-tree-iterator.patch
-mm-mlockc-document-scary-looking-stack-expansion-mlock-chain.patch
-mmu_notifier_unregister-null-pointer-deref-and-multiple-release-callouts.patch
-mm-use-up-free-swap-space-before-reaching-oom-kill.patch
-memcg-stop-warning-on-memcg_propagate_kmem.patch
+backlight-add-lms501kf03-lcd-driver.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+drivers-video-backlight-makefile-cleanup.patch
+backlight-add-an-as3711-pmic-backlight-driver.patch
+backlight-88pm860x_bl-add-missing-of_node_put.patch
+backlight-s6e63m0-report-gamma_table_count-correctly.patch
+drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
+drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
 
