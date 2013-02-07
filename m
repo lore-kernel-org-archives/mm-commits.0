@@ -1,195 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + idr-implement-idr_preload-and-idr_alloc-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2013 14:41:01 -0800
-Message-ID: <20130207224102.0E8BD1E425E@corp2gmr1-2.eem.corp.google.com>
+Subject: [to-be-updated] net-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch removed from -mm tree
+Date: Thu, 07 Feb 2013 14:53:05 -0800
+Message-ID: <20130207225305.E26E71E419F@corp2gmr1-2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f73.google.com ([74.125.83.73]:62625 "EHLO
-	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422744Ab3BGWlF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 17:41:05 -0500
-Received: by mail-ee0-f73.google.com with SMTP id c41so210499eek.2
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 14:41:03 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:59595 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422669Ab3BGWxI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 17:53:08 -0500
+Received: by mail-we0-f202.google.com with SMTP id t11so211482wey.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 14:53:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, rusty@rustcorp.com.au
+To: zhangyanfei@cn.fujitsu.com, davem@davemloft.net, horms@verge.net.au, ja@ssi.bg, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr: implement idr_preload[_end]() and idr_alloc()
-has been added to the -mm tree.  Its filename is
-     idr-implement-idr_preload-and-idr_alloc-fix.patch
+     Subject: net: change type of netns_ipvs->sysctl_sync_qlen_max
+has been removed from the -mm tree.  Its filename was
+     net-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: idr: implement idr_preload[_end]() and idr_alloc()
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: net: change type of netns_ipvs->sysctl_sync_qlen_max
 
-v2: Improve idr_preload() comment a bit so that it's clear that
-    preemption is disabled while preloaded.  Make idr_layer_alloc()
-    try kmem_cache first and then fall back to per-cpu buffer;
-    otherwise, non-preloading idr_alloc()s empty per-cpu buffers
-    makeing preloaders fill them, which, while not incorrect, still is
-    a bit unfair.
+This member of struct netns_ipvs is calculated from nr_free_buffer_pages
+so change its type to unsigned long in case of overflow.
 
-v3: In idr_alloc() treat @end <= 0 as indicating max.  This is
-    necessary to always allow using @start + N as @end for a positive
-    integer N.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Julian Anastasov <ja@ssi.bg>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/net/ip_vs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/idr.c~idr-implement-idr_preload-and-idr_alloc-fix lib/idr.c
---- a/lib/idr.c~idr-implement-idr_preload-and-idr_alloc-fix
-+++ a/lib/idr.c
-@@ -439,13 +439,16 @@ EXPORT_SYMBOL(idr_preload);
-  * @idr: the (initialized) idr
-  * @ptr: pointer to be associated with the new id
-  * @start: the minimum id (inclusive)
-- * @end: the maximum id (exclusive, 0 for max)
-+ * @end: the maximum id (exclusive, <= 0 for max)
-  * @gfp_mask: memory allocation flags
-  *
-  * Allocate an id in [start, end) and associate it with @ptr.  If no ID is
-  * available in the specified range, returns -ENOSPC.  On memory allocation
-  * failure, returns -ENOMEM.
-  *
-+ * Note that @end is treated as max when <= 0.  This is to always allow
-+ * using @start + N as @end as long as N is inside integer range.
-+ *
-  * The user is responsible for exclusively synchronizing all operations
-  * which may modify @idr.  However, read-only accesses such as idr_find()
-  * or iteration can be performed under RCU read lock provided the user
-@@ -453,14 +456,14 @@ EXPORT_SYMBOL(idr_preload);
-  */
- int idr_alloc(struct idr *idr, void *ptr, int start, int end, gfp_t gfp_mask)
- {
--	int max = end ? end - 1 : INT_MAX;	/* inclusive upper limit */
-+	int max = end > 0 ? end - 1 : INT_MAX;	/* inclusive upper limit */
- 	struct idr_layer *pa[MAX_IDR_LEVEL];
- 	int id;
- 
- 	might_sleep_if(gfp_mask & __GFP_WAIT);
- 
- 	/* sanity checks */
--	if (WARN_ON_ONCE(start < 0 || end < 0))
-+	if (WARN_ON_ONCE(start < 0))
- 		return -EINVAL;
- 	if (unlikely(max < start))
- 		return -ENOSPC;
+diff -puN include/net/ip_vs.h~net-change-type-of-netns_ipvs-sysctl_sync_qlen_max include/net/ip_vs.h
+--- a/include/net/ip_vs.h~net-change-type-of-netns_ipvs-sysctl_sync_qlen_max
++++ a/include/net/ip_vs.h
+@@ -966,7 +966,7 @@ struct netns_ipvs {
+ 	int			sysctl_snat_reroute;
+ 	int			sysctl_sync_ver;
+ 	int			sysctl_sync_ports;
+-	int			sysctl_sync_qlen_max;
++	unsigned long		sysctl_sync_qlen_max;
+ 	int			sysctl_sync_sock_size;
+ 	int			sysctl_cache_bypass;
+ 	int			sysctl_expire_nodest_conn;
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
-linux-next.patch
-cfq-fix-lock-imbalance-with-failed-allocations.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
-memcg-clean-up-swap-accounting-initialization-code.patch
-memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
-memcg-split-part-of-memcg-creation-to-css_online.patch
-memcg-fast-hierarchy-aware-child-test.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
-memcg-increment-static-branch-right-after-limit-set.patch
-memcg-avoid-dangling-reference-count-in-creation-failure.patch
-idr-fix-a-subtle-bug-in-idr_get_next.patch
-idr-make-idr_destroy-imply-idr_remove_all.patch
-atm-nicstar-dont-use-idr_remove_all.patch
-block-loop-dont-use-idr_remove_all.patch
-firewire-dont-use-idr_remove_all.patch
-drm-dont-use-idr_remove_all.patch
-dm-dont-use-idr_remove_all.patch
-remoteproc-dont-use-idr_remove_all.patch
-rpmsg-dont-use-idr_remove_all.patch
-dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
-dlm-dont-use-idr_remove_all.patch
-nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
-inotify-dont-use-idr_remove_all.patch
-cgroup-dont-use-idr_remove_all.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-idr-deprecate-idr_remove_all.patch
-idr-cosmetic-updates-to-struct-initializer-definitions.patch
-idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch
-idr-remove-_idr_rc_to_errno-hack.patch
-idr-refactor-idr_get_new_above.patch
-idr-implement-idr_preload-and-idr_alloc.patch
-idr-implement-idr_preload-and-idr_alloc-fix.patch
-block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
-block-convert-to-idr_alloc.patch
-block-loop-convert-to-idr_alloc.patch
-atm-nicstar-convert-to-idr_alloc.patch
-drbd-convert-to-idr_alloc.patch
-dca-convert-to-idr_alloc.patch
-dmaengine-convert-to-idr_alloc.patch
-firewire-add-minor-number-range-check-to-fw_device_init.patch
-firewire-convert-to-idr_alloc.patch
-gpio-convert-to-idr_alloc.patch
-drm-convert-to-idr_alloc.patch
-drm-exynos-convert-to-idr_alloc.patch
-drm-i915-convert-to-idr_alloc.patch
-drm-sis-convert-to-idr_alloc.patch
-drm-via-convert-to-idr_alloc.patch
-drm-vmwgfx-convert-to-idr_alloc.patch
-i2c-convert-to-idr_alloc.patch
-i2c-convert-to-idr_alloc-fix.patch
-ib-core-convert-to-idr_alloc.patch
-ib-amso1100-convert-to-idr_alloc.patch
-ib-cxgb3-convert-to-idr_alloc.patch
-ib-cxgb4-convert-to-idr_alloc.patch
-ib-ehca-convert-to-idr_alloc.patch
-ib-ipath-convert-to-idr_alloc.patch
-ib-mlx4-convert-to-idr_alloc.patch
-ib-ocrdma-convert-to-idr_alloc.patch
-ib-qib-convert-to-idr_alloc.patch
-dm-convert-to-idr_alloc.patch
-memstick-convert-to-idr_alloc.patch
-mfd-convert-to-idr_alloc.patch
-misc-c2port-convert-to-idr_alloc.patch
-misc-tifm_core-convert-to-idr_alloc.patch
-mmc-convert-to-idr_alloc.patch
-mtd-convert-to-idr_alloc.patch
-macvtap-convert-to-idr_alloc.patch
-ppp-convert-to-idr_alloc.patch
-power-convert-to-idr_alloc.patch
-pps-convert-to-idr_alloc.patch
-remoteproc-convert-to-idr_alloc.patch
-rpmsg-convert-to-idr_alloc.patch
-scsi-bfa-convert-to-idr_alloc.patch
-scsi-convert-to-idr_alloc.patch
-target-iscsi-convert-to-idr_alloc.patch
-scsi-lpfc-convert-to-idr_alloc.patch
-thermal-convert-to-idr_alloc.patch
-uio-convert-to-idr_alloc.patch
-vfio-convert-to-idr_alloc.patch
-dlm-convert-to-idr_alloc.patch
-inotify-convert-to-idr_alloc.patch
-ocfs2-convert-to-idr_alloc.patch
-ipc-convert-to-idr_alloc.patch
-ipc-convert-to-idr_alloc-fix.patch
-cgroup-convert-to-idr_alloc.patch
-events-convert-to-idr_alloc.patch
-posix-timers-convert-to-idr_alloc.patch
-net-9p-convert-to-idr_alloc.patch
-mac80211-convert-to-idr_alloc.patch
-sctp-convert-to-idr_alloc.patch
-nfs4client-convert-to-idr_alloc.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+mm-fix-return-type-for-functions-nr_free__pages.patch
+ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages.patch
+fs-bufferc-change-type-of-max_buffer_heads-to-unsigned-long.patch
+fs-nfsd-change-type-of-max_delegations-nfsd_drc_max_mem-and-nfsd_drc_mem_used.patch
+vmscan-change-type-of-vm_total_pages-to-unsigned-long.patch
+net-change-type-of-virtio_chan-p9_max_pages.patch
+binfmt_elf-remove-unused-argument-in-fill_elf_header.patch
+kexec-get-rid-of-duplicate-check-for-hole_end.patch
 
