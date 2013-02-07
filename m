@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-convert-to-idr_alloc-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2013 14:39:06 -0800
-Message-ID: <20130207223907.30A071E4226@corp2gmr1-2.eem.corp.google.com>
+Subject: + idr-implement-idr_preload-and-idr_alloc-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2013 14:41:01 -0800
+Message-ID: <20130207224102.0E8BD1E425E@corp2gmr1-2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f201.google.com ([209.85.212.201]:35084 "EHLO
-	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422747Ab3BGWjK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 17:39:10 -0500
-Received: by mail-wi0-f201.google.com with SMTP id hm6so7967wib.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 14:39:08 -0800 (PST)
+Received: from mail-ee0-f73.google.com ([74.125.83.73]:62625 "EHLO
+	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422744Ab3BGWlF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 17:41:05 -0500
+Received: by mail-ee0-f73.google.com with SMTP id c41so210499eek.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 14:41:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, ebiederm@xmission.com, jmorris@namei.org, sedat.dilek@gmail.com, skinsbursky@parallels.com
+Cc: tj@kernel.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     Subject: ipc-convert-to-idr_alloc-fix
+     Subject: idr: implement idr_preload[_end]() and idr_alloc()
 has been added to the -mm tree.  Its filename is
-     ipc-convert-to-idr_alloc-fix.patch
+     idr-implement-idr_preload-and-idr_alloc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: ipc-convert-to-idr_alloc-fix
+Subject: idr: implement idr_preload[_end]() and idr_alloc()
 
-v2: The v1 conversion of ipcget_public() was incorrect.  As
-    idr_pre_get() returns 0 for -ENOMEM failure, @err should have been
-    initialized to 1 not 0.  As the function doesn't do preloading
-    itself anymore, there's no point in the error handling path.
-    Simply remove the -ENOMEM path.
+v2: Improve idr_preload() comment a bit so that it's clear that
+    preemption is disabled while preloaded.  Make idr_layer_alloc()
+    try kmem_cache first and then fall back to per-cpu buffer;
+    otherwise, non-preloading idr_alloc()s empty per-cpu buffers
+    makeing preloaders fill them, which, while not incorrect, still is
+    a bit unfair.
+
+v3: In idr_alloc() treat @end <= 0 as indicating max.  This is
+    necessary to always allow using @start + N as @end for a positive
+    integer N.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/idr.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN ipc/util.c~ipc-convert-to-idr_alloc-fix ipc/util.c
---- a/ipc/util.c~ipc-convert-to-idr_alloc-fix
-+++ a/ipc/util.c
-@@ -370,7 +370,7 @@ static int ipcget_public(struct ipc_name
+diff -puN lib/idr.c~idr-implement-idr_preload-and-idr_alloc-fix lib/idr.c
+--- a/lib/idr.c~idr-implement-idr_preload-and-idr_alloc-fix
++++ a/lib/idr.c
+@@ -439,13 +439,16 @@ EXPORT_SYMBOL(idr_preload);
+  * @idr: the (initialized) idr
+  * @ptr: pointer to be associated with the new id
+  * @start: the minimum id (inclusive)
+- * @end: the maximum id (exclusive, 0 for max)
++ * @end: the maximum id (exclusive, <= 0 for max)
+  * @gfp_mask: memory allocation flags
+  *
+  * Allocate an id in [start, end) and associate it with @ptr.  If no ID is
+  * available in the specified range, returns -ENOSPC.  On memory allocation
+  * failure, returns -ENOMEM.
+  *
++ * Note that @end is treated as max when <= 0.  This is to always allow
++ * using @start + N as @end as long as N is inside integer range.
++ *
+  * The user is responsible for exclusively synchronizing all operations
+  * which may modify @idr.  However, read-only accesses such as idr_find()
+  * or iteration can be performed under RCU read lock provided the user
+@@ -453,14 +456,14 @@ EXPORT_SYMBOL(idr_preload);
+  */
+ int idr_alloc(struct idr *idr, void *ptr, int start, int end, gfp_t gfp_mask)
  {
- 	struct kern_ipc_perm *ipcp;
- 	int flg = params->flg;
--	int err = 0;
-+	int err;
+-	int max = end ? end - 1 : INT_MAX;	/* inclusive upper limit */
++	int max = end > 0 ? end - 1 : INT_MAX;	/* inclusive upper limit */
+ 	struct idr_layer *pa[MAX_IDR_LEVEL];
+ 	int id;
  
- 	/*
- 	 * Take the lock as a writer since we are potentially going to add
-@@ -382,8 +382,6 @@ static int ipcget_public(struct ipc_name
- 		/* key not used */
- 		if (!(flg & IPC_CREAT))
- 			err = -ENOENT;
--		else if (!err)
--			err = -ENOMEM;
- 		else
- 			err = ops->getnew(ns, params);
- 	} else {
+ 	might_sleep_if(gfp_mask & __GFP_WAIT);
+ 
+ 	/* sanity checks */
+-	if (WARN_ON_ONCE(start < 0 || end < 0))
++	if (WARN_ON_ONCE(start < 0))
+ 		return -EINVAL;
+ 	if (unlikely(max < start))
+ 		return -ENOSPC;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
@@ -112,6 +130,7 @@ idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch
 idr-remove-_idr_rc_to_errno-hack.patch
 idr-refactor-idr_get_new_above.patch
 idr-implement-idr_preload-and-idr_alloc.patch
+idr-implement-idr_preload-and-idr_alloc-fix.patch
 block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
 block-convert-to-idr_alloc.patch
 block-loop-convert-to-idr_alloc.patch
