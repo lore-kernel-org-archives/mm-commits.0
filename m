@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2013 13:34:39 -0800
-Message-ID: <20130207213440.8B5FA1E424B@corp2gmr1-2.eem.corp.google.com>
+Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2013 13:36:33 -0800
+Message-ID: <20130207213634.8278C1E4088@corp2gmr1-2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:35299 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422631Ab3BGVen (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 16:34:43 -0500
-Received: by mail-ea0-f202.google.com with SMTP id a1so208392eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 13:34:41 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:55439 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161031Ab3BGVgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 16:36:36 -0500
+Received: by mail-wi0-f202.google.com with SMTP id hm11so5219wib.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 13:36:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, sasha.levin@oracle.com, tj@kernel.org
+Cc: akpm@linux-foundation.org, sasha.levin@oracle.com
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix
+     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix
+Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix
 
-drop bogus change from net/ipv4/raw.c
+drop bogus hunk from net/ipv6/raw.c
 
 Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/raw.c |    5 -----
- 1 file changed, 5 deletions(-)
+ net/ipv6/raw.c |   18 ------------------
+ 1 file changed, 18 deletions(-)
 
-diff -puN net/ipv4/raw.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix net/ipv4/raw.c
---- a/net/ipv4/raw.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix
-+++ a/net/ipv4/raw.c
-@@ -120,11 +120,6 @@ static struct sock *__raw_v4_lookup(stru
- 		    !(sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif))
- 			goto found; /* gotcha */
- 	}
--	sk_for_each_from (sk) {
--		struct inet_sock *inet=inet_sk(sk);
--		if (net_eq(sock_net(sk), net) && inet->inet_num == num && !(inet->inet_daddr && inet->inet_daddr != raddr) && !(inet->inet_rcv_saddr && inet->inet_rcv_saddr != laddr) && !(sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif))
--			goto found;
--		}
+diff -puN net/ipv6/raw.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix net/ipv6/raw.c
+--- a/net/ipv6/raw.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix
++++ a/net/ipv6/raw.c
+@@ -97,24 +97,6 @@ static struct sock *__raw_v6_lookup(stru
+ 			}
+ 			goto found;
+ 		}
+-		sk_for_each_from (sk)
+-			if (inet_sk(sk)->inet_num == num) {
+-				struct ipv6_pinfo *np=inet6_sk(sk);
+-				if (!net_eq(sock_net(sk), net))
+-					continue;
+-					if (!ipv6_addr_any(&np->daddr) && !ipv6_addr_equal(&np->daddr, rmt_addr))
+-						continue;
+-						if (sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif)
+-							continue;
+-							if (!ipv6_addr_any(&np->rcv_saddr)) {
+-								if (ipv6_addr_equal(&np->rcv_saddr, loc_addr))
+-									goto found;
+-									if (is_multicast && inet6_mc_check(sk, loc_addr, rmt_addr))
+-										goto found;
+-										continue;
+-									}
+-									goto found;
+-								}
  	sk = NULL;
  found:
  	return sk;
@@ -168,6 +180,7 @@ block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
 hlist-drop-the-node-parameter-from-iterators-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
