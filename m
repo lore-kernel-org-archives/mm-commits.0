@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch added to -mm tree
-Date: Wed, 06 Feb 2013 16:24:25 -0800
-Message-ID: <20130207002425.A147831C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch added to -mm tree
+Date: Wed, 06 Feb 2013 16:55:45 -0800
+Message-ID: <20130207005546.5A1FE5A4173@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:61972 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964Ab3BGAY1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 19:24:27 -0500
-Received: by mail-oa0-f74.google.com with SMTP id k14so390641oag.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 16:24:26 -0800 (PST)
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:38856 "EHLO
+	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755409Ab3BGAzr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 19:55:47 -0500
+Received: by mail-ia0-f201.google.com with SMTP id t4so396702iag.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 16:55:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, sasha.levin@oracle.com, tj@kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/lm3630_bl.c: remove ret = -EIO of lm3630_backlight_register()
+     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
+     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,172 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/lm3630_bl.c: remove ret = -EIO of lm3630_backlight_register()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
 
-There is no need to return -EIO, because backlight_device_register()
-already returns correct error values.
+fix warnings
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3630_bl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cgroup.c             |    5 ++---
+ net/batman-adv/originator.c |    1 -
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/lm3630_bl.c~drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register drivers/video/backlight/lm3630_bl.c
---- a/drivers/video/backlight/lm3630_bl.c~drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register
-+++ a/drivers/video/backlight/lm3630_bl.c
-@@ -320,7 +320,7 @@ static int lm3630_backlight_register(str
- 		    backlight_device_register(name, pchip->dev, pchip,
- 					      &lm3630_bank_a_ops, &props);
- 		if (IS_ERR(pchip->bled1))
--			return -EIO;
-+			return PTR_ERR(pchip->bled1);
- 		break;
- 	case BLED_2:
- 		props.brightness = pdata->init_brt_led2;
-@@ -329,7 +329,7 @@ static int lm3630_backlight_register(str
- 		    backlight_device_register(name, pchip->dev, pchip,
- 					      &lm3630_bank_b_ops, &props);
- 		if (IS_ERR(pchip->bled2))
--			return -EIO;
-+			return PTR_ERR(pchip->bled2);
- 		break;
+diff -puN kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
++++ a/kernel/cgroup.c
+@@ -1610,7 +1610,6 @@ static struct dentry *cgroup_mount(struc
+ 		struct cgroupfs_root *existing_root;
+ 		const struct cred *cred;
+ 		int i;
+-		struct hlist_node *node;
+ 		struct css_set *cg;
+ 
+ 		BUG_ON(sb->s_root != NULL);
+@@ -4456,7 +4455,7 @@ int __init_or_module cgroup_load_subsys(
+ {
+ 	struct cgroup_subsys_state *css;
+ 	int i, ret;
+-	struct hlist_node *node, *tmp;
++	struct hlist_node *tmp;
+ 	struct css_set *cg;
+ 	unsigned long key;
+ 
+@@ -4534,7 +4533,7 @@ int __init_or_module cgroup_load_subsys(
+ 		cg->subsys[ss->subsys_id] = css;
+ 		/* recompute hash and restore entry */
+ 		key = css_set_hash(cg->subsys);
+-		hash_add(css_set_table, node, key);
++		hash_add(css_set_table, &cg->hlist, key);
  	}
- 	return 0;
+ 	write_unlock(&css_set_lock);
+ 
+diff -puN net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix net/batman-adv/originator.c
+--- a/net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
++++ a/net/batman-adv/originator.c
+@@ -408,7 +408,6 @@ int batadv_orig_seq_print_text(struct se
+ 	struct net_device *net_dev = (struct net_device *)seq->private;
+ 	struct batadv_priv *bat_priv = netdev_priv(net_dev);
+ 	struct batadv_hashtable *hash = bat_priv->orig_hash;
+-	struct hlist_node *node_tmp;
+ 	struct hlist_head *head;
+ 	struct batadv_hard_iface *primary_if;
+ 	struct batadv_orig_node *orig_node;
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-backlight-add-lms501kf03-lcd-driver.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
 backlight-add-lms501kf03-lcd-driver-fix.patch
 backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-ld9040-use-sleep-instead-of-delay.patch
-backlight-ld9040-remove-unnecessary-null-deference-check.patch
-backlight-ld9040-replace-efault-with-einval.patch
-backlight-ld9040-remove-redundant-return-variables.patch
-backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
-backlight-s6e63m0-use-lowercase-names-of-structs.patch
-backlight-s6e63m0-use-sleep-instead-of-delay.patch
-backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
-backlight-s6e63m0-replace-efault-with-einval.patch
-backlight-s6e63m0-remove-redundant-variable-before_power.patch
-backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
-backlight-ams369fg06-use-sleep-instead-of-delay.patch
-backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
-backlight-ams369fg06-replace-efault-with-einval.patch
-backlight-ams369fg06-remove-redundant-variable-before_power.patch
-backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
-backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
-pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
-backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
-drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
-fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
 drivers-video-backlight-makefile-cleanup.patch
-backlight-add-an-as3711-pmic-backlight-driver.patch
-backlight-88pm860x_bl-add-missing-of_node_put.patch
-backlight-s6e63m0-report-gamma_table_count-correctly.patch
-drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
-drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
