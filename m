@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 07 Feb 2013 13:37:13 -0800
-Message-ID: <20130207213714.3DEB51CA1CE@corp2gmr1-1.eem.corp.google.com>
+Subject: + rtc-max8997-add-driver-for-max8997-rtc.patch added to -mm tree
+Date: Thu, 07 Feb 2013 13:45:50 -0800
+Message-ID: <20130207214551.0F63B1CA1D6@corp2gmr1-1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:53387 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161031Ab3BGVhR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 16:37:17 -0500
-Received: by mail-la0-f73.google.com with SMTP id eb20so194906lab.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 13:37:15 -0800 (PST)
+Received: from mail-lb0-f201.google.com ([209.85.217.201]:45281 "EHLO
+	mail-lb0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422648Ab3BGVpy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 16:45:54 -0500
+Received: by mail-lb0-f201.google.com with SMTP id gi11so223545lbb.0
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 13:45:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, paulmck@linux.vnet.ibm.com, peter.senna@gmail.com, sasha.levin@oracle.com
+Cc: jonghwa3.lee@samsung.com, devendra.aaru@gmail.com
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes
+     Subject: rtc: max8997: add driver for max8997 rtc
 has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+     rtc-max8997-add-driver-for-max8997-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,624 +33,620 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes
-
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-
-ERROR: code indent should use tabs where possible
-#939: FILE: drivers/atm/atmtcp.c:270:
-+        sk_for_each(s, head) {$
-
-WARNING: please, no spaces at the start of a line
-#939: FILE: drivers/atm/atmtcp.c:270:
-+        sk_for_each(s, head) {$
-
-ERROR: space required before the open brace '{'
-#2295: FILE: fs/dlm/lowcomms.c:238:
-+		hlist_for_each_entry_safe(con, n, &connection_hash[i], list){
-
-WARNING: line over 80 characters
-#3070: FILE: include/linux/hashtable.h:122:
-+	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name); (bkt)++)\
-
-WARNING: line over 80 characters
-#3084: FILE: include/linux/hashtable.h:132:
-+#define hash_for_each_rcu(name, bkt, obj, member)				\
-
-WARNING: line over 80 characters
-#3085: FILE: include/linux/hashtable.h:133:
-+	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name); (bkt)++)\
-
-WARNING: line over 80 characters
-#3102: FILE: include/linux/hashtable.h:146:
-+	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name); (bkt)++)\
-
-WARNING: line over 80 characters
-#3132: FILE: include/linux/hashtable.h:170:
-+	hlist_for_each_entry_rcu(obj, &name[hash_min(key, HASH_BITS(name))], member)
-
-WARNING: line over 80 characters
-#3147: FILE: include/linux/hashtable.h:181:
-+#define hash_for_each_possible_safe(name, obj, tmp, member, key)		\
-
-WARNING: line over 80 characters
-#3148: FILE: include/linux/hashtable.h:182:
-+	hlist_for_each_entry_safe(obj, tmp, &name[hash_min(key, HASH_BITS(name))], member)
-
-ERROR: Macros with complex values should be enclosed in parenthesis
-#3188: FILE: include/linux/list.h:669:
-+#define hlist_entry_safe(ptr, type, member) \
-+	(ptr) ? hlist_entry(ptr, type, member) : NULL
-
-WARNING: line over 80 characters
-#3204: FILE: include/linux/list.h:678:
-+#define hlist_for_each_entry(pos, head, member)					\
-
-WARNING: line over 80 characters
-#3205: FILE: include/linux/list.h:679:
-+	for (pos = hlist_entry_safe((head)->first, typeof(*(pos)), member);	\
-
-WARNING: line over 80 characters
-#3206: FILE: include/linux/list.h:680:
-+	     pos;								\
-
-WARNING: line over 80 characters
-#3221: FILE: include/linux/list.h:688:
-+#define hlist_for_each_entry_continue(pos, member)				\
-
-WARNING: line over 80 characters
-#3222: FILE: include/linux/list.h:689:
-+	for (pos = hlist_entry_safe((pos)->member.next, typeof(*(pos)), member);\
-
-WARNING: line over 80 characters
-#3223: FILE: include/linux/list.h:690:
-+	     pos;								\
-
-WARNING: line over 80 characters
-#3255: FILE: include/linux/list.h:709:
-+#define hlist_for_each_entry_safe(pos, n, head, member) 			\
-
-WARNING: please, no space before tabs
-#3255: FILE: include/linux/list.h:709:
-+#define hlist_for_each_entry_safe(pos, n, head, member) ^I^I^I\$
-
-WARNING: line over 80 characters
-#3256: FILE: include/linux/list.h:710:
-+	for (pos = hlist_entry_safe((head)->first, typeof(*pos), member);	\
-
-WARNING: line over 80 characters
-#3257: FILE: include/linux/list.h:711:
-+	     pos && ({ n = pos->member.next; 1; });				\
-
-WARNING: line over 80 characters
-#3297: FILE: include/linux/rculist.h:456:
-+#define hlist_for_each_entry_rcu(pos, head, member)				\
-
-WARNING: line over 80 characters
-#3298: FILE: include/linux/rculist.h:457:
-+	for (pos = hlist_entry_safe (rcu_dereference_raw(hlist_first_rcu(head)),\
-
-WARNING: space prohibited between function name and open parenthesis '('
-#3298: FILE: include/linux/rculist.h:457:
-+	for (pos = hlist_entry_safe (rcu_dereference_raw(hlist_first_rcu(head)),\
-
-WARNING: line over 80 characters
-#3299: FILE: include/linux/rculist.h:458:
-+			typeof(*(pos)), member);				\
-
-WARNING: line over 80 characters
-#3300: FILE: include/linux/rculist.h:459:
-+		pos;								\
-
-WARNING: line over 80 characters
-#3301: FILE: include/linux/rculist.h:460:
-+		pos = hlist_entry_safe(rcu_dereference_raw(hlist_next_rcu(	\
-
-WARNING: line over 80 characters
-#3321: FILE: include/linux/rculist.h:473:
-+#define hlist_for_each_entry_rcu_bh(pos, head, member)				\
-
-WARNING: line over 80 characters
-#3322: FILE: include/linux/rculist.h:474:
-+	for (pos = hlist_entry_safe(rcu_dereference_bh(hlist_first_rcu(head)),	\
-
-WARNING: line over 80 characters
-#3323: FILE: include/linux/rculist.h:475:
-+			typeof(*(pos)), member);				\
-
-WARNING: line over 80 characters
-#3324: FILE: include/linux/rculist.h:476:
-+		pos;								\
-
-WARNING: line over 80 characters
-#3325: FILE: include/linux/rculist.h:477:
-+		pos = hlist_entry_safe(rcu_dereference_bh(hlist_next_rcu(	\
-
-WARNING: line over 80 characters
-#3340: FILE: include/linux/rculist.h:485:
-+#define hlist_for_each_entry_continue_rcu(pos, member)				\
-
-WARNING: line over 80 characters
-#3341: FILE: include/linux/rculist.h:486:
-+	for (pos = hlist_entry_safe(rcu_dereference((pos)->member.next),	\
-
-WARNING: line over 80 characters
-#3342: FILE: include/linux/rculist.h:487:
-+			typeof(*(pos)), member);				\
-
-WARNING: line over 80 characters
-#3343: FILE: include/linux/rculist.h:488:
-+	     pos;								\
-
-WARNING: line over 80 characters
-#3344: FILE: include/linux/rculist.h:489:
-+	     pos = hlist_entry_safe(rcu_dereference((pos)->member.next),	\
-
-ERROR: code indent should use tabs where possible
-#3345: FILE: include/linux/rculist.h:490:
-+^I     ^I^Itypeof(*(pos)), member))$
-
-WARNING: please, no space before tabs
-#3345: FILE: include/linux/rculist.h:490:
-+^I     ^I^Itypeof(*(pos)), member))$
-
-WARNING: line over 80 characters
-#3359: FILE: include/linux/rculist.h:497:
-+#define hlist_for_each_entry_continue_rcu_bh(pos, member)			\
-
-WARNING: line over 80 characters
-#3360: FILE: include/linux/rculist.h:498:
-+	for (pos = hlist_entry_safe(rcu_dereference_bh((pos)->member.next),	\
-
-WARNING: line over 80 characters
-#3361: FILE: include/linux/rculist.h:499:
-+			typeof(*(pos)), member);				\
-
-WARNING: line over 80 characters
-#3362: FILE: include/linux/rculist.h:500:
-+	     pos;								\
-
-WARNING: line over 80 characters
-#3363: FILE: include/linux/rculist.h:501:
-+	     pos = hlist_entry_safe(rcu_dereference_bh((pos)->member.next),	\
-
-ERROR: code indent should use tabs where possible
-#3364: FILE: include/linux/rculist.h:502:
-+^I     ^I^Itypeof(*(pos)), member))$
-
-WARNING: please, no space before tabs
-#3364: FILE: include/linux/rculist.h:502:
-+^I     ^I^Itypeof(*(pos)), member))$
-
-ERROR: do not use C99 // comments
-#3817: FILE: kernel/smpboot.c:134:
-+		//BUG_ON(td->cpu != smp_processor_id());
-
-ERROR: do not use C99 // comments
-#4452: FILE: net/9p/trans_virtio.c:658:
-+	//.zc_request = p9_virtio_zc_request,
-
-WARNING: line over 80 characters
-#7049: FILE: net/decnet/af_decnet.c:418:
-+	sk_for_each(sk, &dn_sk_hash[le16_to_cpu(cb->dst_port) & DN_SK_HASH_MASK]) {
-
-WARNING: space prohibited between function name and open parenthesis '('
-#7696: FILE: net/ipv4/raw.c:123:
-+	sk_for_each_from (sk) {
-
-ERROR: spaces required around that '=' (ctx:VxV)
-#7697: FILE: net/ipv4/raw.c:124:
-+		struct inet_sock *inet=inet_sk(sk);
- 		                      ^
-
-WARNING: line over 80 characters
-#7698: FILE: net/ipv4/raw.c:125:
-+		if (net_eq(sock_net(sk), net) && inet->inet_num == num && !(inet->inet_daddr && inet->inet_daddr != raddr) && !(inet->inet_rcv_saddr && inet->inet_rcv_saddr != laddr) && !(sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif))
-
-WARNING: space prohibited between function name and open parenthesis '('
-#8085: FILE: net/ipv6/raw.c:100:
-+		sk_for_each_from (sk)
-
-ERROR: spaces required around that '=' (ctx:VxV)
-#8087: FILE: net/ipv6/raw.c:102:
-+				struct ipv6_pinfo *np=inet6_sk(sk);
- 				                     ^
-
-WARNING: line over 80 characters
-#8090: FILE: net/ipv6/raw.c:105:
-+					if (!ipv6_addr_any(&np->daddr) && !ipv6_addr_equal(&np->daddr, rmt_addr))
-
-WARNING: line over 80 characters
-#8092: FILE: net/ipv6/raw.c:107:
-+						if (sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif)
-
-WARNING: Too many leading tabs - consider code refactoring
-#8092: FILE: net/ipv6/raw.c:107:
-+						if (sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif)
-
-WARNING: line over 80 characters
-#8094: FILE: net/ipv6/raw.c:109:
-+							if (!ipv6_addr_any(&np->rcv_saddr)) {
-
-WARNING: Too many leading tabs - consider code refactoring
-#8094: FILE: net/ipv6/raw.c:109:
-+							if (!ipv6_addr_any(&np->rcv_saddr)) {
-
-WARNING: line over 80 characters
-#8095: FILE: net/ipv6/raw.c:110:
-+								if (ipv6_addr_equal(&np->rcv_saddr, loc_addr))
-
-WARNING: Too many leading tabs - consider code refactoring
-#8095: FILE: net/ipv6/raw.c:110:
-+								if (ipv6_addr_equal(&np->rcv_saddr, loc_addr))
-
-WARNING: line over 80 characters
-#8096: FILE: net/ipv6/raw.c:111:
-+									goto found;
-
-WARNING: line over 80 characters
-#8097: FILE: net/ipv6/raw.c:112:
-+									if (is_multicast && inet6_mc_check(sk, loc_addr, rmt_addr))
-
-WARNING: Too many leading tabs - consider code refactoring
-#8097: FILE: net/ipv6/raw.c:112:
-+									if (is_multicast && inet6_mc_check(sk, loc_addr, rmt_addr))
-
-WARNING: line over 80 characters
-#8098: FILE: net/ipv6/raw.c:113:
-+										goto found;
-
-WARNING: line over 80 characters
-#8099: FILE: net/ipv6/raw.c:114:
-+										continue;
-
-WARNING: line over 80 characters
-#8101: FILE: net/ipv6/raw.c:116:
-+									goto found;
-
-WARNING: line over 80 characters
-#8413: FILE: net/l2tp/l2tp_core.c:285:
-+		hlist_for_each_entry(session, &tunnel->session_hlist[hash], hlist) {
-
-WARNING: line over 80 characters
-#8427: FILE: net/l2tp/l2tp_core.c:310:
-+		hlist_for_each_entry_rcu(session, &pn->l2tp_session_hlist[hash], global_hlist) {
-
-total: 9 errors, 60 warnings, 9471 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/hlist-drop-the-node-parameter-from-iterators.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+From: Jonghwa Lee <jonghwa3.lee@samsung.com>
+Subject: rtc: max8997: add driver for max8997 rtc
+
+Add an rtc driver for Maxim 8997 multifunction chip.  Max8997 has rtc
+module in it.  and it can be used for timekeeping clock and system alarm. 
+It provide various operational mode those are BCD/binary, 24/12hour,
+am/pm.  Driver sets binary/24/ for default.  Maxim 8997 also supports
+SMPL(Sudden Momentary Power Loss), WTSR (Watchdog Timeout and Software
+Reset).
+
+Signed-off-by: Jonghwa Lee <jonghwa3.lee@samsung.com>
+Cc: Devendra Naga <devendra.aaru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/atmtcp.c      |    2 -
- fs/dlm/lowcomms.c         |    3 --
- include/linux/hashtable.h |   19 +++++++++++-------
- include/linux/list.h      |   16 +++++++--------
- include/linux/rculist.h   |   38 ++++++++++++++++++------------------
- 5 files changed, 41 insertions(+), 37 deletions(-)
+ drivers/rtc/Kconfig       |   10 
+ drivers/rtc/Makefile      |    1 
+ drivers/rtc/rtc-max8997.c |  553 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 564 insertions(+)
 
-diff -puN drivers/atm/atmtcp.c~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes drivers/atm/atmtcp.c
---- a/drivers/atm/atmtcp.c~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes
-+++ a/drivers/atm/atmtcp.c
-@@ -267,7 +267,7 @@ static struct atm_vcc *find_vcc(struct a
+diff -puN drivers/rtc/Kconfig~rtc-max8997-add-driver-for-max8997-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-max8997-add-driver-for-max8997-rtc
++++ a/drivers/rtc/Kconfig
+@@ -249,6 +249,16 @@ config RTC_DRV_MAX8998
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-max8998.
  
-         head = &vcc_hash[vci & (VCC_HTABLE_SIZE -1)];
- 
--        sk_for_each(s, head) {
-+	sk_for_each(s, head) {
-                 vcc = atm_sk(s);
-                 if (vcc->dev == dev &&
-                     vcc->vci == vci && vcc->vpi == vpi &&
-diff -puN fs/dlm/lowcomms.c~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes fs/dlm/lowcomms.c
---- a/fs/dlm/lowcomms.c~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes
-+++ a/fs/dlm/lowcomms.c
-@@ -235,9 +235,8 @@ static void foreach_conn(void (*conn_fun
- 	struct connection *con;
- 
- 	for (i = 0; i < CONN_HASH_SIZE; i++) {
--		hlist_for_each_entry_safe(con, n, &connection_hash[i], list){
-+		hlist_for_each_entry_safe(con, n, &connection_hash[i], list)
- 			conn_func(con);
--		}
- 	}
- }
- 
-diff -puN include/linux/hashtable.h~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes include/linux/hashtable.h
---- a/include/linux/hashtable.h~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes
-+++ a/include/linux/hashtable.h
-@@ -119,7 +119,8 @@ static inline void hash_del_rcu(struct h
-  * @member: the name of the hlist_node within the struct
-  */
- #define hash_for_each(name, bkt, obj, member)				\
--	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name); (bkt)++)\
-+	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name);\
-+			(bkt)++)\
- 		hlist_for_each_entry(obj, &name[bkt], member)
- 
- /**
-@@ -129,8 +130,9 @@ static inline void hash_del_rcu(struct h
-  * @obj: the type * to use as a loop cursor for each entry
-  * @member: the name of the hlist_node within the struct
-  */
--#define hash_for_each_rcu(name, bkt, obj, member)				\
--	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name); (bkt)++)\
-+#define hash_for_each_rcu(name, bkt, obj, member)			\
-+	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name);\
-+			(bkt)++)\
- 		hlist_for_each_entry_rcu(obj, &name[bkt], member)
- 
- /**
-@@ -143,7 +145,8 @@ static inline void hash_del_rcu(struct h
-  * @member: the name of the hlist_node within the struct
-  */
- #define hash_for_each_safe(name, bkt, tmp, obj, member)			\
--	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name); (bkt)++)\
-+	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name);\
-+			(bkt)++)\
- 		hlist_for_each_entry_safe(obj, tmp, &name[bkt], member)
- 
- /**
-@@ -167,7 +170,8 @@ static inline void hash_del_rcu(struct h
-  * @key: the key of the objects to iterate over
-  */
- #define hash_for_each_possible_rcu(name, obj, member, key)		\
--	hlist_for_each_entry_rcu(obj, &name[hash_min(key, HASH_BITS(name))], member)
-+	hlist_for_each_entry_rcu(obj, &name[hash_min(key, HASH_BITS(name))],\
-+		member)
- 
- /**
-  * hash_for_each_possible_safe - iterate over all possible objects hashing to the
-@@ -178,8 +182,9 @@ static inline void hash_del_rcu(struct h
-  * @member: the name of the hlist_node within the struct
-  * @key: the key of the objects to iterate over
-  */
--#define hash_for_each_possible_safe(name, obj, tmp, member, key)		\
--	hlist_for_each_entry_safe(obj, tmp, &name[hash_min(key, HASH_BITS(name))], member)
-+#define hash_for_each_possible_safe(name, obj, tmp, member, key)	\
-+	hlist_for_each_entry_safe(obj, tmp,\
-+		&name[hash_min(key, HASH_BITS(name))], member)
- 
- 
- #endif
-diff -puN include/linux/list.h~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes include/linux/list.h
---- a/include/linux/list.h~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes
-+++ a/include/linux/list.h
-@@ -675,9 +675,9 @@ static inline void hlist_move_list(struc
-  * @head:	the head for your list.
-  * @member:	the name of the hlist_node within the struct.
-  */
--#define hlist_for_each_entry(pos, head, member)					\
--	for (pos = hlist_entry_safe((head)->first, typeof(*(pos)), member);	\
--	     pos;								\
-+#define hlist_for_each_entry(pos, head, member)				\
-+	for (pos = hlist_entry_safe((head)->first, typeof(*(pos)), member);\
-+	     pos;							\
- 	     pos = hlist_entry_safe((pos)->member.next, typeof(*(pos)), member))
- 
- /**
-@@ -685,9 +685,9 @@ static inline void hlist_move_list(struc
-  * @pos:	the type * to use as a loop cursor.
-  * @member:	the name of the hlist_node within the struct.
-  */
--#define hlist_for_each_entry_continue(pos, member)				\
-+#define hlist_for_each_entry_continue(pos, member)			\
- 	for (pos = hlist_entry_safe((pos)->member.next, typeof(*(pos)), member);\
--	     pos;								\
-+	     pos;							\
- 	     pos = hlist_entry_safe((pos)->member.next, typeof(*(pos)), member))
- 
- /**
-@@ -706,9 +706,9 @@ static inline void hlist_move_list(struc
-  * @head:	the head for your list.
-  * @member:	the name of the hlist_node within the struct.
-  */
--#define hlist_for_each_entry_safe(pos, n, head, member) 			\
--	for (pos = hlist_entry_safe((head)->first, typeof(*pos), member);	\
--	     pos && ({ n = pos->member.next; 1; });				\
-+#define hlist_for_each_entry_safe(pos, n, head, member) 		\
-+	for (pos = hlist_entry_safe((head)->first, typeof(*pos), member);\
-+	     pos && ({ n = pos->member.next; 1; });			\
- 	     pos = hlist_entry_safe(n, typeof(*pos), member))
- 
- #endif
-diff -puN include/linux/rculist.h~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes include/linux/rculist.h
---- a/include/linux/rculist.h~hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes
-+++ a/include/linux/rculist.h
-@@ -453,11 +453,11 @@ static inline void hlist_add_after_rcu(s
-  * the _rcu list-mutation primitives such as hlist_add_head_rcu()
-  * as long as the traversal is guarded by rcu_read_lock().
-  */
--#define hlist_for_each_entry_rcu(pos, head, member)				\
-+#define hlist_for_each_entry_rcu(pos, head, member)			\
- 	for (pos = hlist_entry_safe (rcu_dereference_raw(hlist_first_rcu(head)),\
--			typeof(*(pos)), member);				\
--		pos;								\
--		pos = hlist_entry_safe(rcu_dereference_raw(hlist_next_rcu(	\
-+			typeof(*(pos)), member);			\
-+		pos;							\
-+		pos = hlist_entry_safe(rcu_dereference_raw(hlist_next_rcu(\
- 			&(pos)->member)), typeof(*(pos)), member))
- 
- /**
-@@ -470,11 +470,11 @@ static inline void hlist_add_after_rcu(s
-  * the _rcu list-mutation primitives such as hlist_add_head_rcu()
-  * as long as the traversal is guarded by rcu_read_lock().
-  */
--#define hlist_for_each_entry_rcu_bh(pos, head, member)				\
--	for (pos = hlist_entry_safe(rcu_dereference_bh(hlist_first_rcu(head)),	\
--			typeof(*(pos)), member);				\
--		pos;								\
--		pos = hlist_entry_safe(rcu_dereference_bh(hlist_next_rcu(	\
-+#define hlist_for_each_entry_rcu_bh(pos, head, member)			\
-+	for (pos = hlist_entry_safe(rcu_dereference_bh(hlist_first_rcu(head)),\
-+			typeof(*(pos)), member);			\
-+		pos;							\
-+		pos = hlist_entry_safe(rcu_dereference_bh(hlist_next_rcu(\
- 			&(pos)->member)), typeof(*(pos)), member))
- 
- /**
-@@ -482,11 +482,11 @@ static inline void hlist_add_after_rcu(s
-  * @pos:	the type * to use as a loop cursor.
-  * @member:	the name of the hlist_node within the struct.
-  */
--#define hlist_for_each_entry_continue_rcu(pos, member)				\
--	for (pos = hlist_entry_safe(rcu_dereference((pos)->member.next),	\
--			typeof(*(pos)), member);				\
--	     pos;								\
--	     pos = hlist_entry_safe(rcu_dereference((pos)->member.next),	\
-+#define hlist_for_each_entry_continue_rcu(pos, member)			\
-+	for (pos = hlist_entry_safe(rcu_dereference((pos)->member.next),\
-+			typeof(*(pos)), member);			\
-+	     pos;							\
-+	     pos = hlist_entry_safe(rcu_dereference((pos)->member.next),\
- 	     		typeof(*(pos)), member))
- 
- /**
-@@ -494,11 +494,11 @@ static inline void hlist_add_after_rcu(s
-  * @pos:	the type * to use as a loop cursor.
-  * @member:	the name of the hlist_node within the struct.
-  */
--#define hlist_for_each_entry_continue_rcu_bh(pos, member)			\
--	for (pos = hlist_entry_safe(rcu_dereference_bh((pos)->member.next),	\
--			typeof(*(pos)), member);				\
--	     pos;								\
--	     pos = hlist_entry_safe(rcu_dereference_bh((pos)->member.next),	\
-+#define hlist_for_each_entry_continue_rcu_bh(pos, member)		\
-+	for (pos = hlist_entry_safe(rcu_dereference_bh((pos)->member.next),\
-+			typeof(*(pos)), member);			\
-+	     pos;							\
-+	     pos = hlist_entry_safe(rcu_dereference_bh((pos)->member.next),\
- 	     		typeof(*(pos)), member))
- 
- 
++config RTC_DRV_MAX8997
++	tristate "Maxim MAX8997"
++	depends on MFD_MAX8997
++	help
++	  If you say yes here you will get support for the
++	  RTC of Maxim MAX8997 PMIC.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-max8997.
++
+ config RTC_DRV_MAX77686
+ 	tristate "Maxim MAX77686"
+ 	depends on MFD_MAX77686
+diff -puN drivers/rtc/Makefile~rtc-max8997-add-driver-for-max8997-rtc drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-max8997-add-driver-for-max8997-rtc
++++ a/drivers/rtc/Makefile
+@@ -72,6 +72,7 @@ obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max
+ obj-$(CONFIG_RTC_DRV_MAX8907)	+= rtc-max8907.o
+ obj-$(CONFIG_RTC_DRV_MAX8925)	+= rtc-max8925.o
+ obj-$(CONFIG_RTC_DRV_MAX8998)	+= rtc-max8998.o
++obj-$(CONFIG_RTC_DRV_MAX8997)	+= rtc-max8997.o
+ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
+ obj-$(CONFIG_RTC_DRV_MAX77686)	+= rtc-max77686.o
+ obj-$(CONFIG_RTC_DRV_MC13XXX)	+= rtc-mc13xxx.o
+diff -puN /dev/null drivers/rtc/rtc-max8997.c
+--- /dev/null
++++ a/drivers/rtc/rtc-max8997.c
+@@ -0,0 +1,553 @@
++/*
++ * RTC driver for Maxim MAX8997
++ *
++ * Copyright (C) 2013 Samsung Electronics Co.Ltd
++ *
++ *  based on rtc-max8998.c
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ */
++
++#include <linux/slab.h>
++#include <linux/rtc.h>
++#include <linux/delay.h>
++#include <linux/mutex.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/mfd/max8997-private.h>
++#include <linux/irqdomain.h>
++
++/* Module parameter for WTSR function control */
++static int wtsr_en = 1;
++module_param(wtsr_en, int, 0444);
++MODULE_PARM_DESC(wtsr_en, "Wachdog Timeout & Sofware Reset (default=on)");
++/* Module parameter for SMPL function control */
++static int smpl_en = 1;
++module_param(smpl_en, int, 0444);
++MODULE_PARM_DESC(smpl_en, "Sudden Momentary Power Loss (default=on)");
++
++/* RTC Control Register */
++#define BCD_EN_SHIFT			0
++#define BCD_EN_MASK			(1 << BCD_EN_SHIFT)
++#define MODEL24_SHIFT			1
++#define MODEL24_MASK			(1 << MODEL24_SHIFT)
++/* RTC Update Register1 */
++#define RTC_UDR_SHIFT			0
++#define RTC_UDR_MASK			(1 << RTC_UDR_SHIFT)
++/* WTSR and SMPL Register */
++#define WTSRT_SHIFT			0
++#define SMPLT_SHIFT			2
++#define WTSR_EN_SHIFT			6
++#define SMPL_EN_SHIFT			7
++#define WTSRT_MASK			(3 << WTSRT_SHIFT)
++#define SMPLT_MASK			(3 << SMPLT_SHIFT)
++#define WTSR_EN_MASK			(1 << WTSR_EN_SHIFT)
++#define SMPL_EN_MASK			(1 << SMPL_EN_SHIFT)
++/* RTC Hour register */
++#define HOUR_PM_SHIFT			6
++#define HOUR_PM_MASK			(1 << HOUR_PM_SHIFT)
++/* RTC Alarm Enable */
++#define ALARM_ENABLE_SHIFT		7
++#define ALARM_ENABLE_MASK		(1 << ALARM_ENABLE_SHIFT)
++
++enum {
++	RTC_SEC = 0,
++	RTC_MIN,
++	RTC_HOUR,
++	RTC_WEEKDAY,
++	RTC_MONTH,
++	RTC_YEAR,
++	RTC_DATE,
++	RTC_NR_TIME
++};
++
++struct max8997_rtc_info {
++	struct device		*dev;
++	struct max8997_dev	*max8997;
++	struct i2c_client	*rtc;
++	struct rtc_device	*rtc_dev;
++	struct mutex		lock;
++	int virq;
++	int rtc_24hr_mode;
++};
++
++static void max8997_rtc_data_to_tm(u8 *data, struct rtc_time *tm,
++				   int rtc_24hr_mode)
++{
++	tm->tm_sec = data[RTC_SEC] & 0x7f;
++	tm->tm_min = data[RTC_MIN] & 0x7f;
++	if (rtc_24hr_mode)
++		tm->tm_hour = data[RTC_HOUR] & 0x1f;
++	else {
++		tm->tm_hour = data[RTC_HOUR] & 0x0f;
++		if (data[RTC_HOUR] & HOUR_PM_MASK)
++			tm->tm_hour += 12;
++	}
++
++	tm->tm_wday = fls(data[RTC_WEEKDAY] & 0x7f) - 1;
++	tm->tm_mday = data[RTC_DATE] & 0x1f;
++	tm->tm_mon = (data[RTC_MONTH] & 0x0f) - 1;
++	tm->tm_year = (data[RTC_YEAR] & 0x7f) + 100;
++	tm->tm_yday = 0;
++	tm->tm_isdst = 0;
++}
++
++static int max8997_rtc_tm_to_data(struct rtc_time *tm, u8 *data)
++{
++	data[RTC_SEC] = tm->tm_sec;
++	data[RTC_MIN] = tm->tm_min;
++	data[RTC_HOUR] = tm->tm_hour;
++	data[RTC_WEEKDAY] = 1 << tm->tm_wday;
++	data[RTC_DATE] = tm->tm_mday;
++	data[RTC_MONTH] = tm->tm_mon + 1;
++	data[RTC_YEAR] = tm->tm_year > 100 ? (tm->tm_year - 100) : 0 ;
++
++	if (tm->tm_year < 100) {
++		pr_warn("%s: MAX8997 RTC cannot handle the year %d."
++			"Assume it's 2000.\n", __func__, 1900 + tm->tm_year);
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static inline int max8997_rtc_set_update_reg(struct max8997_rtc_info *info)
++{
++	int ret;
++
++	ret = max8997_write_reg(info->rtc, MAX8997_RTC_UPDATE1,
++						RTC_UDR_MASK);
++	if (ret < 0)
++		dev_err(info->dev, "%s: fail to write update reg(%d)\n",
++				__func__, ret);
++	else {
++		/* Minimum 16ms delay required before RTC update.
++		 * Otherwise, we may read and update based on out-of-date
++		 * value */
++		msleep(20);
++	}
++
++	return ret;
++}
++
++static int max8997_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct max8997_rtc_info *info = dev_get_drvdata(dev);
++	u8 data[RTC_NR_TIME];
++	int ret;
++
++	mutex_lock(&info->lock);
++	ret = max8997_bulk_read(info->rtc, MAX8997_RTC_SEC, RTC_NR_TIME, data);
++	mutex_unlock(&info->lock);
++
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to read time reg(%d)\n", __func__,
++				ret);
++		return ret;
++	}
++
++	max8997_rtc_data_to_tm(data, tm, info->rtc_24hr_mode);
++
++	return rtc_valid_tm(tm);
++}
++
++static int max8997_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct max8997_rtc_info *info = dev_get_drvdata(dev);
++	u8 data[RTC_NR_TIME];
++	int ret;
++
++	ret = max8997_rtc_tm_to_data(tm, data);
++	if (ret < 0)
++		return ret;
++
++	mutex_lock(&info->lock);
++
++	ret = max8997_bulk_write(info->rtc, MAX8997_RTC_SEC, RTC_NR_TIME, data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to write time reg(%d)\n", __func__,
++				ret);
++		goto out;
++	}
++
++	ret = max8997_rtc_set_update_reg(info);
++out:
++	mutex_unlock(&info->lock);
++	return ret;
++}
++
++static int max8997_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct max8997_rtc_info *info = dev_get_drvdata(dev);
++	u8 data[RTC_NR_TIME];
++	u8 val;
++	int i, ret;
++
++	mutex_lock(&info->lock);
++
++	ret = max8997_bulk_read(info->rtc, MAX8997_RTC_ALARM1_SEC, RTC_NR_TIME,
++			data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s:%d fail to read alarm reg(%d)\n",
++				__func__, __LINE__, ret);
++		goto out;
++	}
++
++	max8997_rtc_data_to_tm(data, &alrm->time, info->rtc_24hr_mode);
++
++	alrm->enabled = 0;
++	for (i = 0; i < RTC_NR_TIME; i++) {
++		if (data[i] & ALARM_ENABLE_MASK) {
++			alrm->enabled = 1;
++			break;
++		}
++	}
++
++	alrm->pending = 0;
++	ret = max8997_read_reg(info->max8997->i2c, MAX8997_REG_STATUS1, &val);
++	if (ret < 0) {
++		dev_err(info->dev, "%s:%d fail to read status1 reg(%d)\n",
++				__func__, __LINE__, ret);
++		goto out;
++	}
++
++	if (val & (1 << 4)) /* RTCA1 */
++		alrm->pending = 1;
++
++out:
++	mutex_unlock(&info->lock);
++	return 0;
++}
++
++static int max8997_rtc_stop_alarm(struct max8997_rtc_info *info)
++{
++	u8 data[RTC_NR_TIME];
++	int ret, i;
++
++	if (!mutex_is_locked(&info->lock))
++		dev_warn(info->dev, "%s: should have mutex locked\n", __func__);
++
++	ret = max8997_bulk_read(info->rtc, MAX8997_RTC_ALARM1_SEC, RTC_NR_TIME,
++				data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to read alarm reg(%d)\n",
++				__func__, ret);
++		goto out;
++	}
++
++	for (i = 0; i < RTC_NR_TIME; i++)
++		data[i] &= ~ALARM_ENABLE_MASK;
++
++	ret = max8997_bulk_write(info->rtc, MAX8997_RTC_ALARM1_SEC, RTC_NR_TIME,
++				 data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to write alarm reg(%d)\n",
++				__func__, ret);
++		goto out;
++	}
++
++	ret = max8997_rtc_set_update_reg(info);
++out:
++	return ret;
++}
++
++static int max8997_rtc_start_alarm(struct max8997_rtc_info *info)
++{
++	u8 data[RTC_NR_TIME];
++	int ret;
++
++	if (!mutex_is_locked(&info->lock))
++		dev_warn(info->dev, "%s: should have mutex locked\n", __func__);
++
++	ret = max8997_bulk_read(info->rtc, MAX8997_RTC_ALARM1_SEC, RTC_NR_TIME,
++				data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to read alarm reg(%d)\n",
++				__func__, ret);
++		goto out;
++	}
++
++	data[RTC_SEC] |= (1 << ALARM_ENABLE_SHIFT);
++	data[RTC_MIN] |= (1 << ALARM_ENABLE_SHIFT);
++	data[RTC_HOUR] |= (1 << ALARM_ENABLE_SHIFT);
++	data[RTC_WEEKDAY] &= ~ALARM_ENABLE_MASK;
++	if (data[RTC_MONTH] & 0xf)
++		data[RTC_MONTH] |= (1 << ALARM_ENABLE_SHIFT);
++	if (data[RTC_YEAR] & 0x7f)
++		data[RTC_YEAR] |= (1 << ALARM_ENABLE_SHIFT);
++	if (data[RTC_DATE] & 0x1f)
++		data[RTC_DATE] |= (1 << ALARM_ENABLE_SHIFT);
++
++	ret = max8997_bulk_write(info->rtc, MAX8997_RTC_ALARM1_SEC, RTC_NR_TIME,
++				 data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to write alarm reg(%d)\n",
++				__func__, ret);
++		goto out;
++	}
++
++	ret = max8997_rtc_set_update_reg(info);
++out:
++	return ret;
++}
++static int max8997_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct max8997_rtc_info *info = dev_get_drvdata(dev);
++	u8 data[RTC_NR_TIME];
++	int ret;
++
++	ret = max8997_rtc_tm_to_data(&alrm->time, data);
++	if (ret < 0)
++		return ret;
++
++	dev_info(info->dev, "%s: %d-%02d-%02d %02d:%02d:%02d\n", __func__,
++			data[RTC_YEAR] + 2000, data[RTC_MONTH], data[RTC_DATE],
++			data[RTC_HOUR], data[RTC_MIN], data[RTC_SEC]);
++
++	mutex_lock(&info->lock);
++
++	ret = max8997_rtc_stop_alarm(info);
++	if (ret < 0)
++		goto out;
++
++	ret = max8997_bulk_write(info->rtc, MAX8997_RTC_ALARM1_SEC, RTC_NR_TIME,
++				data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to write alarm reg(%d)\n",
++				__func__, ret);
++		goto out;
++	}
++
++	ret = max8997_rtc_set_update_reg(info);
++	if (ret < 0)
++		goto out;
++
++	if (alrm->enabled)
++		ret = max8997_rtc_start_alarm(info);
++out:
++	mutex_unlock(&info->lock);
++	return ret;
++}
++
++static int max8997_rtc_alarm_irq_enable(struct device *dev,
++					unsigned int enabled)
++{
++	struct max8997_rtc_info *info = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&info->lock);
++	if (enabled)
++		ret = max8997_rtc_start_alarm(info);
++	else
++		ret = max8997_rtc_stop_alarm(info);
++	mutex_unlock(&info->lock);
++
++	return ret;
++}
++
++static irqreturn_t max8997_rtc_alarm_irq(int irq, void *data)
++{
++	struct max8997_rtc_info *info = data;
++
++	dev_info(info->dev, "%s:irq(%d)\n", __func__, irq);
++
++	rtc_update_irq(info->rtc_dev, 1, RTC_IRQF | RTC_AF);
++
++	return IRQ_HANDLED;
++}
++
++static const struct rtc_class_ops max8997_rtc_ops = {
++	.read_time = max8997_rtc_read_time,
++	.set_time = max8997_rtc_set_time,
++	.read_alarm = max8997_rtc_read_alarm,
++	.set_alarm = max8997_rtc_set_alarm,
++	.alarm_irq_enable = max8997_rtc_alarm_irq_enable,
++};
++
++static void max8997_rtc_enable_wtsr(struct max8997_rtc_info *info, bool enable)
++{
++	int ret;
++	u8 val, mask;
++
++	if (!wtsr_en)
++		return;
++
++	if (enable)
++		val = (1 << WTSR_EN_SHIFT) | (3 << WTSRT_SHIFT);
++	else
++		val = 0;
++
++	mask = WTSR_EN_MASK | WTSRT_MASK;
++
++	dev_info(info->dev, "%s: %s WTSR\n", __func__,
++			enable ? "enable" : "disable");
++
++	ret = max8997_update_reg(info->rtc, MAX8997_RTC_WTSR_SMPL, val, mask);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to update WTSR reg(%d)\n",
++				__func__, ret);
++		return;
++	}
++
++	max8997_rtc_set_update_reg(info);
++}
++
++static void max8997_rtc_enable_smpl(struct max8997_rtc_info *info, bool enable)
++{
++	int ret;
++	u8 val, mask;
++
++	if (!smpl_en)
++		return;
++
++	if (enable)
++		val = (1 << SMPL_EN_SHIFT) | (0 << SMPLT_SHIFT);
++	else
++		val = 0;
++
++	mask = SMPL_EN_MASK | SMPLT_MASK;
++
++	dev_info(info->dev, "%s: %s SMPL\n", __func__,
++			enable ? "enable" : "disable");
++
++	ret = max8997_update_reg(info->rtc, MAX8997_RTC_WTSR_SMPL, val, mask);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to update SMPL reg(%d)\n",
++				__func__, ret);
++		return;
++	}
++
++	max8997_rtc_set_update_reg(info);
++
++	val = 0;
++	max8997_read_reg(info->rtc, MAX8997_RTC_WTSR_SMPL, &val);
++	pr_info("%s: WTSR_SMPL(0x%02x)\n", __func__, val);
++}
++
++static int max8997_rtc_init_reg(struct max8997_rtc_info *info)
++{
++	u8 data[2];
++	int ret;
++
++	/* Set RTC control register : Binary mode, 24hour mdoe */
++	data[0] = (1 << BCD_EN_SHIFT) | (1 << MODEL24_SHIFT);
++	data[1] = (0 << BCD_EN_SHIFT) | (1 << MODEL24_SHIFT);
++
++	info->rtc_24hr_mode = 1;
++
++	ret = max8997_bulk_write(info->rtc, MAX8997_RTC_CTRLMASK, 2, data);
++	if (ret < 0) {
++		dev_err(info->dev, "%s: fail to write controlm reg(%d)\n",
++				__func__, ret);
++		return ret;
++	}
++
++	ret = max8997_rtc_set_update_reg(info);
++	return ret;
++}
++
++static int max8997_rtc_probe(struct platform_device *pdev)
++{
++	struct max8997_dev *max8997 = dev_get_drvdata(pdev->dev.parent);
++	struct max8997_rtc_info *info;
++	int ret, virq;
++
++	info = devm_kzalloc(&pdev->dev, sizeof(struct max8997_rtc_info),
++			GFP_KERNEL);
++	if (!info)
++		return -ENOMEM;
++
++	mutex_init(&info->lock);
++	info->dev = &pdev->dev;
++	info->max8997 = max8997;
++	info->rtc = max8997->rtc;
++
++	platform_set_drvdata(pdev, info);
++
++	ret = max8997_rtc_init_reg(info);
++
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to initialize RTC reg:%d\n", ret);
++		return ret;
++	}
++
++	max8997_rtc_enable_wtsr(info, true);
++	max8997_rtc_enable_smpl(info, true);
++
++	device_init_wakeup(&pdev->dev, 1);
++
++	info->rtc_dev = rtc_device_register("max8997-rtc", &pdev->dev,
++			&max8997_rtc_ops, THIS_MODULE);
++
++	if (IS_ERR(info->rtc_dev)) {
++		ret = PTR_ERR(info->rtc_dev);
++		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
++		return ret;
++	}
++
++	virq = irq_create_mapping(max8997->irq_domain, MAX8997_PMICIRQ_RTCA1);
++	if (!virq) {
++		dev_err(&pdev->dev, "Failed to create mapping alarm IRQ\n");
++		goto err_out;
++	}
++	info->virq = virq;
++
++	ret = request_threaded_irq(virq, NULL, max8997_rtc_alarm_irq, 0,
++				"rtc-alarm0", info);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to request alarm IRQ: %d: %d\n",
++			info->virq, ret);
++		goto err_out;
++	}
++
++	return ret;
++
++err_out:
++	rtc_device_unregister(info->rtc_dev);
++	return ret;
++}
++
++static int max8997_rtc_remove(struct platform_device *pdev)
++{
++	struct max8997_rtc_info *info = platform_get_drvdata(pdev);
++
++	if (info) {
++		free_irq(info->virq, info);
++		rtc_device_unregister(info->rtc_dev);
++	}
++
++	return 0;
++}
++
++static void max8997_rtc_shutdown(struct platform_device *pdev)
++{
++	struct max8997_rtc_info *info = platform_get_drvdata(pdev);
++
++	max8997_rtc_enable_wtsr(info, false);
++	max8997_rtc_enable_smpl(info, false);
++}
++
++static const struct platform_device_id rtc_id[] = {
++	{ "max8997-rtc", 0 },
++	{},
++};
++
++static struct platform_driver max8997_rtc_driver = {
++	.driver		= {
++		.name	= "max8997-rtc",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= max8997_rtc_probe,
++	.remove		= max8997_rtc_remove,
++	.shutdown	= max8997_rtc_shutdown,
++	.id_table	= rtc_id,
++};
++
++module_platform_driver(max8997_rtc_driver);
++
++MODULE_DESCRIPTION("Maxim MAX8997 RTC driver");
++MODULE_AUTHOR("<ms925.kim@samsung.com>");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jonghwa3.lee@samsung.com are
 
-origin.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver.patch
 rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
-hlist-drop-the-node-parameter-from-iterators-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+rtc-max8997-add-driver-for-max8997-rtc.patch
 
