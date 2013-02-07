@@ -1,204 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch added to -mm tree
-Date: Wed, 06 Feb 2013 16:55:45 -0800
-Message-ID: <20130207005546.5A1FE5A4173@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-dropped] mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2013 17:11:00 -0800
+Message-ID: <20130207011101.068AC5A40F3@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:38856 "EHLO
-	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755409Ab3BGAzr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 19:55:47 -0500
-Received: by mail-ia0-f201.google.com with SMTP id t4so396702iag.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 16:55:47 -0800 (PST)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:62066 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435Ab3BGBLC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2013 20:11:02 -0500
+Received: by mail-ob0-f201.google.com with SMTP id un3so399674obb.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Feb 2013 17:11:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, sasha.levin@oracle.com, tj@kernel.org
+To: walken@google.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
-has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+     Subject: fix mm: use long types for page counts in mm_populate() and get_user_pages()
+has been removed from the -mm tree.  Its filename was
+     mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
+From: Michel Lespinasse <walken@google.com>
+Subject: fix mm: use long types for page counts in mm_populate() and get_user_pages()
 
-fix warnings
+Commit 748e13582feb06228dad7f1f151b1489b0b63e68 broke the nommu build.
+This is the trivial fix for this issue.
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c             |    5 ++---
- net/batman-adv/originator.c |    1 -
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ mm/nommu.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix kernel/cgroup.c
---- a/kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
-+++ a/kernel/cgroup.c
-@@ -1610,7 +1610,6 @@ static struct dentry *cgroup_mount(struc
- 		struct cgroupfs_root *existing_root;
- 		const struct cred *cred;
- 		int i;
--		struct hlist_node *node;
- 		struct css_set *cg;
+diff -puN mm/nommu.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix-fix mm/nommu.c
+--- a/mm/nommu.c~mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages-fix-fix
++++ a/mm/nommu.c
+@@ -139,10 +139,10 @@ unsigned int kobjsize(const void *objp)
+ 	return PAGE_SIZE << compound_order(page);
+ }
  
- 		BUG_ON(sb->s_root != NULL);
-@@ -4456,7 +4455,7 @@ int __init_or_module cgroup_load_subsys(
+-int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-		     unsigned long start, int nr_pages, unsigned int foll_flags,
+-		     struct page **pages, struct vm_area_struct **vmas,
+-		     int *retry)
++long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++		      unsigned long start, unsigned long nr_pages,
++		      unsigned int foll_flags, struct page **pages,
++		      struct vm_area_struct **vmas, int *nonblocking)
  {
- 	struct cgroup_subsys_state *css;
- 	int i, ret;
--	struct hlist_node *node, *tmp;
-+	struct hlist_node *tmp;
- 	struct css_set *cg;
- 	unsigned long key;
+ 	struct vm_area_struct *vma;
+ 	unsigned long vm_flags;
+@@ -189,9 +189,10 @@ finish_or_fault:
+  *   slab page or a secondary page from a compound page
+  * - don't permit access to VMAs that don't support it, such as I/O mappings
+  */
+-int get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+-	unsigned long start, int nr_pages, int write, int force,
+-	struct page **pages, struct vm_area_struct **vmas)
++long get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
++		    unsigned long start, unsigned long nr_pages,
++		    int write, int force, struct page **pages,
++		    struct vm_area_struct **vmas)
+ {
+ 	int flags = 0;
  
-@@ -4534,7 +4533,7 @@ int __init_or_module cgroup_load_subsys(
- 		cg->subsys[ss->subsys_id] = css;
- 		/* recompute hash and restore entry */
- 		key = css_set_hash(cg->subsys);
--		hash_add(css_set_table, node, key);
-+		hash_add(css_set_table, &cg->hlist, key);
- 	}
- 	write_unlock(&css_set_lock);
- 
-diff -puN net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix net/batman-adv/originator.c
---- a/net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
-+++ a/net/batman-adv/originator.c
-@@ -408,7 +408,6 @@ int batadv_orig_seq_print_text(struct se
- 	struct net_device *net_dev = (struct net_device *)seq->private;
- 	struct batadv_priv *bat_priv = netdev_priv(net_dev);
- 	struct batadv_hashtable *hash = bat_priv->orig_hash;
--	struct hlist_node *node_tmp;
- 	struct hlist_head *head;
- 	struct batadv_hard_iface *primary_if;
- 	struct batadv_orig_node *orig_node;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
 origin.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-free_area_cache-use-in-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-ia64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch
+mm-use-vm_unmapped_area-on-parisc-architecture.patch
+mm-remap_file_pages-fixes.patch
+mm-introduce-mm_populate-for-populating-new-vmas.patch
+mm-use-mm_populate-for-blocking-remap_file_pages.patch
+mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
+mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch
+mm-remove-flags-argument-to-mmap_region.patch
 mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch
+mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
+mm-make-do_mmap_pgoff-return-populate-as-a-size-in-bytes-not-as-a-bool.patch
+mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch
+mm-accelerate-mm_populate-treatment-of-thp-pages.patch
+mm-accelerate-munlock-treatment-of-thp-pages.patch
+mm-remove-free_area_cache.patch
+mm-use-vm_unmapped_area-on-frv-architecture.patch
+mm-use-vm_unmapped_area-on-alpha-architecture.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
