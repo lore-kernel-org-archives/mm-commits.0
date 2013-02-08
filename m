@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-clean-up-printks-fix-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2013 15:49:42 -0800
-Message-ID: <20130207234943.B39A71CA259@corp2gmr1-1.eem.corp.google.com>
+Subject: + fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2013 16:06:29 -0800
+Message-ID: <20130208000630.9C19C1CA088@corp2gmr1-1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:60365 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab3BGXtq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 18:49:46 -0500
-Received: by mail-la0-f73.google.com with SMTP id eb20so200221lab.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 15:49:44 -0800 (PST)
+Received: from mail-ee0-f73.google.com ([74.125.83.73]:48082 "EHLO
+	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542Ab3BHAGc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2013 19:06:32 -0500
+Received: by mail-ee0-f73.google.com with SMTP id c41so213740eek.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Feb 2013 16:06:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, joe@perches.com
+Cc: akpm@linux-foundation.org, zhangyanfei@cn.fujitsu.com
 
 
 The patch titled
-     Subject: fs-proc-clean-up-printks-fix-fix
+     Subject: fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix
 has been added to the -mm tree.  Its filename is
-     fs-proc-clean-up-printks-fix-fix.patch
+     fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-clean-up-printks-fix-fix
+Subject: fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix
 
-Cc: Joe Perches <joe@perches.com>
+avoid `if (foo = bar)' thing, use max_t()
+
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c     |    4 ++--
- fs/proc/proc_sysctl.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/vmcore.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/generic.c~fs-proc-clean-up-printks-fix-fix fs/proc/generic.c
---- a/fs/proc/generic.c~fs-proc-clean-up-printks-fix-fix
-+++ a/fs/proc/generic.c
-@@ -829,8 +829,8 @@ void remove_proc_entry(const char *name,
- 		parent->nlink--;
- 	de->nlink = 0;
- 	WARN(de->subdir, "%s: removing non-empty directory "
--			"'%s/%s', leaking at least '%s'\n", __func__,
--			de->parent->name, de->name, de->subdir->name);
-+			 "'%s/%s', leaking at least '%s'\n", __func__,
-+			 de->parent->name, de->name, de->subdir->name);
- 	pde_put(de);
- }
- EXPORT_SYMBOL(remove_proc_entry);
-diff -puN fs/proc/proc_sysctl.c~fs-proc-clean-up-printks-fix-fix fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~fs-proc-clean-up-printks-fix-fix
-+++ a/fs/proc/proc_sysctl.c
-@@ -997,7 +997,7 @@ static int sysctl_err(const char *path, 
- 	vaf.va = &args;
+diff -puN fs/proc/vmcore.c~fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix
++++ a/fs/proc/vmcore.c
+@@ -178,8 +178,7 @@ static ssize_t read_vmcore(struct file *
+         	return -EINVAL;
  
- 	pr_err("sysctl table check failed: %s/%s %pV\n",
--			path, table->procname, &vaf);
-+	       path, table->procname, &vaf);
+ 	while (buflen) {
+-		if ((tsz = (PAGE_SIZE - (start & ~PAGE_MASK))) > buflen)
+-			tsz = buflen;
++		tsz = max_t(size_t, buflen, PAGE_SIZE - (start & ~PAGE_MASK));
  
- 	va_end(args);
- 	return -EINVAL;
+ 		/* Calculate left bytes in current memory segment. */
+ 		nr_bytes = (curr_m->size - (start - curr_m->paddr));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,6 +145,7 @@ signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
 fs-proc-clean-up-printks.patch
 fs-proc-clean-up-printks-fix.patch
 fs-proc-clean-up-printks-fix-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
 fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
 fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
 nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
