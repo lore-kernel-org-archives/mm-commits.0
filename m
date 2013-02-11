@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fast-hierarchy-aware-child-test-fix-fix.patch added to -mm tree
-Date: Mon, 11 Feb 2013 13:58:30 -0800
-Message-ID: <20130211215830.B4E905A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch added to -mm tree
+Date: Mon, 11 Feb 2013 14:00:01 -0800
+Message-ID: <20130211220001.C95AC31C2B2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:60739 "EHLO
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:45075 "EHLO
 	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932691Ab3BKV6c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 16:58:32 -0500
-Received: by mail-ie0-f202.google.com with SMTP id k14so1199569iea.5
-        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 13:58:32 -0800 (PST)
+	with ESMTP id S932691Ab3BKWAE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 17:00:04 -0500
+Received: by mail-ie0-f202.google.com with SMTP id k14so1200392iea.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 14:00:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyuki@gmail.com, mhocko@suse.cz, tj@kernel.org
+Cc: glommer@parallels.com, dan.carpenter@oracle.com, hannes@cmpxchg.org, kamezawa.hiroyuki@gmail.com, mhocko@suse.cz, tj@kernel.org
 
 
 The patch titled
-     Subject: memcg: fast hierarchy-aware child test fix
+     Subject: memcg: replace cgroup_lock with memcg specific memcg_lock fix
 has been added to the -mm tree.  Its filename is
-     memcg-fast-hierarchy-aware-child-test-fix-fix.patch
+     memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: fast hierarchy-aware child test fix
+Subject: memcg: replace cgroup_lock with memcg specific memcg_lock fix
 
-Cc: Glauber Costa <glommer@parallels.com>
+Signed-off-by: Glauber Costa <glommer@parallels.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fast-hierarchy-aware-child-test-fix-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fast-hierarchy-aware-child-test-fix-fix
+diff -puN mm/memcontrol.c~memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix
 +++ a/mm/memcontrol.c
-@@ -5734,8 +5734,7 @@ static int mem_cgroup_oom_control_write(
- 
- 	cgroup_lock();
+@@ -5736,7 +5736,7 @@ static int mem_cgroup_oom_control_write(
+ 	mutex_lock(&memcg_create_mutex);
  	/* oom-kill-disable is a flag for subhierarchy. */
--	if ((parent->use_hierarchy) ||
--	    (memcg->use_hierarchy && !list_empty(&cgrp->children))) {
-+	if ((parent->use_hierarchy) || memcg_has_children(memcg)) {
- 		cgroup_unlock();
+ 	if ((parent->use_hierarchy) || memcg_has_children(memcg)) {
+-		cgroup_unlock();
++		mutex_unlock(&memcg_create_mutex);
  		return -EINVAL;
  	}
+ 	memcg->oom_kill_disable = val;
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
@@ -77,6 +77,7 @@ memcg-fast-hierarchy-aware-child-test.patch
 memcg-fast-hierarchy-aware-child-test-fix.patch
 memcg-fast-hierarchy-aware-child-test-fix-fix.patch
 memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
 memcg-increment-static-branch-right-after-limit-set.patch
 memcg-avoid-dangling-reference-count-in-creation-failure.patch
 memcg-stop-warning-on-memcg_propagate_kmem.patch
