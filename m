@@ -1,230 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fb-yet-another-band-aid-for-fixing-lockdep-mess.patch removed from -mm tree
-Date: Mon, 11 Feb 2013 13:25:58 -0800
-Message-ID: <20130211212558.E2AE55A4242@corp2gmr1-2.hot.corp.google.com>
+Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch added to -mm tree
+Date: Mon, 11 Feb 2013 13:48:24 -0800
+Message-ID: <20130211214824.C919A5A40A5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:52484 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932605Ab3BKV0A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 16:26:00 -0500
-Received: by mail-oa0-f74.google.com with SMTP id k14so1230314oag.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 13:26:00 -0800 (PST)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:43146 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932219Ab3BKVs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 16:48:26 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so1235277iad.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 13:48:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tiwai@suse.de, FlorianSchandinat@gmx.de, alan@linux.intel.com, jkosina@suse.cz, sedat.dilek@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, sasha.levin@oracle.com
 
 
 The patch titled
-     Subject: [PATCH] fb: Yet another band-aid for fixing lockdep mess
-has been removed from the -mm tree.  Its filename was
-     fb-yet-another-band-aid-for-fixing-lockdep-mess.patch
+     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix
+has been added to the -mm tree.  Its filename is
+     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH] fb: Yet another band-aid for fixing lockdep mess
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix
 
-I've still got lockdep warnings even after Alan's patch, and it seems that
-yet more band aids are required to paper over similar paths for
-unbind_con_driver() and unregister_con_driver().  After this hack, lockdep
-warnings are finally gone.
-
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c           |   43 ++++++++++++++++++++------------
- drivers/video/console/fbcon.c |    4 +-
- drivers/video/fbmem.c         |    4 ++
- include/linux/console.h       |    1 
- include/linux/vt_kern.h       |    2 +
- 5 files changed, 37 insertions(+), 17 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/tty/vt/vt.c~fb-yet-another-band-aid-for-fixing-lockdep-mess drivers/tty/vt/vt.c
---- a/drivers/tty/vt/vt.c~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/drivers/tty/vt/vt.c
-@@ -3135,6 +3135,18 @@ static int con_is_graphics(const struct 
-  */
- int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+diff -puN drivers/net/ethernet/mellanox/mlx4/en_netdev.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+--- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix
++++ a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+@@ -573,13 +573,13 @@ static void mlx4_en_put_qp(struct mlx4_e
+ 
+ 	if (dev->caps.steering_mode != MLX4_STEERING_MODE_A0) {
+ 		struct mlx4_mac_entry *entry;
+-		struct hlist_node *n, *tmp;
++		struct hlist_node *tmp;
+ 		struct hlist_head *bucket;
+ 		unsigned int mac_hash;
+ 
+ 		mac_hash = priv->dev->dev_addr[MLX4_EN_MAC_HASH_IDX];
+ 		bucket = &priv->mac_hash[mac_hash];
+-		hlist_for_each_entry_safe(entry, n, tmp, bucket, hlist) {
++		hlist_for_each_entry_safe(entry, tmp, bucket, hlist) {
+ 			if (ether_addr_equal_64bits(entry->mac,
+ 						    priv->dev->dev_addr)) {
+ 				en_dbg(DRV, priv, "Releasing qp: port %d, MAC %pM, qpn %d\n",
+@@ -608,11 +608,11 @@ static int mlx4_en_replace_mac(struct ml
+ 		struct hlist_head *bucket;
+ 		unsigned int mac_hash;
+ 		struct mlx4_mac_entry *entry;
+-		struct hlist_node *n, *tmp;
++		struct hlist_node *tmp;
+ 		u64 prev_mac_u64 = mlx4_en_mac_to_u64(prev_mac);
+ 
+ 		bucket = &priv->mac_hash[prev_mac[MLX4_EN_MAC_HASH_IDX]];
+-		hlist_for_each_entry_safe(entry, n, tmp, bucket, hlist) {
++		hlist_for_each_entry_safe(entry, tmp, bucket, hlist) {
+ 			if (ether_addr_equal_64bits(entry->mac, prev_mac)) {
+ 				mlx4_en_uc_steer_release(priv, entry->mac,
+ 							 qpn, entry->reg_id);
+@@ -1018,7 +1018,7 @@ static void mlx4_en_do_uc_filter(struct 
  {
-+	int retval;
-+
-+	console_lock();
-+	retval = do_unbind_con_driver(csw, first, last, deflt);
-+	console_unlock();
-+	return retval;
-+}
-+EXPORT_SYMBOL(unbind_con_driver);
-+
-+/* unlocked version of unbind_con_driver() */
-+int do_unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
-+{
- 	struct module *owner = csw->owner;
- 	const struct consw *defcsw = NULL;
- 	struct con_driver *con_driver = NULL, *con_back = NULL;
-@@ -3143,7 +3155,7 @@ int unbind_con_driver(const struct consw
- 	if (!try_module_get(owner))
- 		return -ENODEV;
- 
--	console_lock();
-+	WARN_CONSOLE_UNLOCKED();
- 
- 	/* check if driver is registered and if it is unbindable */
- 	for (i = 0; i < MAX_NR_CON_DRIVER; i++) {
-@@ -3156,10 +3168,8 @@ int unbind_con_driver(const struct consw
- 		}
- 	}
- 
--	if (retval) {
--		console_unlock();
-+	if (retval)
- 		goto err;
--	}
- 
- 	retval = -ENODEV;
- 
-@@ -3175,15 +3185,11 @@ int unbind_con_driver(const struct consw
- 		}
- 	}
- 
--	if (retval) {
--		console_unlock();
-+	if (retval)
- 		goto err;
--	}
- 
--	if (!con_is_bound(csw)) {
--		console_unlock();
-+	if (!con_is_bound(csw))
- 		goto err;
--	}
- 
- 	first = max(first, con_driver->first);
- 	last = min(last, con_driver->last);
-@@ -3212,13 +3218,12 @@ int unbind_con_driver(const struct consw
- 
- 	/* ignore return value, binding should not fail */
- 	do_bind_con_driver(defcsw, first, last, deflt);
--	console_unlock();
- err:
- 	module_put(owner);
- 	return retval;
- 
- }
--EXPORT_SYMBOL(unbind_con_driver);
-+EXPORT_SYMBOL_GPL(do_unbind_con_driver);
- 
- static int vt_bind(struct con_driver *con)
- {
-@@ -3605,9 +3610,18 @@ EXPORT_SYMBOL(register_con_driver);
-  */
- int unregister_con_driver(const struct consw *csw)
- {
--	int i, retval = -ENODEV;
-+	int retval;
- 
- 	console_lock();
-+	retval = do_unregister_con_driver(csw);
-+	console_unlock();
-+	return retval;
-+}
-+EXPORT_SYMBOL(unregister_con_driver);
-+
-+int do_unregister_con_driver(const struct consw *csw)
-+{
-+	int i, retval = -ENODEV;
- 
- 	/* cannot unregister a bound driver */
- 	if (con_is_bound(csw))
-@@ -3633,10 +3647,9 @@ int unregister_con_driver(const struct c
- 		}
- 	}
- err:
--	console_unlock();
- 	return retval;
- }
--EXPORT_SYMBOL(unregister_con_driver);
-+EXPORT_SYMBOL_GPL(do_unregister_con_driver);
- 
- /*
-  *	If we support more console drivers, this function is used
-diff -puN drivers/video/console/fbcon.c~fb-yet-another-band-aid-for-fixing-lockdep-mess drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/drivers/video/console/fbcon.c
-@@ -3004,7 +3004,7 @@ static int fbcon_unbind(void)
- {
- 	int ret;
- 
--	ret = unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
-+	ret = do_unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
- 				fbcon_is_default);
- 
- 	if (!ret)
-@@ -3077,7 +3077,7 @@ static int fbcon_fb_unregistered(struct 
- 		primary_device = -1;
- 
- 	if (!num_registered_fb)
--		unregister_con_driver(&fb_con);
-+		do_unregister_con_driver(&fb_con);
- 
- 	return 0;
- }
-diff -puN drivers/video/fbmem.c~fb-yet-another-band-aid-for-fixing-lockdep-mess drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/drivers/video/fbmem.c
-@@ -1668,8 +1668,10 @@ static int do_unregister_framebuffer(str
- 
- 	if (!lock_fb_info(fb_info))
- 		return -ENODEV;
-+	console_lock();
- 	event.info = fb_info;
- 	ret = fb_notifier_call_chain(FB_EVENT_FB_UNBIND, &event);
-+	console_unlock();
- 	unlock_fb_info(fb_info);
- 
- 	if (ret)
-@@ -1684,7 +1686,9 @@ static int do_unregister_framebuffer(str
- 	num_registered_fb--;
- 	fb_cleanup_device(fb_info);
- 	event.info = fb_info;
-+	console_lock();
- 	fb_notifier_call_chain(FB_EVENT_FB_UNREGISTERED, &event);
-+	console_unlock();
- 
- 	/* this may free fb info */
- 	put_fb_info(fb_info);
-diff -puN include/linux/console.h~fb-yet-another-band-aid-for-fixing-lockdep-mess include/linux/console.h
---- a/include/linux/console.h~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/include/linux/console.h
-@@ -77,6 +77,7 @@ extern const struct consw prom_con;	/* S
- int con_is_bound(const struct consw *csw);
- int register_con_driver(const struct consw *csw, int first, int last);
- int unregister_con_driver(const struct consw *csw);
-+int do_unregister_con_driver(const struct consw *csw);
- int take_over_console(const struct consw *sw, int first, int last, int deflt);
- int do_take_over_console(const struct consw *sw, int first, int last, int deflt);
- void give_up_console(const struct consw *sw);
-diff -puN include/linux/vt_kern.h~fb-yet-another-band-aid-for-fixing-lockdep-mess include/linux/vt_kern.h
---- a/include/linux/vt_kern.h~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/include/linux/vt_kern.h
-@@ -130,6 +130,8 @@ void vt_event_post(unsigned int event, u
- int vt_waitactive(int n);
- void change_console(struct vc_data *new_vc);
- void reset_vc(struct vc_data *vc);
-+extern int do_unbind_con_driver(const struct consw *csw, int first, int last,
-+			     int deflt);
- extern int unbind_con_driver(const struct consw *csw, int first, int last,
- 			     int deflt);
- int vty_init(const struct file_operations *console_fops);
+ 	struct netdev_hw_addr *ha;
+ 	struct mlx4_mac_entry *entry;
+-	struct hlist_node *n, *tmp;
++	struct hlist_node *tmp;
+ 	bool found;
+ 	u64 mac;
+ 	int err = 0;
+@@ -1034,7 +1034,7 @@ static void mlx4_en_do_uc_filter(struct 
+ 	/* find what to remove */
+ 	for (i = 0; i < MLX4_EN_MAC_HASH_SIZE; ++i) {
+ 		bucket = &priv->mac_hash[i];
+-		hlist_for_each_entry_safe(entry, n, tmp, bucket, hlist) {
++		hlist_for_each_entry_safe(entry, tmp, bucket, hlist) {
+ 			found = false;
+ 			netdev_for_each_uc_addr(ha, dev) {
+ 				if (ether_addr_equal_64bits(entry->mac,
+@@ -1077,7 +1077,7 @@ static void mlx4_en_do_uc_filter(struct 
+ 	netdev_for_each_uc_addr(ha, dev) {
+ 		found = false;
+ 		bucket = &priv->mac_hash[ha->addr[MLX4_EN_MAC_HASH_IDX]];
+-		hlist_for_each_entry(entry, n, bucket, hlist) {
++		hlist_for_each_entry(entry, bucket, hlist) {
+ 			if (ether_addr_equal_64bits(entry->mac, ha->addr)) {
+ 				found = true;
+ 				break;
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+goldfish-framebuffer-driver-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+selftests-add-tests-for-efivarfs-fix.patch
+tools-testing-selftests-makefile-rearrange-targets.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
