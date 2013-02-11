@@ -1,110 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch added to -mm tree
-Date: Mon, 11 Feb 2013 14:06:09 -0800
-Message-ID: <20130211220610.754AB5A426F@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-dropped] signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch removed from -mm tree
+Date: Mon, 11 Feb 2013 14:43:19 -0800
+Message-ID: <20130211224320.6E34431C278@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:38949 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932691Ab3BKWGM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 17:06:12 -0500
-Received: by mail-ob0-f201.google.com with SMTP id un3so1240691obb.4
-        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 14:06:11 -0800 (PST)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:44362 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932779Ab3BKWnW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 17:43:22 -0500
+Received: by mail-oa0-f73.google.com with SMTP id o6so1246812oag.4
+        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 14:43:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, amirv@mellanox.com, fengguang.wu@intel.com, sasha.levin@oracle.com
+To: akpm@linux-foundation.org, avagin@openvz.org, dhowells@redhat.com, gorcunov@openvz.org, mtk.manpages@gmail.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix
-has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+     Subject: signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix
+has been removed from the -mm tree.  Its filename was
+     signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix
+Subject: signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Amir Vadai <amirv@mellanox.com>
+fix __user annotations, tidy comments and code layout
+
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/mellanox/mlx4/en_netdev.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/signalfd.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/ethernet/mellanox/mlx4/en_netdev.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix drivers/net/ethernet/mellanox/mlx4/en_netdev.c
---- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix
-+++ a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-@@ -573,13 +573,13 @@ static void mlx4_en_put_qp(struct mlx4_e
+diff -puN fs/signalfd.c~signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix fs/signalfd.c
+--- a/fs/signalfd.c~signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix
++++ a/fs/signalfd.c
+@@ -75,14 +75,14 @@ static unsigned int signalfd_poll(struct
+ }
  
- 	if (dev->caps.steering_mode != MLX4_STEERING_MODE_A0) {
- 		struct mlx4_mac_entry *entry;
--		struct hlist_node *n, *tmp;
-+		struct hlist_node *tmp;
- 		struct hlist_head *bucket;
- 		unsigned int mac_hash;
- 
- 		mac_hash = priv->dev->dev_addr[MLX4_EN_MAC_HASH_IDX];
- 		bucket = &priv->mac_hash[mac_hash];
--		hlist_for_each_entry_safe(entry, n, tmp, bucket, hlist) {
-+		hlist_for_each_entry_safe(entry, tmp, bucket, hlist) {
- 			if (ether_addr_equal_64bits(entry->mac,
- 						    priv->dev->dev_addr)) {
- 				en_dbg(DRV, priv, "Releasing qp: port %d, MAC %pM, qpn %d\n",
-@@ -608,11 +608,11 @@ static int mlx4_en_replace_mac(struct ml
- 		struct hlist_head *bucket;
- 		unsigned int mac_hash;
- 		struct mlx4_mac_entry *entry;
--		struct hlist_node *n, *tmp;
-+		struct hlist_node *tmp;
- 		u64 prev_mac_u64 = mlx4_en_mac_to_u64(prev_mac);
- 
- 		bucket = &priv->mac_hash[prev_mac[MLX4_EN_MAC_HASH_IDX]];
--		hlist_for_each_entry_safe(entry, n, tmp, bucket, hlist) {
-+		hlist_for_each_entry_safe(entry, tmp, bucket, hlist) {
- 			if (ether_addr_equal_64bits(entry->mac, prev_mac)) {
- 				mlx4_en_uc_steer_release(priv, entry->mac,
- 							 qpn, entry->reg_id);
-@@ -1018,7 +1018,7 @@ static void mlx4_en_do_uc_filter(struct 
+ /*
+- * Copy a whole siginfo into users spaces.
++ * Copy a whole siginfo into userspace.
+  * The main idea of this format is that it should be enough
+  * for restoring siginfo back into the kernel.
+  */
+ static int signalfd_copy_raw_info(struct signalfd_siginfo __user *siginfo,
+ 					siginfo_t *kinfo)
  {
- 	struct netdev_hw_addr *ha;
- 	struct mlx4_mac_entry *entry;
--	struct hlist_node *n, *tmp;
-+	struct hlist_node *tmp;
- 	bool found;
- 	u64 mac;
- 	int err = 0;
-@@ -1034,7 +1034,7 @@ static void mlx4_en_do_uc_filter(struct 
- 	/* find what to remove */
- 	for (i = 0; i < MLX4_EN_MAC_HASH_SIZE; ++i) {
- 		bucket = &priv->mac_hash[i];
--		hlist_for_each_entry_safe(entry, n, tmp, bucket, hlist) {
-+		hlist_for_each_entry_safe(entry, tmp, bucket, hlist) {
- 			found = false;
- 			netdev_for_each_uc_addr(ha, dev) {
- 				if (ether_addr_equal_64bits(entry->mac,
-@@ -1077,7 +1077,7 @@ static void mlx4_en_do_uc_filter(struct 
- 	netdev_for_each_uc_addr(ha, dev) {
- 		found = false;
- 		bucket = &priv->mac_hash[ha->addr[MLX4_EN_MAC_HASH_IDX]];
--		hlist_for_each_entry(entry, n, bucket, hlist) {
-+		hlist_for_each_entry(entry, bucket, hlist) {
- 			if (ether_addr_equal_64bits(entry->mac, ha->addr)) {
- 				found = true;
- 				break;
+-	siginfo_t *uinfo = (siginfo_t *) siginfo;
++	siginfo_t __user *uinfo = (siginfo_t __user *)siginfo;
+ 	int err;
+ 
+ 	BUILD_BUG_ON(sizeof(siginfo_t) != sizeof(struct signalfd_siginfo));
+@@ -91,19 +91,20 @@ static int signalfd_copy_raw_info(struct
+ 
+ #ifdef CONFIG_COMPAT
+ 	if (unlikely(is_compat_task())) {
+-		compat_siginfo_t *compat_uinfo = (compat_siginfo_t *) siginfo;
++		compat_siginfo_t __user *compat_uinfo;
+ 
++		compat_uinfo = (compat_siginfo_t __user *)siginfo;
+ 		err |= copy_siginfo_to_user32(compat_uinfo, kinfo);
+ 		err |= put_user(kinfo->si_code, &compat_uinfo->si_code);
+ 
+-		return err ? -EFAULT: sizeof(*compat_uinfo);
++		return err ? -EFAULT : sizeof(*compat_uinfo);
+ 	}
+ #endif
+ 
+ 	err |= copy_siginfo_to_user(uinfo, kinfo);
+ 	err |= put_user(kinfo->si_code, &uinfo->si_code);
+ 
+-	return err ? -EFAULT: sizeof(*uinfo);
++	return err ? -EFAULT : sizeof(*uinfo);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -186,7 +169,7 @@ rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
 rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
 signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2.patch
 fs-proc-clean-up-printks.patch
 fs-proc-clean-up-printks-fix.patch
 fs-proc-clean-up-printks-fix-fix.patch
