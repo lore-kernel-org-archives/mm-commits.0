@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + idr-fix-top-layer-handling.patch added to -mm tree
-Date: Mon, 11 Feb 2013 15:42:17 -0800
-Message-ID: <20130211234218.5872C31C1D6@corp2gmr1-1.hot.corp.google.com>
+Subject: + idr-remove-length-restriction-from-idr_layer-bitmap.patch added to -mm tree
+Date: Mon, 11 Feb 2013 15:42:24 -0800
+Message-ID: <20130211234225.3BC565A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:41342 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760215Ab3BKXmV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 18:42:21 -0500
-Received: by mail-ie0-f201.google.com with SMTP id 16so1220718iea.4
-        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 15:42:19 -0800 (PST)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:57633 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760128Ab3BKXm1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 18:42:27 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so1259748iad.5
+        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 15:42:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, rusty@rustcorp.com.au, stable@vger.kernel.org
+Cc: tj@kernel.org
 
 
 The patch titled
-     Subject: idr: fix top layer handling
+     Subject: idr: remove length restriction from idr_layer->bitmap
 has been added to the -mm tree.  Its filename is
-     idr-fix-top-layer-handling.patch
+     idr-remove-length-restriction-from-idr_layer-bitmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,183 +34,196 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: idr: fix top layer handling
+Subject: idr: remove length restriction from idr_layer->bitmap
 
-Most functions in idr fail to deal with the high bits when the idr
-tree grows to the maximum height.
+Currently, idr->bitmap is declared as an unsigned long which restricts
+the number of bits an idr_layer can contain.  All bitops can handle
+arbitrary positive integer bit number and there's no reason for this
+restriction.
 
-* idr_get_empty_slot() stops growing idr tree once the depth reaches
-  MAX_IDR_LEVEL - 1, which is one depth shallower than necessary to
-  cover the whole range.  The function doesn't even notice that it
-  didn't grow the tree enough and ends up allocating the wrong ID
-  given sufficiently high @starting_id.
+Declare idr_layer->bitmap using DECLARE_BITMAP() instead of a single
+unsigned long.
 
-  For example, on 64 bit, if the starting id is 0x7fffff01,
-  idr_get_empty_slot() will grow the tree 5 layer deep, which only
-  covers the 30 bits and then proceed to allocate as if the bit 30
-  wasn't specified.  It ends up allocating 0x3fffff01 without the bit
-  30 but still returns 0x7fffff01.
+* idr_layer->bitmap is now an array.  '&' dropped from params to
+  bitops.
 
-* __idr_remove_all() will not remove anything if the tree is fully
-  grown.
+* Replaced "== IDR_FULL" tests with bitmap_full() and removed
+  IDR_FULL.
 
-* idr_find() can't find anything if the tree is fully grown.
+* Replaced find_next_bit() on ~bitmap with find_next_zero_bit().
 
-* idr_for_each() and idr_get_next() can't iterate anything if the tree
-  is fully grown.
+* Replaced "bitmap = 0" with bitmap_clear().
 
-Fix it by introducing idr_max() which returns the maximum possible ID
-given the depth of tree and replacing the id limit checks in all
-affected places.
-
-As the idr_layer pointer array pa[] needs to be 1 larger than the
-maximum depth, enlarge pa[] arrays by one.
-
-While this plugs the discovered issues, the whole code base is
-horrible and in desparate need of rewrite.  It's fragile like hell,
+This patch doesn't (or at least shouldn't) introduce any behavior
+changes.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: <stable@vger.kernel.org>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ include/linux/idr.h |   12 +-----------
+ lib/idr.c           |   34 +++++++++++++++++-----------------
+ 2 files changed, 18 insertions(+), 28 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-top-layer-handling lib/idr.c
---- a/lib/idr.c~idr-fix-top-layer-handling
+diff -puN include/linux/idr.h~idr-remove-length-restriction-from-idr_layer-bitmap include/linux/idr.h
+--- a/include/linux/idr.h~idr-remove-length-restriction-from-idr_layer-bitmap
++++ a/include/linux/idr.h
+@@ -19,18 +19,8 @@
+ 
+ #if BITS_PER_LONG == 32
+ # define IDR_BITS 5
+-# define IDR_FULL 0xfffffffful
+-/* We can only use two of the bits in the top level because there is
+-   only one possible bit in the top level (5 bits * 7 levels = 35
+-   bits, but you only use 31 bits in the id). */
+-# define TOP_LEVEL_FULL (IDR_FULL >> 30)
+ #elif BITS_PER_LONG == 64
+ # define IDR_BITS 6
+-# define IDR_FULL 0xfffffffffffffffful
+-/* We can only use two of the bits in the top level because there is
+-   only one possible bit in the top level (6 bits * 6 levels = 36
+-   bits, but you only use 31 bits in the id). */
+-# define TOP_LEVEL_FULL (IDR_FULL >> 62)
+ #else
+ # error "BITS_PER_LONG is not 32 or 64"
+ #endif
+@@ -39,7 +29,7 @@
+ #define IDR_MASK ((1 << IDR_BITS)-1)
+ 
+ struct idr_layer {
+-	unsigned long		bitmap;	/* A zero bit means "space here" */
++	DECLARE_BITMAP(bitmap, IDR_SIZE); /* A zero bit means "space here" */
+ 	struct idr_layer __rcu	*ary[1<<IDR_BITS];
+ 	int			count;	/* When zero, we can release it */
+ 	int			layer;	/* distance from leaf */
+diff -puN lib/idr.c~idr-remove-length-restriction-from-idr_layer-bitmap lib/idr.c
+--- a/lib/idr.c~idr-remove-length-restriction-from-idr_layer-bitmap
 +++ a/lib/idr.c
-@@ -43,6 +43,14 @@ static DEFINE_PER_CPU(struct idr_layer *
- static DEFINE_PER_CPU(int, idr_preload_cnt);
- static DEFINE_SPINLOCK(simple_ida_lock);
+@@ -157,18 +157,18 @@ static void idr_mark_full(struct idr_lay
+ 	struct idr_layer *p = pa[0];
+ 	int l = 0;
  
-+/* the maximum ID which can be allocated given idr->layers */
-+static int idr_max(int layers)
-+{
-+	int bits = min_t(int, layers * IDR_BITS, MAX_IDR_SHIFT);
-+
-+	return (1 << bits) - 1;
-+}
-+
- static struct idr_layer *get_from_free_list(struct idr *idp)
- {
- 	struct idr_layer *p;
-@@ -290,7 +298,7 @@ build_up:
- 	 * Add a new layer to the top of the tree if the requested
- 	 * id is larger than the currently allocated space.
+-	__set_bit(id & IDR_MASK, &p->bitmap);
++	__set_bit(id & IDR_MASK, p->bitmap);
+ 	/*
+ 	 * If this layer is full mark the bit in the layer above to
+ 	 * show that this part of the radix tree is full.  This may
+ 	 * complete the layer above and require walking up the radix
+ 	 * tree.
  	 */
--	while ((layers < (MAX_IDR_LEVEL - 1)) && (id >= (1 << (layers*IDR_BITS)))) {
-+	while (id > idr_max(layers)) {
- 		layers++;
- 		if (!p->count) {
- 			/* special case: if the tree is currently empty,
-@@ -361,7 +369,7 @@ static void idr_fill_slot(void *ptr, int
-  */
- int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id)
- {
--	struct idr_layer *pa[MAX_IDR_LEVEL];
-+	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
- 	int rv;
+-	while (p->bitmap == IDR_FULL) {
++	while (bitmap_full(p->bitmap, IDR_SIZE)) {
+ 		if (!(p = pa[++l]))
+ 			break;
+ 		id = id >> IDR_BITS;
+-		__set_bit((id & IDR_MASK), &p->bitmap);
++		__set_bit((id & IDR_MASK), p->bitmap);
+ 	}
+ }
  
- 	rv = idr_get_empty_slot(idp, starting_id, pa, 0, idp);
-@@ -457,7 +465,7 @@ EXPORT_SYMBOL(idr_preload);
- int idr_alloc(struct idr *idr, void *ptr, int start, int end, gfp_t gfp_mask)
- {
- 	int max = end > 0 ? end - 1 : INT_MAX;	/* inclusive upper limit */
--	struct idr_layer *pa[MAX_IDR_LEVEL];
-+	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
- 	int id;
+@@ -221,7 +221,6 @@ static int sub_alloc(struct idr *idp, in
+ 	int n, m, sh;
+ 	struct idr_layer *p, *new;
+ 	int l, id, oid;
+-	unsigned long bm;
  
- 	might_sleep_if(gfp_mask & __GFP_WAIT);
-@@ -490,7 +498,7 @@ static void idr_remove_warning(int id)
- static void sub_remove(struct idr *idp, int shift, int id)
- {
- 	struct idr_layer *p = idp->top;
--	struct idr_layer **pa[MAX_IDR_LEVEL];
-+	struct idr_layer **pa[MAX_IDR_LEVEL + 1];
- 	struct idr_layer ***paa = &pa[0];
- 	struct idr_layer *to_free;
- 	int n;
-@@ -571,16 +579,16 @@ void __idr_remove_all(struct idr *idp)
- 	int n, id, max;
- 	int bt_mask;
- 	struct idr_layer *p;
--	struct idr_layer *pa[MAX_IDR_LEVEL];
-+	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
- 	struct idr_layer **paa = &pa[0];
+ 	id = *starting_id;
+  restart:
+@@ -233,8 +232,7 @@ static int sub_alloc(struct idr *idp, in
+ 		 * We run around this while until we reach the leaf node...
+ 		 */
+ 		n = (id >> (IDR_BITS*l)) & IDR_MASK;
+-		bm = ~p->bitmap;
+-		m = find_next_bit(&bm, IDR_SIZE, n);
++		m = find_next_zero_bit(p->bitmap, IDR_SIZE, n);
+ 		if (m == IDR_SIZE) {
+ 			/* no space available go back to previous layer. */
+ 			l++;
+@@ -326,7 +324,8 @@ build_up:
+ 			for (new = p; p && p != idp->top; new = p) {
+ 				p = p->ary[0];
+ 				new->ary[0] = NULL;
+-				new->bitmap = new->count = 0;
++				new->count = 0;
++				bitmap_clear(new->bitmap, 0, IDR_SIZE);
+ 				__move_to_free_list(idp, new);
+ 			}
+ 			spin_unlock_irqrestore(&idp->lock, flags);
+@@ -335,8 +334,8 @@ build_up:
+ 		new->ary[0] = p;
+ 		new->count = 1;
+ 		new->layer = layers-1;
+-		if (p->bitmap == IDR_FULL)
+-			__set_bit(0, &new->bitmap);
++		if (bitmap_full(p->bitmap, IDR_SIZE))
++			__set_bit(0, new->bitmap);
+ 		p = new;
+ 	}
+ 	rcu_assign_pointer(idp->top, p);
+@@ -517,14 +516,14 @@ static void sub_remove(struct idr *idp, 
  
- 	n = idp->layers * IDR_BITS;
- 	p = idp->top;
- 	rcu_assign_pointer(idp->top, NULL);
--	max = 1 << n;
-+	max = idr_max(idp->layers);
+ 	while ((shift > 0) && p) {
+ 		n = (id >> shift) & IDR_MASK;
+-		__clear_bit(n, &p->bitmap);
++		__clear_bit(n, p->bitmap);
+ 		*++paa = &p->ary[n];
+ 		p = p->ary[n];
+ 		shift -= IDR_BITS;
+ 	}
+ 	n = id & IDR_MASK;
+-	if (likely(p != NULL && test_bit(n, &p->bitmap))){
+-		__clear_bit(n, &p->bitmap);
++	if (likely(p != NULL && test_bit(n, p->bitmap))){
++		__clear_bit(n, p->bitmap);
+ 		rcu_assign_pointer(p->ary[n], NULL);
+ 		to_free = NULL;
+ 		while(*paa && ! --((**paa)->count)){
+@@ -567,7 +566,8 @@ void idr_remove(struct idr *idp, int id)
+ 		p = idp->top->ary[0];
+ 		rcu_assign_pointer(idp->top, p);
+ 		--idp->layers;
+-		to_free->bitmap = to_free->count = 0;
++		to_free->count = 0;
++		bitmap_clear(to_free->bitmap, 0, IDR_SIZE);
+ 		free_layer(to_free);
+ 	}
+ 	while (idp->id_free_cnt >= MAX_IDR_FREE) {
+@@ -827,7 +827,7 @@ void *idr_replace(struct idr *idp, void 
+ 	}
  
- 	id = 0;
--	while (id < max) {
-+	while (id >= 0 && id <= max) {
- 		while (n > IDR_BITS && p) {
- 			n -= IDR_BITS;
- 			*paa++ = p;
-@@ -650,7 +658,7 @@ void *idr_find(struct idr *idp, int id)
- 	/* Mask off upper bits we don't use for the search. */
- 	id &= MAX_IDR_MASK;
+ 	n = id & IDR_MASK;
+-	if (unlikely(p == NULL || !test_bit(n, &p->bitmap)))
++	if (unlikely(p == NULL || !test_bit(n, p->bitmap)))
+ 		return ERR_PTR(-ENOENT);
  
--	if (id >= (1 << n))
-+	if (id > idr_max(p->layer + 1))
- 		return NULL;
- 	BUG_ON(n == 0);
+ 	old_p = p->ary[n];
+@@ -1024,7 +1024,7 @@ void ida_remove(struct ida *ida, int id)
+ 	/* clear full bits while looking up the leaf idr_layer */
+ 	while ((shift > 0) && p) {
+ 		n = (idr_id >> shift) & IDR_MASK;
+-		__clear_bit(n, &p->bitmap);
++		__clear_bit(n, p->bitmap);
+ 		p = p->ary[n];
+ 		shift -= IDR_BITS;
+ 	}
+@@ -1033,7 +1033,7 @@ void ida_remove(struct ida *ida, int id)
+ 		goto err;
  
-@@ -686,15 +694,15 @@ int idr_for_each(struct idr *idp,
- {
- 	int n, id, max, error = 0;
- 	struct idr_layer *p;
--	struct idr_layer *pa[MAX_IDR_LEVEL];
-+	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
- 	struct idr_layer **paa = &pa[0];
+ 	n = idr_id & IDR_MASK;
+-	__clear_bit(n, &p->bitmap);
++	__clear_bit(n, p->bitmap);
  
- 	n = idp->layers * IDR_BITS;
- 	p = rcu_dereference_raw(idp->top);
--	max = 1 << n;
-+	max = idr_max(idp->layers);
- 
- 	id = 0;
--	while (id < max) {
-+	while (id >= 0 && id <= max) {
- 		while (n > 0 && p) {
- 			n -= IDR_BITS;
- 			*paa++ = p;
-@@ -732,7 +740,7 @@ EXPORT_SYMBOL(idr_for_each);
-  */
- void *idr_get_next(struct idr *idp, int *nextidp)
- {
--	struct idr_layer *p, *pa[MAX_IDR_LEVEL];
-+	struct idr_layer *p, *pa[MAX_IDR_LEVEL + 1];
- 	struct idr_layer **paa = &pa[0];
- 	int id = *nextidp;
- 	int n, max;
-@@ -742,9 +750,9 @@ void *idr_get_next(struct idr *idp, int 
- 	if (!p)
- 		return NULL;
- 	n = (p->layer + 1) * IDR_BITS;
--	max = 1 << n;
-+	max = idr_max(p->layer + 1);
- 
--	while (id < max) {
-+	while (id >= 0 && id <= max) {
- 		while (n > 0 && p) {
- 			n -= IDR_BITS;
- 			*paa++ = p;
-@@ -918,7 +926,7 @@ EXPORT_SYMBOL(ida_pre_get);
-  */
- int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
- {
--	struct idr_layer *pa[MAX_IDR_LEVEL];
-+	struct idr_layer *pa[MAX_IDR_LEVEL + 1];
- 	struct ida_bitmap *bitmap;
- 	unsigned long flags;
- 	int idr_id = starting_id / IDA_BITMAP_BITS;
+ 	bitmap = (void *)p->ary[n];
+ 	if (!test_bit(offset, bitmap->bitmap))
+@@ -1042,7 +1042,7 @@ void ida_remove(struct ida *ida, int id)
+ 	/* update bitmap and remove it if empty */
+ 	__clear_bit(offset, bitmap->bitmap);
+ 	if (--bitmap->nr_busy == 0) {
+-		__set_bit(n, &p->bitmap);	/* to please idr_remove() */
++		__set_bit(n, p->bitmap);	/* to please idr_remove() */
+ 		idr_remove(&ida->idr, idr_id);
+ 		free_bitmap(ida, bitmap);
+ 	}
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
