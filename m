@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + idr-implement-lookup-hint.patch added to -mm tree
-Date: Mon, 11 Feb 2013 15:42:32 -0800
-Message-ID: <20130211234233.4110B5A41D2@corp2gmr1-2.hot.corp.google.com>
+Subject: + idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 11 Feb 2013 15:43:14 -0800
+Message-ID: <20130211234315.445DF5A41D2@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:45328 "EHLO
-	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760215Ab3BKXme (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 18:42:34 -0500
-Received: by mail-ia0-f201.google.com with SMTP id t4so1260008iag.2
-        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 15:42:34 -0800 (PST)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:39763 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760128Ab3BKXnQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 18:43:16 -0500
+Received: by mail-ie0-f202.google.com with SMTP id k14so1221205iea.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 15:43:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org
+Cc: akpm@linux-foundation.org, tj@kernel.org
 
 
 The patch titled
-     Subject: idr: implement lookup hint
+     Subject: idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     idr-implement-lookup-hint.patch
+     idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,300 +33,163 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: idr: implement lookup hint
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes
 
-While idr lookup isn't a particularly heavy operation, it still is too
-substantial to use in hot paths without worrying about the performance
-implications.  With recent changes, each idr_layer covers 256 slots
-which should be enough to cover most use cases with single idr_layer
-making lookup hint very attractive.
+ERROR: space required before the open brace '{'
+#141: FILE: lib/idr.c:525:
++	if (likely(p != NULL && test_bit(n, p->bitmap))){
 
-This patch adds idr->hint which points to the idr_layer which
-allocated an ID most recently and the fast path lookup becomes
+total: 1 errors, 0 warnings, 140 lines checked
 
-	if (look up target's prefix matches that of the hinted layer)
-		return hint->ary[ID's offset in the leaf layer];
+./patches/idr-remove-length-restriction-from-idr_layer-bitmap.patch has style problems, please review.
 
-which can be inlined.
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
-idr->hint is set to the leaf node on idr_fill_slot() and cleared from
-free_layer().
+Please run checkpatch prior to sending patches
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   25 ++++++++++++++++++++++++-
- lib/idr.c           |   38 ++++++++++++++++----------------------
- 2 files changed, 40 insertions(+), 23 deletions(-)
+ lib/idr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/idr.h~idr-implement-lookup-hint include/linux/idr.h
---- a/include/linux/idr.h~idr-implement-lookup-hint
-+++ a/include/linux/idr.h
-@@ -37,6 +37,7 @@ struct idr_layer {
- };
- 
- struct idr {
-+	struct idr_layer __rcu	*hint;	/* the last layer allocated from */
- 	struct idr_layer __rcu	*top;
- 	struct idr_layer	*id_free;
- 	int			layers;	/* only valid w/o concurrent changes */
-@@ -71,7 +72,7 @@ struct idr {
-  * This is what we export.
-  */
- 
--void *idr_find(struct idr *idp, int id);
-+void *idr_find_slowpath(struct idr *idp, int id);
- int idr_pre_get(struct idr *idp, gfp_t gfp_mask);
- int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
- void idr_preload(gfp_t gfp_mask);
-@@ -97,6 +98,28 @@ static inline void idr_preload_end(void)
- }
- 
- /**
-+ * idr_find - return pointer for given id
-+ * @idp: idr handle
-+ * @id: lookup key
-+ *
-+ * Return the pointer given the id it has been registered with.  A %NULL
-+ * return indicates that @id is not valid or you passed %NULL in
-+ * idr_get_new().
-+ *
-+ * This function can be called under rcu_read_lock(), given that the leaf
-+ * pointers lifetimes are correctly managed.
-+ */
-+static inline void *idr_find(struct idr *idr, int id)
-+{
-+	struct idr_layer *hint = rcu_dereference_raw(idr->hint);
-+
-+	if ((id & ~IDR_MASK) == hint->prefix)
-+		return rcu_dereference_raw(hint->ary[id & IDR_MASK]);
-+
-+	return idr_find_slowpath(idr, id);
-+}
-+
-+/**
-  * idr_get_new - allocate new idr entry
-  * @idp: idr handle
-  * @ptr: pointer you want associated with the id
-diff -puN lib/idr.c~idr-implement-lookup-hint lib/idr.c
---- a/lib/idr.c~idr-implement-lookup-hint
+diff -puN lib/idr.c~idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes lib/idr.c
+--- a/lib/idr.c~idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes
 +++ a/lib/idr.c
-@@ -137,8 +137,10 @@ static void idr_layer_rcu_free(struct rc
- 	kmem_cache_free(idr_layer_cache, layer);
- }
- 
--static inline void free_layer(struct idr_layer *p)
-+static inline void free_layer(struct idr *idr, struct idr_layer *p)
- {
-+	if (idr->hint == p)
-+		RCU_INIT_POINTER(idr->hint, NULL);
- 	call_rcu(&p->rcu_head, idr_layer_rcu_free);
- }
- 
-@@ -363,8 +365,12 @@ build_up:
-  * @id and @pa are from a successful allocation from idr_get_empty_slot().
-  * Install the user pointer @ptr and mark the slot full.
-  */
--static void idr_fill_slot(void *ptr, int id, struct idr_layer **pa)
-+static void idr_fill_slot(struct idr *idr, void *ptr, int id,
-+			  struct idr_layer **pa)
- {
-+	/* update hint used for lookup, cleared from free_layer() */
-+	rcu_assign_pointer(idr->hint, pa[0]);
-+
- 	rcu_assign_pointer(pa[0]->ary[id & IDR_MASK], (struct idr_layer *)ptr);
- 	pa[0]->count++;
- 	idr_mark_full(pa, id);
-@@ -397,7 +403,7 @@ int idr_get_new_above(struct idr *idp, v
- 	if (rv < 0)
- 		return rv == -ENOMEM ? -EAGAIN : rv;
- 
--	idr_fill_slot(ptr, rv, pa);
-+	idr_fill_slot(idp, ptr, rv, pa);
- 	*id = rv;
- 	return 0;
- }
-@@ -504,7 +510,7 @@ int idr_alloc(struct idr *idr, void *ptr
- 	if (unlikely(id > max))
- 		return -ENOSPC;
- 
--	idr_fill_slot(ptr, id, pa);
-+	idr_fill_slot(idr, ptr, id, pa);
- 	return id;
- }
- EXPORT_SYMBOL_GPL(idr_alloc);
-@@ -541,14 +547,14 @@ static void sub_remove(struct idr *idp, 
+@@ -522,7 +522,7 @@ static void sub_remove(struct idr *idp, 
+ 		shift -= IDR_BITS;
+ 	}
+ 	n = id & IDR_MASK;
+-	if (likely(p != NULL && test_bit(n, p->bitmap))){
++	if (likely(p != NULL && test_bit(n, p->bitmap))) {
+ 		__clear_bit(n, p->bitmap);
+ 		rcu_assign_pointer(p->ary[n], NULL);
  		to_free = NULL;
- 		while(*paa && ! --((**paa)->count)){
- 			if (to_free)
--				free_layer(to_free);
-+				free_layer(idp, to_free);
- 			to_free = **paa;
- 			**paa-- = NULL;
- 		}
- 		if (!*paa)
- 			idp->layers = 0;
- 		if (to_free)
--			free_layer(to_free);
-+			free_layer(idp, to_free);
- 	} else
- 		idr_remove_warning(id);
- }
-@@ -581,7 +587,7 @@ void idr_remove(struct idr *idp, int id)
- 		--idp->layers;
- 		to_free->count = 0;
- 		bitmap_clear(to_free->bitmap, 0, IDR_SIZE);
--		free_layer(to_free);
-+		free_layer(idp, to_free);
- 	}
- 	while (idp->id_free_cnt >= MAX_IDR_FREE) {
- 		p = get_from_free_list(idp);
-@@ -622,7 +628,7 @@ void __idr_remove_all(struct idr *idp)
- 		/* Get the highest bit that the above add changed from 0->1. */
- 		while (n < fls(id ^ bt_mask)) {
- 			if (p)
--				free_layer(p);
-+				free_layer(idp, p);
- 			n += IDR_BITS;
- 			p = *--paa;
- 		}
-@@ -655,19 +661,7 @@ void idr_destroy(struct idr *idp)
- }
- EXPORT_SYMBOL(idr_destroy);
- 
--/**
-- * idr_find - return pointer for given id
-- * @idp: idr handle
-- * @id: lookup key
-- *
-- * Return the pointer given the id it has been registered with.  A %NULL
-- * return indicates that @id is not valid or you passed %NULL in
-- * idr_get_new().
-- *
-- * This function can be called under rcu_read_lock(), given that the leaf
-- * pointers lifetimes are correctly managed.
-- */
--void *idr_find(struct idr *idp, int id)
-+void *idr_find_slowpath(struct idr *idp, int id)
- {
- 	int n;
- 	struct idr_layer *p;
-@@ -691,7 +685,7 @@ void *idr_find(struct idr *idp, int id)
- 	}
- 	return((void *)p);
- }
--EXPORT_SYMBOL(idr_find);
-+EXPORT_SYMBOL(idr_find_slowpath);
- 
- /**
-  * idr_for_each - iterate through all stored pointers
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-cfq-fix-lock-imbalance-with-failed-allocations.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
-memcg-clean-up-swap-accounting-initialization-code.patch
-memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
-memcg-split-part-of-memcg-creation-to-css_online.patch
-memcg-fast-hierarchy-aware-child-test.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+goldfish-framebuffer-driver-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
 memcg-fast-hierarchy-aware-child-test-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix-fix.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
-memcg-increment-static-branch-right-after-limit-set.patch
-memcg-avoid-dangling-reference-count-in-creation-failure.patch
-idr-fix-a-subtle-bug-in-idr_get_next.patch
-idr-make-idr_destroy-imply-idr_remove_all.patch
-atm-nicstar-dont-use-idr_remove_all.patch
-block-loop-dont-use-idr_remove_all.patch
-firewire-dont-use-idr_remove_all.patch
-drm-dont-use-idr_remove_all.patch
-dm-dont-use-idr_remove_all.patch
-remoteproc-dont-use-idr_remove_all.patch
-rpmsg-dont-use-idr_remove_all.patch
-dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
-dlm-dont-use-idr_remove_all.patch
-nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
-inotify-dont-use-idr_remove_all.patch
-cgroup-dont-use-idr_remove_all.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
 nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-idr-deprecate-idr_remove_all.patch
-idr-cosmetic-updates-to-struct-initializer-definitions.patch
-idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch
-idr-remove-_idr_rc_to_errno-hack.patch
-idr-refactor-idr_get_new_above.patch
-idr-implement-idr_preload-and-idr_alloc.patch
-idr-implement-idr_preload-and-idr_alloc-fix.patch
-block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
-block-convert-to-idr_alloc.patch
-block-loop-convert-to-idr_alloc.patch
-atm-nicstar-convert-to-idr_alloc.patch
-drbd-convert-to-idr_alloc.patch
-dca-convert-to-idr_alloc.patch
-dmaengine-convert-to-idr_alloc.patch
-firewire-add-minor-number-range-check-to-fw_device_init.patch
-firewire-convert-to-idr_alloc.patch
-gpio-convert-to-idr_alloc.patch
-drm-convert-to-idr_alloc.patch
-drm-exynos-convert-to-idr_alloc.patch
-drm-i915-convert-to-idr_alloc.patch
-drm-sis-convert-to-idr_alloc.patch
-drm-via-convert-to-idr_alloc.patch
-drm-vmwgfx-convert-to-idr_alloc.patch
-i2c-convert-to-idr_alloc.patch
-i2c-convert-to-idr_alloc-fix.patch
-ib-core-convert-to-idr_alloc.patch
-ib-amso1100-convert-to-idr_alloc.patch
-ib-cxgb3-convert-to-idr_alloc.patch
-ib-cxgb4-convert-to-idr_alloc.patch
-ib-ehca-convert-to-idr_alloc.patch
-ib-ipath-convert-to-idr_alloc.patch
-ib-mlx4-convert-to-idr_alloc.patch
-ib-ocrdma-convert-to-idr_alloc.patch
-ib-qib-convert-to-idr_alloc.patch
-dm-convert-to-idr_alloc.patch
-memstick-convert-to-idr_alloc.patch
-mfd-convert-to-idr_alloc.patch
-misc-c2port-convert-to-idr_alloc.patch
-misc-tifm_core-convert-to-idr_alloc.patch
-mmc-convert-to-idr_alloc.patch
-mtd-convert-to-idr_alloc.patch
-macvtap-convert-to-idr_alloc.patch
-ppp-convert-to-idr_alloc.patch
-power-convert-to-idr_alloc.patch
-pps-convert-to-idr_alloc.patch
-remoteproc-convert-to-idr_alloc.patch
-rpmsg-convert-to-idr_alloc.patch
-scsi-bfa-convert-to-idr_alloc.patch
-scsi-convert-to-idr_alloc.patch
-target-iscsi-convert-to-idr_alloc.patch
-scsi-lpfc-convert-to-idr_alloc.patch
-thermal-convert-to-idr_alloc.patch
-uio-convert-to-idr_alloc.patch
-vfio-convert-to-idr_alloc.patch
-dlm-convert-to-idr_alloc.patch
-inotify-convert-to-idr_alloc.patch
-ocfs2-convert-to-idr_alloc.patch
-ipc-convert-to-idr_alloc.patch
-ipc-convert-to-idr_alloc-fix.patch
-cgroup-convert-to-idr_alloc.patch
-events-convert-to-idr_alloc.patch
-posix-timers-convert-to-idr_alloc.patch
-net-9p-convert-to-idr_alloc.patch
-mac80211-convert-to-idr_alloc.patch
-sctp-convert-to-idr_alloc.patch
-nfs4client-convert-to-idr_alloc.patch
-idr-fix-top-layer-handling.patch
-idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc.patch
-idr-remove-length-restriction-from-idr_layer-bitmap.patch
-idr-make-idr_layer-larger.patch
-idr-add-idr_layer-prefix.patch
-idr-implement-lookup-hint.patch
+idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+selftests-add-tests-for-efivarfs-fix.patch
+tools-testing-selftests-makefile-rearrange-targets.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
