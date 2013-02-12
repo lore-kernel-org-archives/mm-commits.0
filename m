@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nbd-fsync-and-kill-block-device-on-shutdown.patch added to -mm tree
-Date: Tue, 12 Feb 2013 13:43:05 -0800
-Message-ID: <20130212214306.2ABF35A41F1@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-export-mmu-notifier-invalidates.patch added to -mm tree
+Date: Tue, 12 Feb 2013 14:00:38 -0800
+Message-ID: <20130212220038.B086C31C1CF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:48133 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074Ab3BLVnH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 16:43:07 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so783006ghb.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 13:43:06 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:57449 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753073Ab3BLWAj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 17:00:39 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so59117yhz.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 14:00:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pbonzini@redhat.com, Paul.Clements@steeleye.com, alex@alex.org.uk, stable@vger.kernel.org
+Cc: cpw@sgi.com, holt@sgi.com
 
 
 The patch titled
-     Subject: nbd: fsync and kill block device on shutdown
+     Subject: mm: export mmu notifier invalidates
 has been added to the -mm tree.  Its filename is
-     nbd-fsync-and-kill-block-device-on-shutdown.patch
+     mm-export-mmu-notifier-invalidates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paolo Bonzini <pbonzini@redhat.com>
-Subject: nbd: fsync and kill block device on shutdown
+From: Cliff Wickman <cpw@sgi.com>
+Subject: mm: export mmu notifier invalidates
 
-There are two problems with shutdown in the NBD driver.
+We at SGI have a need to address some very high physical address ranges
+with our GRU (global reference unit), sometimes across partitioned machine
+boundaries and sometimes with larger addresses than the cpu supports.  We
+do this with the aid of our own 'extended vma' module which mimics the
+vma.  When something (either unmap or exit) frees an 'extended vma' we use
+the mmu notifiers to clean them up.
 
-1: Receiving the NBD_DISCONNECT ioctl does not sync the filesystem. 
+We had been able to mimic the functions
+__mmu_notifier_invalidate_range_start() and
+__mmu_notifier_invalidate_range_end() by locking the per-mm lock and
+walking the per-mm notifier list.  But with the change to a global srcu
+lock (static in mmu_notifier.c) we can no longer do that.  Our module has
+no access to that lock.
 
-   This patch adds the sync operation into __nbd_ioctl()'s
-   NBD_DISCONNECT handler.  This is useful because BLKFLSBUF is restricted
-   to processes that have CAP_SYS_ADMIN, and the NBD client may not
-   possess it (fsync of the block device does not sync the filesystem,
-   either).
+So we request that these two functions be exported.
 
-2: Once we clear the socket we have no guarantee that later reads will
-   come from the same backing storage.
-
-   The patch adds calls to kill_bdev() in __nbd_ioctl()'s socket
-   clearing code so the page cache is cleaned, lest reads that hit on the
-   page cache will return stale data from the previously-accessible disk.
-
-Example:
-
-    # qemu-nbd -r -c/dev/nbd0 /dev/sr0
-    # file -s /dev/nbd0
-    /dev/stdin: # UDF filesystem data (version 1.5) etc.
-    # qemu-nbd -d /dev/nbd0
-    # qemu-nbd -r -c/dev/nbd0 /dev/sda
-    # file -s /dev/nbd0
-    /dev/stdin: # UDF filesystem data (version 1.5) etc.
-
-While /dev/sda has:
-
-    # file -s /dev/sda
-    /dev/sda: x86 boot sector; etc.
-
-Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Paul Clements <Paul.Clements@steeleye.com>
-Cc: Alex Bligh <alex@alex.org.uk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Cliff Wickman <cpw@sgi.com>
+Acked-by: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/mmu_notifier.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/block/nbd.c~nbd-fsync-and-kill-block-device-on-shutdown drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-fsync-and-kill-block-device-on-shutdown
-+++ a/drivers/block/nbd.c
-@@ -608,12 +608,20 @@ static int __nbd_ioctl(struct block_devi
- 		struct request sreq;
- 
- 		dev_info(disk_to_dev(nbd->disk), "NBD_DISCONNECT\n");
-+		if (!nbd->sock)
-+			return -EINVAL;
- 
-+		mutex_unlock(&nbd->tx_lock);
-+		fsync_bdev(bdev);
-+		mutex_lock(&nbd->tx_lock);
- 		blk_rq_init(NULL, &sreq);
- 		sreq.cmd_type = REQ_TYPE_SPECIAL;
- 		nbd_cmd(&sreq) = NBD_CMD_DISC;
-+
-+		/* Check again after getting mutex back.  */
- 		if (!nbd->sock)
- 			return -EINVAL;
-+
- 		nbd_send_req(nbd, &sreq);
-                 return 0;
+diff -puN mm/mmu_notifier.c~mm-export-mmu-notifier-invalidates mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mm-export-mmu-notifier-invalidates
++++ a/mm/mmu_notifier.c
+@@ -172,6 +172,7 @@ void __mmu_notifier_invalidate_range_sta
  	}
-@@ -627,6 +635,7 @@ static int __nbd_ioctl(struct block_devi
- 		nbd_clear_que(nbd);
- 		BUG_ON(!list_empty(&nbd->queue_head));
- 		BUG_ON(!list_empty(&nbd->waiting_queue));
-+		kill_bdev(bdev);
- 		if (file)
- 			fput(file);
- 		return 0;
-@@ -719,6 +728,7 @@ static int __nbd_ioctl(struct block_devi
- 		nbd->file = NULL;
- 		nbd_clear_que(nbd);
- 		dev_warn(disk_to_dev(nbd->disk), "queue cleared\n");
-+		kill_bdev(bdev);
- 		queue_flag_clear_unlocked(QUEUE_FLAG_DISCARD, nbd->disk->queue);
- 		if (file)
- 			fput(file);
+ 	srcu_read_unlock(&srcu, id);
+ }
++EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range_start);
+ 
+ void __mmu_notifier_invalidate_range_end(struct mm_struct *mm,
+ 				  unsigned long start, unsigned long end)
+@@ -187,6 +188,7 @@ void __mmu_notifier_invalidate_range_end
+ 	}
+ 	srcu_read_unlock(&srcu, id);
+ }
++EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range_end);
+ 
+ static int do_mmu_notifier_register(struct mmu_notifier *mn,
+ 				    struct mm_struct *mm,
 _
 
-Patches currently in -mm which might be from pbonzini@redhat.com are
+Patches currently in -mm which might be from cpw@sgi.com are
 
 linux-next.patch
-nbd-support-flush-requests.patch
-nbd-fsync-and-kill-block-device-on-shutdown.patch
-nbd-show-read-only-state-in-sysfs.patch
+mm-export-mmu-notifier-invalidates.patch
 
