@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-exynos-s6e8ax0c-use-devm_-apis-in-s6e8ax0c.patch added to -mm tree
-Date: Tue, 12 Feb 2013 15:42:06 -0800
-Message-ID: <20130212234207.2BAEF31C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + selftests-add-tests-for-efivarfs-fix-fix.patch added to -mm tree
+Date: Tue, 12 Feb 2013 15:48:12 -0800
+Message-ID: <20130212234812.7646031C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:54313 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677Ab3BLXmI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 18:42:08 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so68541yhr.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 15:42:07 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:33700 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759084Ab3BLXsN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 18:48:13 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so69019yhz.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 15:48:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, inki.dae@samsung.com
+Cc: akpm@linux-foundation.org, dyoung@redhat.com, jk@ozlabs.org, lxiang@redhat.com, matt.fleming@intel.com
 
 
 The patch titled
-     Subject: drivers/video/exynos/s6e8ax0.c: use devm_* APIs in s6e8ax0.c
+     Subject: selftests-add-tests-for-efivarfs-fix-fix
 has been added to the -mm tree.  Its filename is
-     drivers-video-exynos-s6e8ax0c-use-devm_-apis-in-s6e8ax0c.patch
+     selftests-add-tests-for-efivarfs-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,155 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/exynos/s6e8ax0.c: use devm_* APIs in s6e8ax0.c
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-add-tests-for-efivarfs-fix-fix
 
-devm_* APIs are device managed and make error handling and code cleanup
-simpler.
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Donghwa Lee <dh09.lee@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: Lingzhu Xiang <lxiang@redhat.com>
+Cc: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/exynos/s6e8ax0.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ tools/testing/selftests/efivarfs/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/exynos/s6e8ax0.c~drivers-video-exynos-s6e8ax0c-use-devm_-apis-in-s6e8ax0c drivers/video/exynos/s6e8ax0.c
---- a/drivers/video/exynos/s6e8ax0.c~drivers-video-exynos-s6e8ax0c-use-devm_-apis-in-s6e8ax0c
-+++ a/drivers/video/exynos/s6e8ax0.c
-@@ -776,7 +776,7 @@ static int s6e8ax0_probe(struct mipi_dsi
- 	int ret;
- 	u8 mtp_id[3] = {0, };
+diff -puN tools/testing/selftests/efivarfs/Makefile~selftests-add-tests-for-efivarfs-fix-fix tools/testing/selftests/efivarfs/Makefile
+--- a/tools/testing/selftests/efivarfs/Makefile~selftests-add-tests-for-efivarfs-fix-fix
++++ a/tools/testing/selftests/efivarfs/Makefile
+@@ -6,7 +6,7 @@ test_objs = open-unlink
+ all: $(test_objs)
  
--	lcd = kzalloc(sizeof(struct s6e8ax0), GFP_KERNEL);
-+	lcd = devm_kzalloc(&dsim_dev->dev, sizeof(struct s6e8ax0), GFP_KERNEL);
- 	if (!lcd) {
- 		dev_err(&dsim_dev->dev, "failed to allocate s6e8ax0 structure.\n");
- 		return -ENOMEM;
-@@ -788,18 +788,17 @@ static int s6e8ax0_probe(struct mipi_dsi
+ run_tests: all
+-	@/bin/sh ./efivarfs.sh || echo "efivarfs selftests: [FAIL]"
++	@/bin/bash ./efivarfs.sh || echo "efivarfs selftests: [FAIL]"
  
- 	mutex_init(&lcd->lock);
- 
--	ret = regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
-+	ret = devm_regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
- 	if (ret) {
- 		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
--		goto err_lcd_register;
-+		return ret;
- 	}
- 
- 	lcd->ld = lcd_device_register("s6e8ax0", lcd->dev, lcd,
- 			&s6e8ax0_lcd_ops);
- 	if (IS_ERR(lcd->ld)) {
- 		dev_err(lcd->dev, "failed to register lcd ops.\n");
--		ret = PTR_ERR(lcd->ld);
--		goto err_lcd_register;
-+		return PTR_ERR(lcd->ld);
- 	}
- 
- 	lcd->bd = backlight_device_register("s6e8ax0-bl", lcd->dev, lcd,
-@@ -838,11 +837,6 @@ static int s6e8ax0_probe(struct mipi_dsi
- 
- err_backlight_register:
- 	lcd_device_unregister(lcd->ld);
--
--err_lcd_register:
--	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
--	kfree(lcd);
+ clean:
+ 	rm -f $(test_objs)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+goldfish-framebuffer-driver-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+selftests-add-tests-for-efivarfs-fix.patch
+selftests-add-tests-for-efivarfs-fix-fix.patch
+tools-testing-selftests-makefile-rearrange-targets.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
