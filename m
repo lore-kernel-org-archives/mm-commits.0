@@ -1,81 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-pidc-reenable-interrupts-when-alloc_pid-fails-because-init-has-exited.patch added to -mm tree
-Date: Mon, 11 Feb 2013 15:54:15 -0800
-Message-ID: <20130211235415.B03AD5A4242__31115.2856717401$1360626888$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: [withdrawn] fat-eliminate-iterations-in-fat_search_long-and-__fat_readdir-in-case-of-eod.patch removed from -mm tree
+Date: Mon, 11 Feb 2013 16:13:24 -0800
+Message-ID: <20130212001325.54BEA31C200@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:42422 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760104Ab3BKXyR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 18:54:17 -0500
-Received: by mail-ie0-f202.google.com with SMTP id k14so1223821iea.5
-        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 15:54:16 -0800 (PST)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:52115 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932675Ab3BLAN0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Feb 2013 19:13:26 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so1267531iad.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Feb 2013 16:13:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, jwboyer@redhat.com, stable@vger.kernel.org
+To: namjae.jeon@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/pid.c: reenable interrupts when alloc_pid() fails because init has exited
-has been added to the -mm tree.  Its filename is
-     kernel-pidc-reenable-interrupts-when-alloc_pid-fails-because-init-has-exited.patch
+     Subject: fat: eliminate iterations in fat_search_long and __fat_readdir in case of EOD
+has been removed from the -mm tree.  Its filename was
+     fat-eliminate-iterations-in-fat_search_long-and-__fat_readdir-in-case-of-eod.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: kernel/pid.c: reenable interrupts when alloc_pid() fails because init has exited
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Subject: fat: eliminate iterations in fat_search_long and __fat_readdir in case of EOD
 
-We're forgetting to reenable local interrupts on an error path.
+When doing lookups via fat_search_long(), we can stop checking for further
+entries if we detect End of Directory, i.e.  if (de->name[0] == 0x00).The
+current code traverses the cluster chain of a directory until a hit is
+found or till the last cluster for that directory, ignoring the EOD mark. 
+Fix this.
 
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reported-by: Josh Boyer <jwboyer@redhat.com>
-Cc: <stable@vger.kernel.org>
+Likewise,when readdir(3) is called, we can stop checking for further
+entries in __fat_readdir() when we hit EOD.
+
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fat/dir.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/pid.c~kernel-pidc-reenable-interrupts-when-alloc_pid-fails-because-init-has-exited kernel/pid.c
---- a/kernel/pid.c~kernel-pidc-reenable-interrupts-when-alloc_pid-fails-because-init-has-exited
-+++ a/kernel/pid.c
-@@ -331,7 +331,7 @@ out:
- 	return pid;
- 
- out_unlock:
--	spin_unlock(&pidmap_lock);
-+	spin_unlock_irq(&pidmap_lock);
- out_free:
- 	while (++i <= ns->level)
- 		free_pidmap(pid->numbers + i);
+diff -puN fs/fat/dir.c~fat-eliminate-iterations-in-fat_search_long-and-__fat_readdir-in-case-of-eod fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-eliminate-iterations-in-fat_search_long-and-__fat_readdir-in-case-of-eod
++++ a/fs/fat/dir.c
+@@ -484,10 +484,10 @@ parse_record:
+ 		nr_slots = 0;
+ 		if (de->name[0] == DELETED_FLAG)
+ 			continue;
++		if (!de->name[0])
++			goto end_of_dir;
+ 		if (de->attr != ATTR_EXT && (de->attr & ATTR_VOLUME))
+ 			continue;
+-		if (de->attr != ATTR_EXT && IS_FREE(de->name))
+-			continue;
+ 		if (de->attr == ATTR_EXT) {
+ 			int status = fat_parse_long(inode, &cpos, &bh, &de,
+ 						    &unicode, &nr_slots);
+@@ -608,8 +608,8 @@ parse_record:
+ 			goto record_end;
+ 		if (de->attr != ATTR_EXT && (de->attr & ATTR_VOLUME))
+ 			goto record_end;
+-		if (de->attr != ATTR_EXT && IS_FREE(de->name))
+-			goto record_end;
++		if (!de->name[0])
++			goto end_of_dir;
+ 	} else {
+ 		if ((de->attr & ATTR_VOLUME) || IS_FREE(de->name))
+ 			goto record_end;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from namjae.jeon@samsung.com are
 
-kernel-pidc-reenable-interrupts-when-alloc_pid-fails-because-init-has-exited.patch
 linux-next.patch
-nsproxy-remove-duplicate-task_cred_xxx-for-user_ns.patch
-signal-allow-to-send-any-siginfo-to-itself.patch
-coredump-remove-redundant-defines-for-dumpable-states.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
-kexec-add-the-values-related-to-buddy-system-for-filtering-free-pages.patch
-kexec-get-rid-of-duplicate-check-for-hole_end.patch
-ipc-convert-to-idr_alloc.patch
-ipc-convert-to-idr_alloc-fix.patch
-sysctl-fix-null-checking-in-bin_dn_node_address.patch
-sysctl-put-get-get_uts-into-config_proc_sysctl-code-block.patch
-namespaces-utsname-fix-wrong-comment-about-clone_uts_ns.patch
+lib-parserc-fix-up-comments-for-valid-return-values-from-match_number.patch
 
