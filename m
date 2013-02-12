@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fix-hang-with-bsd-accounting-on-frozen-filesystem.patch added to -mm tree
-Date: Tue, 12 Feb 2013 15:16:35 -0800
-Message-ID: <20130212231636.5DA4531C200@corp2gmr1-1.hot.corp.google.com>
+Subject: + fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs.patch added to -mm tree
+Date: Tue, 12 Feb 2013 15:16:33 -0800
+Message-ID: <20130212231633.8D87231C200@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:44595 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756723Ab3BLXQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 18:16:37 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so524211ggi.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 15:16:37 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39633 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756723Ab3BLXQf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 18:16:35 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so72293vbi.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 15:16:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jack@suse.cz, dchinner@redhat.com, jlbec@evilplan.org, marco.stornelli@gmail
 
 
 The patch titled
-     Subject: fs: fix hang with BSD accounting on frozen filesystem
+     Subject: fs: return EAGAIN when O_NONBLOCK write should block on frozen fs
 has been added to the -mm tree.  Its filename is
-     fs-fix-hang-with-bsd-accounting-on-frozen-filesystem.patch
+     fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,159 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: fs: fix hang with BSD accounting on frozen filesystem
+Subject: fs: return EAGAIN when O_NONBLOCK write should block on frozen fs
 
-When BSD process accounting is enabled and logs information to a
-filesystem which gets frozen, system easily becomes unusable because each
-attempt to account process information blocks.  Thus e.g.  every task gets
-blocked in exit.
+When user asks for O_NONBLOCK behavior for a file descriptor, return
+EAGAIN instead of blocking on a frozen filesystem.
 
-It seems better to drop accounting information (which can already happen
-when filesystem is running out of space) instead of locking system up.  So
-we open the accounting file with O_NONBLOCK.
+This is needed so we can fix a hang with BSD accounting on frozen
+filesystems.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Nikola Ciprich <nikola.ciprich@linuxbox.cz>
-Tested-by: Nikola Ciprich <nikola.ciprich@linuxbox.cz>
 Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Nikola Ciprich <nikola.ciprich@linuxbox.cz>
 Cc: Marco Stornelli <marco.stornelli@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/btrfs/file.c    |    3 ++-
+ fs/cifs/file.c     |    3 ++-
+ fs/fuse/file.c     |    3 ++-
+ fs/ntfs/file.c     |    3 ++-
+ fs/ocfs2/file.c    |    3 ++-
+ fs/splice.c        |    3 ++-
+ fs/xfs/xfs_file.c  |    3 ++-
+ include/linux/fs.h |   10 ++++++++++
+ mm/filemap.c       |    3 ++-
+ 9 files changed, 26 insertions(+), 8 deletions(-)
 
-diff -puN kernel/acct.c~fs-fix-hang-with-bsd-accounting-on-frozen-filesystem kernel/acct.c
---- a/kernel/acct.c~fs-fix-hang-with-bsd-accounting-on-frozen-filesystem
-+++ a/kernel/acct.c
-@@ -201,7 +201,8 @@ static int acct_on(struct filename *path
- 	struct bsd_acct_struct *acct = NULL;
+diff -puN fs/btrfs/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs fs/btrfs/file.c
+--- a/fs/btrfs/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/fs/btrfs/file.c
+@@ -1509,7 +1509,8 @@ static ssize_t btrfs_file_aio_write(stru
+ 	size_t count, ocount;
+ 	bool sync = (file->f_flags & O_DSYNC) || IS_SYNC(file->f_mapping->host);
  
- 	/* Difference from BSD - they don't do O_APPEND */
--	file = file_open_name(pathname, O_WRONLY|O_APPEND|O_LARGEFILE, 0);
-+	file = file_open_name(pathname,
-+			      O_WRONLY|O_APPEND|O_LARGEFILE|O_NONBLOCK, 0);
- 	if (IS_ERR(file))
- 		return PTR_ERR(file);
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(file))
++		return -EAGAIN;
  
+ 	mutex_lock(&inode->i_mutex);
+ 
+diff -puN fs/cifs/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs fs/cifs/file.c
+--- a/fs/cifs/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/fs/cifs/file.c
+@@ -2510,7 +2510,8 @@ cifs_writev(struct kiocb *iocb, const st
+ 
+ 	BUG_ON(iocb->ki_pos != pos);
+ 
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(file))
++		return -EAGAIN;
+ 
+ 	/*
+ 	 * We need to hold the sem to be sure nobody modifies lock list
+diff -puN fs/fuse/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs fs/fuse/file.c
+--- a/fs/fuse/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/fs/fuse/file.c
+@@ -971,7 +971,8 @@ static ssize_t fuse_file_aio_write(struc
+ 		return err;
+ 
+ 	count = ocount;
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(file))
++		return -EAGAIN;
+ 	mutex_lock(&inode->i_mutex);
+ 
+ 	/* We can write back this queue in page reclaim */
+diff -puN fs/ntfs/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs fs/ntfs/file.c
+--- a/fs/ntfs/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/fs/ntfs/file.c
+@@ -2129,7 +2129,8 @@ static ssize_t ntfs_file_aio_write(struc
+ 
+ 	BUG_ON(iocb->ki_pos != pos);
+ 
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(file))
++		return -EAGAIN;
+ 	mutex_lock(&inode->i_mutex);
+ 	ret = ntfs_file_aio_write_nolock(iocb, iov, nr_segs, &iocb->ki_pos);
+ 	mutex_unlock(&inode->i_mutex);
+diff -puN fs/ocfs2/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/fs/ocfs2/file.c
+@@ -2247,7 +2247,8 @@ static ssize_t ocfs2_file_aio_write(stru
+ 	if (iocb->ki_left == 0)
+ 		return 0;
+ 
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(file))
++		return -EAGAIN;
+ 
+ 	appending = file->f_flags & O_APPEND ? 1 : 0;
+ 	direct_io = file->f_flags & O_DIRECT ? 1 : 0;
+diff -puN fs/splice.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs fs/splice.c
+--- a/fs/splice.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/fs/splice.c
+@@ -998,7 +998,8 @@ generic_file_splice_write(struct pipe_in
+ 	};
+ 	ssize_t ret;
+ 
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(out))
++		return -EAGAIN;
+ 
+ 	pipe_lock(pipe);
+ 
+diff -puN fs/xfs/xfs_file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/fs/xfs/xfs_file.c
+@@ -775,7 +775,8 @@ xfs_file_aio_write(
+ 	if (ocount == 0)
+ 		return 0;
+ 
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(file))
++		return -EAGAIN;
+ 
+ 	if (XFS_FORCED_SHUTDOWN(ip->i_mount)) {
+ 		ret = -EIO;
+diff -puN include/linux/fs.h~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs include/linux/fs.h
+--- a/include/linux/fs.h~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/include/linux/fs.h
+@@ -1400,6 +1400,16 @@ static inline int sb_start_write_trylock
+ 	return __sb_start_write(sb, SB_FREEZE_WRITE, false);
+ }
+ 
++/*
++ * sb_start_write() for writing into a file. When file has O_NONBLOCK set,
++ * we use trylock semantics, otherwise we block on frozen filesystem.
++ */
++static inline int sb_start_file_write(struct file *file)
++{
++	return __sb_start_write(file->f_mapping->host->i_sb, SB_FREEZE_WRITE,
++				!(file->f_flags & O_NONBLOCK));
++}
++
+ /**
+  * sb_start_pagefault - get write access to a superblock from a page fault
+  * @sb: the super we write to
+diff -puN mm/filemap.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs mm/filemap.c
+--- a/mm/filemap.c~fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs
++++ a/mm/filemap.c
+@@ -2527,7 +2527,8 @@ ssize_t generic_file_aio_write(struct ki
+ 
+ 	BUG_ON(iocb->ki_pos != pos);
+ 
+-	sb_start_write(inode->i_sb);
++	if (!sb_start_file_write(file))
++		return -EAGAIN;
+ 	mutex_lock(&inode->i_mutex);
+ 	ret = __generic_file_aio_write(iocb, iov, nr_segs, &iocb->ki_pos);
+ 	mutex_unlock(&inode->i_mutex);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
