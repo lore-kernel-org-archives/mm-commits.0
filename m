@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + selftests-add-a-simple-doc-fix.patch added to -mm tree
-Date: Tue, 12 Feb 2013 15:57:07 -0800
-Message-ID: <20130212235708.3F5AE5A410E@corp2gmr1-2.hot.corp.google.com>
+Subject: + ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix.patch added to -mm tree
+Date: Tue, 12 Feb 2013 16:19:28 -0800
+Message-ID: <20130213001929.40B4B31C1CF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:57452 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758877Ab3BLX5J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 18:57:09 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so76164qcr.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 15:57:08 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:63127 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755183Ab3BMATa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 19:19:30 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so86099qaj.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 16:19:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dyoung@redhat.com, jk@ozlabs.org
+Cc: akpm@linux-foundation.org, matt.fleming@intel.com, qiuxishi@huawei.com, tony.luck@intel.com
 
 
 The patch titled
-     Subject: selftests-add-a-simple-doc-fix
+     Subject: ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix
 has been added to the -mm tree.  Its filename is
-     selftests-add-a-simple-doc-fix.patch
+     ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: selftests-add-a-simple-doc-fix
+Subject: ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix
 
-move from Documentation to tools/testing/selftests/README.txt
+fix build
 
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/selftests.txt        |   43 ---------------------------
- tools/testing/selftests/README.txt |   43 +++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+), 43 deletions(-)
+ arch/ia64/mm/init.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/selftests.txt~selftests-add-a-simple-doc-fix /dev/null
---- a/Documentation/selftests.txt
-+++ /dev/null
-@@ -1,43 +0,0 @@
--Linux Kernel Selftests
--
--The kernel contains a set of "self tests" under the tools/testing/selftests/
--directory. These are intended to be small unit tests to exercise individual
--code paths in the kernel.
--
--Running the selftests
--=====================
--
--To build the tests:
--
--  $ make -C tools/testing/selftests
--
--
--To run the tests:
--
--  $ make -C tools/testing/selftests run_tests
--
--- note that some tests will require root privileges.
--
--
--To run only tests targetted for a single subsystem:
--
--  $  make -C tools/testing/selftests TARGETS=cpu-hotplug run_tests
--
--See the top-level tools/testing/selftests/Makefile for the list of all possible
--targets.
--
--
--Contributing new tests
--======================
--
--In general, the rules for for selftests are
--
-- * Do as much as you can if you're not root;
--
-- * Don't take too long;
--
-- * Don't break the build on any architecture, and
--
-- * Don't cause the top-level "make run_tests" to fail if your feature is
--   unconfigured.
--
-diff -puN /dev/null tools/testing/selftests/README.txt
---- /dev/null
-+++ a/tools/testing/selftests/README.txt
-@@ -0,0 +1,43 @@
-+Linux Kernel Selftests
-+
-+The kernel contains a set of "self tests" under the tools/testing/selftests/
-+directory. These are intended to be small unit tests to exercise individual
-+code paths in the kernel.
-+
-+Running the selftests
-+=====================
-+
-+To build the tests:
-+
-+  $ make -C tools/testing/selftests
-+
-+
-+To run the tests:
-+
-+  $ make -C tools/testing/selftests run_tests
-+
-+- note that some tests will require root privileges.
-+
-+
-+To run only tests targetted for a single subsystem:
-+
-+  $  make -C tools/testing/selftests TARGETS=cpu-hotplug run_tests
-+
-+See the top-level tools/testing/selftests/Makefile for the list of all possible
-+targets.
-+
-+
-+Contributing new tests
-+======================
-+
-+In general, the rules for for selftests are
-+
-+ * Do as much as you can if you're not root;
-+
-+ * Don't take too long;
-+
-+ * Don't break the build on any architecture, and
-+
-+ * Don't cause the top-level "make run_tests" to fail if your feature is
-+   unconfigured.
-+
+diff -puN arch/ia64/mm/init.c~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix
++++ a/arch/ia64/mm/init.c
+@@ -27,6 +27,7 @@
+ #include <asm/machvec.h>
+ #include <asm/numa.h>
+ #include <asm/patch.h>
++#include <asm/meminit.h>
+ #include <asm/pgalloc.h>
+ #include <asm/sal.h>
+ #include <asm/sections.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -156,6 +73,7 @@ goldfish-framebuffer-driver-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
