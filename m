@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix.patch added to -mm tree
-Date: Tue, 12 Feb 2013 16:19:28 -0800
-Message-ID: <20130213001929.40B4B31C1CF@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-dropped] ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix.patch removed from -mm tree
+Date: Tue, 12 Feb 2013 16:21:33 -0800
+Message-ID: <20130213002134.2C4C15A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:63127 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755183Ab3BMATa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 19:19:30 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so86099qaj.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 16:19:29 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:47199 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754460Ab3BMAVf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Feb 2013 19:21:35 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so800102ghb.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Feb 2013 16:21:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matt.fleming@intel.com, qiuxishi@huawei.com, tony.luck@intel.com
+To: akpm@linux-foundation.org, matt.fleming@intel.com, qiuxishi@huawei.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -73,7 +63,7 @@ goldfish-framebuffer-driver-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting-fix.patch
+ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
