@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message.patch added to -mm tree
-Date: Wed, 13 Feb 2013 14:49:44 -0800
-Message-ID: <20130213224944.B6FB45A41D5@corp2gmr1-2.hot.corp.google.com>
+Subject: + fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period.patch added to -mm tree
+Date: Wed, 13 Feb 2013 14:49:47 -0800
+Message-ID: <20130213224947.8EA0E31C1B0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:57682 "EHLO
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:52892 "EHLO
 	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784Ab3BMWtq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Feb 2013 17:49:46 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so170476yhz.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2013 14:49:45 -0800 (PST)
+	with ESMTP id S1760432Ab3BMWts (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Feb 2013 17:49:48 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so170315yhz.3
+        for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2013 14:49:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: maxime.ripard@free-electrons.com, FlorianSchandinat@gmx.de, jg1.han@samsung.
 
 
 The patch titled
-     Subject: fb: hx8357: Remove useless error message
+     Subject: fb: hx8357: Remove trailing period
 has been added to the -mm tree.  Its filename is
-     fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message.patch
+     fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: fb: hx8357: Remove useless error message
-
-In case of a failing allocation, a dump stack will be printed anyway, so
-the dev_err is redundant.
+Subject: fb: hx8357: Remove trailing period
 
 Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
@@ -47,24 +44,21 @@ Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/hx8357.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/backlight/hx8357.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/hx8357.c~fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message drivers/video/backlight/hx8357.c
---- a/drivers/video/backlight/hx8357.c~fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message
+diff -puN drivers/video/backlight/hx8357.c~fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period drivers/video/backlight/hx8357.c
+--- a/drivers/video/backlight/hx8357.c~fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period
 +++ a/drivers/video/backlight/hx8357.c
-@@ -96,10 +96,8 @@ static int hx8357_spi_write_then_read(st
+@@ -120,7 +120,7 @@ static int hx8357_spi_write_then_read(st
  
- 		local_txbuf = kcalloc(txlen, sizeof(*local_txbuf), GFP_KERNEL);
+ 	ret = spi_sync(lcd->spi, &msg);
+ 	if (ret < 0)
+-		dev_err(&lcdev->dev, "Couldn't send SPI data.\n");
++		dev_err(&lcdev->dev, "Couldn't send SPI data\n");
  
--		if (!local_txbuf) {
--			dev_err(&lcdev->dev, "Couldn't allocate data buffer.\n");
-+		if (!local_txbuf)
- 			return -ENOMEM;
--		}
- 
- 		for (i = 0; i < txlen; i++) {
- 			local_txbuf[i] = txbuf[i];
+ 	if (txlen)
+ 		kfree(local_txbuf);
 _
 
 Patches currently in -mm which might be from maxime.ripard@free-electrons.com are
