@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-correct-calculation-of-available-events.patch added to -mm tree
-Date: Wed, 13 Feb 2013 13:28:02 -0800
-Message-ID: <20130213212802.B38635A4272@corp2gmr1-2.hot.corp.google.com>
+Subject: + aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch added to -mm tree
+Date: Wed, 13 Feb 2013 13:28:05 -0800
+Message-ID: <20130213212805.9DDAE5A4211@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:47093 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861Ab3BMV2E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Feb 2013 16:28:04 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so170678vea.0
-        for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2013 13:28:03 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:58430 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751861Ab3BMV2H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Feb 2013 16:28:07 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so170496ves.5
+        for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2013 13:28:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: bcrl@kvack.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: aio: correct calculation of available events
+     Subject: aio: fix kioctx not being freed after cancellation at exit time
 has been added to the -mm tree.  Its filename is
-     aio-correct-calculation-of-available-events.patch
+     aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Benjamin LaHaise <bcrl@kvack.org>
-Subject: aio: correct calculation of available events
+Subject: aio: fix kioctx not being freed after cancellation at exit time
 
-When the number of available events in the ring buffer is calculated, the
-avail calculation is incorrect when head == tail.  This is harmless in
-aio_read_events_ring(), but in free_ioctx() leads to the subsequent
-WARN_ON(atomic_read(&ctx->reqs_available) > ctx->nr).  Correct this.
+The recent changes overhauling fs/aio.c introduced a bug that results in
+the kioctx not being freed when outstanding kiocbs are cancelled at
+exit_aio() time.  Specifically, a kiocb that is cancelled has its
+completion events discarded by batch_complete_aio(), which then fails to
+wake up the process stuck in free_ioctx().  Fix this by adding a wake_up()
+in batch_complete_aio() and modifying the wait_event() condition in
+free_ioctx() appropriately.
 
 Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/aio.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-correct-calculation-of-available-events fs/aio.c
---- a/fs/aio.c~aio-correct-calculation-of-available-events
+diff -puN fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time fs/aio.c
+--- a/fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time
 +++ a/fs/aio.c
-@@ -337,7 +337,8 @@ static void free_ioctx(struct kioctx *ct
+@@ -335,7 +335,9 @@ static void free_ioctx(struct kioctx *ct
+ 	kunmap_atomic(ring);
+ 
  	while (atomic_read(&ctx->reqs_available) < ctx->nr) {
- 		wait_event(ctx->wait, head != ctx->shadow_tail);
+-		wait_event(ctx->wait, head != ctx->shadow_tail);
++		wait_event(ctx->wait,
++			   (head != ctx->shadow_tail) ||
++			   (atomic_read(&ctx->reqs_available) != ctx->nr));
  
--		avail = (head < ctx->shadow_tail ? ctx->shadow_tail : ctx->nr) - head;
-+		avail = (head <= ctx->shadow_tail ?
-+			 ctx->shadow_tail : ctx->nr) - head;
- 
- 		atomic_add(avail, &ctx->reqs_available);
- 		head += avail;
-@@ -885,7 +886,7 @@ static long aio_read_events_ring(struct 
- 		goto out;
- 
- 	while (ret < nr) {
--		long avail = (head < ctx->shadow_tail
-+		long avail = (head <= ctx->shadow_tail
- 			      ? ctx->shadow_tail : ctx->nr) - head;
- 		struct io_event *ev;
- 		struct page *page;
+ 		avail = (head <= ctx->shadow_tail ?
+ 			 ctx->shadow_tail : ctx->nr) - head;
+@@ -755,6 +757,7 @@ void batch_complete_aio(struct batch_com
+ 			 * with free_ioctx()
+ 			 */
+ 			atomic_inc(&req->ki_ctx->reqs_available);
++			wake_up(&req->ki_ctx->wait);
+ 			aio_put_req(req);
+ 			continue;
+ 		}
 _
 
 Patches currently in -mm which might be from bcrl@kvack.org are
