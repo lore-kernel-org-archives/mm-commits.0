@@ -1,107 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + device_cgroup-dont-grab-mutex-in-rcu-callback.patch added to -mm tree
-Date: Thu, 14 Feb 2013 11:49:21 -0800
-Message-ID: <20130214194922.6ACA931C11E@corp2gmr1-1.hot.corp.google.com>
+Subject: [alternative-merged] timeconstpl-remove-deprecated-defined-array.patch removed from -mm tree
+Date: Thu, 14 Feb 2013 11:54:36 -0800
+Message-ID: <20130214195436.A29F05A419C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:34917 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758666Ab3BNTt0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Feb 2013 14:49:26 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so728105ggn.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2013 11:49:26 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:55160 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758688Ab3BNTyh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Feb 2013 14:54:37 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so280355vcd.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2013 11:54:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jerry.snitselaar@oracle.com, aris@redhat.com, james.l.morris@oracle.com, tj@kernel.org
+To: ilmari@ilmari.org, hpa@zytor.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device_cgroup: don't grab mutex in rcu callback
-has been added to the -mm tree.  Its filename is
-     device_cgroup-dont-grab-mutex-in-rcu-callback.patch
+     Subject: timeconst.pl: remove deprecated defined(@array)
+has been removed from the -mm tree.  Its filename was
+     timeconstpl-remove-deprecated-defined-array.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Jerry Snitselaar <jerry.snitselaar@oracle.com>
-Subject: device_cgroup: don't grab mutex in rcu callback
+=46rom: Dagfinn Ilmari Manns=E5ker <ilmari@ilmari.org>
+Subject: timeconst.pl: remove deprecated defined(@array)
 
-commit 103a197 ("security/device_cgroup: lock assert fails in
-dev_exception_clean()") grabs devcgroup_mutex to fix assert failure, but
-mutex can't be grabbed in rcu callback.  Since there shouldn't be any
-other references when css_free is called, mutex isn't needed for list
-cleanup in devcgroup_css_free().
+The use of defined() on arrays and hashes has been deprecated since per=
+l
+5.6, but until 5.17.6 it only warned on lexicals, not package globals.
 
-Signed-off-by: Jerry Snitselaar <jerry.snitselaar@oracle.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Aristeu Rozanski <aris@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
+Signed-off-by: Dagfinn Ilmari Manns=E5ker <ilmari@ilmari.org>
+Acked-by: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ kernel/timeconst.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/device_cgroup.c~device_cgroup-dont-grab-mutex-in-rcu-callback security/device_cgroup.c
---- a/security/device_cgroup.c~device_cgroup-dont-grab-mutex-in-rcu-callback
-+++ a/security/device_cgroup.c
-@@ -159,6 +159,16 @@ static void dev_exception_rm(struct dev_
+diff -puN kernel/timeconst.pl~timeconstpl-remove-deprecated-defined-arr=
+ay kernel/timeconst.pl
+--- a/kernel/timeconst.pl~timeconstpl-remove-deprecated-defined-array
++++ a/kernel/timeconst.pl
+@@ -370,7 +370,7 @@ if ($hz eq '--can') {
  	}
- }
- 
-+static void __dev_exception_clean(struct dev_cgroup *dev_cgroup)
-+{
-+	struct dev_exception_item *ex, *tmp;
-+
-+	list_for_each_entry_safe(ex, tmp, &dev_cgroup->exceptions, list) {
-+		list_del_rcu(&ex->list);
-+		kfree_rcu(ex, rcu);
-+	}
-+}
-+
- /**
-  * dev_exception_clean - frees all entries of the exception list
-  * @dev_cgroup: dev_cgroup with the exception list to be cleaned
-@@ -167,14 +177,9 @@ static void dev_exception_rm(struct dev_
-  */
- static void dev_exception_clean(struct dev_cgroup *dev_cgroup)
- {
--	struct dev_exception_item *ex, *tmp;
--
- 	lockdep_assert_held(&devcgroup_mutex);
- 
--	list_for_each_entry_safe(ex, tmp, &dev_cgroup->exceptions, list) {
--		list_del_rcu(&ex->list);
--		kfree_rcu(ex, rcu);
--	}
-+	__dev_exception_clean(dev_cgroup);
- }
- 
- /*
-@@ -215,9 +220,7 @@ static void devcgroup_css_free(struct cg
- 	struct dev_cgroup *dev_cgroup;
- 
- 	dev_cgroup = cgroup_to_devcgroup(cgroup);
--	mutex_lock(&devcgroup_mutex);
--	dev_exception_clean(dev_cgroup);
--	mutex_unlock(&devcgroup_mutex);
-+	__dev_exception_clean(dev_cgroup);
- 	kfree(dev_cgroup);
- }
- 
+=20
+ 	@val =3D @{$canned_values{$hz}};
+-	if (!defined(@val)) {
++	if (!@val) {
+ 		@val =3D compute_values($hz);
+ 	}
+ 	output($hz, @val);
 _
 
-Patches currently in -mm which might be from jerry.snitselaar@oracle.com are
+Patches currently in -mm which might be from ilmari@ilmari.org are
 
-device_cgroup-dont-grab-mutex-in-rcu-callback.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
