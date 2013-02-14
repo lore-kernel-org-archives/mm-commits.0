@@ -1,79 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] aio-only-suppress-events-from-cancelled-kiocbs-if-free_ioctx-is-in-progress.patch removed from -mm tree
-Date: Thu, 14 Feb 2013 15:07:07 -0800
-Message-ID: <20130214230707.BD7CF5A42A9@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch removed from -mm tree
+Date: Thu, 14 Feb 2013 15:06:57 -0800
+Message-ID: <20130214230659.9550E5A41F0@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:55050 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759164Ab3BNXHJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Feb 2013 18:07:09 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so300730vch.0
-        for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2013 15:07:08 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:40384 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759164Ab3BNXHG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Feb 2013 18:07:06 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so300194vbi.3
+        for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2013 15:07:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcrl@kvack.org, jmoyer@redhat.com, koverstreet@google.com, zab@redhat.com, mm-commits@vger.kernel.org
+To: bcrl@kvack.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio: only suppress events from cancelled kiocbs if free_ioctx() is in progress
+     Subject: aio: fix kioctx not being freed after cancellation at exit time
 has been removed from the -mm tree.  Its filename was
-     aio-only-suppress-events-from-cancelled-kiocbs-if-free_ioctx-is-in-progress.patch
+     aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Benjamin LaHaise <bcrl@kvack.org>
-Subject: aio: only suppress events from cancelled kiocbs if free_ioctx() is in progress
+Subject: aio: fix kioctx not being freed after cancellation at exit time
 
-The io_cancel() syscall allows for cancellation of iocbs in flight to
-generate a completion event.  The current behaviour of
-batch_complete_aio() is to suppress all completion events.  Some types of
-asynchronous operations cannot be cancelled synchronously, and must
-generate a completion event at some point after the io_cancel() syscall. 
-Instead, only suppress completion events during kioctx teardown by
-free_ioctx().
+The recent changes overhauling fs/aio.c introduced a bug that results in
+the kioctx not being freed when outstanding kiocbs are cancelled at
+exit_aio() time.  Specifically, a kiocb that is cancelled has its
+completion events discarded by batch_complete_aio(), which then fails to
+wake up the process stuck in free_ioctx().  Fix this by adding a wake_up()
+in batch_complete_aio() and modifying the wait_event() condition in
+free_ioctx() appropriately.
 
 Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Zach Brown <zab@redhat.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/aio.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-only-suppress-events-from-cancelled-kiocbs-if-free_ioctx-is-in-progress fs/aio.c
---- a/fs/aio.c~aio-only-suppress-events-from-cancelled-kiocbs-if-free_ioctx-is-in-progress
+diff -puN fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time fs/aio.c
+--- a/fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time
 +++ a/fs/aio.c
-@@ -81,6 +81,7 @@ struct kioctx {
+@@ -335,7 +335,9 @@ static void free_ioctx(struct kioctx *ct
+ 	kunmap_atomic(ring);
  
- 	/* sys_io_setup currently limits this to an unsigned int */
- 	unsigned		max_reqs;
-+	unsigned		dead;
+ 	while (atomic_read(&ctx->reqs_available) < ctx->nr) {
+-		wait_event(ctx->wait, head != ctx->shadow_tail);
++		wait_event(ctx->wait,
++			   (head != ctx->shadow_tail) ||
++			   (atomic_read(&ctx->reqs_available) != ctx->nr));
  
- 	unsigned long		mmap_base;
- 	unsigned long		mmap_size;
-@@ -311,6 +312,7 @@ static void free_ioctx(struct kioctx *ct
- 	struct kiocb *req;
- 	unsigned cpu, head, avail;
- 
-+	ctx->dead = 1;
- 	spin_lock_irq(&ctx->ctx_lock);
- 
- 	while (!list_empty(&ctx->active_reqs)) {
-@@ -750,7 +752,9 @@ void batch_complete_aio(struct batch_com
- 			n = rb_parent(n);
+ 		avail = (head <= ctx->shadow_tail ?
+ 			 ctx->shadow_tail : ctx->nr) - head;
+@@ -755,6 +757,7 @@ void batch_complete_aio(struct batch_com
+ 			 * with free_ioctx()
+ 			 */
+ 			atomic_inc(&req->ki_ctx->reqs_available);
++			wake_up(&req->ki_ctx->wait);
+ 			aio_put_req(req);
+ 			continue;
  		}
- 
--		if (unlikely(xchg(&req->ki_cancel,
-+		/* Suppress cancelled events if free_ioctx() is in progress. */
-+		if (unlikely(req->ki_ctx->dead &&
-+			     xchg(&req->ki_cancel,
- 				  KIOCB_CANCELLED) == KIOCB_CANCELLED)) {
- 			/*
- 			 * Can't use the percpu reqs_available here - could race
 _
 
 Patches currently in -mm which might be from bcrl@kvack.org are
@@ -114,4 +104,5 @@ block-aio-batch-completion-for-bios-kiocbs.patch
 virtio-blk-convert-to-batch-completion.patch
 mtip32xx-convert-to-batch-completion.patch
 aio-correct-calculation-of-available-events.patch
+aio-only-suppress-events-from-cancelled-kiocbs-if-free_ioctx-is-in-progress.patch
 
