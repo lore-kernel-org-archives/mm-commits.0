@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-max77686-use-dev_info-instead-of-printk.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:18:41 -0800
-Message-ID: <20130215231842.3543C5A4200@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:18:53 -0800
+Message-ID: <20130215231854.263BA5A4200@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:47387 "EHLO
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:58964 "EHLO
 	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439Ab3BOXSn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:43 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so388899qcs.5
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:42 -0800 (PST)
+	with ESMTP id S1751588Ab3BOXSz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:55 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so388243qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: max77686: use dev_info() instead of printk()
+     Subject: rtc: rtc-rs5c313: use pr_err() instead of printk()
 has been added to the -mm tree.  Its filename is
-     rtc-max77686-use-dev_info-instead-of-printk.patch
+     rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: max77686: use dev_info() instead of printk()
+Subject: rtc: rtc-rs5c313: use pr_err() instead of printk()
 
 Fix the checkpatch warning as below:
 
@@ -44,30 +44,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-rs5c313.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-use-dev_info-instead-of-printk drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~rtc-max77686-use-dev_info-instead-of-printk
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -503,7 +503,7 @@ static int max77686_rtc_probe(struct pla
- 	struct max77686_rtc_info *info;
- 	int ret, virq;
+diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-pr_err-instead-of-printk drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-pr_err-instead-of-printk
++++ a/drivers/rtc/rtc-rs5c313.c
+@@ -39,6 +39,8 @@
+  *	1.13	Nobuhiro Iwamatsu: Updata driver.
+  */
  
--	printk(KERN_INFO "%s\n", __func__);
-+	dev_info(&pdev->dev, "%s\n", __func__);
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/err.h>
+ #include <linux/rtc.h>
+@@ -352,8 +354,7 @@ static void rs5c313_check_xstp_bit(void)
+ 		tm.tm_year 	= 2000 - 1900;
  
- 	info = kzalloc(sizeof(struct max77686_rtc_info), GFP_KERNEL);
- 	if (!info)
-@@ -542,7 +542,7 @@ static int max77686_rtc_probe(struct pla
- 			&max77686_rtc_ops, THIS_MODULE);
- 
- 	if (IS_ERR(info->rtc_dev)) {
--		printk(KERN_INFO "%s: fail\n", __func__);
-+		dev_info(&pdev->dev, "%s: fail\n", __func__);
- 
- 		ret = PTR_ERR(info->rtc_dev);
- 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
+ 		rs5c313_rtc_set_time(NULL, &tm);
+-		printk(KERN_ERR "RICHO RS5C313: invalid value, resetting to "
+-				"1 Jan 2000\n");
++		pr_err("invalid value, resetting to 1 Jan 2000\n");
+ 	}
+ 	RS5C313_CEDISABLE;
+ 	ndelay(700);		/* CE:L */
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
