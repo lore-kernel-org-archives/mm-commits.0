@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:18:39 -0800
-Message-ID: <20130215231840.20B515A4200@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:18:44 -0800
+Message-ID: <20130215231845.2CF645A4200@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:62972 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366Ab3BOXSl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:41 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so116037ggn.4
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:40 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:57147 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752490Ab3BOXSq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:46 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so388224qcr.0
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: use dev_warn()/dev_dbg()/pr_err() instead of printk()
+     Subject: rtc: rtc-efi: use dev_err()/dev_warn()/pr_err() instead of printk()
 has been added to the -mm tree.  Its filename is
-     rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch
+     rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: use dev_warn()/dev_dbg()/pr_err() instead of printk()
+Subject: rtc: rtc-efi: use dev_err()/dev_warn()/pr_err() instead of printk()
 
-Fix the checkpatch warning as below:
+Fix the checkpatch warnings as below:
 
   WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+  WARNING: please, no space before tabs
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c   |    4 +++-
- drivers/rtc/rtc-dev.c |   11 ++++++-----
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-efi.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk
-+++ a/drivers/rtc/class.c
-@@ -11,6 +11,8 @@
-  * published by the Free Software Foundation.
- */
+diff -puN drivers/rtc/rtc-efi.c~rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk drivers/rtc/rtc-efi.c
+--- a/drivers/rtc/rtc-efi.c~rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk
++++ a/drivers/rtc/rtc-efi.c
+@@ -13,6 +13,8 @@
+  *
+  */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
+ #include <linux/kernel.h>
  #include <linux/module.h>
- #include <linux/rtc.h>
- #include <linux/kdev_t.h>
-@@ -261,7 +263,7 @@ static int __init rtc_init(void)
- {
- 	rtc_class = class_create(THIS_MODULE, "rtc");
- 	if (IS_ERR(rtc_class)) {
--		printk(KERN_ERR "%s: couldn't create class\n", __FILE__);
-+		pr_err("couldn't create class\n");
- 		return PTR_ERR(rtc_class);
- 	}
- 	rtc_class->suspend = rtc_suspend;
-diff -puN drivers/rtc/rtc-dev.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk
-+++ a/drivers/rtc/rtc-dev.c
-@@ -11,6 +11,8 @@
-  * published by the Free Software Foundation.
- */
+ #include <linux/time.h>
+@@ -47,7 +49,7 @@ compute_wday(efi_time_t *eft)
+ 	int ndays = 0;
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/rtc.h>
- #include <linux/sched.h>
-@@ -462,7 +464,7 @@ void rtc_dev_prepare(struct rtc_device *
- 		return;
- 
- 	if (rtc->id >= RTC_DEV_MAX) {
--		pr_debug("%s: too many RTC devices\n", rtc->name);
-+		dev_dbg(&rtc->dev, "%s: too many RTC devices\n", rtc->name);
- 		return;
+ 	if (eft->year < 1998) {
+-		printk(KERN_ERR "efirtc: EFI year < 1998, invalid date\n");
++		pr_err("EFI year < 1998, invalid date\n");
+ 		return -1;
  	}
  
-@@ -480,10 +482,10 @@ void rtc_dev_prepare(struct rtc_device *
- void rtc_dev_add_device(struct rtc_device *rtc)
- {
- 	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
--		printk(KERN_WARNING "%s: failed to add char device %d:%d\n",
-+		dev_warn(&rtc->dev, "%s: failed to add char device %d:%d\n",
- 			rtc->name, MAJOR(rtc_devt), rtc->id);
- 	else
--		pr_debug("%s: dev (%d:%d)\n", rtc->name,
-+		dev_dbg(&rtc->dev, "%s: dev (%d:%d)\n", rtc->name,
- 			MAJOR(rtc_devt), rtc->id);
+@@ -70,7 +72,7 @@ convert_to_efi_time(struct rtc_time *wti
+ 	eft->day	= wtime->tm_mday;
+ 	eft->hour	= wtime->tm_hour;
+ 	eft->minute	= wtime->tm_min;
+-	eft->second 	= wtime->tm_sec;
++	eft->second	= wtime->tm_sec;
+ 	eft->nanosecond = 0;
+ 	eft->daylight	= wtime->tm_isdst ? EFI_ISDST : 0;
+ 	eft->timezone	= EFI_UNSPECIFIED_TIMEZONE;
+@@ -142,7 +144,7 @@ static int efi_set_alarm(struct device *
+ 	 */
+ 	status = efi.set_wakeup_time((efi_bool_t)wkalrm->enabled, &eft);
+ 
+-	printk(KERN_WARNING "write status is %d\n", (int)status);
++	dev_warn(dev, "write status is %d\n", (int)status);
+ 
+ 	return status == EFI_SUCCESS ? 0 : -EINVAL;
  }
+@@ -157,7 +159,7 @@ static int efi_read_time(struct device *
  
-@@ -499,8 +501,7 @@ void __init rtc_dev_init(void)
+ 	if (status != EFI_SUCCESS) {
+ 		/* should never happen */
+-		printk(KERN_ERR "efitime: can't read time\n");
++		dev_err(dev, "can't read time\n");
+ 		return -EINVAL;
+ 	}
  
- 	err = alloc_chrdev_region(&rtc_devt, 0, RTC_DEV_MAX, "rtc");
- 	if (err < 0)
--		printk(KERN_ERR "%s: failed to allocate char dev region\n",
--			__FILE__);
-+		pr_err("failed to allocate char dev region\n");
- }
- 
- void __exit rtc_dev_exit(void)
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
