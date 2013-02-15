@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-abort-core-dump-piping-only-due-to-a-fatal-signal.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:33:04 -0800
-Message-ID: <20130215233305.4871131C071@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:45:22 -0800
+Message-ID: <20130215234522.9700C5A4193@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:59415 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013Ab3BOXdG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:33:06 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so404566vea.0
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:33:06 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:51234 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750762Ab3BOXpX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:45:23 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so340617ggn.0
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:45:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benchan@chromium.org, mingo@redhat.com, msb@chromium.org, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: coredump: abort core dump piping only due to a fatal signal
+     Subject: rtc: rtc-cmos: use dev_warn()/dev_dbg() instead of printk()/pr_debug()
 has been added to the -mm tree.  Its filename is
-     coredump-abort-core-dump-piping-only-due-to-a-fatal-signal.patch
+     rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ben Chan <benchan@chromium.org>
-Subject: coredump: abort core dump piping only due to a fatal signal
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-cmos: use dev_warn()/dev_dbg() instead of printk()/pr_debug()
 
-Make wait_for_dump_helpers() not abort piping the core dump data when the
-crashing process has received a non-fatal signal.  The abort still occurs
-in the case of SIGKILL.
+Fix the checkpatch warning as below:
 
-The rationale is that a crashing process may still receive uninteresting
-signals such as SIGCHLD when its core dump data is being redirected to a
-helper application.  While it's necessary to allow terminating the core
-dump piping via SIGKILL, it's practically more useful for the purpose of
-debugging and crash reporting if the core dump piping is not aborted due
-to other non-fatal signals.
+  WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
 
-Signed-off-by: Ben Chan <benchan@chromium.org>
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@redhat.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-cmos.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/coredump.c~coredump-abort-core-dump-piping-only-due-to-a-fatal-signal fs/coredump.c
---- a/fs/coredump.c~coredump-abort-core-dump-piping-only-due-to-a-fatal-signal
-+++ a/fs/coredump.c
-@@ -32,6 +32,7 @@
- #include <linux/pipe_fs_i.h>
- #include <linux/oom.h>
- #include <linux/compat.h>
-+#include <linux/freezer.h>
- 
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -417,10 +418,13 @@ static void wait_for_dump_helpers(struct
- 	pipe->readers++;
- 	pipe->writers--;
- 
--	while ((pipe->readers > 1) && (!signal_pending(current))) {
-+	while ((pipe->readers > 1) && (!fatal_signal_pending(current))) {
- 		wake_up_interruptible_sync(&pipe->wait);
- 		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
- 		pipe_wait(pipe);
-+		pipe_unlock(pipe);
-+		try_to_freeze();
-+		pipe_lock(pipe);
+diff -puN drivers/rtc/rtc-cmos.c~rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug
++++ a/drivers/rtc/rtc-cmos.c
+@@ -706,7 +706,7 @@ cmos_do_probe(struct device *dev, struct
+ 			rtc_cmos_int_handler = hpet_rtc_interrupt;
+ 			err = hpet_register_irq_handler(cmos_interrupt);
+ 			if (err != 0) {
+-				printk(KERN_WARNING "hpet_register_irq_handler "
++				dev_warn(dev, "hpet_register_irq_handler "
+ 						" failed in rtc_init().");
+ 				goto cleanup1;
+ 			}
+@@ -731,8 +731,7 @@ cmos_do_probe(struct device *dev, struct
+ 		goto cleanup2;
  	}
  
- 	pipe->readers--;
+-	pr_info("%s: %s%s, %zd bytes nvram%s\n",
+-		dev_name(&cmos_rtc.rtc->dev),
++	dev_info(dev, "%s%s, %zd bytes nvram%s\n",
+ 		!is_valid_irq(rtc_irq) ? "no alarms" :
+ 			cmos_rtc.mon_alrm ? "alarms up to one year" :
+ 			cmos_rtc.day_alrm ? "alarms up to one month" :
+@@ -820,8 +819,7 @@ static int cmos_suspend(struct device *d
+ 			enable_irq_wake(cmos->irq);
+ 	}
+ 
+-	pr_debug("%s: suspend%s, ctrl %02x\n",
+-			dev_name(&cmos_rtc.rtc->dev),
++	dev_dbg(dev, "suspend%s, ctrl %02x\n",
+ 			(tmp & RTC_AIE) ? ", alarm may wake" : "",
+ 			tmp);
+ 
+@@ -876,9 +874,7 @@ static int cmos_resume(struct device *de
+ 		spin_unlock_irq(&rtc_lock);
+ 	}
+ 
+-	pr_debug("%s: resume, ctrl %02x\n",
+-			dev_name(&cmos_rtc.rtc->dev),
+-			tmp);
++	dev_dbg(dev, "resume, ctrl %02x\n", tmp);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from benchan@chromium.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork.patch
-lockdep-check-that-no-locks-held-at-freeze-time.patch
-coredump-cleanup-the-waiting-for-coredump_finish-code.patch
-coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
-coredump-abort-core-dump-piping-only-due-to-a-fatal-signal.patch
+linux-next.patch
+backlight-add-lms501kf03-lcd-driver.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-change-parameters-of-the-write-function-to-u8.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-fix-inverted-parameters-for-kcalloc.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-use-static-arrays-for-lcd-configuration.patch
+drivers-video-backlight-makefile-cleanup.patch
+backlight-add-an-as3711-pmic-backlight-driver.patch
+backlight-88pm860x_bl-add-missing-of_node_put.patch
+backlight-s6e63m0-report-gamma_table_count-correctly.patch
+drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
+rtc-max77686-add-missing-variable-initialization.patch
+rtc-max77686-add-missing-variable-initialization-fix.patch
+drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
+rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch
+rtc-max77686-use-dev_info-instead-of-printk.patch
+rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk.patch
+rtc-rtc-ds2404-use-dev_err-instead-of-printk.patch
+rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug.patch
+rtc-rtc-at91rm9200-use-dev_dbg-dev_err-instead-of-printk-pr_debug.patch
+rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch
+rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch
+rtc-rtc-sun4v-use-pr_warn-instead-of-printk.patch
+rtc-rtc-pcf8583-use-dev_warn-instead-of-printk.patch
+rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug.patch
 
