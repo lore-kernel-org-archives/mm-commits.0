@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:18:49 -0800
-Message-ID: <20130215231850.2DACE31C194@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-max77686-use-dev_info-instead-of-printk.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:18:41 -0800
+Message-ID: <20130215231842.3543C5A4200@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:39505 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892Ab3BOXSv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:51 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so404734vch.4
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:50 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:47387 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439Ab3BOXSn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:43 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so388899qcs.5
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-rs5c372: use dev_dbg()/dev_warn() instead of printk()/pr_debug()
+     Subject: rtc: max77686: use dev_info() instead of printk()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug.patch
+     rtc-max77686-use-dev_info-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rs5c372: use dev_dbg()/dev_warn() instead of printk()/pr_debug()
+Subject: rtc: max77686: use dev_info() instead of printk()
 
 Fix the checkpatch warning as below:
 
@@ -44,50 +44,30 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c372.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-max77686.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -311,8 +311,7 @@ static int rs5c_rtc_alarm_irq_enable(str
- 		buf &= ~RS5C_CTRL1_AALE;
+diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-use-dev_info-instead-of-printk drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-max77686-use-dev_info-instead-of-printk
++++ a/drivers/rtc/rtc-max77686.c
+@@ -503,7 +503,7 @@ static int max77686_rtc_probe(struct pla
+ 	struct max77686_rtc_info *info;
+ 	int ret, virq;
  
- 	if (i2c_smbus_write_byte_data(client, addr, buf) < 0) {
--		printk(KERN_WARNING "%s: can't update alarm\n",
--			rs5c->rtc->name);
-+		dev_warn(dev, "can't update alarm\n");
- 		status = -EIO;
- 	} else
- 		rs5c->regs[RS5C_REG_CTRL1] = buf;
-@@ -381,7 +380,7 @@ static int rs5c_set_alarm(struct device 
- 		addr = RS5C_ADDR(RS5C_REG_CTRL1);
- 		buf[0] = rs5c->regs[RS5C_REG_CTRL1] & ~RS5C_CTRL1_AALE;
- 		if (i2c_smbus_write_byte_data(client, addr, buf[0]) < 0) {
--			pr_debug("%s: can't disable alarm\n", rs5c->rtc->name);
-+			dev_dbg(dev, "can't disable alarm\n");
- 			return -EIO;
- 		}
- 		rs5c->regs[RS5C_REG_CTRL1] = buf[0];
-@@ -395,7 +394,7 @@ static int rs5c_set_alarm(struct device 
- 	for (i = 0; i < sizeof(buf); i++) {
- 		addr = RS5C_ADDR(RS5C_REG_ALARM_A_MIN + i);
- 		if (i2c_smbus_write_byte_data(client, addr, buf[i]) < 0) {
--			pr_debug("%s: can't set alarm time\n", rs5c->rtc->name);
-+			dev_dbg(dev, "can't set alarm time\n");
- 			return -EIO;
- 		}
- 	}
-@@ -405,8 +404,7 @@ static int rs5c_set_alarm(struct device 
- 		addr = RS5C_ADDR(RS5C_REG_CTRL1);
- 		buf[0] = rs5c->regs[RS5C_REG_CTRL1] | RS5C_CTRL1_AALE;
- 		if (i2c_smbus_write_byte_data(client, addr, buf[0]) < 0)
--			printk(KERN_WARNING "%s: can't enable alarm\n",
--				rs5c->rtc->name);
-+			dev_warn(dev, "can't enable alarm\n");
- 		rs5c->regs[RS5C_REG_CTRL1] = buf[0];
- 	}
+-	printk(KERN_INFO "%s\n", __func__);
++	dev_info(&pdev->dev, "%s\n", __func__);
  
+ 	info = kzalloc(sizeof(struct max77686_rtc_info), GFP_KERNEL);
+ 	if (!info)
+@@ -542,7 +542,7 @@ static int max77686_rtc_probe(struct pla
+ 			&max77686_rtc_ops, THIS_MODULE);
+ 
+ 	if (IS_ERR(info->rtc_dev)) {
+-		printk(KERN_INFO "%s: fail\n", __func__);
++		dev_info(&pdev->dev, "%s: fail\n", __func__);
+ 
+ 		ret = PTR_ERR(info->rtc_dev);
+ 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
