@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + revert-futex-mark-get_robust_list-as-deprecated.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:01:17 -0800
-Message-ID: <20130215230117.EC1C731C071@corp2gmr1-1.hot.corp.google.com>
+Subject: + posix-cpu-timers-fix-nanosleep-task_struct-leak.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:07:40 -0800
+Message-ID: <20130215230740.B04635A42F8__44639.2125603326$1360969689$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:49701 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752444Ab3BOXBU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:01:20 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so386714qen.3
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:01:19 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:46528 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752153Ab3BOXHm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:07:42 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so404102vch.4
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:07:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, a.p.zijlstra@chello.nl, dhowells@redhat.com, dvhart@linux.intel.com, ebiederm@xmission.com, gorcunov@openvz.org, jkosina@suse.cz, keescook@chromium.org, rdunlap@xenotime.net, serge.hallyn@canonical.com, stable@vger.kernel.org, tglx@linutronix.de, xemul@parallels.com
+Cc: sgruszka@redhat.com, davej@redhat.com, john.stultz@linaro.org, mingo@elte.hu, oleg@redhat.com, stable@vger.kernel.org, tglx@linutronix.de, tt.rantala@gmail.com
 
 
 The patch titled
-     Subject: revert "futex: Mark get_robust_list as deprecated"
+     Subject: posix-cpu-timers: fix nanosleep task_struct leak
 has been added to the -mm tree.  Its filename is
-     revert-futex-mark-get_robust_list-as-deprecated.patch
+     posix-cpu-timers-fix-nanosleep-task_struct-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: revert "futex: Mark get_robust_list as deprecated"
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: posix-cpu-timers: fix nanosleep task_struct leak
 
-Revert ec0c4274e33c0373e.
+In do_cpu_nanosleep() we do posic_cpu_timer_create(), but forgot
+corresponding posix_cpu_timer_del() what lead to task_struct leak.
 
-get_robust_list() has at least two valid use cases:
+This looks like a DoS problem fix, since it's possible to eat kernel
+memory (very slowly though) by normal user, hence Cc stable.
 
-1. checkpoint/restore in userspace
-2. post mortem analysis
-
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Darren Hart <dvhart@linux.intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Serge E. Hallyn <serge.hallyn@canonical.com>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Reported-by: Tommi Rantala <tt.rantala@gmail.com>
+Tested-by: Tommi Rantala <tt.rantala@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: <stable@vger.kernel.org> [3.4.x+]
+Cc: Dave Jones <davej@redhat.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c        |    2 --
- kernel/futex_compat.c |    2 --
- 2 files changed, 4 deletions(-)
+ kernel/posix-cpu-timers.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null /dev/null
-diff -puN kernel/futex.c~revert-futex-mark-get_robust_list-as-deprecated kernel/futex.c
---- a/kernel/futex.c~revert-futex-mark-get_robust_list-as-deprecated
-+++ a/kernel/futex.c
-@@ -2472,8 +2472,6 @@ SYSCALL_DEFINE3(get_robust_list, int, pi
- 	if (!futex_cmpxchg_enabled)
- 		return -ENOSYS;
+diff -puN kernel/posix-cpu-timers.c~posix-cpu-timers-fix-nanosleep-task_struct-leak kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix-cpu-timers-fix-nanosleep-task_struct-leak
++++ a/kernel/posix-cpu-timers.c
+@@ -1417,8 +1417,10 @@ static int do_cpu_nanosleep(const clocki
+ 		while (!signal_pending(current)) {
+ 			if (timer.it.cpu.expires.sched == 0) {
+ 				/*
+-				 * Our timer fired and was reset.
++				 * Our timer fired and was reset, below
++				 * deletion can not fail.
+ 				 */
++				posix_cpu_timer_del(&timer);
+ 				spin_unlock_irq(&timer.it_lock);
+ 				return 0;
+ 			}
+@@ -1436,9 +1438,26 @@ static int do_cpu_nanosleep(const clocki
+ 		 * We were interrupted by a signal.
+ 		 */
+ 		sample_to_timespec(which_clock, timer.it.cpu.expires, rqtp);
+-		posix_cpu_timer_set(&timer, 0, &zero_it, it);
++		error = posix_cpu_timer_set(&timer, 0, &zero_it, it);
++		if (!error) {
++			/*
++			 * Timer is now unarmed, deletion can not fail.
++			 */
++			posix_cpu_timer_del(&timer);
++		}
+ 		spin_unlock_irq(&timer.it_lock);
  
--	WARN_ONCE(1, "deprecated: get_robust_list will be deleted in 2013.\n");
--
- 	rcu_read_lock();
- 
- 	ret = -ESRCH;
-diff -puN kernel/futex_compat.c~revert-futex-mark-get_robust_list-as-deprecated kernel/futex_compat.c
---- a/kernel/futex_compat.c~revert-futex-mark-get_robust_list-as-deprecated
-+++ a/kernel/futex_compat.c
-@@ -143,8 +143,6 @@ COMPAT_SYSCALL_DEFINE3(get_robust_list, 
- 	if (!futex_cmpxchg_enabled)
- 		return -ENOSYS;
- 
--	WARN_ONCE(1, "deprecated: get_robust_list will be deleted in 2013.\n");
++		while (error == TIMER_RETRY) {
++			/*
++			 * We need to handle case when timer was or is in the
++			 * middle of firing. In other cases we already freed
++			 * resources.
++			 */
++			spin_lock_irq(&timer.it_lock);
++			error = posix_cpu_timer_del(&timer);
++			spin_unlock_irq(&timer.it_lock);
++		}
++
+ 		if ((it->it_value.tv_sec | it->it_value.tv_nsec) == 0) {
+ 			/*
+ 			 * It actually did fire already.
+_
+
+Patches currently in -mm which might be from sgruszka@redhat.com are
+
+linux-next.patch
+posix-cpu-timers-fix-nanosleep-task_struct-leak.patch
+
