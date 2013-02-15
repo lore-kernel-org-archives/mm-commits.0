@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:18:56 -0800
-Message-ID: <20130215231857.2952331C194@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-sun4v-use-pr_warn-instead-of-printk.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:18:58 -0800
+Message-ID: <20130215231859.304FE31C194@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:40285 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab3BOXS6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:58 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so388881qcs.3
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:57 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:45612 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab3BOXTA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:19:00 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so115530ghb.2
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-vr41xx: use dev_info() instead of printk()
+     Subject: rtc: rtc-sun4v: use pr_warn() instead of printk()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch
+     rtc-rtc-sun4v-use-pr_warn-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-vr41xx: use dev_info() instead of printk()
+Subject: rtc: rtc-sun4v: use pr_warn() instead of printk()
 
 Fix the checkpatch warning as below:
 
@@ -44,20 +44,46 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vr41xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-sun4v.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-dev_info-instead-of-printk drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-dev_info-instead-of-printk
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -352,7 +352,7 @@ static int rtc_probe(struct platform_dev
- 	disable_irq(aie_irq);
- 	disable_irq(pie_irq);
+diff -puN drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-pr_warn-instead-of-printk drivers/rtc/rtc-sun4v.c
+--- a/drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-pr_warn-instead-of-printk
++++ a/drivers/rtc/rtc-sun4v.c
+@@ -3,6 +3,8 @@
+  * Copyright (C) 2008 David S. Miller <davem@davemloft.net>
+  */
  
--	printk(KERN_INFO "rtc: Real Time Clock of NEC VR4100 series\n");
-+	dev_info(&pdev->dev, "Real Time Clock of NEC VR4100 series\n");
- 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+@@ -26,10 +28,10 @@ retry:
+ 			udelay(100);
+ 			goto retry;
+ 		}
+-		printk(KERN_WARNING "SUN4V: tod_get() timed out.\n");
++		pr_warn("tod_get() timed out.\n");
+ 		return 0;
+ 	}
+-	printk(KERN_WARNING "SUN4V: tod_get() not supported.\n");
++	pr_warn("tod_get() not supported.\n");
  	return 0;
+ }
+ 
+@@ -53,10 +55,10 @@ retry:
+ 			udelay(100);
+ 			goto retry;
+ 		}
+-		printk(KERN_WARNING "SUN4V: tod_set() timed out.\n");
++		pr_warn("tod_set() timed out.\n");
+ 		return -EAGAIN;
+ 	}
+-	printk(KERN_WARNING "SUN4V: tod_set() not supported.\n");
++	pr_warn("tod_set() not supported.\n");
+ 	return -EOPNOTSUPP;
+ }
  
 _
 
