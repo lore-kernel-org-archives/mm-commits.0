@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-max77686-add-missing-variable-initialization-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:14:50 -0800
-Message-ID: <20130215231451.50D535A4200@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:18:39 -0800
+Message-ID: <20130215231840.20B515A4200@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:52412 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752356Ab3BOXOw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:14:52 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so403409vea.0
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:14:52 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:62972 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366Ab3BOXSl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:18:41 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so116037ggn.4
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:18:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jg1.han@samsung.com, jonghwa3.lee@samsung.com, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, woong.byun@samsung.com
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc-max77686-add-missing-variable-initialization-fix
+     Subject: rtc: use dev_warn()/dev_dbg()/pr_err() instead of printk()
 has been added to the -mm tree.  Its filename is
-     rtc-max77686-add-missing-variable-initialization-fix.patch
+     rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,173 +33,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-max77686-add-missing-variable-initialization-fix
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: use dev_warn()/dev_dbg()/pr_err() instead of printk()
 
-simplify code
+Fix the checkpatch warning as below:
 
-Cc: Chiwoong Byun <woong.byun@samsung.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Jonghwa Lee <jonghwa3.lee@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Myugnjoo Ham <myungjoo.ham@samsung.com>
+  WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/rtc/class.c   |    4 +++-
+ drivers/rtc/rtc-dev.c |   11 ++++++-----
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-add-missing-variable-initialization-fix drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~rtc-max77686-add-missing-variable-initialization-fix
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -133,16 +133,12 @@ static int max77686_rtc_update(struct ma
- 	enum MAX77686_RTC_OP op)
+diff -puN drivers/rtc/class.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk
++++ a/drivers/rtc/class.c
+@@ -11,6 +11,8 @@
+  * published by the Free Software Foundation.
+ */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/rtc.h>
+ #include <linux/kdev_t.h>
+@@ -261,7 +263,7 @@ static int __init rtc_init(void)
  {
- 	int ret;
--	unsigned int data = 0;
-+	unsigned int data;
+ 	rtc_class = class_create(THIS_MODULE, "rtc");
+ 	if (IS_ERR(rtc_class)) {
+-		printk(KERN_ERR "%s: couldn't create class\n", __FILE__);
++		pr_err("couldn't create class\n");
+ 		return PTR_ERR(rtc_class);
+ 	}
+ 	rtc_class->suspend = rtc_suspend;
+diff -puN drivers/rtc/rtc-dev.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk
++++ a/drivers/rtc/rtc-dev.c
+@@ -11,6 +11,8 @@
+  * published by the Free Software Foundation.
+ */
  
--	switch (op) {
--	case MAX77686_RTC_WRITE:
-+	if (op == MAX77686_RTC_WRITE)
- 		data = 1 << RTC_UDR_SHIFT;
--		break;
--	case MAX77686_RTC_READ:
-+	else
- 		data = 1 << RTC_RBUDR_SHIFT;
--		break;
--	}
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/rtc.h>
+ #include <linux/sched.h>
+@@ -462,7 +464,7 @@ void rtc_dev_prepare(struct rtc_device *
+ 		return;
  
- 	ret = regmap_update_bits(info->max77686->rtc_regmap,
- 				 MAX77686_RTC_UPDATE0, data, data);
+ 	if (rtc->id >= RTC_DEV_MAX) {
+-		pr_debug("%s: too many RTC devices\n", rtc->name);
++		dev_dbg(&rtc->dev, "%s: too many RTC devices\n", rtc->name);
+ 		return;
+ 	}
+ 
+@@ -480,10 +482,10 @@ void rtc_dev_prepare(struct rtc_device *
+ void rtc_dev_add_device(struct rtc_device *rtc)
+ {
+ 	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
+-		printk(KERN_WARNING "%s: failed to add char device %d:%d\n",
++		dev_warn(&rtc->dev, "%s: failed to add char device %d:%d\n",
+ 			rtc->name, MAJOR(rtc_devt), rtc->id);
+ 	else
+-		pr_debug("%s: dev (%d:%d)\n", rtc->name,
++		dev_dbg(&rtc->dev, "%s: dev (%d:%d)\n", rtc->name,
+ 			MAJOR(rtc_devt), rtc->id);
+ }
+ 
+@@ -499,8 +501,7 @@ void __init rtc_dev_init(void)
+ 
+ 	err = alloc_chrdev_region(&rtc_devt, 0, RTC_DEV_MAX, "rtc");
+ 	if (err < 0)
+-		printk(KERN_ERR "%s: failed to allocate char dev region\n",
+-			__FILE__);
++		pr_err("failed to allocate char dev region\n");
+ }
+ 
+ void __exit rtc_dev_exit(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-origin.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-goldfish-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-ocfs2-remove-kfree-redundant-null-checks-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
-mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-maintainers-remove-mark-m-hoffman-fix.patch
+backlight-add-lms501kf03-lcd-driver.patch
 backlight-add-lms501kf03-lcd-driver-fix.patch
 backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-change-parameters-of-the-write-function-to-u8.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-fix-inverted-parameters-for-kcalloc.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-use-static-arrays-for-lcd-configuration.patch
 drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
+backlight-add-an-as3711-pmic-backlight-driver.patch
+backlight-88pm860x_bl-add-missing-of_node_put.patch
+backlight-s6e63m0-report-gamma_table_count-correctly.patch
+drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
+rtc-max77686-add-missing-variable-initialization.patch
 rtc-max77686-add-missing-variable-initialization-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-proc-clean-up-printks-fix-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-selftests-add-tests-for-efivarfs-fix.patch
-selftests-add-tests-for-efivarfs-fix-fix.patch
-tools-testing-selftests-makefile-rearrange-targets.patch
-selftests-add-a-simple-doc-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
-hlist-drop-the-node-parameter-from-iterators-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
+rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch
+rtc-max77686-use-dev_info-instead-of-printk.patch
+rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk.patch
+rtc-rtc-ds2404-use-dev_err-instead-of-printk.patch
+rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug.patch
+rtc-rtc-at91rm9200-use-dev_dbg-dev_err-instead-of-printk-pr_debug.patch
+rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch
+rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch
+rtc-rtc-sun4v-use-pr_warn-instead-of-printk.patch
+rtc-rtc-pcf8583-use-dev_warn-instead-of-printk.patch
+rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug.patch
 
