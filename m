@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + video-mmp-fb-support-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2013 14:40:45 -0800
-Message-ID: <20130215224045.C505431C27F@corp2gmr1-1.hot.corp.google.com>
+Subject: + revert-futex-mark-get_robust_list-as-deprecated.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:01:17 -0800
+Message-ID: <20130215230117.EC1C731C071@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:34517 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666Ab3BOWkr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 17:40:47 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so400332yen.3
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 14:40:46 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:49701 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752444Ab3BOXBU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:01:20 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so386714qen.3
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:01:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, FlorianSchandinat@gmx.de, cldu@marvell.com, greg@kroah.com, haojian.zhuang@gmail.com, ligq@marvell.com, zzhu3@marvell.com
+Cc: richard@nod.at, a.p.zijlstra@chello.nl, dhowells@redhat.com, dvhart@linux.intel.com, ebiederm@xmission.com, gorcunov@openvz.org, jkosina@suse.cz, keescook@chromium.org, rdunlap@xenotime.net, serge.hallyn@canonical.com, stable@vger.kernel.org, tglx@linutronix.de, xemul@parallels.com
 
 
 The patch titled
-     Subject: fb: mmp: include linux/platform_device.h
+     Subject: revert "futex: Mark get_robust_list as deprecated"
 has been added to the -mm tree.  Its filename is
-     video-mmp-fb-support-fix.patch
+     revert-futex-mark-get_robust_list-as-deprecated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: fb: mmp: include linux/platform_device.h
+From: Richard Weinberger <richard@nod.at>
+Subject: revert "futex: Mark get_robust_list as deprecated"
 
-Patch 16559ae "kgdb: remove #include <linux/serial_8250.h> from kgdb.h"
-changes the kgdb.h file so that drivers including it do not implicitly
-include linux/platform_device.h. The mmp framebuffer driver is new,
-so Greg did not have a chance to fix it up when introducing his change.
+Revert ec0c4274e33c0373e.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Zhou Zhu <zzhu3@marvell.com>
-Cc: Lisa Du <cldu@marvell.com>
-Cc: Guoqing Li <ligq@marvell.com>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Greg KH <greg@kroah.com>
+get_robust_list() has at least two valid use cases:
+
+1. checkpoint/restore in userspace
+2. post mortem analysis
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Darren Hart <dvhart@linux.intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Serge E. Hallyn <serge.hallyn@canonical.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: <stable@vger.kernel.org> [3.4.x+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mmp/fb/mmpfb.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/futex.c        |    2 --
+ kernel/futex_compat.c |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN drivers/video/mmp/fb/mmpfb.c~video-mmp-fb-support-fix drivers/video/mmp/fb/mmpfb.c
---- a/drivers/video/mmp/fb/mmpfb.c~video-mmp-fb-support-fix
-+++ a/drivers/video/mmp/fb/mmpfb.c
-@@ -21,6 +21,7 @@
-  */
- #include <linux/module.h>
- #include <linux/dma-mapping.h>
-+#include <linux/platform_device.h>
- #include "mmpfb.h"
+diff -puN /dev/null /dev/null
+diff -puN kernel/futex.c~revert-futex-mark-get_robust_list-as-deprecated kernel/futex.c
+--- a/kernel/futex.c~revert-futex-mark-get_robust_list-as-deprecated
++++ a/kernel/futex.c
+@@ -2472,8 +2472,6 @@ SYSCALL_DEFINE3(get_robust_list, int, pi
+ 	if (!futex_cmpxchg_enabled)
+ 		return -ENOSYS;
  
- static int var_to_pixfmt(struct fb_var_screeninfo *var)
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-linux-next.patch
-video-mmp-fb-support-fix.patch
-swap-add-per-partition-lock-for-swapfile-fix-for-nommu.patch
-misc-c2port-convert-to-idr_alloc.patch
-misc-tifm_core-convert-to-idr_alloc.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-
+-	WARN_ONCE(1, "deprecated: get_robust_list will be deleted in 2013.\n");
+-
+ 	rcu_read_lock();
+ 
+ 	ret = -ESRCH;
+diff -puN kernel/futex_compat.c~revert-futex-mark-get_robust_list-as-deprecated kernel/futex_compat.c
+--- a/kernel/futex_compat.c~revert-futex-mark-get_robust_list-as-deprecated
++++ a/kernel/futex_compat.c
+@@ -143,8 +143,6 @@ COMPAT_SYSCALL_DEFINE3(get_robust_list, 
+ 	if (!futex_cmpxchg_enabled)
+ 		return -ENOSYS;
+ 
+-	WARN_ONCE(1, "deprecated: get_robust_list will be deleted in 2013.\n");
