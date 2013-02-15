@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork.patch added to -mm tree
-Date: Fri, 15 Feb 2013 15:32:52 -0800
-Message-ID: <20130215233253.4E04F5A41F0@corp2gmr1-2.hot.corp.google.com>
+Subject: + lockdep-check-that-no-locks-held-at-freeze-time.patch added to -mm tree
+Date: Fri, 15 Feb 2013 15:32:56 -0800
+Message-ID: <20130215233256.6CE595A41F0@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:44047 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751829Ab3BOXcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:32:54 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so389902qcr.2
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:32:54 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:53534 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751829Ab3BOXc5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:32:57 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so388621qeb.4
+        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:32:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: msb@chromium.org, benchan@chromium.org, mingo@redhat.com, oleg@redhat.com, r
 
 
 The patch titled
-     Subject: vfork: don't freezer_count() for in-kernel users of CLONE_VFORK
+     Subject: lockdep: check that no locks held at freeze time
 has been added to the -mm tree.  Its filename is
-     vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork.patch
+     lockdep-check-that-no-locks-held-at-freeze-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mandeep Singh Baines <msb@chromium.org>
-Subject: vfork: don't freezer_count() for in-kernel users of CLONE_VFORK
+Subject: lockdep: check that no locks held at freeze time
 
-We don't need to call freezer_do_not_count() for in-kernel users of
-CLONE_VFORK since exec will get called in bounded time.
-
-We don't want to call freezer_count() for in-kernel users because they may
-be holding locks.  freezer_count() calls try_to_freeze().  We don't want
-to freeze an in-kernel user because it may be holding locks.
-
-In a follow-up patch, I call debug_check_no_locks_held() from
-try_to_freeze().  After applying this patch, I get no lockdep warnings
-with that patch.
+We shouldn't try_to_freeze if locks are held.  Verified that I get no
+lockdep warnings after applying this patch and "vfork: don't
+freezer_count() for in-kernel users of CLONE_VFORK".
 
 Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
 Cc: Ben Chan <benchan@chromium.org>
@@ -56,26 +49,46 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/freezer.h |    2 ++
+ kernel/lockdep.c        |    6 +++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/fork.c~vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork kernel/fork.c
---- a/kernel/fork.c~vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork
-+++ a/kernel/fork.c
-@@ -718,9 +718,11 @@ static int wait_for_vfork_done(struct ta
+diff -puN include/linux/freezer.h~lockdep-check-that-no-locks-held-at-freeze-time include/linux/freezer.h
+--- a/include/linux/freezer.h~lockdep-check-that-no-locks-held-at-freeze-time
++++ a/include/linux/freezer.h
+@@ -3,6 +3,7 @@
+ #ifndef FREEZER_H_INCLUDED
+ #define FREEZER_H_INCLUDED
+ 
++#include <linux/debug_locks.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
+ #include <linux/atomic.h>
+@@ -48,6 +49,7 @@ extern void thaw_kernel_threads(void);
+ 
+ static inline bool try_to_freeze(void)
  {
- 	int killed;
++	debug_check_no_locks_held(current);
+ 	might_sleep();
+ 	if (likely(!freezing(current)))
+ 		return false;
+diff -puN kernel/lockdep.c~lockdep-check-that-no-locks-held-at-freeze-time kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-check-that-no-locks-held-at-freeze-time
++++ a/kernel/lockdep.c
+@@ -4098,10 +4098,10 @@ static void print_held_locks_bug(struct 
+ 		return;
  
--	freezer_do_not_count();
-+	if (current->mm)
-+		freezer_do_not_count();
- 	killed = wait_for_completion_killable(vfork);
--	freezer_count();
-+	if (current->mm)
-+		freezer_count();
- 
- 	if (killed) {
- 		task_lock(child);
+ 	printk("\n");
+-	printk("=====================================\n");
+-	printk("[ BUG: lock held at task exit time! ]\n");
++	printk("=======================================\n");
++	printk("[ BUG: lock held at exit/freeze time! ]\n");
+ 	print_kernel_ident();
+-	printk("-------------------------------------\n");
++	printk("---------------------------------------\n");
+ 	printk("%s/%d is exiting with locks still held!\n",
+ 		curr->comm, task_pid_nr(curr));
+ 	lockdep_print_held_locks(curr);
 _
 
 Patches currently in -mm which might be from msb@chromium.org are
