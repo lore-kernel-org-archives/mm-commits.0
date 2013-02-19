@@ -1,98 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] futex-avoid-kernel-taint-caused-by-get_robust_list.patch removed from -mm tree
-Date: Fri, 15 Feb 2013 15:45:51 -0800
-Message-ID: <20130215234551.D46485A4193@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] posix-cpu-timers-fix-nanosleep-task_struct-leak.patch removed from -mm tree
+Date: Tue, 19 Feb 2013 13:03:33 -0800
+Message-ID: <20130219210335.DC5C731C19C__45953.3653957353$1361307845$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:55396 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750785Ab3BOXpx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Feb 2013 18:45:53 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so405141vbb.2
-        for <mm-commits@vger.kernel.org>; Fri, 15 Feb 2013 15:45:52 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:55482 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933239Ab3BSVDk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 16:03:40 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so712672yhr.0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 13:03:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.gortmaker@windriver.com, davej@redhat.com, keescook@chromium.org, richard@nod.at, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sgruszka@redhat.com, davej@redhat.com, john.stultz@linaro.org, mingo@elte.hu, oleg@redhat.com, stable@vger.kernel.org, tglx@linutronix.de, tt.rantala@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: futex: avoid kernel taint caused by get_robust_list
+     Subject: posix-cpu-timers: fix nanosleep task_struct leak
 has been removed from the -mm tree.  Its filename was
-     futex-avoid-kernel-taint-caused-by-get_robust_list.patch
+     posix-cpu-timers-fix-nanosleep-task_struct-leak.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: futex: avoid kernel taint caused by get_robust_list
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: posix-cpu-timers: fix nanosleep task_struct leak
 
-Commit ec0c4274e33c0373e4 ("futex: Mark get_robust_list as deprecated")
-added these two WARN_ONCE calls.
+In do_cpu_nanosleep() we do posic_cpu_timer_create(), but forgot
+corresponding posix_cpu_timer_del() what lead to task_struct leak.
 
-However, WARN_ONCE taints the kernel, and we shouldn't be allowing any
-user who wanders by to do this.  For example, the system fuzzer "trinity"
-uses the tainted state as a metric for when to stop, assuming that it has
-caused significant wreckage (and indeed that tool is what actually led me
-to this change).
+This looks like a DoS problem fix, since it's possible to eat kernel
+memory (very slowly though) by normal user, hence Cc stable.
 
-The ability to deprecate this code has been called into question[1], but
-if that remains to be finalized, then making this change in the interim
-seems to make sense.
-
-[1] http://lkml.indiana.edu/hypermail/linux/kernel/1208.0/01081.html
-
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Kees Cook <keescook@chromium.org>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Reported-by: Tommi Rantala <tt.rantala@gmail.com>
+Tested-by: Tommi Rantala <tt.rantala@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>	[3.4+]
+Cc: Dave Jones <davej@redhat.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c        |    2 +-
- kernel/futex_compat.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/posix-cpu-timers.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN kernel/futex.c~futex-avoid-kernel-taint-caused-by-get_robust_list kernel/futex.c
---- a/kernel/futex.c~futex-avoid-kernel-taint-caused-by-get_robust_list
-+++ a/kernel/futex.c
-@@ -2472,7 +2472,7 @@ SYSCALL_DEFINE3(get_robust_list, int, pi
- 	if (!futex_cmpxchg_enabled)
- 		return -ENOSYS;
+diff -puN kernel/posix-cpu-timers.c~posix-cpu-timers-fix-nanosleep-task_struct-leak kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix-cpu-timers-fix-nanosleep-task_struct-leak
++++ a/kernel/posix-cpu-timers.c
+@@ -1417,8 +1417,10 @@ static int do_cpu_nanosleep(const clocki
+ 		while (!signal_pending(current)) {
+ 			if (timer.it.cpu.expires.sched == 0) {
+ 				/*
+-				 * Our timer fired and was reset.
++				 * Our timer fired and was reset, below
++				 * deletion can not fail.
+ 				 */
++				posix_cpu_timer_del(&timer);
+ 				spin_unlock_irq(&timer.it_lock);
+ 				return 0;
+ 			}
+@@ -1436,9 +1438,26 @@ static int do_cpu_nanosleep(const clocki
+ 		 * We were interrupted by a signal.
+ 		 */
+ 		sample_to_timespec(which_clock, timer.it.cpu.expires, rqtp);
+-		posix_cpu_timer_set(&timer, 0, &zero_it, it);
++		error = posix_cpu_timer_set(&timer, 0, &zero_it, it);
++		if (!error) {
++			/*
++			 * Timer is now unarmed, deletion can not fail.
++			 */
++			posix_cpu_timer_del(&timer);
++		}
+ 		spin_unlock_irq(&timer.it_lock);
  
--	WARN_ONCE(1, "deprecated: get_robust_list will be deleted in 2013.\n");
-+	printk_once(KERN_WARNING "deprecated: get_robust_list will be deleted in 2013.\n");
- 
- 	rcu_read_lock();
- 
-diff -puN kernel/futex_compat.c~futex-avoid-kernel-taint-caused-by-get_robust_list kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex-avoid-kernel-taint-caused-by-get_robust_list
-+++ a/kernel/futex_compat.c
-@@ -143,7 +143,7 @@ COMPAT_SYSCALL_DEFINE3(get_robust_list, 
- 	if (!futex_cmpxchg_enabled)
- 		return -ENOSYS;
- 
--	WARN_ONCE(1, "deprecated: get_robust_list will be deleted in 2013.\n");
-+	printk_once(KERN_WARNING "deprecated: get_robust_list will be deleted in 2013.\n");
- 
- 	rcu_read_lock();
- 
++		while (error == TIMER_RETRY) {
++			/*
++			 * We need to handle case when timer was or is in the
++			 * middle of firing. In other cases we already freed
++			 * resources.
++			 */
++			spin_lock_irq(&timer.it_lock);
++			error = posix_cpu_timer_del(&timer);
++			spin_unlock_irq(&timer.it_lock);
++		}
++
+ 		if ((it->it_value.tv_sec | it->it_value.tv_nsec) == 0) {
+ 			/*
+ 			 * It actually did fire already.
 _
 
-Patches currently in -mm which might be from paul.gortmaker@windriver.com are
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
 linux-next.patch
-compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
-compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
-compiler-gcc34h-use-gcc_version-macro.patch
-compiler-gcc4h-bugh-remove-duplicate-macros.patch
-bugh-fix-build_bug_on-macro-in-__checker__.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on.patch
-bugh-make-build_bug_on-generate-compile-time-error.patch
-compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
-inotify-remove-broken-mask-checks-causing-unmount-to-be-einval.patch
-time-dont-inline-export_symbol-functions.patch
-dca-convert-to-idr_alloc.patch
 
