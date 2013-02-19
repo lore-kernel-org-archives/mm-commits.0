@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-signalc-fix-suboptimal-printk-usage.patch added to -mm tree
-Date: Tue, 19 Feb 2013 13:53:42 -0800
-Message-ID: <20130219215342.ABD705A4251@corp2gmr1-2.hot.corp.google.com>
+Subject: + video-s3c-fb-use-arch_-dependancy.patch added to -mm tree
+Date: Tue, 19 Feb 2013 14:39:35 -0800
+Message-ID: <20130219223936.3F74831C34A@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:41915 "EHLO
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:44197 "EHLO
 	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933545Ab3BSVxn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 16:53:43 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so462765qah.4
-        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 13:53:43 -0800 (PST)
+	with ESMTP id S933211Ab3BSWjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 17:39:37 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so467656qah.2
+        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 14:39:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Valdis.Kletnieks@vt.edu, oleg@redhat.com, valdis.kletnieks@vt.edu
+Cc: jg1.han@samsung.com, FlorianSchandinat@gmx.de, kyungmin.park@samsung.com, t.figa@samsung.com
 
 
 The patch titled
-     From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+     Subject: video: s3c-fb: use ARCH_ dependancy
 has been added to the -mm tree.  Its filename is
-     kernel-signalc-fix-suboptimal-printk-usage.patch
+     video-s3c-fb-use-arch_-dependancy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: kernel/signal.c - fix suboptimal printk usage
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: video: s3c-fb: use ARCH_ dependancy
 
-Several printk's were missing KERN_INFO and KERN_CONT flags.
-In addition, a printk that was outside a #if/#endif should have
-been inside, which would result in stray blank line on non-x86 boxes.
+Use ARCH_ dependancy when using s3c-fb.  S3C_DEV_FB, S5P_DEV_FIMD0 cannot
+be enabled on EXYNOS5.  So, ARCH_ should be used as dependancy for s3c-fb.
 
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Figa <t.figa@samsung.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~kernel-signalc-fix-suboptimal-printk-usage kernel/signal.c
---- a/kernel/signal.c~kernel-signalc-fix-suboptimal-printk-usage
-+++ a/kernel/signal.c
-@@ -1157,11 +1157,11 @@ static int send_signal(int sig, struct s
- static void print_fatal_signal(int signr)
- {
- 	struct pt_regs *regs = signal_pt_regs();
--	printk("%s/%d: potentially unexpected fatal signal %d.\n",
-+	printk(KERN_INFO "%s/%d: potentially unexpected fatal signal %d.\n",
- 		current->comm, task_pid_nr(current), signr);
+diff -puN drivers/video/Kconfig~video-s3c-fb-use-arch_-dependancy drivers/video/Kconfig
+--- a/drivers/video/Kconfig~video-s3c-fb-use-arch_-dependancy
++++ a/drivers/video/Kconfig
+@@ -2046,7 +2046,8 @@ config FB_TMIO_ACCELL
  
- #if defined(__i386__) && !defined(__arch_um__)
--	printk("code at %08lx: ", regs->ip);
-+	printk(KERN_INFO "code at %08lx: ", regs->ip);
- 	{
- 		int i;
- 		for (i = 0; i < 16; i++) {
-@@ -1169,11 +1169,11 @@ static void print_fatal_signal(int signr
- 
- 			if (get_user(insn, (unsigned char *)(regs->ip + i)))
- 				break;
--			printk("%02x ", insn);
-+			printk(KERN_CONT "%02x ", insn);
- 		}
- 	}
-+	printk(KERN_CONT "\n");
- #endif
--	printk("\n");
- 	preempt_disable();
- 	show_regs(regs);
- 	preempt_enable();
+ config FB_S3C
+ 	tristate "Samsung S3C framebuffer support"
+-	depends on FB && (S3C_DEV_FB || S5P_DEV_FIMD0)
++	depends on FB && (CPU_S3C2416 || ARCH_S3C64XX || ARCH_S5P64X0 || \
++		ARCH_S5PC100 || ARCH_S5PV210 || ARCH_EXYNOS)
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
 _
 
-Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix-fix.patch
-kernel-signalc-fix-suboptimal-printk-usage.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch
+linux-next.patch
+video-s3c-fb-use-arch_-dependancy.patch
+video-s3c-fb-remove-duplicated-s3c_fb_max_win.patch
+video-s3c-fb-remove-unnecessary-brackets.patch
+video-s3c-fb-add-the-bit-definitions-for-csc-eq709-and-eq601.patch
+video-s3c-fb-fix-typo-in-definition-of-vidcon1_vstatus_frontporch-value.patch
+backlight-add-lms501kf03-lcd-driver.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-change-parameters-of-the-write-function-to-u8.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-fix-inverted-parameters-for-kcalloc.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-use-static-arrays-for-lcd-configuration.patch
+drivers-video-backlight-makefile-cleanup.patch
+backlight-add-an-as3711-pmic-backlight-driver.patch
+backlight-88pm860x_bl-add-missing-of_node_put.patch
+backlight-s6e63m0-report-gamma_table_count-correctly.patch
+drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
+rtc-max77686-add-missing-variable-initialization.patch
+rtc-max77686-add-missing-variable-initialization-fix.patch
+drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
+rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch
+rtc-max77686-use-dev_info-instead-of-printk.patch
+rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk.patch
+rtc-rtc-ds2404-use-dev_err-instead-of-printk.patch
+rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug.patch
+rtc-rtc-at91rm9200-use-dev_dbg-dev_err-instead-of-printk-pr_debug.patch
+rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch
+rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch
+rtc-rtc-sun4v-use-pr_warn-instead-of-printk.patch
+rtc-rtc-pcf8583-use-dev_warn-instead-of-printk.patch
+rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug.patch
 
