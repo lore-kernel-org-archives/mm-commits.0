@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch added to -mm tree
-Date: Tue, 19 Feb 2013 13:33:54 -0800
-Message-ID: <20130219213354.CFF8731C33F@corp2gmr1-1.hot.corp.google.com>
+Subject: + acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix.patch added to -mm tree
+Date: Tue, 19 Feb 2013 13:35:04 -0800
+Message-ID: <20130219213504.F0B715A41FF@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:60236 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933539Ab3BSVd4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 16:33:56 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so436319ghb.2
-        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 13:33:55 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:43999 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933539Ab3BSVfH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 16:35:07 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so715881yhz.3
+        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 13:35:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, laijs@cn.fujitsu.com, shli@kernel.org, wency@cn.fujitsu.com, wujianguo@huawei.com
+Cc: tangchen@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, wujianguo@huawei.com
 
 
 The patch titled
-     Subject: acpi, movablemem_map: Do not zero numa_meminfo in numa_init().
+     Subject: acpi, movablemem_map: Set numa_nodes_hotplug nodemask when using SRAT info.
 has been added to the -mm tree.  Its filename is
-     acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch
+     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, movablemem_map: Do not zero numa_meminfo in numa_init().
+Subject: acpi, movablemem_map: Set numa_nodes_hotplug nodemask when using SRAT info.
 
-early_parse_srat() is called before numa_init(), and has initialized
-numa_meminfo. So do not zero numa_meminfo in numa_init(), otherwise
-we will lose memory numa info.
+We should also set movablemem_map.numa_nodes_hotplug nodemask when we
+insert a hot-pluggable range in SRAT into movablemem_map.map[].
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reported-by: Li Shaohua <shli@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Wu Jianguo <wujianguo@huawei.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/mm/srat.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/x86/mm/numa.c~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix
-+++ a/arch/x86/mm/numa.c
-@@ -559,10 +559,12 @@ static int __init numa_init(int (*init_f
- 	for (i = 0; i < MAX_LOCAL_APIC; i++)
- 		set_apicid_to_node(i, NUMA_NO_NODE);
- 
--	/* Do not clear numa_nodes_parsed because SRAT was parsed earlier. */
-+	/*
-+	 * Do not clear numa_nodes_parsed or zero numa_meminfo here, because
-+	 * SRAT was parsed earlier in early_parse_srat().
-+	 */
- 	nodes_clear(node_possible_map);
- 	nodes_clear(node_online_map);
--	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
- 	WARN_ON(memblock_set_node(0, ULLONG_MAX, MAX_NUMNODES));
- 	numa_reset_distance();
+diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix arch/x86/mm/srat.c
+--- a/arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix
++++ a/arch/x86/mm/srat.c
+@@ -164,6 +164,12 @@ handle_movablemem(int node, u64 start, u
+ 	 */
+ 	if (hotpluggable && movablemem_map.acpi) {
+ 		insert_movablemem_map(start_pfn, end_pfn);
++
++		/*
++		 * numa_nodes_hotplug nodemask represents which nodes are put
++		 * into movablemem_map.map[].
++		 */
++		node_set(node, movablemem_map.numa_nodes_hotplug);
+ 		goto out;
+ 	}
  
 _
 
@@ -136,5 +138,6 @@ acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix.patch
 mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
 
