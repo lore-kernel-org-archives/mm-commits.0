@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainer-allow-keywords-to-match-filenames.patch added to -mm tree
-Date: Tue, 19 Feb 2013 15:23:51 -0800
-Message-ID: <20130219232351.CA59D5A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-scsi-aacraid-srcc-silence-two-gcc-warnings.patch added to -mm tree
+Date: Tue, 19 Feb 2013 15:31:03 -0800
+Message-ID: <20130219233103.9314331C03C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:47848 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933819Ab3BSXXw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 18:23:52 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so721277qen.1
-        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 15:23:52 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:65275 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933654Ab3BSXbF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 18:31:05 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so723091qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 15:31:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: swarren@nvidia.com, joe@perches.com
+Cc: pebolle@tiscali.nl, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     Subject: get_maintainer: allow keywords to match filenames
+     Subject: drivers/scsi/aacraid/src.c: silence two GCC warnings
 has been added to the -mm tree.  Its filename is
-     get_maintainer-allow-keywords-to-match-filenames.patch
+     drivers-scsi-aacraid-srcc-silence-two-gcc-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Warren <swarren@nvidia.com>
-Subject: get_maintainer: allow keywords to match filenames
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: drivers/scsi/aacraid/src.c: silence two GCC warnings
 
-Allow K: entries in MAINTAINERS to match directly against filenames;
-either those extracted from patch +++ or --- lines, or those specified on
-the command-line using the -f option.
+Compiling src.o for a 32 bit system triggers two GCC warnings:
+    drivers/scsi/aacraid/src.c: In function `aac_src_deliver_message':
+    drivers/scsi/aacraid/src.c:410:3: warning: right shift count >= width of type [enabled by default]
+    drivers/scsi/aacraid/src.c:434:2: warning: right shift count >= width of type [enabled by default]
 
-This potentially allows fewer lines in a MAINTAINERS entry, if all the
-relevant files are scattered throughout the whole kernel tree, yet contain
-some common keyword.  An example would be using an ARM SoC name as the
-keyword to catch all related drivers.
+Silence these warnings by casting the 'address' variable (of type
+dma_addr_t) to u64 on those two lines.
 
-I don't think setting exact_pattern_match_hash would be appropriate here;
-at least for intended Tegra use case, this feature is to ensure that all
-Tegra-related driver changes get Cc'd to the Tegra mailing list.  Setting
-exact_pattern_match_hash would prevent git history parsing for e.g.  S-o-b
-tags, which still seems like it would be useful.  Hence, this flag isn't
-set.
-
-Signed-off-by: Stephen Warren <swarren@nvidia.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS               |    9 +++++----
- scripts/get_maintainer.pl |    4 ++++
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ drivers/scsi/aacraid/src.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~get_maintainer-allow-keywords-to-match-filenames MAINTAINERS
---- a/MAINTAINERS~get_maintainer-allow-keywords-to-match-filenames
-+++ a/MAINTAINERS
-@@ -97,12 +97,13 @@ Descriptions of section entries:
- 	   X:	net/ipv6/
- 	   matches all files in and below net excluding net/ipv6/
- 	K: Keyword perl extended regex pattern to match content in a
--	   patch or file.  For instance:
-+	   patch or file, or an affected filename.  For instance:
- 	   K: of_get_profile
--	      matches patches or files that contain "of_get_profile"
-+	      matches patch or file content, or filenames, that contain
-+	      "of_get_profile"
- 	   K: \b(printk|pr_(info|err))\b
--	      matches patches or files that contain one or more of the words
--	      printk, pr_info or pr_err
-+	      matches patch or file content, or filenames, that contain one or
-+	      more of the words printk, pr_info or pr_err
- 	   One regex pattern per line.  Multiple K: lines acceptable.
+diff -puN drivers/scsi/aacraid/src.c~drivers-scsi-aacraid-srcc-silence-two-gcc-warnings drivers/scsi/aacraid/src.c
+--- a/drivers/scsi/aacraid/src.c~drivers-scsi-aacraid-srcc-silence-two-gcc-warnings
++++ a/drivers/scsi/aacraid/src.c
+@@ -407,7 +407,7 @@ static int aac_src_deliver_message(struc
+ 		fib->hw_fib_va->header.StructType = FIB_MAGIC2;
+ 		fib->hw_fib_va->header.SenderFibAddress = (u32)address;
+ 		fib->hw_fib_va->header.u.TimeStamp = 0;
+-		BUG_ON((u32)(address >> 32) != 0L);
++		BUG_ON(((u64)address >> 32) != 0UL);
+ 		address |= fibsize;
+ 	} else {
+ 		/* Calculate the amount to the fibsize bits */
+@@ -431,7 +431,7 @@ static int aac_src_deliver_message(struc
+ 		address |= fibsize;
+ 	}
  
- Note: For the hard of thinking, this list is meant to remain in alphabetical
-diff -puN scripts/get_maintainer.pl~get_maintainer-allow-keywords-to-match-filenames scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-allow-keywords-to-match-filenames
-+++ a/scripts/get_maintainer.pl
-@@ -611,6 +611,10 @@ sub get_maintainers {
- 				    $hash{$tvi} = $value_pd;
- 				}
- 			    }
-+			} elsif ($type eq 'K') {
-+			    if ($file =~ m/$value/x) {
-+				$hash{$tvi} = 0;
-+			    }
- 			}
- 		    }
- 		}
+-	src_writel(dev, MUnit.IQ_H, (address >> 32) & 0xffffffff);
++	src_writel(dev, MUnit.IQ_H, ((u64)address >> 32) & 0xffffffff);
+ 	src_writel(dev, MUnit.IQ_L, address & 0xffffffff);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from swarren@nvidia.com are
+Patches currently in -mm which might be from pebolle@tiscali.nl are
 
 linux-next.patch
-get_maintainer-allow-keywords-to-match-filenames.patch
-ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure.patch
+drivers-scsi-aacraid-srcc-silence-two-gcc-warnings.patch
 
