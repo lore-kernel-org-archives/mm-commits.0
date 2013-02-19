@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + video-s3c-fb-use-arch_-dependancy.patch added to -mm tree
-Date: Tue, 19 Feb 2013 14:39:35 -0800
-Message-ID: <20130219223936.3F74831C34A@corp2gmr1-1.hot.corp.google.com>
+Subject: + video-s3c-fb-remove-duplicated-s3c_fb_max_win.patch added to -mm tree
+Date: Tue, 19 Feb 2013 14:39:38 -0800
+Message-ID: <20130219223939.4EB0531C351@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:44197 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933211Ab3BSWjh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 17:39:37 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so467656qah.2
-        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 14:39:36 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:63957 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933211Ab3BSWjl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 17:39:41 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so716437qen.1
+        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 14:39:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com, FlorianSchandinat@gmx.de, kyungmin.park@samsung.com, t.
 
 
 The patch titled
-     Subject: video: s3c-fb: use ARCH_ dependancy
+     Subject: video: s3c-fb: remove duplicated S3C_FB_MAX_WIN
 has been added to the -mm tree.  Its filename is
-     video-s3c-fb-use-arch_-dependancy.patch
+     video-s3c-fb-remove-duplicated-s3c_fb_max_win.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: video: s3c-fb: use ARCH_ dependancy
+Subject: video: s3c-fb: remove duplicated S3C_FB_MAX_WIN
 
-Use ARCH_ dependancy when using s3c-fb.  S3C_DEV_FB, S5P_DEV_FIMD0 cannot
-be enabled on EXYNOS5.  So, ARCH_ should be used as dependancy for s3c-fb.
+S3C_FB_MAX_WIN is already defined in 'plat-samsung/include/plat/fb.h'. 
+So, this definition in 'include/video/samsung_fimd.h' should be removed to
+avoid the duplication.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>
@@ -46,22 +47,21 @@ Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/video/samsung_fimd.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/video/Kconfig~video-s3c-fb-use-arch_-dependancy drivers/video/Kconfig
---- a/drivers/video/Kconfig~video-s3c-fb-use-arch_-dependancy
-+++ a/drivers/video/Kconfig
-@@ -2046,7 +2046,8 @@ config FB_TMIO_ACCELL
+diff -puN include/video/samsung_fimd.h~video-s3c-fb-remove-duplicated-s3c_fb_max_win include/video/samsung_fimd.h
+--- a/include/video/samsung_fimd.h~video-s3c-fb-remove-duplicated-s3c_fb_max_win
++++ a/include/video/samsung_fimd.h
+@@ -438,8 +438,6 @@
+ #define BLENDCON_NEW_8BIT_ALPHA_VALUE		(1 << 0)
+ #define BLENDCON_NEW_4BIT_ALPHA_VALUE		(0 << 0)
  
- config FB_S3C
- 	tristate "Samsung S3C framebuffer support"
--	depends on FB && (S3C_DEV_FB || S5P_DEV_FIMD0)
-+	depends on FB && (CPU_S3C2416 || ARCH_S3C64XX || ARCH_S5P64X0 || \
-+		ARCH_S5PC100 || ARCH_S5PV210 || ARCH_EXYNOS)
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
+-#define S3C_FB_MAX_WIN (5)  /* number of hardware windows available. */
+-
+ /* Notes on per-window bpp settings
+  *
+  * Value	Win0	 Win1	  Win2	   Win3	    Win 4
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
