@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 20 Feb 2013 12:38:54 -0800
-Message-ID: <20130220203854.879D15A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: + ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch added to -mm tree
+Date: Wed, 20 Feb 2013 12:59:49 -0800
+Message-ID: <20130220205950.3C5B031C194@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:37158 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934126Ab3BTUiz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 15:38:55 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so552913ggi.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 12:38:54 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:37333 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934854Ab3BTU7v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 15:59:51 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so842996yen.2
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 12:59:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, axboe@kernel.dk, festevam@gmail.com, matt.fleming@intel.com, pjones@redhat.com, swarren@nvidia.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,455 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
 
+fix printk warning
+
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Peter Jones <pjones@redhat.com>
+Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Fabio Estevam <festevam@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig                  |   41 --------------------
- arch/x86/Kconfig                   |    5 --
- arch/x86/include/asm/pgtable.h     |   14 -------
- arch/x86/kernel/head32.c           |   17 --------
- arch/x86/kernel/head64.c           |    8 ----
- drivers/edac/amd64_edac.c          |   21 ----------
- drivers/gpio/Kconfig               |    3 -
- drivers/input/keyboard/tegra-kbc.c |    3 -
- drivers/pinctrl/pinctrl-nomadik.c  |    9 ----
- drivers/spi/spi-s3c64xx.c          |   53 ---------------------------
- include/asm-generic/vmlinux.lds.h  |    5 --
- include/linux/mfd/abx500/ab8500.h  |    3 -
- kernel/context_tracking.c          |   20 ----------
- 13 files changed, 202 deletions(-)
+ block/partitions/efi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/Kconfig~linux-next-git-rejects arch/s390/Kconfig
---- a/arch/s390/Kconfig~linux-next-git-rejects
-+++ a/arch/s390/Kconfig
-@@ -60,47 +60,6 @@ config PCI_QUIRKS
+diff -puN block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix block/partitions/efi.c
+--- a/block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
++++ a/block/partitions/efi.c
+@@ -321,7 +321,7 @@ static int is_gpt_valid(struct parsed_pa
  
- config S390
- 	def_bool y
--<<<<<<< HEAD
--	select USE_GENERIC_SMP_HELPERS if SMP
--	select GENERIC_CPU_DEVICES if !SMP
--	select HAVE_SYSCALL_WRAPPERS
--	select HAVE_FUNCTION_TRACER
--	select HAVE_FUNCTION_TRACE_MCOUNT_TEST
--	select HAVE_FTRACE_MCOUNT_RECORD
--	select HAVE_C_RECORDMCOUNT
--	select HAVE_SYSCALL_TRACEPOINTS
--	select SYSCTL_EXCEPTION_TRACE
--	select HAVE_DYNAMIC_FTRACE
--	select HAVE_FUNCTION_GRAPH_TRACER
--	select HAVE_REGS_AND_STACK_ACCESS_API
--	select HAVE_OPROFILE
--	select HAVE_KPROBES
--	select HAVE_KRETPROBES
--	select HAVE_KVM if 64BIT
--	select HAVE_ARCH_TRACEHOOK
--	select INIT_ALL_POSSIBLE
--	select HAVE_PERF_EVENTS
--	select ARCH_HAVE_NMI_SAFE_CMPXCHG
--	select HAVE_DEBUG_KMEMLEAK
--	select HAVE_KERNEL_GZIP
--	select HAVE_KERNEL_BZIP2
--	select HAVE_KERNEL_LZMA
--	select HAVE_KERNEL_LZO
--	select HAVE_KERNEL_XZ
--	select HAVE_ARCH_MUTEX_CPU_RELAX
--	select HAVE_ARCH_JUMP_LABEL if !MARCH_G5
--	select HAVE_BPF_JIT if 64BIT && PACK_STACK
--	select ARCH_SAVE_PAGE_KEYS if HIBERNATION
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
--	select HAVE_MEMBLOCK
--	select HAVE_MEMBLOCK_NODE_MAP
--	select HAVE_CMPXCHG_LOCAL
--	select HAVE_CMPXCHG_DOUBLE
--	select HAVE_ALIGNED_STRUCT_PAGE if SLUB
--	select HAVE_VIRT_CPU_ACCOUNTING
--	select VIRT_CPU_ACCOUNTING
--=======
-->>>>>>> linux-next/akpm-base
- 	select ARCH_DISCARD_MEMBLOCK
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
-diff -puN arch/x86/Kconfig~linux-next-git-rejects arch/x86/Kconfig
---- a/arch/x86/Kconfig~linux-next-git-rejects
-+++ a/arch/x86/Kconfig
-@@ -115,15 +115,10 @@ config X86
- 	select MODULES_USE_ELF_REL if X86_32
- 	select MODULES_USE_ELF_RELA if X86_64
- 	select CLONE_BACKWARDS if X86_32
--<<<<<<< HEAD
--	select GENERIC_SIGALTSTACK
--	select ARCH_USE_BUILTIN_BSWAP
--=======
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select OLD_SIGSUSPEND3 if X86_32 || IA32_EMULATION
- 	select OLD_SIGACTION if X86_32
- 	select COMPAT_OLD_SIGACTION if IA32_EMULATION
-->>>>>>> linux-next/akpm-base
- 
- config INSTRUCTION_DECODER
- 	def_bool y
-diff -puN arch/x86/include/asm/pgtable.h~linux-next-git-rejects arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~linux-next-git-rejects
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -801,19 +801,6 @@ static inline void clone_pgd_range(pgd_t
-        memcpy(dst, src, count * sizeof(pgd_t));
- }
- 
--<<<<<<< HEAD
--/*
-- * The x86 doesn't have any external MMU info: the kernel page
-- * tables contain all the necessary information.
-- */
--static inline void update_mmu_cache(struct vm_area_struct *vma,
--		unsigned long addr, pte_t *ptep)
--{
--}
--static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
--		unsigned long addr, pmd_t *pmd)
--{
--=======
- #define PTE_SHIFT ilog2(PTRS_PER_PTE)
- static inline int page_level_shift(enum pg_level level)
- {
-@@ -826,7 +813,6 @@ static inline unsigned long page_level_s
- static inline unsigned long page_level_mask(enum pg_level level)
- {
- 	return ~(page_level_size(level) - 1);
-->>>>>>> linux-next/akpm-base
- }
- 
- #include <asm-generic/pgtable.h>
-diff -puN arch/x86/kernel/head32.c~linux-next-git-rejects arch/x86/kernel/head32.c
---- a/arch/x86/kernel/head32.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/head32.c
-@@ -32,23 +32,6 @@ static void __init i386_default_early_se
- void __init i386_start_kernel(void)
- {
- 	sanitize_boot_params(&boot_params);
--<<<<<<< HEAD
--
--	memblock_reserve(__pa_symbol(&_text),
--			 __pa_symbol(&__bss_stop) - __pa_symbol(&_text));
--
--#ifdef CONFIG_BLK_DEV_INITRD
--	/* Reserve INITRD */
--	if (boot_params.hdr.type_of_loader && boot_params.hdr.ramdisk_image) {
--		/* Assume only end is not page aligned */
--		u64 ramdisk_image = boot_params.hdr.ramdisk_image;
--		u64 ramdisk_size  = boot_params.hdr.ramdisk_size;
--		u64 ramdisk_end   = PAGE_ALIGN(ramdisk_image + ramdisk_size);
--		memblock_reserve(ramdisk_image, ramdisk_end - ramdisk_image);
--	}
--#endif
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	/* Call the subarch specific early setup function */
- 	switch (boot_params.hdr.hardware_subarch) {
-diff -puN arch/x86/kernel/head64.c~linux-next-git-rejects arch/x86/kernel/head64.c
---- a/arch/x86/kernel/head64.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/head64.c
-@@ -26,10 +26,7 @@
- #include <asm/e820.h>
- #include <asm/bios_ebda.h>
- #include <asm/bootparam_utils.h>
--<<<<<<< HEAD
--=======
- #include <asm/microcode.h>
-->>>>>>> linux-next/akpm-base
- 
- /*
-  * Manage page tables very early on.
-@@ -132,14 +129,9 @@ static void __init copy_bootdata(char *r
- 
- 	memcpy(&boot_params, real_mode_data, sizeof boot_params);
- 	sanitize_boot_params(&boot_params);
--<<<<<<< HEAD
--	if (boot_params.hdr.cmd_line_ptr) {
--		command_line = __va(boot_params.hdr.cmd_line_ptr);
--=======
- 	cmd_line_ptr = get_cmd_line_ptr();
- 	if (cmd_line_ptr) {
- 		command_line = __va(cmd_line_ptr);
-->>>>>>> linux-next/akpm-base
- 		memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
- 	}
- }
-diff -puN drivers/edac/amd64_edac.c~linux-next-git-rejects drivers/edac/amd64_edac.c
---- a/drivers/edac/amd64_edac.c~linux-next-git-rejects
-+++ a/drivers/edac/amd64_edac.c
-@@ -918,7 +918,6 @@ static void read_dram_base_limit_regs(st
- 	nb = node_to_amd_nb(dram_dst_node(pvt, range));
- 	if (WARN_ON(!nb))
- 		return;
--<<<<<<< HEAD
- 
- 	misc = nb->misc;
- 	f1 = pci_get_related_function(misc->vendor, PCI_DEVICE_ID_AMD_15H_NB_F1, misc);
-@@ -937,26 +936,6 @@ static void read_dram_base_limit_regs(st
- 				    /* [47:40] */
- 	pvt->ranges[range].lim.hi |= llim >> 13;
- 
--=======
--
--	misc = nb->misc;
--	f1 = pci_get_related_function(misc->vendor, PCI_DEVICE_ID_AMD_15H_NB_F1, misc);
--	if (WARN_ON(!f1))
--		return;
--
--	amd64_read_pci_cfg(f1, DRAM_LOCAL_NODE_LIM, &llim);
--
--	pvt->ranges[range].lim.lo &= GENMASK(0, 15);
--
--				    /* {[39:27],111b} */
--	pvt->ranges[range].lim.lo |= ((llim & 0x1fff) << 3 | 0x7) << 16;
--
--	pvt->ranges[range].lim.hi &= GENMASK(0, 7);
--
--				    /* [47:40] */
--	pvt->ranges[range].lim.hi |= llim >> 13;
--
-->>>>>>> linux-next/akpm-base
- 	pci_dev_put(f1);
- }
- 
-diff -puN drivers/gpio/Kconfig~linux-next-git-rejects drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~linux-next-git-rejects
-+++ a/drivers/gpio/Kconfig
-@@ -668,8 +668,6 @@ config GPIO_JANZ_TTL
- 	  This driver provides support for driving the pins in output
- 	  mode only. Input mode is not supported.
- 
--<<<<<<< HEAD
--=======
- config GPIO_PALMAS
- 	bool "TI PALMAS series PMICs GPIO"
- 	depends on MFD_PALMAS
-@@ -677,7 +675,6 @@ config GPIO_PALMAS
- 	  Select this option to enable GPIO driver for the TI PALMAS
- 	  series chip family.
- 
-->>>>>>> linux-next/akpm-base
- config GPIO_TPS6586X
- 	bool "TPS6586X GPIO"
- 	depends on MFD_TPS6586X
-diff -puN drivers/input/keyboard/tegra-kbc.c~linux-next-git-rejects drivers/input/keyboard/tegra-kbc.c
---- a/drivers/input/keyboard/tegra-kbc.c~linux-next-git-rejects
-+++ a/drivers/input/keyboard/tegra-kbc.c
-@@ -30,9 +30,7 @@
- #include <linux/clk.h>
- #include <linux/slab.h>
- #include <linux/input/matrix_keypad.h>
--<<<<<<< HEAD
- #include <mach/clk.h>
--=======
- #include <linux/clk/tegra.h>
- 
- #define KBC_MAX_GPIO	24
-@@ -41,7 +39,6 @@
- #define KBC_MAX_ROW	16
- #define KBC_MAX_COL	8
- #define KBC_MAX_KEY	(KBC_MAX_ROW * KBC_MAX_COL)
-->>>>>>> linux-next/akpm-base
- 
- #define KBC_MAX_GPIO	24
- #define KBC_MAX_KPENT	8
-diff -puN drivers/pinctrl/pinctrl-nomadik.c~linux-next-git-rejects drivers/pinctrl/pinctrl-nomadik.c
---- a/drivers/pinctrl/pinctrl-nomadik.c~linux-next-git-rejects
-+++ a/drivers/pinctrl/pinctrl-nomadik.c
-@@ -1362,15 +1362,9 @@ static int nmk_gpio_probe(struct platfor
- 	if (secondary_irq >= 0 && !pdata->get_secondary_status)
- 		return -EINVAL;
- 
--<<<<<<< HEAD
--	base = devm_request_and_ioremap(&dev->dev, res);
--	if (!base)
--		return -ENOMEM;
--=======
- 	base = devm_ioremap_resource(&dev->dev, res);
- 	if (IS_ERR(base))
- 		return PTR_ERR(base);
-->>>>>>> linux-next/akpm-base
- 
- 	clk = devm_clk_get(&dev->dev, NULL);
- 	if (IS_ERR(clk))
-@@ -2110,13 +2104,10 @@ static struct pinctrl_desc nmk_pinctrl_d
- 
- static const struct of_device_id nmk_pinctrl_match[] = {
- 	{
--<<<<<<< HEAD
--=======
- 		.compatible = "stericsson,nmk-pinctrl-stn8815",
- 		.data = (void *)PINCTRL_NMK_STN8815,
- 	},
- 	{
-->>>>>>> linux-next/akpm-base
- 		.compatible = "stericsson,nmk-pinctrl",
- 		.data = (void *)PINCTRL_NMK_DB8500,
- 	},
-diff -puN drivers/spi/spi-s3c64xx.c~linux-next-git-rejects drivers/spi/spi-s3c64xx.c
---- a/drivers/spi/spi-s3c64xx.c~linux-next-git-rejects
-+++ a/drivers/spi/spi-s3c64xx.c
-@@ -1051,52 +1051,6 @@ static void s3c64xx_spi_hwinit(struct s3
- 	flush_fifo(sdd);
- }
- 
--<<<<<<< HEAD
--static int s3c64xx_spi_get_dmares(
--			struct s3c64xx_spi_driver_data *sdd, bool tx)
--{
--	struct platform_device *pdev = sdd->pdev;
--	struct s3c64xx_spi_dma_data *dma_data;
--	struct property *prop;
--	struct resource *res;
--	char prop_name[15], *chan_str;
--
--	if (tx) {
--		dma_data = &sdd->tx_dma;
--		dma_data->direction = DMA_MEM_TO_DEV;
--		chan_str = "tx";
--	} else {
--		dma_data = &sdd->rx_dma;
--		dma_data->direction = DMA_DEV_TO_MEM;
--		chan_str = "rx";
--	}
--
--	if (!sdd->pdev->dev.of_node) {
--		res = platform_get_resource(pdev, IORESOURCE_DMA, tx ? 0 : 1);
--		if (!res) {
--			dev_err(&pdev->dev, "Unable to get SPI-%s dma resource\n",
--				chan_str);
--			return -ENXIO;
--		}
--		dma_data->dmach = res->start;
--		return 0;
--	}
--
--	sprintf(prop_name, "%s-dma-channel", chan_str);
--	prop = of_find_property(pdev->dev.of_node, prop_name, NULL);
--	if (!prop) {
--		dev_err(&pdev->dev, "%s dma channel property not specified\n",
--					chan_str);
--		return -ENXIO;
--	}
--
--	dma_data->dmach = DMACH_DT_PROP;
--	dma_data->dma_prop = prop;
--	return 0;
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- #ifdef CONFIG_OF
- static int s3c64xx_spi_parse_dt_gpio(struct s3c64xx_spi_driver_data *sdd)
- {
-@@ -1287,16 +1241,9 @@ static int s3c64xx_spi_probe(struct plat
- 	/* the spi->mode bits understood by this driver: */
- 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
- 
--<<<<<<< HEAD
--	sdd->regs = devm_request_and_ioremap(&pdev->dev, mem_res);
--	if (sdd->regs == NULL) {
--		dev_err(&pdev->dev, "Unable to remap IO\n");
--		ret = -ENXIO;
--=======
- 	sdd->regs = devm_ioremap_resource(&pdev->dev, mem_res);
- 	if (IS_ERR(sdd->regs)) {
- 		ret = PTR_ERR(sdd->regs);
-->>>>>>> linux-next/akpm-base
- 		goto err0;
- 	}
- 
-diff -puN include/asm-generic/vmlinux.lds.h~linux-next-git-rejects include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~linux-next-git-rejects
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -529,15 +529,10 @@
- 	DEV_DISCARD(init.rodata)					\
- 	CPU_DISCARD(init.rodata)					\
- 	MEM_DISCARD(init.rodata)					\
--<<<<<<< HEAD
--	CLK_OF_TABLES()							\
--	KERNEL_DTB()
--=======
- 	CLKSRC_OF_TABLES()						\
- 	CLK_OF_TABLES()							\
- 	KERNEL_DTB()							\
- 	IRQCHIP_OF_MATCH_TABLE()
-->>>>>>> linux-next/akpm-base
- 
- #define INIT_TEXT							\
- 	*(.init.text)							\
-diff -puN include/linux/mfd/abx500/ab8500.h~linux-next-git-rejects include/linux/mfd/abx500/ab8500.h
---- a/include/linux/mfd/abx500/ab8500.h~linux-next-git-rejects
-+++ a/include/linux/mfd/abx500/ab8500.h
-@@ -512,8 +512,6 @@ static inline int is_ab9540_2p0_or_earli
- 	return (is_ab9540(ab) && (ab->chip_id < AB8500_CUT2P0));
- }
- 
--<<<<<<< HEAD
--=======
- #ifdef CONFIG_AB8500_DEBUG
- void ab8500_dump_all_banks(struct device *dev);
- void ab8500_debug_register_interrupt(int line);
-@@ -522,5 +520,4 @@ static inline void ab8500_dump_all_banks
- static inline void ab8500_debug_register_interrupt(int line) {}
- #endif
- 
-->>>>>>> linux-next/akpm-base
- #endif /* MFD_AB8500_H */
-diff -puN kernel/context_tracking.c~linux-next-git-rejects kernel/context_tracking.c
---- a/kernel/context_tracking.c~linux-next-git-rejects
-+++ a/kernel/context_tracking.c
-@@ -103,8 +103,6 @@ void user_exit(void)
- 	local_irq_restore(flags);
- }
- 
--<<<<<<< HEAD
--=======
- 
- /**
-  * context_tracking_task_switch - context switch the syscall callbacks
-@@ -119,7 +117,6 @@ void user_exit(void)
-  * migrate to some CPU that doesn't do the context tracking. As such the TIF
-  * flag may not be desired there.
-  */
-->>>>>>> linux-next/akpm-base
- void guest_enter(void)
- {
- 	if (vtime_accounting_enabled())
-@@ -138,23 +135,6 @@ void guest_exit(void)
- }
- EXPORT_SYMBOL_GPL(guest_exit);
- 
--<<<<<<< HEAD
--
--/**
-- * context_tracking_task_switch - context switch the syscall callbacks
-- * @prev: the task that is being switched out
-- * @next: the task that is being switched in
-- *
-- * The context tracking uses the syscall slow path to implement its user-kernel
-- * boundaries probes on syscalls. This way it doesn't impact the syscall fast
-- * path on CPUs that don't do context tracking.
-- *
-- * But we need to clear the flag on the previous task because it may later
-- * migrate to some CPU that doesn't do the context tracking. As such the TIF
-- * flag may not be desired there.
-- */
--=======
-->>>>>>> linux-next/akpm-base
- void context_tracking_task_switch(struct task_struct *prev,
- 			     struct task_struct *next)
- {
+ 	/* Check the GUID Partition Table header size is too small */
+ 	if (le32_to_cpu((*gpt)->header_size) < sizeof(gpt_header)) {
+-		pr_debug("GUID Partition Table Header size is too small: %u < %lu\n",
++		pr_debug("GUID Partition Table Header size is too small: %u < %zu\n",
+ 			le32_to_cpu((*gpt)->header_size),
+ 			sizeof(gpt_header));
+ 		goto fail;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
@@ -574,6 +159,7 @@ fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
 nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
 idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
 drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
 dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
 aio-kiocb_cancel-fix.patch
 wait-add-wait_event_hrtimeout-fix.patch
@@ -610,5 +196,4 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-linux-next-git-rejects.patch
 
