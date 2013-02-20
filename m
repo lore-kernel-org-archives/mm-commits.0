@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-check-that-no-locks-held-at-freeze-time-fix.patch added to -mm tree
-Date: Tue, 19 Feb 2013 15:24:05 -0800
-Message-ID: <20130220001608.5BB675A44EC@corp2gmr1-2.hot.corp.google.com>
+Subject: + hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch added to -mm tree
+Date: Tue, 19 Feb 2013 16:13:28 -0800
+Message-ID: <20130220010530.B969C5A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:52175 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933507Ab3BTAQM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 19:16:12 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so733147yhr.0
-        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 16:16:11 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:56359 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933757Ab3BTBFg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Feb 2013 20:05:36 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so458075ghb.3
+        for <mm-commits@vger.kernel.org>; Tue, 19 Feb 2013 17:05:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benchan@chromium.org, mingo@redhat.com, msb@chromium.org, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org
+Cc: akpm@linux-foundation.org, sasha.levin@oracle.com
 
 
 The patch titled
-     Subject: lockdep-check-that-no-locks-held-at-freeze-time-fix
+     Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix
 has been added to the -mm tree.  Its filename is
-     lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
+     hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lockdep-check-that-no-locks-held-at-freeze-time-fix
+Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix
 
-ERROR: "debug_check_no_locks_held" [net/sunrpc/sunrpc.ko] undefined!
-ERROR: "debug_check_no_locks_held" [net/core/pktgen.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/xfs/xfs.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/nfs/nfsv4.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/nfs/nfsv3.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/nfs/nfs.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/lockd/lockd.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/jfs/jfs.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/jffs2/jffs2.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/jbd2/jbd2.ko] undefined!
-ERROR: "debug_check_no_locks_held" [fs/gfs2/gfs2.ko] undefined!
-ERROR: "debug_check_no_locks_held" [drivers/w1/wire.ko] undefined!
-ERROR: "debug_check_no_locks_held" [drivers/usb/atm/ueagle-atm.ko] undefined!
-ERROR: "debug_check_no_locks_held" [drivers/net/irda/stir4200.ko] undefined!
-ERROR: "debug_check_no_locks_held" [drivers/block/pktcdvd.ko] undefined!
-
-testing fail :(
-
-Cc: Ben Chan <benchan@chromium.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mandeep Singh Baines <msb@chromium.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-check-that-no-locks-held-at-freeze-time-fix kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-check-that-no-locks-held-at-freeze-time-fix
-+++ a/kernel/lockdep.c
-@@ -4115,6 +4115,7 @@ void debug_check_no_locks_held(struct ta
- 	if (unlikely(task->lockdep_depth > 0))
- 		print_held_locks_bug(task);
- }
-+EXPORT_SYMBOL_GPL(debug_check_no_locks_held);
+diff -puN drivers/net/ethernet/mellanox/mlx4/en_rx.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix drivers/net/ethernet/mellanox/mlx4/en_rx.c
+--- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix
++++ a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+@@ -35,6 +35,7 @@
+ #include <linux/slab.h>
+ #include <linux/mlx4/qp.h>
+ #include <linux/skbuff.h>
++#include <linux/rculist.h>
+ #include <linux/if_ether.h>
+ #include <linux/if_vlan.h>
+ #include <linux/vmalloc.h>
+@@ -617,7 +618,6 @@ int mlx4_en_process_rx_cq(struct net_dev
  
- #ifdef __KERNEL__
- void debug_show_all_locks(void)
+ 			if (is_multicast_ether_addr(ethh->h_dest)) {
+ 				struct mlx4_mac_entry *entry;
+-				struct hlist_node *n;
+ 				struct hlist_head *bucket;
+ 				unsigned int mac_hash;
+ 
+@@ -625,7 +625,7 @@ int mlx4_en_process_rx_cq(struct net_dev
+ 				mac_hash = ethh->h_source[MLX4_EN_MAC_HASH_IDX];
+ 				bucket = &priv->mac_hash[mac_hash];
+ 				rcu_read_lock();
+-				hlist_for_each_entry_rcu(entry, n, bucket, hlist) {
++				hlist_for_each_entry_rcu(entry, bucket, hlist) {
+ 					if (ether_addr_equal_64bits(entry->mac,
+ 								    ethh->h_source)) {
+ 						rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -208,4 +202,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
 
