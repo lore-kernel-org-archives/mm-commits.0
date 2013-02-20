@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix.patch added to -mm tree
-Date: Wed, 20 Feb 2013 13:29:59 -0800
-Message-ID: <20130220212959.D30935A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: + acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix.patch added to -mm tree
+Date: Wed, 20 Feb 2013 13:31:04 -0800
+Message-ID: <20130220213104.D830031C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:33651 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759221Ab3BTVaB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:30:01 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so784038ghb.0
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:30:01 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:44750 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759221Ab3BTVbI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:31:08 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so830712qeb.0
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:31:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: tangchen@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jian
 
 
 The patch titled
-     Subject: acpi, movablemem_map: Exclude memblock.reserved ranges when parsing SRAT.
+     Subject: acpi, movablemem_map: make whatever nodes the kernel resides in un-hotpluggable.
 has been added to the -mm tree.  Its filename is
-     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix.patch
+     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, movablemem_map: Exclude memblock.reserved ranges when parsing SRAT.
+Subject: acpi, movablemem_map: make whatever nodes the kernel resides in un-hotpluggable.
 
-As mentioned by HPA before, when we are using movablemem_map=acpi, if all the
-memory ranges in SRAT is hotpluggable, then no memory can be used by kernel.
-
-Before parsing SRAT, memblock has already reserve some memory ranges for other
-purposes, such as for kernel image, and so on. We cannot prevent kernel from
-using these memory. So we need to exclude these ranges even if these memory is
-hotpluggable.
-
-This patch changes the movablemem_map=acpi option's behavior. The memory ranges
-reserved by memblock will not be added into movablemem_map.map[]. So even if
-all the memory is hotpluggable, there will always be memory that could be used
-by the kernel.
+There could be several memory ranges in the node in which the kernel
+resides.  When using movablemem_map=acpi, we may skip one range that have
+memory reserved by memblock.  But if it is too small, then the kernel will
+fail to boot.  So, make the whole node which the kernel resides in
+un-hotpluggable.  Then the kernel has enough memory to use.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reported-by: H Peter Anvin <hpa@zytor.com>
@@ -66,46 +59,82 @@ Cc: Will Huck <will.huckk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/srat.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    6 ++++++
+ arch/x86/mm/srat.c                  |   17 +++++++++++++++++
+ include/linux/mm.h                  |    1 +
+ 3 files changed, 24 insertions(+)
 
-diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix
-+++ a/arch/x86/mm/srat.c
-@@ -145,7 +145,7 @@ static inline int save_add_info(void) {r
- static void __init
- handle_movablemem(int node, u64 start, u64 end, u32 hotpluggable)
- {
--	int overlap;
-+	int overlap, i;
- 	unsigned long start_pfn, end_pfn;
+diff -puN Documentation/kernel-parameters.txt~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix
++++ a/Documentation/kernel-parameters.txt
+@@ -1652,6 +1652,8 @@ bytes respectively. Such letter suffixes
+ 			in flags from SRAT from ACPI BIOS to determine which
+ 			memory devices could be hotplugged. The corresponding
+ 			memory ranges will be set as ZONE_MOVABLE.
++			NOTE: Whatever node the kernel resides in will always
++			      be un-hotpluggable.
  
- 	start_pfn = PFN_DOWN(start);
-@@ -161,8 +161,24 @@ handle_movablemem(int node, u64 start, u
- 	 *
- 	 * Using movablemem_map, we can prevent memblock from allocating memory
- 	 * on ZONE_MOVABLE at boot time.
-+	 *
-+	 * Before parsing SRAT, memblock has already reserve some memory ranges
-+	 * for other purposes, such as for kernel image. We cannot prevent
-+	 * kernel from using these memory, so we need to exclude these memory
-+	 * even if it is hotpluggable.
+ 	movablemem_map=nn[KMG]@ss[KMG]
+ 			[KNL,X86,IA-64,PPC] This parameter is similar to
+@@ -1673,6 +1675,10 @@ bytes respectively. Such letter suffixes
+ 			satisfied. So the administrator should be careful that
+ 			the amount of movablemem_map areas are not too large.
+ 			Otherwise kernel won't have enough memory to start.
++			NOTE: We don't stop users specifying the node the
++			      kernel resides in as hotpluggable so that this
++			      option can be used as a workaround of firmware
++                              bugs.
+ 
+ 	MTD_Partition=	[MTD]
+ 			Format: <name>,<region-number>,<size>,<offset>
+diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix arch/x86/mm/srat.c
+--- a/arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix
++++ a/arch/x86/mm/srat.c
+@@ -166,6 +166,9 @@ handle_movablemem(int node, u64 start, u
+ 	 * for other purposes, such as for kernel image. We cannot prevent
+ 	 * kernel from using these memory, so we need to exclude these memory
+ 	 * even if it is hotpluggable.
++	 * Furthermore, to ensure the kernel has enough memory to boot, we make
++	 * all the memory on the node which the kernel resides in
++	 * un-hotpluggable.
  	 */
  	if (hotpluggable && movablemem_map.acpi) {
-+		/* Exclude ranges reserved by memblock. */
-+		struct memblock_type *rgn = &memblock.reserved;
+ 		/* Exclude ranges reserved by memblock. */
+@@ -176,9 +179,23 @@ handle_movablemem(int node, u64 start, u
+ 			    start >= rgn->regions[i].base +
+ 			    rgn->regions[i].size)
+ 				continue;
 +
-+		for (i = 0; i < rgn->cnt; i++) {
-+			if (end <= rgn->regions[i].base ||
-+			    start >= rgn->regions[i].base +
-+			    rgn->regions[i].size)
-+				continue;
++			/*
++			 * If the memory range overlaps the memory reserved by
++			 * memblock, then the kernel resides in this node.
++			 */
++			node_set(node, movablemem_map.numa_nodes_kernel);
++
+ 			goto out;
+ 		}
+ 
++		/*
++		 * If the kernel resides in this node, then the whole node
++		 * should not be hotpluggable.
++		 */
++		if (node_isset(node, movablemem_map.numa_nodes_kernel))
 +			goto out;
-+		}
 +
  		insert_movablemem_map(start_pfn, end_pfn);
  
  		/*
+diff -puN include/linux/mm.h~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix include/linux/mm.h
+--- a/include/linux/mm.h~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix
++++ a/include/linux/mm.h
+@@ -1372,6 +1372,7 @@ struct movablemem_map {
+ 	int nr_map;
+ 	struct movablemem_entry map[MOVABLEMEM_MAP_MAX];
+ 	nodemask_t numa_nodes_hotplug;	/* on which nodes we specify memory */
++	nodemask_t numa_nodes_kernel;	/* on which nodes kernel resides in */
+ };
+ 
+ extern void __init insert_movablemem_map(unsigned long start_pfn,
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
@@ -172,5 +201,6 @@ acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix.patch
 mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
 
