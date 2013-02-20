@@ -1,94 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: + keys-revert-one-application-of-fix-unreachable-code-patch.patch added to -mm tree
-Date: Wed, 20 Feb 2013 13:58:45 -0800
-Message-ID: <20130220215845.E448031C194@corp2gmr1-1.hot.corp.google.com>
+Subject: [withdrawn] kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix.patch removed from -mm tree
+Date: Wed, 20 Feb 2013 14:05:56 -0800
+Message-ID: <20130220220556.D19355A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:59911 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380Ab3BTV6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:58:47 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so834419qen.3
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:58:46 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:63070 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127Ab3BTWF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 17:05:58 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so850864yen.4
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 14:05:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, jkosina@suse.cz, stable@vger.kernel.org
+To: akpm@linux-foundation.org, sasha.levin@oracle.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: keys: revert one application of "Fix unreachable code" patch
-has been added to the -mm tree.  Its filename is
-     keys-revert-one-application-of-fix-unreachable-code-patch.patch
+     Subject: kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix
+has been removed from the -mm tree.  Its filename was
+     kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: keys: revert one application of "Fix unreachable code" patch
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix
 
-A patch to fix some unreachable code in search_my_process_keyrings() got
-applied twice by two different routes upstream:
+s/int/long/ to avoid possible truncation issues
 
-	commit e67eab39bee26f509d38d00ca1a8f24b63f46a31
-	Author: Alan Cox <alan@linux.intel.com>
-	Date:   Thu Dec 20 15:05:54 2012 -0800
-	keys: fix unreachable code
-
-and:
-
-	commit b010520ab3d2c05eb444ed5e01fe6c33842f597a
-	Author: Alan Cox <alan@linux.intel.com>
-	Date:   Thu Oct 25 15:23:35 2012 +0100
-	keys: Fix unreachable code
-
-Unfortunately, the second application removed something it shouldn't have
-and this wasn't detected by GIT.  This is due to the patch not having
-sufficient lines of context to distinguish the two places of application.
-
-So revert the second application of the patch.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: <stable@vger.kernel.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/process_keys.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/posix-timers.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/keys/process_keys.c~keys-revert-one-application-of-fix-unreachable-code-patch security/keys/process_keys.c
---- a/security/keys/process_keys.c~keys-revert-one-application-of-fix-unreachable-code-patch
-+++ a/security/keys/process_keys.c
-@@ -367,6 +367,8 @@ key_ref_t search_my_process_keyrings(str
+diff -puN kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix kernel/posix-timers.c
+--- a/kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix
++++ a/kernel/posix-timers.c
+@@ -639,7 +639,7 @@ static struct k_itimer *__lock_timer(tim
+ {
+ 	struct k_itimer *timr;
  
- 		switch (PTR_ERR(key_ref)) {
- 		case -EAGAIN: /* no key */
-+			if (ret)
-+				break;
- 		case -ENOKEY: /* negative key */
- 			ret = key_ref;
- 			break;
+-	if ((int)timer_id < 0)
++	if ((long)timer_id < 0)
+ 		return NULL;
+ 
+ 	rcu_read_lock();
 _
 
-Patches currently in -mm which might be from alan@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-goldfish-framebuffer-driver.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
 goldfish-framebuffer-driver-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+ocfs2-remove-kfree-redundant-null-checks-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+tmpfs-fix-mempolicy-object-leaks-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+sys_prctl-coding-style-cleanup.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-coredump-remove-redundant-defines-for-dumpable-states.patch
-fork-unshare-remove-dead-code.patch
-keys-revert-one-application-of-fix-unreachable-code-patch.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-max77686-add-missing-variable-initialization-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
+lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+selftests-add-tests-for-efivarfs-fix.patch
+selftests-add-tests-for-efivarfs-fix-fix.patch
+tools-testing-selftests-makefile-rearrange-targets.patch
+selftests-add-a-simple-doc-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
