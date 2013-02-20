@@ -1,54 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix.patch removed from -mm tree
-Date: Wed, 20 Feb 2013 14:05:56 -0800
-Message-ID: <20130220220556.D19355A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: + debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch added to -mm tree
+Date: Wed, 20 Feb 2013 14:40:50 -0800
+Message-ID: <20130220224051.4B6B35A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:63070 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127Ab3BTWF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 17:05:58 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so850864yen.4
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 14:05:57 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:37723 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751528Ab3BTWkw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 17:40:52 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so838979qen.5
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 14:40:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sasha.levin@oracle.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, fengguang.wu@intel.com, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix
-has been removed from the -mm tree.  Its filename was
-     kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix.patch
+     Subject: debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support-fix
+has been added to the -mm tree.  Its filename is
+     debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix
+Subject: debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support-fix
 
-s/int/long/ to avoid possible truncation issues
+stomp sparse gfp_t warnings
 
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm_types.h |    2 +-
+ mm/page_alloc.c          |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix kernel/posix-timers.c
---- a/kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id-fix
-+++ a/kernel/posix-timers.c
-@@ -639,7 +639,7 @@ static struct k_itimer *__lock_timer(tim
+diff -puN include/linux/mm_types.h~debugging-keep-track-of-page-owners-fix-2-fix-fix-fix include/linux/mm_types.h
+--- a/include/linux/mm_types.h~debugging-keep-track-of-page-owners-fix-2-fix-fix-fix
++++ a/include/linux/mm_types.h
+@@ -180,7 +180,7 @@ struct page {
+ #endif
+ #ifdef CONFIG_PAGE_OWNER
+ 	int order;
+-	unsigned int gfp_mask;
++	gfp_t gfp_mask;
+ 	struct stack_trace trace;
+ 	unsigned long trace_entries[8];
+ #endif
+diff -puN mm/page_alloc.c~debugging-keep-track-of-page-owners-fix-2-fix-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~debugging-keep-track-of-page-owners-fix-2-fix-fix-fix
++++ a/mm/page_alloc.c
+@@ -2243,8 +2243,8 @@ __perform_reclaim(gfp_t gfp_mask, unsign
+ 	return progress;
+ }
+ 
+-static void set_page_owner(struct page *page, unsigned int order,
+-			unsigned int gfp_mask)
++static void
++set_page_owner(struct page *page, unsigned int order, gfp_t gfp_mask)
  {
- 	struct k_itimer *timr;
- 
--	if ((int)timer_id < 0)
-+	if ((long)timer_id < 0)
- 		return NULL;
- 
- 	rcu_read_lock();
+ #ifdef CONFIG_PAGE_OWNER
+ 	struct stack_trace *trace = &page->trace;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -179,6 +204,7 @@ hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
