@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timer-dont-call-idr_find-w-out-of-range-id.patch added to -mm tree
-Date: Wed, 20 Feb 2013 15:26:25 -0800
-Message-ID: <20130220232625.9538731C03C__43518.4043054052$1361402814$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: + idr-explain-warn_on_once-on-negative-ids-out-of-range-id.patch added to -mm tree
+Date: Wed, 20 Feb 2013 15:42:58 -0800
+Message-ID: <20130220234258.96DFA5A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:38379 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530Ab3BTX01 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 18:26:27 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so850761yhr.4
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 15:26:26 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:34981 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751637Ab3BTXnE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 18:43:04 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so860018ves.5
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 15:43:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, sasha.levin@oracle.com, stable@vger.kernel.org, tglx@linutronix.de
+Cc: tj@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: posix-timer: don't call idr_find() w/ out-of-range ID
+     Subject: idr: explain WARN_ON_ONCE() on negative IDs out-of-range ID
 has been added to the -mm tree.  Its filename is
-     posix-timer-dont-call-idr_find-w-out-of-range-id.patch
+     idr-explain-warn_on_once-on-negative-ids-out-of-range-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: posix-timer: don't call idr_find() w/ out-of-range ID
+Subject: idr: explain WARN_ON_ONCE() on negative IDs out-of-range ID
 
-When idr_find() is fed a negative ID, it used to look up the ID ignoring
-the sign bit before recent ("idr: remove MAX_IDR_MASK and move left
-MAX_IDR_* into idr.c") patch, and triggers WARN_ON_ONCE() after it.
+Until recently, when an negative ID is specified, idr functions used to
+ignore the sign bit and proceeded with the operation with the rest of
+bits, which is bizarre and error-prone.  The behavior recently got changed
+so that negative IDs are treated as invalid but we're triggering
+WARN_ON_ONCE() on negative IDs just in case somebody was depending on the
+sign bit being ignored, so that those can be detected and fixed easily.
 
-__lock_timer() feeds timer_id from userland directly to idr_find() without
-sanitizing it which can trigger the above malfunctions.  Add a range check
-on @timer_id before invoking idr_find() in __lock_timer().
-
-While timer_t is defined as int by all archs at the moment, Andrew worries
-that it may be defined as a larger type later on.  Make the test cover
-larger integers too so that it at least is guaranteed to not return the
-wrong timer.
-
-Note that WARN_ON_ONCE() in idr_find() on id < 0 is transitional
-precaution while moving away from ignoring MSB.  Once it's gone we can
-remove the guard as long as timer_t isn't larger than int.
-
-
-Given that larger timer_t is possible, at least theoretically, it probably
-is better to keep the guard even if idr_find() is later updated, so not
-marking the guard as to be removed.
-
-Will send a separate patch to add comment on top of WARN_ON_ONCE() in
-idr_find().
+We only need this for a while.  Explain why WARN_ON_ONCE()s are there and
+that they can be removed later.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ lib/idr.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN kernel/posix-timers.c~posix-timer-dont-call-idr_find-w-out-of-range-id kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timer-dont-call-idr_find-w-out-of-range-id
-+++ a/kernel/posix-timers.c
-@@ -639,6 +639,13 @@ static struct k_itimer *__lock_timer(tim
- {
- 	struct k_itimer *timr;
+diff -puN lib/idr.c~idr-explain-warn_on_once-on-negative-ids-out-of-range-id lib/idr.c
+--- a/lib/idr.c~idr-explain-warn_on_once-on-negative-ids-out-of-range-id
++++ a/lib/idr.c
+@@ -569,6 +569,7 @@ void idr_remove(struct idr *idp, int id)
+ 	struct idr_layer *p;
+ 	struct idr_layer *to_free;
+ 
++	/* see comment in idr_find_slowpath() */
+ 	if (WARN_ON_ONCE(id < 0))
+ 		return;
+ 
+@@ -666,6 +667,14 @@ void *idr_find_slowpath(struct idr *idp,
+ 	int n;
+ 	struct idr_layer *p;
  
 +	/*
-+	 * timer_t could be any type >= int and we want to make sure any
-+	 * @timer_id outside positive int range fails lookup.
++	 * If @id is negative, idr_find() used to ignore the sign bit and
++	 * performed lookup with the rest of bits, which is weird and can
++	 * lead to very obscure bugs.  We're now returning NULL for all
++	 * negative IDs but just in case somebody was depending on the sign
++	 * bit being ignored, let's trigger WARN_ON_ONCE() so that they can
++	 * be detected and fixed.  WARN_ON_ONCE() can later be removed.
 +	 */
-+	if ((unsigned long long)timer_id > INT_MAX)
-+		return NULL;
-+
- 	rcu_read_lock();
- 	timr = idr_find(&posix_timers_id, (int)timer_id);
- 	if (timr) {
+ 	if (WARN_ON_ONCE(id < 0))
+ 		return NULL;
+ 
+@@ -815,6 +824,7 @@ void *idr_replace(struct idr *idp, void 
+ 	int n;
+ 	struct idr_layer *p, *old_p;
+ 
++	/* see comment in idr_find_slowpath() */
+ 	if (WARN_ON_ONCE(id < 0))
+ 		return ERR_PTR(-EINVAL);
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
@@ -213,6 +213,7 @@ idr-make-idr_layer-larger.patch
 idr-add-idr_layer-prefix.patch
 idr-implement-lookup-hint.patch
 idr-implement-lookup-hint-always-do-slow-path-when-hint-is-uninitialized.patch
+idr-explain-warn_on_once-on-negative-ids-out-of-range-id.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 
