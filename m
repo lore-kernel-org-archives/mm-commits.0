@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lp855x_bl-simplify-bl_get_brightness.patch added to -mm tree
-Date: Wed, 20 Feb 2013 13:17:17 -0800
-Message-ID: <20130220211718.26B6031C346@corp2gmr1-1.hot.corp.google.com>
+Subject: + kernel-posix-timersc-dont-call-idr_find-w-negative-id.patch added to -mm tree
+Date: Wed, 20 Feb 2013 13:24:06 -0800
+Message-ID: <20130220212406.A8CF05A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:35909 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173Ab3BTVRT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:17:19 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so835802yhz.5
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:17:18 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:34113 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759063Ab3BTVYI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:24:08 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so832085qcs.5
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:24:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Milo.Kim@ti.com, jg1.han@samsung.com, milo.kim@ti.com
+Cc: tj@kernel.org, sasha.levin@oracle.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: backlight: lp855x_bl: simplify bl_get_brightness()
+     Subject: kernel/posix-timers.c: don't call idr_find() w/ negative ID
 has been added to the -mm tree.  Its filename is
-     backlight-lp855x_bl-simplify-bl_get_brightness.patch
+     kernel-posix-timersc-dont-call-idr_find-w-negative-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,164 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: backlight: lp855x_bl: simplify bl_get_brightness()
+From: Tejun Heo <tj@kernel.org>
+Subject: kernel/posix-timers.c: don't call idr_find() w/ negative ID
 
-Getting the brightness value is not critical, no need to read the actual
-register value.  To simplify it, just return the 'bl->props.brightness'
-value.  Then, lp855x_read_byte() can be removed, not used any more.
+Recent idr updates make idr_find() trigger WARN_ON_ONCE() before returning
+NULL when a negative ID is specified.  Apparently,
+posix-timer::__lock_timer() was depending on idr_find() returning NULL on
+negative ID, thus triggering the new WARN_ON_ONCE().  Make __lock_timer()
+first check whether @timer_id is negative and return NULL without invoking
+idr_find() if so.
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Note that the previous code was theoretically broken.  idr_find() masked
+off the sign bit before performing lookup and if the matching IDs were in
+use, it would have returned pointer for the incorrect entry.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ kernel/posix-timers.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-simplify-bl_get_brightness drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-simplify-bl_get_brightness
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -66,20 +66,6 @@ struct lp855x {
- 	struct pwm_device *pwm;
- };
- 
--static int lp855x_read_byte(struct lp855x *lp, u8 reg, u8 *data)
--{
--	int ret;
--
--	ret = i2c_smbus_read_byte_data(lp->client, reg);
--	if (ret < 0) {
--		dev_err(lp->dev, "failed to read 0x%.2x\n", reg);
--		return ret;
--	}
--
--	*data = (u8)ret;
--	return 0;
--}
--
- static int lp855x_write_byte(struct lp855x *lp, u8 reg, u8 data)
+diff -puN kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id kernel/posix-timers.c
+--- a/kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id
++++ a/kernel/posix-timers.c
+@@ -639,6 +639,9 @@ static struct k_itimer *__lock_timer(tim
  {
- 	return i2c_smbus_write_byte_data(lp->client, reg, data);
-@@ -274,16 +260,6 @@ static int lp855x_bl_update_status(struc
+ 	struct k_itimer *timr;
  
- static int lp855x_bl_get_brightness(struct backlight_device *bl)
- {
--	struct lp855x *lp = bl_get_data(bl);
--	enum lp855x_brightness_ctrl_mode mode = lp->pdata->mode;
--
--	if (mode == REGISTER_BASED) {
--		u8 val = 0;
--
--		lp855x_read_byte(lp, lp->cfg->reg_brightness, &val);
--		bl->props.brightness = val;
--	}
++	if ((int)timer_id < 0)
++		return NULL;
++
+ 	rcu_read_lock();
+ 	timr = idr_find(&posix_timers_id, (int)timer_id);
+ 	if (timr) {
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+origin.patch
+device_cgroup-dont-grab-mutex-in-rcu-callback.patch
+linux-next.patch
+cfq-fix-lock-imbalance-with-failed-allocations.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
+memcg-clean-up-swap-accounting-initialization-code.patch
+memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
+memcg-split-part-of-memcg-creation-to-css_online.patch
+memcg-fast-hierarchy-aware-child-test.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix-fix.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
+memcg-increment-static-branch-right-after-limit-set.patch
+memcg-avoid-dangling-reference-count-in-creation-failure.patch
+lib-scatterlist-add-simple-page-iterator.patch
+lib-scatterlist-use-page-iterator-in-the-mapping-iterator.patch
+vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork.patch
+lockdep-check-that-no-locks-held-at-freeze-time.patch
+lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
+coredump-cleanup-the-waiting-for-coredump_finish-code.patch
+coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
+coredump-abort-core-dump-piping-only-due-to-a-fatal-signal.patch
+idr-fix-a-subtle-bug-in-idr_get_next.patch
+idr-make-idr_destroy-imply-idr_remove_all.patch
+atm-nicstar-dont-use-idr_remove_all.patch
+block-loop-dont-use-idr_remove_all.patch
+firewire-dont-use-idr_remove_all.patch
+drm-dont-use-idr_remove_all.patch
+dm-dont-use-idr_remove_all.patch
+remoteproc-dont-use-idr_remove_all.patch
+rpmsg-dont-use-idr_remove_all.patch
+dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
+dlm-dont-use-idr_remove_all.patch
+nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
+inotify-dont-use-idr_remove_all.patch
+cgroup-dont-use-idr_remove_all.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+idr-deprecate-idr_remove_all.patch
+idr-cosmetic-updates-to-struct-initializer-definitions.patch
+idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch
+idr-remove-_idr_rc_to_errno-hack.patch
+idr-refactor-idr_get_new_above.patch
+idr-implement-idr_preload-and-idr_alloc.patch
+idr-implement-idr_preload-and-idr_alloc-fix.patch
+block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
+block-convert-to-idr_alloc.patch
+block-loop-convert-to-idr_alloc.patch
+atm-nicstar-convert-to-idr_alloc.patch
+drbd-convert-to-idr_alloc.patch
+dca-convert-to-idr_alloc.patch
+dmaengine-convert-to-idr_alloc.patch
+firewire-add-minor-number-range-check-to-fw_device_init.patch
+firewire-convert-to-idr_alloc.patch
+firewire-convert-to-idr_alloc-fix.patch
+gpio-convert-to-idr_alloc.patch
+drm-convert-to-idr_alloc.patch
+drm-convert-to-idr_alloc-fix.patch
+drm-convert-to-idr_alloc-fix-fix.patch
+drm-exynos-convert-to-idr_alloc.patch
+drm-i915-convert-to-idr_alloc.patch
+drm-sis-convert-to-idr_alloc.patch
+drm-via-convert-to-idr_alloc.patch
+drm-vmwgfx-convert-to-idr_alloc.patch
+i2c-convert-to-idr_alloc.patch
+i2c-convert-to-idr_alloc-fix.patch
+i2c-convert-to-idr_alloc-fix-fix.patch
+ib-core-convert-to-idr_alloc.patch
+ib-amso1100-convert-to-idr_alloc.patch
+ib-cxgb3-convert-to-idr_alloc.patch
+ib-cxgb4-convert-to-idr_alloc.patch
+ib-ehca-convert-to-idr_alloc.patch
+ib-ipath-convert-to-idr_alloc.patch
+ib-mlx4-convert-to-idr_alloc.patch
+ib-ocrdma-convert-to-idr_alloc.patch
+ib-qib-convert-to-idr_alloc.patch
+dm-convert-to-idr_alloc.patch
+memstick-convert-to-idr_alloc.patch
+mfd-convert-to-idr_alloc.patch
+misc-c2port-convert-to-idr_alloc.patch
+misc-tifm_core-convert-to-idr_alloc.patch
+mmc-convert-to-idr_alloc.patch
+mtd-convert-to-idr_alloc.patch
+macvtap-convert-to-idr_alloc.patch
+ppp-convert-to-idr_alloc.patch
+power-convert-to-idr_alloc.patch
+pps-convert-to-idr_alloc.patch
+remoteproc-convert-to-idr_alloc.patch
+rpmsg-convert-to-idr_alloc.patch
+scsi-bfa-convert-to-idr_alloc.patch
+scsi-convert-to-idr_alloc.patch
+target-iscsi-convert-to-idr_alloc.patch
+scsi-lpfc-convert-to-idr_alloc.patch
+thermal-convert-to-idr_alloc.patch
+uio-convert-to-idr_alloc.patch
+vfio-convert-to-idr_alloc.patch
+dlm-convert-to-idr_alloc.patch
+inotify-convert-to-idr_alloc.patch
+ocfs2-convert-to-idr_alloc.patch
+ipc-convert-to-idr_alloc.patch
+ipc-convert-to-idr_alloc-fix.patch
+cgroup-convert-to-idr_alloc.patch
+events-convert-to-idr_alloc.patch
+kernel-posix-timersc-dont-call-idr_find-w-negative-id.patch
+posix-timers-convert-to-idr_alloc.patch
+net-9p-convert-to-idr_alloc.patch
+mac80211-convert-to-idr_alloc.patch
+sctp-convert-to-idr_alloc.patch
+nfs4client-convert-to-idr_alloc.patch
+idr-fix-top-layer-handling.patch
+idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc.patch
+idr-remove-length-restriction-from-idr_layer-bitmap.patch
+idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
+idr-make-idr_layer-larger.patch
+idr-add-idr_layer-prefix.patch
+idr-implement-lookup-hint.patch
+idr-implement-lookup-hint-always-do-slow-path-when-hint-is-uninitialized.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+
