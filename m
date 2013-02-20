@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch added to -mm tree
-Date: Wed, 20 Feb 2013 12:59:49 -0800
-Message-ID: <20130220205950.3C5B031C194@corp2gmr1-1.hot.corp.google.com>
+Subject: + tmpfs-fix-use-after-free-of-mempolicy-object.patch added to -mm tree
+Date: Wed, 20 Feb 2013 13:01:41 -0800
+Message-ID: <20130220210141.DD4AE31C194__16487.9669006497$1361394139$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:37333 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934854Ab3BTU7v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 15:59:51 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so842996yen.2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 12:59:51 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:44732 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935385Ab3BTVBn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:01:43 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so842523vbi.3
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:01:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk, festevam@gmail.com, matt.fleming@intel.com, pjones@redhat.com, swarren@nvidia.com
+Cc: gthelen@google.com, hughd@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
+     Subject: tmpfs: fix use-after-free of mempolicy object
 has been added to the -mm tree.  Its filename is
-     ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
+     tmpfs-fix-use-after-free-of-mempolicy-object.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,167 +33,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
+From: Greg Thelen <gthelen@google.com>
+Subject: tmpfs: fix use-after-free of mempolicy object
 
-fix printk warning
+The tmpfs remount logic preserves filesystem mempolicy if the mpol=M
+option is not specified in the remount request.  A new policy can be
+specified if mpol=M is given.
 
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matt Fleming <matt.fleming@intel.com>
-Cc: Peter Jones <pjones@redhat.com>
-Cc: Stephen Warren <swarren@nvidia.com>
-Cc: Fabio Estevam <festevam@gmail.com>
+Before this patch remounting an mpol bound tmpfs without specifying mpol=
+mount option in the remount request would set the filesystem's mempolicy
+object to a freed mempolicy object.
+
+To reproduce the problem boot a DEBUG_PAGEALLOC kernel and run:
+    # mkdir /tmp/x
+
+    # mount -t tmpfs -o size=100M,mpol=interleave nodev /tmp/x
+
+    # grep /tmp/x /proc/mounts
+    nodev /tmp/x tmpfs rw,relatime,size=102400k,mpol=interleave:0-3 0 0
+
+    # mount -o remount,size=200M nodev /tmp/x
+
+    # grep /tmp/x /proc/mounts
+    nodev /tmp/x tmpfs rw,relatime,size=204800k,mpol=??? 0 0
+        # note ? garbage in mpol=... output above
+
+    # dd if=/dev/zero of=/tmp/x/f count=1
+        # panic here
+
+Panic:
+    BUG: unable to handle kernel NULL pointer dereference at           (null)
+    IP: [<          (null)>]           (null)
+    [...]
+    Oops: 0010 [#1] SMP DEBUG_PAGEALLOC
+    Call Trace:
+     [<ffffffff81186ead>] ? mpol_set_nodemask+0x8d/0x100
+     [<ffffffff811895ef>] ? mpol_shared_policy_init+0x8f/0x160
+     [<ffffffff81189605>] mpol_shared_policy_init+0xa5/0x160
+     [<ffffffff811580e1>] ? shmem_get_inode+0x1e1/0x270
+     [<ffffffff811580e1>] ? shmem_get_inode+0x1e1/0x270
+     [<ffffffff810db15d>] ? trace_hardirqs_on+0xd/0x10
+     [<ffffffff81158109>] shmem_get_inode+0x209/0x270
+     [<ffffffff811581ae>] shmem_mknod+0x3e/0xf0
+     [<ffffffff811582b8>] shmem_create+0x18/0x20
+     [<ffffffff811af5d5>] vfs_create+0xb5/0x130
+     [<ffffffff811afff1>] do_last+0x9a1/0xea0
+     [<ffffffff811ac77a>] ? link_path_walk+0x7a/0x930
+     [<ffffffff811b05a3>] path_openat+0xb3/0x4d0
+     [<ffffffff811be831>] ? __alloc_fd+0x31/0x160
+     [<ffffffff811b0de2>] do_filp_open+0x42/0xa0
+     [<ffffffff811be8e0>] ? __alloc_fd+0xe0/0x160
+     [<ffffffff811a066e>] do_sys_open+0xfe/0x1e0
+     [<ffffffff811f0aeb>] compat_sys_open+0x1b/0x20
+     [<ffffffff815d6055>] cstar_dispatch+0x7/0x1f
+
+Non-debug kernels will not crash immediately because referencing the
+dangling mpol will not cause a fault.  Instead the filesystem will
+reference a freed mempolicy object, which will cause unpredictable
+behavior.
+
+The problem boils down to a dropped mpol reference below if
+shmem_parse_options() does not allocate a new mpol:
+    config = *sbinfo
+    shmem_parse_options(data, &config, true)
+    mpol_put(sbinfo->mpol)
+    sbinfo->mpol = config.mpol  /* BUG: saves unreferenced mpol */
+
+This patch avoids the crash by not releasing the mempolicy if
+shmem_parse_options() doesn't create a new mpol.
+
+How far back does this issue go?  I see it in both 2.6.36 and 3.3.  I did
+not look back further.
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/efi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix block/partitions/efi.c
---- a/block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
-+++ a/block/partitions/efi.c
-@@ -321,7 +321,7 @@ static int is_gpt_valid(struct parsed_pa
+diff -puN mm/shmem.c~tmpfs-fix-use-after-free-of-mempolicy-object mm/shmem.c
+--- a/mm/shmem.c~tmpfs-fix-use-after-free-of-mempolicy-object
++++ a/mm/shmem.c
+@@ -2486,6 +2486,7 @@ static int shmem_remount_fs(struct super
+ 	unsigned long inodes;
+ 	int error = -EINVAL;
  
- 	/* Check the GUID Partition Table header size is too small */
- 	if (le32_to_cpu((*gpt)->header_size) < sizeof(gpt_header)) {
--		pr_debug("GUID Partition Table Header size is too small: %u < %lu\n",
-+		pr_debug("GUID Partition Table Header size is too small: %u < %zu\n",
- 			le32_to_cpu((*gpt)->header_size),
- 			sizeof(gpt_header));
- 		goto fail;
++	config.mpol = NULL;
+ 	if (shmem_parse_options(data, &config, true))
+ 		return error;
+ 
+@@ -2510,8 +2511,13 @@ static int shmem_remount_fs(struct super
+ 	sbinfo->max_inodes  = config.max_inodes;
+ 	sbinfo->free_inodes = config.max_inodes - inodes;
+ 
+-	mpol_put(sbinfo->mpol);
+-	sbinfo->mpol        = config.mpol;	/* transfers initial ref */
++	/*
++	 * Preserve previous mempolicy unless mpol remount option was specified.
++	 */
++	if (config.mpol) {
++		mpol_put(sbinfo->mpol);
++		sbinfo->mpol = config.mpol;	/* transfers initial ref */
++	}
+ out:
+ 	spin_unlock(&sbinfo->stat_lock);
+ 	return error;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-goldfish-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-ocfs2-remove-kfree-redundant-null-checks-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold.patch
 memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
-mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sys_prctl-coding-style-cleanup.patch
-kernel-smpc-cleanups.patch
-maintainers-remove-mark-m-hoffman-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-max77686-add-missing-variable-initialization-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-proc-clean-up-printks-fix-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
-lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-selftests-add-tests-for-efivarfs-fix.patch
-selftests-add-tests-for-efivarfs-fix-fix.patch
-tools-testing-selftests-makefile-rearrange-targets.patch
-selftests-add-a-simple-doc-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
-hlist-drop-the-node-parameter-from-iterators-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+tmpfs-fix-use-after-free-of-mempolicy-object.patch
 
