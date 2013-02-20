@@ -1,190 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] maintainers-remove-mark-m-hoffman-fix.patch removed from -mm tree
-Date: Wed, 20 Feb 2013 13:11:21 -0800
-Message-ID: <20130220211122.1D1855A430B@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-lp855x_bl-introduce-device-configuration-flow.patch added to -mm tree
+Date: Wed, 20 Feb 2013 13:17:11 -0800
+Message-ID: <20130220211712.315A631C346@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:35041 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964950Ab3BTVLX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:11:23 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so555828ghb.3
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:11:22 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:61919 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173Ab3BTVRN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:17:13 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so844071vea.2
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:17:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, khali@linux-fr.org, linux@roeck-us.net, mhoffman@lightlink.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: Milo.Kim@ti.com, jg1.han@samsung.com, milo.kim@ti.com
 
 
 The patch titled
-     Subject: maintainers-remove-mark-m-hoffman-fix
-has been removed from the -mm tree.  Its filename was
-     maintainers-remove-mark-m-hoffman-fix.patch
+     Subject: backlight: lp855x_bl: introduce device configuration flow
+has been added to the -mm tree.  Its filename is
+     backlight-lp855x_bl-introduce-device-configuration-flow.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maintainers-remove-mark-m-hoffman-fix
+From: "Kim, Milo" <Milo.Kim@ti.com>
+Subject: backlight: lp855x_bl: introduce device configuration flow
 
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
+At this moment, LP855x device driver has fixed register configuration. 
+For example, fixed register addresses and values are set on the device
+initialization.  But new device of LP855x family, LP8557 has different
+register map and initialization sequence.  To support new device
+architecture, initialization process should be changed.
+
+ Introduce new structure: lp855x_device_config
+ =============================================
+ With lp855x_device_config, device specific features are configurable.
+ Use configurable function calls and register addresses rather than fixed values.
+
+ Change on device initialization
+ ===============================
+ In old LP855x driver architecture, the device initialization was simple.
+ - Just update the brightness/device control register/ROM area(optional).
+ In new LP855x driver architecture, two more works are added - pre_init and
+ post_init.
+ Those init functions are optional, used for new device LP8557.
+
+ New device initialization flow: generic sequence
+ =================================================
+ 1) pre_init_device()
+ 2) update the brightness register
+ 3) update the device control register
+ 4) update ROM area if need
+ 5) post_init_device()
+
+ Name change
+ ===========
+ Use generic name 'lp855x_configure()' instead of 'lp855x_init_registers()'.
+
+Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/video/backlight/lp855x_bl.c |   78 ++++++++++++++++++++++----
+ 1 file changed, 68 insertions(+), 10 deletions(-)
 
-diff -puN CREDITS~maintainers-remove-mark-m-hoffman-fix CREDITS
---- a/CREDITS~maintainers-remove-mark-m-hoffman-fix
-+++ a/CREDITS
-@@ -1510,6 +1510,11 @@ D: Natsemi ethernet
- D: Cobalt Networks (x86) support
- D: This-and-That
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-introduce-device-configuration-flow drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-introduce-device-configuration-flow
++++ a/drivers/video/backlight/lp855x_bl.c
+@@ -29,9 +29,26 @@
+ #define DEFAULT_BL_NAME		"lcd-backlight"
+ #define MAX_BRIGHTNESS		255
  
-+N: Mark M. Hoffman
-+E: mhoffman@lightlink.com
-+D: Maintenance of drivers/hwmon/asb100.c, drivers/i2c/busses/i2c-sis96x.c
-+D: i2c core contributions
++struct lp855x;
 +
- N: Dirk Hohndel
- E: hohndel@suse.de
- D: The XFree86[tm] Project
++/*
++ * struct lp855x_device_config
++ * @pre_init_device: init device function call before updating the brightness
++ * @reg_brightness: register address for brigthenss control
++ * @reg_devicectrl: register address for device control
++ * @post_init_device: late init device function call
++ */
++struct lp855x_device_config {
++	int (*pre_init_device)(struct lp855x *);
++	u8 reg_brightness;
++	u8 reg_devicectrl;
++	int (*post_init_device)(struct lp855x *);
++};
++
+ struct lp855x {
+ 	const char *chipname;
+ 	enum lp855x_chip_id chip_id;
++	struct lp855x_device_config *cfg;
+ 	struct i2c_client *client;
+ 	struct backlight_device *bl;
+ 	struct device *dev;
+@@ -81,21 +98,52 @@ static bool lp855x_is_valid_rom_area(str
+ 	return (addr >= start && addr <= end);
+ }
+ 
+-static int lp855x_init_registers(struct lp855x *lp)
++static struct lp855x_device_config lp855x_dev_cfg = {
++	.reg_brightness = BRIGHTNESS_CTRL,
++	.reg_devicectrl = DEVICE_CTRL,
++};
++
++/*
++ * Device specific configuration flow
++ *
++ *    a) pre_init_device(optional)
++ *    b) update the brightness register
++ *    c) update device control register
++ *    d) update ROM area(optional)
++ *    e) post_init_device(optional)
++ *
++ */
++static int lp855x_configure(struct lp855x *lp)
+ {
+ 	u8 val, addr;
+ 	int i, ret;
+ 	struct lp855x_platform_data *pd = lp->pdata;
+ 
++	switch (lp->chip_id) {
++	case LP8550 ... LP8556:
++		lp->cfg = &lp855x_dev_cfg;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (lp->cfg->pre_init_device) {
++		ret = lp->cfg->pre_init_device(lp);
++		if (ret) {
++			dev_err(lp->dev, "pre init device err: %d\n", ret);
++			goto err;
++		}
++	}
++
+ 	val = pd->initial_brightness;
+-	ret = lp855x_write_byte(lp, BRIGHTNESS_CTRL, val);
++	ret = lp855x_write_byte(lp, lp->cfg->reg_brightness, val);
+ 	if (ret)
+-		return ret;
++		goto err;
+ 
+ 	val = pd->device_control;
+-	ret = lp855x_write_byte(lp, DEVICE_CTRL, val);
++	ret = lp855x_write_byte(lp, lp->cfg->reg_devicectrl, val);
+ 	if (ret)
+-		return ret;
++		goto err;
+ 
+ 	if (pd->load_new_rom_data && pd->size_program) {
+ 		for (i = 0; i < pd->size_program; i++) {
+@@ -106,10 +154,21 @@ static int lp855x_init_registers(struct 
+ 
+ 			ret = lp855x_write_byte(lp, addr, val);
+ 			if (ret)
+-				return ret;
++				goto err;
+ 		}
+ 	}
+ 
++	if (lp->cfg->post_init_device) {
++		ret = lp->cfg->post_init_device(lp);
++		if (ret) {
++			dev_err(lp->dev, "post init device err: %d\n", ret);
++			goto err;
++		}
++	}
++
++	return 0;
++
++err:
+ 	return ret;
+ }
+ 
+@@ -271,11 +330,10 @@ static int lp855x_probe(struct i2c_clien
+ 	lp->chip_id = id->driver_data;
+ 	i2c_set_clientdata(cl, lp);
+ 
+-	ret = lp855x_init_registers(lp);
++	ret = lp855x_configure(lp);
+ 	if (ret) {
+-		dev_err(lp->dev, "i2c communication err: %d", ret);
+-		if (mode == REGISTER_BASED)
+-			goto err_dev;
++		dev_err(lp->dev, "device config err: %d", ret);
++		goto err_dev;
+ 	}
+ 
+ 	ret = lp855x_backlight_register(lp);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Milo.Kim@ti.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-goldfish-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-ocfs2-remove-kfree-redundant-null-checks-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
-mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
-tmpfs-fix-mempolicy-object-leaks-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sys_prctl-coding-style-cleanup.patch
-kernel-smpc-cleanups.patch
-maintainers-add-lp855x-backlight-driver-entry.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver.patch
 backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-max77686-add-missing-variable-initialization-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-proc-clean-up-printks-fix-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
-lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-selftests-add-tests-for-efivarfs-fix.patch
-selftests-add-tests-for-efivarfs-fix-fix.patch
-tools-testing-selftests-makefile-rearrange-targets.patch
-selftests-add-a-simple-doc-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
-hlist-drop-the-node-parameter-from-iterators-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
-hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+backlight-lp855x_bl-introduce-device-configuration-flow.patch
+backlight-lp855x_bl-support-new-lp8557-device.patch
+backlight-lp855x_bl-simplify-bl_get_brightness.patch
+rtc-add-new-lp8788-rtc-driver.patch
 
