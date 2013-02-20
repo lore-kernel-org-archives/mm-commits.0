@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + configfs-move-the-dereference-below-the-null-test.patch added to -mm tree
-Date: Wed, 20 Feb 2013 15:57:34 -0800
-Message-ID: <20130220235734.C8B1C31C194@corp2gmr1-1.hot.corp.google.com>
+Subject: + memstick-move-the-dereference-below-the-null-test.patch added to -mm tree
+Date: Wed, 20 Feb 2013 15:58:18 -0800
+Message-ID: <20130220235818.B31145A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:48235 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751637Ab3BTX5g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 18:57:36 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so861842vbb.4
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 15:57:35 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:47097 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749Ab3BTX6U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 18:58:20 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so862191ves.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 15:58:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yongjun_wei@trendmicro.com.cn, jlbec@evilplan.org
+Cc: yongjun_wei@trendmicro.com.cn, maximlevitsky@gmail.com
 
 
 The patch titled
-     Subject: configfs: move the dereference below the NULL test
+     Subject: memstick: move the dereference below the NULL test
 has been added to the -mm tree.  Its filename is
-     configfs-move-the-dereference-below-the-null-test.patch
+     memstick-move-the-dereference-below-the-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: configfs: move the dereference below the NULL test
+Subject: memstick: move the dereference below the NULL test
 
 The dereference should be moved below the NULL test.
 
@@ -42,30 +42,33 @@ spatch with a semantic match is used to found this.
 (http://coccinelle.lip6.fr/)
 
 Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/dir.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/memstick/host/r592.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/configfs/dir.c~configfs-move-the-dereference-below-the-null-test fs/configfs/dir.c
---- a/fs/configfs/dir.c~configfs-move-the-dereference-below-the-null-test
-+++ a/fs/configfs/dir.c
-@@ -1037,10 +1037,11 @@ static int configfs_dump(struct configfs
- static int configfs_depend_prep(struct dentry *origin,
- 				struct config_item *target)
+diff -puN drivers/memstick/host/r592.c~memstick-move-the-dereference-below-the-null-test drivers/memstick/host/r592.c
+--- a/drivers/memstick/host/r592.c~memstick-move-the-dereference-below-the-null-test
++++ a/drivers/memstick/host/r592.c
+@@ -454,7 +454,7 @@ static int r592_transfer_fifo_pio(struct
+ /* Executes one TPC (data is read/written from small or large fifo) */
+ static void r592_execute_tpc(struct r592_device *dev)
  {
--	struct configfs_dirent *child_sd, *sd = origin->d_fsdata;
-+	struct configfs_dirent *child_sd, *sd;
- 	int ret = 0;
+-	bool is_write = dev->req->tpc >= MS_TPC_SET_RW_REG_ADRS;
++	bool is_write;
+ 	int len, error;
+ 	u32 status, reg;
  
--	BUG_ON(!origin || !sd);
-+	BUG_ON(!origin || !origin->d_fsdata);
-+	sd = origin->d_fsdata;
+@@ -463,6 +463,7 @@ static void r592_execute_tpc(struct r592
+ 		return;
+ 	}
  
- 	if (sd->s_element == target)  /* Boo-yah */
- 		goto out;
++	is_write = dev->req->tpc >= MS_TPC_SET_RW_REG_ADRS;
+ 	len = dev->req->long_data ?
+ 		dev->req->sg.length : dev->req->data_len;
+ 
 _
 
 Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
@@ -73,4 +76,5 @@ Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 linux-next.patch
 mn10300-use-for_each_pci_dev-to-simplify-the-code.patch
 configfs-move-the-dereference-below-the-null-test.patch
+memstick-move-the-dereference-below-the-null-test.patch
 
