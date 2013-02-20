@@ -1,59 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kernel-posix-timersc-dont-call-idr_find-w-negative-id.patch removed from -mm tree
-Date: Wed, 20 Feb 2013 15:05:55 -0800
-Message-ID: <20130220230556.33DAE31C03C@corp2gmr1-1.hot.corp.google.com>
+Subject: + posix-timer-dont-call-idr_find-w-out-of-range-id.patch added to -mm tree
+Date: Wed, 20 Feb 2013 15:06:36 -0800
+Message-ID: <20130220230636.9E4A331C03C__49994.2113565796$1361401629$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:39530 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751966Ab3BTXF5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 18:05:57 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so104565yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 15:05:56 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:46213 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751984Ab3BTXGi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 18:06:38 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so857000vbi.3
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 15:06:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, sasha.levin@oracle.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tj@kernel.org, sasha.levin@oracle.com, stable@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: kernel/posix-timers.c: don't call idr_find() w/ negative ID
-has been removed from the -mm tree.  Its filename was
-     kernel-posix-timersc-dont-call-idr_find-w-negative-id.patch
+     Subject: posix-timer: don't call idr_find() w/ out-of-range ID
+has been added to the -mm tree.  Its filename is
+     posix-timer-dont-call-idr_find-w-out-of-range-id.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: kernel/posix-timers.c: don't call idr_find() w/ negative ID
+Subject: posix-timer: don't call idr_find() w/ out-of-range ID
 
-Recent idr updates make idr_find() trigger WARN_ON_ONCE() before returning
-NULL when a negative ID is specified.  Apparently,
-posix-timer::__lock_timer() was depending on idr_find() returning NULL on
-negative ID, thus triggering the new WARN_ON_ONCE().  Make __lock_timer()
-first check whether @timer_id is negative and return NULL without invoking
-idr_find() if so.
+When idr_find() is fed a negative ID, it used to look up the ID ignoring
+the sign bit before recent ("idr: remove MAX_IDR_MASK and move left
+MAX_IDR_* into idr.c") patch, and triggers WARN_ON_ONCE() after it.
 
-Note that the previous code was theoretically broken.  idr_find() masked
-off the sign bit before performing lookup and if the matching IDs were in
-use, it would have returned pointer for the incorrect entry.
+__lock_timer() feeds timer_id from userland directly to idr_find()
+without sanitizing it which can trigger the above malfunctions.  Add a
+range check on @timer_id before invoking idr_find() in __lock_timer().
+
+While timer_t is defined as int by all archs at the moment, Andrew worries
+that it may be defined as a larger type later on.  Make the test cover
+larger integers too so that it at least is guaranteed to not return the
+wrong timer.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/posix-timers.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id kernel/posix-timers.c
---- a/kernel/posix-timers.c~kernel-posix-timersc-dont-call-idr_find-w-negative-id
+diff -puN kernel/posix-timers.c~posix-timer-dont-call-idr_find-w-out-of-range-id kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timer-dont-call-idr_find-w-out-of-range-id
 +++ a/kernel/posix-timers.c
-@@ -639,6 +639,9 @@ static struct k_itimer *__lock_timer(tim
+@@ -639,6 +639,13 @@ static struct k_itimer *__lock_timer(tim
  {
  	struct k_itimer *timr;
  
-+	if ((int)timer_id < 0)
++	/*
++	 * timer_t could be any type >= int and we want to make sure any
++	 * @timer_id outside positive int range fails lookup.
++	 */
++	if ((unsigned long long)timer_id > INT_MAX)
 +		return NULL;
 +
  	rcu_read_lock();
@@ -167,6 +184,7 @@ ipc-convert-to-idr_alloc.patch
 ipc-convert-to-idr_alloc-fix.patch
 cgroup-convert-to-idr_alloc.patch
 events-convert-to-idr_alloc.patch
+posix-timer-dont-call-idr_find-w-out-of-range-id.patch
 posix-timers-convert-to-idr_alloc.patch
 net-9p-convert-to-idr_alloc.patch
 mac80211-convert-to-idr_alloc.patch
