@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lp855x_bl-introduce-device-configuration-flow.patch added to -mm tree
-Date: Wed, 20 Feb 2013 13:17:11 -0800
-Message-ID: <20130220211712.315A631C346@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-lp855x_bl-support-new-lp8557-device.patch added to -mm tree
+Date: Wed, 20 Feb 2013 13:17:15 -0800
+Message-ID: <20130220211715.6E0335A4354@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:61919 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173Ab3BTVRN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:17:13 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so844071vea.2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:17:12 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:61702 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173Ab3BTVRR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Feb 2013 16:17:17 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so844510yen.4
+        for <mm-commits@vger.kernel.org>; Wed, 20 Feb 2013 13:17:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: Milo.Kim@ti.com, jg1.han@samsung.com, milo.kim@ti.com
 
 
 The patch titled
-     Subject: backlight: lp855x_bl: introduce device configuration flow
+     Subject: backlight: lp855x_bl: support new LP8557 device
 has been added to the -mm tree.  Its filename is
-     backlight-lp855x_bl-introduce-device-configuration-flow.patch
+     backlight-lp855x_bl-support-new-lp8557-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,173 +34,258 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: backlight: lp855x_bl: introduce device configuration flow
+Subject: backlight: lp855x_bl: support new LP8557 device
 
-At this moment, LP855x device driver has fixed register configuration. 
-For example, fixed register addresses and values are set on the device
-initialization.  But new device of LP855x family, LP8557 has different
-register map and initialization sequence.  To support new device
-architecture, initialization process should be changed.
+LP8557 is one of LP855x family device, but it has different register map
+and initialization process.  To support this device, device specific
+configuration is done through the lp855x_device_config structure.
 
- Introduce new structure: lp855x_device_config
- =============================================
- With lp855x_device_config, device specific features are configurable.
- Use configurable function calls and register addresses rather than fixed values.
+Few register definitions are fixed for better readability.
+  BRIGHTNESS_CTRL -> LP855X_BRIGHTNESS_CTRL
+  DEVICE_CTRL     -> LP855X_DEVICE_CTRL
+  EEPROM_START    -> LP855X_EEPROM_START
+  EEPROM_END      -> LP855X_EEPROM_END
+  EPROM_START     -> LP8556_EPROM_START
+  EPROM_END       -> LP8556_EPROM_END
 
- Change on device initialization
- ===============================
- In old LP855x driver architecture, the device initialization was simple.
- - Just update the brightness/device control register/ROM area(optional).
- In new LP855x driver architecture, two more works are added - pre_init and
- post_init.
- Those init functions are optional, used for new device LP8557.
-
- New device initialization flow: generic sequence
- =================================================
- 1) pre_init_device()
- 2) update the brightness register
- 3) update the device control register
- 4) update ROM area if need
- 5) post_init_device()
-
- Name change
- ===========
- Use generic name 'lp855x_configure()' instead of 'lp855x_init_registers()'.
+And LP8557 register definitions are added.  New register function,
+lp855x_update_bit() is added.
 
 Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
 Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |   78 ++++++++++++++++++++++----
- 1 file changed, 68 insertions(+), 10 deletions(-)
+ Documentation/backlight/lp855x-driver.txt |    4 
+ drivers/video/backlight/Kconfig           |    2 
+ drivers/video/backlight/lp855x_bl.c       |   87 ++++++++++++++++----
+ include/linux/platform_data/lp855x.h      |   19 ++++
+ 4 files changed, 94 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-introduce-device-configuration-flow drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-introduce-device-configuration-flow
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -29,9 +29,26 @@
- #define DEFAULT_BL_NAME		"lcd-backlight"
- #define MAX_BRIGHTNESS		255
+diff -puN Documentation/backlight/lp855x-driver.txt~backlight-lp855x_bl-support-new-lp8557-device Documentation/backlight/lp855x-driver.txt
+--- a/Documentation/backlight/lp855x-driver.txt~backlight-lp855x_bl-support-new-lp8557-device
++++ a/Documentation/backlight/lp855x-driver.txt
+@@ -4,7 +4,7 @@ Kernel driver lp855x
+ Backlight driver for LP855x ICs
  
-+struct lp855x;
+ Supported chips:
+-	Texas Instruments LP8550, LP8551, LP8552, LP8553 and LP8556
++	Texas Instruments LP8550, LP8551, LP8552, LP8553, LP8556 and LP8557
+ 
+ Author: Milo(Woogyom) Kim <milo.kim@ti.com>
+ 
+@@ -24,7 +24,7 @@ Value : pwm based or register based
+ 
+ 2) chip_id
+ The lp855x chip id.
+-Value : lp8550/lp8551/lp8552/lp8553/lp8556
++Value : lp8550/lp8551/lp8552/lp8553/lp8556/lp8557
+ 
+ Platform data for lp855x
+ ------------------------
+diff -puN drivers/video/backlight/Kconfig~backlight-lp855x_bl-support-new-lp8557-device drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-lp855x_bl-support-new-lp8557-device
++++ a/drivers/video/backlight/Kconfig
+@@ -381,7 +381,7 @@ config BACKLIGHT_LP855X
+ 	tristate "Backlight driver for TI LP855X"
+ 	depends on BACKLIGHT_CLASS_DEVICE && I2C
+ 	help
+-	  This supports TI LP8550, LP8551, LP8552, LP8553 and LP8556
++	  This supports TI LP8550, LP8551, LP8552, LP8553, LP8556 and LP8557
+ 	  backlight driver.
+ 
+ config BACKLIGHT_LP8788
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-support-new-lp8557-device drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-support-new-lp8557-device
++++ a/drivers/video/backlight/lp855x_bl.c
+@@ -17,13 +17,23 @@
+ #include <linux/platform_data/lp855x.h>
+ #include <linux/pwm.h>
+ 
+-/* Registers */
+-#define BRIGHTNESS_CTRL		0x00
+-#define DEVICE_CTRL		0x01
+-#define EEPROM_START		0xA0
+-#define EEPROM_END		0xA7
+-#define EPROM_START		0xA0
+-#define EPROM_END		0xAF
++/* LP8550/1/2/3/6 Registers */
++#define LP855X_BRIGHTNESS_CTRL		0x00
++#define LP855X_DEVICE_CTRL		0x01
++#define LP855X_EEPROM_START		0xA0
++#define LP855X_EEPROM_END		0xA7
++#define LP8556_EPROM_START		0xA0
++#define LP8556_EPROM_END		0xAF
 +
-+/*
-+ * struct lp855x_device_config
-+ * @pre_init_device: init device function call before updating the brightness
-+ * @reg_brightness: register address for brigthenss control
-+ * @reg_devicectrl: register address for device control
-+ * @post_init_device: late init device function call
-+ */
-+struct lp855x_device_config {
-+	int (*pre_init_device)(struct lp855x *);
-+	u8 reg_brightness;
-+	u8 reg_devicectrl;
-+	int (*post_init_device)(struct lp855x *);
-+};
++/* LP8557 Registers */
++#define LP8557_BL_CMD			0x00
++#define LP8557_BL_MASK			0x01
++#define LP8557_BL_ON			0x01
++#define LP8557_BL_OFF			0x00
++#define LP8557_BRIGHTNESS_CTRL		0x04
++#define LP8557_CONFIG			0x10
++#define LP8557_EPROM_START		0x10
++#define LP8557_EPROM_END		0x1E
+ 
+ #define BUF_SIZE		20
+ #define DEFAULT_BL_NAME		"lcd-backlight"
+@@ -75,6 +85,24 @@ static int lp855x_write_byte(struct lp85
+ 	return i2c_smbus_write_byte_data(lp->client, reg, data);
+ }
+ 
++static int lp855x_update_bit(struct lp855x *lp, u8 reg, u8 mask, u8 data)
++{
++	int ret;
++	u8 tmp;
 +
- struct lp855x {
- 	const char *chipname;
- 	enum lp855x_chip_id chip_id;
-+	struct lp855x_device_config *cfg;
- 	struct i2c_client *client;
- 	struct backlight_device *bl;
- 	struct device *dev;
-@@ -81,21 +98,52 @@ static bool lp855x_is_valid_rom_area(str
++	ret = i2c_smbus_read_byte_data(lp->client, reg);
++	if (ret < 0) {
++		dev_err(lp->dev, "failed to read 0x%.2x\n", reg);
++		return ret;
++	}
++
++	tmp = (u8)ret;
++	tmp &= ~mask;
++	tmp |= data & mask;
++
++	return lp855x_write_byte(lp, reg, tmp);
++}
++
+ static bool lp855x_is_valid_rom_area(struct lp855x *lp, u8 addr)
+ {
+ 	u8 start, end;
+@@ -84,12 +112,16 @@ static bool lp855x_is_valid_rom_area(str
+ 	case LP8551:
+ 	case LP8552:
+ 	case LP8553:
+-		start = EEPROM_START;
+-		end = EEPROM_END;
++		start = LP855X_EEPROM_START;
++		end = LP855X_EEPROM_END;
+ 		break;
+ 	case LP8556:
+-		start = EPROM_START;
+-		end = EPROM_END;
++		start = LP8556_EPROM_START;
++		end = LP8556_EPROM_END;
++		break;
++	case LP8557:
++		start = LP8557_EPROM_START;
++		end = LP8557_EPROM_END;
+ 		break;
+ 	default:
+ 		return false;
+@@ -98,9 +130,30 @@ static bool lp855x_is_valid_rom_area(str
  	return (addr >= start && addr <= end);
  }
  
--static int lp855x_init_registers(struct lp855x *lp)
-+static struct lp855x_device_config lp855x_dev_cfg = {
-+	.reg_brightness = BRIGHTNESS_CTRL,
-+	.reg_devicectrl = DEVICE_CTRL,
++static int lp8557_bl_off(struct lp855x *lp)
++{
++	/* BL_ON = 0 before updating EPROM settings */
++	return lp855x_update_bit(lp, LP8557_BL_CMD, LP8557_BL_MASK,
++				LP8557_BL_OFF);
++}
++
++static int lp8557_bl_on(struct lp855x *lp)
++{
++	/* BL_ON = 1 after updating EPROM settings */
++	return lp855x_update_bit(lp, LP8557_BL_CMD, LP8557_BL_MASK,
++				LP8557_BL_ON);
++}
++
+ static struct lp855x_device_config lp855x_dev_cfg = {
+-	.reg_brightness = BRIGHTNESS_CTRL,
+-	.reg_devicectrl = DEVICE_CTRL,
++	.reg_brightness = LP855X_BRIGHTNESS_CTRL,
++	.reg_devicectrl = LP855X_DEVICE_CTRL,
 +};
 +
-+/*
-+ * Device specific configuration flow
-+ *
-+ *    a) pre_init_device(optional)
-+ *    b) update the brightness register
-+ *    c) update device control register
-+ *    d) update ROM area(optional)
-+ *    e) post_init_device(optional)
-+ *
-+ */
-+static int lp855x_configure(struct lp855x *lp)
- {
- 	u8 val, addr;
- 	int i, ret;
- 	struct lp855x_platform_data *pd = lp->pdata;
++static struct lp855x_device_config lp8557_dev_cfg = {
++	.reg_brightness = LP8557_BRIGHTNESS_CTRL,
++	.reg_devicectrl = LP8557_CONFIG,
++	.pre_init_device = lp8557_bl_off,
++	.post_init_device = lp8557_bl_on,
+ };
  
-+	switch (lp->chip_id) {
-+	case LP8550 ... LP8556:
-+		lp->cfg = &lp855x_dev_cfg;
+ /*
+@@ -123,6 +176,9 @@ static int lp855x_configure(struct lp855
+ 	case LP8550 ... LP8556:
+ 		lp->cfg = &lp855x_dev_cfg;
+ 		break;
++	case LP8557:
++		lp->cfg = &lp8557_dev_cfg;
 +		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (lp->cfg->pre_init_device) {
-+		ret = lp->cfg->pre_init_device(lp);
-+		if (ret) {
-+			dev_err(lp->dev, "pre init device err: %d\n", ret);
-+			goto err;
-+		}
-+	}
-+
- 	val = pd->initial_brightness;
--	ret = lp855x_write_byte(lp, BRIGHTNESS_CTRL, val);
-+	ret = lp855x_write_byte(lp, lp->cfg->reg_brightness, val);
- 	if (ret)
--		return ret;
-+		goto err;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -210,7 +266,7 @@ static int lp855x_bl_update_status(struc
  
- 	val = pd->device_control;
--	ret = lp855x_write_byte(lp, DEVICE_CTRL, val);
-+	ret = lp855x_write_byte(lp, lp->cfg->reg_devicectrl, val);
- 	if (ret)
--		return ret;
-+		goto err;
- 
- 	if (pd->load_new_rom_data && pd->size_program) {
- 		for (i = 0; i < pd->size_program; i++) {
-@@ -106,10 +154,21 @@ static int lp855x_init_registers(struct 
- 
- 			ret = lp855x_write_byte(lp, addr, val);
- 			if (ret)
--				return ret;
-+				goto err;
- 		}
+ 	} else if (mode == REGISTER_BASED) {
+ 		u8 val = bl->props.brightness;
+-		lp855x_write_byte(lp, BRIGHTNESS_CTRL, val);
++		lp855x_write_byte(lp, lp->cfg->reg_brightness, val);
  	}
  
-+	if (lp->cfg->post_init_device) {
-+		ret = lp->cfg->post_init_device(lp);
-+		if (ret) {
-+			dev_err(lp->dev, "post init device err: %d\n", ret);
-+			goto err;
-+		}
-+	}
-+
-+	return 0;
-+
-+err:
- 	return ret;
- }
+ 	return 0;
+@@ -224,7 +280,7 @@ static int lp855x_bl_get_brightness(stru
+ 	if (mode == REGISTER_BASED) {
+ 		u8 val = 0;
  
-@@ -271,11 +330,10 @@ static int lp855x_probe(struct i2c_clien
- 	lp->chip_id = id->driver_data;
- 	i2c_set_clientdata(cl, lp);
- 
--	ret = lp855x_init_registers(lp);
-+	ret = lp855x_configure(lp);
- 	if (ret) {
--		dev_err(lp->dev, "i2c communication err: %d", ret);
--		if (mode == REGISTER_BASED)
--			goto err_dev;
-+		dev_err(lp->dev, "device config err: %d", ret);
-+		goto err_dev;
+-		lp855x_read_byte(lp, BRIGHTNESS_CTRL, &val);
++		lp855x_read_byte(lp, lp->cfg->reg_brightness, &val);
+ 		bl->props.brightness = val;
  	}
  
- 	ret = lp855x_backlight_register(lp);
+@@ -376,6 +432,7 @@ static const struct i2c_device_id lp855x
+ 	{"lp8552", LP8552},
+ 	{"lp8553", LP8553},
+ 	{"lp8556", LP8556},
++	{"lp8557", LP8557},
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, lp855x_ids);
+diff -puN include/linux/platform_data/lp855x.h~backlight-lp855x_bl-support-new-lp8557-device include/linux/platform_data/lp855x.h
+--- a/include/linux/platform_data/lp855x.h~backlight-lp855x_bl-support-new-lp8557-device
++++ a/include/linux/platform_data/lp855x.h
+@@ -49,12 +49,24 @@
+ #define LP8556_FAST_CONFIG	BIT(7) /* use it if EPROMs should be maintained
+ 					  when exiting the low power mode */
+ 
++/* CONFIG register - LP8557 */
++#define LP8557_PWM_STANDBY	BIT(7)
++#define LP8557_PWM_FILTER	BIT(6)
++#define LP8557_RELOAD_EPROM	BIT(3)	/* use it if EPROMs should be reset
++					   when the backlight turns on */
++#define LP8557_OFF_OPENLEDS	BIT(2)
++#define LP8557_PWM_CONFIG	LP8557_PWM_ONLY
++#define LP8557_I2C_CONFIG	LP8557_I2C_ONLY
++#define LP8557_COMB1_CONFIG	LP8557_COMBINED1
++#define LP8557_COMB2_CONFIG	LP8557_COMBINED2
++
+ enum lp855x_chip_id {
+ 	LP8550,
+ 	LP8551,
+ 	LP8552,
+ 	LP8553,
+ 	LP8556,
++	LP8557,
+ };
+ 
+ enum lp855x_brightness_ctrl_mode {
+@@ -89,6 +101,13 @@ enum lp8556_brightness_source {
+ 	LP8556_COMBINED2,	/* pwm + i2c after the shaper block */
+ };
+ 
++enum lp8557_brightness_source {
++	LP8557_PWM_ONLY,
++	LP8557_I2C_ONLY,
++	LP8557_COMBINED1,	/* pwm + i2c after the shaper block */
++	LP8557_COMBINED2,	/* pwm + i2c before the shaper block */
++};
++
+ struct lp855x_rom_data {
+ 	u8 addr;
+ 	u8 val;
 _
 
 Patches currently in -mm which might be from Milo.Kim@ti.com are
