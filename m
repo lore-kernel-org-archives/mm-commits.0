@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + block-partitions-optimize-memory-allocation-in-check_partition.patch added to -mm tree
-Date: Thu, 21 Feb 2013 14:28:39 -0800
-Message-ID: <20130221222839.C20055A402F@corp2gmr1-2.hot.corp.google.com>
+Date: Thu, 21 Feb 2013 14:28:52 -0800
+Message-ID: <20130221222853.075F15A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:63555 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755771Ab3BUW2k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:28:40 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so5487yen.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:28:40 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:50221 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755771Ab3BUW2y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:28:54 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so5457ggn.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:28:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -56,7 +56,7 @@ parsed_partitions to try to address the issue:
 Signed-off-by: Ming Lei <ming.lei@canonical.com>
 Reported-by: Felipe Balbi <balbi@ti.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -65,8 +65,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  block/partitions/check.h  |    4 ++-
  3 files changed, 37 insertions(+), 8 deletions(-)
 
-diff -puN block/partition-generic.c~block-partition-optimize-memory-allocation-in-check_partition block/partition-generic.c
---- a/block/partition-generic.c~block-partition-optimize-memory-allocation-in-check_partition
+diff -puN block/partition-generic.c~block-partitions-optimize-memory-allocation-in-check_partition block/partition-generic.c
+--- a/block/partition-generic.c~block-partitions-optimize-memory-allocation-in-check_partition
 +++ a/block/partition-generic.c
 @@ -418,7 +418,7 @@ int rescan_partitions(struct gendisk *di
  	int p, highest, res;
@@ -86,8 +86,8 @@ diff -puN block/partition-generic.c~block-partition-optimize-memory-allocation-i
  	return 0;
  }
  
-diff -puN block/partitions/check.c~block-partition-optimize-memory-allocation-in-check_partition block/partitions/check.c
---- a/block/partitions/check.c~block-partition-optimize-memory-allocation-in-check_partition
+diff -puN block/partitions/check.c~block-partitions-optimize-memory-allocation-in-check_partition block/partitions/check.c
+--- a/block/partitions/check.c~block-partitions-optimize-memory-allocation-in-check_partition
 +++ a/block/partitions/check.c
 @@ -14,6 +14,7 @@
   */
@@ -165,8 +165,8 @@ diff -puN block/partitions/check.c~block-partition-optimize-memory-allocation-in
 +	free_partitions(state);
  	return ERR_PTR(res);
  }
-diff -puN block/partitions/check.h~block-partition-optimize-memory-allocation-in-check_partition block/partitions/check.h
---- a/block/partitions/check.h~block-partition-optimize-memory-allocation-in-check_partition
+diff -puN block/partitions/check.h~block-partitions-optimize-memory-allocation-in-check_partition block/partitions/check.h
+--- a/block/partitions/check.h~block-partitions-optimize-memory-allocation-in-check_partition
 +++ a/block/partitions/check.h
 @@ -15,13 +15,15 @@ struct parsed_partitions {
  		int flags;
