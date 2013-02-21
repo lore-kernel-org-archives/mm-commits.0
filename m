@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-ac-ac_allow_chain_relink=0-wont-disable-group-relink.patch added to -mm tree
-Date: Thu, 21 Feb 2013 14:13:27 -0800
-Message-ID: <20130221221327.A17E031C1B7@corp2gmr1-1.hot.corp.google.com>
+Subject: + block-partitions-mac-obey-the-state-limit-constraint.patch added to -mm tree
+Date: Thu, 21 Feb 2013 14:27:22 -0800
+Message-ID: <20130221222722.9A43B5A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:45318 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892Ab3BUWN3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:13:29 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so4287qeb.0
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:13:28 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:32998 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755979Ab3BUW1X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:27:23 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so5358yen.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:27:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaowei.hu@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, srinivas.eeda@oracle.com
+Cc: ming.lei@canonical.com, axboe@kernel.dk, isimatu.yasuaki@jp.fujitsu.com
 
 
 The patch titled
-     Subject: ocfs2: ac->ac_allow_chain_relink=0 won't disable group relink
+     Subject: block/partitions/mac.c: obey the state->limit constraint
 has been added to the -mm tree.  Its filename is
-     ocfs2-ac-ac_allow_chain_relink=0-wont-disable-group-relink.patch
+     block-partitions-mac-obey-the-state-limit-constraint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
-Subject: ocfs2: ac->ac_allow_chain_relink=0 won't disable group relink
+From: Ming Lei <ming.lei@canonical.com>
+Subject: block/partitions/mac.c: obey the state->limit constraint
 
-ocfs2_block_group_alloc_discontig() disables chain relink by setting
-ac->ac_allow_chain_relink = 0 because it grabs clusters from multiple
-cluster groups.
+It isn't necessary to read the information of partitions whose number is
+equal and more than state->limit since only maximum state->limit
+partitions will be added inside rescan_partitions().
 
-It doesn't keep the credits for all chain relink,but
-ocfs2_claim_suballoc_bits overrides this in this call trace:
-ocfs2_block_group_claim_bits()->ocfs2_claim_clusters()->
-__ocfs2_claim_clusters()->ocfs2_claim_suballoc_bits()
-ocfs2_claim_suballoc_bits set ac->ac_allow_chain_relink = 1; then call
-ocfs2_search_chain() one time and disable it again, and then we run out of
-credits.
+That is also what other kind of partitions are doing.
 
-Fix is to allow relink by default and disable it in
-ocfs2_block_group_alloc_discontig.
-
-Signed-off-by: Xiaowei.Hu <xiaowei.hu@oracle.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |    7 +++----
- fs/ocfs2/suballoc.h |    2 +-
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ block/partitions/mac.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/ocfs2/suballoc.c~ocfs2-ac-ac_allow_chain_relink=0-wont-disable-group-relink fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-ac-ac_allow_chain_relink=0-wont-disable-group-relink
-+++ a/fs/ocfs2/suballoc.c
-@@ -642,7 +642,7 @@ ocfs2_block_group_alloc_discontig(handle
- 	 * cluster groups will be staying in cache for the duration of
- 	 * this operation.
- 	 */
--	ac->ac_allow_chain_relink = 0;
-+	ac->ac_disable_chain_relink = 1;
- 
- 	/* Claim the first region */
- 	status = ocfs2_block_group_claim_bits(osb, handle, ac, min_bits,
-@@ -1823,7 +1823,7 @@ static int ocfs2_search_chain(struct ocf
- 	 * Do this *after* figuring out how many bits we're taking out
- 	 * of our target group.
- 	 */
--	if (ac->ac_allow_chain_relink &&
-+	if (!ac->ac_disable_chain_relink &&
- 	    (prev_group_bh) &&
- 	    (ocfs2_block_group_reasonably_empty(bg, res->sr_bits))) {
- 		status = ocfs2_relink_block_group(handle, alloc_inode,
-@@ -1928,7 +1928,6 @@ static int ocfs2_claim_suballoc_bits(str
- 
- 	victim = ocfs2_find_victim_chain(cl);
- 	ac->ac_chain = victim;
--	ac->ac_allow_chain_relink = 1;
- 
- 	status = ocfs2_search_chain(ac, handle, bits_wanted, min_bits,
- 				    res, &bits_left);
-@@ -1947,7 +1946,7 @@ static int ocfs2_claim_suballoc_bits(str
- 	 * searching each chain in order. Don't allow chain relinking
- 	 * because we only calculate enough journal credits for one
- 	 * relink per alloc. */
--	ac->ac_allow_chain_relink = 0;
-+	ac->ac_disable_chain_relink = 1;
- 	for (i = 0; i < le16_to_cpu(cl->cl_next_free_rec); i ++) {
- 		if (i == victim)
- 			continue;
-diff -puN fs/ocfs2/suballoc.h~ocfs2-ac-ac_allow_chain_relink=0-wont-disable-group-relink fs/ocfs2/suballoc.h
---- a/fs/ocfs2/suballoc.h~ocfs2-ac-ac_allow_chain_relink=0-wont-disable-group-relink
-+++ a/fs/ocfs2/suballoc.h
-@@ -49,7 +49,7 @@ struct ocfs2_alloc_context {
- 
- 	/* these are used by the chain search */
- 	u16    ac_chain;
--	int    ac_allow_chain_relink;
-+	int    ac_disable_chain_relink;
- 	group_search_t *ac_group_search;
- 
- 	u64    ac_last_group;
+diff -puN block/partitions/mac.c~block-partitions-mac-obey-the-state-limit-constraint block/partitions/mac.c
+--- a/block/partitions/mac.c~block-partitions-mac-obey-the-state-limit-constraint
++++ a/block/partitions/mac.c
+@@ -63,6 +63,10 @@ int mac_partition(struct parsed_partitio
+ 		put_dev_sector(sect);
+ 		return 0;
+ 	}
++
++	if (blocks_in_map >= state->limit)
++		blocks_in_map = state->limit - 1;
++
+ 	strlcat(state->pp_buf, " [mac]", PAGE_SIZE);
+ 	for (slot = 1; slot <= blocks_in_map; ++slot) {
+ 		int pos = slot * secsize;
 _
 
-Patches currently in -mm which might be from xiaowei.hu@oracle.com are
+Patches currently in -mm which might be from ming.lei@canonical.com are
 
-ocfs2-ac-ac_allow_chain_relink=0-wont-disable-group-relink.patch
+origin.patch
+linux-next.patch
+mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
+pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
+block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
+net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
+pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
+usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
+block-partitions-mac-obey-the-state-limit-constraint.patch
 
