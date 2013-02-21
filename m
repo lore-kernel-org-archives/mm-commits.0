@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-imxdi-use-devm_clk_get.patch added to -mm tree
-Date: Thu, 21 Feb 2013 13:51:18 -0800
-Message-ID: <20130221215124.3A68731C224@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-vt8500-use-devm_-functions.patch added to -mm tree
+Date: Thu, 21 Feb 2013 13:51:27 -0800
+Message-ID: <20130221215128.12FBE31C18B@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:43350 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894Ab3BUVvZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:25 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so1678vbb.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:24 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:63197 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753927Ab3BUVv3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:29 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so1436vbi.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-imxdi: use devm_clk_get()
+     Subject: rtc: rtc-vt8500: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-imxdi-use-devm_clk_get.patch
+     rtc-rtc-vt8500-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,91 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-imxdi: use devm_clk_get()
+Subject: rtc: rtc-vt8500: use devm_*() functions
 
-Use devm_clk_get() to make cleanup paths more simple.
+Use devm_*() functions to make cleanup paths more simple.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-imxdi.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/rtc/rtc-vt8500.c |   28 ++++++++++------------------
+ 1 file changed, 10 insertions(+), 18 deletions(-)
 
-diff -puN drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_clk_get drivers/rtc/rtc-imxdi.c
---- a/drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_clk_get
-+++ a/drivers/rtc/rtc-imxdi.c
-@@ -406,7 +406,7 @@ static int dryice_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_-functions drivers/rtc/rtc-vt8500.c
+--- a/drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_-functions
++++ a/drivers/rtc/rtc-vt8500.c
+@@ -231,20 +231,21 @@ static int vt8500_rtc_probe(struct platf
+ 		return -ENXIO;
+ 	}
  
- 	mutex_init(&imxdi->write_mutex);
+-	vt8500_rtc->res = request_mem_region(vt8500_rtc->res->start,
+-					     resource_size(vt8500_rtc->res),
+-					     "vt8500-rtc");
++	vt8500_rtc->res = devm_request_mem_region(&pdev->dev,
++					vt8500_rtc->res->start,
++					resource_size(vt8500_rtc->res),
++					"vt8500-rtc");
+ 	if (vt8500_rtc->res == NULL) {
+ 		dev_err(&pdev->dev, "failed to request I/O memory\n");
+ 		return -EBUSY;
+ 	}
  
--	imxdi->clk = clk_get(&pdev->dev, NULL);
-+	imxdi->clk = devm_clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(imxdi->clk))
- 		return PTR_ERR(imxdi->clk);
- 	clk_prepare_enable(imxdi->clk);
-@@ -475,7 +475,6 @@ static int dryice_rtc_probe(struct platf
+-	vt8500_rtc->regbase = ioremap(vt8500_rtc->res->start,
++	vt8500_rtc->regbase = devm_ioremap(&pdev->dev, vt8500_rtc->res->start,
+ 				      resource_size(vt8500_rtc->res));
+ 	if (!vt8500_rtc->regbase) {
+ 		dev_err(&pdev->dev, "Unable to map RTC I/O memory\n");
+ 		ret = -EBUSY;
+-		goto err_release;
++		goto err_return;
+ 	}
  
- err:
- 	clk_disable_unprepare(imxdi->clk);
--	clk_put(imxdi->clk);
+ 	/* Enable RTC and set it to 24-hour mode */
+@@ -257,11 +258,11 @@ static int vt8500_rtc_probe(struct platf
+ 		ret = PTR_ERR(vt8500_rtc->rtc);
+ 		dev_err(&pdev->dev,
+ 			"Failed to register RTC device -> %d\n", ret);
+-		goto err_unmap;
++		goto err_return;
+ 	}
  
- 	return rc;
+-	ret = request_irq(vt8500_rtc->irq_alarm, vt8500_rtc_irq, 0,
+-			  "rtc alarm", vt8500_rtc);
++	ret = devm_request_irq(&pdev->dev, vt8500_rtc->irq_alarm,
++				vt8500_rtc_irq, 0, "rtc alarm", vt8500_rtc);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "can't get irq %i, err %d\n",
+ 			vt8500_rtc->irq_alarm, ret);
+@@ -272,11 +273,7 @@ static int vt8500_rtc_probe(struct platf
+ 
+ err_unreg:
+ 	rtc_device_unregister(vt8500_rtc->rtc);
+-err_unmap:
+-	iounmap(vt8500_rtc->regbase);
+-err_release:
+-	release_mem_region(vt8500_rtc->res->start,
+-			   resource_size(vt8500_rtc->res));
++err_return:
+ 	return ret;
  }
-@@ -492,7 +491,6 @@ static int dryice_rtc_remove(struct plat
- 	rtc_device_unregister(imxdi->rtc);
  
- 	clk_disable_unprepare(imxdi->clk);
--	clk_put(imxdi->clk);
+@@ -284,15 +281,10 @@ static int vt8500_rtc_remove(struct plat
+ {
+ 	struct vt8500_rtc *vt8500_rtc = platform_get_drvdata(pdev);
  
- 	return 0;
- }
+-	free_irq(vt8500_rtc->irq_alarm, vt8500_rtc);
+-
+ 	rtc_device_unregister(vt8500_rtc->rtc);
+ 
+ 	/* Disable alarm matching */
+ 	writel(0, vt8500_rtc->regbase + VT8500_RTC_IS);
+-	iounmap(vt8500_rtc->regbase);
+-	release_mem_region(vt8500_rtc->res->start,
+-			   resource_size(vt8500_rtc->res));
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
