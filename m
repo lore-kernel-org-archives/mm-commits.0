@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix.patch added to -mm tree
-Date: Thu, 21 Feb 2013 13:45:46 -0800
-Message-ID: <20130221214546.BD6325A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-imxdi-use-devm_clk_get.patch added to -mm tree
+Date: Thu, 21 Feb 2013 13:51:18 -0800
+Message-ID: <20130221215124.3A68731C224@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:39339 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753277Ab3BUVps (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:45:48 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so429vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:45:47 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:43350 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753894Ab3BUVvZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:25 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so1678vbb.2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: imre.deak@intel.com, daniel.vetter@ffwll.ch, james.hogan@imgtec.com, maximlevitsky@gmail.com, tj@kernel.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: lib/scatterlist: use page iterator in the mapping iterator
+     Subject: rtc: rtc-imxdi: use devm_clk_get()
 has been added to the -mm tree.  Its filename is
-     lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix.patch
+     rtc-rtc-imxdi-use-devm_clk_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Imre Deak <imre.deak@intel.com>
-Subject: lib/scatterlist: use page iterator in the mapping iterator
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-imxdi: use devm_clk_get()
 
-- The dw_mmc driver used sg_mapping_iter::__sg, which was marked as
-  internal and moved by this patch to the new sg_page_iter struct.  This
-  caused a compile time breakage for the driver.  Fix this by making
-  sg_mapping_iter::piter a public interface and making the driver use
-  sg_mapping_iter::piter.sg instead of sg_mapping_iter::__sg.  Thanks to
-  James Hogan for pointing this out.
+Use devm_clk_get() to make cleanup paths more simple.
 
-Signed-off-by: Imre Deak <imre.deak@intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: James Hogan <james.hogan@imgtec.com> 
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/dw_mmc.c   |    4 ++--
- include/linux/scatterlist.h |    2 +-
- lib/scatterlist.c           |   10 +++++-----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-imxdi.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/mmc/host/dw_mmc.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix drivers/mmc/host/dw_mmc.c
---- a/drivers/mmc/host/dw_mmc.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix
-+++ a/drivers/mmc/host/dw_mmc.c
-@@ -1453,7 +1453,7 @@ static void dw_mci_read_data_pio(struct 
- 		if (!sg_miter_next(sg_miter))
- 			goto done;
+diff -puN drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_clk_get drivers/rtc/rtc-imxdi.c
+--- a/drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_clk_get
++++ a/drivers/rtc/rtc-imxdi.c
+@@ -406,7 +406,7 @@ static int dryice_rtc_probe(struct platf
  
--		host->sg = sg_miter->__sg;
-+		host->sg = sg_miter->piter.sg;
- 		buf = sg_miter->addr;
- 		remain = sg_miter->length;
- 		offset = 0;
-@@ -1508,7 +1508,7 @@ static void dw_mci_write_data_pio(struct
- 		if (!sg_miter_next(sg_miter))
- 			goto done;
+ 	mutex_init(&imxdi->write_mutex);
  
--		host->sg = sg_miter->__sg;
-+		host->sg = sg_miter->piter.sg;
- 		buf = sg_miter->addr;
- 		remain = sg_miter->length;
- 		offset = 0;
-diff -puN include/linux/scatterlist.h~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix include/linux/scatterlist.h
---- a/include/linux/scatterlist.h~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix
-+++ a/include/linux/scatterlist.h
-@@ -293,10 +293,10 @@ struct sg_mapping_iter {
- 	void			*addr;		/* pointer to the mapped area */
- 	size_t			length;		/* length of the mapped area */
- 	size_t			consumed;	/* number of consumed bytes */
-+	struct sg_page_iter	piter;		/* page iterator */
+-	imxdi->clk = clk_get(&pdev->dev, NULL);
++	imxdi->clk = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(imxdi->clk))
+ 		return PTR_ERR(imxdi->clk);
+ 	clk_prepare_enable(imxdi->clk);
+@@ -475,7 +475,6 @@ static int dryice_rtc_probe(struct platf
  
- 	/* these are internal states, keep away */
- 	unsigned int		__offset;	/* offset within page */
--	struct sg_page_iter	__piter;	/* page iterator */
- 	unsigned int		__remaining;	/* remaining bytes on page */
- 	unsigned int		__flags;
- };
-diff -puN lib/scatterlist.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix
-+++ a/lib/scatterlist.c
-@@ -449,7 +449,7 @@ void sg_miter_start(struct sg_mapping_it
- {
- 	memset(miter, 0, sizeof(struct sg_mapping_iter));
+ err:
+ 	clk_disable_unprepare(imxdi->clk);
+-	clk_put(imxdi->clk);
  
--	__sg_page_iter_start(&miter->__piter, sgl, nents, 0);
-+	__sg_page_iter_start(&miter->piter, sgl, nents, 0);
- 	WARN_ON(!(flags & (SG_MITER_TO_SG | SG_MITER_FROM_SG)));
- 	miter->__flags = flags;
+ 	return rc;
  }
-@@ -484,17 +484,17 @@ bool sg_miter_next(struct sg_mapping_ite
- 		struct scatterlist *sg;
- 		unsigned long pgoffset;
+@@ -492,7 +491,6 @@ static int dryice_rtc_remove(struct plat
+ 	rtc_device_unregister(imxdi->rtc);
  
--		if (!__sg_page_iter_next(&miter->__piter))
-+		if (!__sg_page_iter_next(&miter->piter))
- 			return false;
+ 	clk_disable_unprepare(imxdi->clk);
+-	clk_put(imxdi->clk);
  
--		sg = miter->__piter.sg;
--		pgoffset = miter->__piter.sg_pgoffset;
-+		sg = miter->piter.sg;
-+		pgoffset = miter->piter.sg_pgoffset;
- 
- 		miter->__offset = pgoffset ? 0 : sg->offset;
- 		miter->__remaining = sg->offset + sg->length -
- 				(pgoffset << PAGE_SHIFT) - miter->__offset;
- 	}
--	miter->page = miter->__piter.page;
-+	miter->page = miter->piter.page;
- 	miter->consumed = miter->length = miter->__remaining;
- 
- 	if (miter->__flags & SG_MITER_ATOMIC)
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from imre.deak@intel.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
+origin.patch
 linux-next.patch
-lib-scatterlist-add-simple-page-iterator.patch
-lib-scatterlist-use-page-iterator-in-the-mapping-iterator.patch
-lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix.patch
+video-s3c-fb-use-arch_-dependancy.patch
+video-s3c-fb-remove-duplicated-s3c_fb_max_win.patch
+video-s3c-fb-remove-unnecessary-brackets.patch
+video-s3c-fb-add-the-bit-definitions-for-csc-eq709-and-eq601.patch
+video-s3c-fb-fix-typo-in-definition-of-vidcon1_vstatus_frontporch-value.patch
+video-exynos_dp-add-missing-of_node_put.patch
+video-exynos_dp-move-disable_irq-to-exynos_dp_suspend.patch
+backlight-add-lms501kf03-lcd-driver.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-change-parameters-of-the-write-function-to-u8.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-fix-inverted-parameters-for-kcalloc.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-useless-error-message.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-remove-trailing-period.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller-use-static-arrays-for-lcd-configuration.patch
+drivers-video-backlight-makefile-cleanup.patch
+backlight-add-an-as3711-pmic-backlight-driver.patch
+backlight-88pm860x_bl-add-missing-of_node_put.patch
+backlight-s6e63m0-report-gamma_table_count-correctly.patch
+drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
+backlight-lp855x_bl-introduce-device-configuration-flow.patch
+backlight-lp855x_bl-support-new-lp8557-device.patch
+backlight-lp855x_bl-simplify-bl_get_brightness.patch
+rtc-max77686-add-missing-variable-initialization.patch
+rtc-max77686-add-missing-variable-initialization-fix.patch
+drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
+rtc-use-dev_warn-dev_dbg-pr_err-instead-of-printk.patch
+rtc-max77686-use-dev_info-instead-of-printk.patch
+rtc-rtc-efi-use-dev_err-dev_warn-pr_err-instead-of-printk.patch
+rtc-rtc-ds2404-use-dev_err-instead-of-printk.patch
+rtc-rtc-rs5c372-use-dev_dbg-dev_warn-instead-of-printk-pr_debug.patch
+rtc-rtc-at91rm9200-use-dev_dbg-dev_err-instead-of-printk-pr_debug.patch
+rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch
+rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch
+rtc-rtc-sun4v-use-pr_warn-instead-of-printk.patch
+rtc-rtc-pcf8583-use-dev_warn-instead-of-printk.patch
+rtc-rtc-cmos-use-dev_warn-dev_dbg-instead-of-printk-pr_debug.patch
+rtc-rtc-imxdi-use-devm_clk_get.patch
+rtc-rtc-tps6586x-use-devm_request_threaded_irq.patch
+rtc-rtc-vt8500-use-devm_-functions.patch
+rtc-rtc-coh901331-use-devm_clk_get.patch
+rtc-rtc-lp8788-use-devm_request_threaded_irq.patch
+rtc-rtc-tps80031-use-devm_request_threaded_irq.patch
+rtc-rtc-wm831x-use-devm_request_threaded_irq.patch
+rtc-rtc-da9052-use-devm_request_threaded_irq.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+rtc-rtc-max8907-use-devm_request_threaded_irq.patch
+rtc-rtc-max8997-use-devm_request_threaded_irq.patch
+rtc-rtc-davinci-use-devm_-functions.patch
 
