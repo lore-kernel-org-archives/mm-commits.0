@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tps80031-use-devm_request_threaded_irq.patch added to -mm tree
-Date: Thu, 21 Feb 2013 13:51:39 -0800
-Message-ID: <20130221215140.2A22F5A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-wm831x-use-devm_request_threaded_irq.patch added to -mm tree
+Date: Thu, 21 Feb 2013 13:51:41 -0800
+Message-ID: <20130221215147.4221C5A4253@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:59341 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754045Ab3BUVvl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:41 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so1915qen.3
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:40 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:56194 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754888Ab3BUVvs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:48 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so1576yhz.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-tps80031: use devm_request_threaded_irq()
+     Subject: rtc: rtc-wm831x: use devm_request_threaded_irq()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-tps80031-use-devm_request_threaded_irq.patch
+     rtc-rtc-wm831x-use-devm_request_threaded_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tps80031: use devm_request_threaded_irq()
+Subject: rtc: rtc-wm831x: use devm_request_threaded_irq()
 
 Use devm_request_threaded_irq() to make cleanup paths more simple.
 
@@ -42,30 +42,36 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps80031.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-wm831x.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-use-devm_request_threaded_irq drivers/rtc/rtc-tps80031.c
---- a/drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-use-devm_request_threaded_irq
-+++ a/drivers/rtc/rtc-tps80031.c
-@@ -285,7 +285,8 @@ static int tps80031_rtc_probe(struct pla
- 		return ret;
+diff -puN drivers/rtc/rtc-wm831x.c~rtc-rtc-wm831x-use-devm_request_threaded_irq drivers/rtc/rtc-wm831x.c
+--- a/drivers/rtc/rtc-wm831x.c~rtc-rtc-wm831x-use-devm_request_threaded_irq
++++ a/drivers/rtc/rtc-wm831x.c
+@@ -443,9 +443,10 @@ static int wm831x_rtc_probe(struct platf
+ 		goto err;
  	}
  
--	ret = request_threaded_irq(rtc->irq, NULL, tps80031_rtc_irq,
-+	ret = devm_request_threaded_irq(&pdev->dev, rtc->irq, NULL,
-+			tps80031_rtc_irq,
- 			IRQF_ONESHOT | IRQF_EARLY_RESUME,
- 			dev_name(&pdev->dev), rtc);
- 	if (ret < 0) {
-@@ -302,7 +303,6 @@ static int tps80031_rtc_remove(struct pl
+-	ret = request_threaded_irq(alm_irq, NULL, wm831x_alm_irq,
+-				   IRQF_TRIGGER_RISING, "RTC alarm",
+-				   wm831x_rtc);
++	ret = devm_request_threaded_irq(&pdev->dev, alm_irq, NULL,
++				wm831x_alm_irq,
++				IRQF_TRIGGER_RISING, "RTC alarm",
++				wm831x_rtc);
+ 	if (ret != 0) {
+ 		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
+ 			alm_irq, ret);
+@@ -462,9 +463,7 @@ err:
+ static int wm831x_rtc_remove(struct platform_device *pdev)
  {
- 	struct tps80031_rtc *rtc = platform_get_drvdata(pdev);
+ 	struct wm831x_rtc *wm831x_rtc = platform_get_drvdata(pdev);
+-	int alm_irq = platform_get_irq_byname(pdev, "ALM");
  
--	free_irq(rtc->irq, rtc);
- 	rtc_device_unregister(rtc->rtc);
+-	free_irq(alm_irq, wm831x_rtc);
+ 	rtc_device_unregister(wm831x_rtc->rtc);
+ 
  	return 0;
- }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
