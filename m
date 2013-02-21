@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch added to -mm tree
-Date: Thu, 21 Feb 2013 15:09:24 -0800
-Message-ID: <20130221230924.997A631C042@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch removed from -mm tree
+Date: Thu, 21 Feb 2013 15:09:31 -0800
+Message-ID: <20130221230932.2491231C016@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:42832 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753004Ab3BUXJ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:09:26 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so9720qeb.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:09:25 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:35569 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752890Ab3BUXJe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:09:34 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so9879vbb.0
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:09:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, johnstul@us.ibm.com, nzimmer@sgi.com, tglx@linutronix.de
+To: akpm@linux-foundation.org, davej@redhat.com, johnstul@us.ibm.com, nzimmer@sgi.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -69,5 +59,4 @@ bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
 goldfish-framebuffer-driver-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 
