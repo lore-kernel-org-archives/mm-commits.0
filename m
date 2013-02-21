@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-wm831x-use-devm_request_threaded_irq.patch added to -mm tree
-Date: Thu, 21 Feb 2013 13:51:41 -0800
-Message-ID: <20130221215147.4221C5A4253@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-palmas-use-devm_request_threaded_irq.patch added to -mm tree
+Date: Thu, 21 Feb 2013 13:51:51 -0800
+Message-ID: <20130221215152.3675C5A4253@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:56194 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754888Ab3BUVvs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:48 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so1576yhz.5
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:47 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:35903 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755264Ab3BUVvx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:53 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so1880qeb.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-wm831x: use devm_request_threaded_irq()
+     Subject: rtc: rtc-palmas: use devm_request_threaded_irq()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-wm831x-use-devm_request_threaded_irq.patch
+     rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-wm831x: use devm_request_threaded_irq()
+Subject: rtc: rtc-palmas: use devm_request_threaded_irq()
 
 Use devm_request_threaded_irq() to make cleanup paths more simple.
 
@@ -42,36 +42,29 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-wm831x.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-palmas.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-wm831x.c~rtc-rtc-wm831x-use-devm_request_threaded_irq drivers/rtc/rtc-wm831x.c
---- a/drivers/rtc/rtc-wm831x.c~rtc-rtc-wm831x-use-devm_request_threaded_irq
-+++ a/drivers/rtc/rtc-wm831x.c
-@@ -443,9 +443,10 @@ static int wm831x_rtc_probe(struct platf
- 		goto err;
+diff -puN drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_request_threaded_irq drivers/rtc/rtc-palmas.c
+--- a/drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_request_threaded_irq
++++ a/drivers/rtc/rtc-palmas.c
+@@ -272,7 +272,7 @@ static int palmas_rtc_probe(struct platf
+ 		return ret;
  	}
  
--	ret = request_threaded_irq(alm_irq, NULL, wm831x_alm_irq,
--				   IRQF_TRIGGER_RISING, "RTC alarm",
--				   wm831x_rtc);
-+	ret = devm_request_threaded_irq(&pdev->dev, alm_irq, NULL,
-+				wm831x_alm_irq,
-+				IRQF_TRIGGER_RISING, "RTC alarm",
-+				wm831x_rtc);
- 	if (ret != 0) {
- 		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
- 			alm_irq, ret);
-@@ -462,9 +463,7 @@ err:
- static int wm831x_rtc_remove(struct platform_device *pdev)
- {
- 	struct wm831x_rtc *wm831x_rtc = platform_get_drvdata(pdev);
--	int alm_irq = platform_get_irq_byname(pdev, "ALM");
+-	ret = request_threaded_irq(palmas_rtc->irq, NULL,
++	ret = devm_request_threaded_irq(&pdev->dev, palmas_rtc->irq, NULL,
+ 			palmas_rtc_interrupt,
+ 			IRQF_TRIGGER_LOW | IRQF_ONESHOT |
+ 			IRQF_EARLY_RESUME,
+@@ -292,7 +292,6 @@ static int palmas_rtc_remove(struct plat
+ 	struct palmas_rtc *palmas_rtc = platform_get_drvdata(pdev);
  
--	free_irq(alm_irq, wm831x_rtc);
- 	rtc_device_unregister(wm831x_rtc->rtc);
- 
+ 	palmas_rtc_alarm_irq_enable(&pdev->dev, 0);
+-	free_irq(palmas_rtc->irq, palmas_rtc);
+ 	rtc_device_unregister(palmas_rtc->rtc);
  	return 0;
+ }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
