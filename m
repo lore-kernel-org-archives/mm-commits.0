@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-partitions-mac-obey-the-state-limit-constraint.patch added to -mm tree
-Date: Thu, 21 Feb 2013 14:27:22 -0800
-Message-ID: <20130221222722.9A43B5A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + block-partitions-optimize-memory-allocation-in-check_partition.patch added to -mm tree
+Date: Thu, 21 Feb 2013 14:28:39 -0800
+Message-ID: <20130221222839.C20055A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:32998 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755979Ab3BUW1X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:27:23 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so5358yen.5
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:27:23 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:63555 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755771Ab3BUW2k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:28:40 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so5487yen.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:28:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ming.lei@canonical.com, axboe@kernel.dk, isimatu.yasuaki@jp.fujitsu.com
+Cc: ming.lei@canonical.com, axboe@kernel.dk, balbi@ti.com, isimatu.yasuaki@jp.fujitsu.com
 
 
 The patch titled
-     Subject: block/partitions/mac.c: obey the state->limit constraint
+     Subject: block/partitions: optimize memory allocation in check_partition()
 has been added to the -mm tree.  Its filename is
-     block-partitions-mac-obey-the-state-limit-constraint.patch
+     block-partitions-optimize-memory-allocation-in-check_partition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,157 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ming Lei <ming.lei@canonical.com>
-Subject: block/partitions/mac.c: obey the state->limit constraint
+Subject: block/partitions: optimize memory allocation in check_partition()
 
-It isn't necessary to read the information of partitions whose number is
-equal and more than state->limit since only maximum state->limit
-partitions will be added inside rescan_partitions().
+Currently, sizeof(struct parsed_partitions) may be 64KB in 32bit arch, so
+it is easy to trigger page allocation failure by check_partition,
+especially in hotplug block device situation(such as, USB mass storage,
+MMC card, ...), and Felipe Balbi has observed the failure.
 
-That is also what other kind of partitions are doing.
+This patch does below optimizations on the allocation of struct
+parsed_partitions to try to address the issue:
+
+- make parsed_partitions.parts as pointer so that the pointed memory can
+  fit in 32KB buffer, then approximate 32KB memory can be saved
+
+- vmalloc the buffer pointed by parsed_partitions.parts because 32KB is
+  still a bit big for kmalloc
+
+- given that many devices have the partition count limit, so only
+  allocate disk_max_parts() partitions instead of 256 partitions always
 
 Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Reported-by: Felipe Balbi <balbi@ti.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/mac.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ block/partition-generic.c |    4 +--
+ block/partitions/check.c  |   37 +++++++++++++++++++++++++++++++-----
+ block/partitions/check.h  |    4 ++-
+ 3 files changed, 37 insertions(+), 8 deletions(-)
 
-diff -puN block/partitions/mac.c~block-partitions-mac-obey-the-state-limit-constraint block/partitions/mac.c
---- a/block/partitions/mac.c~block-partitions-mac-obey-the-state-limit-constraint
-+++ a/block/partitions/mac.c
-@@ -63,6 +63,10 @@ int mac_partition(struct parsed_partitio
- 		put_dev_sector(sect);
- 		return 0;
+diff -puN block/partition-generic.c~block-partition-optimize-memory-allocation-in-check_partition block/partition-generic.c
+--- a/block/partition-generic.c~block-partition-optimize-memory-allocation-in-check_partition
++++ a/block/partition-generic.c
+@@ -418,7 +418,7 @@ int rescan_partitions(struct gendisk *di
+ 	int p, highest, res;
+ rescan:
+ 	if (state && !IS_ERR(state)) {
+-		kfree(state);
++		free_partitions(state);
+ 		state = NULL;
  	}
+ 
+@@ -525,7 +525,7 @@ rescan:
+ 			md_autodetect_dev(part_to_dev(part)->devt);
+ #endif
+ 	}
+-	kfree(state);
++	free_partitions(state);
+ 	return 0;
+ }
+ 
+diff -puN block/partitions/check.c~block-partition-optimize-memory-allocation-in-check_partition block/partitions/check.c
+--- a/block/partitions/check.c~block-partition-optimize-memory-allocation-in-check_partition
++++ a/block/partitions/check.c
+@@ -14,6 +14,7 @@
+  */
+ 
+ #include <linux/slab.h>
++#include <linux/vmalloc.h>
+ #include <linux/ctype.h>
+ #include <linux/genhd.h>
+ 
+@@ -106,18 +107,45 @@ static int (*check_part[])(struct parsed
+ 	NULL
+ };
+ 
++static struct parsed_partitions *allocate_partitions(struct gendisk *hd)
++{
++	struct parsed_partitions *state;
++	int nr;
 +
-+	if (blocks_in_map >= state->limit)
-+		blocks_in_map = state->limit - 1;
++	state = kzalloc(sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return NULL;
 +
- 	strlcat(state->pp_buf, " [mac]", PAGE_SIZE);
- 	for (slot = 1; slot <= blocks_in_map; ++slot) {
- 		int pos = slot * secsize;
++	nr = disk_max_parts(hd);
++	state->parts = vzalloc(nr * sizeof(state->parts[0]));
++	if (!state->parts) {
++		kfree(state);
++		return NULL;
++	}
++
++	state->limit = nr;
++
++	return state;
++}
++
++void free_partitions(struct parsed_partitions *state)
++{
++	vfree(state->parts);
++	kfree(state);
++}
++
+ struct parsed_partitions *
+ check_partition(struct gendisk *hd, struct block_device *bdev)
+ {
+ 	struct parsed_partitions *state;
+ 	int i, res, err;
+ 
+-	state = kzalloc(sizeof(struct parsed_partitions), GFP_KERNEL);
++	state = allocate_partitions(hd);
+ 	if (!state)
+ 		return NULL;
+ 	state->pp_buf = (char *)__get_free_page(GFP_KERNEL);
+ 	if (!state->pp_buf) {
+-		kfree(state);
++		free_partitions(state);
+ 		return NULL;
+ 	}
+ 	state->pp_buf[0] = '\0';
+@@ -128,10 +156,9 @@ check_partition(struct gendisk *hd, stru
+ 	if (isdigit(state->name[strlen(state->name)-1]))
+ 		sprintf(state->name, "p");
+ 
+-	state->limit = disk_max_parts(hd);
+ 	i = res = err = 0;
+ 	while (!res && check_part[i]) {
+-		memset(&state->parts, 0, sizeof(state->parts));
++		memset(state->parts, 0, state->limit * sizeof(state->parts[0]));
+ 		res = check_part[i++](state);
+ 		if (res < 0) {
+ 			/* We have hit an I/O error which we don't report now.
+@@ -161,6 +188,6 @@ check_partition(struct gendisk *hd, stru
+ 	printk(KERN_INFO "%s", state->pp_buf);
+ 
+ 	free_page((unsigned long)state->pp_buf);
+-	kfree(state);
++	free_partitions(state);
+ 	return ERR_PTR(res);
+ }
+diff -puN block/partitions/check.h~block-partition-optimize-memory-allocation-in-check_partition block/partitions/check.h
+--- a/block/partitions/check.h~block-partition-optimize-memory-allocation-in-check_partition
++++ a/block/partitions/check.h
+@@ -15,13 +15,15 @@ struct parsed_partitions {
+ 		int flags;
+ 		bool has_info;
+ 		struct partition_meta_info info;
+-	} parts[DISK_MAX_PARTS];
++	} *parts;
+ 	int next;
+ 	int limit;
+ 	bool access_beyond_eod;
+ 	char *pp_buf;
+ };
+ 
++void free_partitions(struct parsed_partitions *state);
++
+ struct parsed_partitions *
+ check_partition(struct gendisk *, struct block_device *);
+ 
 _
 
 Patches currently in -mm which might be from ming.lei@canonical.com are
@@ -78,4 +198,5 @@ net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
 pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
 usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
 block-partitions-mac-obey-the-state-limit-constraint.patch
+block-partitions-optimize-memory-allocation-in-check_partition.patch
 
