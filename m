@@ -1,65 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] sched-proc-sched_debug-fails-on-very-very-large-machines-v2.patch removed from -mm tree
-Date: Thu, 21 Feb 2013 15:14:12 -0800
-Message-ID: <20130221231412.CA1A231C016@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] backlight-add-lms501kf03-lcd-driver-fix.patch removed from -mm tree
+Date: Thu, 21 Feb 2013 15:19:44 -0800
+Message-ID: <20130221231945.15F8F31C016@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:56775 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754762Ab3BUXOO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:14:14 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so9855vbi.3
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:14:13 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:61193 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753789Ab3BUXTq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:19:46 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so10310yen.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:19:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nzimmer@sgi.com, davej@redhat.com, mingo@redhat.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Ilho215.lee@samsung.com, devendra.aaru@gmail.com, jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched-proc-sched_debug-fails-on-very-very-large-machines-v2
+     Subject: backlight-add-lms501kf03-lcd-driver-fix
 has been removed from the -mm tree.  Its filename was
-     sched-proc-sched_debug-fails-on-very-very-large-machines-v2.patch
+     backlight-add-lms501kf03-lcd-driver-fix.patch
 
-This patch was dropped because it was folded into sched-proc-sched_debug-fails-on-very-very-large-machines.patch
+This patch was dropped because it was folded into backlight-add-lms501kf03-lcd-driver.patch
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: sched-proc-sched_debug-fails-on-very-very-large-machines-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: backlight-add-lms501kf03-lcd-driver-fix
 
-v2: Took suggetion for adding comments
+remove unused variable `before_power'
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Dave Jones <davej@redhat.com>
+Cc: "devendra.aaru" <devendra.aaru@gmail.com>
+Cc: Ilho Lee <Ilho215.lee@samsung.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/debug.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/video/backlight/lms501kf03.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/sched/debug.c~sched-proc-sched_debug-fails-on-very-very-large-machines-v2 kernel/sched/debug.c
---- a/kernel/sched/debug.c~sched-proc-sched_debug-fails-on-very-very-large-machines-v2
-+++ a/kernel/sched/debug.c
-@@ -406,6 +406,13 @@ void sysrq_sched_debug_show(void)
- 
+diff -puN drivers/video/backlight/lms501kf03.c~backlight-add-lms501kf03-lcd-driver-fix drivers/video/backlight/lms501kf03.c
+--- a/drivers/video/backlight/lms501kf03.c~backlight-add-lms501kf03-lcd-driver-fix
++++ a/drivers/video/backlight/lms501kf03.c
+@@ -388,7 +388,6 @@ static int lms501kf03_remove(struct spi_
  }
  
-+/*
-+ * This itererator needs some explination.
-+ * It returns 1 for the header position.
-+ * This means 2 is cpu 0.
-+ * In a hotplugged system some cpus, including cpu 0, may be missing so we have
-+ * to use cpumask_* to iterate over the cpus.
-+ */
- static void *sched_debug_start(struct seq_file *file, loff_t *offset)
+ #if defined(CONFIG_PM)
+-static unsigned int before_power;
+ 
+ static int lms501kf03_suspend(struct spi_device *spi, pm_message_t mesg)
  {
- 	unsigned long n = *offset;
-_
-
-Patches currently in -mm which might be from nzimmer@sgi.com are
-
-sched-proc-sched_stat-fails-on-very-very-large-machines.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-
+@@ -396,8 +395,6 @@ static int lms501kf03_suspend(struct spi
+ 
+ 	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
+ 
+-	before_power = lcd->power;
