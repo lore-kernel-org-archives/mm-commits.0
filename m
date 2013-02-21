@@ -1,78 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-pcf8523-add-low-battery-voltage-support-fix.patch removed from -mm tree
-Date: Thu, 21 Feb 2013 15:27:36 -0800
-Message-ID: <20130221232737.265B65A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] drivers-rtc-use-of_match_ptr-macro-fix.patch removed from -mm tree
+Date: Thu, 21 Feb 2013 15:28:34 -0800
+Message-ID: <20130221232834.D925731C016@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:58089 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475Ab3BUX1i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:27:38 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so11259qen.3
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:27:37 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:49641 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753475Ab3BUX2g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:28:36 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so11308vch.2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:28:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jesper.nilsson@axis.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-pcf8523-add-low-battery-voltage-support-fix
+     Subject: drivers/rtc/rtc-twl: use of_match_ptr() macro
 has been removed from the -mm tree.  Its filename was
-     rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+     drivers-rtc-use-of_match_ptr-macro-fix.patch
 
-This patch was dropped because it was folded into rtc-pcf8523-add-low-battery-voltage-support.patch
+This patch was dropped because it was folded into drivers-rtc-use-of_match_ptr-macro.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-pcf8523-add-low-battery-voltage-support-fix
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-twl: use of_match_ptr() macro
 
-omit pcf8563_rtc_ioctl() if CONFIG_RTC_INTF_DEV=n
+Used of_match_ptr() macro with CONFIG_OF defined.
+This maintains code consistency with the rest of the drivers.
 
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8523.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/rtc/rtc-twl.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8523.c~rtc-pcf8523-add-low-battery-voltage-support-fix drivers/rtc/rtc-pcf8523.c
---- a/drivers/rtc/rtc-pcf8523.c~rtc-pcf8523-add-low-battery-voltage-support-fix
-+++ a/drivers/rtc/rtc-pcf8523.c
-@@ -251,6 +251,7 @@ static int pcf8523_rtc_set_time(struct d
- 	return pcf8523_start_rtc(client);
- }
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-use-of_match_ptr-macro-fix drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-use-of_match_ptr-macro-fix
++++ a/drivers/rtc/rtc-twl.c
+@@ -27,6 +27,7 @@
+ #include <linux/bcd.h>
+ #include <linux/platform_device.h>
+ #include <linux/interrupt.h>
++#include <linux/of.h>
  
-+#ifdef CONFIG_RTC_INTF_DEV
- static int pcf8523_rtc_ioctl(struct device *dev, unsigned int cmd,
- 			     unsigned long arg)
- {
-@@ -275,6 +276,9 @@ static int pcf8523_rtc_ioctl(struct devi
- 		return -ENOIOCTLCMD;
- 	}
- }
-+#else
-+#define pcf8523_rtc_ioctl NULL
+ #include <linux/i2c/twl.h>
+ 
+@@ -588,11 +589,14 @@ static int twl_rtc_resume(struct platfor
+ #define twl_rtc_resume  NULL
+ #endif
+ 
++#ifdef CONFIG_OF
+ static const struct of_device_id twl_rtc_of_match[] = {
+ 	{.compatible = "ti,twl4030-rtc", },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
 +#endif
++
+ MODULE_ALIAS("platform:twl_rtc");
  
- static const struct rtc_class_ops pcf8523_rtc_ops = {
- 	.read_time = pcf8523_rtc_read_time,
+ static struct platform_driver twl4030rtc_driver = {
+@@ -604,7 +608,7 @@ static struct platform_driver twl4030rtc
+ 	.driver		= {
+ 		.owner		= THIS_MODULE,
+ 		.name		= "twl_rtc",
+-		.of_match_table = twl_rtc_of_match,
++		.of_match_table = of_match_ptr(twl_rtc_of_match),
+ 	},
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 origin.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-goldfish-framebuffer-driver-fix.patch
-ocfs2-remove-kfree-redundant-null-checks.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sys_prctl-coding-style-cleanup.patch
+drivers-video-exynos-s6e8ax0c-use-devm_-apis-in-s6e8ax0c.patch
+drivers-video-exynos-exynos_mipi_dsic-fix-an-error-check-condition.patch
+drivers-video-exynos-exynos_mipi_dsic-use-devm_-apis.patch
 backlight-add-lms501kf03-lcd-driver.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-rtc-max77686-add-maxim-77686-driver.patch
-rtc-pcf8523-add-low-battery-voltage-support.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api.patch
+drivers-rtc-use-of_match_ptr-macro.patch
 
