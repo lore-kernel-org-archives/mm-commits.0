@@ -1,130 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 21 Feb 2013 15:29:47 -0800
-Message-ID: <20130221232947.6417C5A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: [withdrawn] vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork.patch removed from -mm tree
+Date: Thu, 21 Feb 2013 15:49:35 -0800
+Message-ID: <20130221234936.69FDB31C016@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:59190 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754862Ab3BUX3s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:29:48 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so11413yhz.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:29:48 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:40337 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755027Ab3BUXth (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 18:49:37 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so12913qcr.2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 15:49:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, torbenh@linutronix.de, mm-commits@vger.kernel.org
+To: msb@chromium.org, benchan@chromium.org, mingo@redhat.com, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes
+     Subject: vfork: don't freezer_count() for in-kernel users of CLONE_VFORK
 has been removed from the -mm tree.  Its filename was
-     rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+     vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork.patch
 
-This patch was dropped because it was folded into rtc-add-support-for-spi-rtc-rx4581.patch
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes
+From: Mandeep Singh Baines <msb@chromium.org>
+Subject: vfork: don't freezer_count() for in-kernel users of CLONE_VFORK
 
-WARNING: quoted string split across lines
-#171: FILE: drivers/rtc/rtc-rx4581.c:126:
-+				dev_err(dev, "Unable to write device "
-+					"flags\n");
+We don't need to call freezer_do_not_count() for in-kernel users of
+CLONE_VFORK since exec will get called in bounded time.
 
-WARNING: quoted string split across lines
-#214: FILE: drivers/rtc/rtc-rx4581.c:169:
-+	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
+We don't want to call freezer_count() for in-kernel users because they may
+be holding locks.  freezer_count() calls try_to_freeze().  We don't want
+to freeze an in-kernel user because it may be holding locks.
 
-WARNING: quoted string split across lines
-#233: FILE: drivers/rtc/rtc-rx4581.c:188:
-+	dev_dbg(dev, "%s: secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
+In a follow-up patch, I call debug_check_no_locks_held() from
+try_to_freeze().  After applying this patch, I get no lockdep warnings
+with that patch.
 
-WARNING: Using __devinit is unnecessary
-#310: FILE: drivers/rtc/rtc-rx4581.c:265:
-+static int __devinit rx4581_probe(struct spi_device *spi)
-
-WARNING: Using __devexit is unnecessary
-#329: FILE: drivers/rtc/rtc-rx4581.c:284:
-+static int __devexit rx4581_remove(struct spi_device *spi)
-
-WARNING: space prohibited between function name and open parenthesis '('
-#355: FILE: drivers/rtc/rtc-rx4581.c:310:
-+MODULE_DESCRIPTION ("rx4581 spi RTC driver");
-
-WARNING: space prohibited between function name and open parenthesis '('
-#356: FILE: drivers/rtc/rtc-rx4581.c:311:
-+MODULE_AUTHOR ("Torben Hohn");
-
-WARNING: space prohibited between function name and open parenthesis '('
-#357: FILE: drivers/rtc/rtc-rx4581.c:312:
-+MODULE_LICENSE ("GPL");
-
-total: 0 errors, 8 warnings, 334 lines checked
-
-./patches/rtc-add-support-for-spi-rtc-rx4581.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Torben Hohn <torbenh@linutronix.de>
+Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
+Cc: Ben Chan <benchan@chromium.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx4581.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/fork.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-rx4581.c~rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes drivers/rtc/rtc-rx4581.c
---- a/drivers/rtc/rtc-rx4581.c~rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes
-+++ a/drivers/rtc/rtc-rx4581.c
-@@ -262,7 +262,7 @@ static const struct rtc_class_ops rx4581
- 	.set_time	= rx4581_set_datetime,
- };
- 
--static int __devinit rx4581_probe(struct spi_device *spi)
-+static int rx4581_probe(struct spi_device *spi)
+diff -puN kernel/fork.c~vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork kernel/fork.c
+--- a/kernel/fork.c~vfork-dont-freezer_count-for-in-kernel-users-of-clone_vfork
++++ a/kernel/fork.c
+@@ -718,9 +718,11 @@ static int wait_for_vfork_done(struct ta
  {
- 	struct rtc_device *rtc;
- 	unsigned char tmp;
-@@ -281,7 +281,7 @@ static int __devinit rx4581_probe(struct
- 	return 0;
- }
+ 	int killed;
  
--static int __devexit rx4581_remove(struct spi_device *spi)
-+static int rx4581_remove(struct spi_device *spi)
- {
- 	struct rtc_device *rtc = dev_get_drvdata(&spi->dev);
+-	freezer_do_not_count();
++	if (current->mm)
++		freezer_do_not_count();
+ 	killed = wait_for_completion_killable(vfork);
+-	freezer_count();
++	if (current->mm)
++		freezer_count();
  
-@@ -307,7 +307,7 @@ static struct spi_driver rx4581_driver =
- 
- module_spi_driver(rx4581_driver);
- 
--MODULE_DESCRIPTION ("rx4581 spi RTC driver");
--MODULE_AUTHOR ("Torben Hohn");
--MODULE_LICENSE ("GPL");
-+MODULE_DESCRIPTION("rx4581 spi RTC driver");
-+MODULE_AUTHOR("Torben Hohn");
-+MODULE_LICENSE("GPL");
- MODULE_ALIAS("spi:rtc-rx4581");
+ 	if (killed) {
+ 		task_lock(child);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from msb@chromium.org are
 
-origin.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-goldfish-framebuffer-driver-fix.patch
-ocfs2-remove-kfree-redundant-null-checks.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sys_prctl-coding-style-cleanup.patch
-backlight-add-lms501kf03-lcd-driver.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-rtc-max77686-add-maxim-77686-driver.patch
-rtc-pcf8523-add-low-battery-voltage-support.patch
-rtc-add-rtc-driver-for-tps80031-tps80032.patch
-rtc-add-support-for-spi-rtc-rx4581.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+lockdep-check-that-no-locks-held-at-freeze-time.patch
+lockdep-check-that-no-locks-held-at-freeze-time-v2.patch
+lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
+coredump-cleanup-the-waiting-for-coredump_finish-code.patch
+coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
+coredump-abort-core-dump-piping-only-due-to-a-fatal-signal.patch
 
