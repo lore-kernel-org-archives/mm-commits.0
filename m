@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-coh901331-use-devm_clk_get.patch added to -mm tree
-Date: Thu, 21 Feb 2013 13:51:29 -0800
-Message-ID: <20130221215130.2DC7F5A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-tps6586x-use-devm_request_threaded_irq.patch added to -mm tree
+Date: Thu, 21 Feb 2013 13:51:25 -0800
+Message-ID: <20130221215125.EE4745A426D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:39452 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754649Ab3BUVvb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:31 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so1467ves.3
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:30 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:49032 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753894Ab3BUVv2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:28 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so1857vcd.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-coh901331: use devm_clk_get()
+     Subject: rtc: rtc-tps6586x: use devm_request_threaded_irq()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-coh901331-use-devm_clk_get.patch
+     rtc-rtc-tps6586x-use-devm_request_threaded_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-coh901331: use devm_clk_get()
+Subject: rtc: rtc-tps6586x: use devm_request_threaded_irq()
 
-Use devm_clk_get() to make cleanup paths more simple.
+Use devm_request_threaded_irq() to make cleanup paths more simple.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-tps6586x.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-use-devm_clk_get drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-use-devm_clk_get
-+++ a/drivers/rtc/rtc-coh901331.c
-@@ -157,7 +157,6 @@ static int __exit coh901331_remove(struc
- 	if (rtap) {
- 		rtc_device_unregister(rtap->rtc);
- 		clk_unprepare(rtap->clk);
--		clk_put(rtap->clk);
- 		platform_set_drvdata(pdev, NULL);
+diff -puN drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_request_threaded_irq drivers/rtc/rtc-tps6586x.c
+--- a/drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_request_threaded_irq
++++ a/drivers/rtc/rtc-tps6586x.c
+@@ -282,7 +282,8 @@ static int tps6586x_rtc_probe(struct pla
+ 		goto fail_rtc_register;
  	}
  
-@@ -196,7 +195,7 @@ static int __init coh901331_probe(struct
- 			     "RTC COH 901 331 Alarm", rtap))
- 		return -EIO;
- 
--	rtap->clk = clk_get(&pdev->dev, NULL);
-+	rtap->clk = devm_clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(rtap->clk)) {
- 		ret = PTR_ERR(rtap->clk);
- 		dev_err(&pdev->dev, "could not get clock\n");
-@@ -207,7 +206,7 @@ static int __init coh901331_probe(struct
- 	ret = clk_prepare_enable(rtap->clk);
- 	if (ret) {
- 		dev_err(&pdev->dev, "could not enable clock\n");
--		goto out_no_clk_prepenable;
-+		return ret;
- 	}
- 	clk_disable(rtap->clk);
- 
-@@ -224,8 +223,6 @@ static int __init coh901331_probe(struct
-  out_no_rtc:
- 	platform_set_drvdata(pdev, NULL);
- 	clk_unprepare(rtap->clk);
-- out_no_clk_prepenable:
--	clk_put(rtap->clk);
- 	return ret;
+-	ret = request_threaded_irq(rtc->irq, NULL, tps6586x_rtc_irq,
++	ret = devm_request_threaded_irq(&pdev->dev, rtc->irq, NULL,
++				tps6586x_rtc_irq,
+ 				IRQF_ONESHOT | IRQF_EARLY_RESUME,
+ 				dev_name(&pdev->dev), rtc);
+ 	if (ret < 0) {
+@@ -311,7 +312,6 @@ static int tps6586x_rtc_remove(struct pl
+ 	tps6586x_update(tps_dev, RTC_CTRL, 0,
+ 		RTC_ENABLE | OSC_SRC_SEL | PRE_BYPASS | CL_SEL_MASK);
+ 	rtc_device_unregister(rtc->rtc);
+-	free_irq(rtc->irq, rtc);
+ 	return 0;
  }
  
 _
