@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mmksm-foll_migration-do-migration_entry_wait.patch added to -mm tree
-Date: Thu, 21 Feb 2013 14:09:59 -0800
-Message-ID: <20130221221000.438C231C1B7@corp2gmr1-1.hot.corp.google.com>
+Subject: + ksm-shrink-32-bit-rmap_item-back-to-32-bytes.patch added to -mm tree
+Date: Thu, 21 Feb 2013 14:09:56 -0800
+Message-ID: <20130221220957.6304F5A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:55346 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756191Ab3BUWKC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:10:02 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so3691vch.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:10:00 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:59438 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756191Ab3BUWJ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 17:09:58 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so3834yen.3
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 14:09:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, aarcange@redhat.com, hannes@cmpxchg.org, izik.eidus@ravell
 
 
 The patch titled
-     Subject: mm,ksm: FOLL_MIGRATION do migration_entry_wait
+     Subject: ksm: shrink 32-bit rmap_item back to 32 bytes
 has been added to the -mm tree.  Its filename is
-     mmksm-foll_migration-do-migration_entry_wait.patch
+     ksm-shrink-32-bit-rmap_item-back-to-32-bytes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm,ksm: FOLL_MIGRATION do migration_entry_wait
+Subject: ksm: shrink 32-bit rmap_item back to 32 bytes
 
-In "ksm: remove old stable nodes more thoroughly" I said that I'd never
-seen its WARN_ON_ONCE(page_mapped(page)).  True at the time of writing,
-but it soon appeared once I tried fuller tests on the whole series.
+Think of struct rmap_item as an extension of struct page (restricted to
+MADV_MERGEABLE areas): there may be a lot of them, we need to keep them
+small, especially on 32-bit architectures of limited lowmem.
 
-It turned out to be due to the KSM page migration itself: unmerge_and_
-remove_all_rmap_items() failed to locate and replace all the KSM pages,
-because of that hiatus in page migration when old pte has been replaced by
-migration entry, but not yet by new pte.  follow_page() finds no page at
-that instant, but a KSM page reappears shortly after, without a fault.
+Siting "int nid" after "unsigned int checksum" works nicely on 64-bit,
+making no change to its 64-byte struct rmap_item; but bloats the 32-bit
+struct rmap_item from (nicely cache-aligned) 32 bytes to 36 bytes, which
+rounds up to 40 bytes once allocated from slab.  We'd better avoid that.
 
-Add FOLL_MIGRATION flag, so follow_page() can do migration_entry_wait()
-for KSM's break_cow().  I'd have preferred to avoid another flag, and do
-it every time, in case someone else makes the same easy mistake; but did
-not find another transgressor (the common get_user_pages() is of course
-safe), and cannot be sure that every follow_page() caller is prepared to
-sleep - ia64's xencomm_vtop()?  Now, THP's wait_split_huge_page() can
-already sleep there, since anon_vma locking was changed to mutex, but
-maybe that's somehow excluded.
+Hey, I only just remembered that the anon_vma pointer in struct rmap_item
+has no purpose until the rmap_item is hung from a stable tree node (which
+has its own nid field); and rmap_item's nid field no purpose than to say
+which tree root to tell rb_erase() when unlinking from an unstable tree.
+
+Double them up in a union.  There's just one place where we set anon_vma
+early (when we already hold mmap_sem): now we must remove tree_rmap_item
+from its unstable tree there, before overwriting nid.  No need to spatter
+BUG()s around: we'd be seeing oopses if this were wrong.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -64,64 +64,72 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/ksm.c           |    2 +-
- mm/memory.c        |   20 ++++++++++++++++++--
- 3 files changed, 20 insertions(+), 3 deletions(-)
+ mm/ksm.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/mm.h~mmksm-foll_migration-do-migration_entry_wait include/linux/mm.h
---- a/include/linux/mm.h~mmksm-foll_migration-do-migration_entry_wait
-+++ a/include/linux/mm.h
-@@ -1653,6 +1653,7 @@ static inline struct page *follow_page(s
- #define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
- #define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
- #define FOLL_NUMA	0x200	/* force NUMA hinting page fault */
-+#define FOLL_MIGRATION	0x400	/* wait for page to replace migration entry */
- 
- typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
- 			void *data);
-diff -puN mm/ksm.c~mmksm-foll_migration-do-migration_entry_wait mm/ksm.c
---- a/mm/ksm.c~mmksm-foll_migration-do-migration_entry_wait
+diff -puN mm/ksm.c~ksm-shrink-32-bit-rmap_item-back-to-32-bytes mm/ksm.c
+--- a/mm/ksm.c~ksm-shrink-32-bit-rmap_item-back-to-32-bytes
 +++ a/mm/ksm.c
-@@ -364,7 +364,7 @@ static int break_ksm(struct vm_area_stru
+@@ -150,23 +150,25 @@ struct stable_node {
+  * struct rmap_item - reverse mapping item for virtual addresses
+  * @rmap_list: next rmap_item in mm_slot's singly-linked rmap_list
+  * @anon_vma: pointer to anon_vma for this mm,address, when in stable tree
++ * @nid: NUMA node id of unstable tree in which linked (may not match page)
+  * @mm: the memory structure this rmap_item is pointing into
+  * @address: the virtual address this rmap_item tracks (+ flags in low bits)
+  * @oldchecksum: previous checksum of the page at that virtual address
+- * @nid: NUMA node id of unstable tree in which linked (may not match page)
+  * @node: rb node of this rmap_item in the unstable tree
+  * @head: pointer to stable_node heading this list in the stable tree
+  * @hlist: link into hlist of rmap_items hanging off that stable_node
+  */
+ struct rmap_item {
+ 	struct rmap_item *rmap_list;
+-	struct anon_vma *anon_vma;	/* when stable */
++	union {
++		struct anon_vma *anon_vma;	/* when stable */
++#ifdef CONFIG_NUMA
++		int nid;		/* when node of unstable tree */
++#endif
++	};
+ 	struct mm_struct *mm;
+ 	unsigned long address;		/* + low bits used for flags below */
+ 	unsigned int oldchecksum;	/* when unstable */
+-#ifdef CONFIG_NUMA
+-	int nid;
+-#endif
+ 	union {
+ 		struct rb_node node;	/* when node of unstable tree */
+ 		struct {		/* when listed from stable tree */
+@@ -1094,6 +1096,9 @@ static int try_to_merge_with_ksm_page(st
+ 	if (err)
+ 		goto out;
  
- 	do {
- 		cond_resched();
--		page = follow_page(vma, addr, FOLL_GET);
-+		page = follow_page(vma, addr, FOLL_GET | FOLL_MIGRATION);
- 		if (IS_ERR_OR_NULL(page))
- 			break;
- 		if (PageKsm(page))
-diff -puN mm/memory.c~mmksm-foll_migration-do-migration_entry_wait mm/memory.c
---- a/mm/memory.c~mmksm-foll_migration-do-migration_entry_wait
-+++ a/mm/memory.c
-@@ -1548,8 +1548,24 @@ split_fallthrough:
- 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
- 
- 	pte = *ptep;
--	if (!pte_present(pte))
--		goto no_page;
-+	if (!pte_present(pte)) {
-+		swp_entry_t entry;
-+		/*
-+		 * KSM's break_ksm() relies upon recognizing a ksm page
-+		 * even while it is being migrated, so for that case we
-+		 * need migration_entry_wait().
-+		 */
-+		if (likely(!(flags & FOLL_MIGRATION)))
-+			goto no_page;
-+		if (pte_none(pte) || pte_file(pte))
-+			goto no_page;
-+		entry = pte_to_swp_entry(pte);
-+		if (!is_migration_entry(entry))
-+			goto no_page;
-+		pte_unmap_unlock(ptep, ptl);
-+		migration_entry_wait(mm, pmd, address);
-+		goto split_fallthrough;
-+	}
- 	if ((flags & FOLL_NUMA) && pte_numa(pte))
- 		goto no_page;
- 	if ((flags & FOLL_WRITE) && !pte_write(pte))
++	/* Unstable nid is in union with stable anon_vma: remove first */
++	remove_rmap_item_from_tree(rmap_item);
++
+ 	/* Must get reference to anon_vma while still holding mmap_sem */
+ 	rmap_item->anon_vma = vma->anon_vma;
+ 	get_anon_vma(vma->anon_vma);
+@@ -1468,14 +1473,11 @@ static void cmp_and_merge_page(struct pa
+ 		kpage = try_to_merge_two_pages(rmap_item, page,
+ 						tree_rmap_item, tree_page);
+ 		put_page(tree_page);
+-		/*
+-		 * As soon as we merge this page, we want to remove the
+-		 * rmap_item of the page we have merged with from the unstable
+-		 * tree, and insert it instead as new node in the stable tree.
+-		 */
+ 		if (kpage) {
+-			remove_rmap_item_from_tree(tree_rmap_item);
+-
++			/*
++			 * The pages were successfully merged: insert new
++			 * node in the stable tree and add both rmap_items.
++			 */
+ 			lock_page(kpage);
+ 			stable_node = stable_tree_insert(kpage);
+ 			if (stable_node) {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
