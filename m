@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tps6586x-use-devm_request_threaded_irq.patch added to -mm tree
-Date: Thu, 21 Feb 2013 13:51:25 -0800
-Message-ID: <20130221215125.EE4745A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-lp8788-use-devm_request_threaded_irq.patch added to -mm tree
+Date: Thu, 21 Feb 2013 13:51:31 -0800
+Message-ID: <20130221215137.33A6431C18B@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:49032 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894Ab3BUVv2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:28 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so1857vcd.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:27 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:34877 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754649Ab3BUVvi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:38 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so1763ggn.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-tps6586x: use devm_request_threaded_irq()
+     Subject: rtc: rtc-lp8788: use devm_request_threaded_irq()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-tps6586x-use-devm_request_threaded_irq.patch
+     rtc-rtc-lp8788-use-devm_request_threaded_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tps6586x: use devm_request_threaded_irq()
+Subject: rtc: rtc-lp8788: use devm_request_threaded_irq()
 
 Use devm_request_threaded_irq() to make cleanup paths more simple.
 
@@ -42,29 +42,38 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps6586x.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-lp8788.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_request_threaded_irq drivers/rtc/rtc-tps6586x.c
---- a/drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_request_threaded_irq
-+++ a/drivers/rtc/rtc-tps6586x.c
-@@ -282,7 +282,8 @@ static int tps6586x_rtc_probe(struct pla
- 		goto fail_rtc_register;
- 	}
+diff -puN drivers/rtc/rtc-lp8788.c~rtc-rtc-lp8788-use-devm_request_threaded_irq drivers/rtc/rtc-lp8788.c
+--- a/drivers/rtc/rtc-lp8788.c~rtc-rtc-lp8788-use-devm_request_threaded_irq
++++ a/drivers/rtc/rtc-lp8788.c
+@@ -278,16 +278,11 @@ static int lp8788_alarm_irq_register(str
  
--	ret = request_threaded_irq(rtc->irq, NULL, tps6586x_rtc_irq,
-+	ret = devm_request_threaded_irq(&pdev->dev, rtc->irq, NULL,
-+				tps6586x_rtc_irq,
- 				IRQF_ONESHOT | IRQF_EARLY_RESUME,
- 				dev_name(&pdev->dev), rtc);
- 	if (ret < 0) {
-@@ -311,7 +312,6 @@ static int tps6586x_rtc_remove(struct pl
- 	tps6586x_update(tps_dev, RTC_CTRL, 0,
- 		RTC_ENABLE | OSC_SRC_SEL | PRE_BYPASS | CL_SEL_MASK);
- 	rtc_device_unregister(rtc->rtc);
--	free_irq(rtc->irq, rtc);
- 	return 0;
+ 	rtc->irq = irq_create_mapping(irqdm, irq);
+ 
+-	return request_threaded_irq(rtc->irq, NULL, lp8788_alarm_irq_handler,
++	return devm_request_threaded_irq(&pdev->dev, rtc->irq, NULL,
++				lp8788_alarm_irq_handler,
+ 				0, LP8788_ALM_IRQ, rtc);
  }
+ 
+-static void lp8788_alarm_irq_unregister(struct lp8788_rtc *rtc)
+-{
+-	if (rtc->irq)
+-		free_irq(rtc->irq, rtc);
+-}
+-
+ static int lp8788_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct lp8788 *lp = dev_get_drvdata(pdev->dev.parent);
+@@ -321,7 +316,6 @@ static int lp8788_rtc_remove(struct plat
+ {
+ 	struct lp8788_rtc *rtc = platform_get_drvdata(pdev);
+ 
+-	lp8788_alarm_irq_unregister(rtc);
+ 	rtc_device_unregister(rtc->rdev);
+ 	platform_set_drvdata(pdev, NULL);
  
 _
 
