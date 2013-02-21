@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-palmas-use-devm_request_threaded_irq.patch added to -mm tree
-Date: Thu, 21 Feb 2013 13:51:51 -0800
-Message-ID: <20130221215152.3675C5A4253@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-da9052-use-devm_request_threaded_irq.patch added to -mm tree
+Date: Thu, 21 Feb 2013 13:51:49 -0800
+Message-ID: <20130221215150.0F15D31C18B@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:35903 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755264Ab3BUVvx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:53 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so1880qeb.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:52 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:52545 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755095Ab3BUVvv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 16:51:51 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so16968qaj.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 13:51:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-palmas: use devm_request_threaded_irq()
+     Subject: rtc: rtc-da9052: use devm_request_threaded_irq()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+     rtc-rtc-da9052-use-devm_request_threaded_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-palmas: use devm_request_threaded_irq()
+Subject: rtc: rtc-da9052: use devm_request_threaded_irq()
 
 Use devm_request_threaded_irq() to make cleanup paths more simple.
 
@@ -42,29 +42,53 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-palmas.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/rtc/rtc-da9052.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_request_threaded_irq drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_request_threaded_irq
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -272,7 +272,7 @@ static int palmas_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-use-devm_request_threaded_irq drivers/rtc/rtc-da9052.c
+--- a/drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-use-devm_request_threaded_irq
++++ a/drivers/rtc/rtc-da9052.c
+@@ -240,9 +240,10 @@ static int da9052_rtc_probe(struct platf
+ 	rtc->da9052 = dev_get_drvdata(pdev->dev.parent);
+ 	platform_set_drvdata(pdev, rtc);
+ 	rtc->irq = platform_get_irq_byname(pdev, "ALM");
+-	ret = request_threaded_irq(rtc->irq, NULL, da9052_rtc_irq,
+-				   IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+-				   "ALM", rtc);
++	ret = devm_request_threaded_irq(&pdev->dev, rtc->irq, NULL,
++				da9052_rtc_irq,
++				IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++				"ALM", rtc);
+ 	if (ret != 0) {
+ 		rtc_err(rtc->da9052, "irq registration failed: %d\n", ret);
  		return ret;
- 	}
+@@ -250,16 +251,10 @@ static int da9052_rtc_probe(struct platf
  
--	ret = request_threaded_irq(palmas_rtc->irq, NULL,
-+	ret = devm_request_threaded_irq(&pdev->dev, palmas_rtc->irq, NULL,
- 			palmas_rtc_interrupt,
- 			IRQF_TRIGGER_LOW | IRQF_ONESHOT |
- 			IRQF_EARLY_RESUME,
-@@ -292,7 +292,6 @@ static int palmas_rtc_remove(struct plat
- 	struct palmas_rtc *palmas_rtc = platform_get_drvdata(pdev);
+ 	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 				       &da9052_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtc->rtc)) {
+-		ret = PTR_ERR(rtc->rtc);
+-		goto err_free_irq;
+-	}
++	if (IS_ERR(rtc->rtc))
++		return PTR_ERR(rtc->rtc);
  
- 	palmas_rtc_alarm_irq_enable(&pdev->dev, 0);
--	free_irq(palmas_rtc->irq, palmas_rtc);
- 	rtc_device_unregister(palmas_rtc->rtc);
  	return 0;
+-
+-err_free_irq:
+-	free_irq(rtc->irq, rtc);
+-	return ret;
  }
+ 
+ static int da9052_rtc_remove(struct platform_device *pdev)
+@@ -267,7 +262,6 @@ static int da9052_rtc_remove(struct plat
+ 	struct da9052_rtc *rtc = pdev->dev.platform_data;
+ 
+ 	rtc_device_unregister(rtc->rtc);
+-	free_irq(rtc->irq, rtc);
+ 	platform_set_drvdata(pdev, NULL);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
