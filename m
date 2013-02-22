@@ -1,68 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:42:18 -0800
-Message-ID: <20130222204218.AF7FC31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] backlight-s6e63m0-report-gamma_table_count-correctly.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:42:15 -0800
+Message-ID: <20130222204215.A46DB31C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:45203 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab3BVUmT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:19 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so119067qaj.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:19 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:39282 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829Ab3BVUmQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:16 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so103766yen.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, daniel.jeong@ti.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, FlorianSchandinat@gmx.de, jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/lm3630_bl.c: remove ret = -EIO of lm3630_backlight_register()
+     Subject: drivers/video/backlight/s6e63m0.c: report ->gamma_table_count correctly
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register.patch
+     backlight-s6e63m0-report-gamma_table_count-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/lm3630_bl.c: remove ret = -EIO of lm3630_backlight_register()
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/video/backlight/s6e63m0.c: report ->gamma_table_count correctly
 
-There is no need to return -EIO, because backlight_device_register()
-already returns correct error values.
+gamma_table has 3 arrays which each hold MAX_GAMMA_LEVEL pointers to int.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Daniel Jeong <daniel.jeong@ti.com>
+The current code sets ->gamma_table_count to 6 on 64bit arches and to 3 on
+32 bit arches.  It should be 3 on everything.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3630_bl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/s6e63m0.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/lm3630_bl.c~drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register drivers/video/backlight/lm3630_bl.c
---- a/drivers/video/backlight/lm3630_bl.c~drivers-video-backlight-lm3630_blc-remove-ret-=-eio-of-lm3630_backlight_register
-+++ a/drivers/video/backlight/lm3630_bl.c
-@@ -320,7 +320,7 @@ static int lm3630_backlight_register(str
- 		    backlight_device_register(name, pchip->dev, pchip,
- 					      &lm3630_bank_a_ops, &props);
- 		if (IS_ERR(pchip->bled1))
--			return -EIO;
-+			return PTR_ERR(pchip->bled1);
- 		break;
- 	case BLED_2:
- 		props.brightness = pdata->init_brt_led2;
-@@ -329,7 +329,7 @@ static int lm3630_backlight_register(str
- 		    backlight_device_register(name, pchip->dev, pchip,
- 					      &lm3630_bank_b_ops, &props);
- 		if (IS_ERR(pchip->bled2))
--			return -EIO;
-+			return PTR_ERR(pchip->bled2);
- 		break;
- 	}
- 	return 0;
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-report-gamma_table_count-correctly drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-report-gamma_table_count-correctly
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -766,7 +766,7 @@ static int s6e63m0_probe(struct spi_devi
+ 	 * know that.
+ 	 */
+ 	lcd->gamma_table_count =
+-	    sizeof(gamma_table) / (MAX_GAMMA_LEVEL * sizeof(int));
++	    sizeof(gamma_table) / (MAX_GAMMA_LEVEL * sizeof(int *));
+ 
+ 	ret = device_create_file(&(spi->dev), &dev_attr_gamma_mode);
+ 	if (ret < 0)
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 linux-next.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
 
