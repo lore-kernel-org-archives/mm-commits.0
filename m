@@ -1,108 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:39:56 -0800
-Message-ID: <20130222203956.C11335A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] printk-add-pr_devel_once-and-pr_devel_ratelimited.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:39:59 -0800
+Message-ID: <20130222203959.A95C05A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:60515 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757011Ab3BVUj6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:39:58 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so103644yen.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:39:57 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:48300 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757041Ab3BVUkA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:40:00 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so103836ghb.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:40:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stepanm@codeaurora.org, andrei.emeltchenko@intel.com, andriy.shevchenko@linux.intel.com, linux@horizon.com, mingo@elte.hu, rob@landley.net, sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: michail.gruzdev@gmail.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: add %pa format specifier for phys_addr_t types
+     Subject: printk: add pr_devel_once and pr_devel_ratelimited
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types.patch
+     printk-add-pr_devel_once-and-pr_devel_ratelimited.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stepan Moskovchenko <stepanm@codeaurora.org>
-Subject: lib/vsprintf.c: add %pa format specifier for phys_addr_t types
+From: Mikhail Gruzdev <michail.gruzdev@gmail.com>
+Subject: printk: add pr_devel_once and pr_devel_ratelimited
 
-Add the %pa format specifier for printing a phys_addr_t type and its
-derivative types (such as resource_size_t), since the physical address
-size on some platforms can vary based on build options, regardless of the
-native integer type.
+Standardize pr_devel logging macros family by adding pr_devel_once and
+pr_devel_ratelimited.
 
-Signed-off-by: Stepan Moskovchenko <stepanm@codeaurora.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: George Spelvin <linux@horizon.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Andrei Emeltchenko <andrei.emeltchenko@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Mikhail Gruzdev <michail.gruzdev@gmail.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   14 +++++++++++---
- lib/vsprintf.c                   |    7 +++++++
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ include/linux/printk.h |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN Documentation/printk-formats.txt~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types
-+++ a/Documentation/printk-formats.txt
-@@ -53,6 +53,14 @@ Struct Resources:
- 	For printing struct resources. The 'R' and 'r' specifiers result in a
- 	printed resource with ('R') or without ('r') a decoded flags member.
- 
-+Physical addresses:
+diff -puN include/linux/printk.h~printk-add-pr_devel_once-and-pr_devel_ratelimited include/linux/printk.h
+--- a/include/linux/printk.h~printk-add-pr_devel_once-and-pr_devel_ratelimited
++++ a/include/linux/printk.h
+@@ -252,6 +252,15 @@ extern void dump_stack(void) __cold;
+ 	printk_once(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+ #define pr_cont_once(fmt, ...)					\
+ 	printk_once(KERN_CONT pr_fmt(fmt), ##__VA_ARGS__)
 +
-+	%pa	0x01234567 or 0x0123456789abcdef
++#if defined(DEBUG)
++#define pr_devel_once(fmt, ...)					\
++	printk_once(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#else
++#define pr_devel_once(fmt, ...)					\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#endif
 +
-+	For printing a phys_addr_t type (and its derivatives, such as
-+	resource_size_t) which can vary based on build options, regardless of
-+	the width of the CPU data path. Passed by reference.
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(DEBUG)
+ #define pr_debug_once(fmt, ...)					\
+@@ -295,6 +304,15 @@ extern void dump_stack(void) __cold;
+ #define pr_info_ratelimited(fmt, ...)					\
+ 	printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+ /* no pr_cont_ratelimited, don't do that... */
 +
- Raw buffer as a hex string:
- 	%*ph	00 01 02  ...  3f
- 	%*phC	00:01:02: ... :3f
-@@ -150,9 +158,9 @@ s64 SHOULD be printed with %lld/%llx, (l
- 	printk("%lld", (long long)s64_var);
- 
- If <type> is dependent on a config option for its size (e.g., sector_t,
--blkcnt_t, phys_addr_t, resource_size_t) or is architecture-dependent
--for its size (e.g., tcflag_t), use a format specifier of its largest
--possible type and explicitly cast to it.  Example:
-+blkcnt_t) or is architecture-dependent for its size (e.g., tcflag_t), use a
-+format specifier of its largest possible type and explicitly cast to it.
-+Example:
- 
- 	printk("test: sector number/total blocks: %llu/%llu\n",
- 		(unsigned long long)sector, (unsigned long long)blockcount);
-diff -puN lib/vsprintf.c~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types
-+++ a/lib/vsprintf.c
-@@ -1030,6 +1030,7 @@ int kptr_restrict __read_mostly;
-  *              N no separator
-  *            The maximum supported length is 64 bytes of the input. Consider
-  *            to use print_hex_dump() for the larger input.
-+ * - 'a' For a phys_addr_t type and its derivative types (passed by reference)
-  *
-  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
-  * function pointers are really function descriptors, which contain a
-@@ -1120,6 +1121,12 @@ char *pointer(const char *fmt, char *buf
- 			return netdev_feature_string(buf, end, ptr, spec);
- 		}
- 		break;
-+	case 'a':
-+		spec.flags |= SPECIAL | SMALL | ZEROPAD;
-+		spec.field_width = sizeof(phys_addr_t) * 2 + 2;
-+		spec.base = 16;
-+		return number(buf, end,
-+			      (unsigned long long) *((phys_addr_t *)ptr), spec);
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
++#if defined(DEBUG)
++#define pr_devel_ratelimited(fmt, ...)					\
++	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#else
++#define pr_devel_ratelimited(fmt, ...)					\
++	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
++#endif
++
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(DEBUG)
+ #define pr_debug_ratelimited(fmt, ...)					\
 _
 
-Patches currently in -mm which might be from stepanm@codeaurora.org are
+Patches currently in -mm which might be from michail.gruzdev@gmail.com are
 
 origin.patch
 
