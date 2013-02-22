@@ -1,57 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:42:53 -0800
-Message-ID: <20130222204253.A37B931C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] checkpatch-add-joe-to-maintainers.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:42:50 -0800
+Message-ID: <20130222204251.0532831C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:34625 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758001Ab3BVUmy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:54 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so103966vcd.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:54 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:32975 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758001Ab3BVUmw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:52 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so103672vbb.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: don't emit the CamelCase warning for PageFoo
+     Subject: checkpatch: add Joe to MAINTAINERS
 has been removed from the -mm tree.  Its filename was
-     checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+     checkpatch-add-joe-to-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't emit the CamelCase warning for PageFoo
+Subject: checkpatch: add Joe to MAINTAINERS
 
-I'm getting a ton of these:
-
-WARNING: Avoid CamelCase: <PageTransHuge>
-#140: FILE: mm/migrate.c:1576:
-+       if (PageTransHuge(page) && page_count(page) != 3) {
-
-So exclude anything which starts with "Page".
-
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-emit-the-camelcase-warning-for-pagefoo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-emit-the-camelcase-warning-for-pagefoo
-+++ a/scripts/checkpatch.pl
-@@ -2930,6 +2930,7 @@ sub process {
- 			my $var = $1;
- 			if ($var !~ /$Constant/ &&
- 			    $var =~ /[A-Z]\w*[a-z]|[a-z]\w*[A-Z]/ &&
-+			    $var !~ /^Page[A-Z]/ &&
- 			    !defined $camelcase{$var}) {
- 				$camelcase{$var} = 1;
- 				WARN("CAMELCASE",
+diff -puN MAINTAINERS~checkpatch-add-joe-to-maintainers MAINTAINERS
+--- a/MAINTAINERS~checkpatch-add-joe-to-maintainers
++++ a/MAINTAINERS
+@@ -1943,7 +1943,8 @@ F:	drivers/misc/*
+ 
+ CHECKPATCH
+ M:	Andy Whitcroft <apw@canonical.com>
+-S:	Supported
++M:	Joe Perches <joe@perches.com>
++S:	Maintained
+ F:	scripts/checkpatch.pl
+ 
+ CHINESE DOCUMENTATION
 _
 
 Patches currently in -mm which might be from joe@perches.com are
