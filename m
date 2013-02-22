@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:41:17 -0800
-Message-ID: <20130222204117.9C3585A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:41:20 -0800
+Message-ID: <20130222204120.A0F7C31C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:52029 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757814Ab3BVUlS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:41:18 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so103992qen.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:41:18 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:40383 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757814Ab3BVUlV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:41:21 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so103814qcs.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:41:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: ams369fg06: use spi_get_drvdata and spi_set_drvdata
+     Subject: backlight: vgg2432a4: use spi_get_drvdata and spi_set_drvdata
 has been removed from the -mm tree.  Its filename was
-     backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+     backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: use spi_get_drvdata and spi_set_drvdata
+Subject: backlight: vgg2432a4: use spi_get_drvdata and spi_set_drvdata
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -34,57 +34,42 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/vgg2432a4.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -513,7 +513,7 @@ static int ams369fg06_probe(struct spi_d
- 		lcd->power = FB_BLANK_UNBLANK;
- 	}
- 
--	dev_set_drvdata(&spi->dev, lcd);
-+	spi_set_drvdata(spi, lcd);
- 
- 	dev_info(&spi->dev, "ams369fg06 panel driver has been probed.\n");
- 
-@@ -526,7 +526,7 @@ out_lcd_unregister:
- 
- static int ams369fg06_remove(struct spi_device *spi)
+diff -puN drivers/video/backlight/vgg2432a4.c~backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/vgg2432a4.c
+--- a/drivers/video/backlight/vgg2432a4.c~backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata
++++ a/drivers/video/backlight/vgg2432a4.c
+@@ -208,12 +208,11 @@ static int vgg2432a4_lcd_init(struct ili
+ #ifdef CONFIG_PM
+ static int vgg2432a4_suspend(struct spi_device *spi, pm_message_t state)
  {
--	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ams369fg06 *lcd = spi_get_drvdata(spi);
- 
- 	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(lcd->bd);
-@@ -538,7 +538,7 @@ static int ams369fg06_remove(struct spi_
- #if defined(CONFIG_PM)
- static int ams369fg06_suspend(struct spi_device *spi, pm_message_t mesg)
- {
--	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ams369fg06 *lcd = spi_get_drvdata(spi);
- 
- 	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
- 
-@@ -551,7 +551,7 @@ static int ams369fg06_suspend(struct spi
- 
- static int ams369fg06_resume(struct spi_device *spi)
- {
--	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ams369fg06 *lcd = spi_get_drvdata(spi);
- 
- 	lcd->power = FB_BLANK_POWERDOWN;
- 
-@@ -564,7 +564,7 @@ static int ams369fg06_resume(struct spi_
- 
- static void ams369fg06_shutdown(struct spi_device *spi)
- {
--	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ams369fg06 *lcd = spi_get_drvdata(spi);
- 
- 	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
+-	return ili9320_suspend(dev_get_drvdata(&spi->dev), state);
++	return ili9320_suspend(spi_get_drvdata(spi), state);
  }
+-
+ static int vgg2432a4_resume(struct spi_device *spi)
+ {
+-	return ili9320_resume(dev_get_drvdata(&spi->dev));
++	return ili9320_resume(spi_get_drvdata(spi));
+ }
+ #else
+ #define vgg2432a4_suspend	NULL
+@@ -242,12 +241,12 @@ static int vgg2432a4_probe(struct spi_de
+ 
+ static int vgg2432a4_remove(struct spi_device *spi)
+ {
+-	return ili9320_remove(dev_get_drvdata(&spi->dev));
++	return ili9320_remove(spi_get_drvdata(spi));
+ }
+ 
+ static void vgg2432a4_shutdown(struct spi_device *spi)
+ {
+-	ili9320_shutdown(dev_get_drvdata(&spi->dev));
++	ili9320_shutdown(spi_get_drvdata(spi));
+ }
+ 
+ static struct spi_driver vgg2432a4_driver = {
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
