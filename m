@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ams369fg06-make-power_on-call-optional.patch added to -mm tree
-Date: Fri, 22 Feb 2013 13:31:37 -0800
-Message-ID: <20130222213137.90C5031C194@corp2gmr1-1.hot.corp.google.com>
+Subject: + lib-devresc-fix-misplaced-endif.patch added to -mm tree
+Date: Fri, 22 Feb 2013 13:45:12 -0800
+Message-ID: <20130222214512.972015A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:44271 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756329Ab3BVVbi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 16:31:38 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so109175qeb.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 13:31:37 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:47921 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756698Ab3BVVpO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 16:45:14 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so110070ves.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 13:45:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: jg1.han@samsung.com, greg@kroah.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/ams369fg06.c: make power_on() call optional
+     Subject: lib/devres.c: fix misplaced #endif
 has been added to the -mm tree.  Its filename is
-     backlight-ams369fg06-make-power_on-call-optional.patch
+     lib-devresc-fix-misplaced-endif.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/ams369fg06.c: make power_on() call optional
+Subject: lib/devres.c: fix misplaced #endif
 
-This patch makes power_on() call optional.  The voltage source can be
-provided to some boards using ams369fg06 panel, thus in this case, power
-on/off sequence is not necessary.
+A misplaced #endif causes link errors related to pcim_*() functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ lib/devres.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-make-power_on-call-optional drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-make-power_on-call-optional
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -317,10 +317,7 @@ static int ams369fg06_power_on(struct am
- 	pd = lcd->lcd_pd;
- 	bd = lcd->bd;
- 
--	if (!pd->power_on) {
--		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EINVAL;
--	} else {
-+	if (pd->power_on) {
- 		pd->power_on(lcd->ld, 1);
- 		msleep(pd->power_on_delay);
- 	}
-@@ -370,7 +367,8 @@ static int ams369fg06_power_off(struct a
- 
- 	msleep(pd->power_off_delay);
- 
--	pd->power_on(lcd->ld, 0);
-+	if (pd->power_on)
-+		pd->power_on(lcd->ld, 0);
- 
- 	return 0;
+diff -puN lib/devres.c~lib-devresc-fix-misplaced-endif lib/devres.c
+--- a/lib/devres.c~lib-devresc-fix-misplaced-endif
++++ a/lib/devres.c
+@@ -227,6 +227,7 @@ void devm_ioport_unmap(struct device *de
+ 			       devm_ioport_map_match, (void *)addr));
  }
+ EXPORT_SYMBOL(devm_ioport_unmap);
++#endif /* CONFIG_HAS_IOPORT */
+ 
+ #ifdef CONFIG_PCI
+ /*
+@@ -432,4 +433,3 @@ void pcim_iounmap_regions(struct pci_dev
+ }
+ EXPORT_SYMBOL(pcim_iounmap_regions);
+ #endif /* CONFIG_PCI */
+-#endif /* CONFIG_HAS_IOPORT */
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
 backlight-ams369fg06-make-power_on-call-optional.patch
+lib-devresc-fix-misplaced-endif.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
 rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
