@@ -1,60 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:48:13 -0800
-Message-ID: <20130222234813.96EC85A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] swap-make-each-swap-partition-have-one-address_space-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:48:42 -0800
+Message-ID: <20130222234843.091FE5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:38771 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754218Ab3BVXsO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:48:14 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so120952ggi.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:48:14 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:54186 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755239Ab3BVXso (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:48:44 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so121097yhz.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:48:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, minchan@kernel.org, riel@redhat.com, shli@fusionio.com, shli@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix
+     Subject: swap-make-each-swap-partition-have-one-address_space-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+     swap-make-each-swap-partition-have-one-address_space-fix.patch
 
-This patch was dropped because it was folded into mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp.patch
+This patch was dropped because it was folded into swap-make-each-swap-partition-have-one-address_space.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix
+Subject: swap-make-each-swap-partition-have-one-address_space-fix
 
-tweak comment
+revert unneeded change to  __add_to_swap_cache
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix
-+++ a/mm/memory-failure.c
-@@ -1040,11 +1040,11 @@ int memory_failure(unsigned long pfn, in
- 	}
+diff -puN mm/swap_state.c~swap-make-each-swap-partition-have-one-address_space-fix mm/swap_state.c
+--- a/mm/swap_state.c~swap-make-each-swap-partition-have-one-address_space-fix
++++ a/mm/swap_state.c
+@@ -87,8 +87,8 @@ static int __add_to_swap_cache(struct pa
+ 	VM_BUG_ON(!PageSwapBacked(page));
  
- 	/*
--	 * Currently errors on hugetlbfs pages are contained in hugepage
--	 * unit, so nr_pages should be 1 << compound_order. OTOH when
--	 * errors are on transparent hugepages, they are supposed to be
--	 * split and error containment is done in normal page unit.
--	 * So nr_pages should be one in this case.
-+	 * Currently errors on hugetlbfs pages are measured in hugepage units,
-+	 * so nr_pages should be 1 << compound_order.  OTOH when errors are on
-+	 * transparent hugepages, they are supposed to be split and error
-+	 * measurement is done in normal page units.  So nr_pages should be one
-+	 * in this case.
- 	 */
- 	if (PageHuge(p))
- 		nr_pages = 1 << compound_order(hpage);
+ 	page_cache_get(page);
+-	set_page_private(page, entry.val);
+ 	SetPageSwapCache(page);
++	set_page_private(page, entry.val);
+ 
+ 	address_space = swap_address_space(entry);
+ 	spin_lock_irq(&address_space->tree_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +81,7 @@ memory-failure-do-code-refactor-of-soft_offline_page.patch
 memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages.patch
 mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp.patch
 mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
+swap-make-each-swap-partition-have-one-address_space.patch
 page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
 page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
 memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
