@@ -1,91 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] decompressors-make-the-default-xz_dec_-config-match-the-selected-architecture.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:42:42 -0800
-Message-ID: <20130222204242.AC8FF31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] checkpatch-prefer-dev_level-to-dev_printkkern_level.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:42:48 -0800
+Message-ID: <20130222204248.A39FF5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:33882 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab3BVUmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:43 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so104051ggi.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:43 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:45555 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757854Ab3BVUmt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:49 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so103926vch.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: florian@openwrt.org, lasse.collin@tukaani.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: decompressors: make the default XZ_DEC_* config match the selected architecture
+     Subject: checkpatch: prefer dev_<level>( to dev_printk(KERN_<LEVEL>
 has been removed from the -mm tree.  Its filename was
-     decompressors-make-the-default-xz_dec_-config-match-the-selected-architecture.patch
+     checkpatch-prefer-dev_level-to-dev_printkkern_level.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Florian Fainelli <florian@openwrt.org>
-Subject: decompressors: make the default XZ_DEC_* config match the selected architecture
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: prefer dev_<level>( to dev_printk(KERN_<LEVEL>
 
-Change the defautl XZ_DEC_* config symbol to match the configured
-architecture.  It is perfectly legitimate to support multiple XZ BCJ
-filters for different architectures (e.g.: to mount foreign squashfs/xz
-compressed filesystems), it is however more natural not to select them all
-by default, but only the one matching the configured architecture.
+Add YA check to printk style.
 
-Signed-off-by: Florian Fainelli <florian@openwrt.org>
-Acked-by: Lasse Collin <lasse.collin@tukaani.org>
+dev_<level> uses are functions and generate smaller
+object code than dev_printk(KERN_<LEVEL>.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xz/Kconfig |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN lib/xz/Kconfig~decompressors-make-the-default-xz_dec_-config-match-the-selected-architecture lib/xz/Kconfig
---- a/lib/xz/Kconfig~decompressors-make-the-default-xz_dec_-config-match-the-selected-architecture
-+++ a/lib/xz/Kconfig
-@@ -10,32 +10,32 @@ if XZ_DEC
+diff -puN scripts/checkpatch.pl~checkpatch-prefer-dev_level-to-dev_printkkern_level scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-prefer-dev_level-to-dev_printkkern_level
++++ a/scripts/checkpatch.pl
+@@ -2430,6 +2430,15 @@ sub process {
+ 			     "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
+ 		}
  
- config XZ_DEC_X86
- 	bool "x86 BCJ filter decoder"
--	default y
-+	default y if X86
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_POWERPC
- 	bool "PowerPC BCJ filter decoder"
--	default y
-+	default y if POWERPC
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_IA64
- 	bool "IA-64 BCJ filter decoder"
--	default y
-+	default y if IA64
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_ARM
- 	bool "ARM BCJ filter decoder"
--	default y
-+	default y if ARM
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_ARMTHUMB
- 	bool "ARM-Thumb BCJ filter decoder"
--	default y
-+	default y if (ARM && ARM_THUMB)
- 	select XZ_DEC_BCJ
- 
- config XZ_DEC_SPARC
- 	bool "SPARC BCJ filter decoder"
--	default y
-+	default y if SPARC
- 	select XZ_DEC_BCJ
- 
- endif
++		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
++			my $orig = $1;
++			my $level = lc($orig);
++			$level = "warn" if ($level eq "warning");
++			$level = "dbg" if ($level eq "debug");
++			WARN("PREFER_DEV_LEVEL",
++			     "Prefer dev_$level(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
++		}
++
+ # function brace can't be on same line, except for #defines of do while,
+ # or if closed on same line
+ 		if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
 _
 
-Patches currently in -mm which might be from florian@openwrt.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
+get_maintainer-allow-keywords-to-match-filenames.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
 
