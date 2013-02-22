@@ -1,59 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] cma-make-putback_lru_pages-call-conditional-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:29:30 -0800
-Message-ID: <20130222232930.E16605A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] mm-vmscan-clean-up-get_scan_count-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:29:52 -0800
+Message-ID: <20130222232952.9222B5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:52245 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757139Ab3BVX3c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:29:32 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so119754vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:29:31 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:36797 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757811Ab3BVX3y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:29:54 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so134696qah.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:29:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mina86@mina86.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, satoru.moriya@hds.com, simon.jeons@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c:__alloc_contig_migrate_range(): cleanup
+     Subject: mm-vmscan-clean-up-get_scan_count-fix
 has been removed from the -mm tree.  Its filename was
-     cma-make-putback_lru_pages-call-conditional-fix.patch
+     mm-vmscan-clean-up-get_scan_count-fix.patch
 
-This patch was dropped because it was folded into cma-make-putback_lru_pages-call-conditional.patch
+This patch was dropped because it was folded into mm-vmscan-clean-up-get_scan_count.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/page_alloc.c:__alloc_contig_migrate_range(): cleanup
+Subject: mm-vmscan-clean-up-get_scan_count-fix
 
-remove a test-n-branch in the wrapup code
+avoid using unintialized_var()
 
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Satoru Moriya <satoru.moriya@hds.com>
+Cc: Simon Jeons <simon.jeons@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~cma-make-putback_lru_pages-call-conditional-fix mm/page_alloc.c
---- a/mm/page_alloc.c~cma-make-putback_lru_pages-call-conditional-fix
-+++ a/mm/page_alloc.c
-@@ -5806,9 +5806,11 @@ static int __alloc_contig_migrate_range(
- 				    0, false, MIGRATE_SYNC,
- 				    MR_CMA);
- 	}
--	if (ret < 0)
-+	if (ret < 0) {
- 		putback_movable_pages(&cc->migratepages);
--	return ret > 0 ? 0 : ret;
-+		return ret;
-+	}
-+	return 0;
- }
- 
- /**
+diff -puN mm/vmscan.c~mm-vmscan-clean-up-get_scan_count-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-clean-up-get_scan_count-fix
++++ a/mm/vmscan.c
+@@ -1658,7 +1658,8 @@ static void get_scan_count(struct lruvec
+ 			   unsigned long *nr)
+ {
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+-	u64 fraction[2], uninitialized_var(denominator);
++	u64 fraction[2];
++	u64 denominator = 0;	/* gcc */
+ 	struct zone *zone = lruvec_zone(lruvec);
+ 	unsigned long anon_prio, file_prio;
+ 	enum scan_balance scan_balance;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +63,7 @@ drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
 mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 mm-hugetlbc-convert-to-pr_foo.patch
 cma-make-putback_lru_pages-call-conditional.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-clean-up-get_scan_count.patch
 mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
 mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
 mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
