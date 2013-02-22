@@ -1,136 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:43:29 -0800
-Message-ID: <20130222234329.716D431C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] page_alloc-add-movable_memmap-kernel-parameter-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:44:05 -0800
+Message-ID: <20130222234405.D85BB31C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:63528 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755918Ab3BVXnb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:43:31 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so120547yen.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:43:30 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:65422 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756443Ab3BVXoG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:44:06 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so120470yhz.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:44:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix
+     Subject: Bug fix: Fix the doc format.
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+     page_alloc-add-movable_memmap-kernel-parameter-fix-fix.patch
 
-This patch was dropped because it was folded into cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
+This patch was dropped because it was folded into page_alloc-add-movable_memmap-kernel-parameter.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Bug fix: Fix the doc format.
 
-numa_clear_node() and numa_set_node() can no longer be __cpuinit.
-
-WARNING: vmlinux.o(.text+0x222702): Section mismatch in reference from the function check_and_unmap_cpu_on_node() to the function .cpuinit.text:numa_clear_node()
-The function check_and_unmap_cpu_on_node() references
-the function __cpuinit numa_clear_node().
-This is often because check_and_unmap_cpu_on_node lacks a __cpuinit 
-annotation or the annotation of numa_clear_node is wrong.
-
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/numa.h |    4 ++--
- arch/x86/mm/numa.c          |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/include/asm/numa.h~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix arch/x86/include/asm/numa.h
---- a/arch/x86/include/asm/numa.h~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix
-+++ a/arch/x86/include/asm/numa.h
-@@ -57,8 +57,8 @@ static inline int numa_cpu_node(int cpu)
- #endif
+diff -puN mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix
++++ a/mm/page_alloc.c
+@@ -5082,9 +5082,9 @@ early_param("kernelcore", cmdline_parse_
+ early_param("movablecore", cmdline_parse_movablecore);
  
- #ifdef CONFIG_NUMA
--extern void __cpuinit numa_set_node(int cpu, int node);
--extern void __cpuinit numa_clear_node(int cpu);
-+extern void numa_set_node(int cpu, int node);
-+extern void numa_clear_node(int cpu);
- extern void __init init_cpu_to_node(void);
- extern void __cpuinit numa_add_cpu(int cpu);
- extern void __cpuinit numa_remove_cpu(int cpu);
-diff -puN arch/x86/mm/numa.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix
-+++ a/arch/x86/mm/numa.c
-@@ -78,7 +78,7 @@ EXPORT_SYMBOL(node_to_cpumask_map);
- DEFINE_EARLY_PER_CPU(int, x86_cpu_to_node_map, NUMA_NO_NODE);
- EXPORT_EARLY_PER_CPU_SYMBOL(x86_cpu_to_node_map);
- 
--void __cpuinit numa_set_node(int cpu, int node)
-+void numa_set_node(int cpu, int node)
- {
- 	int *cpu_to_node_map = early_per_cpu_ptr(x86_cpu_to_node_map);
- 
-@@ -100,7 +100,7 @@ void __cpuinit numa_set_node(int cpu, in
- 	set_cpu_numa_node(cpu, node);
+ /**
+- * insert_movablecore_map - Insert a memory range in to movablecore_map.map.
+- * @start_pfn: start pfn of the range
+- * @end_pfn: end pfn of the range
++ * insert_movablecore_map() - Insert a memory range in to movablecore_map.map.
++ * @start_pfn:	start pfn of the range
++ * @end_pfn:	end pfn of the range
+  *
+  * This function will also merge the overlapped ranges, and sort the array
+  * by start_pfn in monotonic increasing order.
+@@ -5145,9 +5145,9 @@ static void __init insert_movablecore_ma
  }
  
--void __cpuinit numa_clear_node(int cpu)
-+void numa_clear_node(int cpu)
- {
- 	numa_set_node(cpu, NUMA_NO_NODE);
+ /**
+- * movablecore_map_add_region - Add a memory range into movablecore_map.
+- * @start: physical start address of range
+- * @end: physical end address of range
++ * movablecore_map_add_region() - Add a memory range into movablecore_map.
++ * @start:	physical start address of range
++ * @end:	physical end address of range
+  *
+  * This function transform the physical address into pfn, and then add the
+  * range into movablecore_map by calling insert_movablecore_map().
+@@ -5174,8 +5174,13 @@ static void __init movablecore_map_add_r
  }
+ 
+ /*
+- * movablecore_map=nn[KMG]@ss[KMG] sets the region of memory to be used as
+- * movable memory.
++ * cmdline_parse_movablecore_map() - Parse boot option movablecore_map.
++ * @p:	The boot option of the following format:
++ * 	movablecore_map=nn[KMG]@ss[KMG]
++ *
++ * This option sets the memory range [ss, ss+nn) to be used as movable memory.
++ *
++ * Return: 0 on success or -EINVAL on failure.
+  */
+ static int __init cmdline_parse_movablecore_map(char *p)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-origin.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region.patch
+memory-hotplug-try-to-offline-the-memory-twice-to-avoid-dependence.patch
+memory-hotplug-check-whether-all-memory-blocks-are-offlined-or-not-when-removing-memory.patch
+memory-hotplug-remove-redundant-codes.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
+memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
+memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture.patch
+memory-hotplug-remove-memmap-of-sparse-vmemmap.patch
+memory-hotplug-integrated-__remove_section-of-config_sparsemem_vmemmap.patch
+memory_hotplug-clear-zone-when-removing-the-memory.patch
+memory-hotplug-remove-sysfs-file-of-node.patch
+memory-hotplug-free-node_data-when-a-node-is-offlined.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
+memory-hotplug-consider-compound-pages-when-free-memmap.patch
+mempolicy-fix-is_valid_nodemask.patch
 cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
+memory-hotplug-export-the-function-try_offline_node.patch
+cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
 cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+page_alloc-add-movable_memmap-kernel-parameter.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map.patch
+page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
+page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch
+page_alloc-make-movablecore_map-has-higher-priority.patch
+page_alloc-bootmem-limit-with-movablecore_map.patch
+acpi-memory-hotplug-parse-srat-before-memblock-is-ready.patch
+acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix.patch
+acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
-mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
-tmpfs-fix-mempolicy-object-leaks-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix.patch
+mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
 
