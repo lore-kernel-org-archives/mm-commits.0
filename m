@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch added to -mm tree
-Date: Fri, 22 Feb 2013 13:28:15 -0800
-Message-ID: <20130222212815.7F5935A4252@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-ams369fg06-make-power_on-call-optional.patch added to -mm tree
+Date: Fri, 22 Feb 2013 13:31:37 -0800
+Message-ID: <20130222213137.90C5031C194@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36883 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757116Ab3BVV2Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 16:28:16 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so108805ggi.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 13:28:16 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:44271 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756329Ab3BVVbi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 16:31:38 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so109175qeb.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 13:31:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/ams369fg06.c: convert ams369fg06 to dev_pm_ops
+     Subject: drivers/video/backlight/ams369fg06.c: make power_on() call optional
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+     backlight-ams369fg06-make-power_on-call-optional.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/ams369fg06.c: convert ams369fg06 to dev_pm_ops
+Subject: drivers/video/backlight/ams369fg06.c: make power_on() call optional
 
-Instead of using legacy suspend/resume methods, using newer dev_pm_ops
-structure allows better control over power management.
+This patch makes power_on() call optional.  The voltage source can be
+provided to some boards using ams369fg06 panel, thus in this case, power
+on/off sequence is not necessary.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ drivers/video/backlight/ams369fg06.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-make-power_on-call-optional drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-make-power_on-call-optional
 +++ a/drivers/video/backlight/ams369fg06.c
-@@ -536,11 +536,11 @@ static int ams369fg06_remove(struct spi_
+@@ -317,10 +317,7 @@ static int ams369fg06_power_on(struct am
+ 	pd = lcd->lcd_pd;
+ 	bd = lcd->bd;
+ 
+-	if (!pd->power_on) {
+-		dev_err(lcd->dev, "power_on is NULL.\n");
+-		return -EINVAL;
+-	} else {
++	if (pd->power_on) {
+ 		pd->power_on(lcd->ld, 1);
+ 		msleep(pd->power_on_delay);
+ 	}
+@@ -370,7 +367,8 @@ static int ams369fg06_power_off(struct a
+ 
+ 	msleep(pd->power_off_delay);
+ 
+-	pd->power_on(lcd->ld, 0);
++	if (pd->power_on)
++		pd->power_on(lcd->ld, 0);
+ 
+ 	return 0;
  }
- 
- #if defined(CONFIG_PM)
--static int ams369fg06_suspend(struct spi_device *spi, pm_message_t mesg)
-+static int ams369fg06_suspend(struct device *dev)
- {
--	struct ams369fg06 *lcd = spi_get_drvdata(spi);
-+	struct ams369fg06 *lcd = dev_get_drvdata(dev);
- 
--	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
-+	dev_dbg(dev, "lcd->power = %d\n", lcd->power);
- 
- 	/*
- 	 * when lcd panel is suspend, lcd panel becomes off
-@@ -549,17 +549,17 @@ static int ams369fg06_suspend(struct spi
- 	return ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
- }
- 
--static int ams369fg06_resume(struct spi_device *spi)
-+static int ams369fg06_resume(struct device *dev)
- {
--	struct ams369fg06 *lcd = spi_get_drvdata(spi);
-+	struct ams369fg06 *lcd = dev_get_drvdata(dev);
- 
- 	lcd->power = FB_BLANK_POWERDOWN;
- 
- 	return ams369fg06_power(lcd, FB_BLANK_UNBLANK);
- }
--#else
--#define ams369fg06_suspend	NULL
--#define ams369fg06_resume	NULL
-+
-+static SIMPLE_DEV_PM_OPS(ams369fg06_pm_ops, ams369fg06_suspend,
-+			ams369fg06_resume);
- #endif
- 
- static void ams369fg06_shutdown(struct spi_device *spi)
-@@ -573,12 +573,13 @@ static struct spi_driver ams369fg06_driv
- 	.driver = {
- 		.name	= "ams369fg06",
- 		.owner	= THIS_MODULE,
-+#ifdef CONFIG_PM
-+		.pm	= &ams369fg06_pm_ops,
-+#endif
- 	},
- 	.probe		= ams369fg06_probe,
- 	.remove		= ams369fg06_remove,
- 	.shutdown	= ams369fg06_shutdown,
--	.suspend	= ams369fg06_suspend,
--	.resume		= ams369fg06_resume,
- };
- 
- module_spi_driver(ams369fg06_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -110,5 +79,6 @@ Patches currently in -mm which might be from jg1.han@samsung.com are
 origin.patch
 linux-next.patch
 drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+backlight-ams369fg06-make-power_on-call-optional.patch
 rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
