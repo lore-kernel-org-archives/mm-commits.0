@@ -1,84 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:41:53 -0800
-Message-ID: <20130222204153.A05A55A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:41:56 -0800
+Message-ID: <20130222204156.AADFA31C208@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:50914 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab3BVUly (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:41:54 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so103862ggn.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:41:54 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:44711 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829Ab3BVUl5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:41:57 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so103116ves.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:41:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: devendra.aaru@gmail.com, daniel.jeong@ti.com, gshark.jeong@gmail.com, jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: axel.lin@ingics.com, jg1.han@samsung.com, maramaopercheseimorto@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/lm3639_bl.c: remove ret = -EIO at error paths of probe
+     Subject: drivers/video/backlight/l4f00242t03.c: convert to devm_regulator_get()
 has been removed from the -mm tree.  Its filename was
-     backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+     drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: drivers/video/backlight/lm3639_bl.c: remove ret = -EIO at error paths of probe
+From: Axel Lin <axel.lin@ingics.com>
+Subject: drivers/video/backlight/l4f00242t03.c: convert to devm_regulator_get()
 
-The APIs are returning correctly the err codes, no need to assign -EIO
-to the ret again.
-
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
-Acked-by: Daniel Jeong <daniel.jeong@ti.com>
-Cc: G.Shark Jeong <gshark.jeong@gmail.com>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
 Acked-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Alberto Panizzo <maramaopercheseimorto@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3639_bl.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/video/backlight/l4f00242t03.c |   24 +++++-------------------
+ 1 file changed, 5 insertions(+), 19 deletions(-)
 
-diff -puN drivers/video/backlight/lm3639_bl.c~backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe drivers/video/backlight/lm3639_bl.c
---- a/drivers/video/backlight/lm3639_bl.c~backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe
-+++ a/drivers/video/backlight/lm3639_bl.c
-@@ -350,14 +350,13 @@ static int lm3639_probe(struct i2c_clien
- 				      &lm3639_bled_ops, &props);
- 	if (IS_ERR(pchip->bled)) {
- 		dev_err(&client->dev, "fail : backlight register\n");
--		ret = -EIO;
-+		ret = PTR_ERR(pchip->bled);
- 		goto err_out;
+diff -puN drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get drivers/video/backlight/l4f00242t03.c
+--- a/drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get
++++ a/drivers/video/backlight/l4f00242t03.c
+@@ -190,27 +190,24 @@ static int l4f00242t03_probe(struct spi_
+ 		return ret;
  	}
  
- 	ret = device_create_file(&(pchip->bled->dev), &dev_attr_bled_mode);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "failed : add sysfs entries\n");
--		ret = -EIO;
- 		goto err_bled_mode;
+-	priv->io_reg = regulator_get(&spi->dev, "vdd");
++	priv->io_reg = devm_regulator_get(&spi->dev, "vdd");
+ 	if (IS_ERR(priv->io_reg)) {
+ 		dev_err(&spi->dev, "%s: Unable to get the IO regulator\n",
+ 		       __func__);
+ 		return PTR_ERR(priv->io_reg);
  	}
  
-@@ -369,7 +368,6 @@ static int lm3639_probe(struct i2c_clien
- 				    &client->dev, &pchip->cdev_flash);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "fail : flash register\n");
--		ret = -EIO;
- 		goto err_flash;
+-	priv->core_reg = regulator_get(&spi->dev, "vcore");
++	priv->core_reg = devm_regulator_get(&spi->dev, "vcore");
+ 	if (IS_ERR(priv->core_reg)) {
+-		ret = PTR_ERR(priv->core_reg);
+ 		dev_err(&spi->dev, "%s: Unable to get the core regulator\n",
+ 		       __func__);
+-		goto err1;
++		return PTR_ERR(priv->core_reg);
  	}
  
-@@ -381,7 +379,6 @@ static int lm3639_probe(struct i2c_clien
- 				    &client->dev, &pchip->cdev_torch);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "fail : torch register\n");
--		ret = -EIO;
- 		goto err_torch;
- 	}
+ 	priv->ld = lcd_device_register("l4f00242t03",
+ 					&spi->dev, priv, &l4f_ops);
+-	if (IS_ERR(priv->ld)) {
+-		ret = PTR_ERR(priv->ld);
+-		goto err2;
+-	}
++	if (IS_ERR(priv->ld))
++		return PTR_ERR(priv->ld);
  
-_
-
-Patches currently in -mm which might be from devendra.aaru@gmail.com are
-
-origin.patch
-linux-next.patch
-backlight-add-new-lp8788-backlight-driver.patch
-
+ 	/* Init the LCD */
+ 	l4f00242t03_lcd_init(spi);
+@@ -220,13 +217,6 @@ static int l4f00242t03_probe(struct spi_
+ 	dev_info(&spi->dev, "Epson l4f00242t03 lcd probed.\n");
+ 
+ 	return 0;
+-
+-err2:
+-	regulator_put(priv->core_reg);
+-err1:
+-	regulator_put(priv->io_reg);
+-
+-	return ret;
+ }
+ 
+ static int l4f00242t03_remove(struct spi_device *spi)
+@@ -235,12 +225,8 @@ static int l4f00242t03_remove(struct spi
+ 
+ 	l4f00242t03_lcd_power_set(priv->ld, FB_BLANK_POWERDOWN);
+ 	lcd_device_unregister(priv->ld);
+-
+ 	spi_set_drvdata(spi, NULL);
+ 
+-	regulator_put(priv->io_reg);
+-	regulator_put(priv->core_reg);
