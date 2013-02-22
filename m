@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-add-pr_devel_once-and-pr_devel_ratelimited.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:39:59 -0800
-Message-ID: <20130222203959.A95C05A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] get_maintainerpl-find-maintainers-for-removed-files.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:40:02 -0800
+Message-ID: <20130222204002.EDD2131C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:48300 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757041Ab3BVUkA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:40:00 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so103836ghb.2
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:40:00 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39012 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757615Ab3BVUkE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:40:04 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so103825vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:40:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michail.gruzdev@gmail.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: add pr_devel_once and pr_devel_ratelimited
+     Subject: get_maintainer.pl: find maintainers for removed files
 has been removed from the -mm tree.  Its filename was
-     printk-add-pr_devel_once-and-pr_devel_ratelimited.patch
+     get_maintainerpl-find-maintainers-for-removed-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mikhail Gruzdev <michail.gruzdev@gmail.com>
-Subject: printk: add pr_devel_once and pr_devel_ratelimited
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: get_maintainer.pl: find maintainers for removed files
 
-Standardize pr_devel logging macros family by adding pr_devel_once and
-pr_devel_ratelimited.
+For removed files, get_maintainer.pl doesn't find any maintainers (besides
+the default linux-kernel@vger.kernel.org), as it only looks at the "+++"
+lines, which are "/dev/null" for removals.  Fix this by extending the
+parsing to the "---" lines.
 
-Signed-off-by: Mikhail Gruzdev <michail.gruzdev@gmail.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+E.g. for the two line test patch below the real score maintainers will now
+be found:
+
+    --- a/arch/score/include/asm/dma-mapping.h
+    +++ /dev/null
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/printk.h~printk-add-pr_devel_once-and-pr_devel_ratelimited include/linux/printk.h
---- a/include/linux/printk.h~printk-add-pr_devel_once-and-pr_devel_ratelimited
-+++ a/include/linux/printk.h
-@@ -252,6 +252,15 @@ extern void dump_stack(void) __cold;
- 	printk_once(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_cont_once(fmt, ...)					\
- 	printk_once(KERN_CONT pr_fmt(fmt), ##__VA_ARGS__)
-+
-+#if defined(DEBUG)
-+#define pr_devel_once(fmt, ...)					\
-+	printk_once(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-+#else
-+#define pr_devel_once(fmt, ...)					\
-+	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-+#endif
-+
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(DEBUG)
- #define pr_debug_once(fmt, ...)					\
-@@ -295,6 +304,15 @@ extern void dump_stack(void) __cold;
- #define pr_info_ratelimited(fmt, ...)					\
- 	printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- /* no pr_cont_ratelimited, don't do that... */
-+
-+#if defined(DEBUG)
-+#define pr_devel_ratelimited(fmt, ...)					\
-+	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-+#else
-+#define pr_devel_ratelimited(fmt, ...)					\
-+	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-+#endif
-+
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(DEBUG)
- #define pr_debug_ratelimited(fmt, ...)					\
+diff -puN scripts/get_maintainer.pl~get_maintainerpl-find-maintainers-for-removed-files scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainerpl-find-maintainers-for-removed-files
++++ a/scripts/get_maintainer.pl
+@@ -433,7 +433,7 @@ foreach my $file (@ARGV) {
+ 
+ 	while (<$patch>) {
+ 	    my $patch_line = $_;
+-	    if (m/^\+\+\+\s+(\S+)/) {
++	    if (m/^\+\+\+\s+(\S+)/ or m/^---\s+(\S+)/) {
+ 		my $filename = $1;
+ 		$filename =~ s@^[^/]*/@@;
+ 		$filename =~ s@\n@@;
 _
 
-Patches currently in -mm which might be from michail.gruzdev@gmail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
+linux-next.patch
 
