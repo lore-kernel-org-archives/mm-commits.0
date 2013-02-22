@@ -1,65 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:38:28 -0800
-Message-ID: <20130222233829.2564E5A4282@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:40:44 -0800
+Message-ID: <20130222234045.3D4E231C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:39481 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758502Ab3BVXia (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:38:30 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so120357ggi.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:38:30 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:38549 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754038Ab3BVXkq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:40:46 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so120552yhr.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:40:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jiang.liu@huawei.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
+     Subject: memory-hotplug-remove-page-table-of-x86_64-architecture-fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+     memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
 
-This patch was dropped because it was folded into memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
+This patch was dropped because it was folded into memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
+Subject: memory-hotplug-remove-page-table-of-x86_64-architecture-fix
 
-fix used-uninitialised bug
+make kernel_physical_mapping_remove() static
 
 Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-remove-page-table-of-x86_64-architecture-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-remove-page-table-of-x86_64-architecture-fix
 +++ a/arch/x86/mm/init_64.c
-@@ -993,12 +993,12 @@ remove_pagetable(unsigned long start, un
- 	bool pgd_changed = false;
+@@ -1011,7 +1011,7 @@ remove_pagetable(unsigned long start, un
+ 	flush_tlb_all();
+ }
  
- 	for (; start < end; start = next) {
-+		next = pgd_addr_end(start, end);
-+
- 		pgd = pgd_offset_k(start);
- 		if (!pgd_present(*pgd))
- 			continue;
- 
--		next = pgd_addr_end(start, end);
--
- 		pud = (pud_t *)pgd_page_vaddr(*pgd);
- 		remove_pud_table(pud, start, next, direct);
- 		if (free_pud_table(pud, pgd))
+-void __meminit
++static void __meminit
+ kernel_physical_mapping_remove(unsigned long start, unsigned long end)
+ {
+ 	start = (unsigned long)__va(start);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +68,7 @@ mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
 mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
 mm-remove-flags-argument-to-mmap_region.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
 cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
