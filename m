@@ -1,731 +1,425 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-max77686-add-maxim-77686-driver.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:43:17 -0800
-Message-ID: <20130222204317.BA2105A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-add-new-lp8788-rtc-driver.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:43:35 -0800
+Message-ID: <20130222204335.A6EF631C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:50203 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757477Ab3BVUnT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:43:19 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so104067qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:43:18 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:54953 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757443Ab3BVUng (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:43:36 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so104021vcd.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:43:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jonghwa3.lee@samsung.com, jg1.han@samsung.com, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, woong.byun@samsung.com, mm-commits@vger.kernel.org
+To: Milo.Kim@ti.com, devendra.aaru@gmail.com, milo.kim@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: max77686: add Maxim 77686 driver
+     Subject: rtc: add new lp8788 rtc driver
 has been removed from the -mm tree.  Its filename was
-     rtc-max77686-add-maxim-77686-driver.patch
+     rtc-add-new-lp8788-rtc-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jonghwa Lee <jonghwa3.lee@samsung.com>
-Subject: rtc: max77686: add Maxim 77686 driver
+From: "Kim, Milo" <Milo.Kim@ti.com>
+Subject: rtc: add new lp8788 rtc driver
 
-Add a driver to support max77686 rtc.  MAX77686 rtc support smpl and wtsr
-mode.  It has two alarm register which can be used for alarming to wake
-system up.  This drvier uses regmap to access its register.
+TI LP8788 PMU supports regulators, battery charger, RTC, ADC, backlight
+driver and current sinks.  This patch enables LP8788 rtc module.
 
-[akpm@linux-foundation.org: remove inline, __devinit annotations]
-[jg1.han@samsung.com: fix build warnings]
-[akpm@linux-foundation.org: simplify code]
-Signed-off-by: Chiwoong Byun <woong.byun@samsung.com>
-Signed-off-by: Jonghwa Lee <jonghwa3.lee@samsung.com>
-Signed-off-by: Myugnjoo Ham <myungjoo.ham@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Cc: "devendra.aaru" <devendra.aaru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig        |   10 
- drivers/rtc/Makefile       |    1 
- drivers/rtc/rtc-max77686.c |  641 +++++++++++++++++++++++++++++++++++
- 3 files changed, 652 insertions(+)
+ drivers/rtc/Kconfig      |    6 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-lp8788.c |  344 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 351 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-max77686-add-maxim-77686-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-max77686-add-maxim-77686-driver
+diff -puN drivers/rtc/Kconfig~rtc-add-new-lp8788-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-new-lp8788-rtc-driver
 +++ a/drivers/rtc/Kconfig
-@@ -243,6 +243,16 @@ config RTC_DRV_MAX8998
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-max8998.
+@@ -204,6 +204,12 @@ config RTC_DRV_DS3232
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called rtc-ds3232.
  
-+config RTC_DRV_MAX77686
-+	tristate "Maxim MAX77686"
-+	depends on MFD_MAX77686
++config RTC_DRV_LP8788
++	tristate "TI LP8788 RTC driver"
++	depends on MFD_LP8788
 +	help
-+	  If you say yes here you will get support for the
-+	  RTC of Maxim MAX77686 PMIC.
++	  Say Y to enable support for the LP8788 RTC/ALARM driver.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-max77686.
-+
- config RTC_DRV_RS5C372
- 	tristate "Ricoh R2025S/D, RS5C372A/B, RV5C386, RV5C387A"
+ config RTC_DRV_MAX6900
+ 	tristate "Maxim MAX6900"
  	help
-diff -puN drivers/rtc/Makefile~rtc-max77686-add-maxim-77686-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-max77686-add-maxim-77686-driver
+diff -puN drivers/rtc/Makefile~rtc-add-new-lp8788-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-new-lp8788-rtc-driver
 +++ a/drivers/rtc/Makefile
-@@ -71,6 +71,7 @@ obj-$(CONFIG_RTC_DRV_MAX8907)	+= rtc-max
- obj-$(CONFIG_RTC_DRV_MAX8925)	+= rtc-max8925.o
- obj-$(CONFIG_RTC_DRV_MAX8998)	+= rtc-max8998.o
- obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
-+obj-$(CONFIG_RTC_DRV_MAX77686)	+= rtc-max77686.o
- obj-$(CONFIG_RTC_DRV_MC13XXX)	+= rtc-mc13xxx.o
- obj-$(CONFIG_RTC_DRV_MSM6242)	+= rtc-msm6242.o
- obj-$(CONFIG_RTC_DRV_MPC5121)	+= rtc-mpc5121.o
-diff -puN /dev/null drivers/rtc/rtc-max77686.c
+@@ -57,6 +57,7 @@ obj-$(CONFIG_RTC_DRV_IMXDI)	+= rtc-imxdi
+ obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
+ obj-$(CONFIG_RTC_DRV_ISL12022)	+= rtc-isl12022.o
+ obj-$(CONFIG_RTC_DRV_JZ4740)	+= rtc-jz4740.o
++obj-$(CONFIG_RTC_DRV_LP8788)	+= rtc-lp8788.o
+ obj-$(CONFIG_RTC_DRV_LPC32XX)	+= rtc-lpc32xx.o
+ obj-$(CONFIG_RTC_DRV_LOONGSON1)	+= rtc-ls1x.o
+ obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
+diff -puN /dev/null drivers/rtc/rtc-lp8788.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -0,0 +1,641 @@
++++ a/drivers/rtc/rtc-lp8788.c
+@@ -0,0 +1,344 @@
 +/*
-+ * RTC driver for Maxim MAX77686
++ * TI LP8788 MFD - rtc driver
 + *
-+ * Copyright (C) 2012 Samsung Electronics Co.Ltd
++ * Copyright 2012 Texas Instruments
 + *
-+ *  based on rtc-max8997.c
++ * Author: Milo(Woogyom) Kim <milo.kim@ti.com>
 + *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
 + */
 +
-+#include <linux/slab.h>
-+#include <linux/rtc.h>
-+#include <linux/delay.h>
-+#include <linux/mutex.h>
++#include <linux/err.h>
++#include <linux/irqdomain.h>
++#include <linux/mfd/lp8788.h>
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
-+#include <linux/mfd/max77686-private.h>
-+#include <linux/irqdomain.h>
-+#include <linux/regmap.h>
++#include <linux/rtc.h>
++#include <linux/slab.h>
 +
-+/* RTC Control Register */
-+#define BCD_EN_SHIFT			0
-+#define BCD_EN_MASK				(1 << BCD_EN_SHIFT)
-+#define MODEL24_SHIFT			1
-+#define MODEL24_MASK			(1 << MODEL24_SHIFT)
-+/* RTC Update Register1 */
-+#define RTC_UDR_SHIFT			0
-+#define RTC_UDR_MASK			(1 << RTC_UDR_SHIFT)
-+#define RTC_RBUDR_SHIFT			4
-+#define RTC_RBUDR_MASK			(1 << RTC_RBUDR_SHIFT)
-+/* WTSR and SMPL Register */
-+#define WTSRT_SHIFT				0
-+#define SMPLT_SHIFT				2
-+#define WTSR_EN_SHIFT			6
-+#define SMPL_EN_SHIFT			7
-+#define WTSRT_MASK				(3 << WTSRT_SHIFT)
-+#define SMPLT_MASK				(3 << SMPLT_SHIFT)
-+#define WTSR_EN_MASK			(1 << WTSR_EN_SHIFT)
-+#define SMPL_EN_MASK			(1 << SMPL_EN_SHIFT)
-+/* RTC Hour register */
-+#define HOUR_PM_SHIFT			6
-+#define HOUR_PM_MASK			(1 << HOUR_PM_SHIFT)
-+/* RTC Alarm Enable */
-+#define ALARM_ENABLE_SHIFT		7
-+#define ALARM_ENABLE_MASK		(1 << ALARM_ENABLE_SHIFT)
++/* register address */
++#define LP8788_INTEN_3			0x05
++#define LP8788_RTC_UNLOCK		0x64
++#define LP8788_RTC_SEC			0x70
++#define LP8788_ALM1_SEC			0x77
++#define LP8788_ALM1_EN			0x7D
++#define LP8788_ALM2_SEC			0x7E
++#define LP8788_ALM2_EN			0x84
 +
-+#define MAX77686_RTC_UPDATE_DELAY	16
-+#undef MAX77686_RTC_WTSR_SMPL
++/* mask/shift bits */
++#define LP8788_INT_RTC_ALM1_M		BIT(1)	/* Addr 05h */
++#define LP8788_INT_RTC_ALM1_S		1
++#define LP8788_INT_RTC_ALM2_M		BIT(2)	/* Addr 05h */
++#define LP8788_INT_RTC_ALM2_S		2
++#define LP8788_ALM_EN_M			BIT(7)	/* Addr 7Dh or 84h */
++#define LP8788_ALM_EN_S			7
 +
-+enum {
-+	RTC_SEC = 0,
-+	RTC_MIN,
-+	RTC_HOUR,
-+	RTC_WEEKDAY,
-+	RTC_MONTH,
-+	RTC_YEAR,
-+	RTC_DATE,
-+	RTC_NR_TIME
++#define DEFAULT_ALARM_SEL		LP8788_ALARM_1
++#define LP8788_MONTH_OFFSET		1
++#define LP8788_BASE_YEAR		2000
++#define MAX_WDAY_BITS			7
++#define LP8788_WDAY_SET			1
++#define RTC_UNLOCK			0x1
++#define RTC_LATCH			0x2
++#define ALARM_IRQ_FLAG			(RTC_IRQF | RTC_AF)
++
++enum lp8788_time {
++	LPTIME_SEC,
++	LPTIME_MIN,
++	LPTIME_HOUR,
++	LPTIME_MDAY,
++	LPTIME_MON,
++	LPTIME_YEAR,
++	LPTIME_WDAY,
++	LPTIME_MAX,
 +};
 +
-+struct max77686_rtc_info {
-+	struct device		*dev;
-+	struct max77686_dev	*max77686;
-+	struct i2c_client	*rtc;
-+	struct rtc_device	*rtc_dev;
-+	struct mutex		lock;
-+
-+	struct regmap		*regmap;
-+
-+	int virq;
-+	int rtc_24hr_mode;
++struct lp8788_rtc {
++	struct lp8788 *lp;
++	struct rtc_device *rdev;
++	enum lp8788_alarm_sel alarm;
++	int irq;
 +};
 +
-+enum MAX77686_RTC_OP {
-+	MAX77686_RTC_WRITE,
-+	MAX77686_RTC_READ,
++static const u8 addr_alarm_sec[LP8788_ALARM_MAX] = {
++	LP8788_ALM1_SEC,
++	LP8788_ALM2_SEC,
 +};
 +
-+static inline int max77686_rtc_calculate_wday(u8 shifted)
++static const u8 addr_alarm_en[LP8788_ALARM_MAX] = {
++	LP8788_ALM1_EN,
++	LP8788_ALM2_EN,
++};
++
++static const u8 mask_alarm_en[LP8788_ALARM_MAX] = {
++	LP8788_INT_RTC_ALM1_M,
++	LP8788_INT_RTC_ALM2_M,
++};
++
++static const u8 shift_alarm_en[LP8788_ALARM_MAX] = {
++	LP8788_INT_RTC_ALM1_S,
++	LP8788_INT_RTC_ALM2_S,
++};
++
++static int _to_tm_wday(u8 lp8788_wday)
 +{
-+	int counter = -1;
-+	while (shifted) {
-+		shifted >>= 1;
-+		counter++;
-+	}
-+	return counter;
-+}
++	int i;
 +
-+static void max77686_rtc_data_to_tm(u8 *data, struct rtc_time *tm,
-+				   int rtc_24hr_mode)
-+{
-+	tm->tm_sec = data[RTC_SEC] & 0x7f;
-+	tm->tm_min = data[RTC_MIN] & 0x7f;
-+	if (rtc_24hr_mode)
-+		tm->tm_hour = data[RTC_HOUR] & 0x1f;
-+	else {
-+		tm->tm_hour = data[RTC_HOUR] & 0x0f;
-+		if (data[RTC_HOUR] & HOUR_PM_MASK)
-+			tm->tm_hour += 12;
++	if (lp8788_wday == 0)
++		return 0;
++
++	/* lookup defined weekday from read register value */
++	for (i = 0; i < MAX_WDAY_BITS; i++) {
++		if ((lp8788_wday >> i) == LP8788_WDAY_SET)
++			break;
 +	}
 +
-+	tm->tm_wday = max77686_rtc_calculate_wday(data[RTC_WEEKDAY] & 0x7f);
-+	tm->tm_mday = data[RTC_DATE] & 0x1f;
-+	tm->tm_mon = (data[RTC_MONTH] & 0x0f) - 1;
-+	tm->tm_year = (data[RTC_YEAR] & 0x7f) + 100;
-+	tm->tm_yday = 0;
-+	tm->tm_isdst = 0;
++	return i + 1;
 +}
 +
-+static int max77686_rtc_tm_to_data(struct rtc_time *tm, u8 *data)
++static inline int _to_lp8788_wday(int tm_wday)
 +{
-+	data[RTC_SEC] = tm->tm_sec;
-+	data[RTC_MIN] = tm->tm_min;
-+	data[RTC_HOUR] = tm->tm_hour;
-+	data[RTC_WEEKDAY] = 1 << tm->tm_wday;
-+	data[RTC_DATE] = tm->tm_mday;
-+	data[RTC_MONTH] = tm->tm_mon + 1;
-+	data[RTC_YEAR] = tm->tm_year > 100 ? (tm->tm_year - 100) : 0 ;
++	return LP8788_WDAY_SET << (tm_wday - 1);
++}
 +
-+	if (tm->tm_year < 100) {
-+		pr_warn("%s: MAX77686 RTC cannot handle the year %d."
-+			"Assume it's 2000.\n", __func__, 1900 + tm->tm_year);
++static void lp8788_rtc_unlock(struct lp8788 *lp)
++{
++	lp8788_write_byte(lp, LP8788_RTC_UNLOCK, RTC_UNLOCK);
++	lp8788_write_byte(lp, LP8788_RTC_UNLOCK, RTC_LATCH);
++}
++
++static int lp8788_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct lp8788_rtc *rtc = dev_get_drvdata(dev);
++	struct lp8788 *lp = rtc->lp;
++	u8 data[LPTIME_MAX];
++	int ret;
++
++	lp8788_rtc_unlock(lp);
++
++	ret = lp8788_read_multi_bytes(lp, LP8788_RTC_SEC, data,	LPTIME_MAX);
++	if (ret)
++		return ret;
++
++	tm->tm_sec  = data[LPTIME_SEC];
++	tm->tm_min  = data[LPTIME_MIN];
++	tm->tm_hour = data[LPTIME_HOUR];
++	tm->tm_mday = data[LPTIME_MDAY];
++	tm->tm_mon  = data[LPTIME_MON] - LP8788_MONTH_OFFSET;
++	tm->tm_year = data[LPTIME_YEAR] + LP8788_BASE_YEAR - 1900;
++	tm->tm_wday = _to_tm_wday(data[LPTIME_WDAY]);
++
++	return 0;
++}
++
++static int lp8788_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct lp8788_rtc *rtc = dev_get_drvdata(dev);
++	struct lp8788 *lp = rtc->lp;
++	u8 data[LPTIME_MAX - 1];
++	int ret, i, year;
++
++	year = tm->tm_year + 1900 - LP8788_BASE_YEAR;
++	if (year < 0) {
++		dev_err(lp->dev, "invalid year: %d\n", year);
 +		return -EINVAL;
 +	}
++
++	/* because rtc weekday is a readonly register, do not update */
++	data[LPTIME_SEC]  = tm->tm_sec;
++	data[LPTIME_MIN]  = tm->tm_min;
++	data[LPTIME_HOUR] = tm->tm_hour;
++	data[LPTIME_MDAY] = tm->tm_mday;
++	data[LPTIME_MON]  = tm->tm_mon + LP8788_MONTH_OFFSET;
++	data[LPTIME_YEAR] = year;
++
++	for (i = 0; i < ARRAY_SIZE(data); i++) {
++		ret = lp8788_write_byte(lp, LP8788_RTC_SEC + i, data[i]);
++		if (ret)
++			return ret;
++	}
++
 +	return 0;
 +}
 +
-+static int max77686_rtc_update(struct max77686_rtc_info *info,
-+	enum MAX77686_RTC_OP op)
++static int lp8788_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 +{
-+	int ret;
-+	unsigned int data;
-+
-+	if (op == MAX77686_RTC_WRITE)
-+		data = 1 << RTC_UDR_SHIFT;
-+	else
-+		data = 1 << RTC_RBUDR_SHIFT;
-+
-+	ret = regmap_update_bits(info->max77686->rtc_regmap,
-+				 MAX77686_RTC_UPDATE0, data, data);
-+	if (ret < 0)
-+		dev_err(info->dev, "%s: fail to write update reg(ret=%d, data=0x%x)\n",
-+				__func__, ret, data);
-+	else {
-+		/* Minimum 16ms delay required before RTC update. */
-+		msleep(MAX77686_RTC_UPDATE_DELAY);
-+	}
-+
-+	return ret;
-+}
-+
-+static int max77686_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct max77686_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[RTC_NR_TIME];
++	struct lp8788_rtc *rtc = dev_get_drvdata(dev);
++	struct lp8788 *lp = rtc->lp;
++	struct rtc_time *tm = &alarm->time;
++	u8 addr, data[LPTIME_MAX];
 +	int ret;
 +
-+	mutex_lock(&info->lock);
-+
-+	ret = max77686_rtc_update(info, MAX77686_RTC_READ);
-+	if (ret < 0)
-+		goto out;
-+
-+	ret = regmap_bulk_read(info->max77686->rtc_regmap,
-+				MAX77686_RTC_SEC, data, RTC_NR_TIME);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to read time reg(%d)\n", __func__,	ret);
-+		goto out;
-+	}
-+
-+	max77686_rtc_data_to_tm(data, tm, info->rtc_24hr_mode);
-+
-+	ret = rtc_valid_tm(tm);
-+
-+out:
-+	mutex_unlock(&info->lock);
-+	return ret;
-+}
-+
-+static int max77686_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct max77686_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[RTC_NR_TIME];
-+	int ret;
-+
-+	ret = max77686_rtc_tm_to_data(tm, data);
-+	if (ret < 0)
++	addr = addr_alarm_sec[rtc->alarm];
++	ret = lp8788_read_multi_bytes(lp, addr, data, LPTIME_MAX);
++	if (ret)
 +		return ret;
 +
-+	mutex_lock(&info->lock);
++	tm->tm_sec  = data[LPTIME_SEC];
++	tm->tm_min  = data[LPTIME_MIN];
++	tm->tm_hour = data[LPTIME_HOUR];
++	tm->tm_mday = data[LPTIME_MDAY];
++	tm->tm_mon  = data[LPTIME_MON] - LP8788_MONTH_OFFSET;
++	tm->tm_year = data[LPTIME_YEAR] + LP8788_BASE_YEAR - 1900;
++	tm->tm_wday = _to_tm_wday(data[LPTIME_WDAY]);
++	alarm->enabled = data[LPTIME_WDAY] & LP8788_ALM_EN_M;
 +
-+	ret = regmap_bulk_write(info->max77686->rtc_regmap,
-+				 MAX77686_RTC_SEC, data, RTC_NR_TIME);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to write time reg(%d)\n", __func__,
-+				ret);
-+		goto out;
-+	}
-+
-+	ret = max77686_rtc_update(info, MAX77686_RTC_WRITE);
-+
-+out:
-+	mutex_unlock(&info->lock);
-+	return ret;
-+}
-+
-+static int max77686_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct max77686_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[RTC_NR_TIME];
-+	unsigned int val;
-+	int i, ret;
-+
-+	mutex_lock(&info->lock);
-+
-+	ret = max77686_rtc_update(info, MAX77686_RTC_READ);
-+	if (ret < 0)
-+		goto out;
-+
-+	ret = regmap_bulk_read(info->max77686->rtc_regmap,
-+				 MAX77686_ALARM1_SEC, data, RTC_NR_TIME);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s:%d fail to read alarm reg(%d)\n",
-+				__func__, __LINE__, ret);
-+		goto out;
-+	}
-+
-+	max77686_rtc_data_to_tm(data, &alrm->time, info->rtc_24hr_mode);
-+
-+	alrm->enabled = 0;
-+	for (i = 0; i < RTC_NR_TIME; i++) {
-+		if (data[i] & ALARM_ENABLE_MASK) {
-+			alrm->enabled = 1;
-+			break;
-+		}
-+	}
-+
-+	alrm->pending = 0;
-+	ret = regmap_read(info->max77686->regmap, MAX77686_REG_STATUS1, &val);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s:%d fail to read status1 reg(%d)\n",
-+				__func__, __LINE__, ret);
-+		goto out;
-+	}
-+
-+	if (val & (1 << 4)) /* RTCA1 */
-+		alrm->pending = 1;
-+
-+out:
-+	mutex_unlock(&info->lock);
 +	return 0;
 +}
 +
-+static int max77686_rtc_stop_alarm(struct max77686_rtc_info *info)
++static int lp8788_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 +{
-+	u8 data[RTC_NR_TIME];
-+	int ret, i;
-+	struct rtc_time tm;
++	struct lp8788_rtc *rtc = dev_get_drvdata(dev);
++	struct lp8788 *lp = rtc->lp;
++	struct rtc_time *tm = &alarm->time;
++	u8 addr, data[LPTIME_MAX];
++	int ret, i, year;
 +
-+	if (!mutex_is_locked(&info->lock))
-+		dev_warn(info->dev, "%s: should have mutex locked\n", __func__);
-+
-+	ret = max77686_rtc_update(info, MAX77686_RTC_READ);
-+	if (ret < 0)
-+		goto out;
-+
-+	ret = regmap_bulk_read(info->max77686->rtc_regmap,
-+				 MAX77686_ALARM1_SEC, data, RTC_NR_TIME);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to read alarm reg(%d)\n",
-+				__func__, ret);
-+		goto out;
++	year = tm->tm_year + 1900 - LP8788_BASE_YEAR;
++	if (year < 0) {
++		dev_err(lp->dev, "invalid year: %d\n", year);
++		return -EINVAL;
 +	}
 +
-+	max77686_rtc_data_to_tm(data, &tm, info->rtc_24hr_mode);
++	data[LPTIME_SEC]  = tm->tm_sec;
++	data[LPTIME_MIN]  = tm->tm_min;
++	data[LPTIME_HOUR] = tm->tm_hour;
++	data[LPTIME_MDAY] = tm->tm_mday;
++	data[LPTIME_MON]  = tm->tm_mon + LP8788_MONTH_OFFSET;
++	data[LPTIME_YEAR] = year;
++	data[LPTIME_WDAY] = _to_lp8788_wday(tm->tm_wday);
 +
-+	for (i = 0; i < RTC_NR_TIME; i++)
-+		data[i] &= ~ALARM_ENABLE_MASK;
-+
-+	ret = regmap_bulk_write(info->max77686->rtc_regmap,
-+				 MAX77686_ALARM1_SEC, data, RTC_NR_TIME);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to write alarm reg(%d)\n",
-+				__func__, ret);
-+		goto out;
++	for (i = 0; i < ARRAY_SIZE(data); i++) {
++		addr = addr_alarm_sec[rtc->alarm] + i;
++		ret = lp8788_write_byte(lp, addr, data[i]);
++		if (ret)
++			return ret;
 +	}
 +
-+	ret = max77686_rtc_update(info, MAX77686_RTC_WRITE);
-+out:
-+	return ret;
++	alarm->enabled = 1;
++	addr = addr_alarm_en[rtc->alarm];
++
++	return lp8788_update_bits(lp, addr, LP8788_ALM_EN_M,
++				alarm->enabled << LP8788_ALM_EN_S);
 +}
 +
-+static int max77686_rtc_start_alarm(struct max77686_rtc_info *info)
++static int lp8788_alarm_irq_enable(struct device *dev, unsigned int enable)
 +{
-+	u8 data[RTC_NR_TIME];
-+	int ret;
-+	struct rtc_time tm;
++	struct lp8788_rtc *rtc = dev_get_drvdata(dev);
++	struct lp8788 *lp = rtc->lp;
++	u8 mask, shift;
 +
-+	if (!mutex_is_locked(&info->lock))
-+		dev_warn(info->dev, "%s: should have mutex locked\n", __func__);
++	if (!rtc->irq)
++		return -EIO;
 +
-+	ret = max77686_rtc_update(info, MAX77686_RTC_READ);
-+	if (ret < 0)
-+		goto out;
++	mask = mask_alarm_en[rtc->alarm];
++	shift = shift_alarm_en[rtc->alarm];
 +
-+	ret = regmap_bulk_read(info->max77686->rtc_regmap,
-+				 MAX77686_ALARM1_SEC, data, RTC_NR_TIME);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to read alarm reg(%d)\n",
-+				__func__, ret);
-+		goto out;
-+	}
-+
-+	max77686_rtc_data_to_tm(data, &tm, info->rtc_24hr_mode);
-+
-+	data[RTC_SEC] |= (1 << ALARM_ENABLE_SHIFT);
-+	data[RTC_MIN] |= (1 << ALARM_ENABLE_SHIFT);
-+	data[RTC_HOUR] |= (1 << ALARM_ENABLE_SHIFT);
-+	data[RTC_WEEKDAY] &= ~ALARM_ENABLE_MASK;
-+	if (data[RTC_MONTH] & 0xf)
-+		data[RTC_MONTH] |= (1 << ALARM_ENABLE_SHIFT);
-+	if (data[RTC_YEAR] & 0x7f)
-+		data[RTC_YEAR] |= (1 << ALARM_ENABLE_SHIFT);
-+	if (data[RTC_DATE] & 0x1f)
-+		data[RTC_DATE] |= (1 << ALARM_ENABLE_SHIFT);
-+
-+	ret = regmap_bulk_write(info->max77686->rtc_regmap,
-+				 MAX77686_ALARM1_SEC, data, RTC_NR_TIME);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to write alarm reg(%d)\n",
-+				__func__, ret);
-+		goto out;
-+	}
-+
-+	ret = max77686_rtc_update(info, MAX77686_RTC_WRITE);
-+out:
-+	return ret;
++	return lp8788_update_bits(lp, LP8788_INTEN_3, mask, enable << shift);
 +}
 +
-+static int max77686_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++static const struct rtc_class_ops lp8788_rtc_ops = {
++	.read_time = lp8788_rtc_read_time,
++	.set_time = lp8788_rtc_set_time,
++	.read_alarm = lp8788_read_alarm,
++	.set_alarm = lp8788_set_alarm,
++	.alarm_irq_enable = lp8788_alarm_irq_enable,
++};
++
++static irqreturn_t lp8788_alarm_irq_handler(int irq, void *ptr)
 +{
-+	struct max77686_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[RTC_NR_TIME];
-+	int ret;
++	struct lp8788_rtc *rtc = ptr;
 +
-+	ret = max77686_rtc_tm_to_data(&alrm->time, data);
-+	if (ret < 0)
-+		return ret;
-+
-+	mutex_lock(&info->lock);
-+
-+	ret = max77686_rtc_stop_alarm(info);
-+	if (ret < 0)
-+		goto out;
-+
-+	ret = regmap_bulk_write(info->max77686->rtc_regmap,
-+				 MAX77686_ALARM1_SEC, data, RTC_NR_TIME);
-+
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to write alarm reg(%d)\n",
-+				__func__, ret);
-+		goto out;
-+	}
-+
-+	ret = max77686_rtc_update(info, MAX77686_RTC_WRITE);
-+	if (ret < 0)
-+		goto out;
-+
-+	if (alrm->enabled)
-+		ret = max77686_rtc_start_alarm(info);
-+out:
-+	mutex_unlock(&info->lock);
-+	return ret;
-+}
-+
-+static int max77686_rtc_alarm_irq_enable(struct device *dev,
-+					unsigned int enabled)
-+{
-+	struct max77686_rtc_info *info = dev_get_drvdata(dev);
-+	int ret;
-+
-+	mutex_lock(&info->lock);
-+	if (enabled)
-+		ret = max77686_rtc_start_alarm(info);
-+	else
-+		ret = max77686_rtc_stop_alarm(info);
-+	mutex_unlock(&info->lock);
-+
-+	return ret;
-+}
-+
-+static irqreturn_t max77686_rtc_alarm_irq(int irq, void *data)
-+{
-+	struct max77686_rtc_info *info = data;
-+
-+	dev_info(info->dev, "%s:irq(%d)\n", __func__, irq);
-+
-+	rtc_update_irq(info->rtc_dev, 1, RTC_IRQF | RTC_AF);
-+
++	rtc_update_irq(rtc->rdev, 1, ALARM_IRQ_FLAG);
 +	return IRQ_HANDLED;
 +}
 +
-+static const struct rtc_class_ops max77686_rtc_ops = {
-+	.read_time = max77686_rtc_read_time,
-+	.set_time = max77686_rtc_set_time,
-+	.read_alarm = max77686_rtc_read_alarm,
-+	.set_alarm = max77686_rtc_set_alarm,
-+	.alarm_irq_enable = max77686_rtc_alarm_irq_enable,
-+};
-+
-+#ifdef MAX77686_RTC_WTSR_SMPL
-+static void max77686_rtc_enable_wtsr(struct max77686_rtc_info *info, bool enable)
++static int lp8788_alarm_irq_register(struct platform_device *pdev,
++				struct lp8788_rtc *rtc)
 +{
-+	int ret;
-+	unsigned int val, mask;
++	struct resource *r;
++	struct lp8788 *lp = rtc->lp;
++	struct irq_domain *irqdm = lp->irqdm;
++	int irq;
 +
-+	if (enable)
-+		val = (1 << WTSR_EN_SHIFT) | (3 << WTSRT_SHIFT);
++	rtc->irq = 0;
++
++	/* even the alarm IRQ number is not specified, rtc time should work */
++	r = platform_get_resource_byname(pdev, IORESOURCE_IRQ, LP8788_ALM_IRQ);
++	if (!r)
++		return 0;
++
++	if (rtc->alarm == LP8788_ALARM_1)
++		irq = r->start;
 +	else
-+		val = 0;
++		irq = r->end;
 +
-+	mask = WTSR_EN_MASK | WTSRT_MASK;
++	rtc->irq = irq_create_mapping(irqdm, irq);
 +
-+	dev_info(info->dev, "%s: %s WTSR\n", __func__,
-+			enable ? "enable" : "disable");
-+
-+	ret = regmap_update_bits(info->max77686->rtc_regmap,
-+				 MAX77686_WTSR_SMPL_CNTL, mask, val);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to update WTSR reg(%d)\n",
-+				__func__, ret);
-+		return;
-+	}
-+
-+	max77686_rtc_update(info, MAX77686_RTC_WRITE);
++	return request_threaded_irq(rtc->irq, NULL, lp8788_alarm_irq_handler,
++				0, LP8788_ALM_IRQ, rtc);
 +}
 +
-+static void max77686_rtc_enable_smpl(struct max77686_rtc_info *info, bool enable)
++static void lp8788_alarm_irq_unregister(struct lp8788_rtc *rtc)
 +{
-+	int ret;
-+	unsigned int val, mask;
-+
-+	if (enable)
-+		val = (1 << SMPL_EN_SHIFT) | (0 << SMPLT_SHIFT);
-+	else
-+		val = 0;
-+
-+	mask = SMPL_EN_MASK | SMPLT_MASK;
-+
-+	dev_info(info->dev, "%s: %s SMPL\n", __func__,
-+			enable ? "enable" : "disable");
-+
-+	ret = regmap_update_bits(info->max77686->rtc_regmap,
-+				 MAX77686_WTSR_SMPL_CNTL, mask, val);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to update SMPL reg(%d)\n",
-+				__func__, ret);
-+		return;
-+	}
-+
-+	max77686_rtc_update(info, MAX77686_RTC_WRITE);
-+
-+	val = 0;
-+	regmap_read(info->max77686->rtc_regmap, MAX77686_WTSR_SMPL_CNTL, &val);
-+	pr_info("%s: WTSR_SMPL(0x%02x)\n", __func__, val);
-+}
-+#endif /* MAX77686_RTC_WTSR_SMPL */
-+
-+static int max77686_rtc_init_reg(struct max77686_rtc_info *info)
-+{
-+	u8 data[2];
-+	int ret;
-+
-+	/* Set RTC control register : Binary mode, 24hour mdoe */
-+	data[0] = (1 << BCD_EN_SHIFT) | (1 << MODEL24_SHIFT);
-+	data[1] = (0 << BCD_EN_SHIFT) | (1 << MODEL24_SHIFT);
-+
-+	info->rtc_24hr_mode = 1;
-+
-+	ret = regmap_bulk_write(info->max77686->rtc_regmap, MAX77686_RTC_CONTROLM, data, 2);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to write controlm reg(%d)\n",
-+				__func__, ret);
-+		return ret;
-+	}
-+
-+	ret = max77686_rtc_update(info, MAX77686_RTC_WRITE);
-+	return ret;
++	if (rtc->irq)
++		free_irq(rtc->irq, rtc);
 +}
 +
-+static struct regmap_config max77686_rtc_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+};
-+
-+static int max77686_rtc_probe(struct platform_device *pdev)
++static int lp8788_rtc_probe(struct platform_device *pdev)
 +{
-+	struct max77686_dev *max77686 = dev_get_drvdata(pdev->dev.parent);
-+	struct max77686_rtc_info *info;
-+	int ret, virq;
++	struct lp8788 *lp = dev_get_drvdata(pdev->dev.parent);
++	struct lp8788_rtc *rtc;
++	struct device *dev = &pdev->dev;
 +
-+	printk(KERN_INFO "%s\n", __func__);
-+
-+	info = kzalloc(sizeof(struct max77686_rtc_info), GFP_KERNEL);
-+	if (!info)
++	rtc = devm_kzalloc(dev, sizeof(struct lp8788_rtc), GFP_KERNEL);
++	if (!rtc)
 +		return -ENOMEM;
 +
-+	mutex_init(&info->lock);
-+	info->dev = &pdev->dev;
-+	info->max77686 = max77686;
-+	info->rtc = max77686->rtc;
-+	info->max77686->rtc_regmap = regmap_init_i2c(info->max77686->rtc,
-+					 &max77686_rtc_regmap_config);
-+	if (IS_ERR(info->max77686->rtc_regmap)) {
-+		ret = PTR_ERR(info->max77686->rtc_regmap);
-+		dev_err(info->max77686->dev, "Failed to allocate register map: %d\n",
-+				ret);
-+		kfree(info);
-+		return ret;
-+	}
-+	platform_set_drvdata(pdev, info);
++	rtc->lp = lp;
++	rtc->alarm = lp->pdata ? lp->pdata->alarm_sel : DEFAULT_ALARM_SEL;
++	platform_set_drvdata(pdev, rtc);
 +
-+	ret = max77686_rtc_init_reg(info);
++	device_init_wakeup(dev, 1);
 +
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to initialize RTC reg:%d\n", ret);
-+		goto err_rtc;
++	rtc->rdev = rtc_device_register("lp8788_rtc", dev,
++					&lp8788_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc->rdev)) {
++		dev_err(dev, "can not register rtc device\n");
++		return PTR_ERR(rtc->rdev);
 +	}
 +
-+#ifdef MAX77686_RTC_WTSR_SMPL
-+	max77686_rtc_enable_wtsr(info, true);
-+	max77686_rtc_enable_smpl(info, true);
-+#endif
-+
-+	device_init_wakeup(&pdev->dev, 1);
-+
-+	info->rtc_dev = rtc_device_register("max77686-rtc", &pdev->dev,
-+			&max77686_rtc_ops, THIS_MODULE);
-+
-+	if (IS_ERR(info->rtc_dev)) {
-+		printk(KERN_INFO "%s: fail\n", __func__);
-+
-+		ret = PTR_ERR(info->rtc_dev);
-+		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
-+		if (ret == 0)
-+			ret = -EINVAL;
-+		goto err_rtc;
-+	}
-+	virq = irq_create_mapping(max77686->irq_domain, MAX77686_RTCIRQ_RTCA1);
-+	if (!virq)
-+		goto err_rtc;
-+	info->virq = virq;
-+
-+	ret = request_threaded_irq(virq, NULL, max77686_rtc_alarm_irq, 0,
-+			"rtc-alarm0", info);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to request alarm IRQ: %d: %d\n",
-+			info->virq, ret);
-+		goto err_rtc;
-+	}
-+
-+	goto out;
-+err_rtc:
-+	kfree(info);
-+	return ret;
-+out:
-+	return ret;
-+}
-+
-+static int max77686_rtc_remove(struct platform_device *pdev)
-+{
-+	struct max77686_rtc_info *info = platform_get_drvdata(pdev);
-+
-+	if (info) {
-+		free_irq(info->virq, info);
-+		rtc_device_unregister(info->rtc_dev);
-+		kfree(info);
-+	}
++	if (lp8788_alarm_irq_register(pdev, rtc))
++		dev_warn(lp->dev, "no rtc irq handler\n");
 +
 +	return 0;
 +}
 +
-+static void max77686_rtc_shutdown(struct platform_device *pdev)
++static int lp8788_rtc_remove(struct platform_device *pdev)
 +{
-+#ifdef MAX77686_RTC_WTSR_SMPL
-+	struct max77686_rtc_info *info = platform_get_drvdata(pdev);
-+	int i;
-+	u8 val = 0;
++	struct lp8788_rtc *rtc = platform_get_drvdata(pdev);
 +
-+	for (i = 0; i < 3; i++) {
-+		max77686_rtc_enable_wtsr(info, false);
-+		regmap_read(info->max77686->rtc_regmap, MAX77686_WTSR_SMPL_CNTL, &val);
-+		pr_info("%s: WTSR_SMPL reg(0x%02x)\n", __func__, val);
-+		if (val & WTSR_EN_MASK)
-+			pr_emerg("%s: fail to disable WTSR\n", __func__);
-+		else {
-+			pr_info("%s: success to disable WTSR\n", __func__);
-+			break;
-+		}
-+	}
++	lp8788_alarm_irq_unregister(rtc);
++	rtc_device_unregister(rtc->rdev);
++	platform_set_drvdata(pdev, NULL);
 +
-+	/* Disable SMPL when power off */
-+	max77686_rtc_enable_smpl(info, false);
-+#endif /* MAX77686_RTC_WTSR_SMPL */
++	return 0;
 +}
 +
-+static const struct platform_device_id rtc_id[] = {
-+	{ "max77686-rtc", 0 },
-+	{},
-+};
-+
-+static struct platform_driver max77686_rtc_driver = {
-+	.driver		= {
-+		.name	= "max77686-rtc",
-+		.owner	= THIS_MODULE,
++static struct platform_driver lp8788_rtc_driver = {
++	.probe = lp8788_rtc_probe,
++	.remove = lp8788_rtc_remove,
++	.driver = {
++		.name = LP8788_DEV_RTC,
++		.owner = THIS_MODULE,
 +	},
-+	.probe		= max77686_rtc_probe,
-+	.remove		= max77686_rtc_remove,
-+	.shutdown	= max77686_rtc_shutdown,
-+	.id_table	= rtc_id,
 +};
++module_platform_driver(lp8788_rtc_driver);
 +
-+static int __init max77686_rtc_init(void)
-+{
-+	return platform_driver_register(&max77686_rtc_driver);
-+}
-+module_init(max77686_rtc_init);
-+
-+static void __exit max77686_rtc_exit(void)
-+{
-+	platform_driver_unregister(&max77686_rtc_driver);
-+}
-+module_exit(max77686_rtc_exit);
-+
-+MODULE_DESCRIPTION("Maxim MAX77686 RTC driver");
-+MODULE_AUTHOR("<woong.byun@samsung.com>");
++MODULE_DESCRIPTION("Texas Instruments LP8788 RTC Driver");
++MODULE_AUTHOR("Milo Kim");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:lp8788-rtc");
 _
 
-Patches currently in -mm which might be from jonghwa3.lee@samsung.com are
+Patches currently in -mm which might be from Milo.Kim@ti.com are
 
 origin.patch
 linux-next.patch
+backlight-add-new-lp8788-backlight-driver.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
 
