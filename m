@@ -1,61 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:45:25 -0800
-Message-ID: <20130222234525.B403831C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:45:47 -0800
+Message-ID: <20130222234548.09EB45A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:58303 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754218Ab3BVXp1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:45:27 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so120798qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:45:26 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:64558 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756408Ab3BVXpt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:45:49 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so136363qah.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:45:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, jiang.liu@huawei.com, laijs@cn.fujitsu.com, linfeng@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, laijs@cn.fujitsu.com, shli@kernel.org, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Bug fix: Remove the unused sanitize_zone_movable_limit() definition.
+     Subject: acpi, movablemem_map: Do not zero numa_meminfo in numa_init().
 has been removed from the -mm tree.  Its filename was
-     page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch
+     acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch
 
-This patch was dropped because it was folded into page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
+This patch was dropped because it was folded into acpi-memory-hotplug-parse-srat-before-memblock-is-ready.patch
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Bug fix: Remove the unused sanitize_zone_movable_limit() definition.
+Subject: acpi, movablemem_map: Do not zero numa_meminfo in numa_init().
 
-When CONFIG_HAVE_MEMBLOCK_NODE_MAP is not defined, sanitize_zone_movable_limit()
-is also not used. So remove it.
+early_parse_srat() is called before numa_init(), and has initialized
+numa_meminfo. So do not zero numa_meminfo in numa_init(), otherwise
+we will lose memory numa info.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Liu Jiang <jiang.liu@huawei.com>
+Reported-by: Li Shaohua <shli@kernel.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Wu Jianguo <wujianguo@huawei.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jianguo Wu <wujianguo@huawei.com>
 Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/x86/mm/numa.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix
-+++ a/mm/page_alloc.c
-@@ -4464,11 +4464,6 @@ static inline unsigned long __meminit zo
+diff -puN arch/x86/mm/numa.c~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix
++++ a/arch/x86/mm/numa.c
+@@ -559,10 +559,12 @@ static int __init numa_init(int (*init_f
+ 	for (i = 0; i < MAX_LOCAL_APIC; i++)
+ 		set_apicid_to_node(i, NUMA_NO_NODE);
  
- 	return zholes_size[zone_type];
- }
--
--static void __meminit sanitize_zone_movable_limit(void)
--{
--}
--
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+-	/* Do not clear numa_nodes_parsed because SRAT was parsed earlier. */
++	/*
++	 * Do not clear numa_nodes_parsed or zero numa_meminfo here, because
++	 * SRAT was parsed earlier in early_parse_srat().
++	 */
+ 	nodes_clear(node_possible_map);
+ 	nodes_clear(node_online_map);
+-	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
+ 	WARN_ON(memblock_set_node(0, ULLONG_MAX, MAX_NUMNODES));
+ 	numa_reset_distance();
  
- static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
@@ -88,8 +94,6 @@ page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
 page_alloc-make-movablecore_map-has-higher-priority.patch
 page_alloc-bootmem-limit-with-movablecore_map.patch
 acpi-memory-hotplug-parse-srat-before-memblock-is-ready.patch
-acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix.patch
-acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
