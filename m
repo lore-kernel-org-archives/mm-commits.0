@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:38:24 -0800
-Message-ID: <20130222233825.0213F31C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:38:28 -0800
+Message-ID: <20130222233829.2564E5A4282@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:57170 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758437Ab3BVXi1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:38:27 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so120423ghb.2
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:38:25 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:39481 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758502Ab3BVXia (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:38:30 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so120357ggi.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:38:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
+     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
 
 This patch was dropped because it was folded into memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
+Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
+
+fix used-uninitialised bug
 
 Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Jianguo Wu <wujianguo@huawei.com>
@@ -37,49 +39,27 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ arch/x86/mm/init_64.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix
 +++ a/arch/x86/mm/init_64.c
-@@ -918,10 +918,9 @@ remove_pmd_table(pmd_t *pmd_start, unsig
+@@ -993,12 +993,12 @@ remove_pagetable(unsigned long start, un
+ 	bool pgd_changed = false;
+ 
+ 	for (; start < end; start = next) {
++		next = pgd_addr_end(start, end);
++
+ 		pgd = pgd_offset_k(start);
+ 		if (!pgd_present(*pgd))
  			continue;
- 		}
  
--		pte_base = (pte_t *)map_low_page((pte_t *)pmd_page_vaddr(*pmd));
-+		pte_base = (pte_t *)pmd_page_vaddr(*pmd);
- 		remove_pte_table(pte_base, addr, next, direct);
- 		free_pte_table(pte_base, pmd);
--		unmap_low_page(pte_base);
- 	}
- 
- 	/* Call free_pmd_table() in remove_pud_table(). */
-@@ -975,10 +974,9 @@ remove_pud_table(pud_t *pud_start, unsig
- 			continue;
- 		}
- 
--		pmd_base = (pmd_t *)map_low_page((pmd_t *)pud_page_vaddr(*pud));
-+		pmd_base = (pmd_t *)pud_page_vaddr(*pud);
- 		remove_pmd_table(pmd_base, addr, next, direct);
- 		free_pmd_table(pmd_base, pud);
--		unmap_low_page(pmd_base);
- 	}
- 
- 	if (direct)
-@@ -1001,11 +999,10 @@ remove_pagetable(unsigned long start, un
- 
- 		next = pgd_addr_end(start, end);
- 
--		pud = (pud_t *)map_low_page((pud_t *)pgd_page_vaddr(*pgd));
-+		pud = (pud_t *)pgd_page_vaddr(*pgd);
+-		next = pgd_addr_end(start, end);
+-
+ 		pud = (pud_t *)pgd_page_vaddr(*pgd);
  		remove_pud_table(pud, start, next, direct);
  		if (free_pud_table(pud, pgd))
- 			pgd_changed = true;
--		unmap_low_page(pud);
- 	}
- 
- 	if (pgd_changed)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,7 +78,6 @@ mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
 mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
 mm-remove-flags-argument-to-mmap_region.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
