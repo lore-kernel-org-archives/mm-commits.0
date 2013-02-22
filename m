@@ -1,82 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ams369fg06-use-sleep-instead-of-delay.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:40:44 -0800
-Message-ID: <20130222204044.A1F0C5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-ams369fg06-replace-efault-with-einval.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:40:50 -0800
+Message-ID: <20130222204050.AC9885A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:47314 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757777Ab3BVUkp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:40:45 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so103721vcd.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:40:45 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:44827 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757543Ab3BVUkv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:40:51 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so103817ggi.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:40:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: ams369fg06: use sleep instead of delay
+     Subject: backlight: ams369fg06: replace EFAULT with EINVAL
 has been removed from the -mm tree.  Its filename was
-     backlight-ams369fg06-use-sleep-instead-of-delay.patch
+     backlight-ams369fg06-replace-efault-with-einval.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: use sleep instead of delay
+Subject: backlight: ams369fg06: replace EFAULT with EINVAL
 
-Replace mdelay with msleep to remove the busy loop waiting.
+Replace EFAULT with EINVAL, because EFAULT tends to be for the invalid
+memory addresses.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/video/backlight/ams369fg06.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-sleep-instead-of-delay drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-sleep-instead-of-delay
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-replace-efault-with-einval drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-replace-efault-with-einval
 +++ a/drivers/video/backlight/ams369fg06.c
-@@ -210,8 +210,9 @@ static int ams369fg06_panel_send_sequenc
- 			ret = ams369fg06_spi_write(lcd, wbuf[i], wbuf[i+1]);
- 			if (ret)
- 				break;
--		} else
--			mdelay(wbuf[i+1]);
-+		} else {
-+			msleep(wbuf[i+1]);
-+		}
- 		i += 2;
- 	}
- 
-@@ -339,7 +340,7 @@ static int ams369fg06_power_on(struct am
- 		return -EFAULT;
- 	} else {
- 		pd->power_on(lcd->ld, 1);
--		mdelay(pd->power_on_delay);
-+		msleep(pd->power_on_delay);
- 	}
- 
- 	if (!pd->reset) {
-@@ -347,7 +348,7 @@ static int ams369fg06_power_on(struct am
- 		return -EFAULT;
- 	} else {
- 		pd->reset(lcd->ld);
--		mdelay(pd->reset_delay);
-+		msleep(pd->reset_delay);
- 	}
- 
- 	ret = ams369fg06_ldi_init(lcd);
-@@ -389,7 +390,7 @@ static int ams369fg06_power_off(struct a
- 		return -EIO;
- 	}
- 
--	mdelay(pd->power_off_delay);
-+	msleep(pd->power_off_delay);
+@@ -328,7 +328,7 @@ static int ams369fg06_power_on(struct am
  
  	if (!pd->power_on) {
  		dev_err(lcd->dev, "power_on is NULL.\n");
+-		return -EFAULT;
++		return -EINVAL;
+ 	} else {
+ 		pd->power_on(lcd->ld, 1);
+ 		msleep(pd->power_on_delay);
+@@ -336,7 +336,7 @@ static int ams369fg06_power_on(struct am
+ 
+ 	if (!pd->reset) {
+ 		dev_err(lcd->dev, "reset is NULL.\n");
+-		return -EFAULT;
++		return -EINVAL;
+ 	} else {
+ 		pd->reset(lcd->ld);
+ 		msleep(pd->reset_delay);
+@@ -485,7 +485,7 @@ static int ams369fg06_probe(struct spi_d
+ 	lcd->lcd_pd = spi->dev.platform_data;
+ 	if (!lcd->lcd_pd) {
+ 		dev_err(&spi->dev, "platform data is NULL\n");
+-		return -EFAULT;
++		return -EINVAL;
+ 	}
+ 
+ 	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
