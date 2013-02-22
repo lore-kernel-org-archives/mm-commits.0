@@ -1,64 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cris-use-int-for-ssize_t-to-match-size_t.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:37:45 -0800
-Message-ID: <20130222203745.B125A5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] compat-return-efault-on-error-in-waitid.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:37:32 -0800
+Message-ID: <20130222203732.C12915A426D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:35103 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757291Ab3BVUhr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:47 -0500
-Received: by mail-qe0-f74.google.com with SMTP id a11so103745qen.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:46 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:39279 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757009Ab3BVUhd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:33 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so103566ggi.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, hans-peter.nilsson@axis.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cris: use "int" for ssize_t to match size_t
+     Subject: compat: return -EFAULT on error in waitid()
 has been removed from the -mm tree.  Its filename was
-     cris-use-int-for-ssize_t-to-match-size_t.patch
+     compat-return-efault-on-error-in-waitid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: cris: use "int" for ssize_t to match size_t
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: compat: return -EFAULT on error in waitid()
 
-On cris-linux-gcc, __SIZE_TYPE__ expands to "unsigned int", as
-gcc-4.6.3-nolibc/cris-linux/lib/gcc/cris-linux/4.6.3/plugin/include/config/cris/linux.h
-has
+The copy_to_user() call returns the number of bytes remaining but we want
+to return -EFAULT on error.
 
-    #define SIZE_TYPE "unsigned int"
+Fixes "x32: fix waitid()"
 
-Hence __kernel_size_t is also "unsigned int".  But __kernel_ssize_t is
-"long", which has a different base type, causing compiler warnings like:
-
-    fs/quota/quota_tree.c:372:4: warning: format '%zd' expects argument of type 'signed size_t', but argument 4 has type 'ssize_t' [-Wformat]
-
-To fix this, __kernel_ssize_t should be changed to "int". Hence cris can
-just use the generic 32-bit versions from include/asm-generic/posix_types.h
-for all size-related types.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mikael Starvik <starvik@axis.com>
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Hans-Peter Nilsson <hans-peter.nilsson@axis.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/include/uapi/asm/posix_types.h |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/compat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/cris/include/uapi/asm/posix_types.h~cris-use-int-for-ssize_t-to-match-size_t arch/cris/include/uapi/asm/posix_types.h
---- a/arch/cris/include/uapi/asm/posix_types.h~cris-use-int-for-ssize_t-to-match-size_t
-+++ a/arch/cris/include/uapi/asm/posix_types.h
-@@ -22,11 +22,6 @@ typedef unsigned short	__kernel_uid_t;
- typedef unsigned short	__kernel_gid_t;
- #define __kernel_uid_t __kernel_uid_t
+diff -puN kernel/compat.c~compat-return-efault-on-error-in-waitid kernel/compat.c
+--- a/kernel/compat.c~compat-return-efault-on-error-in-waitid
++++ a/kernel/compat.c
+@@ -593,7 +593,7 @@ COMPAT_SYSCALL_DEFINE5(waitid,
+ 		else
+ 			ret = put_compat_rusage(&ru, uru);
+ 		if (ret)
+-			return ret;
++			return -EFAULT;
+ 	}
  
--typedef __SIZE_TYPE__	__kernel_size_t;
--typedef long		__kernel_ssize_t;
--typedef int		__kernel_ptrdiff_t;
--#define __kernel_size_t __kernel_size_t
+ 	BUG_ON(info.si_code & __SI_MASK);
+_
+
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
+
+origin.patch
+linux-next.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
+
