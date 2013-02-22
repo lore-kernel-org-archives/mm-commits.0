@@ -1,581 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:42:02 -0800
-Message-ID: <20130222204203.4947331C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-video-backlight-makefile-cleanup.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:42:06 -0800
+Message-ID: <20130222204206.912CE5A4282@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:45473 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab3BVUmE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:04 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so103931yen.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:04 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:48015 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829Ab3BVUmH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:07 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so103984qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maxime.ripard@free-electrons.com, FlorianSchandinat@gmx.de, brian@crystalfontz.com, grant.likely@secretlab.ca, jg1.han@samsung.com, joe@perches.com, rob.herring@calxeda.com, rpurdie@rpsys.net, shawn.guo@linaro.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fb: backlight: add the Himax HX-8357B LCD controller
+     Subject: drivers/video/backlight/Makefile: cleanup
 has been removed from the -mm tree.  Its filename was
-     fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+     drivers-video-backlight-makefile-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: fb: backlight: add the Himax HX-8357B LCD controller
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/video/backlight/Makefile: cleanup
 
-Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Fix up indenting.  Also alphasort all entries, which reduces patch
+collisions.
+
 Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: Brian Lilly <brian@crystalfontz.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig  |    7 
- drivers/video/backlight/Makefile |    1 
- drivers/video/backlight/hx8357.c |  497 +++++++++++++++++++++++++++++
- 3 files changed, 505 insertions(+)
+ drivers/video/backlight/Makefile |   90 ++++++++++++++---------------
+ 1 file changed, 45 insertions(+), 45 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~fb-backlight-add-the-himax-hx-8357b-lcd-controller drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~fb-backlight-add-the-himax-hx-8357b-lcd-controller
-+++ a/drivers/video/backlight/Kconfig
-@@ -134,6 +134,13 @@ config LCD_LMS501KF03
- 	  If you have an LMS501KF03 LCD Panel, say Y to enable its
- 	  LCD control driver.
- 
-+config LCD_HX8357
-+	tristate "Himax HX-8357 LCD Driver"
-+	depends on SPI
-+	help
-+	  If you have a HX-8357 LCD panel, say Y to enable its LCD control
-+	  driver.
-+
- endif # LCD_CLASS_DEVICE
- 
- #
-diff -puN drivers/video/backlight/Makefile~fb-backlight-add-the-himax-hx-8357b-lcd-controller drivers/video/backlight/Makefile
---- a/drivers/video/backlight/Makefile~fb-backlight-add-the-himax-hx-8357b-lcd-controller
+diff -puN drivers/video/backlight/Makefile~drivers-video-backlight-makefile-cleanup drivers/video/backlight/Makefile
+--- a/drivers/video/backlight/Makefile~drivers-video-backlight-makefile-cleanup
 +++ a/drivers/video/backlight/Makefile
-@@ -3,6 +3,7 @@
- obj-$(CONFIG_LCD_CLASS_DEVICE)     += lcd.o
- obj-$(CONFIG_LCD_CORGI)		   += corgi_lcd.o
- obj-$(CONFIG_LCD_HP700)		   += jornada720_lcd.o
-+obj-$(CONFIG_LCD_HX8357)	   += hx8357.o
- obj-$(CONFIG_LCD_L4F00242T03)	   += l4f00242t03.o
- obj-$(CONFIG_LCD_LMS283GF05)	   += lms283gf05.o
- obj-$(CONFIG_LCD_LTV350QV)	   += ltv350qv.o
-diff -puN /dev/null drivers/video/backlight/hx8357.c
---- /dev/null
-+++ a/drivers/video/backlight/hx8357.c
-@@ -0,0 +1,497 @@
-+/*
-+ * Driver for the Himax HX-8357 LCD Controller
-+ *
-+ * Copyright 2012 Free Electrons
-+ *
-+ * Licensed under the GPLv2 or later.
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/lcd.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <linux/spi/spi.h>
-+
-+#define HX8357_NUM_IM_PINS	3
-+
-+#define HX8357_SWRESET			0x01
-+#define HX8357_GET_RED_CHANNEL		0x06
-+#define HX8357_GET_GREEN_CHANNEL	0x07
-+#define HX8357_GET_BLUE_CHANNEL		0x08
-+#define HX8357_GET_POWER_MODE		0x0a
-+#define HX8357_GET_MADCTL		0x0b
-+#define HX8357_GET_PIXEL_FORMAT		0x0c
-+#define HX8357_GET_DISPLAY_MODE		0x0d
-+#define HX8357_GET_SIGNAL_MODE		0x0e
-+#define HX8357_GET_DIAGNOSTIC_RESULT	0x0f
-+#define HX8357_ENTER_SLEEP_MODE		0x10
-+#define HX8357_EXIT_SLEEP_MODE		0x11
-+#define HX8357_ENTER_PARTIAL_MODE	0x12
-+#define HX8357_ENTER_NORMAL_MODE	0x13
-+#define HX8357_EXIT_INVERSION_MODE	0x20
-+#define HX8357_ENTER_INVERSION_MODE	0x21
-+#define HX8357_SET_DISPLAY_OFF		0x28
-+#define HX8357_SET_DISPLAY_ON		0x29
-+#define HX8357_SET_COLUMN_ADDRESS	0x2a
-+#define HX8357_SET_PAGE_ADDRESS		0x2b
-+#define HX8357_WRITE_MEMORY_START	0x2c
-+#define HX8357_READ_MEMORY_START	0x2e
-+#define HX8357_SET_PARTIAL_AREA		0x30
-+#define HX8357_SET_SCROLL_AREA		0x33
-+#define HX8357_SET_TEAR_OFF		0x34
-+#define HX8357_SET_TEAR_ON		0x35
-+#define HX8357_SET_ADDRESS_MODE		0x36
-+#define HX8357_SET_SCROLL_START		0x37
-+#define HX8357_EXIT_IDLE_MODE		0x38
-+#define HX8357_ENTER_IDLE_MODE		0x39
-+#define HX8357_SET_PIXEL_FORMAT		0x3a
-+#define HX8357_SET_PIXEL_FORMAT_DBI_3BIT	(0x1)
-+#define HX8357_SET_PIXEL_FORMAT_DBI_16BIT	(0x5)
-+#define HX8357_SET_PIXEL_FORMAT_DBI_18BIT	(0x6)
-+#define HX8357_SET_PIXEL_FORMAT_DPI_3BIT	(0x1 << 4)
-+#define HX8357_SET_PIXEL_FORMAT_DPI_16BIT	(0x5 << 4)
-+#define HX8357_SET_PIXEL_FORMAT_DPI_18BIT	(0x6 << 4)
-+#define HX8357_WRITE_MEMORY_CONTINUE	0x3c
-+#define HX8357_READ_MEMORY_CONTINUE	0x3e
-+#define HX8357_SET_TEAR_SCAN_LINES	0x44
-+#define HX8357_GET_SCAN_LINES		0x45
-+#define HX8357_READ_DDB_START		0xa1
-+#define HX8357_SET_DISPLAY_MODE		0xb4
-+#define HX8357_SET_DISPLAY_MODE_RGB_THROUGH	(0x3)
-+#define HX8357_SET_DISPLAY_MODE_RGB_INTERFACE	(1 << 4)
-+#define HX8357_SET_PANEL_DRIVING	0xc0
-+#define HX8357_SET_DISPLAY_FRAME	0xc5
-+#define HX8357_SET_RGB			0xc6
-+#define HX8357_SET_RGB_ENABLE_HIGH		(1 << 1)
-+#define HX8357_SET_GAMMA		0xc8
-+#define HX8357_SET_POWER		0xd0
-+#define HX8357_SET_VCOM			0xd1
-+#define HX8357_SET_POWER_NORMAL		0xd2
-+#define HX8357_SET_PANEL_RELATED	0xe9
-+
-+struct hx8357_data {
-+	unsigned		im_pins[HX8357_NUM_IM_PINS];
-+	unsigned		reset;
-+	struct spi_device	*spi;
-+	int			state;
-+};
-+
-+static u8 hx8357_seq_power[] = {
-+	HX8357_SET_POWER, 0x44, 0x41, 0x06,
-+};
-+
-+static u8 hx8357_seq_vcom[] = {
-+	HX8357_SET_VCOM, 0x40, 0x10,
-+};
-+
-+static u8 hx8357_seq_power_normal[] = {
-+	HX8357_SET_POWER_NORMAL, 0x05, 0x12,
-+};
-+
-+static u8 hx8357_seq_panel_driving[] = {
-+	HX8357_SET_PANEL_DRIVING, 0x14, 0x3b, 0x00, 0x02, 0x11,
-+};
-+
-+static u8 hx8357_seq_display_frame[] = {
-+	HX8357_SET_DISPLAY_FRAME, 0x0c,
-+};
-+
-+static u8 hx8357_seq_panel_related[] = {
-+	HX8357_SET_PANEL_RELATED, 0x01,
-+};
-+
-+static u8 hx8357_seq_undefined1[] = {
-+	0xea, 0x03, 0x00, 0x00,
-+};
-+
-+static u8 hx8357_seq_undefined2[] = {
-+	0xeb, 0x40, 0x54, 0x26, 0xdb,
-+};
-+
-+static u8 hx8357_seq_gamma[] = {
-+	HX8357_SET_GAMMA, 0x00, 0x15, 0x00, 0x22, 0x00,
-+	0x08, 0x77, 0x26, 0x77, 0x22, 0x04, 0x00,
-+};
-+
-+static u8 hx8357_seq_address_mode[] = {
-+	HX8357_SET_ADDRESS_MODE, 0xc0,
-+};
-+
-+static u8 hx8357_seq_pixel_format[] = {
-+	HX8357_SET_PIXEL_FORMAT,
-+	HX8357_SET_PIXEL_FORMAT_DPI_18BIT |
-+	HX8357_SET_PIXEL_FORMAT_DBI_18BIT,
-+};
-+
-+static u8 hx8357_seq_column_address[] = {
-+	HX8357_SET_COLUMN_ADDRESS, 0x00, 0x00, 0x01, 0x3f,
-+};
-+
-+static u8 hx8357_seq_page_address[] = {
-+	HX8357_SET_PAGE_ADDRESS, 0x00, 0x00, 0x01, 0xdf,
-+};
-+
-+static u8 hx8357_seq_rgb[] = {
-+	HX8357_SET_RGB, 0x02,
-+};
-+
-+static u8 hx8357_seq_display_mode[] = {
-+	HX8357_SET_DISPLAY_MODE,
-+	HX8357_SET_DISPLAY_MODE_RGB_THROUGH |
-+	HX8357_SET_DISPLAY_MODE_RGB_INTERFACE,
-+};
-+
-+static int hx8357_spi_write_then_read(struct lcd_device *lcdev,
-+				u8 *txbuf, u16 txlen,
-+				u8 *rxbuf, u16 rxlen)
-+{
-+	struct hx8357_data *lcd = lcd_get_data(lcdev);
-+	struct spi_message msg;
-+	struct spi_transfer xfer[2];
-+	u16 *local_txbuf = NULL;
-+	int ret = 0;
-+
-+	memset(xfer, 0, sizeof(xfer));
-+	spi_message_init(&msg);
-+
-+	if (txlen) {
-+		int i;
-+
-+		local_txbuf = kcalloc(txlen, sizeof(*local_txbuf), GFP_KERNEL);
-+
-+		if (!local_txbuf)
-+			return -ENOMEM;
-+
-+		for (i = 0; i < txlen; i++) {
-+			local_txbuf[i] = txbuf[i];
-+			if (i > 0)
-+				local_txbuf[i] |= 1 << 8;
-+		}
-+
-+		xfer[0].len = 2 * txlen;
-+		xfer[0].bits_per_word = 9;
-+		xfer[0].tx_buf = local_txbuf;
-+		spi_message_add_tail(&xfer[0], &msg);
-+	}
-+
-+	if (rxlen) {
-+		xfer[1].len = rxlen;
-+		xfer[1].bits_per_word = 8;
-+		xfer[1].rx_buf = rxbuf;
-+		spi_message_add_tail(&xfer[1], &msg);
-+	}
-+
-+	ret = spi_sync(lcd->spi, &msg);
-+	if (ret < 0)
-+		dev_err(&lcdev->dev, "Couldn't send SPI data\n");
-+
-+	if (txlen)
-+		kfree(local_txbuf);
-+
-+	return ret;
-+}
-+
-+static inline int hx8357_spi_write_array(struct lcd_device *lcdev,
-+					u8 *value, u8 len)
-+{
-+	return hx8357_spi_write_then_read(lcdev, value, len, NULL, 0);
-+}
-+
-+static inline int hx8357_spi_write_byte(struct lcd_device *lcdev,
-+					u8 value)
-+{
-+	return hx8357_spi_write_then_read(lcdev, &value, 1, NULL, 0);
-+}
-+
-+static int hx8357_enter_standby(struct lcd_device *lcdev)
-+{
-+	int ret;
-+
-+	ret = hx8357_spi_write_byte(lcdev, HX8357_SET_DISPLAY_OFF);
-+	if (ret < 0)
-+		return ret;
-+
-+	usleep_range(10000, 12000);
-+
-+	ret = hx8357_spi_write_byte(lcdev, HX8357_ENTER_SLEEP_MODE);
-+	if (ret < 0)
-+		return ret;
-+
-+	msleep(120);
-+
-+	return 0;
-+}
-+
-+static int hx8357_exit_standby(struct lcd_device *lcdev)
-+{
-+	int ret;
-+
-+	ret = hx8357_spi_write_byte(lcdev, HX8357_EXIT_SLEEP_MODE);
-+	if (ret < 0)
-+		return ret;
-+
-+	msleep(120);
-+
-+	ret = hx8357_spi_write_byte(lcdev, HX8357_SET_DISPLAY_ON);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int hx8357_lcd_init(struct lcd_device *lcdev)
-+{
-+	struct hx8357_data *lcd = lcd_get_data(lcdev);
-+	int ret;
-+
-+	/*
-+	 * Set the interface selection pins to SPI mode, with three
-+	 * wires
-+	 */
-+	gpio_set_value_cansleep(lcd->im_pins[0], 1);
-+	gpio_set_value_cansleep(lcd->im_pins[1], 0);
-+	gpio_set_value_cansleep(lcd->im_pins[2], 1);
-+
-+	/* Reset the screen */
-+	gpio_set_value(lcd->reset, 1);
-+	usleep_range(10000, 12000);
-+	gpio_set_value(lcd->reset, 0);
-+	usleep_range(10000, 12000);
-+	gpio_set_value(lcd->reset, 1);
-+	msleep(120);
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_power,
-+				ARRAY_SIZE(hx8357_seq_power));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_vcom,
-+				ARRAY_SIZE(hx8357_seq_vcom));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_power_normal,
-+				ARRAY_SIZE(hx8357_seq_power_normal));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_panel_driving,
-+				ARRAY_SIZE(hx8357_seq_panel_driving));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_display_frame,
-+				ARRAY_SIZE(hx8357_seq_display_frame));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_panel_related,
-+				ARRAY_SIZE(hx8357_seq_panel_related));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_undefined1,
-+				ARRAY_SIZE(hx8357_seq_undefined1));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_undefined2,
-+				ARRAY_SIZE(hx8357_seq_undefined2));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_gamma,
-+				ARRAY_SIZE(hx8357_seq_gamma));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_address_mode,
-+				ARRAY_SIZE(hx8357_seq_address_mode));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_pixel_format,
-+				ARRAY_SIZE(hx8357_seq_pixel_format));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_column_address,
-+				ARRAY_SIZE(hx8357_seq_column_address));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_page_address,
-+				ARRAY_SIZE(hx8357_seq_page_address));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_rgb,
-+				ARRAY_SIZE(hx8357_seq_rgb));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_array(lcdev, hx8357_seq_display_mode,
-+				ARRAY_SIZE(hx8357_seq_display_mode));
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = hx8357_spi_write_byte(lcdev, HX8357_EXIT_SLEEP_MODE);
-+	if (ret < 0)
-+		return ret;
-+
-+	msleep(120);
-+
-+	ret = hx8357_spi_write_byte(lcdev, HX8357_SET_DISPLAY_ON);
-+	if (ret < 0)
-+		return ret;
-+
-+	usleep_range(5000, 7000);
-+
-+	ret = hx8357_spi_write_byte(lcdev, HX8357_WRITE_MEMORY_START);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+#define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
-+
-+static int hx8357_set_power(struct lcd_device *lcdev, int power)
-+{
-+	struct hx8357_data *lcd = lcd_get_data(lcdev);
-+	int ret = 0;
-+
-+	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->state))
-+		ret = hx8357_exit_standby(lcdev);
-+	else if (!POWER_IS_ON(power) && POWER_IS_ON(lcd->state))
-+		ret = hx8357_enter_standby(lcdev);
-+
-+	if (ret == 0)
-+		lcd->state = power;
-+	else
-+		dev_warn(&lcdev->dev, "failed to set power mode %d\n", power);
-+
-+	return ret;
-+}
-+
-+static int hx8357_get_power(struct lcd_device *lcdev)
-+{
-+	struct hx8357_data *lcd = lcd_get_data(lcdev);
-+
-+	return lcd->state;
-+}
-+
-+static struct lcd_ops hx8357_ops = {
-+	.set_power	= hx8357_set_power,
-+	.get_power	= hx8357_get_power,
-+};
-+
-+static int hx8357_probe(struct spi_device *spi)
-+{
-+	struct lcd_device *lcdev;
-+	struct hx8357_data *lcd;
-+	int i, ret;
-+
-+	lcd = devm_kzalloc(&spi->dev, sizeof(*lcd), GFP_KERNEL);
-+	if (!lcd) {
-+		dev_err(&spi->dev, "Couldn't allocate lcd internal structure!\n");
-+		return -ENOMEM;
-+	}
-+
-+	ret = spi_setup(spi);
-+	if (ret < 0) {
-+		dev_err(&spi->dev, "SPI setup failed.\n");
-+		return ret;
-+	}
-+
-+	lcd->spi = spi;
-+
-+	lcd->reset = of_get_named_gpio(spi->dev.of_node, "gpios-reset", 0);
-+	if (!gpio_is_valid(lcd->reset)) {
-+		dev_err(&spi->dev, "Missing dt property: gpios-reset\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = devm_gpio_request_one(&spi->dev, lcd->reset,
-+				    GPIOF_OUT_INIT_HIGH,
-+				    "hx8357-reset");
-+	if (ret) {
-+		dev_err(&spi->dev,
-+			"failed to request gpio %d: %d\n",
-+			lcd->reset, ret);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < HX8357_NUM_IM_PINS; i++) {
-+		lcd->im_pins[i] = of_get_named_gpio(spi->dev.of_node,
-+						"im-gpios", i);
-+		if (lcd->im_pins[i] == -EPROBE_DEFER) {
-+			dev_info(&spi->dev, "GPIO requested is not here yet, deferring the probe\n");
-+			return -EPROBE_DEFER;
-+		}
-+		if (!gpio_is_valid(lcd->im_pins[i])) {
-+			dev_err(&spi->dev, "Missing dt property: im-gpios\n");
-+			return -EINVAL;
-+		}
-+
-+		ret = devm_gpio_request_one(&spi->dev, lcd->im_pins[i],
-+					GPIOF_OUT_INIT_LOW, "im_pins");
-+		if (ret) {
-+			dev_err(&spi->dev, "failed to request gpio %d: %d\n",
-+				lcd->im_pins[i], ret);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	lcdev = lcd_device_register("mxsfb", &spi->dev, lcd, &hx8357_ops);
-+	if (IS_ERR(lcdev)) {
-+		ret = PTR_ERR(lcdev);
-+		return ret;
-+	}
-+	spi_set_drvdata(spi, lcdev);
-+
-+	ret = hx8357_lcd_init(lcdev);
-+	if (ret) {
-+		dev_err(&spi->dev, "Couldn't initialize panel\n");
-+		goto init_error;
-+	}
-+
-+	dev_info(&spi->dev, "Panel probed\n");
-+
-+	return 0;
-+
-+init_error:
-+	lcd_device_unregister(lcdev);
-+	return ret;
-+}
-+
-+static int hx8357_remove(struct spi_device *spi)
-+{
-+	struct lcd_device *lcdev = spi_get_drvdata(spi);
-+
-+	lcd_device_unregister(lcdev);
-+	return 0;
-+}
-+
-+static const struct of_device_id hx8357_dt_ids[] = {
-+	{ .compatible = "himax,hx8357" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, hx8357_dt_ids);
-+
-+static struct spi_driver hx8357_driver = {
-+	.probe  = hx8357_probe,
-+	.remove = hx8357_remove,
-+	.driver = {
-+		.name = "hx8357",
-+		.of_match_table = of_match_ptr(hx8357_dt_ids),
-+	},
-+};
-+
-+module_spi_driver(hx8357_driver);
-+
-+MODULE_AUTHOR("Maxime Ripard <maxime.ripard@free-electrons.com>");
-+MODULE_DESCRIPTION("Himax HX-8357 LCD Driver");
-+MODULE_LICENSE("GPL");
+@@ -1,49 +1,49 @@
+ # Backlight & LCD drivers
+ 
+-obj-$(CONFIG_LCD_CLASS_DEVICE)     += lcd.o
+-obj-$(CONFIG_LCD_CORGI)		   += corgi_lcd.o
+-obj-$(CONFIG_LCD_HP700)		   += jornada720_lcd.o
+-obj-$(CONFIG_LCD_HX8357)	   += hx8357.o
+-obj-$(CONFIG_LCD_L4F00242T03)	   += l4f00242t03.o
+-obj-$(CONFIG_LCD_LMS283GF05)	   += lms283gf05.o
+-obj-$(CONFIG_LCD_LTV350QV)	   += ltv350qv.o
+-obj-$(CONFIG_LCD_ILI9320)	   += ili9320.o
+-obj-$(CONFIG_LCD_PLATFORM)	   += platform_lcd.o
+-obj-$(CONFIG_LCD_VGG2432A4)	   += vgg2432a4.o
+-obj-$(CONFIG_LCD_TDO24M)	   += tdo24m.o
+-obj-$(CONFIG_LCD_TOSA)		   += tosa_lcd.o
+-obj-$(CONFIG_LCD_S6E63M0)	+= s6e63m0.o
+-obj-$(CONFIG_LCD_LD9040)	+= ld9040.o
+-obj-$(CONFIG_LCD_AMS369FG06)	+= ams369fg06.o
+-obj-$(CONFIG_LCD_LMS501KF03)	+= lms501kf03.o
++obj-$(CONFIG_LCD_AMS369FG06)		+= ams369fg06.o
++obj-$(CONFIG_LCD_CLASS_DEVICE)		+= lcd.o
++obj-$(CONFIG_LCD_CORGI)			+= corgi_lcd.o
++obj-$(CONFIG_LCD_HP700)			+= jornada720_lcd.o
++obj-$(CONFIG_LCD_HX8357)		+= hx8357.o
++obj-$(CONFIG_LCD_ILI9320)		+= ili9320.o
++obj-$(CONFIG_LCD_L4F00242T03)		+= l4f00242t03.o
++obj-$(CONFIG_LCD_LD9040)		+= ld9040.o
++obj-$(CONFIG_LCD_LMS283GF05)		+= lms283gf05.o
++obj-$(CONFIG_LCD_LMS501KF03)		+= lms501kf03.o
++obj-$(CONFIG_LCD_LTV350QV)		+= ltv350qv.o
++obj-$(CONFIG_LCD_PLATFORM)		+= platform_lcd.o
++obj-$(CONFIG_LCD_S6E63M0)		+= s6e63m0.o
++obj-$(CONFIG_LCD_TDO24M)		+= tdo24m.o
++obj-$(CONFIG_LCD_TOSA)			+= tosa_lcd.o
++obj-$(CONFIG_LCD_VGG2432A4)		+= vgg2432a4.o
+ 
+-obj-$(CONFIG_BACKLIGHT_CLASS_DEVICE) += backlight.o
+-obj-$(CONFIG_BACKLIGHT_ATMEL_PWM)    += atmel-pwm-bl.o
+-obj-$(CONFIG_BACKLIGHT_EP93XX)	+= ep93xx_bl.o
+-obj-$(CONFIG_BACKLIGHT_GENERIC)	+= generic_bl.o
+-obj-$(CONFIG_BACKLIGHT_HP700)	+= jornada720_bl.o
+-obj-$(CONFIG_BACKLIGHT_HP680)	+= hp680_bl.o
+-obj-$(CONFIG_BACKLIGHT_LM3533)	+= lm3533_bl.o
+-obj-$(CONFIG_BACKLIGHT_LOCOMO)	+= locomolcd.o
+-obj-$(CONFIG_BACKLIGHT_LM3630)	+= lm3630_bl.o
+-obj-$(CONFIG_BACKLIGHT_LM3639)	+= lm3639_bl.o
+-obj-$(CONFIG_BACKLIGHT_LP855X)	+= lp855x_bl.o
+-obj-$(CONFIG_BACKLIGHT_OMAP1)	+= omap1_bl.o
+-obj-$(CONFIG_BACKLIGHT_PANDORA)	+= pandora_bl.o
+-obj-$(CONFIG_BACKLIGHT_CARILLO_RANCH) += cr_bllcd.o
+-obj-$(CONFIG_BACKLIGHT_PWM)	+= pwm_bl.o
+-obj-$(CONFIG_BACKLIGHT_DA903X)	+= da903x_bl.o
+-obj-$(CONFIG_BACKLIGHT_DA9052)	+= da9052_bl.o
+-obj-$(CONFIG_BACKLIGHT_MAX8925)	+= max8925_bl.o
+-obj-$(CONFIG_BACKLIGHT_APPLE)	+= apple_bl.o
+-obj-$(CONFIG_BACKLIGHT_TOSA)	+= tosa_bl.o
+-obj-$(CONFIG_BACKLIGHT_SAHARA)	+= kb3886_bl.o
+-obj-$(CONFIG_BACKLIGHT_WM831X)	+= wm831x_bl.o
+-obj-$(CONFIG_BACKLIGHT_ADP5520)	+= adp5520_bl.o
+-obj-$(CONFIG_BACKLIGHT_ADP8860)	+= adp8860_bl.o
+-obj-$(CONFIG_BACKLIGHT_ADP8870)	+= adp8870_bl.o
+-obj-$(CONFIG_BACKLIGHT_88PM860X) += 88pm860x_bl.o
++obj-$(CONFIG_BACKLIGHT_88PM860X)	+= 88pm860x_bl.o
++obj-$(CONFIG_BACKLIGHT_AAT2870)		+= aat2870_bl.o
++obj-$(CONFIG_BACKLIGHT_ADP5520)		+= adp5520_bl.o
++obj-$(CONFIG_BACKLIGHT_ADP8860)		+= adp8860_bl.o
++obj-$(CONFIG_BACKLIGHT_ADP8870)		+= adp8870_bl.o
++obj-$(CONFIG_BACKLIGHT_APPLE)		+= apple_bl.o
++obj-$(CONFIG_BACKLIGHT_ATMEL_PWM)	+= atmel-pwm-bl.o
++obj-$(CONFIG_BACKLIGHT_CARILLO_RANCH)	+= cr_bllcd.o
++obj-$(CONFIG_BACKLIGHT_CLASS_DEVICE)	+= backlight.o
++obj-$(CONFIG_BACKLIGHT_DA903X)		+= da903x_bl.o
++obj-$(CONFIG_BACKLIGHT_DA9052)		+= da9052_bl.o
++obj-$(CONFIG_BACKLIGHT_EP93XX)		+= ep93xx_bl.o
++obj-$(CONFIG_BACKLIGHT_GENERIC)		+= generic_bl.o
++obj-$(CONFIG_BACKLIGHT_HP680)		+= hp680_bl.o
++obj-$(CONFIG_BACKLIGHT_HP700)		+= jornada720_bl.o
++obj-$(CONFIG_BACKLIGHT_LM3533)		+= lm3533_bl.o
++obj-$(CONFIG_BACKLIGHT_LM3630)		+= lm3630_bl.o
++obj-$(CONFIG_BACKLIGHT_LM3639)		+= lm3639_bl.o
++obj-$(CONFIG_BACKLIGHT_LOCOMO)		+= locomolcd.o
++obj-$(CONFIG_BACKLIGHT_LP855X)		+= lp855x_bl.o
++obj-$(CONFIG_BACKLIGHT_MAX8925)		+= max8925_bl.o
++obj-$(CONFIG_BACKLIGHT_OMAP1)		+= omap1_bl.o
++obj-$(CONFIG_BACKLIGHT_OT200)		+= ot200_bl.o
++obj-$(CONFIG_BACKLIGHT_PANDORA)		+= pandora_bl.o
+ obj-$(CONFIG_BACKLIGHT_PCF50633)	+= pcf50633-backlight.o
+-obj-$(CONFIG_BACKLIGHT_AAT2870) += aat2870_bl.o
+-obj-$(CONFIG_BACKLIGHT_OT200) += ot200_bl.o
+-obj-$(CONFIG_BACKLIGHT_TPS65217) += tps65217_bl.o
++obj-$(CONFIG_BACKLIGHT_PWM)		+= pwm_bl.o
++obj-$(CONFIG_BACKLIGHT_SAHARA)		+= kb3886_bl.o
++obj-$(CONFIG_BACKLIGHT_TOSA)		+= tosa_bl.o
++obj-$(CONFIG_BACKLIGHT_TPS65217)	+= tps65217_bl.o
++obj-$(CONFIG_BACKLIGHT_WM831X)		+= wm831x_bl.o
 _
 
-Patches currently in -mm which might be from maxime.ripard@free-electrons.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+tmpfs-fix-mempolicy-object-leaks-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
+lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+selftests-add-tests-for-efivarfs-fix.patch
+selftests-add-tests-for-efivarfs-fix-fix.patch
+tools-testing-selftests-makefile-rearrange-targets.patch
+selftests-add-a-simple-doc-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
