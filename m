@@ -1,76 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:41:50 -0800
-Message-ID: <20130222234150.B27B55A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:41:54 -0800
+Message-ID: <20130222234154.DBD185A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:60285 "EHLO
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:53724 "EHLO
 	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757647Ab3BVXlw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:41:52 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so120521qcr.2
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:41:51 -0800 (PST)
+	with ESMTP id S1757647Ab3BVXl4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:41:56 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so120462qcr.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:41:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, mingo@elte.hu, rdunlap@infradead.org, tangchen@cn.fujitsu.com, tglx@linutronix.de, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix
+     Subject: memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+     memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
 
 This patch was dropped because it was folded into memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix
+Subject: memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix
 
-fix warning when CONFIG_NEED_MULTIPLE_NODES=n
+fix the warning again again
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Tested-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Wu Jianguo <wujianguo@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memory_hotplug.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix
+diff -puN mm/memory_hotplug.c~memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix
 +++ a/mm/memory_hotplug.c
-@@ -1077,7 +1077,8 @@ out:
- int __ref add_memory(int nid, u64 start, u64 size)
- {
- 	pg_data_t *pgdat = NULL;
--	int new_pgdat = 0, new_node = 0;
-+	bool new_pgdat;
-+	bool new_node;
- 	struct resource *res;
- 	int ret;
- 
-@@ -1088,8 +1089,8 @@ int __ref add_memory(int nid, u64 start,
+@@ -1089,7 +1089,10 @@ int __ref add_memory(int nid, u64 start,
  	if (!res)
  		goto out;
  
--	new_pgdat = NODE_DATA(nid) ? 0 : 1;
--	new_node = node_online(nid) ? 0 : 1;
-+	new_pgdat = (NODE_DATA(nid) == NULL);
-+	new_node = !node_online(nid);
+-	new_pgdat = (NODE_DATA(nid) == NULL);
++	{	/* Stupid hack to suppress address-never-null warning */
++		void *p = NODE_DATA(nid);
++		new_pgdat = !p;
++	}
+ 	new_node = !node_online(nid);
  	if (new_node) {
  		pgdat = hotadd_new_pgdat(nid, start);
- 		ret = -ENOMEM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,7 +71,6 @@ mm-remove-flags-argument-to-mmap_region.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
 cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
 cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix.patch
