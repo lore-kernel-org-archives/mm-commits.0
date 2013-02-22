@@ -1,76 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ams369fg06-replace-efault-with-einval.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:40:50 -0800
-Message-ID: <20130222204050.AC9885A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-ams369fg06-remove-redundant-variable-before_power.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:40:53 -0800
+Message-ID: <20130222204053.A736331C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:44827 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757543Ab3BVUkv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:40:51 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so103817ggi.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:40:51 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:61045 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757788Ab3BVUky (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:40:54 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so118871qah.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:40:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: ams369fg06: replace EFAULT with EINVAL
+     Subject: backlight: ams369fg06: remove redundant variable 'before_power'
 has been removed from the -mm tree.  Its filename was
-     backlight-ams369fg06-replace-efault-with-einval.patch
+     backlight-ams369fg06-remove-redundant-variable-before_power.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: replace EFAULT with EINVAL
+Subject: backlight: ams369fg06: remove redundant variable 'before_power'
 
-Replace EFAULT with EINVAL, because EFAULT tends to be for the invalid
-memory addresses.
+'before_power' was used to check the previous status when resume() is
+called.  However, FB_BLANK_POWERDOWN was used in suspend() all the time,
+so there is no need to check the previous status.  Also, redundant return
+variables are removed to reduce the code.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/ams369fg06.c |   24 +++---------------------
+ 1 file changed, 3 insertions(+), 21 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-replace-efault-with-einval drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-replace-efault-with-einval
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-remove-redundant-variable-before_power drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-remove-redundant-variable-before_power
 +++ a/drivers/video/backlight/ams369fg06.c
-@@ -328,7 +328,7 @@ static int ams369fg06_power_on(struct am
+@@ -545,44 +545,26 @@ static int ams369fg06_remove(struct spi_
+ }
  
- 	if (!pd->power_on) {
- 		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
-+		return -EINVAL;
- 	} else {
- 		pd->power_on(lcd->ld, 1);
- 		msleep(pd->power_on_delay);
-@@ -336,7 +336,7 @@ static int ams369fg06_power_on(struct am
+ #if defined(CONFIG_PM)
+-static unsigned int before_power;
+-
+ static int ams369fg06_suspend(struct spi_device *spi, pm_message_t mesg)
+ {
+-	int ret = 0;
+ 	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
  
- 	if (!pd->reset) {
- 		dev_err(lcd->dev, "reset is NULL.\n");
--		return -EFAULT;
-+		return -EINVAL;
- 	} else {
- 		pd->reset(lcd->ld);
- 		msleep(pd->reset_delay);
-@@ -485,7 +485,7 @@ static int ams369fg06_probe(struct spi_d
- 	lcd->lcd_pd = spi->dev.platform_data;
- 	if (!lcd->lcd_pd) {
- 		dev_err(&spi->dev, "platform data is NULL\n");
--		return -EFAULT;
-+		return -EINVAL;
- 	}
+ 	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
  
- 	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-linux-next.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
-
+-	before_power = lcd->power;
+-
+ 	/*
+ 	 * when lcd panel is suspend, lcd panel becomes off
+ 	 * regardless of status.
+ 	 */
+-	ret = ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
+-
+-	return ret;
++	return ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
+ }
+ 
+ static int ams369fg06_resume(struct spi_device *spi)
+ {
+-	int ret = 0;
+ 	struct ams369fg06 *lcd = dev_get_drvdata(&spi->dev);
+ 
+-	/*
+-	 * after suspended, if lcd panel status is FB_BLANK_UNBLANK
+-	 * (at that time, before_power is FB_BLANK_UNBLANK) then
+-	 * it changes that status to FB_BLANK_POWERDOWN to get lcd on.
+-	 */
+-	if (before_power == FB_BLANK_UNBLANK)
+-		lcd->power = FB_BLANK_POWERDOWN;
+-
+-	dev_dbg(&spi->dev, "before_power = %d\n", before_power);
