@@ -1,35 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:46:42 -0800
-Message-ID: <20130222234643.1315631C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:46:45 -0800
+Message-ID: <20130222234645.D21D35A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:62103 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758284Ab3BVXqn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:46:43 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so120886yhz.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:46:43 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:53144 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757987Ab3BVXqq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:46:46 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so120853ggn.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:46:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
+     Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
 
 This patch was dropped because it was folded into acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
+Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix
 
-mm/page_alloc.c: In function 'cmdline_parse_movablemem_map':
-mm/page_alloc.c:5372: warning: comparison of distinct pointer types lacks a cast
-
-not the right fix, but I'm tired of the warning
+use strcmp()
 
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -38,15 +35,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix mm/page_alloc.c
---- a/mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
+diff -puN mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix
 +++ a/mm/page_alloc.c
 @@ -5317,7 +5317,7 @@ static int __init cmdline_parse_movablem
  	if (!p)
  		goto err;
  
--	if (!strncmp(p, "acpi", max(4, strlen(p))))
-+	if (!strncmp(p, "acpi", max_t(size_t, 4, strlen(p))))
+-	if (!strncmp(p, "acpi", max_t(size_t, 4, strlen(p))))
++	if (!strcmp(p, "acpi"))
  		movablemem_map.acpi = true;
  
  	/*
@@ -75,7 +72,6 @@ cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
 page_alloc-add-movable_memmap-kernel-parameter.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
 memory-failure-do-code-refactor-of-soft_offline_page.patch
 memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
 mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
