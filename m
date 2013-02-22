@@ -1,114 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-davinci-use-devm_-functions.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:45:14 -0800
-Message-ID: <20130222204514.94BA431C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: + kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch added to -mm tree
+Date: Fri, 22 Feb 2013 13:13:50 -0800
+Message-ID: <20130222211350.B80355A4252@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:51274 "EHLO
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:34599 "EHLO
 	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756244Ab3BVUpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:45:15 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so103807vbi.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:45:15 -0800 (PST)
+	with ESMTP id S1757737Ab3BVVNw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 16:13:52 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so107338vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 13:13:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jwboyer@redhat.com, eparis@redhat.com, jmorris@namei.org, lists@nerdbynature.de, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-davinci: use devm_*() functions
-has been removed from the -mm tree.  Its filename was
-     rtc-rtc-davinci-use-devm_-functions.patch
+     Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+has been added to the -mm tree.  Its filename is
+     kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-davinci: use devm_*() functions
+From: Josh Boyer <jwboyer@redhat.com>
+Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
 
-Use devm_*() functions to make cleanup paths more simple.
+Originally, the addition of dmesg_restrict covered both the syslog
+method of accessing dmesg, as well as /dev/kmsg itself.  This was done
+indirectly by security_syslog calling cap_syslog before doing any LSM
+checks.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+However, commit 12b3052c3ee ("capabilities/syslog: open code cap_syslog
+logic to fix build failure") moved the code around and pushed the checks
+into the caller itself.  That seems to have inadvertently dropped the
+checks for dmesg_restrict on /dev/kmsg.  Most people haven't noticed
+because util-linux dmesg(1) defaults to using the syslog method for access
+in older versions.  With util-linux 2.22 and a kernel newer than 3.5,
+dmesg(1) defaults to reading directly from /dev/kmsg.
+
+Fix this by making an explicit check in the devkmsg_open function.
+
+This fixes https://bugzilla.redhat.com/show_bug.cgi?id=903192
+
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Reported-by: Christian Kujau <lists@nerdbynature.de>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-davinci.c |   28 ++++++++++------------------
- 1 file changed, 10 insertions(+), 18 deletions(-)
+ kernel/printk.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_-functions drivers/rtc/rtc-davinci.c
---- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_-functions
-+++ a/drivers/rtc/rtc-davinci.c
-@@ -506,19 +506,19 @@ static int __init davinci_rtc_probe(stru
- 	davinci_rtc->pbase = res->start;
- 	davinci_rtc->base_size = resource_size(res);
+diff -puN kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg kernel/printk.c
+--- a/kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
++++ a/kernel/printk.c
+@@ -621,6 +621,9 @@ static int devkmsg_open(struct inode *in
+ 	struct devkmsg_user *user;
+ 	int err;
  
--	mem = request_mem_region(davinci_rtc->pbase, davinci_rtc->base_size,
--				 pdev->name);
-+	mem = devm_request_mem_region(dev, davinci_rtc->pbase,
-+				davinci_rtc->base_size, pdev->name);
- 	if (!mem) {
- 		dev_err(dev, "RTC registers at %08x are not free\n",
- 			davinci_rtc->pbase);
- 		return -EBUSY;
- 	}
- 
--	davinci_rtc->base = ioremap(davinci_rtc->pbase, davinci_rtc->base_size);
-+	davinci_rtc->base = devm_ioremap(dev, davinci_rtc->pbase,
-+					davinci_rtc->base_size);
- 	if (!davinci_rtc->base) {
- 		dev_err(dev, "unable to ioremap MEM resource\n");
--		ret = -ENOMEM;
--		goto fail2;
-+		return -ENOMEM;
- 	}
- 
- 	platform_set_drvdata(pdev, davinci_rtc);
-@@ -529,7 +529,7 @@ static int __init davinci_rtc_probe(stru
- 		ret = PTR_ERR(davinci_rtc->rtc);
- 		dev_err(dev, "unable to register RTC device, err %d\n",
- 				ret);
--		goto fail3;
-+		goto fail1;
- 	}
- 
- 	rtcif_write(davinci_rtc, PRTCIF_INTFLG_RTCSS, PRTCIF_INTFLG);
-@@ -539,11 +539,11 @@ static int __init davinci_rtc_probe(stru
- 	rtcss_write(davinci_rtc, 0, PRTCSS_RTC_CTRL);
- 	rtcss_write(davinci_rtc, 0, PRTCSS_RTC_CCTRL);
- 
--	ret = request_irq(davinci_rtc->irq, davinci_rtc_interrupt,
-+	ret = devm_request_irq(dev, davinci_rtc->irq, davinci_rtc_interrupt,
- 			  0, "davinci_rtc", davinci_rtc);
- 	if (ret < 0) {
- 		dev_err(dev, "unable to register davinci RTC interrupt\n");
--		goto fail4;
-+		goto fail2;
- 	}
- 
- 	/* Enable interrupts */
-@@ -557,13 +557,10 @@ static int __init davinci_rtc_probe(stru
- 
- 	return 0;
- 
--fail4:
-+fail2:
- 	rtc_device_unregister(davinci_rtc->rtc);
--fail3:
-+fail1:
- 	platform_set_drvdata(pdev, NULL);
--	iounmap(davinci_rtc->base);
--fail2:
--	release_mem_region(davinci_rtc->pbase, davinci_rtc->base_size);
- 	return ret;
- }
- 
-@@ -575,13 +572,8 @@ static int davinci_rtc_remove(struct pla
- 
- 	rtcif_write(davinci_rtc, 0, PRTCIF_INTEN);
- 
--	free_irq(davinci_rtc->irq, davinci_rtc);
--
- 	rtc_device_unregister(davinci_rtc->rtc);
- 
--	iounmap(davinci_rtc->base);
--	release_mem_region(davinci_rtc->pbase, davinci_rtc->base_size);
++	if (dmesg_restrict && !capable(CAP_SYSLOG))
++		return -EACCES;
++
+ 	/* write-only does not need any file context */
+ 	if ((file->f_flags & O_ACCMODE) == O_WRONLY)
+ 		return 0;
+_
+
+Patches currently in -mm which might be from jwboyer@redhat.com are
+
+origin.patch
+linux-next.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+aio-v2-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
+aio-v3-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
+
