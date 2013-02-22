@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:38:13 -0800
-Message-ID: <20130222233814.0AC1E5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:38:10 -0800
+Message-ID: <20130222233810.D200931C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:40401 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756986Ab3BVXiP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:38:15 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so120535ghb.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:38:14 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:33531 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756986Ab3BVXiM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:38:12 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so120431vch.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:38:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Bug fix: Do not free direct mapping pages twice.
+     Subject: Bug fix: Do not calculate direct mapping pages when freeing vmemmap pagetables.
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix.patch
+     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch
 
 This patch was dropped because it was folded into memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Bug fix: Do not free direct mapping pages twice.
+Subject: Bug fix: Do not calculate direct mapping pages when freeing vmemmap pagetables.
 
-Direct mapped pages were freed when they were offlined, or they were not
-allocated.  So we only need to free vmemmap pages, no need to free direct
-mapped pages.
+We only need to update direct_pages_count[level] when we freeing direct mapped
+pagetables.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
@@ -38,37 +37,78 @@ Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix
 +++ a/arch/x86/mm/init_64.c
-@@ -829,6 +829,10 @@ remove_pte_table(pte_t *pte_start, unsig
+@@ -829,14 +829,13 @@ remove_pte_table(pte_t *pte_start, unsig
  
  		if (IS_ALIGNED(addr, PAGE_SIZE) &&
  		    IS_ALIGNED(next, PAGE_SIZE)) {
-+			/*
-+			 * Do not free direct mapping pages since they were
-+			 * freed when offlining.
-+			 */
- 			if (!direct)
+-			if (!direct) {
++			if (!direct)
  				free_pagetable(pte_page(*pte), 0);
+-				pages++;
+-			}
  
-@@ -844,10 +848,11 @@ remove_pte_table(pte_t *pte_start, unsig
- 			 * remove the page when it is wholly filled with 0xFD.
- 			 */
- 			memset((void *)addr, PAGE_INUSE, next - addr);
--			page_addr = page_address(pte_page(*pte));
+ 			spin_lock(&init_mm.page_table_lock);
+ 			pte_clear(&init_mm, addr, pte);
+ 			spin_unlock(&init_mm.page_table_lock);
++			pages++;
+ 		} else {
+ 			/*
+ 			 * If we are not removing the whole page, it means
+@@ -849,11 +848,11 @@ remove_pte_table(pte_t *pte_start, unsig
  
-+			page_addr = page_address(pte_page(*pte));
  			if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
--				free_pagetable(pte_page(*pte), 0);
-+				if (!direct)
-+					free_pagetable(pte_page(*pte), 0);
+ 				free_pagetable(pte_page(*pte), 0);
+-				pages++;
  
  				spin_lock(&init_mm.page_table_lock);
  				pte_clear(&init_mm, addr, pte);
+ 				spin_unlock(&init_mm.page_table_lock);
++				pages++;
+ 			}
+ 		}
+ 	}
+@@ -882,15 +881,14 @@ remove_pmd_table(pmd_t *pmd_start, unsig
+ 		if (pmd_large(*pmd)) {
+ 			if (IS_ALIGNED(addr, PMD_SIZE) &&
+ 			    IS_ALIGNED(next, PMD_SIZE)) {
+-				if (!direct) {
++				if (!direct)
+ 					free_pagetable(pmd_page(*pmd),
+ 						       get_order(PMD_SIZE));
+-					pages++;
+-				}
+ 
+ 				spin_lock(&init_mm.page_table_lock);
+ 				pmd_clear(pmd);
+ 				spin_unlock(&init_mm.page_table_lock);
++				pages++;
+ 				continue;
+ 			}
+ 
+@@ -939,15 +937,14 @@ remove_pud_table(pud_t *pud_start, unsig
+ 		if (pud_large(*pud)) {
+ 			if (IS_ALIGNED(addr, PUD_SIZE) &&
+ 			    IS_ALIGNED(next, PUD_SIZE)) {
+-				if (!direct) {
++				if (!direct)
+ 					free_pagetable(pud_page(*pud),
+ 						       get_order(PUD_SIZE));
+-					pages++;
+-				}
+ 
+ 				spin_lock(&init_mm.page_table_lock);
+ 				pud_clear(pud);
+ 				spin_unlock(&init_mm.page_table_lock);
++				pages++;
+ 				continue;
+ 			}
+ 
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
@@ -81,6 +121,7 @@ memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
 memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
 memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
