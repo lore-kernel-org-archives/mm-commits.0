@@ -1,37 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:45:47 -0800
-Message-ID: <20130222234548.09EB45A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:45:43 -0800
+Message-ID: <20130222234544.27AA35A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:64558 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756408Ab3BVXpt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:45:49 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so136363qah.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:45:48 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:63426 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755741Ab3BVXpp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:45:45 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so120701yhr.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:45:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, laijs@cn.fujitsu.com, shli@kernel.org, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, laijs@cn.fujitsu.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi, movablemem_map: Do not zero numa_meminfo in numa_init().
+     Subject: acpi, memory-hotplug: parse SRAT before memblock is ready fix
 has been removed from the -mm tree.  Its filename was
-     acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix.patch
+     acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix.patch
 
 This patch was dropped because it was folded into acpi-memory-hotplug-parse-srat-before-memblock-is-ready.patch
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, movablemem_map: Do not zero numa_meminfo in numa_init().
+From: Michal Hocko <mhocko@suse.cz>
+Subject: acpi, memory-hotplug: parse SRAT before memblock is ready fix
 
-early_parse_srat() is called before numa_init(), and has initialized
-numa_meminfo. So do not zero numa_meminfo in numa_init(), otherwise
-we will lose memory numa info.
+alnoconfig complains:
+arch/x86/kernel/setup.c: In function `setup_arch':
+arch/x86/kernel/setup.c:917: error: implicit declaration of function `early_parse_srat'
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reported-by: Li Shaohua <shli@kernel.org>
+because early_parse_srat is not declared for !CONFIG_ACPI. Moreover it
+is defined only for CONFIG_ACPI_NUMA.
+
+I am not sure what is the correct way to fix this but I guess that
+providing an empty definition for !CONFIG_ACPI_NUMA is OK.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
 Cc: Jiang Liu <jiang.liu@huawei.com>
@@ -41,66 +46,82 @@ Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/acpi.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/numa.c~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix-fix
-+++ a/arch/x86/mm/numa.c
-@@ -559,10 +559,12 @@ static int __init numa_init(int (*init_f
- 	for (i = 0; i < MAX_LOCAL_APIC; i++)
- 		set_apicid_to_node(i, NUMA_NO_NODE);
+diff -puN include/linux/acpi.h~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix include/linux/acpi.h
+--- a/include/linux/acpi.h~acpi-memory-hotplug-parse-srat-before-memblock-is-ready-fix
++++ a/include/linux/acpi.h
+@@ -94,7 +94,6 @@ int acpi_boot_init (void);
+ void acpi_boot_table_init (void);
+ int acpi_mps_check (void);
+ int acpi_numa_init (void);
+-void __init early_parse_srat(void);
  
--	/* Do not clear numa_nodes_parsed because SRAT was parsed earlier. */
-+	/*
-+	 * Do not clear numa_nodes_parsed or zero numa_meminfo here, because
-+	 * SRAT was parsed earlier in early_parse_srat().
-+	 */
- 	nodes_clear(node_possible_map);
- 	nodes_clear(node_online_map);
--	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
- 	WARN_ON(memblock_set_node(0, ULLONG_MAX, MAX_NUMNODES));
- 	numa_reset_distance();
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+@@ -486,6 +485,14 @@ static inline bool acpi_driver_match_dev
  
+ #endif	/* !CONFIG_ACPI */
+ 
++#ifdef CONFIG_ACPI_NUMA
++void __init early_parse_srat(void);
++#else
++static inline void early_parse_srat(void)
++{
++}
++#endif
++
+ #ifdef CONFIG_ACPI
+ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+ 			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-memory-hotplug-try-to-offline-the-memory-twice-to-avoid-dependence.patch
-memory-hotplug-check-whether-all-memory-blocks-are-offlined-or-not-when-removing-memory.patch
-memory-hotplug-remove-redundant-codes.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
-memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
+origin.patch
+memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
+mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
+mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
+mm-vmscan-improve-comment-on-low-page-cache-handling.patch
+mm-vmscan-clean-up-get_scan_count.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
+mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmksm-use-new-hashtable-implementation.patch
+memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
 memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
-memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 memory-hotplug-remove-memmap-of-sparse-vmemmap.patch
-memory-hotplug-integrated-__remove_section-of-config_sparsemem_vmemmap.patch
-memory_hotplug-clear-zone-when-removing-the-memory.patch
-memory-hotplug-remove-sysfs-file-of-node.patch
-memory-hotplug-free-node_data-when-a-node-is-offlined.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
-memory-hotplug-consider-compound-pages-when-free-memmap.patch
-mempolicy-fix-is_valid_nodemask.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
-memory-hotplug-export-the-function-try_offline_node.patch
-cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
-sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-page_alloc-add-movable_memmap-kernel-parameter.patch
-page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
-page_alloc-make-movablecore_map-has-higher-priority.patch
-page_alloc-bootmem-limit-with-movablecore_map.patch
 acpi-memory-hotplug-parse-srat-before-memblock-is-ready.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix-fix-fix-fix.patch
-mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
+mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
+mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
+mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
+mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
+pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
+block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
+net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
+pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
+usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
+memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
+memcg-clean-up-swap-accounting-initialization-code.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
+memcg-split-part-of-memcg-creation-to-css_online.patch
+memcg-fast-hierarchy-aware-child-test.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix-fix.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
+memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
+memcg-increment-static-branch-right-after-limit-set.patch
+memcg-avoid-dangling-reference-count-in-creation-failure.patch
+mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch
+memcg-move-mem_cgroup_soft_limit_tree_init-to-mem_cgroup_init.patch
+memcg-move-memcg_stock-initialization-to-mem_cgroup_init.patch
+memcg-cleanup-mem_cgroup_init-comment.patch
+memcg-stop-warning-on-memcg_propagate_kmem.patch
 
