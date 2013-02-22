@@ -1,52 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-joe-to-maintainers.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:42:50 -0800
-Message-ID: <20130222204251.0532831C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] checkpatch-warn-on-unnecessary-__devfoo-section-markings.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:42:45 -0800
+Message-ID: <20130222204245.A53A531C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:32975 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758001Ab3BVUmw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:52 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so103672vbb.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:51 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:46864 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829Ab3BVUmq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:46 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so103899qcs.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@shadowen.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add Joe to MAINTAINERS
+     Subject: checkpatch: warn on unnecessary __dev<foo> section markings
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-joe-to-maintainers.patch
+     checkpatch-warn-on-unnecessary-__devfoo-section-markings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add Joe to MAINTAINERS
+Subject: checkpatch: warn on unnecessary __dev<foo> section markings
+
+Get people to stop adding __devinit and __devexit section markings.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Andy Whitcroft <apw@canonical.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN MAINTAINERS~checkpatch-add-joe-to-maintainers MAINTAINERS
---- a/MAINTAINERS~checkpatch-add-joe-to-maintainers
-+++ a/MAINTAINERS
-@@ -1943,7 +1943,8 @@ F:	drivers/misc/*
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-__devfoo-section-markings scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-unnecessary-__devfoo-section-markings
++++ a/scripts/checkpatch.pl
+@@ -1931,6 +1931,12 @@ sub process {
+ 			      "use the SSYNC() macro in asm/blackfin.h\n" . $herevet);
+ 		}
  
- CHECKPATCH
- M:	Andy Whitcroft <apw@canonical.com>
--S:	Supported
-+M:	Joe Perches <joe@perches.com>
-+S:	Maintained
- F:	scripts/checkpatch.pl
- 
- CHINESE DOCUMENTATION
++# check for old HOTPLUG __dev<foo> section markings
++		if ($line =~ /\b(__dev(init|exit)(data|const|))\b/) {
++			WARN("HOTPLUG_SECTION",
++			     "Using $1 is unnecessary\n" . $herecurr);
++		}
++
+ # Check for potential 'bare' types
+ 		my ($stat, $cond, $line_nr_next, $remain_next, $off_next,
+ 		    $realline_next);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
