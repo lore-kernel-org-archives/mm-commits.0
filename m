@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:44:29 -0800
-Message-ID: <20130222204429.9E08B5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:44:32 -0800
+Message-ID: <20130222204432.A310A31C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:51174 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758187Ab3BVUoa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:44:30 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so104281vbb.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:44:30 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:40373 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758350Ab3BVUod (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:44:33 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so104085yhr.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:44:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-rs5c313: use pr_err() instead of printk()
+     Subject: rtc: rtc-vr41xx: use dev_info() instead of printk()
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-rs5c313-use-pr_err-instead-of-printk.patch
+     rtc-rtc-vr41xx-use-dev_info-instead-of-printk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rs5c313: use pr_err() instead of printk()
+Subject: rtc: rtc-vr41xx: use dev_info() instead of printk()
 
 Fix the checkpatch warning as below:
 
@@ -34,31 +34,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c313.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-vr41xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-pr_err-instead-of-printk drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-pr_err-instead-of-printk
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -39,6 +39,8 @@
-  *	1.13	Nobuhiro Iwamatsu: Updata driver.
-  */
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-dev_info-instead-of-printk drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-dev_info-instead-of-printk
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -352,7 +352,7 @@ static int rtc_probe(struct platform_dev
+ 	disable_irq(aie_irq);
+ 	disable_irq(pie_irq);
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/err.h>
- #include <linux/rtc.h>
-@@ -352,8 +354,7 @@ static void rs5c313_check_xstp_bit(void)
- 		tm.tm_year 	= 2000 - 1900;
+-	printk(KERN_INFO "rtc: Real Time Clock of NEC VR4100 series\n");
++	dev_info(&pdev->dev, "Real Time Clock of NEC VR4100 series\n");
  
- 		rs5c313_rtc_set_time(NULL, &tm);
--		printk(KERN_ERR "RICHO RS5C313: invalid value, resetting to "
--				"1 Jan 2000\n");
-+		pr_err("invalid value, resetting to 1 Jan 2000\n");
- 	}
- 	RS5C313_CEDISABLE;
- 	ndelay(700);		/* CE:L */
+ 	return 0;
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
