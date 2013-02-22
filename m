@@ -1,111 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:35:56 -0800
-Message-ID: <20130222233556.EEF5731C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:38:07 -0800
+Message-ID: <20130222233807.D0F1B5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:38978 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755933Ab3BVXf6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:35:58 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so120230qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:35:57 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:42984 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756986Ab3BVXiI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:38:08 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so120382yhz.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:38:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, isimatu.yasuaki@jp.fujitsu.com, linfeng@cn.fujitsu.com, mhocko@suse.cz, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix-fix
+     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix-fix.patch
+     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
 
-This patch was dropped because it was folded into memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
+This patch was dropped because it was folded into memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix
 
-Fixes
+fix typo in comment
 
-mm/memory_hotplug.c:133:13: warning: 'register_page_bootmem_info_section' defined but not used [-Wunused-function]
-
-by defining the function only in configurations where it is used.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/mm/init_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix-fix
-+++ a/mm/memory_hotplug.c
-@@ -127,6 +127,7 @@ void __ref put_page_bootmem(struct page 
- 
- }
- 
-+#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
- static void register_page_bootmem_info_section(unsigned long start_pfn)
- {
-@@ -161,7 +162,7 @@ static void register_page_bootmem_info_s
- 		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
- 
- }
--#else
-+#else /* CONFIG_SPARSEMEM_VMEMMAP */
- static void register_page_bootmem_info_section(unsigned long start_pfn)
- {
- 	unsigned long *usemap, mapsize, section_nr, i;
-@@ -186,9 +187,8 @@ static void register_page_bootmem_info_s
- 	for (i = 0; i < mapsize; i++, page++)
- 		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
- }
--#endif
-+#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
- 
--#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
- void register_page_bootmem_info_node(struct pglist_data *pgdat)
- {
- 	unsigned long i, pfn, end_pfn, nr_pages;
-@@ -230,7 +230,7 @@ void register_page_bootmem_info_node(str
- 			register_page_bootmem_info_section(pfn);
- 	}
- }
--#endif
-+#endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
- 
- static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
- 			   unsigned long end_pfn)
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix
++++ a/arch/x86/mm/init_64.c
+@@ -840,7 +840,7 @@ remove_pte_table(pte_t *pte_start, unsig
+ 		} else {
+ 			/*
+ 			 * If we are not removing the whole page, it means
+-			 * other ptes in this page are being used and we canot
++			 * other ptes in this page are being used and we cannot
+ 			 * remove them. So fill the unused ptes with 0xFD, and
+ 			 * remove the page when it is wholly filled with 0xFD.
+ 			 */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
 mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-huge_memory-use-new-hashtable-implementation.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional.patch
+mm-vmscan-clean-up-get_scan_count.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
 mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
+mm-remove-flags-argument-to-mmap_region.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
 cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-memory-hotplug-export-the-function-try_offline_node.patch
-memory-hotplug-export-the-function-try_offline_node-fix.patch
-cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
 cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
-mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
-mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
-mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
-memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
-memcg-clean-up-swap-accounting-initialization-code.patch
-mm-use-numa_no_node.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+tmpfs-fix-mempolicy-object-leaks-fix.patch
 
