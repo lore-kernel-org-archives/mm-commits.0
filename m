@@ -1,97 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] device_cgroup-dont-grab-mutex-in-rcu-callback.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:37:02 -0800
-Message-ID: <20130222203702.C79EE5A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] compiler-gcch-add-gcc-recommended-gcc_version-macro.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:37:07 -0800
+Message-ID: <20130222203708.56D6C31C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:47685 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754594Ab3BVUhE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:04 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so103603vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:03 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34642 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756427Ab3BVUhJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:09 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so103538vcd.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jerry.snitselaar@oracle.com, aris@redhat.com, james.l.morris@oracle.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: daniel.santos@pobox.com, ak@linux.intel.com, bp@alien8.de, joe@perches.com, josh@joshtriplett.org, paul.gortmaker@windriver.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device_cgroup: don't grab mutex in rcu callback
+     Subject: compiler-gcc.h: Add gcc-recommended GCC_VERSION macro
 has been removed from the -mm tree.  Its filename was
-     device_cgroup-dont-grab-mutex-in-rcu-callback.patch
+     compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jerry Snitselaar <jerry.snitselaar@oracle.com>
-Subject: device_cgroup: don't grab mutex in rcu callback
+From: Daniel Santos <daniel.santos@pobox.com>
+Subject: compiler-gcc.h: Add gcc-recommended GCC_VERSION macro
 
-commit 103a197 ("security/device_cgroup: lock assert fails in
-dev_exception_clean()") grabs devcgroup_mutex to fix assert failure, but
-mutex can't be grabbed in rcu callback.  Since there shouldn't be any
-other references when css_free is called, mutex isn't needed for list
-cleanup in devcgroup_css_free().
+Throughout compiler*.h, many version checks are made.  These can be
+simplified by using the macro that gcc's documentation recommends. 
+However, my primary reason for adding this is that I need bug-check macros
+that are enabled at certain gcc versions and it's cleaner to use this
+macro than the tradition method:
 
-Signed-off-by: Jerry Snitselaar <jerry.snitselaar@oracle.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Aristeu Rozanski <aris@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
+if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ => 2)
+
+If you add patch level, it gets this ugly:
+
+if __GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ > 2 || \
+   __GNUC_MINOR__ == 2 __GNUC_PATCHLEVEL__ >= 1))
+
+As opposed to:
+
+if GCC_VERSION >= 40201
+
+While having separate headers for gcc 3 & 4 eliminates some of this
+verbosity, they can still be cleaned up by this.
+
+See also:
+http://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
+
+Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
+Acked-by: Borislav Petkov <bp@alien8.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ include/linux/compiler-gcc.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN security/device_cgroup.c~device_cgroup-dont-grab-mutex-in-rcu-callback security/device_cgroup.c
---- a/security/device_cgroup.c~device_cgroup-dont-grab-mutex-in-rcu-callback
-+++ a/security/device_cgroup.c
-@@ -159,6 +159,16 @@ static void dev_exception_rm(struct dev_
- 	}
- }
- 
-+static void __dev_exception_clean(struct dev_cgroup *dev_cgroup)
-+{
-+	struct dev_exception_item *ex, *tmp;
-+
-+	list_for_each_entry_safe(ex, tmp, &dev_cgroup->exceptions, list) {
-+		list_del_rcu(&ex->list);
-+		kfree_rcu(ex, rcu);
-+	}
-+}
-+
- /**
-  * dev_exception_clean - frees all entries of the exception list
-  * @dev_cgroup: dev_cgroup with the exception list to be cleaned
-@@ -167,14 +177,9 @@ static void dev_exception_rm(struct dev_
-  */
- static void dev_exception_clean(struct dev_cgroup *dev_cgroup)
- {
--	struct dev_exception_item *ex, *tmp;
--
- 	lockdep_assert_held(&devcgroup_mutex);
- 
--	list_for_each_entry_safe(ex, tmp, &dev_cgroup->exceptions, list) {
--		list_del_rcu(&ex->list);
--		kfree_rcu(ex, rcu);
--	}
-+	__dev_exception_clean(dev_cgroup);
- }
- 
+diff -puN include/linux/compiler-gcc.h~compiler-gcch-add-gcc-recommended-gcc_version-macro include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-gcch-add-gcc-recommended-gcc_version-macro
++++ a/include/linux/compiler-gcc.h
+@@ -5,6 +5,9 @@
  /*
-@@ -215,9 +220,7 @@ static void devcgroup_css_free(struct cg
- 	struct dev_cgroup *dev_cgroup;
+  * Common definitions for all gcc versions go here.
+  */
++#define GCC_VERSION (__GNUC__ * 10000 \
++		   + __GNUC_MINOR__ * 100 \
++		   + __GNUC_PATCHLEVEL__)
  
- 	dev_cgroup = cgroup_to_devcgroup(cgroup);
--	mutex_lock(&devcgroup_mutex);
--	dev_exception_clean(dev_cgroup);
--	mutex_unlock(&devcgroup_mutex);
-+	__dev_exception_clean(dev_cgroup);
- 	kfree(dev_cgroup);
- }
  
+ /* Optimization barrier */
 _
 
-Patches currently in -mm which might be from jerry.snitselaar@oracle.com are
+Patches currently in -mm which might be from daniel.santos@pobox.com are
 
 origin.patch
 
