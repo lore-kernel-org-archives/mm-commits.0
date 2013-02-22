@@ -1,52 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:39:25 -0800
-Message-ID: <20130222203925.E82205A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:39:17 -0800
+Message-ID: <20130222203918.0CF865A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:56651 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190Ab3BVUj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:39:27 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so103640yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:39:27 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:50239 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757028Ab3BVUjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:39:19 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so103789ggi.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:39:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: darrick.wong@oracle.com, adrian.hunter@intel.com, axboe@kernel.dk, dedekind1@gmail.com, ericvh@gmail.com, jack@suse.cz, jlbec@evilplan.org, lucho@ionkov.net, luto@amacapital.net, mfasheh@suse.com, rminnich@sandia.gov, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: optionally snapshot page contents to provide stable pages during write
+     Subject: mm: only enforce stable page writes if the backing device requires it
 has been removed from the -mm tree.  Its filename was
-     block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write.patch
+     mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: block: optionally snapshot page contents to provide stable pages during write
+Subject: mm: only enforce stable page writes if the backing device requires it
 
-This provides a band-aid to provide stable page writes on jbd without
-needing to backport the fixed locking and page writeback bit handling
-schemes of jbd2.  The band-aid works by using bounce buffers to snapshot
-page contents instead of waiting.
+Create a helper function to check if a backing device requires stable page
+writes and, if so, performs the necessary wait.  Then, make it so that all
+points in the memory manager that handle making pages writable use the
+helper function.  This should provide stable page write support to most
+filesystems, while eliminating unnecessary waiting for devices that don't
+require the feature.
 
-For those wondering about the ext3 bandage -- fixing the jbd locking
-(which was done as part of ext4dev years ago) is a lot of surgery, and
-setting PG_writeback on data pages when we actually hold the page lock
-dropped ext3 performance by nearly an order of magnitude.  If we're going
-to migrate iscsi and raid to use stable page writes, the complaints about
-high latency will likely return.  We might as well centralize their page
-snapshotting thing to one place.
+Before this patchset, all filesystems would block, regardless of whether
+or not it was necessary.  ext3 would wait, but still generate occasional
+checksum errors.  The network filesystems were left to do their own thing,
+so they'd wait too.
+
+After this patchset, all the disk filesystems except ext3 and btrfs will
+wait only if the hardware requires it.  ext3 (if necessary) snapshots
+pages instead of blocking, and btrfs provides its own bdi so the mm will
+never wait.  Network filesystems haven't been touched, so either they
+provide their own stable page guarantees or they don't block at all.  The
+blocking behavior is back to what it was before 3.0 if you don't have a
+disk requiring stable page writes.
+
+Here's the result of using dbench to test latency on ext2:
+
+3.8.0-rc3:
+ Operation      Count    AvgLat    MaxLat
+ ----------------------------------------
+ WriteX        109347     0.028    59.817
+ ReadX         347180     0.004     3.391
+ Flush          15514    29.828   287.283
+
+Throughput 57.429 MB/sec  4 clients  4 procs  max_latency=287.290 ms
+
+3.8.0-rc3 + patches:
+ WriteX        105556     0.029     4.273
+ ReadX         335004     0.005     4.112
+ Flush          14982    30.540   298.634
+
+Throughput 55.4496 MB/sec  4 clients  4 procs  max_latency=298.650 ms
+
+As you can see, the maximum write latency drops considerably with this
+patch enabled.  The other filesystems (ext3/ext4/xfs/btrfs) behave
+similarly, but see the cover letter for those results.
 
 Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Tested-by: Andy Lutomirski <luto@amacapital.net>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Acked-by: Steven Whitehouse <swhiteho@redhat.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Cc: Ron Minnich <rminnich@sandia.gov>
@@ -54,210 +83,121 @@ Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/Kconfig       |    6 ----
- block/blk-core.c        |    8 +++---
- fs/ext3/super.c         |    1 
- include/uapi/linux/fs.h |    3 ++
- mm/Kconfig              |   13 ++++++++++
- mm/bounce.c             |   48 ++++++++++++++++++++++++++++++++++----
- mm/page-writeback.c     |    4 +++
- 7 files changed, 70 insertions(+), 13 deletions(-)
+ fs/buffer.c             |    2 +-
+ fs/ext4/inode.c         |    2 +-
+ fs/gfs2/file.c          |    2 +-
+ fs/nilfs2/file.c        |    2 +-
+ include/linux/pagemap.h |    1 +
+ mm/filemap.c            |    3 ++-
+ mm/page-writeback.c     |   20 ++++++++++++++++++++
+ 7 files changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN arch/tile/Kconfig~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write arch/tile/Kconfig
---- a/arch/tile/Kconfig~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write
-+++ a/arch/tile/Kconfig
-@@ -412,12 +412,6 @@ config TILE_USB
- 	  Provides USB host adapter support for the built-in EHCI and OHCI
- 	  interfaces on TILE-Gx chips.
- 
--# USB OHCI needs the bounce pool since tilegx will often have more
--# than 4GB of memory, but we don't currently use the IOTLB to present
--# a 32-bit address to OHCI.  So we need to use a bounce pool instead.
--config NEED_BOUNCE_POOL
--	def_bool USB_OHCI_HCD
--
- source "drivers/pci/hotplug/Kconfig"
- 
- endmenu
-diff -puN block/blk-core.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write block/blk-core.c
---- a/block/blk-core.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write
-+++ a/block/blk-core.c
-@@ -1474,6 +1474,11 @@ void blk_queue_bio(struct request_queue 
- 	 */
- 	blk_queue_bounce(q, &bio);
- 
-+	if (bio_integrity_enabled(bio) && bio_integrity_prep(bio)) {
-+		bio_endio(bio, -EIO);
-+		return;
-+	}
-+
- 	if (bio->bi_rw & (REQ_FLUSH | REQ_FUA)) {
- 		spin_lock_irq(q->queue_lock);
- 		where = ELEVATOR_INSERT_FLUSH;
-@@ -1714,9 +1719,6 @@ generic_make_request_checks(struct bio *
- 	 */
- 	blk_partition_remap(bio);
- 
--	if (bio_integrity_enabled(bio) && bio_integrity_prep(bio))
--		goto end_io;
--
- 	if (bio_check_eod(bio, nr_sectors))
- 		goto end_io;
- 
-diff -puN fs/ext3/super.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write fs/ext3/super.c
---- a/fs/ext3/super.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write
-+++ a/fs/ext3/super.c
-@@ -2065,6 +2065,7 @@ static int ext3_fill_super (struct super
- 		test_opt(sb,DATA_FLAGS) == EXT3_MOUNT_JOURNAL_DATA ? "journal":
- 		test_opt(sb,DATA_FLAGS) == EXT3_MOUNT_ORDERED_DATA ? "ordered":
- 		"writeback");
-+	sb->s_flags |= MS_SNAP_STABLE;
- 
+diff -puN fs/buffer.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/buffer.c
+--- a/fs/buffer.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
++++ a/fs/buffer.c
+@@ -2359,7 +2359,7 @@ int __block_page_mkwrite(struct vm_area_
+ 	if (unlikely(ret < 0))
+ 		goto out_unlock;
+ 	set_page_dirty(page);
+-	wait_on_page_writeback(page);
++	wait_for_stable_page(page);
  	return 0;
+ out_unlock:
+ 	unlock_page(page);
+diff -puN fs/ext4/inode.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/ext4/inode.c
+--- a/fs/ext4/inode.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
++++ a/fs/ext4/inode.c
+@@ -4968,7 +4968,7 @@ int ext4_page_mkwrite(struct vm_area_str
+ 					    0, len, NULL,
+ 					    ext4_bh_unmapped)) {
+ 			/* Wait so that we don't change page under IO */
+-			wait_on_page_writeback(page);
++			wait_for_stable_page(page);
+ 			ret = VM_FAULT_LOCKED;
+ 			goto out;
+ 		}
+diff -puN fs/gfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/gfs2/file.c
+--- a/fs/gfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
++++ a/fs/gfs2/file.c
+@@ -483,7 +483,7 @@ out:
+ 	gfs2_holder_uninit(&gh);
+ 	if (ret == 0) {
+ 		set_page_dirty(page);
+-		wait_on_page_writeback(page);
++		wait_for_stable_page(page);
+ 	}
+ 	sb_end_pagefault(inode->i_sb);
+ 	return block_page_mkwrite_return(ret);
+diff -puN fs/nilfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
++++ a/fs/nilfs2/file.c
+@@ -126,7 +126,7 @@ static int nilfs_page_mkwrite(struct vm_
+ 	nilfs_transaction_commit(inode->i_sb);
  
-diff -puN include/uapi/linux/fs.h~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write include/uapi/linux/fs.h
---- a/include/uapi/linux/fs.h~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write
-+++ a/include/uapi/linux/fs.h
-@@ -86,6 +86,9 @@ struct inodes_stat_t {
- #define MS_KERNMOUNT	(1<<22) /* this is a kern_mount call */
- #define MS_I_VERSION	(1<<23) /* Update inode I_version field */
- #define MS_STRICTATIME	(1<<24) /* Always perform atime updates */
-+
-+/* These sb flags are internal to the kernel */
-+#define MS_SNAP_STABLE	(1<<27) /* Snapshot pages during writeback, if needed */
- #define MS_NOSEC	(1<<28)
- #define MS_BORN		(1<<29)
- #define MS_ACTIVE	(1<<30)
-diff -puN mm/Kconfig~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write mm/Kconfig
---- a/mm/Kconfig~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write
-+++ a/mm/Kconfig
-@@ -258,6 +258,19 @@ config BOUNCE
- 	def_bool y
- 	depends on BLOCK && MMU && (ZONE_DMA || HIGHMEM)
- 
-+# On the 'tile' arch, USB OHCI needs the bounce pool since tilegx will often
-+# have more than 4GB of memory, but we don't currently use the IOTLB to present
-+# a 32-bit address to OHCI.  So we need to use a bounce pool instead.
-+#
-+# We also use the bounce pool to provide stable page writes for jbd.  jbd
-+# initiates buffer writeback without locking the page or setting PG_writeback,
-+# and fixing that behavior (a second time; jbd2 doesn't have this problem) is
-+# a major rework effort.  Instead, use the bounce buffer to snapshot pages
-+# (until jbd goes away).  The only jbd user is ext3.
-+config NEED_BOUNCE_POOL
-+	bool
-+	default y if (TILE && USB_OHCI_HCD) || (BLK_DEV_INTEGRITY && JBD)
-+
- config NR_QUICK
- 	int
- 	depends on QUICKLIST
-diff -puN mm/bounce.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write mm/bounce.c
---- a/mm/bounce.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write
-+++ a/mm/bounce.c
-@@ -178,8 +178,45 @@ static void bounce_end_io_read_isa(struc
- 	__bounce_end_io_read(bio, isa_page_pool, err);
+  mapped:
+-	wait_on_page_writeback(page);
++	wait_for_stable_page(page);
+  out:
+ 	sb_end_pagefault(inode->i_sb);
+ 	return block_page_mkwrite_return(ret);
+diff -puN include/linux/pagemap.h~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
++++ a/include/linux/pagemap.h
+@@ -414,6 +414,7 @@ static inline void wait_on_page_writebac
  }
  
-+#ifdef CONFIG_NEED_BOUNCE_POOL
-+static int must_snapshot_stable_pages(struct request_queue *q, struct bio *bio)
-+{
-+	struct page *page;
-+	struct backing_dev_info *bdi;
-+	struct address_space *mapping;
-+	struct bio_vec *from;
-+	int i;
-+
-+	if (bio_data_dir(bio) != WRITE)
-+		return 0;
-+
-+	if (!bdi_cap_stable_pages_required(&q->backing_dev_info))
-+		return 0;
-+
-+	/*
-+	 * Based on the first page that has a valid mapping, decide whether or
-+	 * not we have to employ bounce buffering to guarantee stable pages.
-+	 */
-+	bio_for_each_segment(from, bio, i) {
-+		page = from->bv_page;
-+		mapping = page_mapping(page);
-+		if (!mapping)
-+			continue;
-+		bdi = mapping->backing_dev_info;
-+		return mapping->host->i_sb->s_flags & MS_SNAP_STABLE;
-+	}
-+
-+	return 0;
-+}
-+#else
-+static int must_snapshot_stable_pages(struct request_queue *q, struct bio *bio)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_NEED_BOUNCE_POOL */
-+
- static void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig,
--			       mempool_t *pool)
-+			       mempool_t *pool, int force)
- {
- 	struct page *page;
- 	struct bio *bio = NULL;
-@@ -192,7 +229,7 @@ static void __blk_queue_bounce(struct re
- 		/*
- 		 * is destination page below bounce pfn?
- 		 */
--		if (page_to_pfn(page) <= queue_bounce_pfn(q))
-+		if (page_to_pfn(page) <= queue_bounce_pfn(q) && !force)
- 			continue;
+ extern void end_page_writeback(struct page *page);
++void wait_for_stable_page(struct page *page);
  
- 		/*
-@@ -270,6 +307,7 @@ static void __blk_queue_bounce(struct re
- 
- void blk_queue_bounce(struct request_queue *q, struct bio **bio_orig)
- {
-+	int must_bounce;
- 	mempool_t *pool;
- 
- 	/*
-@@ -278,13 +316,15 @@ void blk_queue_bounce(struct request_que
- 	if (!bio_has_data(*bio_orig))
- 		return;
- 
-+	must_bounce = must_snapshot_stable_pages(q, *bio_orig);
-+
- 	/*
- 	 * for non-isa bounce case, just check if the bounce pfn is equal
- 	 * to or bigger than the highest pfn in the system -- in that case,
- 	 * don't waste time iterating over bio segments
+ /*
+  * Add an arbitrary waiter to a page's wait queue
+diff -puN mm/filemap.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it mm/filemap.c
+--- a/mm/filemap.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
++++ a/mm/filemap.c
+@@ -1728,6 +1728,7 @@ int filemap_page_mkwrite(struct vm_area_
+ 	 * see the dirty page and writeprotect it again.
  	 */
- 	if (!(q->bounce_gfp & GFP_DMA)) {
--		if (queue_bounce_pfn(q) >= blk_max_pfn)
-+		if (queue_bounce_pfn(q) >= blk_max_pfn && !must_bounce)
- 			return;
- 		pool = page_pool;
- 	} else {
-@@ -295,7 +335,7 @@ void blk_queue_bounce(struct request_que
- 	/*
- 	 * slow path
- 	 */
--	__blk_queue_bounce(q, bio_orig, pool);
-+	__blk_queue_bounce(q, bio_orig, pool, must_bounce);
+ 	set_page_dirty(page);
++	wait_for_stable_page(page);
+ out:
+ 	sb_end_pagefault(inode->i_sb);
+ 	return ret;
+@@ -2274,7 +2275,7 @@ repeat:
+ 		return NULL;
+ 	}
+ found:
+-	wait_on_page_writeback(page);
++	wait_for_stable_page(page);
+ 	return page;
  }
- 
- EXPORT_SYMBOL(blk_queue_bounce);
-diff -puN mm/page-writeback.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write mm/page-writeback.c
---- a/mm/page-writeback.c~block-optionally-snapshot-page-contents-to-provide-stable-pages-during-write
+ EXPORT_SYMBOL(grab_cache_page_write_begin);
+diff -puN mm/page-writeback.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
 +++ a/mm/page-writeback.c
-@@ -2306,6 +2306,10 @@ void wait_for_stable_page(struct page *p
- 
- 	if (!bdi_cap_stable_pages_required(bdi))
- 		return;
-+#ifdef CONFIG_NEED_BOUNCE_POOL
-+	if (mapping->host->i_sb->s_flags & MS_SNAP_STABLE)
-+		return;
-+#endif /* CONFIG_NEED_BOUNCE_POOL */
- 
- 	wait_on_page_writeback(page);
+@@ -2290,3 +2290,23 @@ int mapping_tagged(struct address_space 
+ 	return radix_tree_tagged(&mapping->page_tree, tag);
  }
+ EXPORT_SYMBOL(mapping_tagged);
++
++/**
++ * wait_for_stable_page() - wait for writeback to finish, if necessary.
++ * @page:	The page to wait on.
++ *
++ * This function determines if the given page is related to a backing device
++ * that requires page contents to be held stable during writeback.  If so, then
++ * it will wait for any pending writeback to complete.
++ */
++void wait_for_stable_page(struct page *page)
++{
++	struct address_space *mapping = page_mapping(page);
++	struct backing_dev_info *bdi = mapping->backing_dev_info;
++
++	if (!bdi_cap_stable_pages_required(bdi))
++		return;
++
++	wait_on_page_writeback(page);
++}
++EXPORT_SYMBOL_GPL(wait_for_stable_page);
 _
 
 Patches currently in -mm which might be from darrick.wong@oracle.com are
