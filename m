@@ -1,163 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:46:15 -0800
-Message-ID: <20130222234615.88AAB31C208@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:46:42 -0800
+Message-ID: <20130222234643.1315631C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:47459 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757853Ab3BVXqR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:46:17 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so120803vcd.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:46:16 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:62103 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758284Ab3BVXqn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:46:43 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so120886yhz.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:46:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tangchen@cn.fujitsu.com, tglx@linutronix.de, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
+     Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+     acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
 
-This patch was dropped because it was folded into acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
+This patch was dropped because it was folded into acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
+Subject: acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
 
-clean up code, fix build warning
+mm/page_alloc.c: In function 'cmdline_parse_movablemem_map':
+mm/page_alloc.c:5372: warning: comparison of distinct pointer types lacks a cast
 
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Len Brown <lenb@kernel.org>
+not the right fix, but I'm tired of the warning
+
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wu Jianguo <wujianguo@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/srat.c |   93 ++++++++++++++++++++++---------------------
- 1 file changed, 49 insertions(+), 44 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
-+++ a/arch/x86/mm/srat.c
-@@ -142,50 +142,8 @@ static inline int save_add_info(void) {r
- #endif
+diff -puN mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix
++++ a/mm/page_alloc.c
+@@ -5317,7 +5317,7 @@ static int __init cmdline_parse_movablem
+ 	if (!p)
+ 		goto err;
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
--extern struct movablemem_map movablemem_map;
--#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
--
--/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
--int __init
--acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-+static void __init handle_movablemem(int node, u64 start, u64 end)
- {
--	u64 start, end;
--	u32 hotpluggable;
--	int node, pxm;
--
--	if (srat_disabled())
--		goto out_err;
--	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
--		goto out_err_bad_srat;
--	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
--		goto out_err;
--	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
--	if (hotpluggable && !save_add_info())
--		goto out_err;
--
--	start = ma->base_address;
--	end = start + ma->length;
--	pxm = ma->proximity_domain;
--	if (acpi_srat_revision <= 1)
--		pxm &= 0xff;
--
--	node = setup_node(pxm);
--	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
--		goto out_err_bad_srat;
--	}
--
--	if (numa_add_memblk(node, start, end) < 0)
--		goto out_err_bad_srat;
--
--	node_set(node, numa_nodes_parsed);
--
--	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx] %s\n",
--	       node, pxm,
--	       (unsigned long long) start, (unsigned long long) end - 1,
--	       hotpluggable ? "Hot Pluggable": "");
--
--#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	int overlap;
- 	unsigned long start_pfn, end_pfn;
+-	if (!strncmp(p, "acpi", max(4, strlen(p))))
++	if (!strncmp(p, "acpi", max_t(size_t, 4, strlen(p))))
+ 		movablemem_map.acpi = true;
  
-@@ -229,7 +187,54 @@ acpi_numa_memory_affinity_init(struct ac
- 			 */
- 			insert_movablemem_map(start_pfn, end_pfn);
- 	}
--#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+}
-+#else		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+static inline void handle_movablemem(int node, u64 start, u64 end)
-+{
-+}
-+#endif		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+
-+/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
-+int __init
-+acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-+{
-+	u64 start, end;
-+	u32 hotpluggable;
-+	int node, pxm;
-+
-+	if (srat_disabled())
-+		goto out_err;
-+	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
-+		goto out_err_bad_srat;
-+	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
-+		goto out_err;
-+	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
-+	if (hotpluggable && !save_add_info())
-+		goto out_err;
-+
-+	start = ma->base_address;
-+	end = start + ma->length;
-+	pxm = ma->proximity_domain;
-+	if (acpi_srat_revision <= 1)
-+		pxm &= 0xff;
-+
-+	node = setup_node(pxm);
-+	if (node < 0) {
-+		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-+		goto out_err_bad_srat;
-+	}
-+
-+	if (numa_add_memblk(node, start, end) < 0)
-+		goto out_err_bad_srat;
-+
-+	node_set(node, numa_nodes_parsed);
-+
-+	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx] %s\n",
-+	       node, pxm,
-+	       (unsigned long long) start, (unsigned long long) end - 1,
-+	       hotpluggable ? "Hot Pluggable": "");
-+
-+	handle_movablemem(node, start, end);
- 
- 	return 0;
- out_err_bad_srat:
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,7 +74,7 @@ cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
 cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
 page_alloc-add-movable_memmap-kernel-parameter.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
 memory-failure-do-code-refactor-of-soft_offline_page.patch
 memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
