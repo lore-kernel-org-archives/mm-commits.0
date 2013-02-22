@@ -1,56 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:53:38 -0800
-Message-ID: <20130222235338.65B7131C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:54:18 -0800
+Message-ID: <20130222235419.635CE5A415F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:53770 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754740Ab3BVXxj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:53:39 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so121564ggn.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:53:39 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:56720 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754740Ab3BVXyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:54:20 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so121731ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:54:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, cody@linux.vnet.ibm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, fengguang.wu@intel.com, gong.chen@linux.intel.com, n-horiguchi@ah.jp.nec.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix
+     Subject: hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+     hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries.patch
+This patch was dropped because it was folded into hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix
+Subject: hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix
 
-s/pr_debug/pr_err/
+tweak comments
 
-Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
-Cc: David Hansen <dave@linux.vnet.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix
-+++ a/mm/page_alloc.c
-@@ -258,7 +258,7 @@ static int page_outside_zone_boundaries(
- 	} while (zone_span_seqretry(zone, seq));
+diff -puN mm/memory-failure.c~hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix
++++ a/mm/memory-failure.c
+@@ -1130,11 +1130,11 @@ int memory_failure(unsigned long pfn, in
+ 	lock_page(hpage);
  
- 	if (ret)
--		pr_debug("page %lu outside zone [ %lu - %lu ]\n",
-+		pr_err("page %lu outside zone [ %lu - %lu ]\n",
- 			pfn, start_pfn, start_pfn + sp);
+ 	/*
+-	 * We use page flags to determine what action should be taken,
+-	 * but it can be modified by the error containment action.
+-	 * One example is mlocked page, where PG_mlocked is cleared by
+-	 * page_remove_rmap() in try_to_unmap_one(). So to determine page
+-	 * status correctly, we store the page flags at this timing.
++	 * We use page flags to determine what action should be taken, but
++	 * the flags can be modified by the error containment action.  One
++	 * example is an mlocked page, where PG_mlocked is cleared by
++	 * page_remove_rmap() in try_to_unmap_one(). So to determine page status
++	 * correctly, we save a copy of the page flags at this time.
+ 	 */
+ 	page_flags = p->flags;
  
- 	return ret;
+@@ -1197,8 +1197,8 @@ int memory_failure(unsigned long pfn, in
+ 
+ 	res = -EBUSY;
+ 	/*
+-	 * The first check uses the current page flag which might not have any
+-	 * relevant information. The second check with stored page flags are
++	 * The first check uses the current page flags which may not have any
++	 * relevant information. The second check with the saved page flagss is
+ 	 * carried out only if the first check can't determine the page status.
+ 	 */
+ 	for (ps = error_states;; ps++)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,7 +105,7 @@ memcg-reduce-the-size-of-struct-memcg-244-fold.patch
 memcg-fast-hierarchy-aware-child-test.patch
 mm-rename-page-struct-field-helpers.patch
 mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries.patch
-hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages.patch
 mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
 tmpfs-fix-mempolicy-object-leaks-fix.patch
 
