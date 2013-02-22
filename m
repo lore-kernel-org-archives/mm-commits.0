@@ -1,77 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:41:50 -0800
-Message-ID: <20130222204150.967F431C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:41:53 -0800
+Message-ID: <20130222204153.A05A55A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:35270 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab3BVUlv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:41:51 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so104075vea.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:41:51 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:50914 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829Ab3BVUly (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:41:54 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so103862ggn.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:41:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: devendra.aaru@gmail.com, daniel.jeong@ti.com, gshark.jeong@gmail.com, jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: corgi_lcd: use lcd_get_data instead of dev_get_drvdata
+     Subject: drivers/video/backlight/lm3639_bl.c: remove ret = -EIO at error paths of probe
 has been removed from the -mm tree.  Its filename was
-     backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+     backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: corgi_lcd: use lcd_get_data instead of dev_get_drvdata
+From: Devendra Naga <devendra.aaru@gmail.com>
+Subject: drivers/video/backlight/lm3639_bl.c: remove ret = -EIO at error paths of probe
 
-Use the wrapper function for getting the driver data using lcd_device
-instead of using dev_get_drvdata with &ld->dev, so we can directly pass a
-struct lcd_device.
+The APIs are returning correctly the err codes, no need to assign -EIO
+to the ret again.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
+Acked-by: Daniel Jeong <daniel.jeong@ti.com>
+Cc: G.Shark Jeong <gshark.jeong@gmail.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/corgi_lcd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/lm3639_bl.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata
-+++ a/drivers/video/backlight/corgi_lcd.c
-@@ -337,7 +337,7 @@ static void corgi_lcd_power_off(struct c
+diff -puN drivers/video/backlight/lm3639_bl.c~backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe drivers/video/backlight/lm3639_bl.c
+--- a/drivers/video/backlight/lm3639_bl.c~backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe
++++ a/drivers/video/backlight/lm3639_bl.c
+@@ -350,14 +350,13 @@ static int lm3639_probe(struct i2c_clien
+ 				      &lm3639_bled_ops, &props);
+ 	if (IS_ERR(pchip->bled)) {
+ 		dev_err(&client->dev, "fail : backlight register\n");
+-		ret = -EIO;
++		ret = PTR_ERR(pchip->bled);
+ 		goto err_out;
+ 	}
  
- static int corgi_lcd_set_mode(struct lcd_device *ld, struct fb_videomode *m)
- {
--	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
-+	struct corgi_lcd *lcd = lcd_get_data(ld);
- 	int mode = CORGI_LCD_MODE_QVGA;
+ 	ret = device_create_file(&(pchip->bled->dev), &dev_attr_bled_mode);
+ 	if (ret < 0) {
+ 		dev_err(&client->dev, "failed : add sysfs entries\n");
+-		ret = -EIO;
+ 		goto err_bled_mode;
+ 	}
  
- 	if (m->xres == 640 || m->xres == 480)
-@@ -364,7 +364,7 @@ static int corgi_lcd_set_mode(struct lcd
+@@ -369,7 +368,6 @@ static int lm3639_probe(struct i2c_clien
+ 				    &client->dev, &pchip->cdev_flash);
+ 	if (ret < 0) {
+ 		dev_err(&client->dev, "fail : flash register\n");
+-		ret = -EIO;
+ 		goto err_flash;
+ 	}
  
- static int corgi_lcd_set_power(struct lcd_device *ld, int power)
- {
--	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
-+	struct corgi_lcd *lcd = lcd_get_data(ld);
+@@ -381,7 +379,6 @@ static int lm3639_probe(struct i2c_clien
+ 				    &client->dev, &pchip->cdev_torch);
+ 	if (ret < 0) {
+ 		dev_err(&client->dev, "fail : torch register\n");
+-		ret = -EIO;
+ 		goto err_torch;
+ 	}
  
- 	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
- 		corgi_lcd_power_on(lcd);
-@@ -378,7 +378,7 @@ static int corgi_lcd_set_power(struct lc
- 
- static int corgi_lcd_get_power(struct lcd_device *ld)
- {
--	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
-+	struct corgi_lcd *lcd = lcd_get_data(ld);
- 
- 	return lcd->power;
- }
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from devendra.aaru@gmail.com are
 
 origin.patch
 linux-next.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+backlight-add-new-lp8788-backlight-driver.patch
 
