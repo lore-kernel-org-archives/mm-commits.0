@@ -1,108 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:37:39 -0800
-Message-ID: <20130222203739.D87D65A41B6__23764.8898190402$1361565496$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] cris-use-int-for-ssize_t-to-match-size_t.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:37:45 -0800
+Message-ID: <20130222203745.B125A5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:57640 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190Ab3BVUhl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:41 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so103501vcd.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:40 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:35103 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757291Ab3BVUhr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:47 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so103745qen.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herumi@nifty.com, jmoyer@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, hans-peter.nilsson@axis.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/block_dev.c: page cache wrongly left invalidated after revalidate_disk()
+     Subject: cris: use "int" for ssize_t to match size_t
 has been removed from the -mm tree.  Its filename was
-     fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk.patch
+     cris-use-int-for-ssize_t-to-match-size_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: MITSUNARI Shigeo <herumi@nifty.com>
-Subject: fs/block_dev.c: page cache wrongly left invalidated after revalidate_disk()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: cris: use "int" for ssize_t to match size_t
 
-We found that bdev->bd_invalidated was left set once revalidate_disk() is
-called, which results in page cache flush every time that device is open.
+On cris-linux-gcc, __SIZE_TYPE__ expands to "unsigned int", as
+gcc-4.6.3-nolibc/cris-linux/lib/gcc/cris-linux/4.6.3/plugin/include/config/cris/linux.h
+has
 
-Specifically, we found this problem in MD block device.  Once we resize a
-MD device, mdadm --monitor periodically flush all page cache for that
-device every 60 or 1000 seconds when it opens the device.
+    #define SIZE_TYPE "unsigned int"
 
-This bug lies since at least 3.2.0 till the latest kernel(3.6.2).
-Patch is attached.
+Hence __kernel_size_t is also "unsigned int".  But __kernel_ssize_t is
+"long", which has a different base type, causing compiler warnings like:
 
-The following steps will reproduce the problem.
+    fs/quota/quota_tree.c:372:4: warning: format '%zd' expects argument of type 'signed size_t', but argument 4 has type 'ssize_t' [-Wformat]
 
-1. prepair a block device(ex. /dev/sdb).
-2. create two partitions.
+To fix this, __kernel_ssize_t should be changed to "int". Hence cris can
+just use the generic 32-bit versions from include/asm-generic/posix_types.h
+for all size-related types.
 
-sudo parted /dev/sdb
-mklabel gpt
-mkpart primary 0% 50%
-mkpart primary 50% 100% 
-
-3. create a md device.
-
-sudo mdadm -C /dev/md/hoge -l 1 -n 2 -e 1.2 --assume-clean --auto=md \
- --symlink=no /dev/sdb1 /dev/sdb2
-
-4. create file system and mount it
-
-sudo mkfs.ext3 /dev/md/hoge
-sudo mkdir /mnt/test
-sudo mount /dev/md/hoge /mnt/test
-
-5. try to resize the device
-
-sudo mdadm -G /dev/md/hoge --size=max
-
-6. create a file to fill file cache.
-
-sudo dd if=/dev/urandom of=/mnt/test/data bs=1M count=10
-and verity the current status of file by free command.
-
-7. mdadm monitor will open the md device every 1000 seconds
-and you will find all file cache on the device are cleared.
-
-The timing can be reduced by the following steps.
-
-a) kill mdadm and restart it with --delay option
-/sbin/mdadm --monitor --delay=30 --pid-file /var/run/mdadm/monitor.pid \
- --daemonise --scan --syslog
-
-or open the md device directly.
-
-sudo dd if=/dev/md/hoge of=/dev/null bs=4096 count=1
-
-Signed-off-by: MITSUNARI Shigeo <herumi@nifty.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Hans-Peter Nilsson <hans-peter.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/cris/include/uapi/asm/posix_types.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/block_dev.c~fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk fs/block_dev.c
---- a/fs/block_dev.c~fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk
-+++ a/fs/block_dev.c
-@@ -994,6 +994,7 @@ int revalidate_disk(struct gendisk *disk
+diff -puN arch/cris/include/uapi/asm/posix_types.h~cris-use-int-for-ssize_t-to-match-size_t arch/cris/include/uapi/asm/posix_types.h
+--- a/arch/cris/include/uapi/asm/posix_types.h~cris-use-int-for-ssize_t-to-match-size_t
++++ a/arch/cris/include/uapi/asm/posix_types.h
+@@ -22,11 +22,6 @@ typedef unsigned short	__kernel_uid_t;
+ typedef unsigned short	__kernel_gid_t;
+ #define __kernel_uid_t __kernel_uid_t
  
- 	mutex_lock(&bdev->bd_mutex);
- 	check_disk_size_change(disk, bdev);
-+	bdev->bd_invalidated = 0;
- 	mutex_unlock(&bdev->bd_mutex);
- 	bdput(bdev);
- 	return ret;
-_
-
-Patches currently in -mm which might be from herumi@nifty.com are
-
-origin.patch
-
+-typedef __SIZE_TYPE__	__kernel_size_t;
+-typedef long		__kernel_ssize_t;
+-typedef int		__kernel_ptrdiff_t;
+-#define __kernel_size_t __kernel_size_t
