@@ -1,89 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:54:41 -0800
-Message-ID: <20130222235441.9FE1F31C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] tmpfs-fix-mempolicy-object-leaks-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:55:13 -0800
+Message-ID: <20130222235513.837915A415F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:34040 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754740Ab3BVXym (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:54:42 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so121689qeb.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:54:42 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:47601 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755741Ab3BVXzP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:55:15 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so121662vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:55:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rdunlap@infradead.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gthelen@google.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-accurately-document-nr_free__pages-functions-with-code-comments-fix
+     Subject: tmpfs-fix-mempolicy-object-leaks-fix
 has been removed from the -mm tree.  Its filename was
-     mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+     tmpfs-fix-mempolicy-object-leaks-fix.patch
 
-This patch was dropped because it was folded into mm-accurately-document-nr_free__pages-functions-with-code-comments.patch
+This patch was dropped because it was folded into tmpfs-fix-mempolicy-object-leaks.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-accurately-document-nr_free__pages-functions-with-code-comments-fix
+Subject: tmpfs-fix-mempolicy-object-leaks-fix
 
-tweak comments
+fix handling of mpol_parse_str() errors, per Hugh
 
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-accurately-document-nr_free__pages-functions-with-code-comments-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-accurately-document-nr_free__pages-functions-with-code-comments-fix
-+++ a/mm/page_alloc.c
-@@ -2814,12 +2814,12 @@ void free_pages_exact(void *virt, size_t
- EXPORT_SYMBOL(free_pages_exact);
- 
- /**
-- * nr_free_zone_pages - get pages that is beyond high watermark
-+ * nr_free_zone_pages - count number of pages beyond high watermark
-  * @offset: The zone index of the highest zone
-  *
-- * The function counts pages which are beyond high watermark within
-- * all zones at or below a given zone index. For each zone, the
-- * amount of pages is calculated as:
-+ * nr_free_zone_pages() counts the number of counts pages which are beyond the
-+ * high watermark within all zones at or below a given zone index.  For each
-+ * zone, the number of pages is calculated as:
-  *     present_pages - high_pages
-  */
- static unsigned long nr_free_zone_pages(int offset)
-@@ -2843,10 +2843,10 @@ static unsigned long nr_free_zone_pages(
- }
- 
- /**
-- * nr_free_buffer_pages - get pages that is beyond high watermark
-+ * nr_free_buffer_pages - count number of pages beyond high watermark
-  *
-- * The function counts pages which are beyond high watermark within
-- * ZONE_DMA and ZONE_NORMAL.
-+ * nr_free_buffer_pages() counts the number of pages which are beyond the high
-+ * watermark within ZONE_DMA and ZONE_NORMAL.
-  */
- unsigned long nr_free_buffer_pages(void)
- {
-@@ -2855,10 +2855,10 @@ unsigned long nr_free_buffer_pages(void)
- EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
- 
- /**
-- * nr_free_pagecache_pages - get pages that is beyond high watermark
-+ * nr_free_pagecache_pages - count number of pages beyond high watermark
-  *
-- * The function counts pages which are beyond high watermark within
-- * all zones.
-+ * nr_free_pagecache_pages() counts the number of pages which are beyond the
-+ * high watermark within all zones.
-  */
- unsigned long nr_free_pagecache_pages(void)
- {
+diff -puN mm/shmem.c~tmpfs-fix-mempolicy-object-leaks-fix mm/shmem.c
+--- a/mm/shmem.c~tmpfs-fix-mempolicy-object-leaks-fix
++++ a/mm/shmem.c
+@@ -2464,6 +2464,7 @@ static int shmem_parse_options(char *opt
+ 				goto bad_val;
+ 		} else if (!strcmp(this_char,"mpol")) {
+ 			mpol_put(mpol);
++			mpol = NULL;
+ 			if (mpol_parse_str(value, &mpol))
+ 				goto bad_val;
+ 		} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,5 +84,5 @@ mm-rename-page-struct-field-helpers.patch
 mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries.patch
 hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages.patch
 mm-accurately-document-nr_free__pages-functions-with-code-comments.patch
-tmpfs-fix-mempolicy-object-leaks-fix.patch
+tmpfs-fix-mempolicy-object-leaks.patch
 
