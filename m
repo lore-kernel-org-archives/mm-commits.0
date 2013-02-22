@@ -1,67 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-mmp-add-display-and-fb-support-in-pxa910-defconfig.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:38:17 -0800
-Message-ID: <20130222203817.EA0CF31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-video-exynos-exynos_mipi_dsic-fix-an-error-check-condition.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:38:25 -0800
+Message-ID: <20130222203825.B123331C208@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:64796 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756764Ab3BVUiT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:38:19 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so103911yhr.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:38:18 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:35016 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757336Ab3BVUi0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:38:26 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so103571yen.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:38:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zzhu3@marvell.com, FlorianSchandinat@gmx.de, cldu@marvell.com, haojian.zhuang@gmail.com, ligq@marvell.com, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, inki.dae@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: mmp: add display and fb support in pxa910 defconfig
+     Subject: drivers/video/exynos/exynos_mipi_dsi.c: fix an error check condition
 has been removed from the -mm tree.  Its filename was
-     arm-mmp-add-display-and-fb-support-in-pxa910-defconfig.patch
+     drivers-video-exynos-exynos_mipi_dsic-fix-an-error-check-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhou Zhu <zzhu3@marvell.com>
-Subject: ARM: mmp: add display and fb support in pxa910 defconfig
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/video/exynos/exynos_mipi_dsi.c: fix an error check condition
 
-Add display and fb support in pxa910 defconfig.
-Add tpohvga panel, spi support.
-Add logo support.
+Checking an unsigned variable for negative value returns false.  Hence use
+the macro to fix it.
 
-Signed-off-by: Zhou Zhu <zzhu3@marvell.com>
-Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Lisa Du <cldu@marvell.com>
-Cc: Guoqing Li <ligq@marvell.com>
+Fixes the following smatch warning:
+drivers/video/exynos/exynos_mipi_dsi.c:417 exynos_mipi_dsi_probe() warn:
+unsigned 'dsim->irq' is never less than zero.
+
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Donghwa Lee <dh09.lee@samsung.com>
+Cc: Inki Dae <inki.dae@samsung.com>
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/pxa910_defconfig |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/video/exynos/exynos_mipi_dsi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/configs/pxa910_defconfig~arm-mmp-add-display-and-fb-support-in-pxa910-defconfig arch/arm/configs/pxa910_defconfig
---- a/arch/arm/configs/pxa910_defconfig~arm-mmp-add-display-and-fb-support-in-pxa910-defconfig
-+++ a/arch/arm/configs/pxa910_defconfig
-@@ -42,6 +42,14 @@ CONFIG_SMC91X=y
- # CONFIG_SERIO is not set
- CONFIG_SERIAL_PXA=y
- CONFIG_SERIAL_PXA_CONSOLE=y
-+CONFIG_SPI=y
-+CONFIG_FB=y
-+CONFIG_MMP_DISP=y
-+CONFIG_MMP_DISP_CONTROLLER=y
-+CONFIG_MMP_SPI=y
-+CONFIG_MMP_PANEL_TPOHVGA=y
-+CONFIG_MMP_FB=y
-+CONFIG_LOGO=y
- # CONFIG_LEGACY_PTYS is not set
- # CONFIG_HW_RANDOM is not set
- # CONFIG_HWMON is not set
+diff -puN drivers/video/exynos/exynos_mipi_dsi.c~drivers-video-exynos-exynos_mipi_dsic-fix-an-error-check-condition drivers/video/exynos/exynos_mipi_dsi.c
+--- a/drivers/video/exynos/exynos_mipi_dsi.c~drivers-video-exynos-exynos_mipi_dsic-fix-an-error-check-condition
++++ a/drivers/video/exynos/exynos_mipi_dsi.c
+@@ -414,7 +414,7 @@ static int exynos_mipi_dsi_probe(struct 
+ 	}
+ 
+ 	dsim->irq = platform_get_irq(pdev, 0);
+-	if (dsim->irq < 0) {
++	if (IS_ERR_VALUE(dsim->irq)) {
+ 		dev_err(&pdev->dev, "failed to request dsim irq resource\n");
+ 		ret = -EINVAL;
+ 		goto err_platform_get_irq;
 _
 
-Patches currently in -mm which might be from zzhu3@marvell.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 origin.patch
+linux-next.patch
 
