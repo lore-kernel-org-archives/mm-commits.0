@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:37:05 -0800
-Message-ID: <20130222203705.EAB0F31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] compiler-gcc34h-use-gcc_version-macro.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:37:10 -0800
+Message-ID: <20130222203711.258605A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:63875 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756329Ab3BVUhI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:08 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so103714vea.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:07 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39598 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756413Ab3BVUhM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:37:12 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so119125qaj.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:37:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: daniel.santos@pobox.com, ak@linux.intel.com, bp@alien8.de, joe@perches.com, josh@joshtriplett.org, paul.gortmaker@windriver.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-gcc4.h: Reorder macros based upon gcc ver
+     Subject: compiler-gcc{3,4}.h: Use GCC_VERSION macro
 has been removed from the -mm tree.  Its filename was
-     compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
+     compiler-gcc34h-use-gcc_version-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: compiler-gcc4.h: Reorder macros based upon gcc ver
+Subject: compiler-gcc{3,4}.h: Use GCC_VERSION macro
 
-This helps to keep the file from getting confusing, removes one duplicate
-version check and should encourage future editors to put new macros where
-they belong.
+Using GCC_VERSION reduces complexity, is easier to read and is GCC's
+recommended mechanism for doing version checks.  (Just don't ask me why
+they didn't define it in the first place.) This also makes it easy to
+merge compiler-gcc{,3,4}.h should somebody want to.
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Acked-by: David Rientjes <rientjes@google.com>
@@ -40,60 +41,105 @@ Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ include/linux/compiler-gcc3.h |    8 ++++----
+ include/linux/compiler-gcc4.h |   20 ++++++++++----------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-reorder-macros-based-upon-gcc-ver include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-gcc4h-reorder-macros-based-upon-gcc-ver
+diff -puN include/linux/compiler-gcc3.h~compiler-gcc34h-use-gcc_version-macro include/linux/compiler-gcc3.h
+--- a/include/linux/compiler-gcc3.h~compiler-gcc34h-use-gcc_version-macro
++++ a/include/linux/compiler-gcc3.h
+@@ -2,22 +2,22 @@
+ #error "Please don't include <linux/compiler-gcc3.h> directly, include <linux/compiler.h> instead."
+ #endif
+ 
+-#if __GNUC_MINOR__ < 2
++#if GCC_VERSION < 30200
+ # error Sorry, your compiler is too old - please upgrade it.
+ #endif
+ 
+-#if __GNUC_MINOR__ >= 3
++#if GCC_VERSION >= 30300
+ # define __used			__attribute__((__used__))
+ #else
+ # define __used			__attribute__((__unused__))
+ #endif
+ 
+-#if __GNUC_MINOR__ >= 4
++#if GCC_VERSION >= 30400
+ #define __must_check		__attribute__((warn_unused_result))
+ #endif
+ 
+ #ifdef CONFIG_GCOV_KERNEL
+-# if __GNUC_MINOR__ < 4
++# if GCC_VERSION < 30400
+ #   error "GCOV profiling support for gcc versions below 3.4 not included"
+ # endif /* __GNUC_MINOR__ */
+ #endif /* CONFIG_GCOV_KERNEL */
+diff -puN include/linux/compiler-gcc4.h~compiler-gcc34h-use-gcc_version-macro include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~compiler-gcc34h-use-gcc_version-macro
 +++ a/include/linux/compiler-gcc4.h
-@@ -13,6 +13,10 @@
+@@ -4,7 +4,7 @@
+ 
+ /* GCC 4.1.[01] miscompiles __weak */
+ #ifdef __KERNEL__
+-# if __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ <= 1
++# if GCC_VERSION >= 40100 &&  GCC_VERSION <= 40101
+ #  error Your version of gcc miscompiles the __weak directive
+ # endif
+ #endif
+@@ -13,11 +13,11 @@
  #define __must_check 		__attribute__((warn_unused_result))
  #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
  
-+#if __GNUC_MINOR__ > 0
-+# define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
-+#endif
-+
- #if __GNUC_MINOR__ >= 3
+-#if __GNUC_MINOR__ > 0
++#if GCC_VERSION >= 40100
+ # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
+ #endif
+ 
+-#if __GNUC_MINOR__ >= 3
++#if GCC_VERSION >= 40300
  /* Mark functions as cold. gcc will assume any path leading to a call
     to them will be unlikely.  This means a lot of manual unlikely()s
-@@ -33,6 +37,12 @@
+    are unnecessary now for any paths leading to the usual suspects
+@@ -41,9 +41,9 @@
+ # define __compiletime_warning(message) __attribute__((warning(message)))
+ # define __compiletime_error(message) __attribute__((error(message)))
+ #endif /* __CHECKER__ */
+-#endif /* __GNUC_MINOR__ >= 3 */
++#endif /* GCC_VERSION >= 40300 */
  
- #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
- 
-+#ifndef __CHECKER__
-+# define __compiletime_warning(message) __attribute__((warning(message)))
-+# define __compiletime_error(message) __attribute__((error(message)))
-+#endif /* __CHECKER__ */
-+#endif /* __GNUC_MINOR__ >= 3 */
-+
- #if __GNUC_MINOR__ >= 5
+-#if __GNUC_MINOR__ >= 5
++#if GCC_VERSION >= 40500
  /*
   * Mark a position in code as unreachable.  This can be used to
-@@ -48,8 +58,7 @@
+  * suppress control flow warnings after asm blocks that transfer
+@@ -58,9 +58,9 @@
  /* Mark a function definition as prohibited from being cloned. */
  #define __noclone	__attribute__((__noclone__))
  
--#endif
--#endif
-+#endif /* __GNUC_MINOR__ >= 5 */
+-#endif /* __GNUC_MINOR__ >= 5 */
++#endif /* GCC_VERSION >= 40500 */
  
- #if __GNUC_MINOR__ >= 6
+-#if __GNUC_MINOR__ >= 6
++#if GCC_VERSION >= 40600
  /*
-@@ -58,13 +67,6 @@
- #define __visible __attribute__((externally_visible))
- #endif
+  * Tell the optimizer that something else uses this function or variable.
+  */
+@@ -69,11 +69,11 @@
  
--#if __GNUC_MINOR__ > 0
--#define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
--#endif
--#if __GNUC_MINOR__ >= 3 && !defined(__CHECKER__)
--#define __compiletime_warning(message) __attribute__((warning(message)))
--#define __compiletime_error(message) __attribute__((error(message)))
--#endif
  
  #ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
- #if __GNUC_MINOR__ >= 4
+-#if __GNUC_MINOR__ >= 4
++#if GCC_VERSION >= 40400
+ #define __HAVE_BUILTIN_BSWAP32__
+ #define __HAVE_BUILTIN_BSWAP64__
+ #endif
+-#if __GNUC_MINOR__ >= 8 || (defined(__powerpc__) && __GNUC_MINOR__ >= 6)
++#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
+ #define __HAVE_BUILTIN_BSWAP16__
+ #endif
+-#endif
++#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
