@@ -1,40 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:33:28 -0800
-Message-ID: <20130222233329.220E431C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:33:32 -0800
+Message-ID: <20130222233332.F1F9931C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:38358 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756602Ab3BVXda (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:33:30 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so120297yhr.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:33:29 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:60303 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756602Ab3BVXdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:33:35 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so120224qeb.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:33:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Bug fix: Hold spinlock across find|remove /sys/firmware/memmap/X operation.
+     Subject: Bug fix: Fix the wrong comments of map_entries.
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+     memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix.patch
 
 This patch was dropped because it was folded into memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Bug fix: Hold spinlock across find|remove /sys/firmware/memmap/X operation.
+Subject: Bug fix: Fix the wrong comments of map_entries.
 
-It is unsafe to return an entry pointer and release the map_entries_lock. 
-So we should not hold the map_entries_lock separately in
-firmware_map_find_entry() and firmware_map_remove_entry().  Hold the
-map_entries_lock across find and remove /sys/firmware/memmap/X operation.
-
-And also, users of these two functions need to be careful to hold the lock
-when using these two functions.
-
-The suggestion is from Andrew Morton <akpm@linux-foundation.org>
+Now we have a map_entries_lock to protect map_entries list.
+So we need to update the comments.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
@@ -44,78 +37,25 @@ Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ drivers/firmware/memmap.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix
+diff -puN drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix
 +++ a/drivers/firmware/memmap.c
-@@ -150,12 +150,12 @@ static int firmware_map_add_entry(u64 st
-  * firmware_map_remove_entry() - Does the real work to remove a firmware
-  * memmap entry.
-  * @entry: removed entry.
-+ *
-+ * The caller must hold map_entries_lock, and release it properly.
-  **/
- static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
- {
--	spin_lock(&map_entries_lock);
- 	list_del(&entry->list);
--	spin_unlock(&map_entries_lock);
- }
- 
- /*
-@@ -188,23 +188,28 @@ static inline void remove_sysfs_fw_map_e
- }
- 
- /*
-- * Search memmap entry
-+ * firmware_map_find_entry: Search memmap entry.
-+ * @start: Start of the memory range.
-+ * @end:   End of the memory range (exclusive).
-+ * @type:  Type of the memory range.
-+ *
-+ * This function is to find the memmap entey of a given memory range.
-+ * The caller must hold map_entries_lock, and must not release the lock
-+ * until the processing of the returned entry has completed.
-+ *
-+ * Return pointer to the entry to be found on success, or NULL on failure.
+@@ -108,11 +108,7 @@ static struct kobj_type memmap_ktype = {
+  * Registration functions ------------------------------------------------------
   */
--
- static struct firmware_map_entry * __meminit
- firmware_map_find_entry(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
  
--	spin_lock(&map_entries_lock);
- 	list_for_each_entry(entry, &map_entries, list)
- 		if ((entry->start == start) && (entry->end == end) &&
- 		    (!strcmp(entry->type, type))) {
--			spin_unlock(&map_entries_lock);
- 			return entry;
- 		}
+-/*
+- * Firmware memory map entries. No locking is needed because the
+- * firmware_map_add() and firmware_map_add_early() functions are called
+- * in firmware initialisation code in one single thread of execution.
+- */
++/* Firmware memory map entries. */
+ static LIST_HEAD(map_entries);
+ static DEFINE_SPINLOCK(map_entries_lock);
  
--	spin_unlock(&map_entries_lock);
- 	return NULL;
- }
- 
-@@ -274,11 +279,15 @@ int __meminit firmware_map_remove(u64 st
- {
- 	struct firmware_map_entry *entry;
- 
-+	spin_lock(&map_entries_lock);
- 	entry = firmware_map_find_entry(start, end - 1, type);
--	if (!entry)
-+	if (!entry) {
-+		spin_unlock(&map_entries_lock);
- 		return -EINVAL;
-+	}
- 
- 	firmware_map_remove_entry(entry);
-+	spin_unlock(&map_entries_lock);
- 
- 	/* remove the memmap entry */
- 	remove_sysfs_fw_map_entry(entry);
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
@@ -124,7 +64,6 @@ memory-hotplug-try-to-offline-the-memory-twice-to-avoid-dependence.patch
 memory-hotplug-check-whether-all-memory-blocks-are-offlined-or-not-when-removing-memory.patch
 memory-hotplug-remove-redundant-codes.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix-fix.patch
