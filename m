@@ -1,106 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:30:13 -0800
-Message-ID: <20130222233014.3F0D931C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:30:48 -0800
+Message-ID: <20130222233048.C1B765A42CE@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:46495 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754740Ab3BVXaP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:30:15 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so120071yhr.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:30:15 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:33906 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755708Ab3BVXat (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:30:49 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so120070ggn.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:30:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, satoru.moriya@hds.com, simon.jeons@gmail.com, mm-commits@vger.kernel.org
+To: yinghan@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
+     Subject: mmotm: memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+     mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
+This patch was dropped because it was folded into memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
+From: Ying Han <yinghan@google.com>
+Subject: mmotm: memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch fix
 
-no need for min_t
+We should break out of the hierarchy loop only if nr_reclaimed exceeded
+nr_to_reclaim and not vice-versa. This patch fixes the condition.
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Ying Han <yinghan@google.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Satoru Moriya <satoru.moriya@hds.com>
-Cc: Simon Jeons <simon.jeons@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
+diff -puN mm/vmscan.c~mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix mm/vmscan.c
+--- a/mm/vmscan.c~mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix
 +++ a/mm/vmscan.c
-@@ -1841,8 +1841,7 @@ static void shrink_lruvec(struct lruvec 
- 					nr[LRU_INACTIVE_FILE]) {
- 		for_each_evictable_lru(lru) {
- 			if (nr[lru]) {
--				nr_to_scan = min_t(unsigned long,
--						   nr[lru], SWAP_CLUSTER_MAX);
-+				nr_to_scan = min(nr[lru], SWAP_CLUSTER_MAX);
- 				nr[lru] -= nr_to_scan;
- 
- 				nr_reclaimed += shrink_list(lru, nr_to_scan,
+@@ -1983,7 +1983,7 @@ static void shrink_zone(struct zone *zon
+ 			 * whole hierarchy is not sufficient.
+ 			 */
+ 			if (!global_reclaim(sc) &&
+-					sc->nr_to_reclaim >= sc->nr_reclaimed) {
++					sc->nr_to_reclaim <= sc->nr_reclaimed) {
+ 				mem_cgroup_iter_break(root, memcg);
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yinghan@google.com are
 
-origin.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
 mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold.patch
 memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
-hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
-mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
-tmpfs-fix-mempolicy-object-leaks-fix.patch
 
