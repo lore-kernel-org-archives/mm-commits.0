@@ -1,40 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged] 9pfs-fix-filesystem-to-wait-for-stable-page-writeback.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:39:21 -0800
-Message-ID: <20130222203922.0C5575A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] ocfs2-wait-for-page-writeback-to-provide-stable-pages.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:39:29 -0800
+Message-ID: <20130222203929.BD40031C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:38015 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757561Ab3BVUjY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:39:24 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so103392vbb.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:39:23 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37094 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757190Ab3BVUjb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:39:31 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so103512vbi.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:39:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, adrian.hunter@intel.com, axboe@kernel.dk, dedekind1@gmail.com, ericvh@gmail.com, jack@suse.cz, jlbec@evilplan.org, lucho@ionkov.net, luto@amacapital.net, mfasheh@suse.com, rminnich@sandia.gov, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, adrian.hunter@intel.com, axboe@kernel.dk, darrick.wong@oracle.com, dedekind1@gmail.com, ericvh@gmail.com, jlbec@evilplan.org, lucho@ionkov.net, luto@amacapital.net, mfasheh@suse.com, rminnich@sandia.gov, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: 9pfs: fix filesystem to wait for stable page writeback
+     Subject: ocfs2: wait for page writeback to provide stable pages
 has been removed from the -mm tree.  Its filename was
-     9pfs-fix-filesystem-to-wait-for-stable-page-writeback.patch
+     ocfs2-wait-for-page-writeback-to-provide-stable-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: 9pfs: fix filesystem to wait for stable page writeback
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: wait for page writeback to provide stable pages
 
-Fix up the ->page_mkwrite handler to provide stable page writes if necessary.
+When stable pages are required, we have to wait if the page is just going
+to disk and we want to modify it.  Add proper callback to
+ocfs2_grab_pages_for_write().
 
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Steven Whitehouse <swhiteho@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Eric Van Hensbergen <ericvh@gmail.com>
@@ -43,24 +45,36 @@ Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/vfs_file.c |    1 +
+ fs/ocfs2/aops.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/9p/vfs_file.c~9pfs-fix-filesystem-to-wait-for-stable-page-writeback fs/9p/vfs_file.c
---- a/fs/9p/vfs_file.c~9pfs-fix-filesystem-to-wait-for-stable-page-writeback
-+++ a/fs/9p/vfs_file.c
-@@ -616,6 +616,7 @@ v9fs_vm_page_mkwrite(struct vm_area_stru
- 	lock_page(page);
- 	if (page->mapping != inode->i_mapping)
- 		goto out_unlock;
-+	wait_for_stable_page(page);
+diff -puN fs/ocfs2/aops.c~ocfs2-wait-for-page-writeback-to-provide-stable-pages fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-wait-for-page-writeback-to-provide-stable-pages
++++ a/fs/ocfs2/aops.c
+@@ -1194,6 +1194,7 @@ static int ocfs2_grab_pages_for_write(st
+ 				goto out;
+ 			}
+ 		}
++		wait_for_stable_page(wc->w_pages[i]);
  
- 	return VM_FAULT_LOCKED;
- out_unlock:
+ 		if (index == target_index)
+ 			wc->w_target_page = wc->w_pages[i];
 _
 
-Patches currently in -mm which might be from darrick.wong@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
 linux-next.patch
+fs-change-return-values-from-eacces-to-eperm.patch
+fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs.patch
+fs-fix-hang-with-bsd-accounting-on-frozen-filesystem.patch
+ocfs2-add-freeze-protection-to-ocfs2_file_splice_write.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
+hfsplus-fix-issue-with-unzeroed-unused-b-tree-nodes.patch
+ocfs2-fix-possible-use-after-free-with-aio.patch
+fs-direct-ioc-fix-possible-use-after-free-with-aio.patch
 
