@@ -1,62 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:51:41 -0800
-Message-ID: <20130222235141.D9C525A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:51:37 -0800
+Message-ID: <20130222235138.140595A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:58304 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755918Ab3BVXvn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:51:43 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so136352qah.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:51:42 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:64203 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755741Ab3BVXvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:51:39 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so121577qen.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:51:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, glommer@parallels.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, glommer@parallels.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix
+     Subject: memcg-reduce-the-size-of-struct-memcg-244-fold-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+     memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
 
 This patch was dropped because it was folded into memcg-reduce-the-size-of-struct-memcg-244-fold.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix
+Subject: memcg-reduce-the-size-of-struct-memcg-244-fold-fix
 
-oops
+add check for invalid nid, remove inline
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Glauber Costa <glommer@parallels.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix
+diff -puN mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold-fix
 +++ a/mm/memcontrol.c
-@@ -363,7 +363,7 @@ struct mem_cgroup {
- 	struct mem_cgroup_lru_info info;
- };
- 
--static inline size_t memcg_size(void)
-+static size_t memcg_size(void)
- {
- 	return sizeof(struct mem_cgroup) +
- 		nr_node_ids * sizeof(struct mem_cgroup_per_node);
 @@ -381,7 +381,7 @@ enum {
  		((1 << KMEM_ACCOUNTED_ACTIVE) | (1 << KMEM_ACCOUNTED_ACTIVATED))
  
  #ifdef CONFIG_MEMCG_KMEM
--static void memcg_kmem_set_active(struct mem_cgroup *memcg)
-+static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
+-static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
++static void memcg_kmem_set_active(struct mem_cgroup *memcg)
  {
  	set_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
  }
+@@ -645,6 +645,7 @@ static void drain_all_stock_async(struct
+ static struct mem_cgroup_per_zone *
+ mem_cgroup_zoneinfo(struct mem_cgroup *memcg, int nid, int zid)
+ {
++	VM_BUG_ON((unsigned)nid >= nr_node_ids);
+ 	return &memcg->info.nodeinfo[nid]->zoneinfo[zid];
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,6 +95,7 @@ mm-dont-inline-page_mapping.patch
 swap-make-each-swap-partition-have-one-address_space.patch
 page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
 memcg-reduce-the-size-of-struct-memcg-244-fold.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
 memcg-fast-hierarchy-aware-child-test-fix.patch
 mm-rename-page-struct-field-helpers.patch
 mm-rename-page-struct-field-helpers-fix.patch
