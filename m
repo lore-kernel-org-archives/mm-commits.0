@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-devresc-fix-misplaced-endif.patch added to -mm tree
-Date: Fri, 22 Feb 2013 13:45:12 -0800
-Message-ID: <20130222214512.972015A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: + kexec-prevent-double-free-on-image-allocation-failure.patch added to -mm tree
+Date: Fri, 22 Feb 2013 13:48:09 -0800
+Message-ID: <20130222214809.A05F45A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:47921 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756698Ab3BVVpO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 16:45:14 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so110070ves.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 13:45:13 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:49977 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757335Ab3BVVsL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 16:48:11 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so110334vch.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 13:48:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, greg@kroah.com
+Cc: sasha.levin@oracle.com, ebiederm@xmission.com, zhangyanfei@cn.fujitsu.com
 
 
 The patch titled
-     Subject: lib/devres.c: fix misplaced #endif
+     Subject: kexec: prevent double free on image allocation failure
 has been added to the -mm tree.  Its filename is
-     lib-devresc-fix-misplaced-endif.patch
+     kexec-prevent-double-free-on-image-allocation-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: lib/devres.c: fix misplaced #endif
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: kexec: prevent double free on image allocation failure
 
-A misplaced #endif causes link errors related to pcim_*() functions.
+If kimage_normal_alloc() fails to initialize an allocated kimage, it will
+free the image but would still set 'rimage', as a result kexec_load will
+try to free it again.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Greg KH <greg@kroah.com>
+This would explode as part of the freeing process is accessing internal
+members which point to uninitialized memory.
+
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN lib/devres.c~lib-devresc-fix-misplaced-endif lib/devres.c
---- a/lib/devres.c~lib-devresc-fix-misplaced-endif
-+++ a/lib/devres.c
-@@ -227,6 +227,7 @@ void devm_ioport_unmap(struct device *de
- 			       devm_ioport_map_match, (void *)addr));
- }
- EXPORT_SYMBOL(devm_ioport_unmap);
-+#endif /* CONFIG_HAS_IOPORT */
+diff -puN kernel/kexec.c~kexec-prevent-double-free-on-image-allocation-failure kernel/kexec.c
+--- a/kernel/kexec.c~kexec-prevent-double-free-on-image-allocation-failure
++++ a/kernel/kexec.c
+@@ -242,8 +242,6 @@ static int kimage_normal_alloc(struct ki
+ 	if (result)
+ 		goto out;
  
- #ifdef CONFIG_PCI
- /*
-@@ -432,4 +433,3 @@ void pcim_iounmap_regions(struct pci_dev
- }
- EXPORT_SYMBOL(pcim_iounmap_regions);
- #endif /* CONFIG_PCI */
--#endif /* CONFIG_HAS_IOPORT */
+-	*rimage = image;
+-
+ 	/*
+ 	 * Find a location for the control code buffer, and add it
+ 	 * the vector of segments so that it's pages will also be
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
 origin.patch
 linux-next.patch
-backlight-ams369fg06-make-power_on-call-optional.patch
-lib-devresc-fix-misplaced-endif.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
+mm-huge_memory-use-new-hashtable-implementation.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix-fix.patch
+mm-memory_hotplug-no-need-to-check-res-twice-in-add_memory.patch
+swap-make-each-swap-partition-have-one-address_space-fix-fix.patch
+epoll-support-for-disabling-items-and-a-self-test-app-fix.patch
+kexec-prevent-double-free-on-image-allocation-failure.patch
+posix-timer-dont-call-idr_find-w-out-of-range-id.patch
+idr-implement-lookup-hint-always-do-slow-path-when-hint-is-uninitialized.patch
+hlist-drop-the-node-parameter-from-iterators.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-redo-kvm.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
 
