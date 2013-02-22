@@ -1,68 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-check-for-kcalloc-argument-order.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:42:56 -0800
-Message-ID: <20130222204256.A2FEC31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] checkpatch-fix-usleep_range-test.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:42:59 -0800
+Message-ID: <20130222204259.A9F9331C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:33022 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758001Ab3BVUm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:57 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so103911ghb.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:57 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:60856 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758001Ab3BVUnA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:43:00 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so104150yhz.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:43:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: bruce.w.allan@intel.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: Add check for kcalloc argument order
+     Subject: checkpatch: fix USLEEP_RANGE test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-check-for-kcalloc-argument-order.patch
+     checkpatch-fix-usleep_range-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Add check for kcalloc argument order
+From: Bruce Allan <bruce.w.allan@intel.com>
+Subject: checkpatch: fix USLEEP_RANGE test
 
-kcalloc is sometimes misused with the first and second arguments switched.
+Do not test udelay() for a value less than 10usec when passed a variable
+instead of a hard-coded number; there is no way for checkpatch to know the
+value of the variable.  As it is today, it will complain about variables
+with alphanumeric characters plus '_', e.g.  foo_bar, but not variables
+with other characters, eg.  foo->bar.
 
-Same issue with kmalloc_array too.
-
-Bleat if sizeof is the first argument
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-kcalloc-argument-order scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-check-for-kcalloc-argument-order
+diff -puN scripts/checkpatch.pl~checkpatch-fix-usleep_range-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-usleep_range-test
 +++ a/scripts/checkpatch.pl
-@@ -3476,6 +3476,12 @@ sub process {
- 			     "unnecessary cast may hide bugs, see http://c-faq.com/malloc/mallocnocast.html\n" . $herecurr);
+@@ -3253,9 +3253,9 @@ sub process {
  		}
  
-+# check for alloc argument mismatch
-+		if ($line =~ /\b(kcalloc|kmalloc_array)\s*\(\s*sizeof\b/) {
-+			WARN("ALLOC_ARRAY_ARGS",
-+			     "$1 uses number as first arg, sizeof is generally wrong\n" . $herecurr);
-+		}
-+
- # check for multiple semicolons
- 		if ($line =~ /;\s*;\s*$/) {
- 			WARN("ONE_SEMICOLON",
+ # prefer usleep_range over udelay
+-		if ($line =~ /\budelay\s*\(\s*(\w+)\s*\)/) {
++		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
+ 			# ignore udelay's < 10, however
+-			if (! (($1 =~ /(\d+)/) && ($1 < 10)) ) {
++			if (! ($1 < 10) ) {
+ 				CHK("USLEEP_RANGE",
+ 				    "usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt\n" . $line);
+ 			}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from bruce.w.allan@intel.com are
 
 origin.patch
-linux-next.patch
-get_maintainer-allow-keywords-to-match-filenames.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-proc-clean-up-printks-fix-fix.patch
 
