@@ -1,53 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:50:57 -0800
-Message-ID: <20130222235057.DF02F5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:51:41 -0800
+Message-ID: <20130222235141.D9C525A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:55465 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755239Ab3BVXu7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:50:59 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so120961vbi.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:50:58 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:58304 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755918Ab3BVXvn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:51:43 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so136352qah.4
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:51:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, psz@maths.usyd.edu.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, glommer@parallels.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
+     Subject: memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix
 has been removed from the -mm tree.  Its filename was
-     page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+     memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
 
-This patch was dropped because it was folded into page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
+This patch was dropped because it was folded into memcg-reduce-the-size-of-struct-memcg-244-fold.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
+Subject: memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix
 
-fix min() warning
+oops
 
-Cc: Paul Szabo <psz@maths.usyd.edu.au>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix mm/page-writeback.c
---- a/mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
-+++ a/mm/page-writeback.c
-@@ -242,7 +242,7 @@ static unsigned long global_dirtyable_me
- 		x -= highmem_dirtyable_memory(x);
+diff -puN mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix
++++ a/mm/memcontrol.c
+@@ -363,7 +363,7 @@ struct mem_cgroup {
+ 	struct mem_cgroup_lru_info info;
+ };
  
- 	/* Subtract min_free_kbytes */
--	x -= min(x, min_free_kbytes >> (PAGE_SHIFT - 10));
-+	x -= min_t(unsigned long, x, min_free_kbytes >> (PAGE_SHIFT - 10));
+-static inline size_t memcg_size(void)
++static size_t memcg_size(void)
+ {
+ 	return sizeof(struct mem_cgroup) +
+ 		nr_node_ids * sizeof(struct mem_cgroup_per_node);
+@@ -381,7 +381,7 @@ enum {
+ 		((1 << KMEM_ACCOUNTED_ACTIVE) | (1 << KMEM_ACCOUNTED_ACTIVATED))
  
- 	return x + 1;	/* Ensure that we never return 0 */
+ #ifdef CONFIG_MEMCG_KMEM
+-static void memcg_kmem_set_active(struct mem_cgroup *memcg)
++static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
+ {
+ 	set_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
  }
 _
 
@@ -80,8 +88,7 @@ mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp.
 mm-dont-inline-page_mapping.patch
 swap-make-each-swap-partition-have-one-address_space.patch
 page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold.patch
 memcg-fast-hierarchy-aware-child-test-fix.patch
 mm-rename-page-struct-field-helpers.patch
 mm-rename-page-struct-field-helpers-fix.patch
