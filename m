@@ -1,100 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-pcf8523-add-low-battery-voltage-support.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:43:20 -0800
-Message-ID: <20130222204320.A526A31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-rtc-remove-unnecessary-semicolons.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:43:29 -0800
+Message-ID: <20130222204329.99B7131C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:56460 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757477Ab3BVUnV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:43:21 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so104032ghb.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:43:21 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:63525 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758169Ab3BVUna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:43:30 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so103232ves.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:43:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: peter.senna@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-pcf8523: add low battery voltage support
+     Subject: drivers/rtc: remove unnecessary semicolons
 has been removed from the -mm tree.  Its filename was
-     rtc-pcf8523-add-low-battery-voltage-support.patch
+     drivers-rtc-remove-unnecessary-semicolons.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Nilsson <jesper.nilsson@axis.com>
-Subject: rtc-pcf8523: add low battery voltage support
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: drivers/rtc: remove unnecessary semicolons
 
-Implement reading of the battery voltage low signal for rtc-pcf8523.
+Found by Coccinelle: http://coccinelle.lip6.fr/
 
-The bit is read-only and cannot be cleared by software, so no
-clear function is implemented.
-
-[akpm@linux-foundation.org: omit pcf8563_rtc_ioctl() if CONFIG_RTC_INTF_DEV=n]
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8523.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/rtc/rtc-isl12022.c |    2 +-
+ drivers/rtc/rtc-pcf8563.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8523.c~rtc-pcf8523-add-low-battery-voltage-support drivers/rtc/rtc-pcf8523.c
---- a/drivers/rtc/rtc-pcf8523.c~rtc-pcf8523-add-low-battery-voltage-support
-+++ a/drivers/rtc/rtc-pcf8523.c
-@@ -23,6 +23,7 @@
- #define REG_CONTROL3_PM_VDD (1 << 6) /* switch-over disabled */
- #define REG_CONTROL3_PM_DSM (1 << 5) /* direct switching mode */
- #define REG_CONTROL3_PM_MASK 0xe0
-+#define REG_CONTROL3_BLF (1 << 2) /* battery low bit, read-only */
- 
- #define REG_SECONDS  0x03
- #define REG_SECONDS_OS (1 << 7)
-@@ -250,9 +251,39 @@ static int pcf8523_rtc_set_time(struct d
- 	return pcf8523_start_rtc(client);
- }
- 
-+#ifdef CONFIG_RTC_INTF_DEV
-+static int pcf8523_rtc_ioctl(struct device *dev, unsigned int cmd,
-+			     unsigned long arg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	u8 value;
-+	int ret = 0, err;
-+
-+	switch (cmd) {
-+	case RTC_VL_READ:
-+		err = pcf8523_read(client, REG_CONTROL3, &value);
-+		if (err < 0)
-+			return err;
-+
-+		if (value & REG_CONTROL3_BLF)
-+			ret = 1;
-+
-+		if (copy_to_user((void __user *)arg, &ret, sizeof(int)))
-+			return -EFAULT;
-+
-+		return 0;
-+	default:
-+		return -ENOIOCTLCMD;
+diff -puN drivers/rtc/rtc-isl12022.c~drivers-rtc-remove-unnecessary-semicolons drivers/rtc/rtc-isl12022.c
+--- a/drivers/rtc/rtc-isl12022.c~drivers-rtc-remove-unnecessary-semicolons
++++ a/drivers/rtc/rtc-isl12022.c
+@@ -227,7 +227,7 @@ static int isl12022_set_datetime(struct 
+ 					 buf[ISL12022_REG_SC + i]);
+ 		if (ret)
+ 			return -EIO;
+-	};
 +	}
-+}
-+#else
-+#define pcf8523_rtc_ioctl NULL
-+#endif
-+
- static const struct rtc_class_ops pcf8523_rtc_ops = {
- 	.read_time = pcf8523_rtc_read_time,
- 	.set_time = pcf8523_rtc_set_time,
-+	.ioctl = pcf8523_rtc_ioctl,
- };
  
- static int pcf8523_probe(struct i2c_client *client,
+ 	return 0;
+ }
+diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-remove-unnecessary-semicolons drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-remove-unnecessary-semicolons
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -181,7 +181,7 @@ static int pcf8563_set_datetime(struct i
+ 				__func__, err, data[0], data[1]);
+ 			return -EIO;
+ 		}
+-	};
++	}
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from peter.senna@gmail.com are
 
 origin.patch
 linux-next.patch
+hlist-drop-the-node-parameter-from-iterators.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
 
