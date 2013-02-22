@@ -1,59 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-mx3fb-use-null-for-pointer.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:38:52 -0800
-Message-ID: <20130222203852.B07225A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:38:58 -0800
+Message-ID: <20130222203858.ABDCE5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:50668 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757125Ab3BVUix (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:38:53 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so104077qeb.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:38:53 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:61355 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757125Ab3BVUi7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:38:59 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so103700yen.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:38:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabio.estevam@freescale.com, g.liakhovetski@gmx.de, mm-commits@vger.kernel.org
+To: tkhai@yandex.ru, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/mx3fb.c: use NULL for pointer
+     Subject: scripts/tags.sh: add ctags magic for declarations of popular kernel type
 has been removed from the -mm tree.  Its filename was
-     video-mx3fb-use-null-for-pointer.patch
+     scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabio Estevam <fabio.estevam@freescale.com>
-Subject: drivers/video/mx3fb.c: use NULL for pointer
+From: Kirill Tkhai <tkhai@yandex.ru>
+Subject: scripts/tags.sh: add ctags magic for declarations of popular kernel type
 
-Fix the following sparse error:
+- Add magic for declarations of variables of popular kernel type like
+spinlock_t, list_head, wait_queue_head_t and other.
 
-drivers/video/mx3fb.c:1309:28: warning: Using plain integer as NULL pointer
+- Add a set of specially handled declaration extentions like __attribute,
+__aligned and other.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+- Simplify pci_bus_* magic
+
+Signed-off-by: Kirill V Tkhai <tkhai@yandex.ru>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mx3fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/tags.sh |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/mx3fb.c~video-mx3fb-use-null-for-pointer drivers/video/mx3fb.c
---- a/drivers/video/mx3fb.c~video-mx3fb-use-null-for-pointer
-+++ a/drivers/video/mx3fb.c
-@@ -1306,7 +1306,7 @@ static int mx3fb_unmap_video_memory(stru
- 	dma_free_writecombine(fbi->device, fbi->fix.smem_len,
- 			      fbi->screen_base, fbi->fix.smem_start);
+diff -puN scripts/tags.sh~scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type
++++ a/scripts/tags.sh
+@@ -149,12 +149,17 @@ dogtags()
+ exuberant()
+ {
+ 	all_target_sources | xargs $1 -a                        \
+-	-I __initdata,__exitdata,__acquires,__releases          \
+-	-I __read_mostly,____cacheline_aligned                  \
++	-I __initdata,__exitdata,__initconst,__devinitdata	\
++	-I __devinitconst,__cpuinitdata,__initdata_memblock	\
++	-I __refdata,__attribute				\
++	-I __acquires,__releases,__deprecated			\
++	-I __read_mostly,__aligned,____cacheline_aligned        \
+ 	-I ____cacheline_aligned_in_smp                         \
+ 	-I ____cacheline_internodealigned_in_smp                \
++	-I __used,__packed,__packed2__,__must_check,__must_hold	\
+ 	-I EXPORT_SYMBOL,EXPORT_SYMBOL_GPL                      \
+ 	-I DEFINE_TRACE,EXPORT_TRACEPOINT_SYMBOL,EXPORT_TRACEPOINT_SYMBOL_GPL \
++	-I static,const						\
+ 	--extra=+f --c-kinds=+px                                \
+ 	--regex-asm='/^(ENTRY|_GLOBAL)\(([^)]*)\).*/\2/'        \
+ 	--regex-c='/^SYSCALL_DEFINE[[:digit:]]?\(([^,)]*).*/sys_\1/' \
+@@ -182,8 +187,19 @@ exuberant()
+ 	--regex-c++='/TESTCLEARFLAG_FALSE\(([^,)]*).*/TestClearPage\1/' \
+ 	--regex-c++='/__TESTCLEARFLAG_FALSE\(([^,)]*).*/__TestClearPage\1/' \
+ 	--regex-c++='/_PE\(([^,)]*).*/PEVENT_ERRNO__\1/'		\
+-	--regex-c='/PCI_OP_READ\(([a-z]*[a-z]).*[1-4]\)/pci_bus_read_config_\1/' \
+-	--regex-c='/PCI_OP_WRITE\(([a-z]*[a-z]).*[1-4]\)/pci_bus_write_config_\1/'
++	--regex-c='/PCI_OP_READ\((\w*).*[1-4]\)/pci_bus_read_config_\1/' \
++	--regex-c='/PCI_OP_WRITE\((\w*).*[1-4]\)/pci_bus_write_config_\1/' \
++	--regex-c='/DEFINE_(MUTEX|SEMAPHORE|SPINLOCK)\((\w*)/\2/v/'	\
++	--regex-c='/DEFINE_(RAW_SPINLOCK|RWLOCK|SEQLOCK)\((\w*)/\2/v/'	\
++	--regex-c='/DECLARE_(RWSEM|COMPLETION)\((\w*)/\2/v/'		\
++	--regex-c='/DECLARE_BITMAP\((\w*)/\1/v/'			\
++	--regex-c='/(^|\s)(|L|H)LIST_HEAD\((\w*)/\3/v/'			\
++	--regex-c='/(^|\s)RADIX_TREE\((\w*)/\2/v/'			\
++	--regex-c='/DEFINE_PER_CPU\(([^,]*,\s*)(\w*).*\)/\2/v/'		\
++	--regex-c='/DEFINE_PER_CPU_SHARED_ALIGNED\(([^,]*,\s*)(\w*).*\)/\2/v/' \
++	--regex-c='/DECLARE_WAIT_QUEUE_HEAD\((\w*)/\1/v/'		\
++	--regex-c='/DECLARE_(TASKLET|WORK|DELAYED_WORK)\((\w*)/\2/v/'	\
++	--regex-c='/DEFINE_PCI_DEVICE_TABLE\((\w*)/\1/v/'
  
--	fbi->screen_base = 0;
-+	fbi->screen_base = NULL;
- 	mutex_lock(&fbi->mm_lock);
- 	fbi->fix.smem_start = 0;
- 	fbi->fix.smem_len = 0;
+ 	all_kconfigs | xargs $1 -a                              \
+ 	--langdef=kconfig --language-force=kconfig              \
 _
 
-Patches currently in -mm which might be from fabio.estevam@freescale.com are
+Patches currently in -mm which might be from tkhai@yandex.ru are
 
 origin.patch
-linux-next.patch
 
