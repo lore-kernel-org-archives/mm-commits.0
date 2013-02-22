@@ -1,54 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:30:51 -0800
-Message-ID: <20130222233051.D737331C278@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:31:55 -0800
+Message-ID: <20130222233156.585A65A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:60070 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755769Ab3BVXax (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:30:53 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so119865vcd.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:30:52 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:38191 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755769Ab3BVXb5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:31:57 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so119938qcr.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:31:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, riel@redhat.com, shli@fusionio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix
+     Subject: mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix
 has been removed from the -mm tree.  Its filename was
-     mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+     mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
 
-This patch was dropped because it was folded into memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
+This patch was dropped because it was folded into mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix
+Subject: mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix
 
-use conventional comparison order
+fix CONFIG_SWAP=n build
 
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/vmscan.c~mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix mm/vmscan.c
---- a/mm/vmscan.c~mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix
-+++ a/mm/vmscan.c
-@@ -1983,7 +1983,7 @@ static void shrink_zone(struct zone *zon
- 			 * whole hierarchy is not sufficient.
- 			 */
- 			if (!global_reclaim(sc) &&
--					sc->nr_to_reclaim <= sc->nr_reclaimed) {
-+					sc->nr_reclaimed >= sc->nr_to_reclaim) {
- 				mem_cgroup_iter_break(root, memcg);
- 				break;
- 			}
+diff -puN mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix mm/madvise.c
+--- a/mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix
++++ a/mm/madvise.c
+@@ -134,6 +134,7 @@ out:
+ 	return error;
+ }
+ 
++#ifdef CONFIG_SWAP
+ static int swapin_walk_pmd_entry(pmd_t *pmd, unsigned long start,
+ 	unsigned long end, struct mm_walk *walk)
+ {
+@@ -209,6 +210,7 @@ static void force_shm_swapin_readahead(s
+ 
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ }
++#endif		/* CONFIG_SWAP */
+ 
+ /*
+  * Schedule all required I/O operations.  Do not wait for completion.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +70,7 @@ mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
 mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
 mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
 memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
 mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
 mm-remove-flags-argument-to-mmap_region-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
