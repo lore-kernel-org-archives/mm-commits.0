@@ -1,64 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:44:08 -0800
-Message-ID: <20130222234409.0D2485A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:44:11 -0800
+Message-ID: <20130222234411.D1A1C5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:50438 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756443Ab3BVXoK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:44:10 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so120930qeb.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:44:09 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:36227 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756443Ab3BVXoM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:44:12 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so120475yhz.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:44:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes
+     Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+     page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
 
 This patch was dropped because it was folded into page_alloc-add-movable_memmap-kernel-parameter.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes
+Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
 
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-
-WARNING: please, no space before tabs
-#48: FILE: mm/page_alloc.c:5171:
-+ * ^Imovablecore_map=nn[KMG]@ss[KMG]$
-
-total: 0 errors, 1 warnings, 39 lines checked
-
-./patches/page_alloc-add-movable_memmap-kernel-parameter-fix-fix.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+remove unneeded parens
 
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes
+diff -puN mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
 +++ a/mm/page_alloc.c
-@@ -5176,7 +5176,7 @@ static void __init movablecore_map_add_r
- /*
-  * cmdline_parse_movablecore_map() - Parse boot option movablecore_map.
-  * @p:	The boot option of the following format:
-- * 	movablecore_map=nn[KMG]@ss[KMG]
-+ *	movablecore_map=nn[KMG]@ss[KMG]
+@@ -5082,7 +5082,7 @@ early_param("kernelcore", cmdline_parse_
+ early_param("movablecore", cmdline_parse_movablecore);
+ 
+ /**
+- * insert_movablecore_map() - Insert a memory range in to movablecore_map.map.
++ * insert_movablecore_map - Insert a memory range in to movablecore_map.map.
+  * @start_pfn:	start pfn of the range
+  * @end_pfn:	end pfn of the range
   *
-  * This option sets the memory range [ss, ss+nn) to be used as movable memory.
+@@ -5145,7 +5145,7 @@ static void __init insert_movablecore_ma
+ }
+ 
+ /**
+- * movablecore_map_add_region() - Add a memory range into movablecore_map.
++ * movablecore_map_add_region - Add a memory range into movablecore_map.
+  * @start:	physical start address of range
+  * @end:	physical end address of range
+  *
+@@ -5174,7 +5174,7 @@ static void __init movablecore_map_add_r
+ }
+ 
+ /*
+- * cmdline_parse_movablecore_map() - Parse boot option movablecore_map.
++ * cmdline_parse_movablecore_map - Parse boot option movablecore_map.
+  * @p:	The boot option of the following format:
+  *	movablecore_map=nn[KMG]@ss[KMG]
   *
 _
 
@@ -83,7 +88,6 @@ memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
 cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
 cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
 page_alloc-add-movable_memmap-kernel-parameter.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
 acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
