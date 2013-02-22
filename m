@@ -1,86 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] coredump-abort-core-dump-piping-only-due-to-a-fatal-signal.patch removed from -mm tree
-Date: Thu, 21 Feb 2013 16:03:54 -0800
-Message-ID: <20130222000355.2CAEE31C016@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch removed from -mm tree
+Date: Thu, 21 Feb 2013 16:08:34 -0800
+Message-ID: <20130222000835.543625A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:61319 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753608Ab3BVAD4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 19:03:56 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so29747qah.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 16:03:56 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:33391 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755749Ab3BVAIg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Feb 2013 19:08:36 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so14956yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Feb 2013 16:08:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benchan@chromium.org, mingo@redhat.com, msb@chromium.org, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.santos@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: abort core dump piping only due to a fatal signal
+     Subject: bugh-prevent-double-evaulation-of-in-build_bug_on-fix
 has been removed from the -mm tree.  Its filename was
-     coredump-abort-core-dump-piping-only-due-to-a-fatal-signal.patch
+     bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into bugh-prevent-double-evaulation-of-in-build_bug_on.patch
 
 ------------------------------------------------------
-From: Ben Chan <benchan@chromium.org>
-Subject: coredump: abort core dump piping only due to a fatal signal
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bugh-prevent-double-evaulation-of-in-build_bug_on-fix
 
-Make wait_for_dump_helpers() not abort piping the core dump data when the
-crashing process has received a non-fatal signal.  The abort still occurs
-in the case of SIGKILL.
+tweak code layout
 
-The rationale is that a crashing process may still receive uninteresting
-signals such as SIGCHLD when its core dump data is being redirected to a
-helper application.  While it's necessary to allow terminating the core
-dump piping via SIGKILL, it's practically more useful for the purpose of
-debugging and crash reporting if the core dump piping is not aborted due
-to other non-fatal signals.
-
-Signed-off-by: Ben Chan <benchan@chromium.org>
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Daniel Santos <daniel.santos@pobox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/bug.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/coredump.c~coredump-abort-core-dump-piping-only-due-to-a-fatal-signal fs/coredump.c
---- a/fs/coredump.c~coredump-abort-core-dump-piping-only-due-to-a-fatal-signal
-+++ a/fs/coredump.c
-@@ -32,6 +32,7 @@
- #include <linux/pipe_fs_i.h>
- #include <linux/oom.h>
- #include <linux/compat.h>
-+#include <linux/freezer.h>
+diff -puN include/linux/bug.h~bugh-prevent-double-evaulation-of-in-build_bug_on-fix include/linux/bug.h
+--- a/include/linux/bug.h~bugh-prevent-double-evaulation-of-in-build_bug_on-fix
++++ a/include/linux/bug.h
+@@ -62,7 +62,7 @@ extern int __build_bug_on_failed;
+ 		bool __cond = !!(condition);			\
+ 		((void)sizeof(char[1 - 2 * __cond]));		\
+ 		if (__cond) __build_bug_on_failed = 1;		\
+-	} while(0)
++	} while (0)
+ #endif
  
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -417,10 +418,13 @@ static void wait_for_dump_helpers(struct
- 	pipe->readers++;
- 	pipe->writers--;
- 
--	while ((pipe->readers > 1) && (!signal_pending(current))) {
-+	while ((pipe->readers > 1) && (!fatal_signal_pending(current))) {
- 		wake_up_interruptible_sync(&pipe->wait);
- 		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
- 		pipe_wait(pipe);
-+		pipe_unlock(pipe);
-+		try_to_freeze();
-+		pipe_lock(pipe);
- 	}
- 
- 	pipe->readers--;
+ /**
 _
 
-Patches currently in -mm which might be from benchan@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lockdep-check-that-no-locks-held-at-freeze-time.patch
-lockdep-check-that-no-locks-held-at-freeze-time-v2.patch
-lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
-coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
+origin.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+goldfish-framebuffer-driver-fix.patch
+ocfs2-remove-kfree-redundant-null-checks.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+sys_prctl-coding-style-cleanup.patch
+backlight-add-lms501kf03-lcd-driver.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+rtc-max77686-add-maxim-77686-driver.patch
+rtc-pcf8523-add-low-battery-voltage-support.patch
+rtc-add-rtc-driver-for-tps80031-tps80032.patch
+rtc-add-support-for-spi-rtc-rx4581.patch
 
