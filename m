@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-vmscan-clean-up-get_scan_count-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:29:52 -0800
-Message-ID: <20130222232952.9222B5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:30:13 -0800
+Message-ID: <20130222233014.3F0D931C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:36797 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757811Ab3BVX3y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:29:54 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so134696qah.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:29:53 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:46495 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754740Ab3BVXaP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:30:15 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so120071yhr.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:30:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, satoru.moriya@hds.com, simon.jeons@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-clean-up-get_scan_count-fix
+     Subject: mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-clean-up-get_scan_count-fix.patch
+     mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-clean-up-get_scan_count.patch
+This patch was dropped because it was folded into mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-clean-up-get_scan_count-fix
+Subject: mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
 
-avoid using unintialized_var()
+no need for min_t
 
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -38,22 +38,22 @@ Cc: Simon Jeons <simon.jeons@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-clean-up-get_scan_count-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-clean-up-get_scan_count-fix
+diff -puN mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
 +++ a/mm/vmscan.c
-@@ -1658,7 +1658,8 @@ static void get_scan_count(struct lruvec
- 			   unsigned long *nr)
- {
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
--	u64 fraction[2], uninitialized_var(denominator);
-+	u64 fraction[2];
-+	u64 denominator = 0;	/* gcc */
- 	struct zone *zone = lruvec_zone(lruvec);
- 	unsigned long anon_prio, file_prio;
- 	enum scan_balance scan_balance;
+@@ -1841,8 +1841,7 @@ static void shrink_lruvec(struct lruvec 
+ 					nr[LRU_INACTIVE_FILE]) {
+ 		for_each_evictable_lru(lru) {
+ 			if (nr[lru]) {
+-				nr_to_scan = min_t(unsigned long,
+-						   nr[lru], SWAP_CLUSTER_MAX);
++				nr_to_scan = min(nr[lru], SWAP_CLUSTER_MAX);
+ 				nr[lru] -= nr_to_scan;
+ 
+ 				nr_reclaimed += shrink_list(lru, nr_to_scan,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +64,7 @@ mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 mm-hugetlbc-convert-to-pr_foo.patch
 cma-make-putback_lru_pages-call-conditional.patch
 mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
 mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
 mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
 mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
