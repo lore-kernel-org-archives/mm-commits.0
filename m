@@ -1,62 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-s6e63m0-report-gamma_table_count-correctly.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 12:42:15 -0800
-Message-ID: <20130222204215.A46DB31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-video-backlight-adp880_blc-fix-resume.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 12:42:21 -0800
+Message-ID: <20130222204221.AFC1A31C1C1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:39282 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829Ab3BVUmQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:16 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so103766yen.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:16 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:43752 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829Ab3BVUmW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 15:42:22 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so103864ggi.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 12:42:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, FlorianSchandinat@gmx.de, jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: lars@metafoo.de, michael.hennerich@analog.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/s6e63m0.c: report ->gamma_table_count correctly
+     Subject: drivers/video/backlight/adp88?0_bl.c: fix resume
 has been removed from the -mm tree.  Its filename was
-     backlight-s6e63m0-report-gamma_table_count-correctly.patch
+     drivers-video-backlight-adp880_blc-fix-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: drivers/video/backlight/s6e63m0.c: report ->gamma_table_count correctly
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: drivers/video/backlight/adp88?0_bl.c: fix resume
 
-gamma_table has 3 arrays which each hold MAX_GAMMA_LEVEL pointers to int.
+Clearing the NSTBY bit in the control register also automatically clears
+the BLEN bit.  So we need to make sure to set it again during resume,
+otherwise the backlight will stay off.
 
-The current code sets ->gamma_table_count to 6 on 64bit arches and to 3 on
-32 bit arches.  It should be 3 on everything.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/adp8860_bl.c |    2 +-
+ drivers/video/backlight/adp8870_bl.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-report-gamma_table_count-correctly drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-report-gamma_table_count-correctly
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -766,7 +766,7 @@ static int s6e63m0_probe(struct spi_devi
- 	 * know that.
- 	 */
- 	lcd->gamma_table_count =
--	    sizeof(gamma_table) / (MAX_GAMMA_LEVEL * sizeof(int));
-+	    sizeof(gamma_table) / (MAX_GAMMA_LEVEL * sizeof(int *));
+diff -puN drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp880_blc-fix-resume drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp880_blc-fix-resume
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -783,7 +783,7 @@ static int adp8860_i2c_suspend(struct i2
  
- 	ret = device_create_file(&(spi->dev), &dev_attr_gamma_mode);
- 	if (ret < 0)
+ static int adp8860_i2c_resume(struct i2c_client *client)
+ {
+-	adp8860_set_bits(client, ADP8860_MDCR, NSTBY);
++	adp8860_set_bits(client, ADP8860_MDCR, NSTBY | BLEN);
+ 
+ 	return 0;
+ }
+diff -puN drivers/video/backlight/adp8870_bl.c~drivers-video-backlight-adp880_blc-fix-resume drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~drivers-video-backlight-adp880_blc-fix-resume
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -957,7 +957,7 @@ static int adp8870_i2c_suspend(struct i2
+ 
+ static int adp8870_i2c_resume(struct i2c_client *client)
+ {
+-	adp8870_set_bits(client, ADP8870_MDCR, NSTBY);
++	adp8870_set_bits(client, ADP8870_MDCR, NSTBY | BLEN);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from lars@metafoo.de are
 
 origin.patch
 linux-next.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock-fix.patch
 
