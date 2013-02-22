@@ -1,129 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:31:59 -0800
-Message-ID: <20130222233200.0969D31C1C1@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mm-remove-flags-argument-to-mmap_region-fix.patch removed from -mm tree
+Date: Fri, 22 Feb 2013 15:32:54 -0800
+Message-ID: <20130222233255.2D6C55A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:45478 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756399Ab3BVXcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:32:01 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so119950ggn.4
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:32:00 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:35870 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755438Ab3BVXc4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:32:56 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so120022ves.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:32:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, hughd@google.com, riel@redhat.com, shli@fusionio.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, gregungerer@westnet.com.au, luto@amacapital.net, riel@redhat.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix BUG on madvise early failure
+     Subject: mm-remove-flags-argument-to-mmap_region-fix
 has been removed from the -mm tree.  Its filename was
-     mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix-fix.patch
+     mm-remove-flags-argument-to-mmap_region-fix.patch
 
-This patch was dropped because it was folded into mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
+This patch was dropped because it was folded into mm-remove-flags-argument-to-mmap_region.patch
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: fix BUG on madvise early failure
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-remove-flags-argument-to-mmap_region-fix
 
-Commit "mm: make madvise(MADV_WILLNEED) support swap file prefetch" has
-allowed a situation where blk_finish_plug() would be called without
-blk_start_plug() being called before that, which would lead to a BUG:
+remove double parens
 
-[   57.320031] kernel BUG at block/blk-core.c:2981!
-[   57.320031] invalid opcode: 0000 [#3] PREEMPT SMP DEBUG_PAGEALLOC
-[   57.320031] Modules linked in:
-[   57.320031] CPU 4
-[   57.320031] Pid: 7013, comm: trinity Tainted: G      D W    3.8.0-rc3-next-20130114-sasha-00016-ga107525-dirty #261
-[   57.320031] RIP: 0010:[<ffffffff819e3bfa>]  [<ffffffff819e3bfa>] blk_flush_plug_list+0x2a/0x270
-[   57.320031] RSP: 0018:ffff880014cc5e68  EFLAGS: 00010297
-[   57.320031] RAX: 0000000091827364 RBX: ffff880014cc5e78 RCX: 0000000000000001
-[   57.320031] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff880014cc5f18
-[   57.340707] RBP: ffff880014cc5ec8 R08: 0000000000000002 R09: 0000000000000000
-[   57.340707] R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000000a
-[   57.340707] R13: 000000000000001c R14: ffff880014cc5f18 R15: ffff880014cc5f18
-[   57.340707] FS:  00007f2ba9ee4700(0000) GS:ffff880013c00000(0000) knlGS:0000000000000000
-[   57.340707] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   57.340707] CR2: 00000000008db558 CR3: 0000000014d0a000 CR4: 00000000000406e0
-[   57.340707] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   57.340707] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[   57.340707] Process trinity (pid: 7013, threadinfo ffff880014cc4000, task ffff880014ed8000)
-[   57.340707] Stack:
-[   57.340707]  ffffffff8123b2e4 00007f2ba9ee46a8 ffff880014cc5e78 ffff880014cc5e78
-[   57.340707]  ffff880014c240b0 ffff880014c24110 ffffffff00000001 ffff880014cc5f18
-[   57.340707]  000000000000000a 000000000000001c 0000000000000aec ffff880014cc5f18
-[   57.340707] Call Trace:
-[   57.340707]  [<ffffffff8123b2e4>] ? sys_madvise+0x2a4/0x2e0
-[   57.340707]  [<ffffffff819e3e53>] blk_finish_plug+0x13/0x40
-[   57.340707]  [<ffffffff8123b268>] sys_madvise+0x228/0x2e0
-[   57.340707]  [<ffffffff8107df14>] ? syscall_trace_enter+0x24/0x2e0
-[   57.340707]  [<ffffffff83d33d58>] tracesys+0xe1/0xe6
-[   57.340707] Code: 00 55 b8 64 73 82 91 48 89 e5 41 57 41 56 49 89 fe 41 55 41 54 53 48 8d 5d b0 48 83 ec 38 48 89 5d b0 48 39 07 48 89 5d b8 74 06 <0f> 0b 0f 1f 40 00 48 8d 45 c0 44 0f b6 e6 48 8b 57 18 48 89 45
-[   57.340707] RIP  [<ffffffff819e3bfa>] blk_flush_plug_list+0x2a/0x270
-[   57.340707]  RSP <ffff880014cc5e68>
-
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Greg Ungerer <gregungerer@westnet.com.au>
+Cc: Michel Lespinasse <walken@google.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix-fix mm/madvise.c
---- a/mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix-fix
-+++ a/mm/madvise.c
-@@ -509,14 +509,14 @@ SYSCALL_DEFINE3(madvise, unsigned long, 
- 		/* Still start < end. */
- 		error = -ENOMEM;
- 		if (!vma)
--			goto out;
-+			goto out_plug;
- 
- 		/* Here start < (end|vma->vm_end). */
- 		if (start < vma->vm_start) {
- 			unmapped_error = -ENOMEM;
- 			start = vma->vm_start;
- 			if (start >= end)
--				goto out;
-+				goto out_plug;
- 		}
- 
- 		/* Here vma->vm_start <= start < (end|vma->vm_end) */
-@@ -527,20 +527,21 @@ SYSCALL_DEFINE3(madvise, unsigned long, 
- 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
- 		error = madvise_vma(vma, &prev, start, tmp, behavior);
- 		if (error)
--			goto out;
-+			goto out_plug;
- 		start = tmp;
- 		if (prev && start < prev->vm_end)
- 			start = prev->vm_end;
- 		error = unmapped_error;
- 		if (start >= end)
--			goto out;
-+			goto out_plug;
- 		if (prev)
- 			vma = prev->vm_next;
- 		else	/* madvise_remove dropped mmap_sem */
- 			vma = find_vma(current->mm, start);
- 	}
--out:
-+out_plug:
- 	blk_finish_plug(&plug);
-+out:
- 	if (write)
- 		up_write(&current->mm->mmap_sem);
- 	else
+diff -puN mm/mmap.c~mm-remove-flags-argument-to-mmap_region-fix mm/mmap.c
+--- a/mm/mmap.c~mm-remove-flags-argument-to-mmap_region-fix
++++ a/mm/mmap.c
+@@ -1295,7 +1295,7 @@ unsigned long do_mmap_pgoff(struct file 
+ 	 * Set 'VM_NORESERVE' if we should not account for the
+ 	 * memory use of this mapping.
+ 	 */
+-	if ((flags & MAP_NORESERVE)) {
++	if (flags & MAP_NORESERVE) {
+ 		/* We honor MAP_NORESERVE if allowed to overcommit */
+ 		if (sysctl_overcommit_memory != OVERCOMMIT_NEVER)
+ 			vm_flags |= VM_NORESERVE;
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-huge_memory-use-new-hashtable-implementation.patch
+drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional.patch
+mm-vmscan-clean-up-get_scan_count.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
 mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
-mm-memory_hotplug-no-need-to-check-res-twice-in-add_memory.patch
-swap-make-each-swap-partition-have-one-address_space-fix-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix.patch
+acpi-memory-hotplug-support-getting-hotplug-info-from-srat-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages-fix.patch
+mm-accurately-document-nr_free__pages-functions-with-code-comments-fix.patch
+tmpfs-fix-mempolicy-object-leaks-fix.patch
 
