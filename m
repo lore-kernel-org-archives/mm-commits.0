@@ -1,88 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] tmpfs-fix-mempolicy-object-leaks-fix.patch removed from -mm tree
-Date: Fri, 22 Feb 2013 15:55:13 -0800
-Message-ID: <20130222235513.837915A415F@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:47:58 -0800
+Message-ID: <20130225204800.87BF331C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:47601 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755741Ab3BVXzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Feb 2013 18:55:15 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so121662vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Feb 2013 15:55:14 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:64157 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753635Ab3BYUsE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:48:04 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so346169ggn.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:48:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gthelen@google.com, hughd@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agk@redhat.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs-fix-mempolicy-object-leaks-fix
+     Subject: drivers/md/persistent-data/dm-transaction-manager.c: rename HASH_SIZE
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-mempolicy-object-leaks-fix.patch
+     drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
 
-This patch was dropped because it was folded into tmpfs-fix-mempolicy-object-leaks.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tmpfs-fix-mempolicy-object-leaks-fix
+Subject: drivers/md/persistent-data/dm-transaction-manager.c: rename HASH_SIZE
 
-fix handling of mpol_parse_str() errors, per Hugh
-
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
+drivers/md/persistent-data/dm-transaction-manager.c:28:1: warning: "HASH_SIZE" redefined
+In file included from include/linux/elevator.h:5,
+                 from include/linux/blkdev.h:216,
+                 from drivers/md/persistent-data/dm-block-manager.h:11,
+                 from drivers/md/persistent-data/dm-transaction-manager.h:10,
+                 from drivers/md/persistent-data/dm-transaction-manager.c:6:
+include/linux/hashtable.h:22:1: warning: this is the location of the previous definition
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/md/persistent-data/dm-transaction-manager.c |   14 +++++-----
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-fix-mempolicy-object-leaks-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-fix-mempolicy-object-leaks-fix
-+++ a/mm/shmem.c
-@@ -2464,6 +2464,7 @@ static int shmem_parse_options(char *opt
- 				goto bad_val;
- 		} else if (!strcmp(this_char,"mpol")) {
- 			mpol_put(mpol);
-+			mpol = NULL;
- 			if (mpol_parse_str(value, &mpol))
- 				goto bad_val;
- 		} else {
+diff -puN drivers/md/persistent-data/dm-transaction-manager.c~drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size drivers/md/persistent-data/dm-transaction-manager.c
+--- a/drivers/md/persistent-data/dm-transaction-manager.c~drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size
++++ a/drivers/md/persistent-data/dm-transaction-manager.c
+@@ -25,8 +25,8 @@ struct shadow_info {
+ /*
+  * It would be nice if we scaled with the size of transaction.
+  */
+-#define HASH_SIZE 256
+-#define HASH_MASK (HASH_SIZE - 1)
++#define DM_HASH_SIZE 256
++#define DM_HASH_MASK (DM_HASH_SIZE - 1)
+ 
+ struct dm_transaction_manager {
+ 	int is_clone;
+@@ -36,7 +36,7 @@ struct dm_transaction_manager {
+ 	struct dm_space_map *sm;
+ 
+ 	spinlock_t lock;
+-	struct hlist_head buckets[HASH_SIZE];
++	struct hlist_head buckets[DM_HASH_SIZE];
+ };
+ 
+ /*----------------------------------------------------------------*/
+@@ -44,7 +44,7 @@ struct dm_transaction_manager {
+ static int is_shadow(struct dm_transaction_manager *tm, dm_block_t b)
+ {
+ 	int r = 0;
+-	unsigned bucket = dm_hash_block(b, HASH_MASK);
++	unsigned bucket = dm_hash_block(b, DM_HASH_MASK);
+ 	struct shadow_info *si;
+ 	struct hlist_node *n;
+ 
+@@ -71,7 +71,7 @@ static void insert_shadow(struct dm_tran
+ 	si = kmalloc(sizeof(*si), GFP_NOIO);
+ 	if (si) {
+ 		si->where = b;
+-		bucket = dm_hash_block(b, HASH_MASK);
++		bucket = dm_hash_block(b, DM_HASH_MASK);
+ 		spin_lock(&tm->lock);
+ 		hlist_add_head(&si->hlist, tm->buckets + bucket);
+ 		spin_unlock(&tm->lock);
+@@ -86,7 +86,7 @@ static void wipe_shadow_table(struct dm_
+ 	int i;
+ 
+ 	spin_lock(&tm->lock);
+-	for (i = 0; i < HASH_SIZE; i++) {
++	for (i = 0; i < DM_HASH_SIZE; i++) {
+ 		bucket = tm->buckets + i;
+ 		hlist_for_each_entry_safe(si, n, tmp, bucket, hlist)
+ 			kfree(si);
+@@ -115,7 +115,7 @@ static struct dm_transaction_manager *dm
+ 	tm->sm = sm;
+ 
+ 	spin_lock_init(&tm->lock);
+-	for (i = 0; i < HASH_SIZE; i++)
++	for (i = 0; i < DM_HASH_SIZE; i++)
+ 		INIT_HLIST_HEAD(tm->buckets + i);
+ 
+ 	return tm;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-md-persistent-data-dm-transaction-managerc-rename-hash_size.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
-page_alloc-add-movable_memmap-kernel-parameter.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages.patch
-mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold.patch
-memcg-fast-hierarchy-aware-child-test.patch
-mm-rename-page-struct-field-helpers.patch
-mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries.patch
-hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages.patch
-mm-accurately-document-nr_free__pages-functions-with-code-comments.patch
-tmpfs-fix-mempolicy-object-leaks.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines.patch
+mm.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-proc-clean-up-printks-fix-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
+lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+idr-remove-length-restriction-from-idr_layer-bitmap-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+selftests-add-tests-for-efivarfs-fix.patch
+selftests-add-tests-for-efivarfs-fix-fix.patch
+tools-testing-selftests-makefile-rearrange-targets.patch
+selftests-add-a-simple-doc-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-checkpatch-fixes.patch
+hlist-drop-the-node-parameter-from-iterators-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
