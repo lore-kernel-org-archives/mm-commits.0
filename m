@@ -1,217 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-accelerate-mm_populate-treatment-of-thp-pages.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:45 -0800
-Message-ID: <20130225205546.1E51331C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] tmpfs-fix-use-after-free-of-mempolicy-object.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:53 -0800
+Message-ID: <20130225205554.013025A426D__16475.7985542112$1361825784$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:50361 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932086Ab3BYUzr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:47 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so348036vch.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:46 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:37539 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759370Ab3BYUzz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:55 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 3so70872qea.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, aarcange@redhat.com, hughd@google.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: gthelen@google.com, hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: accelerate mm_populate() treatment of THP pages
+     Subject: tmpfs: fix use-after-free of mempolicy object
 has been removed from the -mm tree.  Its filename was
-     mm-accelerate-mm_populate-treatment-of-thp-pages.patch
+     tmpfs-fix-use-after-free-of-mempolicy-object.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: accelerate mm_populate() treatment of THP pages
+From: Greg Thelen <gthelen@google.com>
+Subject: tmpfs: fix use-after-free of mempolicy object
 
-This change adds a follow_page_mask function which is equivalent to
-follow_page, but with an extra page_mask argument.
+The tmpfs remount logic preserves filesystem mempolicy if the mpol=M
+option is not specified in the remount request.  A new policy can be
+specified if mpol=M is given.
 
-follow_page_mask sets *page_mask to HPAGE_PMD_NR - 1 when it encounters a
-THP page, and to 0 in other cases.
+Before this patch remounting an mpol bound tmpfs without specifying mpol=
+mount option in the remount request would set the filesystem's mempolicy
+object to a freed mempolicy object.
 
-__get_user_pages() makes use of this in order to accelerate populating THP
-ranges - that is, when both the pages and vmas arrays are NULL, we don't
-need to iterate HPAGE_PMD_NR times to cover a single THP page (and we also
-avoid taking mm->page_table_lock that many times).
+To reproduce the problem boot a DEBUG_PAGEALLOC kernel and run:
+    # mkdir /tmp/x
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+    # mount -t tmpfs -o size=100M,mpol=interleave nodev /tmp/x
+
+    # grep /tmp/x /proc/mounts
+    nodev /tmp/x tmpfs rw,relatime,size=102400k,mpol=interleave:0-3 0 0
+
+    # mount -o remount,size=200M nodev /tmp/x
+
+    # grep /tmp/x /proc/mounts
+    nodev /tmp/x tmpfs rw,relatime,size=204800k,mpol=??? 0 0
+        # note ? garbage in mpol=... output above
+
+    # dd if=/dev/zero of=/tmp/x/f count=1
+        # panic here
+
+Panic:
+    BUG: unable to handle kernel NULL pointer dereference at           (null)
+    IP: [<          (null)>]           (null)
+    [...]
+    Oops: 0010 [#1] SMP DEBUG_PAGEALLOC
+    Call Trace:
+     [<ffffffff81186ead>] ? mpol_set_nodemask+0x8d/0x100
+     [<ffffffff811895ef>] ? mpol_shared_policy_init+0x8f/0x160
+     [<ffffffff81189605>] mpol_shared_policy_init+0xa5/0x160
+     [<ffffffff811580e1>] ? shmem_get_inode+0x1e1/0x270
+     [<ffffffff811580e1>] ? shmem_get_inode+0x1e1/0x270
+     [<ffffffff810db15d>] ? trace_hardirqs_on+0xd/0x10
+     [<ffffffff81158109>] shmem_get_inode+0x209/0x270
+     [<ffffffff811581ae>] shmem_mknod+0x3e/0xf0
+     [<ffffffff811582b8>] shmem_create+0x18/0x20
+     [<ffffffff811af5d5>] vfs_create+0xb5/0x130
+     [<ffffffff811afff1>] do_last+0x9a1/0xea0
+     [<ffffffff811ac77a>] ? link_path_walk+0x7a/0x930
+     [<ffffffff811b05a3>] path_openat+0xb3/0x4d0
+     [<ffffffff811be831>] ? __alloc_fd+0x31/0x160
+     [<ffffffff811b0de2>] do_filp_open+0x42/0xa0
+     [<ffffffff811be8e0>] ? __alloc_fd+0xe0/0x160
+     [<ffffffff811a066e>] do_sys_open+0xfe/0x1e0
+     [<ffffffff811f0aeb>] compat_sys_open+0x1b/0x20
+     [<ffffffff815d6055>] cstar_dispatch+0x7/0x1f
+
+Non-debug kernels will not crash immediately because referencing the
+dangling mpol will not cause a fault.  Instead the filesystem will
+reference a freed mempolicy object, which will cause unpredictable
+behavior.
+
+The problem boils down to a dropped mpol reference below if
+shmem_parse_options() does not allocate a new mpol:
+    config = *sbinfo
+    shmem_parse_options(data, &config, true)
+    mpol_put(sbinfo->mpol)
+    sbinfo->mpol = config.mpol  /* BUG: saves unreferenced mpol */
+
+This patch avoids the crash by not releasing the mempolicy if
+shmem_parse_options() doesn't create a new mpol.
+
+How far back does this issue go?  I see it in both 2.6.36 and 3.3.  I did
+not look back further.
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 +++++++++++--
- mm/memory.c        |   31 +++++++++++++++++++++++--------
- mm/nommu.c         |    6 ++++--
- 3 files changed, 38 insertions(+), 12 deletions(-)
+ mm/shmem.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-accelerate-mm_populate-treatment-of-thp-pages include/linux/mm.h
---- a/include/linux/mm.h~mm-accelerate-mm_populate-treatment-of-thp-pages
-+++ a/include/linux/mm.h
-@@ -1629,8 +1629,17 @@ int vm_insert_pfn(struct vm_area_struct 
- int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			unsigned long pfn);
+diff -puN mm/shmem.c~tmpfs-fix-use-after-free-of-mempolicy-object mm/shmem.c
+--- a/mm/shmem.c~tmpfs-fix-use-after-free-of-mempolicy-object
++++ a/mm/shmem.c
+@@ -2486,6 +2486,7 @@ static int shmem_remount_fs(struct super
+ 	unsigned long inodes;
+ 	int error = -EINVAL;
  
--struct page *follow_page(struct vm_area_struct *, unsigned long address,
--			unsigned int foll_flags);
-+struct page *follow_page_mask(struct vm_area_struct *vma,
-+			      unsigned long address, unsigned int foll_flags,
-+			      unsigned int *page_mask);
-+
-+static inline struct page *follow_page(struct vm_area_struct *vma,
-+		unsigned long address, unsigned int foll_flags)
-+{
-+	unsigned int unused_page_mask;
-+	return follow_page_mask(vma, address, foll_flags, &unused_page_mask);
-+}
-+
- #define FOLL_WRITE	0x01	/* check pte is writable */
- #define FOLL_TOUCH	0x02	/* mark page accessed */
- #define FOLL_GET	0x04	/* do get_page on page */
-diff -puN mm/memory.c~mm-accelerate-mm_populate-treatment-of-thp-pages mm/memory.c
---- a/mm/memory.c~mm-accelerate-mm_populate-treatment-of-thp-pages
-+++ a/mm/memory.c
-@@ -1462,10 +1462,11 @@ int zap_vma_ptes(struct vm_area_struct *
- EXPORT_SYMBOL_GPL(zap_vma_ptes);
++	config.mpol = NULL;
+ 	if (shmem_parse_options(data, &config, true))
+ 		return error;
  
- /**
-- * follow_page - look up a page descriptor from a user-virtual address
-+ * follow_page_mask - look up a page descriptor from a user-virtual address
-  * @vma: vm_area_struct mapping @address
-  * @address: virtual address to look up
-  * @flags: flags modifying lookup behaviour
-+ * @page_mask: on output, *page_mask is set according to the size of the page
-  *
-  * @flags can have FOLL_ flags set, defined in <linux/mm.h>
-  *
-@@ -1473,8 +1474,9 @@ EXPORT_SYMBOL_GPL(zap_vma_ptes);
-  * an error pointer if there is a mapping to something not represented
-  * by a page descriptor (see also vm_normal_page()).
-  */
--struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
--			unsigned int flags)
-+struct page *follow_page_mask(struct vm_area_struct *vma,
-+			      unsigned long address, unsigned int flags,
-+			      unsigned int *page_mask)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -1484,6 +1486,8 @@ struct page *follow_page(struct vm_area_
- 	struct page *page;
- 	struct mm_struct *mm = vma->vm_mm;
+@@ -2510,8 +2511,13 @@ static int shmem_remount_fs(struct super
+ 	sbinfo->max_inodes  = config.max_inodes;
+ 	sbinfo->free_inodes = config.max_inodes - inodes;
  
-+	*page_mask = 0;
-+
- 	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
- 	if (!IS_ERR(page)) {
- 		BUG_ON(flags & FOLL_GET);
-@@ -1530,6 +1534,7 @@ struct page *follow_page(struct vm_area_
- 				page = follow_trans_huge_pmd(vma, address,
- 							     pmd, flags);
- 				spin_unlock(&mm->page_table_lock);
-+				*page_mask = HPAGE_PMD_NR - 1;
- 				goto out;
- 			}
- 		} else
-@@ -1684,6 +1689,7 @@ long __get_user_pages(struct task_struct
- {
- 	long i;
- 	unsigned long vm_flags;
-+	unsigned int page_mask;
- 
- 	if (!nr_pages)
- 		return 0;
-@@ -1761,6 +1767,7 @@ long __get_user_pages(struct task_struct
- 				get_page(page);
- 			}
- 			pte_unmap(pte);
-+			page_mask = 0;
- 			goto next_page;
- 		}
- 
-@@ -1778,6 +1785,7 @@ long __get_user_pages(struct task_struct
- 		do {
- 			struct page *page;
- 			unsigned int foll_flags = gup_flags;
-+			unsigned int page_increm;
- 
- 			/*
- 			 * If we have a pending SIGKILL, don't keep faulting
-@@ -1787,7 +1795,8 @@ long __get_user_pages(struct task_struct
- 				return i ? i : -ERESTARTSYS;
- 
- 			cond_resched();
--			while (!(page = follow_page(vma, start, foll_flags))) {
-+			while (!(page = follow_page_mask(vma, start,
-+						foll_flags, &page_mask))) {
- 				int ret;
- 				unsigned int fault_flags = 0;
- 
-@@ -1861,13 +1870,19 @@ long __get_user_pages(struct task_struct
- 
- 				flush_anon_page(vma, page, start);
- 				flush_dcache_page(page);
-+				page_mask = 0;
- 			}
- next_page:
--			if (vmas)
-+			if (vmas) {
- 				vmas[i] = vma;
--			i++;
--			start += PAGE_SIZE;
--			nr_pages--;
-+				page_mask = 0;
-+			}
-+			page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
-+			if (page_increm > nr_pages)
-+				page_increm = nr_pages;
-+			i += page_increm;
-+			start += page_increm * PAGE_SIZE;
-+			nr_pages -= page_increm;
- 		} while (nr_pages && start < vma->vm_end);
- 	} while (nr_pages);
- 	return i;
-diff -puN mm/nommu.c~mm-accelerate-mm_populate-treatment-of-thp-pages mm/nommu.c
---- a/mm/nommu.c~mm-accelerate-mm_populate-treatment-of-thp-pages
-+++ a/mm/nommu.c
-@@ -1819,9 +1819,11 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	return ret;
- }
- 
--struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
--			unsigned int foll_flags)
-+struct page *follow_page_mask(struct vm_area_struct *vma,
-+			      unsigned long address, unsigned int flags,
-+			      unsigned int *page_mask)
- {
-+	*page_mask = 0;
- 	return NULL;
- }
- 
+-	mpol_put(sbinfo->mpol);
+-	sbinfo->mpol        = config.mpol;	/* transfers initial ref */
++	/*
++	 * Preserve previous mempolicy unless mpol remount option was specified.
++	 */
++	if (config.mpol) {
++		mpol_put(sbinfo->mpol);
++		sbinfo->mpol = config.mpol;	/* transfers initial ref */
++	}
+ out:
+ 	spin_unlock(&sbinfo->stat_lock);
+ 	return error;
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-linux-next.patch
-mm-remove-free_area_cache-use-in-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-ia64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch
-mm-use-vm_unmapped_area-on-parisc-architecture.patch
-mm-remove-free_area_cache.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
-mm-use-vm_unmapped_area-on-frv-architecture.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
-mutex-subsystem-synchro-test-module.patch
 
