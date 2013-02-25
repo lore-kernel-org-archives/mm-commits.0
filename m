@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch added to -mm tree
-Date: Mon, 25 Feb 2013 14:53:11 -0800
-Message-ID: <20130225225311.A42F35A42E2@corp2gmr1-2.hot.corp.google.com>
+Subject: + freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch added to -mm tree
+Date: Mon, 25 Feb 2013 15:05:46 -0800
+Message-ID: <20130225230547.32E9131C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:56635 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932124Ab3BYWxM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 17:53:12 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so364735vch.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 14:53:12 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:38899 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755402Ab3BYXFs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:05:48 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so366224vcd.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:05:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rafael.j.wysocki@intel.com, tj@kernel.org
 
 
 The patch titled
-     Subject: drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix
+     Subject: freezer: do not send a fake signal to a PF_DUMPCORE thread
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+     freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: freezer: do not send a fake signal to a PF_DUMPCORE thread
 
-- Remove unnecessary ifdefs.
+A coredumping thread can't be frozen anyway but the fake signal sent by
+freeze_task() can confuse dump_write/wait_for_dump_helpers/etc and
+interrupt the coredump.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+We are going to make the do_coredump() paths freezable but the fake
+TIF_SIGPENDING doesn't help, it only makes sense when we assume that the
+target can return to user-mode and call get_signal_to_deliver().
+
+Change freeze_task() to check PF_DUMPCORE along with PF_KTHREAD.  We need
+to recheck PF_DUMPCORE under ->siglock to avoid the race with
+zap_threads() which can set this flag right before we take the lock.
+ 
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Mandeep Singh Baines <msb@chromium.org>
+Cc: Neil Horman <nhorman@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/freezer.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -533,7 +533,7 @@ static int ams369fg06_remove(struct spi_
- 	return 0;
+diff -puN kernel/freezer.c~freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread kernel/freezer.c
+--- a/kernel/freezer.c~freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread
++++ a/kernel/freezer.c
+@@ -85,14 +85,21 @@ bool __refrigerator(bool check_kthr_stop
+ }
+ EXPORT_SYMBOL(__refrigerator);
+ 
+-static void fake_signal_wake_up(struct task_struct *p)
++static bool fake_signal_wake_up(struct task_struct *p)
+ {
+ 	unsigned long flags;
++	bool ret = false;
++
++	if (p->flags & (PF_KTHREAD | PF_DUMPCORE))
++		return ret;
+ 
+ 	if (lock_task_sighand(p, &flags)) {
+-		signal_wake_up(p, 0);
++		ret = !(p->flags & PF_DUMPCORE);
++		if (ret)
++			signal_wake_up(p, 0);
+ 		unlock_task_sighand(p, &flags);
+ 	}
++	return ret;
  }
  
--#if defined(CONFIG_PM)
-+#ifdef CONFIG_PM_SLEEP
- static int ams369fg06_suspend(struct device *dev)
- {
- 	struct ams369fg06 *lcd = dev_get_drvdata(dev);
-@@ -555,10 +555,10 @@ static int ams369fg06_resume(struct devi
+ /**
+@@ -100,8 +107,8 @@ static void fake_signal_wake_up(struct t
+  * @p: task to send the request to
+  *
+  * If @p is freezing, the freeze request is sent either by sending a fake
+- * signal (if it's not a kernel thread) or waking it up (if it's a kernel
+- * thread).
++ * signal (if it's not a kernel thread or a coredumping thread) or waking
++ * it up otherwise.
+  *
+  * RETURNS:
+  * %false, if @p is not freezing or already frozen; %true, otherwise
+@@ -116,9 +123,7 @@ bool freeze_task(struct task_struct *p)
+ 		return false;
+ 	}
  
- 	return ams369fg06_power(lcd, FB_BLANK_UNBLANK);
- }
-+#endif
+-	if (!(p->flags & PF_KTHREAD))
+-		fake_signal_wake_up(p);
+-	else
++	if (!fake_signal_wake_up(p))
+ 		wake_up_state(p, TASK_INTERRUPTIBLE);
  
- static SIMPLE_DEV_PM_OPS(ams369fg06_pm_ops, ams369fg06_suspend,
- 			ams369fg06_resume);
--#endif
- 
- static void ams369fg06_shutdown(struct spi_device *spi)
- {
-@@ -571,9 +571,7 @@ static struct spi_driver ams369fg06_driv
- 	.driver = {
- 		.name	= "ams369fg06",
- 		.owner	= THIS_MODULE,
--#ifdef CONFIG_PM
- 		.pm	= &ams369fg06_pm_ops,
--#endif
- 	},
- 	.probe		= ams369fg06_probe,
- 	.remove		= ams369fg06_remove,
+ 	spin_unlock_irqrestore(&freezer_lock, flags);
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-linux-next.patch
-backlight-ams369fg06-make-power_on-call-optional.patch
-lib-devresc-fix-misplaced-endif.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+usermodehelper-cleanup-fix-__orderly_poweroff-argv_free.patch
+signal-allow-to-send-any-siginfo-to-itself.patch
+kernel-signalc-fix-suboptimal-printk-usage.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+coredump-make-wait_for_dump_helpers-freezable.patch
+lockdep-check-that-no-locks-held-at-freeze-time.patch
+lockdep-check-that-no-locks-held-at-freeze-time-v2.patch
+lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
+coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
 
