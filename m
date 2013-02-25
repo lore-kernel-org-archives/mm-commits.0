@@ -1,125 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-up-free-swap-space-before-reaching-oom-kill.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:00 -0800
-Message-ID: <20130225205501.0D1F931C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] memcg-cleanup-mem_cgroup_init-comment.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:09 -0800
+Message-ID: <20130225205509.BA2D531C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:53419 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932149Ab3BYUzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:03 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so142397yen.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:01 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:33572 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932155Ab3BYUzL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:11 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 3so70782qea.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hannes@cmpxchg.org, hughd@google.com, riel@redhat.com, semenzato@google.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, htejun@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use up free swap space before reaching OOM kill
+     Subject: memcg: cleanup mem_cgroup_init comment
 has been removed from the -mm tree.  Its filename was
-     mm-use-up-free-swap-space-before-reaching-oom-kill.patch
+     memcg-cleanup-mem_cgroup_init-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: use up free swap space before reaching OOM kill
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: cleanup mem_cgroup_init comment
 
-Recently, Luigi reported there are lots of free swap space when OOM
-happens.  It's easily reproduced on zram-over-swap, where many instance of
-memory hogs are running and laptop_mode is enabled.  He said there was no
-problem when he disabled laptop_mode.  The problem when I investigate
-problem is following as.
+We should encourage all memcg controller initialization independent on a
+specific mem_cgroup to be done here rather than exploit css_alloc callback
+and assume that nothing happens before root cgroup is created.
 
-Assumption for easy explanation: There are no page cache page in system
-because they all are already reclaimed.
-
-1. try_to_free_pages disable may_writepage when laptop_mode is enabled.
-2. shrink_inactive_list isolates victim pages from inactive anon lru list.
-3. shrink_page_list adds them to swapcache via add_to_swap but it doesn't
-   pageout because sc->may_writepage is 0 so the page is rotated back into
-   inactive anon lru list. The add_to_swap made the page Dirty by SetPageDirty.
-4. 3 couldn't reclaim any pages so do_try_to_free_pages increase priority and
-   retry reclaim with higher priority.
-5. shrink_inactlive_list try to isolate victim pages from inactive anon lru list
-   but got failed because it try to isolate pages with ISOLATE_CLEAN mode but
-   inactive anon lru list is full of dirty pages by 3 so it just returns
-   without  any reclaim progress.
-6. do_try_to_free_pages doesn't set may_writepage due to zero total_scanned.
-   Because sc->nr_scanned is increased by shrink_page_list but we don't call
-   shrink_page_list in 5 due to short of isolated pages.
-
-Above loop is continued until OOM happens.
-
-The problem didn't happen before [1] was merged because old logic's
-isolatation in shrink_inactive_list was successful and tried to call
-shrink_page_list to pageout them but it still ends up failed to page out
-by may_writepage.  But important point is that sc->nr_scanned was
-increased although we couldn't swap out them so do_try_to_free_pages could
-set may_writepages.
-
-Since f80c067 ("mm: zone_reclaim: make isolate_lru_page() filter-aware")
-was introduced, it's not a good idea any more to depends on only the
-number of scanned pages for setting may_writepage.  So this patch adds new
-trigger point of setting may_writepage as below DEF_PRIOIRTY - 2 which is
-used to show the significant memory pressure in VM so it's good fit for
-our purpose which would be better to lose power saving or clickety rather
-than OOM killing.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Luigi Semenzato <semenzato@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-use-up-free-swap-space-before-reaching-oom-kill mm/vmscan.c
---- a/mm/vmscan.c~mm-use-up-free-swap-space-before-reaching-oom-kill
-+++ a/mm/vmscan.c
-@@ -2195,6 +2195,13 @@ static unsigned long do_try_to_free_page
- 			goto out;
+diff -puN mm/memcontrol.c~memcg-cleanup-mem_cgroup_init-comment mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-cleanup-mem_cgroup_init-comment
++++ a/mm/memcontrol.c
+@@ -6830,10 +6830,12 @@ static void __init enable_swap_cgroup(vo
+ #endif
  
- 		/*
-+		 * If we're getting trouble reclaiming, start doing
-+		 * writepage even in laptop mode.
-+		 */
-+		if (sc->priority < DEF_PRIORITY - 2)
-+			sc->may_writepage = 1;
-+
-+		/*
- 		 * Try to write back as many pages as we just scanned.  This
- 		 * tends to cause slow streaming writers to write data to the
- 		 * disk smoothly, at the dirtying rate, which is nice.   But
-@@ -2765,12 +2772,10 @@ loop_again:
- 			}
- 
- 			/*
--			 * If we've done a decent amount of scanning and
--			 * the reclaim ratio is low, start doing writepage
--			 * even in laptop mode
-+			 * If we're getting trouble reclaiming, start doing
-+			 * writepage even in laptop mode.
- 			 */
--			if (total_scanned > SWAP_CLUSTER_MAX * 2 &&
--			    total_scanned > sc.nr_reclaimed + sc.nr_reclaimed / 2)
-+			if (sc.priority < DEF_PRIORITY - 2)
- 				sc.may_writepage = 1;
- 
- 			if (zone->all_unreclaimable) {
+ /*
+- * The rest of init is performed during ->css_alloc() for root css which
+- * happens before initcalls.  hotcpu_notifier() can't be done together as
+- * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
+- * dependency.  Do it from a subsys_initcall().
++ * subsys_initcall() for memory controller.
++ *
++ * Some parts like hotcpu_notifier() have to be initialized from this context
++ * because of lock dependencies (cgroup_lock -> cpu hotplug) but basically
++ * everything that doesn't depend on a specific mem_cgroup structure should
++ * be initialized from here.
+  */
+ static int __init mem_cgroup_init(void)
+ {
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
 
