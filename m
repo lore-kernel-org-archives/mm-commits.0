@@ -1,309 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-cleanup-flow-of-transhuge-page-migration.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:52:49 -0800
-Message-ID: <20130225205249.D352F5A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-dont-inline-page_mapping.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:52:52 -0800
+Message-ID: <20130225205252.DE1235A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:60347 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759002Ab3BYUwv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:51 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so348219yhz.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:50 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:39042 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759078Ab3BYUwy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:54 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so363054qah.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, liwanp@linux.vnet.ibm.com, mgorman@suse.de, mingo@kernel.org, simon.jeons@gmail.com, mm-commits@vger.kernel.org
+To: shli@kernel.org, akpm@linux-foundation.org, hughd@google.com, minchan.kim@gmail.com, riel@redhat.com, shli@fusionio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: cleanup flow of transhuge page migration
+     Subject: mm: don't inline page_mapping()
 has been removed from the -mm tree.  Its filename was
-     mm-numa-cleanup-flow-of-transhuge-page-migration.patch
+     mm-dont-inline-page_mapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: numa: cleanup flow of transhuge page migration
+From: Shaohua Li <shli@kernel.org>
+Subject: mm: don't inline page_mapping()
 
-When correcting commit 04fa5d6a ("mm: migrate: check page_count of THP
-before migrating") Hugh Dickins noted that the control flow for transhuge
-migration was difficult to follow.  Unconditionally calling put_page() in
-numamigrate_isolate_page() made the failure paths of both
-migrate_misplaced_transhuge_page() and migrate_misplaced_page() more
-complex that they should be.  Further, he was extremely wary that an
-unlock_page() should ever happen after a put_page() even if the put_page()
-should never be the final put_page.
+According to akpm, this saves 1/2k text and makes things simple for the
+next patch.
 
-Hugh implemented the following cleanup to simplify the path by calling
-putback_lru_page() inside numamigrate_isolate_page() if it failed to
-isolate and always calling unlock_page() within
-migrate_misplaced_transhuge_page().  There is no functional change after
-this patch is applied but the code is easier to follow and unlock_page()
-always happens before put_page().
+Numbers from Minchan:
 
-[mgorman@suse.de: changelog only]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Simon Jeons <simon.jeons@gmail.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+add/remove: 1/0 grow/shrink: 6/22 up/down: 92/-516 (-424)
+function                                     old     new   delta
+page_mapping                                   -      48     +48
+do_task_stat                                2292    2308     +16
+page_remove_rmap                             240     248      +8
+load_elf_binary                             4500    4508      +8
+update_queue                                 532     536      +4
+scsi_probe_and_add_lun                      2892    2896      +4
+lookup_fast                                  644     648      +4
+vcs_read                                    1040    1036      -4
+__ip_route_output_key                       1904    1900      -4
+ip_route_input_noref                        2508    2500      -8
+shmem_file_aio_read                          784     772     -12
+__isolate_lru_page                           272     256     -16
+shmem_replace_page                           708     688     -20
+mark_buffer_dirty                            228     208     -20
+__set_page_dirty_buffers                     240     220     -20
+__remove_mapping                             276     256     -20
+update_mmu_cache                             500     476     -24
+set_page_dirty_balance                        92      68     -24
+set_page_dirty                               172     148     -24
+page_evictable                                88      64     -24
+page_cache_pipe_buf_steal                    248     224     -24
+clear_page_dirty_for_io                      340     316     -24
+test_set_page_writeback                      400     372     -28
+test_clear_page_writeback                    516     488     -28
+invalidate_inode_page                        156     128     -28
+page_mkclean                                 432     400     -32
+flush_dcache_page                            360     328     -32
+__set_page_dirty_nobuffers                   324     280     -44
+shrink_page_list                            2412    2356     -56
+
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   28 ++++--------
- mm/migrate.c     |   97 ++++++++++++++++++++-------------------------
- 2 files changed, 53 insertions(+), 72 deletions(-)
+ include/linux/mm.h |   13 +------------
+ mm/util.c          |   16 ++++++++++++++++
+ 2 files changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-numa-cleanup-flow-of-transhuge-page-migration mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-cleanup-flow-of-transhuge-page-migration
-+++ a/mm/huge_memory.c
-@@ -1296,7 +1296,6 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	int target_nid;
- 	int current_nid = -1;
- 	bool migrated;
--	bool page_locked = false;
+diff -puN include/linux/mm.h~mm-dont-inline-page_mapping include/linux/mm.h
+--- a/include/linux/mm.h~mm-dont-inline-page_mapping
++++ a/include/linux/mm.h
+@@ -809,18 +809,7 @@ void page_address_init(void);
+ #define PAGE_MAPPING_KSM	2
+ #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
  
- 	spin_lock(&mm->page_table_lock);
- 	if (unlikely(!pmd_same(pmd, *pmdp)))
-@@ -1318,7 +1317,6 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	/* Acquire the page lock to serialise THP migrations */
- 	spin_unlock(&mm->page_table_lock);
- 	lock_page(page);
--	page_locked = true;
- 
- 	/* Confirm the PTE did not while locked */
- 	spin_lock(&mm->page_table_lock);
-@@ -1331,34 +1329,26 @@ int do_huge_pmd_numa_page(struct mm_stru
- 
- 	/* Migrate the THP to the requested node */
- 	migrated = migrate_misplaced_transhuge_page(mm, vma,
--				pmdp, pmd, addr,
--				page, target_nid);
--	if (migrated)
--		current_nid = target_nid;
--	else {
--		spin_lock(&mm->page_table_lock);
--		if (unlikely(!pmd_same(pmd, *pmdp))) {
--			unlock_page(page);
--			goto out_unlock;
--		}
--		goto clear_pmdnuma;
--	}
-+				pmdp, pmd, addr, page, target_nid);
-+	if (!migrated)
-+		goto check_same;
- 
--	task_numa_fault(current_nid, HPAGE_PMD_NR, migrated);
-+	task_numa_fault(target_nid, HPAGE_PMD_NR, true);
- 	return 0;
- 
-+check_same:
-+	spin_lock(&mm->page_table_lock);
-+	if (unlikely(!pmd_same(pmd, *pmdp)))
-+		goto out_unlock;
- clear_pmdnuma:
- 	pmd = pmd_mknonnuma(pmd);
- 	set_pmd_at(mm, haddr, pmdp, pmd);
- 	VM_BUG_ON(pmd_numa(*pmdp));
- 	update_mmu_cache_pmd(vma, addr, pmdp);
--	if (page_locked)
--		unlock_page(page);
+-extern struct address_space swapper_space;
+-static inline struct address_space *page_mapping(struct page *page)
+-{
+-	struct address_space *mapping = page->mapping;
 -
- out_unlock:
- 	spin_unlock(&mm->page_table_lock);
- 	if (current_nid != -1)
--		task_numa_fault(current_nid, HPAGE_PMD_NR, migrated);
-+		task_numa_fault(current_nid, HPAGE_PMD_NR, false);
- 	return 0;
+-	VM_BUG_ON(PageSlab(page));
+-	if (unlikely(PageSwapCache(page)))
+-		mapping = &swapper_space;
+-	else if ((unsigned long)mapping & PAGE_MAPPING_ANON)
+-		mapping = NULL;
+-	return mapping;
+-}
++extern struct address_space *page_mapping(struct page *page);
+ 
+ /* Neutral page->mapping pointer to address_space or anon_vma or other */
+ static inline void *page_rmapping(struct page *page)
+diff -puN mm/util.c~mm-dont-inline-page_mapping mm/util.c
+--- a/mm/util.c~mm-dont-inline-page_mapping
++++ a/mm/util.c
+@@ -5,6 +5,7 @@
+ #include <linux/err.h>
+ #include <linux/sched.h>
+ #include <linux/security.h>
++#include <linux/swap.h>
+ #include <asm/uaccess.h>
+ 
+ #include "internal.h"
+@@ -382,6 +383,21 @@ unsigned long vm_mmap(struct file *file,
  }
+ EXPORT_SYMBOL(vm_mmap);
  
-diff -puN mm/migrate.c~mm-numa-cleanup-flow-of-transhuge-page-migration mm/migrate.c
---- a/mm/migrate.c~mm-numa-cleanup-flow-of-transhuge-page-migration
-+++ a/mm/migrate.c
-@@ -1557,41 +1557,40 @@ bool numamigrate_update_ratelimit(pg_dat
- 
- int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
- {
--	int ret = 0;
-+	int page_lru;
- 
- 	VM_BUG_ON(compound_order(page) && !PageTransHuge(page));
- 
- 	/* Avoid migrating to a node that is nearly full */
--	if (migrate_balanced_pgdat(pgdat, 1UL << compound_order(page))) {
--		int page_lru;
-+	if (!migrate_balanced_pgdat(pgdat, 1UL << compound_order(page)))
-+		return 0;
- 
--		if (isolate_lru_page(page)) {
--			put_page(page);
--			return 0;
--		}
--
--		/* Page is isolated */
--		ret = 1;
--		page_lru = page_is_file_cache(page);
--		if (!PageTransHuge(page))
--			inc_zone_page_state(page, NR_ISOLATED_ANON + page_lru);
--		else
--			mod_zone_page_state(page_zone(page),
--					NR_ISOLATED_ANON + page_lru,
--					HPAGE_PMD_NR);
-+	if (isolate_lru_page(page))
-+		return 0;
++struct address_space *page_mapping(struct page *page)
++{
++	struct address_space *mapping = page->mapping;
 +
-+	/*
-+	 * migrate_misplaced_transhuge_page() skips page migration's usual
-+	 * check on page_count(), so we must do it here, now that the page
-+	 * has been isolated: a GUP pin, or any other pin, prevents migration.
-+	 * The expected page count is 3: 1 for page's mapcount and 1 for the
-+	 * caller's pin and 1 for the reference taken by isolate_lru_page().
-+	 */
-+	if (PageTransHuge(page) && page_count(page) != 3) {
-+		putback_lru_page(page);
-+		return 0;
- 	}
- 
-+	page_lru = page_is_file_cache(page);
-+	mod_zone_page_state(page_zone(page), NR_ISOLATED_ANON + page_lru,
-+				hpage_nr_pages(page));
++	VM_BUG_ON(PageSlab(page));
++#ifdef CONFIG_SWAP
++	if (unlikely(PageSwapCache(page)))
++		mapping = &swapper_space;
++	else
++#endif
++	if ((unsigned long)mapping & PAGE_MAPPING_ANON)
++		mapping = NULL;
++	return mapping;
++}
 +
- 	/*
--	 * Page is either isolated or there is not enough space on the target
--	 * node. If isolated, then it has taken a reference count and the
--	 * callers reference can be safely dropped without the page
--	 * disappearing underneath us during migration. Otherwise the page is
--	 * not to be migrated but the callers reference should still be
--	 * dropped so it does not leak.
-+	 * Isolating the page has taken another reference, so the
-+	 * caller's reference can be safely dropped without the page
-+	 * disappearing underneath us during migration.
- 	 */
- 	put_page(page);
--
--	return ret;
-+	return 1;
- }
- 
- /*
-@@ -1602,7 +1601,7 @@ int numamigrate_isolate_page(pg_data_t *
- int migrate_misplaced_page(struct page *page, int node)
- {
- 	pg_data_t *pgdat = NODE_DATA(node);
--	int isolated = 0;
-+	int isolated;
- 	int nr_remaining;
- 	LIST_HEAD(migratepages);
- 
-@@ -1610,20 +1609,16 @@ int migrate_misplaced_page(struct page *
- 	 * Don't migrate pages that are mapped in multiple processes.
- 	 * TODO: Handle false sharing detection instead of this hammer
- 	 */
--	if (page_mapcount(page) != 1) {
--		put_page(page);
-+	if (page_mapcount(page) != 1)
- 		goto out;
--	}
- 
- 	/*
- 	 * Rate-limit the amount of data that is being migrated to a node.
- 	 * Optimal placement is no good if the memory bus is saturated and
- 	 * all the time is being spent migrating!
- 	 */
--	if (numamigrate_update_ratelimit(pgdat, 1)) {
--		put_page(page);
-+	if (numamigrate_update_ratelimit(pgdat, 1))
- 		goto out;
--	}
- 
- 	isolated = numamigrate_isolate_page(pgdat, page);
- 	if (!isolated)
-@@ -1640,12 +1635,19 @@ int migrate_misplaced_page(struct page *
- 	} else
- 		count_vm_numa_event(NUMA_PAGE_MIGRATE);
- 	BUG_ON(!list_empty(&migratepages));
--out:
- 	return isolated;
-+
-+out:
-+	put_page(page);
-+	return 0;
- }
- #endif /* CONFIG_NUMA_BALANCING */
- 
- #if defined(CONFIG_NUMA_BALANCING) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
-+/*
-+ * Migrates a THP to a given target node. page must be locked and is unlocked
-+ * before returning.
-+ */
- int migrate_misplaced_transhuge_page(struct mm_struct *mm,
- 				struct vm_area_struct *vma,
- 				pmd_t *pmd, pmd_t entry,
-@@ -1676,29 +1678,15 @@ int migrate_misplaced_transhuge_page(str
- 
- 	new_page = alloc_pages_node(node,
- 		(GFP_TRANSHUGE | GFP_THISNODE) & ~__GFP_WAIT, HPAGE_PMD_ORDER);
--	if (!new_page) {
--		count_vm_events(PGMIGRATE_FAIL, HPAGE_PMD_NR);
--		goto out_dropref;
--	}
-+	if (!new_page)
-+		goto out_fail;
-+
- 	page_xchg_last_nid(new_page, page_last_nid(page));
- 
- 	isolated = numamigrate_isolate_page(pgdat, page);
--
--	/*
--	 * Failing to isolate or a GUP pin prevents migration. The expected
--	 * page count is 2. 1 for anonymous pages without a mapping and 1
--	 * for the callers pin. If the page was isolated, the page will
--	 * need to be put back on the LRU.
--	 */
--	if (!isolated || page_count(page) != 2) {
--		count_vm_events(PGMIGRATE_FAIL, HPAGE_PMD_NR);
-+	if (!isolated) {
- 		put_page(new_page);
--		if (isolated) {
--			putback_lru_page(page);
--			isolated = 0;
--			goto out;
--		}
--		goto out_keep_locked;
-+		goto out_fail;
- 	}
- 
- 	/* Prepare a page as a migration target */
-@@ -1730,6 +1718,7 @@ int migrate_misplaced_transhuge_page(str
- 		putback_lru_page(page);
- 
- 		count_vm_events(PGMIGRATE_FAIL, HPAGE_PMD_NR);
-+		isolated = 0;
- 		goto out;
- 	}
- 
-@@ -1774,9 +1763,11 @@ out:
- 			-HPAGE_PMD_NR);
- 	return isolated;
- 
-+out_fail:
-+	count_vm_events(PGMIGRATE_FAIL, HPAGE_PMD_NR);
- out_dropref:
-+	unlock_page(page);
- 	put_page(page);
--out_keep_locked:
- 	return 0;
- }
- #endif /* CONFIG_NUMA_BALANCING */
+ /* Tracepoints definitions. */
+ EXPORT_TRACEPOINT_SYMBOL(kmalloc);
+ EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 origin.patch
-revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
-pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
+linux-next.patch
+kernel-smpc-cleanups.patch
 
