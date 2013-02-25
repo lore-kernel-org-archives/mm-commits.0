@@ -1,34 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-add-some-comments.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:59 -0800
-Message-ID: <20130225205559.ACFC75A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mmksm-foll_migration-do-migration_entry_wait.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:56:08 -0800
+Message-ID: <20130225205608.CB5A231C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:37365 "EHLO
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:38709 "EHLO
 	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759851Ab3BYU4B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:01 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so348064vch.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:00 -0800 (PST)
+	with ESMTP id S1758270Ab3BYU4K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:10 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so347879vch.2
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, hannes@cmpxchg.org, izik.eidus@ravellosystems.com, mgorman@suse.de, pholasek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: add some comments
+     Subject: mm,ksm: FOLL_MIGRATION do migration_entry_wait
 has been removed from the -mm tree.  Its filename was
-     ksm-add-some-comments.patch
+     mmksm-foll_migration-do-migration_entry_wait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ksm: add some comments
+Subject: mm,ksm: FOLL_MIGRATION do migration_entry_wait
 
-Added slightly more detail to the Documentation of merge_across_nodes, a
-few comments in areas indicated by review, and renamed get_ksm_page()'s
-argument from "locked" to "lock_it".  No functional change.
+In "ksm: remove old stable nodes more thoroughly" I said that I'd never
+seen its WARN_ON_ONCE(page_mapped(page)).  True at the time of writing,
+but it soon appeared once I tried fuller tests on the whole series.
+
+It turned out to be due to the KSM page migration itself: unmerge_and_
+remove_all_rmap_items() failed to locate and replace all the KSM pages,
+because of that hiatus in page migration when old pte has been replaced by
+migration entry, but not yet by new pte.  follow_page() finds no page at
+that instant, but a KSM page reappears shortly after, without a fault.
+
+Add FOLL_MIGRATION flag, so follow_page() can do migration_entry_wait()
+for KSM's break_cow().  I'd have preferred to avoid another flag, and do
+it every time, in case someone else makes the same easy mistake; but did
+not find another transgressor (the common get_user_pages() is of course
+safe), and cannot be sure that every follow_page() caller is prepared to
+sleep - ia64's xencomm_vtop()?  Now, THP's wait_split_huge_page() can
+already sleep there, since anon_vma locking was changed to mutex, but
+maybe that's somehow excluded.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -39,87 +54,64 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/ksm.txt |   16 ++++++++++++----
- mm/ksm.c                 |   18 ++++++++++++++----
- 2 files changed, 26 insertions(+), 8 deletions(-)
+ include/linux/mm.h |    1 +
+ mm/ksm.c           |    2 +-
+ mm/memory.c        |   20 ++++++++++++++++++--
+ 3 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/vm/ksm.txt~ksm-add-some-comments Documentation/vm/ksm.txt
---- a/Documentation/vm/ksm.txt~ksm-add-some-comments
-+++ a/Documentation/vm/ksm.txt
-@@ -60,10 +60,18 @@ sleep_millisecs  - how many milliseconds
+diff -puN include/linux/mm.h~mmksm-foll_migration-do-migration_entry_wait include/linux/mm.h
+--- a/include/linux/mm.h~mmksm-foll_migration-do-migration_entry_wait
++++ a/include/linux/mm.h
+@@ -1651,6 +1651,7 @@ static inline struct page *follow_page(s
+ #define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
+ #define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
+ #define FOLL_NUMA	0x200	/* force NUMA hinting page fault */
++#define FOLL_MIGRATION	0x400	/* wait for page to replace migration entry */
  
- merge_across_nodes - specifies if pages from different numa nodes can be merged.
-                    When set to 0, ksm merges only pages which physically
--                   reside in the memory area of same NUMA node. It brings
--                   lower latency to access to shared page. Value can be
--                   changed only when there is no ksm shared pages in system.
--                   Default: 1
-+                   reside in the memory area of same NUMA node. That brings
-+                   lower latency to access of shared pages. Systems with more
-+                   nodes, at significant NUMA distances, are likely to benefit
-+                   from the lower latency of setting 0. Smaller systems, which
-+                   need to minimize memory usage, are likely to benefit from
-+                   the greater sharing of setting 1 (default). You may wish to
-+                   compare how your system performs under each setting, before
-+                   deciding on which to use. merge_across_nodes setting can be
-+                   changed only when there are no ksm shared pages in system:
-+                   set run 2 to unmerge pages first, then to 1 after changing
-+                   merge_across_nodes, to remerge according to the new setting.
-+                   Default: 1 (merging across nodes as in earlier releases)
- 
- run              - set 0 to stop ksmd from running but keep merged pages,
-                    set 1 to run ksmd e.g. "echo 1 > /sys/kernel/mm/ksm/run",
-diff -puN mm/ksm.c~ksm-add-some-comments mm/ksm.c
---- a/mm/ksm.c~ksm-add-some-comments
+ typedef int (*pte_fn_t)(pte_t *pte, pgtable_t token, unsigned long addr,
+ 			void *data);
+diff -puN mm/ksm.c~mmksm-foll_migration-do-migration_entry_wait mm/ksm.c
+--- a/mm/ksm.c~mmksm-foll_migration-do-migration_entry_wait
 +++ a/mm/ksm.c
-@@ -87,6 +87,9 @@
-  *    take 10 attempts to find a page in the unstable tree, once it is found,
-  *    it is secured in the stable tree.  (When we scan a new page, we first
-  *    compare it against the stable tree, and then against the unstable tree.)
-+ *
-+ * If the merge_across_nodes tunable is unset, then KSM maintains multiple
-+ * stable trees and multiple unstable trees: one of each for each NUMA node.
-  */
+@@ -364,7 +364,7 @@ static int break_ksm(struct vm_area_stru
  
- /**
-@@ -526,7 +529,7 @@ static void remove_node_from_stable_tree
-  * a page to put something that might look like our key in page->mapping.
-  * is on its way to being freed; but it is an anomaly to bear in mind.
-  */
--static struct page *get_ksm_page(struct stable_node *stable_node, bool locked)
-+static struct page *get_ksm_page(struct stable_node *stable_node, bool lock_it)
- {
- 	struct page *page;
- 	void *expected_mapping;
-@@ -575,7 +578,7 @@ again:
- 		goto stale;
- 	}
+ 	do {
+ 		cond_resched();
+-		page = follow_page(vma, addr, FOLL_GET);
++		page = follow_page(vma, addr, FOLL_GET | FOLL_MIGRATION);
+ 		if (IS_ERR_OR_NULL(page))
+ 			break;
+ 		if (PageKsm(page))
+diff -puN mm/memory.c~mmksm-foll_migration-do-migration_entry_wait mm/memory.c
+--- a/mm/memory.c~mmksm-foll_migration-do-migration_entry_wait
++++ a/mm/memory.c
+@@ -1548,8 +1548,24 @@ split_fallthrough:
+ 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
  
--	if (locked) {
-+	if (lock_it) {
- 		lock_page(page);
- 		if (ACCESS_ONCE(page->mapping) != expected_mapping) {
- 			unlock_page(page);
-@@ -705,10 +708,17 @@ static int remove_stable_node(struct sta
- 		return 0;
- 	}
- 
--	if (WARN_ON_ONCE(page_mapped(page)))
-+	if (WARN_ON_ONCE(page_mapped(page))) {
+ 	pte = *ptep;
+-	if (!pte_present(pte))
+-		goto no_page;
++	if (!pte_present(pte)) {
++		swp_entry_t entry;
 +		/*
-+		 * This should not happen: but if it does, just refuse to let
-+		 * merge_across_nodes be switched - there is no need to panic.
++		 * KSM's break_ksm() relies upon recognizing a ksm page
++		 * even while it is being migrated, so for that case we
++		 * need migration_entry_wait().
 +		 */
- 		err = -EBUSY;
--	else {
-+	} else {
- 		/*
-+		 * The stable node did not yet appear stale to get_ksm_page(),
-+		 * since that allows for an unmapped ksm page to be recognized
-+		 * right up until it is freed; but the node is safe to remove.
- 		 * This page might be in a pagevec waiting to be freed,
- 		 * or it might be PageSwapCache (perhaps under writeback),
- 		 * or it might have been removed from swapcache a moment ago.
++		if (likely(!(flags & FOLL_MIGRATION)))
++			goto no_page;
++		if (pte_none(pte) || pte_file(pte))
++			goto no_page;
++		entry = pte_to_swp_entry(pte);
++		if (!is_migration_entry(entry))
++			goto no_page;
++		pte_unmap_unlock(ptep, ptl);
++		migration_entry_wait(mm, pmd, address);
++		goto split_fallthrough;
++	}
+ 	if ((flags & FOLL_NUMA) && pte_numa(pte))
+ 		goto no_page;
+ 	if ((flags & FOLL_WRITE) && !pte_write(pte))
 _
 
 Patches currently in -mm which might be from hughd@google.com are
