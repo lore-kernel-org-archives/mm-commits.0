@@ -1,97 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:49:14 -0800
-Message-ID: <20130225204914.A385831C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-use-mm_populate-for-blocking-remap_file_pages.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:49:11 -0800
+Message-ID: <20130225204911.B543231C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:51960 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759401Ab3BYUtQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:49:16 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so346076vch.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:49:15 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:59459 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758270Ab3BYUtP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:49:15 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so361289qah.2
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:49:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: walken@google.com, dhowells@redhat.com, gregungerer@westnet.com.au, luto@amacapital.net, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use mm_populate() when adjusting brk with MCL_FUTURE in effect
+     Subject: mm: use mm_populate() for blocking remap_file_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
+     mm-use-mm_populate-for-blocking-remap_file_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: use mm_populate() when adjusting brk with MCL_FUTURE in effect
+Subject: mm: use mm_populate() for blocking remap_file_pages()
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Tested-by: Andy Lutomirski <luto@amacapital.net>
 Cc: Greg Ungerer <gregungerer@westnet.com.au>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/fremap.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN mm/mmap.c~mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect mm/mmap.c
---- a/mm/mmap.c~mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect
-+++ a/mm/mmap.c
-@@ -256,6 +256,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
- 	unsigned long newbrk, oldbrk;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long min_brk;
-+	bool populate;
+diff -puN mm/fremap.c~mm-use-mm_populate-for-blocking-remap_file_pages mm/fremap.c
+--- a/mm/fremap.c~mm-use-mm_populate-for-blocking-remap_file_pages
++++ a/mm/fremap.c
+@@ -129,6 +129,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	struct vm_area_struct *vma;
+ 	int err = -EINVAL;
+ 	int has_write_lock = 0;
++	vm_flags_t vm_flags;
  
- 	down_write(&mm->mmap_sem);
+ 	if (prot)
+ 		return err;
+@@ -228,30 +229,16 @@ get_write_lock:
+ 		/*
+ 		 * drop PG_Mlocked flag for over-mapped range
+ 		 */
+-		vm_flags_t saved_flags = vma->vm_flags;
+ 		if (!has_write_lock)
+ 			goto get_write_lock;
++		vm_flags = vma->vm_flags;
+ 		munlock_vma_pages_range(vma, start, start + size);
+-		vma->vm_flags = saved_flags;
++		vma->vm_flags = vm_flags;
+ 	}
  
-@@ -305,8 +306,15 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
- 	/* Ok, looks good - let it rip. */
- 	if (do_brk(oldbrk, newbrk-oldbrk) != oldbrk)
- 		goto out;
-+
- set_brk:
- 	mm->brk = brk;
-+	populate = newbrk > oldbrk && (mm->def_flags & VM_LOCKED) != 0;
-+	up_write(&mm->mmap_sem);
-+	if (populate)
-+		mm_populate(oldbrk, newbrk - oldbrk);
-+	return brk;
-+
- out:
- 	retval = mm->brk;
- 	up_write(&mm->mmap_sem);
-@@ -2600,10 +2608,8 @@ static unsigned long do_brk(unsigned lon
- out:
- 	perf_event_mmap(vma);
- 	mm->total_vm += len >> PAGE_SHIFT;
--	if (flags & VM_LOCKED) {
--		if (!mlock_vma_pages_range(vma, addr, addr + len))
--			mm->locked_vm += (len >> PAGE_SHIFT);
+ 	mmu_notifier_invalidate_range_start(mm, start, start + size);
+ 	err = vma->vm_ops->remap_pages(vma, start, size, pgoff);
+ 	mmu_notifier_invalidate_range_end(mm, start, start + size);
+-	if (!err) {
+-		if (vma->vm_flags & VM_LOCKED) {
+-			/*
+-			 * might be mapping previously unmapped range of file
+-			 */
+-			mlock_vma_pages_range(vma, start, start + size);
+-		} else if (!(flags & MAP_NONBLOCK)) {
+-			if (unlikely(has_write_lock)) {
+-				downgrade_write(&mm->mmap_sem);
+-				has_write_lock = 0;
+-			}
+-			make_pages_present(start, start+size);
+-		}
 -	}
-+	if (flags & VM_LOCKED)
-+		mm->locked_vm += (len >> PAGE_SHIFT);
- 	return addr;
- }
  
-@@ -2611,10 +2617,14 @@ unsigned long vm_brk(unsigned long addr,
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long ret;
-+	bool populate;
+ 	/*
+ 	 * We can't clear VM_NONLINEAR because we'd have to do
+@@ -260,10 +247,13 @@ get_write_lock:
+ 	 */
  
- 	down_write(&mm->mmap_sem);
- 	ret = do_brk(addr, len);
-+	populate = ((mm->def_flags & VM_LOCKED) != 0);
- 	up_write(&mm->mmap_sem);
-+	if (populate)
-+		mm_populate(addr, len);
- 	return ret;
+ out:
++	vm_flags = vma->vm_flags;
+ 	if (likely(!has_write_lock))
+ 		up_read(&mm->mmap_sem);
+ 	else
+ 		up_write(&mm->mmap_sem);
++	if (!err && ((vm_flags & VM_LOCKED) || !(flags & MAP_NONBLOCK)))
++		mm_populate(start, size);
+ 
+ 	return err;
  }
- EXPORT_SYMBOL(vm_brk);
 _
 
 Patches currently in -mm which might be from walken@google.com are
