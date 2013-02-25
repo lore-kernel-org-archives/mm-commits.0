@@ -1,31 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:49:17 -0800
-Message-ID: <20130225204917.B423B31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-remove-flags-argument-to-mmap_region.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:49:20 -0800
+Message-ID: <20130225204920.CC51631C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:51816 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759401Ab3BYUtT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:49:19 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so361524qaj.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:49:18 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:57049 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759401Ab3BYUtW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:49:22 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so346091vch.2
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:49:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: walken@google.com, dhowells@redhat.com, gregungerer@westnet.com.au, luto@amacapital.net, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use mm_populate() for mremap() of VM_LOCKED vmas
+     Subject: mm: remove flags argument to mmap_region
 has been removed from the -mm tree.  Its filename was
-     mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch
+     mm-remove-flags-argument-to-mmap_region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: use mm_populate() for mremap() of VM_LOCKED vmas
+Subject: mm: remove flags argument to mmap_region
 
+After the MAP_POPULATE handling has been moved to mmap_region() call sites,
+the only remaining use of the flags argument is to pass the MAP_NORESERVE
+flag. This can be just as easily handled by do_mmap_pgoff(), so do that
+and remove the mmap_region() flags parameter.
+
+[akpm@linux-foundation.org: remove double parens]
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Tested-by: Andy Lutomirski <luto@amacapital.net>
@@ -34,97 +40,107 @@ Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ arch/tile/mm/elf.c |    1 -
+ include/linux/mm.h |    3 +--
+ mm/fremap.c        |    3 +--
+ mm/mmap.c          |   33 ++++++++++++++++-----------------
+ 4 files changed, 18 insertions(+), 22 deletions(-)
 
-diff -puN mm/mremap.c~mm-use-mm_populate-for-mremap-of-vm_locked-vmas mm/mremap.c
---- a/mm/mremap.c~mm-use-mm_populate-for-mremap-of-vm_locked-vmas
-+++ a/mm/mremap.c
-@@ -209,7 +209,7 @@ unsigned long move_page_tables(struct vm
+diff -puN arch/tile/mm/elf.c~mm-remove-flags-argument-to-mmap_region arch/tile/mm/elf.c
+--- a/arch/tile/mm/elf.c~mm-remove-flags-argument-to-mmap_region
++++ a/arch/tile/mm/elf.c
+@@ -130,7 +130,6 @@ int arch_setup_additional_pages(struct l
+ 	if (!retval) {
+ 		unsigned long addr = MEM_USER_INTRPT;
+ 		addr = mmap_region(NULL, addr, INTRPT_SIZE,
+-				   MAP_FIXED|MAP_ANONYMOUS|MAP_PRIVATE,
+ 				   VM_READ|VM_EXEC|
+ 				   VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC, 0);
+ 		if (addr > (unsigned long) -PAGE_SIZE)
+diff -puN include/linux/mm.h~mm-remove-flags-argument-to-mmap_region include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-flags-argument-to-mmap_region
++++ a/include/linux/mm.h
+@@ -1472,8 +1472,7 @@ extern int install_special_mapping(struc
+ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
  
- static unsigned long move_vma(struct vm_area_struct *vma,
- 		unsigned long old_addr, unsigned long old_len,
--		unsigned long new_len, unsigned long new_addr)
-+		unsigned long new_len, unsigned long new_addr, bool *locked)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *new_vma;
-@@ -300,9 +300,7 @@ static unsigned long move_vma(struct vm_
+ extern unsigned long mmap_region(struct file *file, unsigned long addr,
+-	unsigned long len, unsigned long flags,
+-	vm_flags_t vm_flags, unsigned long pgoff);
++	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff);
+ extern unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+ 	unsigned long pgoff, bool *populate);
+diff -puN mm/fremap.c~mm-remove-flags-argument-to-mmap_region mm/fremap.c
+--- a/mm/fremap.c~mm-remove-flags-argument-to-mmap_region
++++ a/mm/fremap.c
+@@ -204,9 +204,8 @@ get_write_lock:
+ 			unsigned long addr;
+ 			struct file *file = get_file(vma->vm_file);
  
- 	if (vm_flags & VM_LOCKED) {
- 		mm->locked_vm += new_len >> PAGE_SHIFT;
--		if (new_len > old_len)
--			mlock_vma_pages_range(new_vma, new_addr + old_len,
--						       new_addr + new_len);
-+		*locked = true;
+-			flags = (flags & MAP_NONBLOCK) | MAP_POPULATE;
+ 			addr = mmap_region(file, start, size,
+-					flags, vma->vm_flags, pgoff);
++					vma->vm_flags, pgoff);
+ 			fput(file);
+ 			if (IS_ERR_VALUE(addr)) {
+ 				err = addr;
+diff -puN mm/mmap.c~mm-remove-flags-argument-to-mmap_region mm/mmap.c
+--- a/mm/mmap.c~mm-remove-flags-argument-to-mmap_region
++++ a/mm/mmap.c
+@@ -1291,7 +1291,21 @@ unsigned long do_mmap_pgoff(struct file 
+ 		}
  	}
  
- 	return new_addr;
-@@ -367,9 +365,8 @@ Eagain:
- 	return ERR_PTR(-EAGAIN);
+-	addr = mmap_region(file, addr, len, flags, vm_flags, pgoff);
++	/*
++	 * Set 'VM_NORESERVE' if we should not account for the
++	 * memory use of this mapping.
++	 */
++	if (flags & MAP_NORESERVE) {
++		/* We honor MAP_NORESERVE if allowed to overcommit */
++		if (sysctl_overcommit_memory != OVERCOMMIT_NEVER)
++			vm_flags |= VM_NORESERVE;
++
++		/* hugetlb applies strict overcommit unless MAP_NORESERVE */
++		if (file && is_file_hugepages(file))
++			vm_flags |= VM_NORESERVE;
++	}
++
++	addr = mmap_region(file, addr, len, vm_flags, pgoff);
+ 	if (!IS_ERR_VALUE(addr) &&
+ 	    ((vm_flags & VM_LOCKED) ||
+ 	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
+@@ -1411,8 +1425,7 @@ static inline int accountable_mapping(st
  }
  
--static unsigned long mremap_to(unsigned long addr,
--	unsigned long old_len, unsigned long new_addr,
--	unsigned long new_len)
-+static unsigned long mremap_to(unsigned long addr, unsigned long old_len,
-+		unsigned long new_addr, unsigned long new_len, bool *locked)
+ unsigned long mmap_region(struct file *file, unsigned long addr,
+-			  unsigned long len, unsigned long flags,
+-			  vm_flags_t vm_flags, unsigned long pgoff)
++		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff)
  {
  	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
-@@ -419,7 +416,7 @@ static unsigned long mremap_to(unsigned 
- 	if (ret & ~PAGE_MASK)
- 		goto out1;
+ 	struct vm_area_struct *vma, *prev;
+@@ -1436,20 +1449,6 @@ munmap_back:
+ 		return -ENOMEM;
  
--	ret = move_vma(vma, addr, old_len, new_len, new_addr);
-+	ret = move_vma(vma, addr, old_len, new_len, new_addr, locked);
- 	if (!(ret & ~PAGE_MASK))
- 		goto out;
- out1:
-@@ -457,6 +454,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	struct vm_area_struct *vma;
- 	unsigned long ret = -EINVAL;
- 	unsigned long charged = 0;
-+	bool locked = false;
- 
- 	down_write(&current->mm->mmap_sem);
- 
-@@ -479,7 +477,8 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 
- 	if (flags & MREMAP_FIXED) {
- 		if (flags & MREMAP_MAYMOVE)
--			ret = mremap_to(addr, old_len, new_addr, new_len);
-+			ret = mremap_to(addr, old_len, new_addr, new_len,
-+					&locked);
- 		goto out;
- 	}
- 
-@@ -521,8 +520,8 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			vm_stat_account(mm, vma->vm_flags, vma->vm_file, pages);
- 			if (vma->vm_flags & VM_LOCKED) {
- 				mm->locked_vm += pages;
--				mlock_vma_pages_range(vma, addr + old_len,
--						   addr + new_len);
-+				locked = true;
-+				new_addr = addr;
- 			}
- 			ret = addr;
- 			goto out;
-@@ -548,11 +547,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			goto out;
- 		}
- 
--		ret = move_vma(vma, addr, old_len, new_len, new_addr);
-+		ret = move_vma(vma, addr, old_len, new_len, new_addr, &locked);
- 	}
- out:
- 	if (ret & ~PAGE_MASK)
- 		vm_unacct_memory(charged);
- 	up_write(&current->mm->mmap_sem);
-+	if (locked && new_len > old_len)
-+		mm_populate(new_addr + old_len, new_len - old_len);
- 	return ret;
- }
+ 	/*
+-	 * Set 'VM_NORESERVE' if we should not account for the
+-	 * memory use of this mapping.
+-	 */
+-	if ((flags & MAP_NORESERVE)) {
+-		/* We honor MAP_NORESERVE if allowed to overcommit */
+-		if (sysctl_overcommit_memory != OVERCOMMIT_NEVER)
+-			vm_flags |= VM_NORESERVE;
+-
+-		/* hugetlb applies strict overcommit unless MAP_NORESERVE */
+-		if (file && is_file_hugepages(file))
+-			vm_flags |= VM_NORESERVE;
+-	}
+-
+-	/*
+ 	 * Private writable mapping: check memory availability
+ 	 */
+ 	if (accountable_mapping(file, vm_flags)) {
 _
 
 Patches currently in -mm which might be from walken@google.com are
