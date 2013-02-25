@@ -1,132 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmksm-use-new-hashtable-implementation.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:48:50 -0800
-Message-ID: <20130225204850.AB6205A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:48:56 -0800
+Message-ID: <20130225204856.ADD6A31C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:36293 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758826Ab3BYUsv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:48:51 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so345749ghb.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:48:51 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:52047 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759217Ab3BYUs6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:48:58 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so361653qah.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:48:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: levinsasha928@gmail.com, hughd@google.com, khlebnikov@openvz.org, mgorman@suse.de, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: shli@kernel.org, hughd@google.com, riel@redhat.com, sasha.levin@oracle.com, shli@fusionio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm.c: use new hashtable implementation
+     Subject: mm: make madvise(MADV_WILLNEED) support swap file prefetch
 has been removed from the -mm tree.  Its filename was
-     mmksm-use-new-hashtable-implementation.patch
+     mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <levinsasha928@gmail.com>
-Subject: mm/ksm.c: use new hashtable implementation
+From: Shaohua Li <shli@kernel.org>
+Subject: mm: make madvise(MADV_WILLNEED) support swap file prefetch
 
-Switch ksm to use the new hashtable implementation.  This reduces the
-amount of generic unrelated code in the ksm module.
+Make madvise(MADV_WILLNEED) support swap file prefetch.  If memory is
+swapout, this syscall can do swapin prefetch.  It has no impact if the
+memory isn't swapout.
 
-Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Mel Gorman <mgorman@suse.de>
+[akpm@linux-foundation.org: fix CONFIG_SWAP=n build]
+[sasha.levin@oracle.com: fix BUG on madvise early failure]
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   30 ++++++++++++------------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
+ mm/madvise.c |  105 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 101 insertions(+), 4 deletions(-)
 
-diff -puN mm/ksm.c~mmksm-use-new-hashtable-implementation mm/ksm.c
---- a/mm/ksm.c~mmksm-use-new-hashtable-implementation
-+++ a/mm/ksm.c
-@@ -33,7 +33,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/swap.h>
+diff -puN mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch mm/madvise.c
+--- a/mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch
++++ a/mm/madvise.c
+@@ -16,6 +16,9 @@
  #include <linux/ksm.h>
--#include <linux/hash.h>
-+#include <linux/hashtable.h>
- #include <linux/freezer.h>
- #include <linux/oom.h>
+ #include <linux/fs.h>
+ #include <linux/file.h>
++#include <linux/blkdev.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
  
-@@ -156,9 +156,8 @@ struct rmap_item {
- static struct rb_root root_stable_tree = RB_ROOT;
- static struct rb_root root_unstable_tree = RB_ROOT;
+ /*
+  * Any behaviour which results in changes to the vma->vm_flags needs to
+@@ -131,6 +134,84 @@ out:
+ 	return error;
+ }
  
--#define MM_SLOTS_HASH_SHIFT 10
--#define MM_SLOTS_HASH_HEADS (1 << MM_SLOTS_HASH_SHIFT)
--static struct hlist_head mm_slots_hash[MM_SLOTS_HASH_HEADS];
-+#define MM_SLOTS_HASH_BITS 10
-+static DEFINE_HASHTABLE(mm_slots_hash, MM_SLOTS_HASH_BITS);
- 
- static struct mm_slot ksm_mm_head = {
- 	.mm_list = LIST_HEAD_INIT(ksm_mm_head.mm_list),
-@@ -275,26 +274,21 @@ static inline void free_mm_slot(struct m
- 
- static struct mm_slot *get_mm_slot(struct mm_struct *mm)
- {
--	struct mm_slot *mm_slot;
--	struct hlist_head *bucket;
- 	struct hlist_node *node;
-+	struct mm_slot *slot;
++#ifdef CONFIG_SWAP
++static int swapin_walk_pmd_entry(pmd_t *pmd, unsigned long start,
++	unsigned long end, struct mm_walk *walk)
++{
++	pte_t *orig_pte;
++	struct vm_area_struct *vma = walk->private;
++	unsigned long index;
 +
-+	hash_for_each_possible(mm_slots_hash, slot, node, link, (unsigned long)mm)
-+		if (slot->mm == mm)
-+			return slot;
- 
--	bucket = &mm_slots_hash[hash_ptr(mm, MM_SLOTS_HASH_SHIFT)];
--	hlist_for_each_entry(mm_slot, node, bucket, link) {
--		if (mm == mm_slot->mm)
--			return mm_slot;
--	}
- 	return NULL;
- }
- 
- static void insert_to_mm_slots_hash(struct mm_struct *mm,
- 				    struct mm_slot *mm_slot)
++	if (pmd_none_or_trans_huge_or_clear_bad(pmd))
++		return 0;
++
++	for (index = start; index != end; index += PAGE_SIZE) {
++		pte_t pte;
++		swp_entry_t entry;
++		struct page *page;
++		spinlock_t *ptl;
++
++		orig_pte = pte_offset_map_lock(vma->vm_mm, pmd, start, &ptl);
++		pte = *(orig_pte + ((index - start) / PAGE_SIZE));
++		pte_unmap_unlock(orig_pte, ptl);
++
++		if (pte_present(pte) || pte_none(pte) || pte_file(pte))
++			continue;
++		entry = pte_to_swp_entry(pte);
++		if (unlikely(non_swap_entry(entry)))
++			continue;
++
++		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
++								vma, index);
++		if (page)
++			page_cache_release(page);
++	}
++
++	return 0;
++}
++
++static void force_swapin_readahead(struct vm_area_struct *vma,
++		unsigned long start, unsigned long end)
++{
++	struct mm_walk walk = {
++		.mm = vma->vm_mm,
++		.pmd_entry = swapin_walk_pmd_entry,
++		.private = vma,
++	};
++
++	walk_page_range(start, end, &walk);
++
++	lru_add_drain();	/* Push any new pages onto the LRU now */
++}
++
++static void force_shm_swapin_readahead(struct vm_area_struct *vma,
++		unsigned long start, unsigned long end,
++		struct address_space *mapping)
++{
++	pgoff_t index;
++	struct page *page;
++	swp_entry_t swap;
++
++	for (; start < end; start += PAGE_SIZE) {
++		index = ((start - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
++
++		page = find_get_page(mapping, index);
++		if (!radix_tree_exceptional_entry(page)) {
++			if (page)
++				page_cache_release(page);
++			continue;
++		}
++		swap = radix_to_swp_entry(page);
++		page = read_swap_cache_async(swap, GFP_HIGHUSER_MOVABLE,
++								NULL, 0);
++		if (page)
++			page_cache_release(page);
++	}
++
++	lru_add_drain();	/* Push any new pages onto the LRU now */
++}
++#endif		/* CONFIG_SWAP */
++
+ /*
+  * Schedule all required I/O operations.  Do not wait for completion.
+  */
+@@ -140,6 +221,18 @@ static long madvise_willneed(struct vm_a
  {
--	struct hlist_head *bucket;
--
--	bucket = &mm_slots_hash[hash_ptr(mm, MM_SLOTS_HASH_SHIFT)];
- 	mm_slot->mm = mm;
--	hlist_add_head(&mm_slot->link, bucket);
-+	hash_add(mm_slots_hash, &mm_slot->link, (unsigned long)mm);
- }
+ 	struct file *file = vma->vm_file;
  
- static inline int in_stable_tree(struct rmap_item *rmap_item)
-@@ -647,7 +641,7 @@ static int unmerge_and_remove_all_rmap_i
- 		ksm_scan.mm_slot = list_entry(mm_slot->mm_list.next,
- 						struct mm_slot, mm_list);
- 		if (ksm_test_exit(mm)) {
--			hlist_del(&mm_slot->link);
-+			hash_del(&mm_slot->link);
- 			list_del(&mm_slot->mm_list);
- 			spin_unlock(&ksm_mmlist_lock);
++#ifdef CONFIG_SWAP
++	if (!file || mapping_cap_swap_backed(file->f_mapping)) {
++		*prev = vma;
++		if (!file)
++			force_swapin_readahead(vma, start, end);
++		else
++			force_shm_swapin_readahead(vma, start, end,
++						file->f_mapping);
++		return 0;
++	}
++#endif
++
+ 	if (!file)
+ 		return -EBADF;
  
-@@ -1392,7 +1386,7 @@ next_mm:
- 		 * or when all VM_MERGEABLE areas have been unmapped (and
- 		 * mmap_sem then protects against race with MADV_MERGEABLE).
- 		 */
--		hlist_del(&slot->link);
-+		hash_del(&slot->link);
- 		list_del(&slot->mm_list);
- 		spin_unlock(&ksm_mmlist_lock);
+@@ -371,6 +464,7 @@ SYSCALL_DEFINE3(madvise, unsigned long, 
+ 	int error = -EINVAL;
+ 	int write;
+ 	size_t len;
++	struct blk_plug plug;
  
-@@ -1559,7 +1553,7 @@ void __ksm_exit(struct mm_struct *mm)
- 	mm_slot = get_mm_slot(mm);
- 	if (mm_slot && ksm_scan.mm_slot != mm_slot) {
- 		if (!mm_slot->rmap_list) {
--			hlist_del(&mm_slot->link);
-+			hash_del(&mm_slot->link);
- 			list_del(&mm_slot->mm_list);
- 			easy_to_free = 1;
- 		} else {
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE)
+@@ -410,18 +504,19 @@ SYSCALL_DEFINE3(madvise, unsigned long, 
+ 	if (vma && start > vma->vm_start)
+ 		prev = vma;
+ 
++	blk_start_plug(&plug);
+ 	for (;;) {
+ 		/* Still start < end. */
+ 		error = -ENOMEM;
+ 		if (!vma)
+-			goto out;
++			goto out_plug;
+ 
+ 		/* Here start < (end|vma->vm_end). */
+ 		if (start < vma->vm_start) {
+ 			unmapped_error = -ENOMEM;
+ 			start = vma->vm_start;
+ 			if (start >= end)
+-				goto out;
++				goto out_plug;
+ 		}
+ 
+ 		/* Here vma->vm_start <= start < (end|vma->vm_end) */
+@@ -432,18 +527,20 @@ SYSCALL_DEFINE3(madvise, unsigned long, 
+ 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+ 		error = madvise_vma(vma, &prev, start, tmp, behavior);
+ 		if (error)
+-			goto out;
++			goto out_plug;
+ 		start = tmp;
+ 		if (prev && start < prev->vm_end)
+ 			start = prev->vm_end;
+ 		error = unmapped_error;
+ 		if (start >= end)
+-			goto out;
++			goto out_plug;
+ 		if (prev)
+ 			vma = prev->vm_next;
+ 		else	/* madvise_remove dropped mmap_sem */
+ 			vma = find_vma(current->mm, start);
+ 	}
++out_plug:
++	blk_finish_plug(&plug);
+ out:
+ 	if (write)
+ 		up_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from levinsasha928@gmail.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 origin.patch
+linux-next.patch
+kernel-smpc-cleanups.patch
 
