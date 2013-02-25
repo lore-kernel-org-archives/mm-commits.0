@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix-fix.patch added to -mm tree
-Date: Mon, 25 Feb 2013 15:47:43 -0800
-Message-ID: <20130225234743.AC38F5A408F@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable.patch added to -mm tree
+Date: Mon, 25 Feb 2013 15:54:51 -0800
+Message-ID: <20130225235451.C9B6E31C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:35826 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759740Ab3BYXro (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:47:44 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so370997ggn.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:47:44 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:42785 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756750Ab3BYXyx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:54:53 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so166728yen.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:54:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: imre.deak@intel.com, daniel.vetter@ffwll.ch, james.hogan@imgtec.com, maximlevitsky@gmail.com, swarren@wwwdotorg.org, tj@kernel.org
+Cc: artem.savkov@gmail.com, ibm-acpi@hmh.eng.br, matthew.garrett@nebula.com, rjw@sisk.pl
 
 
 The patch titled
-     Subject: lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix-fix
+     Subject: drivers/platform/x86/thinkpad_acpi.c: move hotkey_thread_mutex lock after set_freezable()
 has been added to the -mm tree.  Its filename is
-     lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix-fix.patch
+     drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Imre Deak <imre.deak@intel.com>
-Subject: lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix-fix
+From: Artem Savkov <artem.savkov@gmail.com>
+Subject: drivers/platform/x86/thinkpad_acpi.c: move hotkey_thread_mutex lock after set_freezable()
 
-- Fix the mapping size to be page-size limited. Thanks to Stephen Warren
-  for tracking down the bug.
+set_freezable() runs try_to_freeze() during which no locks should be held.
+hotkey_thread_mutex lock should be moved closer to where it is actually
+needed.
 
-Signed-off-by: Imre Deak <imre.deak@intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
+Signed-off-by: Artem Savkov <artem.savkov@gmail.com>
+Cc: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/platform/x86/thinkpad_acpi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/scatterlist.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix-fix lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix-fix
-+++ a/lib/scatterlist.c
-@@ -493,6 +493,8 @@ bool sg_miter_next(struct sg_mapping_ite
- 		miter->__offset = pgoffset ? 0 : sg->offset;
- 		miter->__remaining = sg->offset + sg->length -
- 				(pgoffset << PAGE_SHIFT) - miter->__offset;
-+		miter->__remaining = min_t(unsigned long, miter->__remaining,
-+					   PAGE_SIZE - miter->__offset);
+diff -puN drivers/platform/x86/thinkpad_acpi.c~drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -2463,13 +2463,13 @@ static int hotkey_kthread(void *data)
+ 	unsigned int poll_freq;
+ 	bool was_frozen;
+ 
+-	mutex_lock(&hotkey_thread_mutex);
+-
+ 	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
+ 		goto exit;
+ 
+ 	set_freezable();
+ 
++	mutex_lock(&hotkey_thread_mutex);
++
+ 	so = 0;
+ 	si = 1;
+ 	t = 0;
+@@ -2523,8 +2523,8 @@ static int hotkey_kthread(void *data)
+ 		si ^= 1;
  	}
- 	miter->page = miter->piter.page;
- 	miter->consumed = miter->length = miter->__remaining;
+ 
+-exit:
+ 	mutex_unlock(&hotkey_thread_mutex);
++exit:
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from imre.deak@intel.com are
+Patches currently in -mm which might be from artem.savkov@gmail.com are
 
-linux-next.patch
-lib-scatterlist-add-simple-page-iterator.patch
-lib-scatterlist-use-page-iterator-in-the-mapping-iterator.patch
-lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix.patch
-lib-scatterlist-use-page-iterator-in-the-mapping-iterator-fix-fix.patch
+drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable.patch
+drm-convert-to-idr_alloc-fix.patch
+drm-convert-to-idr_alloc-fix-fix.patch
 
