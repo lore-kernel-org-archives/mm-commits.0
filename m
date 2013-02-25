@@ -1,102 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-accurately-document-nr_free__pages-functions-with-code-comments.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:40 -0800
-Message-ID: <20130225205540.9DFAE31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] hwpoison-change-order-of-error_statess-elements.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:37 -0800
+Message-ID: <20130225205537.BC88C31C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:45126 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759370Ab3BYUzl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:41 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so159449yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:41 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:64613 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759805Ab3BYUzj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:39 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so348016vch.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhangyanfei@cn.fujitsu.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, fengguang.wu@intel.com, gong.chen@linux.intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: accurately document nr_free_*_pages functions with code comments
+     Subject: HWPOISON: change order of error_states[]'s elements
 has been removed from the -mm tree.  Its filename was
-     mm-accurately-document-nr_free__pages-functions-with-code-comments.patch
+     hwpoison-change-order-of-error_statess-elements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm: accurately document nr_free_*_pages functions with code comments
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: HWPOISON: change order of error_states[]'s elements
 
-nr_free_zone_pages(), nr_free_buffer_pages() and nr_free_pagecache_pages()
-are horribly badly named, so accurately document them with code comments
-in case of the misuse of them.
+error_states[] has two separate states "unevictable LRU page" and "mlocked
+LRU page", and the former one has the higher priority now.  But because of
+that the latter one is rarely chosen because pages with PageMlocked highly
+likely have PG_unevictable set.  On the other hand, PG_unevictable without
+PageMlocked is common for ramfs or SHM_LOCKed shared memory, so reversing
+the priority of these two states helps us clearly distinguish them.
 
-[akpm@linux-foundation.org: tweak comments]
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-accurately-document-nr_free__pages-functions-with-code-comments mm/page_alloc.c
---- a/mm/page_alloc.c~mm-accurately-document-nr_free__pages-functions-with-code-comments
-+++ a/mm/page_alloc.c
-@@ -2813,6 +2813,15 @@ void free_pages_exact(void *virt, size_t
- }
- EXPORT_SYMBOL(free_pages_exact);
+diff -puN mm/memory-failure.c~hwpoison-change-order-of-error_statess-elements mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-change-order-of-error_statess-elements
++++ a/mm/memory-failure.c
+@@ -784,12 +784,12 @@ static struct page_state {
+ 	{ sc|dirty,	sc|dirty,	"dirty swapcache",	me_swapcache_dirty },
+ 	{ sc|dirty,	sc,		"clean swapcache",	me_swapcache_clean },
  
-+/**
-+ * nr_free_zone_pages - count number of pages beyond high watermark
-+ * @offset: The zone index of the highest zone
-+ *
-+ * nr_free_zone_pages() counts the number of counts pages which are beyond the
-+ * high watermark within all zones at or below a given zone index.  For each
-+ * zone, the number of pages is calculated as:
-+ *     present_pages - high_pages
-+ */
- static unsigned long nr_free_zone_pages(int offset)
- {
- 	struct zoneref *z;
-@@ -2833,8 +2842,11 @@ static unsigned long nr_free_zone_pages(
- 	return sum;
- }
- 
--/*
-- * Amount of free RAM allocatable within ZONE_DMA and ZONE_NORMAL
-+/**
-+ * nr_free_buffer_pages - count number of pages beyond high watermark
-+ *
-+ * nr_free_buffer_pages() counts the number of pages which are beyond the high
-+ * watermark within ZONE_DMA and ZONE_NORMAL.
-  */
- unsigned long nr_free_buffer_pages(void)
- {
-@@ -2842,8 +2854,11 @@ unsigned long nr_free_buffer_pages(void)
- }
- EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
- 
--/*
-- * Amount of free RAM allocatable within all zones
-+/**
-+ * nr_free_pagecache_pages - count number of pages beyond high watermark
-+ *
-+ * nr_free_pagecache_pages() counts the number of pages which are beyond the
-+ * high watermark within all zones.
-  */
- unsigned long nr_free_pagecache_pages(void)
- {
-_
-
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
-
-origin.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
-fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
-kexec-get-rid-of-duplicate-check-for-hole_end.patch
-kexec-prevent-double-free-on-image-allocation-failure.patch
-kexec-fix-memory-leak-in-function-kimage_normal_alloc.patch
-kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc.patch
-
+-	{ unevict|dirty, unevict|dirty,	"dirty unevictable LRU", me_pagecache_dirty },
+-	{ unevict,	unevict,	"clean unevictable LRU", me_pagecache_clean },
