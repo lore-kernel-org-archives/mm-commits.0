@@ -1,43 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loopdev-remove-an-user-triggerable-oops.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:56:44 -0800
-Message-ID: <20130225205644.AFB2431C26E@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] loopdev-ignore-negative-offset-when-calculate-loop-device-size.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:56:47 -0800
+Message-ID: <20130225205647.C13FF31C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:48334 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932091Ab3BYU4p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:45 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so348367yhz.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:45 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:51667 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932091Ab3BYU4t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:49 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so159600yen.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yan@linux.vnet.ibm.com, axboe@kernel.dk, hindessm@uk.ibm.com, knikanth@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loopdev: remove an user triggerable oops
+     Subject: loopdev: ignore negative offset when calculate loop device size
 has been removed from the -mm tree.  Its filename was
-     loopdev-remove-an-user-triggerable-oops.patch
+     loopdev-ignore-negative-offset-when-calculate-loop-device-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Guo Chao <yan@linux.vnet.ibm.com>
-Subject: loopdev: remove an user triggerable oops
+Subject: loopdev: ignore negative offset when calculate loop device size
 
-When loopdev is built as module and we pass an invalid parameter,
-loop_init() will return directly without deregister misc device, which
-will cause an oops when insert loop module next time because we left some
-garbage in the misc device list.
+Negative offset may cause loop device size larger than backing file
+size.
 
-Test case:
-sudo modprobe loop max_part=1024
-(failed due to invalid parameter)
-sudo modprobe loop
-(oops)
+ $ fallocate -l 1M a
+ $ losetup --offset 0xffffffffffff0000 /dev/loop0 a
+ $ blockdev --getsize64 /dev/loop0
+ 1114112
+ $ ls -l a
+ -rw-r--r-- 1 root root 1048576 Jan 23 12:46 a
+ $ cat /dev/loop0
+ cat: /dev/loop0: Input/output error
 
-Clean up nicely to avoid such oops.
+It makes no sense to do that. Only apply offset when it's positive.
+
+Fix a typo in the comment by the way.
 
 Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -48,56 +51,30 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ drivers/block/loop.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/loop.c~loopdev-remove-an-user-triggerable-oops drivers/block/loop.c
---- a/drivers/block/loop.c~loopdev-remove-an-user-triggerable-oops
+diff -puN drivers/block/loop.c~loopdev-ignore-negative-offset-when-calculate-loop-device-size drivers/block/loop.c
+--- a/drivers/block/loop.c~loopdev-ignore-negative-offset-when-calculate-loop-device-size
 +++ a/drivers/block/loop.c
-@@ -1844,11 +1844,15 @@ static int __init loop_init(void)
- 		max_part = (1UL << part_shift) - 1;
- 	}
+@@ -162,12 +162,13 @@ static struct loop_func_table *xfer_func
  
--	if ((1UL << part_shift) > DISK_MAX_PARTS)
--		return -EINVAL;
-+	if ((1UL << part_shift) > DISK_MAX_PARTS) {
-+		err = -EINVAL;
-+		goto misc_out;
-+	}
+ static loff_t get_size(loff_t offset, loff_t sizelimit, struct file *file)
+ {
+-	loff_t size, loopsize;
++	loff_t loopsize;
  
--	if (max_loop > 1UL << (MINORBITS - part_shift))
--		return -EINVAL;
-+	if (max_loop > 1UL << (MINORBITS - part_shift)) {
-+		err = -EINVAL;
-+		goto misc_out;
-+	}
+ 	/* Compute loopsize in bytes */
+-	size = i_size_read(file->f_mapping->host);
+-	loopsize = size - offset;
+-	/* offset is beyond i_size, wierd but possible */
++	loopsize = i_size_read(file->f_mapping->host);
++	if (offset > 0)
++		loopsize -= offset;
++	/* offset is beyond i_size, weird but possible */
+ 	if (loopsize < 0)
+ 		return 0;
  
- 	/*
- 	 * If max_loop is specified, create that many devices upfront.
-@@ -1866,8 +1870,10 @@ static int __init loop_init(void)
- 		range = 1UL << MINORBITS;
- 	}
- 
--	if (register_blkdev(LOOP_MAJOR, "loop"))
--		return -EIO;
-+	if (register_blkdev(LOOP_MAJOR, "loop")) {
-+		err = -EIO;
-+		goto misc_out;
-+	}
- 
- 	blk_register_region(MKDEV(LOOP_MAJOR, 0), range,
- 				  THIS_MODULE, loop_probe, NULL, NULL);
-@@ -1880,6 +1886,10 @@ static int __init loop_init(void)
- 
- 	printk(KERN_INFO "loop: module loaded\n");
- 	return 0;
-+
-+misc_out:
-+	misc_deregister(&loop_misc);
-+	return err;
- }
- 
- static int loop_exit_cb(int id, void *ptr, void *data)
 _
 
 Patches currently in -mm which might be from yan@linux.vnet.ibm.com are
