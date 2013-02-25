@@ -1,174 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:53:23 -0800
-Message-ID: <20130225205323.CBB6E5A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] memcg-reduce-the-size-of-struct-memcg-244-fold.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:53:20 -0800
+Message-ID: <20130225205320.D23625A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:35559 "EHLO
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:65166 "EHLO
 	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758700Ab3BYUxZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:53:25 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so142190yen.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:53:24 -0800 (PST)
+	with ESMTP id S1758700Ab3BYUxW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:53:22 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so142176yen.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:53:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyuki@gmail.com, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
+To: glommer@parallels.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: prevent changes to move_charge_at_immigrate during task attach
+     Subject: memcg: reduce the size of struct memcg 244-fold.
 has been removed from the -mm tree.  Its filename was
-     memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
+     memcg-reduce-the-size-of-struct-memcg-244-fold.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: prevent changes to move_charge_at_immigrate during task attach
+Subject: memcg: reduce the size of struct memcg 244-fold.
 
-In memcg, we use the cgroup_lock basically to synchronize against
-attaching new children to a cgroup.  We do this because we rely on cgroup
-core to provide us with this information.
+In order to maintain all the memcg bookkeeping, we need per-node
+descriptors, which will in turn contain a per-zone descriptor.
 
-We need to guarantee that upon child creation, our tunables are
-consistent.  For those, the calls to cgroup_lock() all live in handlers
-like mem_cgroup_hierarchy_write(), where we change a tunable in the group
-that is hierarchy-related.  For instance, the use_hierarchy flag cannot be
-changed if the cgroup already have children.
+Because we want to statically allocate those, this array ends up being
+very big.  Part of the reason is that we allocate something large enough
+to hold MAX_NUMNODES, the compile time constant that holds the maximum
+number of nodes we would ever consider.
 
-Furthermore, those values are propagated from the parent to the child when
-a new child is created.  So if we don't lock like this, we can end up with
-the following situation:
+However, we can do better in some cases if the firmware help us.  This is
+true for modern x86 machines; coincidentally one of the architectures in
+which MAX_NUMNODES tends to be very big.
 
-A                                   B
- memcg_css_alloc()                       mem_cgroup_hierarchy_write()
- copy use hierarchy from parent          change use hierarchy in parent
- finish creation.
+By using the firmware-provided maximum number of nodes instead of
+MAX_NUMNODES, we can reduce the memory footprint of struct memcg
+considerably.  In the extreme case in which we have only one node, this
+reduces the size of the structure from ~ 64k to ~2k.  This is particularly
+important because it means that we will no longer resort to the vmalloc
+area for the struct memcg on defconfigs.  We also have enough room for an
+extra node and still be outside vmalloc.
 
-This is mainly because during create, we are still not fully connected to
-the css tree.  So all iterators and the such that we could use, will fail
-to show that the group has children.
+One also has to keep in mind that with the industry's ability to fit more
+processors in a die as fast as the FED prints money, a nodes = 2
+configuration is already respectably big.
 
-My observation is that all of creation can proceed in parallel with those
-tasks, except value assignment.  So what this patch series does is to first
-move all value assignment that is dependent on parent values from
-css_alloc to css_online, where the iterators all work, and then we lock
-only the value assignment.  This will guarantee that parent and children
-always have consistent values.  Together with an online test, that can be
-derived from the observation that the refcount of an online memcg can be
-made to be always positive, we should be able to synchronize our side
-without the cgroup lock.
-
-
-
-This patch:
-
-Currently, we rely on the cgroup_lock() to prevent changes to
-move_charge_at_immigrate during task migration.  However, this is only
-needed because the current strategy keeps checking this value throughout
-the whole process.  Since all we need is serialization, one needs only to
-guarantee that whatever decision we made in the beginning of a specific
-migration is respected throughout the process.
-
-We can achieve this by just saving it in mc. By doing this, no kind of
-locking is needed.
-
+[akpm@linux-foundation.org: add check for invalid nid, remove inline]
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |   41 ++++++++++++++++++++++++++---------------
+ 1 file changed, 26 insertions(+), 15 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach
+diff -puN mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reduce-the-size-of-struct-memcg-244-fold
 +++ a/mm/memcontrol.c
-@@ -416,8 +416,8 @@ static bool memcg_kmem_test_and_clear_de
+@@ -180,7 +180,7 @@ struct mem_cgroup_per_node {
+ };
  
- /* Stuffs for move charges at task migration. */
- /*
-- * Types of charges to be moved. "move_charge_at_immitgrate" is treated as a
-- * left-shifted bitmap of these types.
-+ * Types of charges to be moved. "move_charge_at_immitgrate" and
-+ * "immigrate_flags" are treated as a left-shifted bitmap of these types.
-  */
- enum move_type {
- 	MOVE_CHARGE_TYPE_ANON,	/* private anonymous page and swap of it */
-@@ -430,6 +430,7 @@ static struct move_charge_struct {
- 	spinlock_t	  lock; /* for from, to */
- 	struct mem_cgroup *from;
- 	struct mem_cgroup *to;
-+	unsigned long immigrate_flags;
- 	unsigned long precharge;
- 	unsigned long moved_charge;
- 	unsigned long moved_swap;
-@@ -442,14 +443,12 @@ static struct move_charge_struct {
- 
- static bool move_anon(void)
- {
--	return test_bit(MOVE_CHARGE_TYPE_ANON,
--					&mc.to->move_charge_at_immigrate);
-+	return test_bit(MOVE_CHARGE_TYPE_ANON, &mc.immigrate_flags);
- }
- 
- static bool move_file(void)
- {
--	return test_bit(MOVE_CHARGE_TYPE_FILE,
--					&mc.to->move_charge_at_immigrate);
-+	return test_bit(MOVE_CHARGE_TYPE_FILE, &mc.immigrate_flags);
- }
+ struct mem_cgroup_lru_info {
+-	struct mem_cgroup_per_node *nodeinfo[MAX_NUMNODES];
++	struct mem_cgroup_per_node *nodeinfo[0];
+ };
  
  /*
-@@ -5193,15 +5192,14 @@ static int mem_cgroup_move_charge_write(
- 
- 	if (val >= (1 << NR_MOVE_TYPE))
- 		return -EINVAL;
-+
- 	/*
--	 * We check this value several times in both in can_attach() and
--	 * attach(), so we need cgroup lock to prevent this value from being
--	 * inconsistent.
-+	 * No kind of locking is needed in here, because ->can_attach() will
-+	 * check this value once in the beginning of the process, and then carry
-+	 * on with stale data. This means that changes to this value will only
-+	 * affect task migrations starting after the change.
+@@ -284,17 +284,6 @@ struct mem_cgroup {
  	 */
--	cgroup_lock();
- 	memcg->move_charge_at_immigrate = val;
--	cgroup_unlock();
--
- 	return 0;
- }
- #else
-@@ -6559,8 +6557,15 @@ static int mem_cgroup_can_attach(struct 
- 	struct task_struct *p = cgroup_taskset_first(tset);
- 	int ret = 0;
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgroup);
-+	unsigned long move_charge_at_immigrate;
- 
--	if (memcg->move_charge_at_immigrate) {
+ 	struct res_counter kmem;
+ 	/*
+-	 * Per cgroup active and inactive list, similar to the
+-	 * per zone LRU lists.
+-	 */
+-	struct mem_cgroup_lru_info info;
+-	int last_scanned_node;
+-#if MAX_NUMNODES > 1
+-	nodemask_t	scan_nodes;
+-	atomic_t	numainfo_events;
+-	atomic_t	numainfo_updating;
+-#endif
+-	/*
+ 	 * Should the accounting and control be hierarchical, per subtree?
+ 	 */
+ 	bool use_hierarchy;
+@@ -357,8 +346,29 @@ struct mem_cgroup {
+         /* Index in the kmem_cache->memcg_params->memcg_caches array */
+ 	int kmemcg_id;
+ #endif
++
++	int last_scanned_node;
++#if MAX_NUMNODES > 1
++	nodemask_t	scan_nodes;
++	atomic_t	numainfo_events;
++	atomic_t	numainfo_updating;
++#endif
 +	/*
-+	 * We are now commited to this value whatever it is. Changes in this
-+	 * tunable will only affect upcoming migrations, not the current one.
-+	 * So we need to save it, and keep it going.
++	 * Per cgroup active and inactive list, similar to the
++	 * per zone LRU lists.
++	 *
++	 * WARNING: This has to be the last element of the struct. Don't
++	 * add new fields after this point.
 +	 */
-+	move_charge_at_immigrate  = memcg->move_charge_at_immigrate;
-+	if (move_charge_at_immigrate) {
- 		struct mm_struct *mm;
- 		struct mem_cgroup *from = mem_cgroup_from_task(p);
++	struct mem_cgroup_lru_info info;
+ };
  
-@@ -6580,6 +6585,7 @@ static int mem_cgroup_can_attach(struct 
- 			spin_lock(&mc.lock);
- 			mc.from = from;
- 			mc.to = memcg;
-+			mc.immigrate_flags = move_charge_at_immigrate;
- 			spin_unlock(&mc.lock);
- 			/* We set mc.moving_task later */
++static size_t memcg_size(void)
++{
++	return sizeof(struct mem_cgroup) +
++		nr_node_ids * sizeof(struct mem_cgroup_per_node);
++}
++
+ /* internal only representation about the status of kmem accounting. */
+ enum {
+ 	KMEM_ACCOUNTED_ACTIVE = 0, /* accounted by this cgroup itself */
+@@ -635,6 +645,7 @@ static void drain_all_stock_async(struct
+ static struct mem_cgroup_per_zone *
+ mem_cgroup_zoneinfo(struct mem_cgroup *memcg, int nid, int zid)
+ {
++	VM_BUG_ON((unsigned)nid >= nr_node_ids);
+ 	return &memcg->info.nodeinfo[nid]->zoneinfo[zid];
+ }
  
+@@ -5925,9 +5936,9 @@ static void free_mem_cgroup_per_zone_inf
+ static struct mem_cgroup *mem_cgroup_alloc(void)
+ {
+ 	struct mem_cgroup *memcg;
+-	int size = sizeof(struct mem_cgroup);
++	size_t size = memcg_size();
+ 
+-	/* Can be very big if MAX_NUMNODES is very big */
++	/* Can be very big if nr_node_ids is very big */
+ 	if (size < PAGE_SIZE)
+ 		memcg = kzalloc(size, GFP_KERNEL);
+ 	else
+@@ -5964,7 +5975,7 @@ out_free:
+ static void __mem_cgroup_free(struct mem_cgroup *memcg)
+ {
+ 	int node;
+-	int size = sizeof(struct mem_cgroup);
++	size_t size = memcg_size();
+ 
+ 	mem_cgroup_remove_from_trees(memcg);
+ 	free_css_id(&mem_cgroup_subsys, &memcg->css);
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
