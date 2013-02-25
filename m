@@ -1,66 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-change-type-of-vm_total_pages-to-unsigned-long.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:25 -0800
-Message-ID: <20130225205525.994C25A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] net-change-type-of-virtio_chan-p9_max_pages.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:28 -0800
+Message-ID: <20130225205528.AC2A931C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:49031 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758826Ab3BYUz0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:26 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so347150ves.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:26 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:45932 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759572Ab3BYUz3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:29 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so159430yen.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: zhangyanfei@cn.fujitsu.com, davem@davemloft.net, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: change type of vm_total_pages to unsigned long
+     Subject: net: change type of virtio_chan->p9_max_pages
 has been removed from the -mm tree.  Its filename was
-     vmscan-change-type-of-vm_total_pages-to-unsigned-long.patch
+     net-change-type-of-virtio_chan-p9_max_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: vmscan: change type of vm_total_pages to unsigned long
+Subject: net: change type of virtio_chan->p9_max_pages
 
-This variable is calculated from nr_free_pagecache_pages so
-change its type to unsigned long.
+This member of struct virtio_chan is calculated from nr_free_buffer_pages
+so change its type to unsigned long in case of overflow.
 
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/vmscan.c          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/9p/trans_virtio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~vmscan-change-type-of-vm_total_pages-to-unsigned-long include/linux/swap.h
---- a/include/linux/swap.h~vmscan-change-type-of-vm_total_pages-to-unsigned-long
-+++ a/include/linux/swap.h
-@@ -275,7 +275,7 @@ extern unsigned long mem_cgroup_shrink_n
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
- extern int remove_mapping(struct address_space *mapping, struct page *page);
--extern long vm_total_pages;
-+extern unsigned long vm_total_pages;
+diff -puN net/9p/trans_virtio.c~net-change-type-of-virtio_chan-p9_max_pages net/9p/trans_virtio.c
+--- a/net/9p/trans_virtio.c~net-change-type-of-virtio_chan-p9_max_pages
++++ a/net/9p/trans_virtio.c
+@@ -87,7 +87,7 @@ struct virtio_chan {
+ 	/* This is global limit. Since we don't have a global structure,
+ 	 * will be placing it in each channel.
+ 	 */
+-	int p9_max_pages;
++	unsigned long p9_max_pages;
+ 	/* Scatterlist: can be too big for stack. */
+ 	struct scatterlist sg[VIRTQUEUE_NUM];
  
- #ifdef CONFIG_NUMA
- extern int zone_reclaim_mode;
-diff -puN mm/vmscan.c~vmscan-change-type-of-vm_total_pages-to-unsigned-long mm/vmscan.c
---- a/mm/vmscan.c~vmscan-change-type-of-vm_total_pages-to-unsigned-long
-+++ a/mm/vmscan.c
-@@ -128,7 +128,7 @@ struct scan_control {
-  * From 0 .. 100.  Higher means more swappy.
-  */
- int vm_swappiness = 60;
--long vm_total_pages;	/* The total number of pages which the VM controls */
-+unsigned long vm_total_pages;	/* The total number of pages which the VM controls */
- 
- static LIST_HEAD(shrinker_list);
- static DECLARE_RWSEM(shrinker_rwsem);
 _
 
 Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
