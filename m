@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-make-wait_for_dump_helpers-freezable.patch added to -mm tree
-Date: Mon, 25 Feb 2013 15:05:49 -0800
-Message-ID: <20130225230550.4E78F31C233@corp2gmr1-1.hot.corp.google.com>
+Subject: + scripts-kernel-doc-handle-struct-member-__aligned-without-numbers.patch added to -mm tree
+Date: Mon, 25 Feb 2013 15:09:03 -0800
+Message-ID: <20130225230903.B053E31C27E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:44520 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755402Ab3BYXFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:05:51 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so381195qah.4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:05:51 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:51996 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754986Ab3BYXJF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:09:05 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so366621vch.2
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:09:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org
+Cc: nm@ti.com, fengguang.wu@intel.com, johannes.berg@intel.com, mmarek@suse.cz, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: coredump: make wait_for_dump_helpers() freezable
+     Subject: scripts/kernel-doc: handle struct member __aligned without numbers
 has been added to the -mm tree.  Its filename is
-     coredump-make-wait_for_dump_helpers-freezable.patch
+     scripts-kernel-doc-handle-struct-member-__aligned-without-numbers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: make wait_for_dump_helpers() freezable
+From: Nishanth Menon <nm@ti.com>
+Subject: scripts/kernel-doc: handle struct member __aligned without numbers
 
-wait_for_dump_helpers() calls wake_up/kill_fasync from inside the
-wait_event-like loop.  This is not needed and in fact this is not strictly
-correct, we can/should do this only once after we change pipe->writers. 
-We could even check if it becomes zero.
+commit ef5da59f126 ("scripts/kernel-doc: handle struct member __aligned")
+permits "char something [123] __aligned(8);".
 
-With this change it is trivial to convert this code to use
-wait_event_freezable() and make this function freezable/killable, only
-SIGKILL can set TIF_SIGPENDING.
+However, by using \d we constraint ourselves with integers.  This is not
+always the case.  In fact, it might be better to do char something[123]
+__aligned(sizeof(u16));
 
-With this patch we check pipe->readers without pipe_lock(), this is fine. 
-Once we see pipe->readers == 1 we know that the handler decremented the
-counter, this is all we need.
+For example, With wireless_dev defining:
+u8 address[ETH_ALEN] __aligned(sizeof(u16));
+With \d, scripts/kernel-doc erroneously says:
+Warning(include/net/cfg80211.h:2618): Excess struct/union/enum/typedef member 'address' description in 'wireless_dev'
+This is because the regex __aligned\s*\(\d+\) fails match at \d as
+sizeof is used.
 
-Note: wait_event_freezable() is "strange", perhaps it should be changed or
-simply removed.  In the latter case we can change this code again to use
-freezer_do_not_count + wait_event_interruptible.
+So replace \d with . to indicate "something" in kernel-doc
+to ignore __aligned(SOMETHING) in structs. With this change,
+we can use integers OR sizeof() or macros as we please.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Mandeep Singh Baines <msb@chromium.org>
-Cc: Neil Horman <nhorman@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>a
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Johannes Berg <johannes.berg@intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ scripts/kernel-doc |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable fs/coredump.c
---- a/fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable
-+++ a/fs/coredump.c
-@@ -32,6 +32,7 @@
- #include <linux/pipe_fs_i.h>
- #include <linux/oom.h>
- #include <linux/compat.h>
-+#include <linux/freezer.h>
+diff -puN scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned-without-numbers scripts/kernel-doc
+--- a/scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned-without-numbers
++++ a/scripts/kernel-doc
+@@ -1750,7 +1750,7 @@ sub dump_struct($$) {
+ 	# strip kmemcheck_bitfield_{begin,end}.*;
+ 	$members =~ s/kmemcheck_bitfield_.*?;//gos;
+ 	# strip attributes
+-	$members =~ s/__aligned\s*\(\d+\)//gos;
++	$members =~ s/__aligned\s*\(.+\)//gos;
  
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -428,17 +429,16 @@ static void wait_for_dump_helpers(struct
- 	pipe_lock(pipe);
- 	pipe->readers++;
- 	pipe->writers--;
-+	wake_up_interruptible_sync(&pipe->wait);
-+	kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
-+	pipe_unlock(pipe);
- 
--	while ((pipe->readers > 1) && (!signal_pending(current))) {
--		wake_up_interruptible_sync(&pipe->wait);
--		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
--		pipe_wait(pipe);
--	}
-+	wait_event_freezable(pipe->wait, pipe->readers == 1);
- 
-+	pipe_lock(pipe);
- 	pipe->readers--;
- 	pipe->writers++;
- 	pipe_unlock(pipe);
+ 	create_parameterlist($members, ';', $file);
+ 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
+_
+
+Patches currently in -mm which might be from nm@ti.com are
+
+origin.patch
+linux-next.patch
+scripts-kernel-doc-handle-struct-member-__aligned-without-numbers.patch
+
