@@ -1,38 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:50:55 -0800
-Message-ID: <20130225205056.040115A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:50:59 -0800
+Message-ID: <20130225205100.0D1CB5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:35528 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757943Ab3BYUu5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:50:57 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so347775yhr.4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:50:57 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:33135 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757943Ab3BYUvC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:51:02 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so346929ves.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:51:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wency@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, tglx@linutronix.de, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpu-hotplug,memory-hotplug: clear cpu_to_node() when offlining the node
+     Subject: sched: do not use cpu_to_node() to find an offlined cpu's node.
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
+     sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: cpu-hotplug,memory-hotplug: clear cpu_to_node() when offlining the node
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: sched: do not use cpu_to_node() to find an offlined cpu's node.
 
-When the node is offlined, there is no memory/cpu on the node.  If a sleep
-task runs on a cpu of this node, it will be migrated to the cpu on the
-other node.  So we can clear cpu-to-node mapping.
+If a cpu is offline, its nid will be set to -1, and cpu_to_node(cpu) will
+return -1.  As a result, cpumask_of_node(nid) will return NULL.  In this
+case, find_next_bit() in for_each_cpu will get a NULL pointer and cause
+panic.
 
-[akpm@linux-foundation.org: numa_clear_node() and numa_set_node() can no longer be __cpuinit]
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Here is a call trace:
+[  609.824017] Call Trace:
+[  609.824017]  <IRQ>
+[  609.824017]  [<ffffffff810b0721>] select_fallback_rq+0x71/0x190
+[  609.824017]  [<ffffffff810b086e>] ? try_to_wake_up+0x2e/0x2f0
+[  609.824017]  [<ffffffff810b0b0b>] try_to_wake_up+0x2cb/0x2f0
+[  609.824017]  [<ffffffff8109da08>] ? __run_hrtimer+0x78/0x320
+[  609.824017]  [<ffffffff810b0b85>] wake_up_process+0x15/0x20
+[  609.824017]  [<ffffffff8109ce62>] hrtimer_wakeup+0x22/0x30
+[  609.824017]  [<ffffffff8109da13>] __run_hrtimer+0x83/0x320
+[  609.824017]  [<ffffffff8109ce40>] ? update_rmtp+0x80/0x80
+[  609.824017]  [<ffffffff8109df56>] hrtimer_interrupt+0x106/0x280
+[  609.824017]  [<ffffffff810a72c8>] ? sd_free_ctl_entry+0x68/0x70
+[  609.824017]  [<ffffffff8167cf39>] smp_apic_timer_interrupt+0x69/0x99
+[  609.824017]  [<ffffffff8167be2f>] apic_timer_interrupt+0x6f/0x80
+
+There is a hrtimer process sleeping, whose cpu has already been offlined. 
+When it is waken up, it tries to find another cpu to run, and get a -1
+nid.  As a result, cpumask_of_node(-1) returns NULL, and causes ernel
+panic.
+
+This patch fixes this problem by judging if the nid is -1.  If nid is not
+-1, a cpu on the same node will be picked.  Else, a online cpu on another
+node will be picked.
+
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jiang Liu <liuj97@gmail.com>
@@ -46,98 +71,54 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/numa.h |    4 ++--
- arch/x86/mm/numa.c          |    4 ++--
- mm/memory_hotplug.c         |   30 +++++++++++++++++++++++++++++-
- 3 files changed, 33 insertions(+), 5 deletions(-)
+ kernel/sched/core.c |   28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/include/asm/numa.h~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node arch/x86/include/asm/numa.h
---- a/arch/x86/include/asm/numa.h~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node
-+++ a/arch/x86/include/asm/numa.h
-@@ -57,8 +57,8 @@ static inline int numa_cpu_node(int cpu)
- #endif
- 
- #ifdef CONFIG_NUMA
--extern void __cpuinit numa_set_node(int cpu, int node);
--extern void __cpuinit numa_clear_node(int cpu);
-+extern void numa_set_node(int cpu, int node);
-+extern void numa_clear_node(int cpu);
- extern void __init init_cpu_to_node(void);
- extern void __cpuinit numa_add_cpu(int cpu);
- extern void __cpuinit numa_remove_cpu(int cpu);
-diff -puN arch/x86/mm/numa.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node
-+++ a/arch/x86/mm/numa.c
-@@ -78,7 +78,7 @@ EXPORT_SYMBOL(node_to_cpumask_map);
- DEFINE_EARLY_PER_CPU(int, x86_cpu_to_node_map, NUMA_NO_NODE);
- EXPORT_EARLY_PER_CPU_SYMBOL(x86_cpu_to_node_map);
- 
--void __cpuinit numa_set_node(int cpu, int node)
-+void numa_set_node(int cpu, int node)
+diff -puN kernel/sched/core.c~sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node kernel/sched/core.c
+--- a/kernel/sched/core.c~sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node
++++ a/kernel/sched/core.c
+@@ -1132,18 +1132,28 @@ EXPORT_SYMBOL_GPL(kick_process);
+  */
+ static int select_fallback_rq(int cpu, struct task_struct *p)
  {
- 	int *cpu_to_node_map = early_per_cpu_ptr(x86_cpu_to_node_map);
+-	const struct cpumask *nodemask = cpumask_of_node(cpu_to_node(cpu));
++	int nid = cpu_to_node(cpu);
++	const struct cpumask *nodemask = NULL;
+ 	enum { cpuset, possible, fail } state = cpuset;
+ 	int dest_cpu;
  
-@@ -101,7 +101,7 @@ void __cpuinit numa_set_node(int cpu, in
- 		set_cpu_numa_node(cpu, node);
- }
- 
--void __cpuinit numa_clear_node(int cpu)
-+void numa_clear_node(int cpu)
- {
- 	numa_set_node(cpu, NUMA_NO_NODE);
- }
-diff -puN mm/memory_hotplug.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node
-+++ a/mm/memory_hotplug.c
-@@ -1705,6 +1705,34 @@ static int check_cpu_on_node(void *data)
- 	return 0;
- }
- 
-+static void unmap_cpu_on_node(void *data)
-+{
-+#ifdef CONFIG_ACPI_NUMA
-+	struct pglist_data *pgdat = data;
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu)
-+		if (cpu_to_node(cpu) == pgdat->node_id)
-+			numa_clear_node(cpu);
-+#endif
-+}
-+
-+static int check_and_unmap_cpu_on_node(void *data)
-+{
-+	int ret = check_cpu_on_node(data);
-+
-+	if (ret)
-+		return ret;
-+
+-	/* Look for allowed, online CPU in same node. */
+-	for_each_cpu(dest_cpu, nodemask) {
+-		if (!cpu_online(dest_cpu))
+-			continue;
+-		if (!cpu_active(dest_cpu))
+-			continue;
+-		if (cpumask_test_cpu(dest_cpu, tsk_cpus_allowed(p)))
+-			return dest_cpu;
 +	/*
-+	 * the node will be offlined when we come here, so we can clear
-+	 * the cpu_to_node() now.
++	 * If the node that the cpu is on has been offlined, cpu_to_node()
++	 * will return -1. There is no cpu on the node, and we should
++	 * select the cpu on the other node.
 +	 */
++	if (nid != -1) {
++		nodemask = cpumask_of_node(nid);
 +
-+	unmap_cpu_on_node(data);
-+	return 0;
-+}
-+
- /* offline the node if all memory sections of this node are removed */
- void try_offline_node(int nid)
- {
-@@ -1731,7 +1759,7 @@ void try_offline_node(int nid)
- 		return;
++		/* Look for allowed, online CPU in same node. */
++		for_each_cpu(dest_cpu, nodemask) {
++			if (!cpu_online(dest_cpu))
++				continue;
++			if (!cpu_active(dest_cpu))
++				continue;
++			if (cpumask_test_cpu(dest_cpu, tsk_cpus_allowed(p)))
++				return dest_cpu;
++		}
  	}
  
--	if (stop_machine(check_cpu_on_node, pgdat, NULL))
-+	if (stop_machine(check_and_unmap_cpu_on_node, pgdat, NULL))
- 		return;
- 
- 	/*
+ 	for (;;) {
 _
 
-Patches currently in -mm which might be from wency@cn.fujitsu.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
-x86-numa-dont-check-if-node-is-numa_no_node.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
+linux-next.patch
 
