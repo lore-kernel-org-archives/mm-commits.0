@@ -1,176 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:53:02 -0800
-Message-ID: <20130225205302.9865D31C26E@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:53:05 -0800
+Message-ID: <20130225205305.B229D5A42BF@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:47721 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759714Ab3BYUxF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:53:05 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 3so70512qea.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:53:03 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:40814 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758022Ab3BYUxG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:53:06 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so347881ggn.2
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:53:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, mingo@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: psz@maths.usyd.edu.au, fengguang.wu@intel.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: rename anon_vma_unlock() => anon_vma_unlock_write()
+     Subject: page-writeback.c: subtract min_free_kbytes from dirtyable memory
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write.patch
+     page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/rmap: rename anon_vma_unlock() => anon_vma_unlock_write()
+From: Paul Szabo <psz@maths.usyd.edu.au>
+Subject: page-writeback.c: subtract min_free_kbytes from dirtyable memory
 
-comment in 4fc3f1d66b1ef0d ("mm/rmap, migration: Make rmap_walk_anon() and
-try_to_unmap_anon() more scalable") says:
+When calculating amount of dirtyable memory, min_free_kbytes should be
+subtracted because it is not intended for dirty pages.
 
-| Rename anon_vma_[un]lock() => anon_vma_[un]lock_write(),
-| to make it clearer that it's an exclusive write-lock in
-| that case - suggested by Rik van Riel.
+Addresses http://bugs.debian.org/695182
 
-But that commit renames only anon_vma_lock()
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+[akpm@linux-foundation.org: fix up min_free_kbytes extern declarations]
+[akpm@linux-foundation.org: fix min() warning]
+Signed-off-by: Paul Szabo <psz@maths.usyd.edu.au>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- include/linux/rmap.h    |    2 +-
- mm/huge_memory.c        |    6 +++---
- mm/mmap.c               |    4 ++--
- mm/mremap.c             |    2 +-
- mm/rmap.c               |    6 +++---
- 6 files changed, 11 insertions(+), 11 deletions(-)
+ include/linux/mm.h  |    3 +++
+ kernel/sysctl.c     |    1 -
+ mm/huge_memory.c    |    1 -
+ mm/page-writeback.c |    3 +++
+ 4 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
-+++ a/include/linux/huge_mm.h
-@@ -113,7 +113,7 @@ extern void __split_huge_page_pmd(struct
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
- 		anon_vma_lock_write(__anon_vma);			\
--		anon_vma_unlock(__anon_vma);				\
-+		anon_vma_unlock_write(__anon_vma);			\
- 		BUG_ON(pmd_trans_splitting(*____pmd) ||			\
- 		       pmd_trans_huge(*____pmd));			\
- 	} while (0)
-diff -puN include/linux/rmap.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write include/linux/rmap.h
---- a/include/linux/rmap.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
-+++ a/include/linux/rmap.h
-@@ -123,7 +123,7 @@ static inline void anon_vma_lock_write(s
- 	down_write(&anon_vma->root->rwsem);
- }
+diff -puN include/linux/mm.h~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory include/linux/mm.h
+--- a/include/linux/mm.h~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory
++++ a/include/linux/mm.h
+@@ -1393,6 +1393,9 @@ extern void setup_per_cpu_pageset(void);
+ extern void zone_pcp_update(struct zone *zone);
+ extern void zone_pcp_reset(struct zone *zone);
  
--static inline void anon_vma_unlock(struct anon_vma *anon_vma)
-+static inline void anon_vma_unlock_write(struct anon_vma *anon_vma)
- {
- 	up_write(&anon_vma->root->rwsem);
- }
-diff -puN mm/huge_memory.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/huge_memory.c
---- a/mm/huge_memory.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
++/* page_alloc.c */
++extern int min_free_kbytes;
++
+ /* nommu.c */
+ extern atomic_long_t mmap_pages_allocated;
+ extern int nommu_shrink_inode_mappings(struct inode *, size_t, size_t);
+diff -puN kernel/sysctl.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory kernel/sysctl.c
+--- a/kernel/sysctl.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory
++++ a/kernel/sysctl.c
+@@ -105,7 +105,6 @@ extern char core_pattern[];
+ extern unsigned int core_pipe_limit;
+ #endif
+ extern int pid_max;
+-extern int min_free_kbytes;
+ extern int pid_max_min, pid_max_max;
+ extern int sysctl_drop_caches;
+ extern int percpu_pagelist_fraction;
+diff -puN mm/huge_memory.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory mm/huge_memory.c
+--- a/mm/huge_memory.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory
 +++ a/mm/huge_memory.c
-@@ -1830,7 +1830,7 @@ int split_huge_page(struct page *page)
+@@ -105,7 +105,6 @@ static int set_recommended_min_free_kbyt
+ 	struct zone *zone;
+ 	int nr_zones = 0;
+ 	unsigned long recommended_min;
+-	extern int min_free_kbytes;
  
- 	BUG_ON(PageCompound(page));
- out_unlock:
--	anon_vma_unlock(anon_vma);
-+	anon_vma_unlock_write(anon_vma);
- 	put_anon_vma(anon_vma);
- out:
- 	return ret;
-@@ -2322,7 +2322,7 @@ static void collapse_huge_page(struct mm
- 		BUG_ON(!pmd_none(*pmd));
- 		set_pmd_at(mm, address, pmd, _pmd);
- 		spin_unlock(&mm->page_table_lock);
--		anon_vma_unlock(vma->anon_vma);
-+		anon_vma_unlock_write(vma->anon_vma);
- 		goto out;
- 	}
+ 	if (!khugepaged_enabled())
+ 		return 0;
+diff -puN mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory mm/page-writeback.c
+--- a/mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory
++++ a/mm/page-writeback.c
+@@ -241,6 +241,9 @@ static unsigned long global_dirtyable_me
+ 	if (!vm_highmem_is_dirtyable)
+ 		x -= highmem_dirtyable_memory(x);
  
-@@ -2330,7 +2330,7 @@ static void collapse_huge_page(struct mm
- 	 * All pages are isolated and locked so anon_vma rmap
- 	 * can't run anymore.
- 	 */
--	anon_vma_unlock(vma->anon_vma);
-+	anon_vma_unlock_write(vma->anon_vma);
- 
- 	__collapse_huge_page_copy(pte, new_page, vma, address, ptl);
- 	pte_unmap(pte);
-diff -puN mm/mmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/mmap.c
---- a/mm/mmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
-+++ a/mm/mmap.c
-@@ -809,7 +809,7 @@ again:			remove_next = 1 + (end > next->
- 		anon_vma_interval_tree_post_update_vma(vma);
- 		if (adjust_next)
- 			anon_vma_interval_tree_post_update_vma(next);
--		anon_vma_unlock(anon_vma);
-+		anon_vma_unlock_write(anon_vma);
- 	}
- 	if (mapping)
- 		mutex_unlock(&mapping->i_mmap_mutex);
-@@ -3017,7 +3017,7 @@ static void vm_unlock_anon_vma(struct an
- 		if (!__test_and_clear_bit(0, (unsigned long *)
- 					  &anon_vma->root->rb_root.rb_node))
- 			BUG();
--		anon_vma_unlock(anon_vma);
-+		anon_vma_unlock_write(anon_vma);
- 	}
++	/* Subtract min_free_kbytes */
++	x -= min_t(unsigned long, x, min_free_kbytes >> (PAGE_SHIFT - 10));
++
+ 	return x + 1;	/* Ensure that we never return 0 */
  }
- 
-diff -puN mm/mremap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/mremap.c
---- a/mm/mremap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
-+++ a/mm/mremap.c
-@@ -135,7 +135,7 @@ static void move_ptes(struct vm_area_str
- 	pte_unmap(new_pte - 1);
- 	pte_unmap_unlock(old_pte - 1, old_ptl);
- 	if (anon_vma)
--		anon_vma_unlock(anon_vma);
-+		anon_vma_unlock_write(anon_vma);
- 	if (mapping)
- 		mutex_unlock(&mapping->i_mmap_mutex);
- }
-diff -puN mm/rmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/rmap.c
---- a/mm/rmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
-+++ a/mm/rmap.c
-@@ -105,7 +105,7 @@ static inline void anon_vma_free(struct 
- 	 */
- 	if (rwsem_is_locked(&anon_vma->root->rwsem)) {
- 		anon_vma_lock_write(anon_vma);
--		anon_vma_unlock(anon_vma);
-+		anon_vma_unlock_write(anon_vma);
- 	}
- 
- 	kmem_cache_free(anon_vma_cachep, anon_vma);
-@@ -191,7 +191,7 @@ int anon_vma_prepare(struct vm_area_stru
- 			avc = NULL;
- 		}
- 		spin_unlock(&mm->page_table_lock);
--		anon_vma_unlock(anon_vma);
-+		anon_vma_unlock_write(anon_vma);
- 
- 		if (unlikely(allocated))
- 			put_anon_vma(allocated);
-@@ -308,7 +308,7 @@ int anon_vma_fork(struct vm_area_struct 
- 	vma->anon_vma = anon_vma;
- 	anon_vma_lock_write(anon_vma);
- 	anon_vma_chain_link(vma, avc, anon_vma);
--	anon_vma_unlock(anon_vma);
-+	anon_vma_unlock_write(anon_vma);
- 
- 	return 0;
  
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from psz@maths.usyd.edu.au are
 
 origin.patch
 linux-next.patch
-drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch
 
