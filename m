@@ -1,123 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mempolicy-fix-is_valid_nodemask.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:50:39 -0800
-Message-ID: <20130225205039.F3D0C31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] memory-hotplug-export-the-function-try_offline_node.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:50:47 -0800
+Message-ID: <20130225205047.D71D331C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:42559 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757943Ab3BYUul (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:50:41 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so347367vch.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:50:40 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:61081 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757943Ab3BYUut (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:50:49 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so158819yen.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:50:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: wency@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lenb@kernel.org, liuj97@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: fix is_valid_nodemask()
+     Subject: memory-hotplug: export the function try_offline_node()
 has been removed from the -mm tree.  Its filename was
-     mempolicy-fix-is_valid_nodemask.patch
+     memory-hotplug-export-the-function-try_offline_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: mempolicy: fix is_valid_nodemask()
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: memory-hotplug: export the function try_offline_node()
 
-is_valid_nodemask() was introduced by 19770b32 ("mm: filter based on a
-nodemask as well as a gfp_mask").  but it does not match its comments,
-because it does not check the zone which > policy_zone.
+try_offline_node() will be needed in the tristate
+drivers/acpi/processor_driver.c.
 
-Also in b377fd ("Apply memory policies to top two highest zones when
-highest zone is ZONE_MOVABLE"), this commits told us, if highest zone is
-ZONE_MOVABLE, we should also apply memory policies to it.  so ZONE_MOVABLE
-should be valid zone for policies.  is_valid_nodemask() need to be changed
-to match it.
+The node will be offlined when all memory/cpu on the node have been
+hotremoved.  So we need the function try_offline_node() in cpu-hotplug
+path.
 
-Fix: check all zones, even its zoneid > policy_zone.  Use
-nodes_intersects() instead open code to check it.
+If the memory-hotplug is disabled, and cpu-hotplug is enabled
+1. no memory no the node
+   we don't online the node, and cpu's node is the nearest node.
+2. the node contains some memory
+   the node has been onlined, and cpu's node is still needed
+   to migrate the sleep task on the cpu to the same node.
 
-Reported-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+So we do nothing in try_offline_node() in this case.
+
+[rientjes@google.com: export the function try_offline_node() fix]
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   36 ++++++++++++++++++++++--------------
- 1 file changed, 22 insertions(+), 14 deletions(-)
+ include/linux/memory_hotplug.h |    3 +++
+ mm/memory_hotplug.c            |    3 ++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~mempolicy-fix-is_valid_nodemask mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-fix-is_valid_nodemask
-+++ a/mm/mempolicy.c
-@@ -161,19 +161,7 @@ static const struct mempolicy_operations
- /* Check that the nodemask contains at least one populated zone */
- static int is_valid_nodemask(const nodemask_t *nodemask)
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-export-the-function-try_offline_node include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-export-the-function-try_offline_node
++++ a/include/linux/memory_hotplug.h
+@@ -233,6 +233,7 @@ static inline void unlock_memory_hotplug
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ 
+ extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
++extern void try_offline_node(int nid);
+ 
+ #else
+ static inline int is_mem_section_removable(unsigned long pfn,
+@@ -240,6 +241,8 @@ static inline int is_mem_section_removab
  {
--	int nd, k;
--
--	for_each_node_mask(nd, *nodemask) {
--		struct zone *z;
--
--		for (k = 0; k <= policy_zone; k++) {
--			z = &NODE_DATA(nd)->node_zones[k];
--			if (z->present_pages > 0)
--				return 1;
--		}
--	}
--
--	return 0;
-+	return nodes_intersects(*nodemask, node_states[N_MEMORY]);
+ 	return 0;
+ }
++
++static inline void try_offline_node(int nid) {}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ extern int mem_online_node(int nid);
+diff -puN mm/memory_hotplug.c~memory-hotplug-export-the-function-try_offline_node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-export-the-function-try_offline_node
++++ a/mm/memory_hotplug.c
+@@ -1706,7 +1706,7 @@ static int check_cpu_on_node(void *data)
  }
  
- static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
-@@ -1644,6 +1632,26 @@ struct mempolicy *get_vma_policy(struct 
- 	return pol;
- }
- 
-+static int apply_policy_zone(struct mempolicy *policy, enum zone_type zone)
-+{
-+	enum zone_type dynamic_policy_zone = policy_zone;
-+
-+	BUG_ON(dynamic_policy_zone == ZONE_MOVABLE);
-+
-+	/*
-+	 * if policy->v.nodes has movable memory only,
-+	 * we apply policy when gfp_zone(gfp) = ZONE_MOVABLE only.
-+	 *
-+	 * policy->v.nodes is intersect with node_states[N_MEMORY].
-+	 * so if the following test faile, it implies
-+	 * policy->v.nodes has movable memory only.
-+	 */
-+	if (!nodes_intersects(policy->v.nodes, node_states[N_HIGH_MEMORY]))
-+		dynamic_policy_zone = ZONE_MOVABLE;
-+
-+	return zone >= dynamic_policy_zone;
-+}
-+
- /*
-  * Return a nodemask representing a mempolicy for filtering nodes for
-  * page allocation
-@@ -1652,7 +1660,7 @@ static nodemask_t *policy_nodemask(gfp_t
+ /* offline the node if all memory sections of this node are removed */
+-static void try_offline_node(int nid)
++void try_offline_node(int nid)
  {
- 	/* Lower zones don't get a nodemask applied for MPOL_BIND */
- 	if (unlikely(policy->mode == MPOL_BIND) &&
--			gfp_zone(gfp) >= policy_zone &&
-+			apply_policy_zone(policy, gfp_zone(gfp)) &&
- 			cpuset_nodemask_valid_mems_allowed(&policy->v.nodes))
- 		return &policy->v.nodes;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 	unsigned long start_pfn = pgdat->node_start_pfn;
+@@ -1762,6 +1762,7 @@ static void try_offline_node(int nid)
+ 	 */
+ 	memset(pgdat, 0, sizeof(*pgdat));
+ }
++EXPORT_SYMBOL(try_offline_node);
  
+ int __ref remove_memory(int nid, u64 start, u64 size)
+ {
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from wency@cn.fujitsu.com are
 
 origin.patch
+x86-numa-dont-check-if-node-is-numa_no_node.patch
+x86-make-mem=-option-to-work-for-efi-platform.patch
 
