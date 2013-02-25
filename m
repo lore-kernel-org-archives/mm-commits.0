@@ -1,309 +1,264 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:51:28 -0800
-Message-ID: <20130225205129.0D0C15A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:51:35 -0800
+Message-ID: <20130225205136.0C59131C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:37250 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759636Ab3BYUvb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:51:31 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so347171vch.4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:51:30 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:44221 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759657Ab3BYUvh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:51:37 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 3so70334qea.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:51:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: liuj97@gmail.com, chris2553@googlemail.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, maciej.rutecki@gmail.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, rientjes@google.com, rjw@sisk.pl, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi, memory-hotplug: support getting hotplug info from SRAT
+     Subject: mm: use zone->present_pages instead of zone->managed_pages where appropriate
 has been removed from the -mm tree.  Its filename was
-     acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
+     mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, memory-hotplug: support getting hotplug info from SRAT
+From: Jiang Liu <liuj97@gmail.com>
+Subject: mm: use zone->present_pages instead of zone->managed_pages where appropriate
 
-We now provide an option for users who don't want to specify physical
-memory address in kernel commandline.
+Now we have zone->managed_pages for "pages managed by the buddy system in
+the zone", so replace zone->present_pages with zone->managed_pages if what
+the user really wants is number of allocatable pages.
 
-         /*
-          * For movablemem_map=acpi:
-          *
-          * SRAT:                |_____| |_____| |_________| |_________| ......
-          * node id:                0       1         1           2
-          * hotpluggable:           n       y         y           n
-          * movablemem_map:              |_____| |_________|
-          *
-          * Using movablemem_map, we can prevent memblock from allocating memory
-          * on ZONE_MOVABLE at boot time.
-          */
-
-So user just specify movablemem_map=acpi, and the kernel will use
-hotpluggable info in SRAT to determine which memory ranges should be set
-as ZONE_MOVABLE.
-
-If all the memory ranges in SRAT is hotpluggable, then no memory can be
-used by kernel.  But before parsing SRAT, memblock has already reserve
-some memory ranges for other purposes, such as for kernel image, and so
-on.  We cannot prevent kernel from using these memory.  So we need to
-exclude these ranges even if these memory is hotpluggable.
-
-Furthermore, there could be several memory ranges in the single node which
-the kernel resides in.  We may skip one range that have memory reserved by
-memblock, but if the rest of memory is too small, then the kernel will
-fail to boot.  So, make the whole node which the kernel resides in
-un-hotpluggable.  Then the kernel has enough memory to use.
-
-NOTE: Using this way will cause NUMA performance down because the
-      whole node will be set as ZONE_MOVABLE, and kernel cannot use memory
-      on it.  If users don't want to lose NUMA performance, just don't use
-      it.
-
-[akpm@linux-foundation.org: fix warning]
-[akpm@linux-foundation.org: use strcmp()]
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
+Cc: Chris Clayton <chris2553@googlemail.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Wu Jianguo <wujianguo@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   29 ++++++++--
- arch/x86/mm/srat.c                  |   71 ++++++++++++++++++++++++--
- include/linux/mm.h                  |    2 
- mm/page_alloc.c                     |   22 +++++++-
- 4 files changed, 113 insertions(+), 11 deletions(-)
+ mm/page_alloc.c |   32 ++++++++++++++++----------------
+ mm/vmscan.c     |   14 +++++++-------
+ mm/vmstat.c     |    2 +-
+ 3 files changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~acpi-memory-hotplug-support-getting-hotplug-info-from-srat Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
-+++ a/Documentation/kernel-parameters.txt
-@@ -1640,15 +1640,30 @@ bytes respectively. Such letter suffixes
- 			that the amount of memory usable for all allocations
- 			is not too small.
- 
-+	movablemem_map=acpi
-+			[KNL,X86,IA-64,PPC] This parameter is similar to
-+			memmap except it specifies the memory map of
-+			ZONE_MOVABLE.
-+			This option inform the kernel to use Hot Pluggable bit
-+			in flags from SRAT from ACPI BIOS to determine which
-+			memory devices could be hotplugged. The corresponding
-+			memory ranges will be set as ZONE_MOVABLE.
-+			NOTE: Whatever node the kernel resides in will always
-+			      be un-hotpluggable.
-+
- 	movablemem_map=nn[KMG]@ss[KMG]
- 			[KNL,X86,IA-64,PPC] This parameter is similar to
- 			memmap except it specifies the memory map of
- 			ZONE_MOVABLE.
--			If more areas are all within one node, then from
--			lowest ss to the end of the node will be ZONE_MOVABLE.
--			If an area covers two or more nodes, the area from
--			ss to the end of the 1st node will be ZONE_MOVABLE,
--			and all the rest nodes will only have ZONE_MOVABLE.
-+			If user specifies memory ranges, the info in SRAT will
-+			be ingored. And it works like the following:
-+			- If more ranges are all within one node, then from
-+			  lowest ss to the end of the node will be ZONE_MOVABLE.
-+			- If a range is within a node, then from ss to the end
-+			  of the node will be ZONE_MOVABLE.
-+			- If a range covers two or more nodes, then from ss to
-+			  the end of the 1st node will be ZONE_MOVABLE, and all
-+			  the rest nodes will only have ZONE_MOVABLE.
- 			If memmap is specified at the same time, the
- 			movablemem_map will be limited within the memmap
- 			areas. If kernelcore or movablecore is also specified,
-@@ -1656,6 +1671,10 @@ bytes respectively. Such letter suffixes
- 			satisfied. So the administrator should be careful that
- 			the amount of movablemem_map areas are not too large.
- 			Otherwise kernel won't have enough memory to start.
-+			NOTE: We don't stop users specifying the node the
-+			      kernel resides in as hotpluggable so that this
-+			      option can be used as a workaround of firmware
-+                              bugs.
- 
- 	MTD_Partition=	[MTD]
- 			Format: <name>,<region-number>,<size>,<offset>
-diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
-+++ a/arch/x86/mm/srat.c
-@@ -142,16 +142,72 @@ static inline int save_add_info(void) {r
- #endif
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
--static void __init handle_movablemem(int node, u64 start, u64 end)
-+static void __init
-+handle_movablemem(int node, u64 start, u64 end, u32 hotpluggable)
- {
--	int overlap;
-+	int overlap, i;
- 	unsigned long start_pfn, end_pfn;
- 
- 	start_pfn = PFN_DOWN(start);
- 	end_pfn = PFN_UP(end);
- 
- 	/*
--	 * For movablecore_map=nn[KMG]@ss[KMG]:
-+	 * For movablemem_map=acpi:
-+	 *
-+	 * SRAT:		|_____| |_____| |_________| |_________| ......
-+	 * node id:                0       1         1           2
-+	 * hotpluggable:	   n       y         y           n
-+	 * movablemem_map:	        |_____| |_________|
-+	 *
-+	 * Using movablemem_map, we can prevent memblock from allocating memory
-+	 * on ZONE_MOVABLE at boot time.
-+	 *
-+	 * Before parsing SRAT, memblock has already reserve some memory ranges
-+	 * for other purposes, such as for kernel image. We cannot prevent
-+	 * kernel from using these memory, so we need to exclude these memory
-+	 * even if it is hotpluggable.
-+	 * Furthermore, to ensure the kernel has enough memory to boot, we make
-+	 * all the memory on the node which the kernel resides in
-+	 * un-hotpluggable.
-+	 */
-+	if (hotpluggable && movablemem_map.acpi) {
-+		/* Exclude ranges reserved by memblock. */
-+		struct memblock_type *rgn = &memblock.reserved;
-+
-+		for (i = 0; i < rgn->cnt; i++) {
-+			if (end <= rgn->regions[i].base ||
-+			    start >= rgn->regions[i].base +
-+			    rgn->regions[i].size)
-+				continue;
-+
-+			/*
-+			 * If the memory range overlaps the memory reserved by
-+			 * memblock, then the kernel resides in this node.
-+			 */
-+			node_set(node, movablemem_map.numa_nodes_kernel);
-+
-+			goto out;
-+		}
-+
-+		/*
-+		 * If the kernel resides in this node, then the whole node
-+		 * should not be hotpluggable.
-+		 */
-+		if (node_isset(node, movablemem_map.numa_nodes_kernel))
-+			goto out;
-+
-+		insert_movablemem_map(start_pfn, end_pfn);
-+
-+		/*
-+		 * numa_nodes_hotplug nodemask represents which nodes are put
-+		 * into movablemem_map.map[].
-+		 */
-+		node_set(node, movablemem_map.numa_nodes_hotplug);
-+		goto out;
-+	}
-+
-+	/*
-+	 * For movablemem_map=nn[KMG]@ss[KMG]:
- 	 *
- 	 * SRAT:		|_____| |_____| |_________| |_________| ......
- 	 * node id:		   0       1         1           2
-@@ -160,6 +216,8 @@ static void __init handle_movablemem(int
- 	 *
- 	 * Using movablemem_map, we can prevent memblock from allocating memory
- 	 * on ZONE_MOVABLE at boot time.
-+	 *
-+	 * NOTE: In this case, SRAT info will be ingored.
- 	 */
- 	overlap = movablemem_map_overlap(start_pfn, end_pfn);
- 	if (overlap >= 0) {
-@@ -187,9 +245,12 @@ static void __init handle_movablemem(int
- 			 */
- 			insert_movablemem_map(start_pfn, end_pfn);
- 	}
-+out:
-+	return;
- }
- #else		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
--static inline void handle_movablemem(int node, u64 start, u64 end)
-+static inline void
-+handle_movablemem(int node, u64 start, u64 end, u32 hotpluggable)
- {
- }
- #endif		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-@@ -234,7 +295,7 @@ acpi_numa_memory_affinity_init(struct ac
- 	       (unsigned long long) start, (unsigned long long) end - 1,
- 	       hotpluggable ? "Hot Pluggable": "");
- 
--	handle_movablemem(node, start, end);
-+	handle_movablemem(node, start, end, hotpluggable);
- 
- 	return 0;
- out_err_bad_srat:
-diff -puN include/linux/mm.h~acpi-memory-hotplug-support-getting-hotplug-info-from-srat include/linux/mm.h
---- a/include/linux/mm.h~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
-+++ a/include/linux/mm.h
-@@ -1366,9 +1366,11 @@ struct movablemem_entry {
- };
- 
- struct movablemem_map {
-+	bool acpi;	/* true if using SRAT info */
- 	int nr_map;
- 	struct movablemem_entry map[MOVABLEMEM_MAP_MAX];
- 	nodemask_t numa_nodes_hotplug;	/* on which nodes we specify memory */
-+	nodemask_t numa_nodes_kernel;	/* on which nodes kernel resides in */
- };
- 
- extern void __init insert_movablemem_map(unsigned long start_pfn,
-diff -puN mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat mm/page_alloc.c
---- a/mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
+diff -puN mm/page_alloc.c~mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate
 +++ a/mm/page_alloc.c
-@@ -203,7 +203,10 @@ static unsigned long __meminitdata dma_r
+@@ -2808,7 +2808,7 @@ static unsigned int nr_free_zone_pages(i
+ 	struct zonelist *zonelist = node_zonelist(numa_node_id(), GFP_KERNEL);
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- /* Movable memory ranges, will also be used by memblock subsystem. */
--struct movablemem_map movablemem_map;
-+struct movablemem_map movablemem_map = {
-+	.acpi = false,
-+	.nr_map = 0,
-+};
+ 	for_each_zone_zonelist(zone, z, zonelist, offset) {
+-		unsigned long size = zone->present_pages;
++		unsigned long size = zone->managed_pages;
+ 		unsigned long high = high_wmark_pages(zone);
+ 		if (size > high)
+ 			sum += size - high;
+@@ -2861,7 +2861,7 @@ void si_meminfo_node(struct sysinfo *val
+ 	val->totalram = pgdat->node_present_pages;
+ 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
+ #ifdef CONFIG_HIGHMEM
+-	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].present_pages;
++	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].managed_pages;
+ 	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
+ 			NR_FREE_PAGES);
+ #else
+@@ -3939,7 +3939,7 @@ static int __meminit zone_batchsize(stru
+ 	 *
+ 	 * OK, so we don't know how big the cache is.  So guess.
+ 	 */
+-	batch = zone->present_pages / 1024;
++	batch = zone->managed_pages / 1024;
+ 	if (batch * PAGE_SIZE > 512 * 1024)
+ 		batch = (512 * 1024) / PAGE_SIZE;
+ 	batch /= 4;		/* We effectively *= 4 below */
+@@ -4023,7 +4023,7 @@ static void __meminit setup_zone_pageset
  
- static unsigned long __meminitdata arch_zone_lowest_possible_pfn[MAX_NR_ZONES];
- static unsigned long __meminitdata arch_zone_highest_possible_pfn[MAX_NR_ZONES];
-@@ -5314,6 +5317,23 @@ static int __init cmdline_parse_movablem
- 	if (!p)
- 		goto err;
+ 		if (percpu_pagelist_fraction)
+ 			setup_pagelist_highmark(pcp,
+-				(zone->present_pages /
++				(zone->managed_pages /
+ 					percpu_pagelist_fraction));
+ 	}
+ }
+@@ -5435,8 +5435,8 @@ static void calculate_totalreserve_pages
+ 			/* we treat the high watermark as reserved pages. */
+ 			max += high_wmark_pages(zone);
  
-+	if (!strcmp(p, "acpi"))
-+		movablemem_map.acpi = true;
-+
-+	/*
-+	 * If user decide to use info from BIOS, all the other user specified
-+	 * ranges will be ingored.
-+	 */
-+	if (movablemem_map.acpi) {
-+		if (movablemem_map.nr_map) {
-+			memset(movablemem_map.map, 0,
-+				sizeof(struct movablemem_entry)
-+				* movablemem_map.nr_map);
-+			movablemem_map.nr_map = 0;
-+		}
-+		return 0;
-+	}
-+
- 	oldp = p;
- 	mem_size = memparse(p, &p);
- 	if (p == oldp)
+-			if (max > zone->present_pages)
+-				max = zone->present_pages;
++			if (max > zone->managed_pages)
++				max = zone->managed_pages;
+ 			reserve_pages += max;
+ 			/*
+ 			 * Lowmem reserves are not available to
+@@ -5468,7 +5468,7 @@ static void setup_per_zone_lowmem_reserv
+ 	for_each_online_pgdat(pgdat) {
+ 		for (j = 0; j < MAX_NR_ZONES; j++) {
+ 			struct zone *zone = pgdat->node_zones + j;
+-			unsigned long present_pages = zone->present_pages;
++			unsigned long managed_pages = zone->managed_pages;
+ 
+ 			zone->lowmem_reserve[j] = 0;
+ 
+@@ -5482,9 +5482,9 @@ static void setup_per_zone_lowmem_reserv
+ 					sysctl_lowmem_reserve_ratio[idx] = 1;
+ 
+ 				lower_zone = pgdat->node_zones + idx;
+-				lower_zone->lowmem_reserve[j] = present_pages /
++				lower_zone->lowmem_reserve[j] = managed_pages /
+ 					sysctl_lowmem_reserve_ratio[idx];
+-				present_pages += lower_zone->present_pages;
++				managed_pages += lower_zone->managed_pages;
+ 			}
+ 		}
+ 	}
+@@ -5503,14 +5503,14 @@ static void __setup_per_zone_wmarks(void
+ 	/* Calculate total number of !ZONE_HIGHMEM pages */
+ 	for_each_zone(zone) {
+ 		if (!is_highmem(zone))
+-			lowmem_pages += zone->present_pages;
++			lowmem_pages += zone->managed_pages;
+ 	}
+ 
+ 	for_each_zone(zone) {
+ 		u64 tmp;
+ 
+ 		spin_lock_irqsave(&zone->lock, flags);
+-		tmp = (u64)pages_min * zone->present_pages;
++		tmp = (u64)pages_min * zone->managed_pages;
+ 		do_div(tmp, lowmem_pages);
+ 		if (is_highmem(zone)) {
+ 			/*
+@@ -5524,7 +5524,7 @@ static void __setup_per_zone_wmarks(void
+ 			 */
+ 			unsigned long min_pages;
+ 
+-			min_pages = zone->present_pages / 1024;
++			min_pages = zone->managed_pages / 1024;
+ 			min_pages = clamp(min_pages, SWAP_CLUSTER_MAX, 128UL);
+ 			zone->watermark[WMARK_MIN] = min_pages;
+ 		} else {
+@@ -5586,7 +5586,7 @@ static void __meminit calculate_zone_ina
+ 	unsigned int gb, ratio;
+ 
+ 	/* Zone size in gigabytes */
+-	gb = zone->present_pages >> (30 - PAGE_SHIFT);
++	gb = zone->managed_pages >> (30 - PAGE_SHIFT);
+ 	if (gb)
+ 		ratio = int_sqrt(10 * gb);
+ 	else
+@@ -5672,7 +5672,7 @@ int sysctl_min_unmapped_ratio_sysctl_han
+ 		return rc;
+ 
+ 	for_each_zone(zone)
+-		zone->min_unmapped_pages = (zone->present_pages *
++		zone->min_unmapped_pages = (zone->managed_pages *
+ 				sysctl_min_unmapped_ratio) / 100;
+ 	return 0;
+ }
+@@ -5688,7 +5688,7 @@ int sysctl_min_slab_ratio_sysctl_handler
+ 		return rc;
+ 
+ 	for_each_zone(zone)
+-		zone->min_slab_pages = (zone->present_pages *
++		zone->min_slab_pages = (zone->managed_pages *
+ 				sysctl_min_slab_ratio) / 100;
+ 	return 0;
+ }
+@@ -5730,7 +5730,7 @@ int percpu_pagelist_fraction_sysctl_hand
+ 	for_each_populated_zone(zone) {
+ 		for_each_possible_cpu(cpu) {
+ 			unsigned long  high;
+-			high = zone->present_pages / percpu_pagelist_fraction;
++			high = zone->managed_pages / percpu_pagelist_fraction;
+ 			setup_pagelist_highmark(
+ 				per_cpu_ptr(zone->pageset, cpu), high);
+ 		}
+diff -puN mm/vmscan.c~mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate mm/vmscan.c
+--- a/mm/vmscan.c~mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate
++++ a/mm/vmscan.c
+@@ -2010,7 +2010,7 @@ static inline bool compaction_ready(stru
+ 	 * a reasonable chance of completing and allocating the page
+ 	 */
+ 	balance_gap = min(low_wmark_pages(zone),
+-		(zone->present_pages + KSWAPD_ZONE_BALANCE_GAP_RATIO-1) /
++		(zone->managed_pages + KSWAPD_ZONE_BALANCE_GAP_RATIO-1) /
+ 			KSWAPD_ZONE_BALANCE_GAP_RATIO);
+ 	watermark = high_wmark_pages(zone) + balance_gap + (2UL << sc->order);
+ 	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, 0, 0);
+@@ -2525,7 +2525,7 @@ static bool zone_balanced(struct zone *z
+  */
+ static bool pgdat_balanced(pg_data_t *pgdat, int order, int classzone_idx)
+ {
+-	unsigned long present_pages = 0;
++	unsigned long managed_pages = 0;
+ 	unsigned long balanced_pages = 0;
+ 	int i;
+ 
+@@ -2536,7 +2536,7 @@ static bool pgdat_balanced(pg_data_t *pg
+ 		if (!populated_zone(zone))
+ 			continue;
+ 
+-		present_pages += zone->present_pages;
++		managed_pages += zone->managed_pages;
+ 
+ 		/*
+ 		 * A special case here:
+@@ -2546,18 +2546,18 @@ static bool pgdat_balanced(pg_data_t *pg
+ 		 * they must be considered balanced here as well!
+ 		 */
+ 		if (zone->all_unreclaimable) {
+-			balanced_pages += zone->present_pages;
++			balanced_pages += zone->managed_pages;
+ 			continue;
+ 		}
+ 
+ 		if (zone_balanced(zone, order, 0, i))
+-			balanced_pages += zone->present_pages;
++			balanced_pages += zone->managed_pages;
+ 		else if (!order)
+ 			return false;
+ 	}
+ 
+ 	if (order)
+-		return balanced_pages >= (present_pages >> 2);
++		return balanced_pages >= (managed_pages >> 2);
+ 	else
+ 		return true;
+ }
+@@ -2745,7 +2745,7 @@ loop_again:
+ 			 * of the zone, whichever is smaller.
+ 			 */
+ 			balance_gap = min(low_wmark_pages(zone),
+-				(zone->present_pages +
++				(zone->managed_pages +
+ 					KSWAPD_ZONE_BALANCE_GAP_RATIO-1) /
+ 				KSWAPD_ZONE_BALANCE_GAP_RATIO);
+ 			/*
+diff -puN mm/vmstat.c~mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate mm/vmstat.c
+--- a/mm/vmstat.c~mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate
++++ a/mm/vmstat.c
+@@ -142,7 +142,7 @@ int calculate_normal_threshold(struct zo
+ 	 * 125		1024		10	16-32 GB	9
+ 	 */
+ 
+-	mem = zone->present_pages >> (27 - PAGE_SHIFT);
++	mem = zone->managed_pages >> (27 - PAGE_SHIFT);
+ 
+ 	threshold = 2 * fls(num_online_cpus()) * (1 + fls(mem));
+ 
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from liuj97@gmail.com are
 
 origin.patch
 linux-next.patch
