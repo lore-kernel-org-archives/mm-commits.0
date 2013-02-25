@@ -1,127 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cleanup-swapcache-in-do_swap_page.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:56:14 -0800
-Message-ID: <20130225205614.B9F005A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drivers-block-swim3c-fix-null-pointer-dereference.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:56:23 -0800
+Message-ID: <20130225205623.9ED6E5A426D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:51730 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756292Ab3BYU4Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:16 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so347695ghb.4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:15 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:51761 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759416Ab3BYU4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:24 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so363529qah.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, hannes@cmpxchg.org, izik.eidus@ravellosystems.com, mgorman@suse.de, pholasek@redhat.com, mm-commits@vger.kernel.org
+To: dinggnu@gmail.com, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cleanup "swapcache" in do_swap_page
+     Subject: drivers/block/swim3.c: fix null pointer dereference
 has been removed from the -mm tree.  Its filename was
-     mm-cleanup-swapcache-in-do_swap_page.patch
+     drivers-block-swim3c-fix-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: cleanup "swapcache" in do_swap_page
+From: Cong Ding <dinggnu@gmail.com>
+Subject: drivers/block/swim3.c: fix null pointer dereference
 
-I dislike the way in which "swapcache" gets used in do_swap_page(): there
-is always a page from swapcache there (even if maybe uncached by the time
-we lock it), but tests are made according to "swapcache".  Rework that
-with "page != swapcache", as has been done in unuse_pte().
+The use of pointer fs should be after the null check.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Petr Holasek <pholasek@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Izik Eidus <izik.eidus@ravellosystems.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Cong Ding <dinggnu@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/block/swim3.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-cleanup-swapcache-in-do_swap_page mm/memory.c
---- a/mm/memory.c~mm-cleanup-swapcache-in-do_swap_page
-+++ a/mm/memory.c
-@@ -2954,7 +2954,7 @@ static int do_swap_page(struct mm_struct
- 		unsigned int flags, pte_t orig_pte)
+diff -puN drivers/block/swim3.c~drivers-block-swim3c-fix-null-pointer-dereference drivers/block/swim3.c
+--- a/drivers/block/swim3.c~drivers-block-swim3c-fix-null-pointer-dereference
++++ a/drivers/block/swim3.c
+@@ -1090,10 +1090,13 @@ static const struct block_device_operati
+ static void swim3_mb_event(struct macio_dev* mdev, int mb_state)
  {
- 	spinlock_t *ptl;
--	struct page *page, *swapcache = NULL;
-+	struct page *page, *swapcache;
- 	swp_entry_t entry;
- 	pte_t pte;
- 	int locked;
-@@ -3005,9 +3005,11 @@ static int do_swap_page(struct mm_struct
- 		 */
- 		ret = VM_FAULT_HWPOISON;
- 		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-+		swapcache = page;
- 		goto out_release;
- 	}
+ 	struct floppy_state *fs = macio_get_drvdata(mdev);
+-	struct swim3 __iomem *sw = fs->swim3;
++	struct swim3 __iomem *sw;
  
-+	swapcache = page;
- 	locked = lock_page_or_retry(page, mm, flags);
+ 	if (!fs)
+ 		return;
++
++	sw = fs->swim3;
++
+ 	if (mb_state != MB_FD)
+ 		return;
  
- 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-@@ -3025,16 +3027,12 @@ static int do_swap_page(struct mm_struct
- 	if (unlikely(!PageSwapCache(page) || page_private(page) != entry.val))
- 		goto out_page;
- 
--	swapcache = page;
- 	page = ksm_might_need_to_copy(page, vma, address);
- 	if (unlikely(!page)) {
- 		ret = VM_FAULT_OOM;
- 		page = swapcache;
--		swapcache = NULL;
- 		goto out_page;
- 	}
--	if (page == swapcache)
--		swapcache = NULL;
- 
- 	if (mem_cgroup_try_charge_swapin(mm, page, GFP_KERNEL, &ptr)) {
- 		ret = VM_FAULT_OOM;
-@@ -3078,10 +3076,10 @@ static int do_swap_page(struct mm_struct
- 	}
- 	flush_icache_page(vma, page);
- 	set_pte_at(mm, address, page_table, pte);
--	if (swapcache) /* ksm created a completely new copy */
--		page_add_new_anon_rmap(page, vma, address);
--	else
-+	if (page == swapcache)
- 		do_page_add_anon_rmap(page, vma, address, exclusive);
-+	else /* ksm created a completely new copy */
-+		page_add_new_anon_rmap(page, vma, address);
- 	/* It's better to call commit-charge after rmap is established */
- 	mem_cgroup_commit_charge_swapin(page, ptr);
- 
-@@ -3089,7 +3087,7 @@ static int do_swap_page(struct mm_struct
- 	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
- 		try_to_free_swap(page);
- 	unlock_page(page);
--	if (swapcache) {
-+	if (page != swapcache) {
- 		/*
- 		 * Hold the lock to avoid the swap entry to be reused
- 		 * until we take the PT lock for the pte_same() check
-@@ -3122,7 +3120,7 @@ out_page:
- 	unlock_page(page);
- out_release:
- 	page_cache_release(page);
--	if (swapcache) {
-+	if (page != swapcache) {
- 		unlock_page(swapcache);
- 		page_cache_release(swapcache);
- 	}
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from dinggnu@gmail.com are
 
 origin.patch
-revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
-pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
+linux-next.patch
 
