@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-kernel-doc-handle-struct-member-__aligned-without-numbers.patch added to -mm tree
-Date: Mon, 25 Feb 2013 15:09:03 -0800
-Message-ID: <20130225230903.B053E31C27E@corp2gmr1-1.hot.corp.google.com>
+Subject: + block-fix-part_pack_uuid-build-error.patch added to -mm tree
+Date: Mon, 25 Feb 2013 15:16:52 -0800
+Message-ID: <20130225231652.BCD2F31C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:51996 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754986Ab3BYXJF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:09:05 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so366621vch.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:09:04 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:56119 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759464Ab3BYXQy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:16:54 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so178943yen.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:16:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nm@ti.com, fengguang.wu@intel.com, johannes.berg@intel.com, mmarek@suse.cz, rdunlap@infradead.org
+Cc: zohar@linux.vnet.ibm.com, axboe@kernel.dk, jmorris@namei.org, rdunlap@infradead.org, rientjes@google.com
 
 
 The patch titled
-     Subject: scripts/kernel-doc: handle struct member __aligned without numbers
+     Subject: block: fix part_pack_uuid() build error
 has been added to the -mm tree.  Its filename is
-     scripts-kernel-doc-handle-struct-member-__aligned-without-numbers.patch
+     block-fix-part_pack_uuid-build-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nishanth Menon <nm@ti.com>
-Subject: scripts/kernel-doc: handle struct member __aligned without numbers
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: block: fix part_pack_uuid() build error
 
-commit ef5da59f126 ("scripts/kernel-doc: handle struct member __aligned")
-permits "char something [123] __aligned(8);".
+Fix a build error when CONFIG_BLOCK is not enabled, by defining a wrapper
+called blk_part_pack_uuid().  The wrapper returns -EINVAL, when
+CONFIG_BLOCK is not defined.
 
-However, by using \d we constraint ourselves with integers.  This is not
-always the case.  In fact, it might be better to do char something[123]
-__aligned(sizeof(u16));
+security/integrity/ima/ima_policy.c:538:4: error: implicit declaration
+of function 'part_pack_uuid' [-Werror=implicit-function-declaration]
 
-For example, With wireless_dev defining:
-u8 address[ETH_ALEN] __aligned(sizeof(u16));
-With \d, scripts/kernel-doc erroneously says:
-Warning(include/net/cfg80211.h:2618): Excess struct/union/enum/typedef member 'address' description in 'wireless_dev'
-This is because the regex __aligned\s*\(\d+\) fails match at \d as
-sizeof is used.
-
-So replace \d with . to indicate "something" in kernel-doc
-to ignore __aligned(SOMETHING) in structs. With this change,
-we can use integers OR sizeof() or macros as we please.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Johannes Berg <johannes.berg@intel.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/genhd.h               |   10 ++++++++++
+ security/integrity/ima/ima_policy.c |   11 ++++++-----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned-without-numbers scripts/kernel-doc
---- a/scripts/kernel-doc~scripts-kernel-doc-handle-struct-member-__aligned-without-numbers
-+++ a/scripts/kernel-doc
-@@ -1750,7 +1750,7 @@ sub dump_struct($$) {
- 	# strip kmemcheck_bitfield_{begin,end}.*;
- 	$members =~ s/kmemcheck_bitfield_.*?;//gos;
- 	# strip attributes
--	$members =~ s/__aligned\s*\(\d+\)//gos;
-+	$members =~ s/__aligned\s*\(.+\)//gos;
+diff -puN include/linux/genhd.h~block-fix-part_pack_uuid-build-error include/linux/genhd.h
+--- a/include/linux/genhd.h~block-fix-part_pack_uuid-build-error
++++ a/include/linux/genhd.h
+@@ -231,6 +231,12 @@ static inline void part_pack_uuid(const 
+ 	}
+ }
  
- 	create_parameterlist($members, ';', $file);
- 	check_sections($file, $declaration_name, "struct", $sectcheck, $struct_actual, $nested);
++static inline int blk_part_pack_uuid(const u8 *uuid_str, u8 *to)
++{
++	part_pack_uuid(uuid_str, to);
++	return 0;
++}
++
+ static inline int disk_max_parts(struct gendisk *disk)
+ {
+ 	if (disk->flags & GENHD_FL_EXT_DEVT)
+@@ -718,6 +724,10 @@ static inline dev_t blk_lookup_devt(cons
+ 	return devt;
+ }
+ 
++static inline int blk_part_pack_uuid(const u8 *uuid_str, u8 *to)
++{
++	return -EINVAL;
++}
+ #endif /* CONFIG_BLOCK */
+ 
+ #endif /* _LINUX_GENHD_H */
+diff -puN security/integrity/ima/ima_policy.c~block-fix-part_pack_uuid-build-error security/integrity/ima/ima_policy.c
+--- a/security/integrity/ima/ima_policy.c~block-fix-part_pack_uuid-build-error
++++ a/security/integrity/ima/ima_policy.c
+@@ -176,7 +176,7 @@ static bool ima_match_rules(struct ima_r
+ 	    && rule->fsmagic != inode->i_sb->s_magic)
+ 		return false;
+ 	if ((rule->flags & IMA_FSUUID) &&
+-		memcmp(rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
++	    memcmp(rule->fsuuid, inode->i_sb->s_uuid, sizeof(rule->fsuuid)))
+ 		return false;
+ 	if ((rule->flags & IMA_UID) && !uid_eq(rule->uid, cred->uid))
+ 		return false;
+@@ -530,14 +530,15 @@ static int ima_parse_rule(char *rule, st
+ 			ima_log_string(ab, "fsuuid", args[0].from);
+ 
+ 			if (memchr_inv(entry->fsuuid, 0x00,
+-			    sizeof(entry->fsuuid))) {
++				       sizeof(entry->fsuuid))) {
+ 				result = -EINVAL;
+ 				break;
+ 			}
+ 
+-			part_pack_uuid(args[0].from, entry->fsuuid);
+-			entry->flags |= IMA_FSUUID;
+-			result = 0;
++			result = blk_part_pack_uuid(args[0].from,
++						    entry->fsuuid);
++			if (!result)
++				entry->flags |= IMA_FSUUID;
+ 			break;
+ 		case Opt_uid:
+ 			ima_log_string(ab, "uid", args[0].from);
 _
 
-Patches currently in -mm which might be from nm@ti.com are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
-scripts-kernel-doc-handle-struct-member-__aligned-without-numbers.patch
+block-fix-part_pack_uuid-build-error.patch
+ocfs2-fix-ocfs2_init_security_and_acl-to-initialize-acl-correctly.patch
 
