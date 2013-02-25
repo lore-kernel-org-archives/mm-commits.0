@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-factor-out-the-setting-of-pf_dumpcore.patch added to -mm tree
-Date: Mon, 25 Feb 2013 15:05:43 -0800
-Message-ID: <20130225230544.4DC2031C233@corp2gmr1-1.hot.corp.google.com>
+Subject: + coredump-make-wait_for_dump_helpers-freezable.patch added to -mm tree
+Date: Mon, 25 Feb 2013 15:05:49 -0800
+Message-ID: <20130225230550.4E78F31C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:34662 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755402Ab3BYXFp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:05:45 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so366577vea.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:05:45 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:44520 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755402Ab3BYXFv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:05:51 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so381195qah.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:05:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kerne
 
 
 The patch titled
-     Subject: coredump: factor out the setting of PF_DUMPCORE
+     Subject: coredump: make wait_for_dump_helpers() freezable
 has been added to the -mm tree.  Its filename is
-     coredump-factor-out-the-setting-of-pf_dumpcore.patch
+     coredump-make-wait_for_dump_helpers-freezable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: factor out the setting of PF_DUMPCORE
+Subject: coredump: make wait_for_dump_helpers() freezable
 
-Cleanup and preparation. Every linux_binfmt->core_dump() sets
-PF_DUMPCORE, move this into zap_threads() called by do_coredump().
+wait_for_dump_helpers() calls wake_up/kill_fasync from inside the
+wait_event-like loop.  This is not needed and in fact this is not strictly
+correct, we can/should do this only once after we change pipe->writers. 
+We could even check if it becomes zero.
+
+With this change it is trivial to convert this code to use
+wait_event_freezable() and make this function freezable/killable, only
+SIGKILL can set TIF_SIGPENDING.
+
+With this patch we check pipe->readers without pipe_lock(), this is fine. 
+Once we see pipe->readers == 1 we know that the handler decremented the
+counter, this is all we need.
+
+Note: wait_event_freezable() is "strange", perhaps it should be changed or
+simply removed.  In the latter case we can change this code again to use
+freezer_do_not_count + wait_event_interruptible.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Mandeep Singh Baines <msb@chromium.org>
@@ -47,87 +61,36 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32_aout.c |    1 -
- fs/binfmt_aout.c          |    1 -
- fs/binfmt_elf.c           |    3 +--
- fs/binfmt_elf_fdpic.c     |    2 --
- fs/coredump.c             |    1 +
- 5 files changed, 2 insertions(+), 6 deletions(-)
+ fs/coredump.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/ia32/ia32_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore arch/x86/ia32/ia32_aout.c
---- a/arch/x86/ia32/ia32_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore
-+++ a/arch/x86/ia32/ia32_aout.c
-@@ -162,7 +162,6 @@ static int aout_core_dump(long signr, st
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
- 	has_dumped = 1;
--	current->flags |= PF_DUMPCORE;
- 	strncpy(dump.u_comm, current->comm, sizeof(current->comm));
- 	dump.u_ar0 = offsetof(struct user32, regs);
- 	dump.signal = signr;
-diff -puN fs/binfmt_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore
-+++ a/fs/binfmt_aout.c
-@@ -62,7 +62,6 @@ static int aout_core_dump(struct coredum
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
- 	has_dumped = 1;
--	current->flags |= PF_DUMPCORE;
-        	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
- 	dump.u_ar0 = offsetof(struct user, regs);
- 	dump.signal = cprm->siginfo->si_signo;
-diff -puN fs/binfmt_elf.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-factor-out-the-setting-of-pf_dumpcore
-+++ a/fs/binfmt_elf.c
-@@ -2107,8 +2107,7 @@ static int elf_core_dump(struct coredump
- 		goto cleanup;
- 
- 	has_dumped = 1;
--	current->flags |= PF_DUMPCORE;
--  
-+
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
- 
-diff -puN fs/binfmt_elf_fdpic.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~coredump-factor-out-the-setting-of-pf_dumpcore
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1687,8 +1687,6 @@ static int elf_fdpic_core_dump(struct co
- 	fill_elf_fdpic_header(elf, e_phnum);
- 
- 	has_dumped = 1;
--	current->flags |= PF_DUMPCORE;
--
- 	/*
- 	 * Set up the notes in similar form to SVR4 core dumps made
- 	 * with info from their /proc.
-diff -puN fs/coredump.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/coredump.c
---- a/fs/coredump.c~coredump-factor-out-the-setting-of-pf_dumpcore
+diff -puN fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable fs/coredump.c
+--- a/fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable
 +++ a/fs/coredump.c
-@@ -290,6 +290,7 @@ static int zap_threads(struct task_struc
- 	if (!signal_group_exit(tsk->signal)) {
- 		mm->core_state = core_state;
- 		nr = zap_process(tsk, exit_code);
-+		tsk->flags = PF_DUMPCORE;
- 		tsk->signal->group_exit_task = tsk;
- 		/* ignore all signals except SIGKILL, see prepare_signal() */
- 		tsk->signal->flags = SIGNAL_GROUP_COREDUMP;
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-origin.patch
-usermodehelper-cleanup-fix-__orderly_poweroff-argv_free.patch
-signal-allow-to-send-any-siginfo-to-itself.patch
-kernel-signalc-fix-suboptimal-printk-usage.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
-lockdep-check-that-no-locks-held-at-freeze-time.patch
-lockdep-check-that-no-locks-held-at-freeze-time-v2.patch
-lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
-coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
-
+@@ -32,6 +32,7 @@
+ #include <linux/pipe_fs_i.h>
+ #include <linux/oom.h>
+ #include <linux/compat.h>
++#include <linux/freezer.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -428,17 +429,16 @@ static void wait_for_dump_helpers(struct
+ 	pipe_lock(pipe);
+ 	pipe->readers++;
+ 	pipe->writers--;
++	wake_up_interruptible_sync(&pipe->wait);
++	kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
++	pipe_unlock(pipe);
+ 
+-	while ((pipe->readers > 1) && (!signal_pending(current))) {
+-		wake_up_interruptible_sync(&pipe->wait);
+-		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
+-		pipe_wait(pipe);
+-	}
++	wait_event_freezable(pipe->wait, pipe->readers == 1);
+ 
++	pipe_lock(pipe);
+ 	pipe->readers--;
+ 	pipe->writers++;
+ 	pipe_unlock(pipe);
