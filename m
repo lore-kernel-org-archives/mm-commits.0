@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory_hotplug-use-pgdat_end_pfn-instead-of-open-coding-the-same.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:54:50 -0800
-Message-ID: <20130225205450.D39E731C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-mlockc-document-scary-looking-stack-expansion-mlock-chain.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:54:23 -0800
+Message-ID: <20130225205423.BE19131C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:41399 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932115Ab3BYUyw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:54:52 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so348190ggn.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:54:51 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:39132 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757433Ab3BYUyY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:54:24 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so347961ggi.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:54:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cody@linux.vnet.ibm.com, catalin.marinas@arm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, viro@ZenIV.linux.org.uk, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: use pgdat_end_pfn() instead of open coding the same.
+     Subject: mm/mlock.c: document scary-looking stack expansion mlock chain
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-use-pgdat_end_pfn-instead-of-open-coding-the-same.patch
+     mm-mlockc-document-scary-looking-stack-expansion-mlock-chain.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: mm/memory_hotplug: use pgdat_end_pfn() instead of open coding the same.
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm/mlock.c: document scary-looking stack expansion mlock chain
 
-Replace open coded pgdat_end_pfn() with helper function.
+The fact that mlock calls get_user_pages, and get_user_pages might
+call mlock when expanding a stack looks like a potential recursion.
 
-Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
-Cc: David Hansen <dave@linux.vnet.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+However, mlock makes sure the requested range is already contained
+within a vma, so no stack expansion will actually happen from mlock.
+
+Should this ever change: the stack expansion mlocks only the newly
+expanded range and so will not result in recursive expansion.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mlock.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-use-pgdat_end_pfn-instead-of-open-coding-the-same mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-use-pgdat_end_pfn-instead-of-open-coding-the-same
-+++ a/mm/memory_hotplug.c
-@@ -218,7 +218,7 @@ void register_page_bootmem_info_node(str
- 	}
+diff -puN mm/mlock.c~mm-mlockc-document-scary-looking-stack-expansion-mlock-chain mm/mlock.c
+--- a/mm/mlock.c~mm-mlockc-document-scary-looking-stack-expansion-mlock-chain
++++ a/mm/mlock.c
+@@ -185,6 +185,10 @@ long __mlock_vma_pages_range(struct vm_a
+ 	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
+ 		gup_flags |= FOLL_FORCE;
  
- 	pfn = pgdat->node_start_pfn;
--	end_pfn = pfn + pgdat->node_spanned_pages;
-+	end_pfn = pgdat_end_pfn(pgdat);
- 
- 	/* register_section info */
- 	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++	/*
++	 * We made sure addr is within a VMA, so the following will
++	 * not result in a stack expansion that recurses back here.
++	 */
+ 	return __get_user_pages(current, mm, addr, nr_pages, gup_flags,
+ 				NULL, NULL, nonblocking);
+ }
 _
 
-Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+mm-memmap_init_zone-performance-improvement.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
