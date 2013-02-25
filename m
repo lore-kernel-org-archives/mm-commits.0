@@ -1,123 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-fix-mempolicy-object-leaks.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:56 -0800
-Message-ID: <20130225205556.B08CE31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-fadvise-drain-all-pagevecs-if-posix_fadv_dontneed-fails-to-discard-all-pages.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:50 -0800
+Message-ID: <20130225205551.09B365A426D__22669.2481352531$1361825785$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:63336 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759844Ab3BYUz5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:57 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so347597ghb.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:57 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:44897 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759064Ab3BYUzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:52 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so348039ves.1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, hughd@google.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, rvdheij@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix mempolicy object leaks
+     Subject: mm/fadvise.c: drain all pagevecs if POSIX_FADV_DONTNEED fails to discard all pages
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-mempolicy-object-leaks.patch
+     mm-fadvise-drain-all-pagevecs-if-posix_fadv_dontneed-fails-to-discard-all-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: tmpfs: fix mempolicy object leaks
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm/fadvise.c: drain all pagevecs if POSIX_FADV_DONTNEED fails to discard all pages
 
-Fix several mempolicy leaks in the tmpfs mount logic.  These leaks are
-slow - on the order of one object leaked per mount attempt.
+Rob van der Heij reported the following (paraphrased) on private mail.
 
-Leak 1 (umount doesn't free mpol allocated in mount):
-    while true; do
-        mount -t tmpfs -o mpol=interleave,size=100M nodev /mnt
-        umount /mnt
-    done
+	The scenario is that I want to avoid backups to fill up the page
+	cache and purge stuff that is more likely to be used again (this is
+	with s390x Linux on z/VM, so I don't give it as much memory that
+	we don't care anymore). So I have something with LD_PRELOAD that
+	intercepts the close() call (from tar, in this case) and issues
+	a posix_fadvise() just before closing the file.
 
-Leak 2 (errors parsing remount options will leak mpol):
-    mount -t tmpfs -o size=100M nodev /mnt
-    while true; do
-        mount -o remount,mpol=interleave,size=x /mnt 2> /dev/null
-    done
-    umount /mnt
+	This mostly works, except for small files (less than 14 pages)
+	that remains in page cache after the face.
 
-Leak 3 (multiple mpol per mount leak mpol):
-    while true; do
-        mount -t tmpfs -o mpol=interleave,mpol=interleave,size=100M nodev /mnt
-        umount /mnt
-    done
+Unfortunately Rob has not had a chance to test this exact patch but the
+test program below should be reproducing the problem he described.
 
-This patch fixes all of the above.  I could have broken the patch into
-three pieces but is seemed easier to review as one.
+The issue is the per-cpu pagevecs for LRU additions. If the pages are added
+by one CPU but fadvise() is called on another then the pages remain resident
+as the invalidate_mapping_pages() only drains the local pagevecs via its
+call to pagevec_release(). The user-visible effect is that a program that
+uses fadvise() properly is not obeyed.
 
-[akpm@linux-foundation.org: fix handling of mpol_parse_str() errors, per Hugh]
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+A possible fix for this is to put the necessary smarts into
+invalidate_mapping_pages() to globally drain the LRU pagevecs if a pagevec
+page could not be discarded. The downside with this is that an inode cache
+shrink would send a global IPI and memory pressure potentially causing
+global IPI storms is very undesirable.
+
+Instead, this patch adds a check during fadvise(POSIX_FADV_DONTNEED) to
+check if invalidate_mapping_pages() discarded all the requested pages. If a
+subset of pages are discarded it drains the LRU pagevecs and tries again. If
+the second attempt fails, it assumes it is due to the pages being mapped,
+locked or dirty and does not care. With this patch, an application using
+fadvise() correctly will be obeyed but there is a downside that a malicious
+application can force the kernel to send global IPIs and increase overhead.
+
+If accepted, I would like this to be considered as a -stable candidate.
+It's not an urgent issue but it's a system call that is not working as
+advertised which is weak.
+
+The following test program demonstrates the problem. It should never
+report that pages are still resident but will without this patch. It
+assumes that CPU 0 and 1 exist.
+
+int main() {
+	int fd;
+	int pagesize = getpagesize();
+	ssize_t written = 0, expected;
+	char *buf;
+	unsigned char *vec;
+	int resident, i;
+	cpu_set_t set;
+
+	/* Prepare a buffer for writing */
+	expected = FILESIZE_PAGES * pagesize;
+	buf = malloc(expected + 1);
+	if (buf == NULL) {
+		printf("ENOMEM\n");
+		exit(EXIT_FAILURE);
+	}
+	buf[expected] = 0;
+	memset(buf, 'a', expected);
+
+	/* Prepare the mincore vec */
+	vec = malloc(FILESIZE_PAGES);
+	if (vec == NULL) {
+		printf("ENOMEM\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Bind ourselves to CPU 0 */
+	CPU_ZERO(&set);
+	CPU_SET(0, &set);
+	if (sched_setaffinity(getpid(), sizeof(set), &set) == -1) {
+		perror("sched_setaffinity");
+		exit(EXIT_FAILURE);
+	}
+
+	/* open file, unlink and write buffer */
+	fd = open("fadvise-test-file", O_CREAT|O_EXCL|O_RDWR);
+	if (fd == -1) {
+		perror("open");
+		exit(EXIT_FAILURE);
+	}
+	unlink("fadvise-test-file");
+	while (written < expected) {
+		ssize_t this_write;
+		this_write = write(fd, buf + written, expected - written);
+
+		if (this_write == -1) {
+			perror("write");
+			exit(EXIT_FAILURE);
+		}
+
+		written += this_write;
+	}
+	free(buf);
+
+	/*
+	 * Force ourselves to another CPU. If fadvise only flushes the local
+	 * CPUs pagevecs then the fadvise will fail to discard all file pages
+	 */
+	CPU_ZERO(&set);
+	CPU_SET(1, &set);
+	if (sched_setaffinity(getpid(), sizeof(set), &set) == -1) {
+		perror("sched_setaffinity");
+		exit(EXIT_FAILURE);
+	}
+
+	/* sync and fadvise to discard the page cache */
+	fsync(fd);
+	if (posix_fadvise(fd, 0, expected, POSIX_FADV_DONTNEED) == -1) {
+		perror("posix_fadvise");
+		exit(EXIT_FAILURE);
+	}
+
+	/* map the file and use mincore to see which parts of it are resident */
+	buf = mmap(NULL, expected, PROT_READ, MAP_SHARED, fd, 0);
+	if (buf == NULL) {
+		perror("mmap");
+		exit(EXIT_FAILURE);
+	}
+	if (mincore(buf, expected, vec) == -1) {
+		perror("mincore");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Check residency */
+	for (i = 0, resident = 0; i < FILESIZE_PAGES; i++) {
+		if (vec[i])
+			resident++;
+	}
+	if (resident != 0) {
+		printf("Nr unexpected pages resident: %d\n", resident);
+		exit(EXIT_FAILURE);
+	}
+
+	munmap(buf, expected);
+	close(fd);
+	free(vec);
+	exit(EXIT_SUCCESS);
+}
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Rob van der Heij <rvdheij@gmail.com>
+Tested-by: Rob van der Heij <rvdheij@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/fadvise.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-fix-mempolicy-object-leaks mm/shmem.c
---- a/mm/shmem.c~tmpfs-fix-mempolicy-object-leaks
-+++ a/mm/shmem.c
-@@ -2385,6 +2385,7 @@ static int shmem_parse_options(char *opt
- 			       bool remount)
- {
- 	char *this_char, *value, *rest;
-+	struct mempolicy *mpol = NULL;
- 	uid_t uid;
- 	gid_t gid;
+diff -puN mm/fadvise.c~mm-fadvise-drain-all-pagevecs-if-posix_fadv_dontneed-fails-to-discard-all-pages mm/fadvise.c
+--- a/mm/fadvise.c~mm-fadvise-drain-all-pagevecs-if-posix_fadv_dontneed-fails-to-discard-all-pages
++++ a/mm/fadvise.c
+@@ -17,6 +17,7 @@
+ #include <linux/fadvise.h>
+ #include <linux/writeback.h>
+ #include <linux/syscalls.h>
++#include <linux/swap.h>
  
-@@ -2413,7 +2414,7 @@ static int shmem_parse_options(char *opt
- 			printk(KERN_ERR
- 			    "tmpfs: No value for mount option '%s'\n",
- 			    this_char);
--			return 1;
-+			goto error;
- 		}
+ #include <asm/unistd.h>
  
- 		if (!strcmp(this_char,"size")) {
-@@ -2462,19 +2463,24 @@ static int shmem_parse_options(char *opt
- 			if (!gid_valid(sbinfo->gid))
- 				goto bad_val;
- 		} else if (!strcmp(this_char,"mpol")) {
--			if (mpol_parse_str(value, &sbinfo->mpol))
-+			mpol_put(mpol);
-+			mpol = NULL;
-+			if (mpol_parse_str(value, &mpol))
- 				goto bad_val;
- 		} else {
- 			printk(KERN_ERR "tmpfs: Bad mount option %s\n",
- 			       this_char);
--			return 1;
-+			goto error;
- 		}
- 	}
-+	sbinfo->mpol = mpol;
- 	return 0;
+@@ -120,9 +121,22 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, lof
+ 		start_index = (offset+(PAGE_CACHE_SIZE-1)) >> PAGE_CACHE_SHIFT;
+ 		end_index = (endbyte >> PAGE_CACHE_SHIFT);
  
- bad_val:
- 	printk(KERN_ERR "tmpfs: Bad value '%s' for mount option '%s'\n",
- 	       value, this_char);
-+error:
-+	mpol_put(mpol);
- 	return 1;
- 
- }
-@@ -2550,6 +2556,7 @@ static void shmem_put_super(struct super
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
- 
- 	percpu_counter_destroy(&sbinfo->used_blocks);
-+	mpol_put(sbinfo->mpol);
- 	kfree(sbinfo);
- 	sb->s_fs_info = NULL;
- }
+-		if (end_index >= start_index)
+-			invalidate_mapping_pages(mapping, start_index,
++		if (end_index >= start_index) {
++			unsigned long count = invalidate_mapping_pages(mapping,
++						start_index, end_index);
++
++			/*
++			 * If fewer pages were invalidated than expected then
++			 * it is possible that some of the pages were on
++			 * a per-cpu pagevec for a remote CPU. Drain all
++			 * pagevecs and try again.
++			 */
++			if (count < (end_index - start_index + 1)) {
++				lru_add_drain_all();
++				invalidate_mapping_pages(mapping, start_index,
+ 						end_index);
++			}
++		}
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+linux-next.patch
+revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
+pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
+mm-memmap_init_zone-performance-improvement.patch
+mm-accelerate-munlock-treatment-of-thp-pages.patch
 
