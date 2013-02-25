@@ -1,41 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:52:40 -0800
-Message-ID: <20130225205240.C9FEC5A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-move-page-flags-layout-to-separate-header.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:52:43 -0800
+Message-ID: <20130225205243.A569B31C2C9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:62748 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759754Ab3BYUwm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:42 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so346785ves.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:41 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:44398 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759708Ab3BYUwp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:45 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so348204yhz.1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, liwanp@linux.vnet.ibm.com, mingo@kernel.org, simon.jeons@gmail.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, liwanp@linux.vnet.ibm.com, mgorman@suse.de, mingo@kernel.org, simon.jeons@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: handle side-effects in count_vm_numa_events() for !CONFIG_NUMA_BALANCING
+     Subject: mm: move page flags layout to separate header
 has been removed from the -mm tree.  Its filename was
-     mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch
+     mm-move-page-flags-layout-to-separate-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: handle side-effects in count_vm_numa_events() for !CONFIG_NUMA_BALANCING
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: mm: move page flags layout to separate header
 
-The current definitions for count_vm_numa_events() is wrong for
-!CONFIG_NUMA_BALANCING as the following would miss the side-effect.
-
-	count_vm_numa_events(NUMA_FOO, bar++);
-
-There are no such users of count_vm_numa_events() but this patch fixes it
-as it is a potential pitfall.  Ideally both would be converted to static
-inline but NUMA_PTE_UPDATES is not defined if !CONFIG_NUMA_BALANCING and
-creating dummy constants just to have a static inline would be similarly
-clumsy.
+This is a preparation patch for moving page->_last_nid into page->flags
+that moves page flag layout information to a separate header.  This patch
+is necessary because otherwise there would be a circular dependency
+between mm_types.h and mm.h.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -47,29 +41,208 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h                |   40 ---------------
+ include/linux/mm_types.h          |    1 
+ include/linux/mmzone.h            |   22 --------
+ include/linux/page-flags-layout.h |   71 ++++++++++++++++++++++++++++
+ 4 files changed, 73 insertions(+), 61 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing
-+++ a/include/linux/vmstat.h
-@@ -85,7 +85,7 @@ static inline void vm_events_fold_cpu(in
- #define count_vm_numa_events(x, y) count_vm_events(x, y)
- #else
- #define count_vm_numa_event(x) do {} while (0)
--#define count_vm_numa_events(x, y) do {} while (0)
-+#define count_vm_numa_events(x, y) do { (void)(y); } while (0)
- #endif /* CONFIG_NUMA_BALANCING */
+diff -puN include/linux/mm.h~mm-move-page-flags-layout-to-separate-header include/linux/mm.h
+--- a/include/linux/mm.h~mm-move-page-flags-layout-to-separate-header
++++ a/include/linux/mm.h
+@@ -581,52 +581,12 @@ static inline pte_t maybe_mkwrite(pte_t 
+  * sets it, so none of the operations on it need to be atomic.
+  */
  
- #define __count_zone_vm_events(item, zone, delta) \
+-
+-/*
+- * page->flags layout:
+- *
+- * There are three possibilities for how page->flags get
+- * laid out.  The first is for the normal case, without
+- * sparsemem.  The second is for sparsemem when there is
+- * plenty of space for node and section.  The last is when
+- * we have run out of space and have to fall back to an
+- * alternate (slower) way of determining the node.
+- *
+- * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
+- * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
+- * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
+- */
+-#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+-#define SECTIONS_WIDTH		SECTIONS_SHIFT
+-#else
+-#define SECTIONS_WIDTH		0
+-#endif
+-
+-#define ZONES_WIDTH		ZONES_SHIFT
+-
+-#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
+-#define NODES_WIDTH		NODES_SHIFT
+-#else
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
+-#error "Vmemmap: No space for nodes field in page flags"
+-#endif
+-#define NODES_WIDTH		0
+-#endif
+-
+ /* Page flags: | [SECTION] | [NODE] | ZONE | ... | FLAGS | */
+ #define SECTIONS_PGOFF		((sizeof(unsigned long)*8) - SECTIONS_WIDTH)
+ #define NODES_PGOFF		(SECTIONS_PGOFF - NODES_WIDTH)
+ #define ZONES_PGOFF		(NODES_PGOFF - ZONES_WIDTH)
+ 
+ /*
+- * We are going to use the flags for the page to node mapping if its in
+- * there.  This includes the case where there is no node, so it is implicit.
+- */
+-#if !(NODES_WIDTH > 0 || NODES_SHIFT == 0)
+-#define NODE_NOT_IN_PAGE_FLAGS
+-#endif
+-
+-/*
+  * Define the bit shifts to access each section.  For non-existent
+  * sections we define the shift as 0; that plus a 0 mask ensures
+  * the compiler will optimise away reference to them.
+diff -puN include/linux/mm_types.h~mm-move-page-flags-layout-to-separate-header include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-move-page-flags-layout-to-separate-header
++++ a/include/linux/mm_types.h
+@@ -12,6 +12,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/page-debug-flags.h>
+ #include <linux/uprobes.h>
++#include <linux/page-flags-layout.h>
+ #include <asm/page.h>
+ #include <asm/mmu.h>
+ 
+diff -puN include/linux/mmzone.h~mm-move-page-flags-layout-to-separate-header include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-move-page-flags-layout-to-separate-header
++++ a/include/linux/mmzone.h
+@@ -15,7 +15,7 @@
+ #include <linux/seqlock.h>
+ #include <linux/nodemask.h>
+ #include <linux/pageblock-flags.h>
+-#include <generated/bounds.h>
++#include <linux/page-flags-layout.h>
+ #include <linux/atomic.h>
+ #include <asm/page.h>
+ 
+@@ -310,24 +310,6 @@ enum zone_type {
+ 
+ #ifndef __GENERATING_BOUNDS_H
+ 
+-/*
+- * When a memory allocation must conform to specific limitations (such
+- * as being suitable for DMA) the caller will pass in hints to the
+- * allocator in the gfp_mask, in the zone modifier bits.  These bits
+- * are used to select a priority ordered list of memory zones which
+- * match the requested limits. See gfp_zone() in include/linux/gfp.h
+- */
+-
+-#if MAX_NR_ZONES < 2
+-#define ZONES_SHIFT 0
+-#elif MAX_NR_ZONES <= 2
+-#define ZONES_SHIFT 1
+-#elif MAX_NR_ZONES <= 4
+-#define ZONES_SHIFT 2
+-#else
+-#error ZONES_SHIFT -- too many zones configured adjust calculation
+-#endif
+-
+ struct zone {
+ 	/* Fields commonly accessed by the page allocator */
+ 
+@@ -1055,8 +1037,6 @@ static inline unsigned long early_pfn_to
+  * PA_SECTION_SHIFT		physical address to/from section number
+  * PFN_SECTION_SHIFT		pfn to/from section number
+  */
+-#define SECTIONS_SHIFT		(MAX_PHYSMEM_BITS - SECTION_SIZE_BITS)
+-
+ #define PA_SECTION_SHIFT	(SECTION_SIZE_BITS)
+ #define PFN_SECTION_SHIFT	(SECTION_SIZE_BITS - PAGE_SHIFT)
+ 
+diff -puN /dev/null include/linux/page-flags-layout.h
+--- /dev/null
++++ a/include/linux/page-flags-layout.h
+@@ -0,0 +1,71 @@
++#ifndef PAGE_FLAGS_LAYOUT_H
++#define PAGE_FLAGS_LAYOUT_H
++
++#include <linux/numa.h>
++#include <generated/bounds.h>
++
++/*
++ * When a memory allocation must conform to specific limitations (such
++ * as being suitable for DMA) the caller will pass in hints to the
++ * allocator in the gfp_mask, in the zone modifier bits.  These bits
++ * are used to select a priority ordered list of memory zones which
++ * match the requested limits. See gfp_zone() in include/linux/gfp.h
++ */
++#if MAX_NR_ZONES < 2
++#define ZONES_SHIFT 0
++#elif MAX_NR_ZONES <= 2
++#define ZONES_SHIFT 1
++#elif MAX_NR_ZONES <= 4
++#define ZONES_SHIFT 2
++#else
++#error ZONES_SHIFT -- too many zones configured adjust calculation
++#endif
++
++#ifdef CONFIG_SPARSEMEM
++#include <asm/sparsemem.h>
++
++/* SECTION_SHIFT	#bits space required to store a section # */
++#define SECTIONS_SHIFT	(MAX_PHYSMEM_BITS - SECTION_SIZE_BITS)
++
++#endif /* CONFIG_SPARSEMEM */
++
++/*
++ * page->flags layout:
++ *
++ * There are three possibilities for how page->flags get
++ * laid out.  The first is for the normal case, without
++ * sparsemem.  The second is for sparsemem when there is
++ * plenty of space for node and section.  The last is when
++ * we have run out of space and have to fall back to an
++ * alternate (slower) way of determining the node.
++ *
++ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
++ * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
++ * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
++ */
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#define SECTIONS_WIDTH		SECTIONS_SHIFT
++#else
++#define SECTIONS_WIDTH		0
++#endif
++
++#define ZONES_WIDTH		ZONES_SHIFT
++
++#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
++#define NODES_WIDTH		NODES_SHIFT
++#else
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#error "Vmemmap: No space for nodes field in page flags"
++#endif
++#define NODES_WIDTH		0
++#endif
++
++/*
++ * We are going to use the flags for the page to node mapping if its in
++ * there.  This includes the case where there is no node, so it is implicit.
++ */
++#if !(NODES_WIDTH > 0 || NODES_SHIFT == 0)
++#define NODE_NOT_IN_PAGE_FLAGS
++#endif
++
++#endif /* _LINUX_PAGE_FLAGS_LAYOUT */
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
 linux-next.patch
-revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
-pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
-mm-memmap_init_zone-performance-improvement.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
+smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
+kernel-smpc-cleanups.patch
+events-convert-to-idr_alloc.patch
+ipc-semc-alternatives-to-preempt_disable.patch
 
