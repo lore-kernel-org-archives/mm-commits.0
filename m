@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:52:22 -0800
-Message-ID: <20130225205223.17F7231C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:52:18 -0800
+Message-ID: <20130225205218.DA34731C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:42609 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759734Ab3BYUwZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:25 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 3so70441qea.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:24 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:56120 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759716Ab3BYUwV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:21 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 1so121924qee.1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ming.lei@canonical.com, axboe@kernel.dk, davem@davemloft.net, david.decotigny@google.com, eric.dumazet@gmail.com, greg@kroah.com, jiri.kosina@suse.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, minchan@kernel.org, mingo@elte.hu, mingo@redhat.com, oneukum@suse.de, peterz@infradead.org, rjw@sisk.pl, stern@rowland.harvard.edu, therbert@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pm / runtime: force memory allocation with no I/O during Runtime PM callbcack
+     Subject: net/core: apply pm_runtime_set_memalloc_noio on network devices
 has been removed from the -mm tree.  Its filename was
-     pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
+     net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ming Lei <ming.lei@canonical.com>
-Subject: pm / runtime: force memory allocation with no I/O during Runtime PM callbcack
+Subject: net/core: apply pm_runtime_set_memalloc_noio on network devices
 
-Apply the introduced memalloc_noio_save() and memalloc_noio_restore() to
-force memory allocation with no I/O during runtime_resume/runtime_suspend
-callback on device with the flag of 'memalloc_noio' set.
+Deadlock might be caused by allocating memory with GFP_KERNEL in
+runtime_resume and runtime_suspend callback of network devices in iSCSI
+situation, so mark network devices and its ancestor as 'memalloc_noio'
+with the introduced pm_runtime_set_memalloc_noio().
 
 Signed-off-by: Ming Lei <ming.lei@canonical.com>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -51,38 +52,38 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/runtime.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ net/core/net-sysfs.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/base/power/runtime.c~pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack drivers/base/power/runtime.c
---- a/drivers/base/power/runtime.c~pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack
-+++ a/drivers/base/power/runtime.c
-@@ -348,7 +348,24 @@ static int rpm_callback(int (*cb)(struct
- 	if (!cb)
- 		return -ENOSYS;
+diff -puN net/core/net-sysfs.c~net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices net/core/net-sysfs.c
+--- a/net/core/net-sysfs.c~net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices
++++ a/net/core/net-sysfs.c
+@@ -21,6 +21,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/export.h>
+ #include <linux/jiffies.h>
++#include <linux/pm_runtime.h>
  
--	retval = __rpm_callback(cb, dev);
-+	if (dev->power.memalloc_noio) {
-+		unsigned int noio_flag;
+ #include "net-sysfs.h"
+ 
+@@ -1257,6 +1258,8 @@ void netdev_unregister_kobject(struct ne
+ 
+ 	remove_queue_kobjects(net);
+ 
++	pm_runtime_set_memalloc_noio(dev, false);
 +
-+		/*
-+		 * Deadlock might be caused if memory allocation with
-+		 * GFP_KERNEL happens inside runtime_suspend and
-+		 * runtime_resume callbacks of one block device's
-+		 * ancestor or the block device itself. Network
-+		 * device might be thought as part of iSCSI block
-+		 * device, so network device and its ancestor should
-+		 * be marked as memalloc_noio too.
-+		 */
-+		noio_flag = memalloc_noio_save();
-+		retval = __rpm_callback(cb, dev);
-+		memalloc_noio_restore(noio_flag);
-+	} else {
-+		retval = __rpm_callback(cb, dev);
-+	}
+ 	device_del(dev);
+ }
  
- 	dev->power.runtime_error = retval;
- 	return retval != -EACCES ? retval : -EIO;
+@@ -1301,6 +1304,8 @@ int netdev_register_kobject(struct net_d
+ 		return error;
+ 	}
+ 
++	pm_runtime_set_memalloc_noio(dev, true);
++
+ 	return error;
+ }
+ 
 _
 
 Patches currently in -mm which might be from ming.lei@canonical.com are
