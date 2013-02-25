@@ -1,40 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:49:23 -0800
-Message-ID: <20130225204923.BF9A031C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:49:26 -0800
+Message-ID: <20130225204926.BE40F31C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:37419 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759401Ab3BYUtZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:49:25 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so345871ghb.4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:49:24 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:40123 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759401Ab3BYUt2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:49:28 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so157761yen.5
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:49:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: walken@google.com, dhowells@redhat.com, gregungerer@westnet.com.au, luto@amacapital.net, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: directly use __mlock_vma_pages_range() in find_extend_vma()
+     Subject: mm: introduce VM_POPULATE flag to better deal with racy userspace programs
 has been removed from the -mm tree.  Its filename was
-     mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch
+     mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: directly use __mlock_vma_pages_range() in find_extend_vma()
+Subject: mm: introduce VM_POPULATE flag to better deal with racy userspace programs
 
-In find_extend_vma(), we don't need mlock_vma_pages_range() to verify the
-vma type - we know we're working with a stack. So, we can call directly
-into __mlock_vma_pages_range(), and remove the last make_pages_present()
-call site.
+The vm_populate() code populates user mappings without constantly
+holding the mmap_sem. This makes it susceptible to racy userspace
+programs: the user mappings may change while vm_populate() is running,
+and in this case vm_populate() may end up populating the new mapping
+instead of the old one.
 
-Note that we don't use mm_populate() here, so we can't release the mmap_sem
-while allocating new stack pages. This is deemed acceptable, because the
-stack vmas grow by a bounded number of pages at a time, and these are
-anon pages so we don't have to read from disk to populate them.
+In order to reduce the possibility of userspace getting surprised by
+this behavior, this change introduces the VM_POPULATE vma flag which
+gets set on vmas we want vm_populate() to work on. This way
+vm_populate() may still end up populating the new mapping after such a
+race, but only if the new mapping is also one that the user has
+requested (using MAP_SHARED, MAP_LOCKED or mlock) to be populated.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -44,180 +47,130 @@ Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 
- mm/internal.h      |    4 +--
- mm/memory.c        |   24 ------------------
- mm/mlock.c         |   57 ++-----------------------------------------
- mm/mmap.c          |   10 +++----
- 5 files changed, 9 insertions(+), 87 deletions(-)
+ include/linux/mm.h   |    1 +
+ include/linux/mman.h |    4 +++-
+ mm/fremap.c          |   12 ++++++++++--
+ mm/mlock.c           |   19 ++++++++++---------
+ mm/mmap.c            |    4 +---
+ 5 files changed, 25 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/mm.h~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma include/linux/mm.h
---- a/include/linux/mm.h~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma
+diff -puN include/linux/mm.h~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
 +++ a/include/linux/mm.h
-@@ -1035,7 +1035,6 @@ static inline int fixup_user_fault(struc
- }
- #endif
+@@ -87,6 +87,7 @@ extern unsigned int kobjsize(const void 
+ #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
+ #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
  
--extern int make_pages_present(unsigned long addr, unsigned long end);
- extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
- extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
- 		void *buf, int len, int write);
-diff -puN mm/internal.h~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma mm/internal.h
---- a/mm/internal.h~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma
-+++ a/mm/internal.h
-@@ -162,8 +162,8 @@ void __vma_link_list(struct mm_struct *m
- 		struct vm_area_struct *prev, struct rb_node *rb_parent);
++#define VM_POPULATE     0x00001000
+ #define VM_LOCKED	0x00002000
+ #define VM_IO           0x00004000	/* Memory mapped I/O or similar */
  
- #ifdef CONFIG_MMU
--extern long mlock_vma_pages_range(struct vm_area_struct *vma,
--			unsigned long start, unsigned long end);
-+extern long __mlock_vma_pages_range(struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end, int *nonblocking);
- extern void munlock_vma_pages_range(struct vm_area_struct *vma,
- 			unsigned long start, unsigned long end);
- static inline void munlock_vma_pages_all(struct vm_area_struct *vma)
-diff -puN mm/memory.c~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma mm/memory.c
---- a/mm/memory.c~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma
-+++ a/mm/memory.c
-@@ -3824,30 +3824,6 @@ int __pmd_alloc(struct mm_struct *mm, pu
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--int make_pages_present(unsigned long addr, unsigned long end)
--{
--	int ret, len, write;
--	struct vm_area_struct * vma;
--
--	vma = find_vma(current->mm, addr);
--	if (!vma)
--		return -ENOMEM;
--	/*
--	 * We want to touch writable mappings with a write fault in order
--	 * to break COW, except for shared mappings because these don't COW
--	 * and we would not want to dirty them for nothing.
--	 */
--	write = (vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE;
--	BUG_ON(addr >= end);
--	BUG_ON(end > vma->vm_end);
--	len = DIV_ROUND_UP(end, PAGE_SIZE) - addr/PAGE_SIZE;
--	ret = get_user_pages(current, current->mm, addr,
--			len, write, 0, NULL, NULL);
--	if (ret < 0)
--		return ret;
--	return ret == len ? 0 : -EFAULT;
--}
--
- #if !defined(__HAVE_ARCH_GATE_AREA)
- 
- #if defined(AT_SYSINFO_EHDR)
-diff -puN mm/mlock.c~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma mm/mlock.c
---- a/mm/mlock.c~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma
-+++ a/mm/mlock.c
-@@ -155,9 +155,8 @@ void munlock_vma_page(struct page *page)
-  *
-  * vma->vm_mm->mmap_sem must be held for at least read.
-  */
--static long __mlock_vma_pages_range(struct vm_area_struct *vma,
--				    unsigned long start, unsigned long end,
--				    int *nonblocking)
-+long __mlock_vma_pages_range(struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end, int *nonblocking)
+diff -puN include/linux/mman.h~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs include/linux/mman.h
+--- a/include/linux/mman.h~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/include/linux/mman.h
+@@ -79,6 +79,8 @@ calc_vm_flag_bits(unsigned long flags)
  {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long addr = start;
-@@ -202,56 +201,6 @@ static int __mlock_posix_error_return(lo
- 	return retval;
+ 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
+ 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
+-	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
++	       ((flags & MAP_LOCKED) ? (VM_LOCKED | VM_POPULATE) : 0) |
++	       (((flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE) ?
++							VM_POPULATE : 0);
  }
+ #endif /* _LINUX_MMAN_H */
+diff -puN mm/fremap.c~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/fremap.c
+--- a/mm/fremap.c~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/mm/fremap.c
+@@ -204,8 +204,10 @@ get_write_lock:
+ 			unsigned long addr;
+ 			struct file *file = get_file(vma->vm_file);
  
--/**
-- * mlock_vma_pages_range() - mlock pages in specified vma range.
-- * @vma - the vma containing the specfied address range
-- * @start - starting address in @vma to mlock
-- * @end   - end address [+1] in @vma to mlock
-- *
-- * For mmap()/mremap()/expansion of mlocked vma.
-- *
-- * return 0 on success for "normal" vmas.
-- *
-- * return number of pages [> 0] to be removed from locked_vm on success
-- * of "special" vmas.
-- */
--long mlock_vma_pages_range(struct vm_area_struct *vma,
--			unsigned long start, unsigned long end)
--{
--	int nr_pages = (end - start) / PAGE_SIZE;
--	BUG_ON(!(vma->vm_flags & VM_LOCKED));
--
--	/*
--	 * filter unlockable vmas
--	 */
--	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
--		goto no_mlock;
--
--	if (!((vma->vm_flags & VM_DONTEXPAND) ||
--			is_vm_hugetlb_page(vma) ||
--			vma == get_gate_vma(current->mm))) {
--
--		__mlock_vma_pages_range(vma, start, end, NULL);
--
--		/* Hide errors from mmap() and other callers */
--		return 0;
--	}
--
--	/*
--	 * User mapped kernel pages or huge pages:
--	 * make these pages present to populate the ptes, but
--	 * fall thru' to reset VM_LOCKED--no need to unlock, and
--	 * return nr_pages so these don't get counted against task's
--	 * locked limit.  huge pages are already counted against
--	 * locked vm limit.
--	 */
--	make_pages_present(start, end);
--
--no_mlock:
--	vma->vm_flags &= ~VM_LOCKED;	/* and don't come back! */
--	return nr_pages;		/* error or pages NOT mlocked */
--}
--
- /*
-  * munlock_vma_pages_range() - munlock all pages in the vma range.'
-  * @vma - vma containing range to be munlock()ed.
-@@ -303,7 +252,7 @@ void munlock_vma_pages_range(struct vm_a
-  *
-  * Filters out "special" vmas -- VM_LOCKED never gets set for these, and
-  * munlock is a no-op.  However, for some special vmas, we go ahead and
-- * populate the ptes via make_pages_present().
-+ * populate the ptes.
-  *
-  * For vmas that pass the filters, merge/split as appropriate.
-  */
-diff -puN mm/mmap.c~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma mm/mmap.c
---- a/mm/mmap.c~mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma
+-			addr = mmap_region(file, start, size,
+-					vma->vm_flags, pgoff);
++			vm_flags = vma->vm_flags;
++			if (!(flags & MAP_NONBLOCK))
++				vm_flags |= VM_POPULATE;
++			addr = mmap_region(file, start, size, vm_flags, pgoff);
+ 			fput(file);
+ 			if (IS_ERR_VALUE(addr)) {
+ 				err = addr;
+@@ -224,6 +226,12 @@ get_write_lock:
+ 		mutex_unlock(&mapping->i_mmap_mutex);
+ 	}
+ 
++	if (!(flags & MAP_NONBLOCK) && !(vma->vm_flags & VM_POPULATE)) {
++		if (!has_write_lock)
++			goto get_write_lock;
++		vma->vm_flags |= VM_POPULATE;
++	}
++
+ 	if (vma->vm_flags & VM_LOCKED) {
+ 		/*
+ 		 * drop PG_Mlocked flag for over-mapped range
+diff -puN mm/mlock.c~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/mlock.c
+--- a/mm/mlock.c~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/mm/mlock.c
+@@ -340,9 +340,9 @@ static int do_mlock(unsigned long start,
+ 
+ 		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
+ 
+-		newflags = vma->vm_flags | VM_LOCKED;
+-		if (!on)
+-			newflags &= ~VM_LOCKED;
++		newflags = vma->vm_flags & ~VM_LOCKED;
++		if (on)
++			newflags |= VM_LOCKED | VM_POPULATE;
+ 
+ 		tmp = vma->vm_end;
+ 		if (tmp > end)
+@@ -402,7 +402,8 @@ int __mm_populate(unsigned long start, u
+ 		 * range with the first VMA. Also, skip undesirable VMA types.
+ 		 */
+ 		nend = min(end, vma->vm_end);
+-		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
++		if ((vma->vm_flags & (VM_IO | VM_PFNMAP | VM_POPULATE)) !=
++		    VM_POPULATE)
+ 			continue;
+ 		if (nstart < vma->vm_start)
+ 			nstart = vma->vm_start;
+@@ -475,18 +476,18 @@ static int do_mlockall(int flags)
+ 	struct vm_area_struct * vma, * prev = NULL;
+ 
+ 	if (flags & MCL_FUTURE)
+-		current->mm->def_flags |= VM_LOCKED;
++		current->mm->def_flags |= VM_LOCKED | VM_POPULATE;
+ 	else
+-		current->mm->def_flags &= ~VM_LOCKED;
++		current->mm->def_flags &= ~(VM_LOCKED | VM_POPULATE);
+ 	if (flags == MCL_FUTURE)
+ 		goto out;
+ 
+ 	for (vma = current->mm->mmap; vma ; vma = prev->vm_next) {
+ 		vm_flags_t newflags;
+ 
+-		newflags = vma->vm_flags | VM_LOCKED;
+-		if (!(flags & MCL_CURRENT))
+-			newflags &= ~VM_LOCKED;
++		newflags = vma->vm_flags & ~VM_LOCKED;
++		if (flags & MCL_CURRENT)
++			newflags |= VM_LOCKED | VM_POPULATE;
+ 
+ 		/* Ignore errors */
+ 		mlock_fixup(vma, &prev, vma->vm_start, vma->vm_end, newflags);
+diff -puN mm/mmap.c~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/mmap.c
+--- a/mm/mmap.c~mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
 +++ a/mm/mmap.c
-@@ -2204,9 +2204,8 @@ find_extend_vma(struct mm_struct *mm, un
- 		return vma;
- 	if (!prev || expand_stack(prev, addr))
- 		return NULL;
--	if (prev->vm_flags & VM_LOCKED) {
--		mlock_vma_pages_range(prev, addr, prev->vm_end);
--	}
-+	if (prev->vm_flags & VM_LOCKED)
-+		__mlock_vma_pages_range(prev, addr, prev->vm_end, NULL);
- 	return prev;
+@@ -1306,9 +1306,7 @@ unsigned long do_mmap_pgoff(struct file 
+ 	}
+ 
+ 	addr = mmap_region(file, addr, len, vm_flags, pgoff);
+-	if (!IS_ERR_VALUE(addr) &&
+-	    ((vm_flags & VM_LOCKED) ||
+-	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
++	if (!IS_ERR_VALUE(addr) && (vm_flags & VM_POPULATE))
+ 		*populate = true;
+ 	return addr;
  }
- #else
-@@ -2232,9 +2231,8 @@ find_extend_vma(struct mm_struct * mm, u
- 	start = vma->vm_start;
- 	if (expand_stack(vma, addr))
- 		return NULL;
--	if (vma->vm_flags & VM_LOCKED) {
--		mlock_vma_pages_range(vma, addr, start);
--	}
-+	if (vma->vm_flags & VM_LOCKED)
-+		__mlock_vma_pages_range(vma, addr, start, NULL);
- 	return vma;
- }
- #endif
 _
 
 Patches currently in -mm which might be from walken@google.com are
