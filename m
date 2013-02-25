@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + usermodehelper-cleanup-fix-__orderly_poweroff-argv_free.patch added to -mm tree
-Date: Mon, 25 Feb 2013 13:48:33 -0800
-Message-ID: <20130225214833.CEB035A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-platform_lcd-remove-unnecessary-ifdefs.patch added to -mm tree
+Date: Mon, 25 Feb 2013 14:21:08 -0800
+Message-ID: <20130225222108.A204831C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:35243 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755402Ab3BYVsf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 16:48:35 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so355879yhr.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 13:48:34 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:37864 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932234Ab3BYWVK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 17:21:10 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so359995vea.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 14:21:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, dhowells@redhat.com, hongfeng@marvell.com, james.l.morris@oracle.com, lucas.demarchi@profusion.mobi
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: usermodehelper: cleanup/fix __orderly_poweroff() && argv_free()
+     Subject: drivers/video/backlight/platform_lcd.c: remove unnecessary ifdefs
 has been added to the -mm tree.  Its filename is
-     usermodehelper-cleanup-fix-__orderly_poweroff-argv_free.patch
+     backlight-platform_lcd-remove-unnecessary-ifdefs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: usermodehelper: cleanup/fix __orderly_poweroff() && argv_free()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/platform_lcd.c: remove unnecessary ifdefs
 
-__orderly_poweroff() does argv_free() if call_usermodehelper_fns() returns
--ENOMEM.  As Lucas pointed out, this can be wrong if -ENOMEM was not
-triggered by the failing call_usermodehelper_setup(), in this case both
-__orderly_poweroff() and argv_cleanup() can do kfree().
+When the macro such as SIMPLE_DEV_PM_OPS is used, there is no need to use
+'#ifdef CONFIG_PM' to prevent build error.  Thus, this patch removes
+unnecessary ifdefs.
 
-Kill argv_cleanup() and change __orderly_poweroff() to call argv_free()
-unconditionally like do_coredump() does.  This info->cleanup() is not
-needed (and wrong) since 6c0c0d4d "fix bug in orderly_poweroff() which did
-the UMH_NO_WAIT => UMH_WAIT_EXEC change, we can rely on the fact that
-CLONE_VFORK can't return until do_execve() succeeds/fails.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: hongfeng <hongfeng@marvell.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/video/backlight/platform_lcd.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sys.c~usermodehelper-cleanup-fix-__orderly_poweroff-argv_free kernel/sys.c
---- a/kernel/sys.c~usermodehelper-cleanup-fix-__orderly_poweroff-argv_free
-+++ a/kernel/sys.c
-@@ -2185,11 +2185,6 @@ SYSCALL_DEFINE3(getcpu, unsigned __user 
- 
- char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
- 
--static void argv_cleanup(struct subprocess_info *info)
--{
--	argv_free(info->argv);
--}
--
- static int __orderly_poweroff(void)
- {
- 	int argc;
-@@ -2209,9 +2204,8 @@ static int __orderly_poweroff(void)
- 	}
- 
- 	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_WAIT_EXEC,
--				      NULL, argv_cleanup, NULL);
--	if (ret == -ENOMEM)
--		argv_free(argv);
-+				      NULL, NULL, NULL);
-+	argv_free(argv);
- 
- 	return ret;
+diff -puN drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-remove-unnecessary-ifdefs drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-remove-unnecessary-ifdefs
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -121,7 +121,7 @@ static int platform_lcd_remove(struct pl
+ 	return 0;
  }
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
+ static int platform_lcd_suspend(struct device *dev)
+ {
+ 	struct platform_lcd *plcd = dev_get_drvdata(dev);
+@@ -141,10 +141,10 @@ static int platform_lcd_resume(struct de
+ 
+ 	return 0;
+ }
++#endif
+ 
+ static SIMPLE_DEV_PM_OPS(platform_lcd_pm_ops, platform_lcd_suspend,
+ 			platform_lcd_resume);
+-#endif
+ 
+ #ifdef CONFIG_OF
+ static const struct of_device_id platform_lcd_of_match[] = {
+@@ -158,9 +158,7 @@ static struct platform_driver platform_l
+ 	.driver		= {
+ 		.name	= "platform-lcd",
+ 		.owner	= THIS_MODULE,
+-#ifdef CONFIG_PM
+ 		.pm	= &platform_lcd_pm_ops,
+-#endif
+ 		.of_match_table = of_match_ptr(platform_lcd_of_match),
+ 	},
+ 	.probe		= platform_lcd_probe,
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
-usermodehelper-cleanup-fix-__orderly_poweroff-argv_free.patch
-signal-allow-to-send-any-siginfo-to-itself.patch
-kernel-signalc-fix-suboptimal-printk-usage.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-lockdep-check-that-no-locks-held-at-freeze-time.patch
-lockdep-check-that-no-locks-held-at-freeze-time-v2.patch
-lockdep-check-that-no-locks-held-at-freeze-time-fix.patch
-coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
+linux-next.patch
+backlight-ams369fg06-make-power_on-call-optional.patch
+lib-devresc-fix-misplaced-endif.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
