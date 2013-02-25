@@ -1,77 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-export-mmu-notifier-invalidates.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:47 -0800
-Message-ID: <20130225205547.F042C31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-accelerate-mm_populate-treatment-of-thp-pages.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:45 -0800
+Message-ID: <20130225205546.1E51331C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:35764 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758830Ab3BYUzu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:50 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so138qcs.3
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:48 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:50361 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932086Ab3BYUzr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:47 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so348036vch.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cpw@sgi.com, holt@sgi.com, mm-commits@vger.kernel.org
+To: walken@google.com, aarcange@redhat.com, hughd@google.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: export mmu notifier invalidates
+     Subject: mm: accelerate mm_populate() treatment of THP pages
 has been removed from the -mm tree.  Its filename was
-     mm-export-mmu-notifier-invalidates.patch
+     mm-accelerate-mm_populate-treatment-of-thp-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cliff Wickman <cpw@sgi.com>
-Subject: mm: export mmu notifier invalidates
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: accelerate mm_populate() treatment of THP pages
 
-We at SGI have a need to address some very high physical address ranges
-with our GRU (global reference unit), sometimes across partitioned machine
-boundaries and sometimes with larger addresses than the cpu supports.  We
-do this with the aid of our own 'extended vma' module which mimics the
-vma.  When something (either unmap or exit) frees an 'extended vma' we use
-the mmu notifiers to clean them up.
+This change adds a follow_page_mask function which is equivalent to
+follow_page, but with an extra page_mask argument.
 
-We had been able to mimic the functions
-__mmu_notifier_invalidate_range_start() and
-__mmu_notifier_invalidate_range_end() by locking the per-mm lock and
-walking the per-mm notifier list.  But with the change to a global srcu
-lock (static in mmu_notifier.c) we can no longer do that.  Our module has
-no access to that lock.
+follow_page_mask sets *page_mask to HPAGE_PMD_NR - 1 when it encounters a
+THP page, and to 0 in other cases.
 
-So we request that these two functions be exported.
+__get_user_pages() makes use of this in order to accelerate populating THP
+ranges - that is, when both the pages and vmas arrays are NULL, we don't
+need to iterate HPAGE_PMD_NR times to cover a single THP page (and we also
+avoid taking mm->page_table_lock that many times).
 
-Signed-off-by: Cliff Wickman <cpw@sgi.com>
-Acked-by: Robin Holt <holt@sgi.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h |   13 +++++++++++--
+ mm/memory.c        |   31 +++++++++++++++++++++++--------
+ mm/nommu.c         |    6 ++++--
+ 3 files changed, 38 insertions(+), 12 deletions(-)
 
-diff -puN mm/mmu_notifier.c~mm-export-mmu-notifier-invalidates mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-export-mmu-notifier-invalidates
-+++ a/mm/mmu_notifier.c
-@@ -172,6 +172,7 @@ void __mmu_notifier_invalidate_range_sta
- 	}
- 	srcu_read_unlock(&srcu, id);
- }
-+EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range_start);
+diff -puN include/linux/mm.h~mm-accelerate-mm_populate-treatment-of-thp-pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-accelerate-mm_populate-treatment-of-thp-pages
++++ a/include/linux/mm.h
+@@ -1629,8 +1629,17 @@ int vm_insert_pfn(struct vm_area_struct 
+ int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
  
- void __mmu_notifier_invalidate_range_end(struct mm_struct *mm,
- 				  unsigned long start, unsigned long end)
-@@ -187,6 +188,7 @@ void __mmu_notifier_invalidate_range_end
- 	}
- 	srcu_read_unlock(&srcu, id);
- }
-+EXPORT_SYMBOL_GPL(__mmu_notifier_invalidate_range_end);
+-struct page *follow_page(struct vm_area_struct *, unsigned long address,
+-			unsigned int foll_flags);
++struct page *follow_page_mask(struct vm_area_struct *vma,
++			      unsigned long address, unsigned int foll_flags,
++			      unsigned int *page_mask);
++
++static inline struct page *follow_page(struct vm_area_struct *vma,
++		unsigned long address, unsigned int foll_flags)
++{
++	unsigned int unused_page_mask;
++	return follow_page_mask(vma, address, foll_flags, &unused_page_mask);
++}
++
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+ #define FOLL_TOUCH	0x02	/* mark page accessed */
+ #define FOLL_GET	0x04	/* do get_page on page */
+diff -puN mm/memory.c~mm-accelerate-mm_populate-treatment-of-thp-pages mm/memory.c
+--- a/mm/memory.c~mm-accelerate-mm_populate-treatment-of-thp-pages
++++ a/mm/memory.c
+@@ -1462,10 +1462,11 @@ int zap_vma_ptes(struct vm_area_struct *
+ EXPORT_SYMBOL_GPL(zap_vma_ptes);
  
- static int do_mmu_notifier_register(struct mmu_notifier *mn,
- 				    struct mm_struct *mm,
+ /**
+- * follow_page - look up a page descriptor from a user-virtual address
++ * follow_page_mask - look up a page descriptor from a user-virtual address
+  * @vma: vm_area_struct mapping @address
+  * @address: virtual address to look up
+  * @flags: flags modifying lookup behaviour
++ * @page_mask: on output, *page_mask is set according to the size of the page
+  *
+  * @flags can have FOLL_ flags set, defined in <linux/mm.h>
+  *
+@@ -1473,8 +1474,9 @@ EXPORT_SYMBOL_GPL(zap_vma_ptes);
+  * an error pointer if there is a mapping to something not represented
+  * by a page descriptor (see also vm_normal_page()).
+  */
+-struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+-			unsigned int flags)
++struct page *follow_page_mask(struct vm_area_struct *vma,
++			      unsigned long address, unsigned int flags,
++			      unsigned int *page_mask)
+ {
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -1484,6 +1486,8 @@ struct page *follow_page(struct vm_area_
+ 	struct page *page;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
++	*page_mask = 0;
++
+ 	page = follow_huge_addr(mm, address, flags & FOLL_WRITE);
+ 	if (!IS_ERR(page)) {
+ 		BUG_ON(flags & FOLL_GET);
+@@ -1530,6 +1534,7 @@ struct page *follow_page(struct vm_area_
+ 				page = follow_trans_huge_pmd(vma, address,
+ 							     pmd, flags);
+ 				spin_unlock(&mm->page_table_lock);
++				*page_mask = HPAGE_PMD_NR - 1;
+ 				goto out;
+ 			}
+ 		} else
+@@ -1684,6 +1689,7 @@ long __get_user_pages(struct task_struct
+ {
+ 	long i;
+ 	unsigned long vm_flags;
++	unsigned int page_mask;
+ 
+ 	if (!nr_pages)
+ 		return 0;
+@@ -1761,6 +1767,7 @@ long __get_user_pages(struct task_struct
+ 				get_page(page);
+ 			}
+ 			pte_unmap(pte);
++			page_mask = 0;
+ 			goto next_page;
+ 		}
+ 
+@@ -1778,6 +1785,7 @@ long __get_user_pages(struct task_struct
+ 		do {
+ 			struct page *page;
+ 			unsigned int foll_flags = gup_flags;
++			unsigned int page_increm;
+ 
+ 			/*
+ 			 * If we have a pending SIGKILL, don't keep faulting
+@@ -1787,7 +1795,8 @@ long __get_user_pages(struct task_struct
+ 				return i ? i : -ERESTARTSYS;
+ 
+ 			cond_resched();
+-			while (!(page = follow_page(vma, start, foll_flags))) {
++			while (!(page = follow_page_mask(vma, start,
++						foll_flags, &page_mask))) {
+ 				int ret;
+ 				unsigned int fault_flags = 0;
+ 
+@@ -1861,13 +1870,19 @@ long __get_user_pages(struct task_struct
+ 
+ 				flush_anon_page(vma, page, start);
+ 				flush_dcache_page(page);
++				page_mask = 0;
+ 			}
+ next_page:
+-			if (vmas)
++			if (vmas) {
+ 				vmas[i] = vma;
+-			i++;
+-			start += PAGE_SIZE;
+-			nr_pages--;
++				page_mask = 0;
++			}
++			page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
++			if (page_increm > nr_pages)
++				page_increm = nr_pages;
++			i += page_increm;
++			start += page_increm * PAGE_SIZE;
++			nr_pages -= page_increm;
+ 		} while (nr_pages && start < vma->vm_end);
+ 	} while (nr_pages);
+ 	return i;
+diff -puN mm/nommu.c~mm-accelerate-mm_populate-treatment-of-thp-pages mm/nommu.c
+--- a/mm/nommu.c~mm-accelerate-mm_populate-treatment-of-thp-pages
++++ a/mm/nommu.c
+@@ -1819,9 +1819,11 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	return ret;
+ }
+ 
+-struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+-			unsigned int foll_flags)
++struct page *follow_page_mask(struct vm_area_struct *vma,
++			      unsigned long address, unsigned int flags,
++			      unsigned int *page_mask)
+ {
++	*page_mask = 0;
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from cpw@sgi.com are
+Patches currently in -mm which might be from walken@google.com are
 
 origin.patch
+linux-next.patch
+mm-remove-free_area_cache-use-in-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-ia64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch
+mm-use-vm_unmapped_area-on-parisc-architecture.patch
+mm-remove-free_area_cache.patch
+mm-accelerate-munlock-treatment-of-thp-pages.patch
+mm-use-vm_unmapped_area-on-frv-architecture.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
+mutex-subsystem-synchro-test-module.patch
 
