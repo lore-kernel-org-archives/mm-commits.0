@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch added to -mm tree
-Date: Mon, 25 Feb 2013 15:05:46 -0800
-Message-ID: <20130225230547.32E9131C233@corp2gmr1-1.hot.corp.google.com>
+Subject: + coredump-factor-out-the-setting-of-pf_dumpcore.patch added to -mm tree
+Date: Mon, 25 Feb 2013 15:05:43 -0800
+Message-ID: <20130225230544.4DC2031C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:38899 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755402Ab3BYXFs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:05:48 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so366224vcd.3
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:05:48 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:34662 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755402Ab3BYXFp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 18:05:45 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so366577vea.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 15:05:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rafael.j.wysocki@intel.com, tj@kernel.org
+Cc: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org
 
 
 The patch titled
-     Subject: freezer: do not send a fake signal to a PF_DUMPCORE thread
+     Subject: coredump: factor out the setting of PF_DUMPCORE
 has been added to the -mm tree.  Its filename is
-     freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+     coredump-factor-out-the-setting-of-pf_dumpcore.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: freezer: do not send a fake signal to a PF_DUMPCORE thread
+Subject: coredump: factor out the setting of PF_DUMPCORE
 
-A coredumping thread can't be frozen anyway but the fake signal sent by
-freeze_task() can confuse dump_write/wait_for_dump_helpers/etc and
-interrupt the coredump.
+Cleanup and preparation. Every linux_binfmt->core_dump() sets
+PF_DUMPCORE, move this into zap_threads() called by do_coredump().
 
-We are going to make the do_coredump() paths freezable but the fake
-TIF_SIGPENDING doesn't help, it only makes sense when we assume that the
-target can return to user-mode and call get_signal_to_deliver().
-
-Change freeze_task() to check PF_DUMPCORE along with PF_KTHREAD.  We need
-to recheck PF_DUMPCORE under ->siglock to avoid the race with
-zap_threads() which can set this flag right before we take the lock.
- 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: Mandeep Singh Baines <msb@chromium.org>
 Cc: Neil Horman <nhorman@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/freezer.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ arch/x86/ia32/ia32_aout.c |    1 -
+ fs/binfmt_aout.c          |    1 -
+ fs/binfmt_elf.c           |    3 +--
+ fs/binfmt_elf_fdpic.c     |    2 --
+ fs/coredump.c             |    1 +
+ 5 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN kernel/freezer.c~freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread kernel/freezer.c
---- a/kernel/freezer.c~freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread
-+++ a/kernel/freezer.c
-@@ -85,14 +85,21 @@ bool __refrigerator(bool check_kthr_stop
- }
- EXPORT_SYMBOL(__refrigerator);
+diff -puN arch/x86/ia32/ia32_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore arch/x86/ia32/ia32_aout.c
+--- a/arch/x86/ia32/ia32_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/arch/x86/ia32/ia32_aout.c
+@@ -162,7 +162,6 @@ static int aout_core_dump(long signr, st
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+ 	strncpy(dump.u_comm, current->comm, sizeof(current->comm));
+ 	dump.u_ar0 = offsetof(struct user32, regs);
+ 	dump.signal = signr;
+diff -puN fs/binfmt_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/binfmt_aout.c
+@@ -62,7 +62,6 @@ static int aout_core_dump(struct coredum
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+        	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
+ 	dump.u_ar0 = offsetof(struct user, regs);
+ 	dump.signal = cprm->siginfo->si_signo;
+diff -puN fs/binfmt_elf.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/binfmt_elf.c
+@@ -2107,8 +2107,7 @@ static int elf_core_dump(struct coredump
+ 		goto cleanup;
  
--static void fake_signal_wake_up(struct task_struct *p)
-+static bool fake_signal_wake_up(struct task_struct *p)
- {
- 	unsigned long flags;
-+	bool ret = false;
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+-  
 +
-+	if (p->flags & (PF_KTHREAD | PF_DUMPCORE))
-+		return ret;
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
  
- 	if (lock_task_sighand(p, &flags)) {
--		signal_wake_up(p, 0);
-+		ret = !(p->flags & PF_DUMPCORE);
-+		if (ret)
-+			signal_wake_up(p, 0);
- 		unlock_task_sighand(p, &flags);
- 	}
-+	return ret;
- }
+diff -puN fs/binfmt_elf_fdpic.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1687,8 +1687,6 @@ static int elf_fdpic_core_dump(struct co
+ 	fill_elf_fdpic_header(elf, e_phnum);
  
- /**
-@@ -100,8 +107,8 @@ static void fake_signal_wake_up(struct t
-  * @p: task to send the request to
-  *
-  * If @p is freezing, the freeze request is sent either by sending a fake
-- * signal (if it's not a kernel thread) or waking it up (if it's a kernel
-- * thread).
-+ * signal (if it's not a kernel thread or a coredumping thread) or waking
-+ * it up otherwise.
-  *
-  * RETURNS:
-  * %false, if @p is not freezing or already frozen; %true, otherwise
-@@ -116,9 +123,7 @@ bool freeze_task(struct task_struct *p)
- 		return false;
- 	}
- 
--	if (!(p->flags & PF_KTHREAD))
--		fake_signal_wake_up(p);
--	else
-+	if (!fake_signal_wake_up(p))
- 		wake_up_state(p, TASK_INTERRUPTIBLE);
- 
- 	spin_unlock_irqrestore(&freezer_lock, flags);
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+-
+ 	/*
+ 	 * Set up the notes in similar form to SVR4 core dumps made
+ 	 * with info from their /proc.
+diff -puN fs/coredump.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/coredump.c
+--- a/fs/coredump.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/coredump.c
+@@ -290,6 +290,7 @@ static int zap_threads(struct task_struc
+ 	if (!signal_group_exit(tsk->signal)) {
+ 		mm->core_state = core_state;
+ 		nr = zap_process(tsk, exit_code);
++		tsk->flags = PF_DUMPCORE;
+ 		tsk->signal->group_exit_task = tsk;
+ 		/* ignore all signals except SIGKILL, see prepare_signal() */
+ 		tsk->signal->flags = SIGNAL_GROUP_COREDUMP;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
