@@ -1,140 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:54:20 -0800
-Message-ID: <20130225205420.AEFD15A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:34 -0800
+Message-ID: <20130225205534.D91635A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:44389 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753779Ab3BYUyW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:54:22 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so348027ggn.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:54:21 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:62681 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759774Ab3BYUzg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:36 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so347542ghb.5
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, fengguang.wu@intel.com, gong.chen@linux.intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: refactor inactive_file_is_low() to use get_lru_size()
+     Subject: HWPOISON: fix misjudgement of page_action() for errors on mlocked pages
 has been removed from the -mm tree.  Its filename was
-     mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch
+     hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: refactor inactive_file_is_low() to use get_lru_size()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: HWPOISON: fix misjudgement of page_action() for errors on mlocked pages
 
-An inactive file list is considered low when its active counterpart is
-bigger, regardless of whether it is a global zone LRU list or a memcg zone
-LRU list.  The only difference is in how the LRU size is assessed.
+memory_failure() can't handle memory errors on mlocked pages correctly,
+because page_action() judges such errors as ones on "unknown pages"
+instead of ones on "unevictable LRU page" or "mlocked LRU page".  In order
+to determine page_state page_action() checks page flags at the timing of
+the judgement, but such page flags are not the same with those just after
+memory_failure() is called, because memory_failure() does unmapping of the
+error pages before doing page_action().  This unmapping changes the page
+state, especially page_remove_rmap() (called from try_to_unmap_one())
+clears PG_mlocked, so page_action() can't catch mlocked pages after that.
 
-get_lru_size() does the right thing for both global and memcg reclaim
-situations.
+With this patch, we store the page flag of the error page before doing
+unmap, and (only) if the first check with page flags at the time decided
+the error page is unknown, we do the second check with the stored page
+flag.  This implementation doesn't change error handling for the page
+types for which the first check can determine the page state correctly.
 
-Get rid of inactive_file_is_low_global() and
-mem_cgroup_inactive_file_is_low() by using get_lru_size() and compare the
-numbers in common code.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+[akpm@linux-foundation.org: tweak comments]
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 -------
- mm/memcontrol.c            |   11 -----------
- mm/vmscan.c                |   19 ++++++-------------
- 3 files changed, 6 insertions(+), 31 deletions(-)
+ mm/memory-failure.c |   27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-refactor-inactive_file_is_low-to-use-get_lru_size include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-refactor-inactive_file_is_low-to-use-get_lru_size
-+++ a/include/linux/memcontrol.h
-@@ -116,7 +116,6 @@ void mem_cgroup_iter_break(struct mem_cg
-  * For memory reclaim.
-  */
- int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec);
--int mem_cgroup_inactive_file_is_low(struct lruvec *lruvec);
- int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list);
- void mem_cgroup_update_lru_size(struct lruvec *, enum lru_list, int);
-@@ -321,12 +320,6 @@ mem_cgroup_inactive_anon_is_low(struct l
- 	return 1;
- }
+diff -puN mm/memory-failure.c~hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-fix-misjudgement-of-page_action-for-errors-on-mlocked-pages
++++ a/mm/memory-failure.c
+@@ -1021,6 +1021,7 @@ int memory_failure(unsigned long pfn, in
+ 	struct page *hpage;
+ 	int res;
+ 	unsigned int nr_pages;
++	unsigned long page_flags;
  
--static inline int
--mem_cgroup_inactive_file_is_low(struct lruvec *lruvec)
--{
--	return 1;
--}
--
- static inline unsigned long
- mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
- {
-diff -puN mm/memcontrol.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size mm/memcontrol.c
---- a/mm/memcontrol.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size
-+++ a/mm/memcontrol.c
-@@ -1396,17 +1396,6 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	return inactive * inactive_ratio < active;
- }
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure from trap %d on page %lx", trapno, pfn);
+@@ -1129,6 +1130,15 @@ int memory_failure(unsigned long pfn, in
+ 	lock_page(hpage);
  
--int mem_cgroup_inactive_file_is_low(struct lruvec *lruvec)
--{
--	unsigned long active;
--	unsigned long inactive;
--
--	inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_FILE);
--	active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_FILE);
--
--	return (active > inactive);
--}
--
- #define mem_cgroup_from_res_counter(counter, member)	\
- 	container_of(counter, struct mem_cgroup, member)
- 
-diff -puN mm/vmscan.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size mm/vmscan.c
---- a/mm/vmscan.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size
-+++ a/mm/vmscan.c
-@@ -1579,16 +1579,6 @@ static inline int inactive_anon_is_low(s
- }
- #endif
- 
--static int inactive_file_is_low_global(struct zone *zone)
--{
--	unsigned long active, inactive;
--
--	active = zone_page_state(zone, NR_ACTIVE_FILE);
--	inactive = zone_page_state(zone, NR_INACTIVE_FILE);
--
--	return (active > inactive);
--}
--
- /**
-  * inactive_file_is_low - check if file pages need to be deactivated
-  * @lruvec: LRU vector to check
-@@ -1605,10 +1595,13 @@ static int inactive_file_is_low_global(s
-  */
- static int inactive_file_is_low(struct lruvec *lruvec)
- {
--	if (!mem_cgroup_disabled())
--		return mem_cgroup_inactive_file_is_low(lruvec);
-+	unsigned long inactive;
-+	unsigned long active;
+ 	/*
++	 * We use page flags to determine what action should be taken, but
++	 * the flags can be modified by the error containment action.  One
++	 * example is an mlocked page, where PG_mlocked is cleared by
++	 * page_remove_rmap() in try_to_unmap_one(). So to determine page status
++	 * correctly, we save a copy of the page flags at this time.
++	 */
++	page_flags = p->flags;
 +
-+	inactive = get_lru_size(lruvec, LRU_INACTIVE_FILE);
-+	active = get_lru_size(lruvec, LRU_ACTIVE_FILE);
++	/*
+ 	 * unpoison always clear PG_hwpoison inside page lock
+ 	 */
+ 	if (!PageHWPoison(p)) {
+@@ -1186,12 +1196,19 @@ int memory_failure(unsigned long pfn, in
+ 	}
  
--	return inactive_file_is_low_global(lruvec_zone(lruvec));
-+	return active > inactive;
- }
- 
- static int inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
+ 	res = -EBUSY;
+-	for (ps = error_states;; ps++) {
+-		if ((p->flags & ps->mask) == ps->res) {
+-			res = page_action(ps, p, pfn);
++	/*
++	 * The first check uses the current page flags which may not have any
++	 * relevant information. The second check with the saved page flagss is
++	 * carried out only if the first check can't determine the page status.
++	 */
++	for (ps = error_states;; ps++)
++		if ((p->flags & ps->mask) == ps->res)
+ 			break;
+-		}
+-	}
++	if (!ps->mask)
++		for (ps = error_states;; ps++)
++			if ((page_flags & ps->mask) == ps->res)
++				break;
++	res = page_action(ps, p, pfn);
+ out:
+ 	unlock_page(hpage);
+ 	return res;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-mm-memmap_init_zone-performance-improvement.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
