@@ -1,203 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-stop-hotremove-lockdep-warning.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:54:14 -0800
-Message-ID: <20130225205414.BDEDF31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-add-use-zone_end_pfn-and-zone_spans_pfn.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:54:29 -0800
+Message-ID: <20130225205429.BC17C5A426D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:57245 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759831Ab3BYUyQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:54:16 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so363231qah.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:54:15 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:33369 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932115Ab3BYUyb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:54:31 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so347854vch.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:54:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, gerald.schaefer@de.ibm.com, izik.eidus@ravellosystems.com, kosaki.motohiro@gmail.com, pholasek@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: cody@linux.vnet.ibm.com, catalin.marinas@arm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: stop hotremove lockdep warning
+     Subject: mm: add & use zone_end_pfn() and zone_spans_pfn()
 has been removed from the -mm tree.  Its filename was
-     ksm-stop-hotremove-lockdep-warning.patch
+     mm-add-use-zone_end_pfn-and-zone_spans_pfn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: ksm: stop hotremove lockdep warning
+From: Cody P Schafer <cody@linux.vnet.ibm.com>
+Subject: mm: add & use zone_end_pfn() and zone_spans_pfn()
 
-Complaints are rare, but lockdep still does not understand the way
-ksm_memory_callback(MEM_GOING_OFFLINE) takes ksm_thread_mutex, and holds
-it until the ksm_memory_callback(MEM_OFFLINE): that appears to be a
-problem because notifier callbacks are made under down_read of
-blocking_notifier_head->rwsem (so first the mutex is taken while holding
-the rwsem, then later the rwsem is taken while still holding the mutex);
-but is not in fact a problem because mem_hotplug_mutex is held throughout
-the dance.
+Add 2 helpers (zone_end_pfn() and zone_spans_pfn()) to reduce code
+duplication.
 
-There was an attempt to fix this with mutex_lock_nested(); but if that
-happened to fool lockdep two years ago, apparently it does so no longer.
+This also switches to using them in compaction (where an additional
+variable needed to be renamed), page_alloc, vmstat, memory_hotplug, and
+kmemleak.
 
-I had hoped to eradicate this issue in extending KSM page migration not to
-need the ksm_thread_mutex.  But then realized that although the page
-migration itself is safe, we do still need to lock out ksmd and other
-users of get_ksm_page() while offlining memory - at some point between
-MEM_GOING_OFFLINE and MEM_OFFLINE, the struct pages themselves may vanish,
-and get_ksm_page()'s accesses to them become a violation.
+Note that in compaction.c I avoid calling zone_end_pfn() repeatedly because I
+expect at some point the sycronization issues with start_pfn & spanned_pages
+will need fixing, either by actually using the seqlock or clever memory barrier
+usage.
 
-So, give up on holding ksm_thread_mutex itself from MEM_GOING_OFFLINE to
-MEM_OFFLINE, and add a KSM_RUN_OFFLINE flag, and wait_while_offlining()
-checks, to achieve the same lockout without being caught by lockdep.  This
-is less elegant for KSM, but it's more important to keep lockdep useful to
-other users - and I apologize for how long it took to fix.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Tested-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Petr Holasek <pholasek@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Izik Eidus <izik.eidus@ravellosystems.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
+Cc: David Hansen <dave@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   55 +++++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 41 insertions(+), 14 deletions(-)
+ include/linux/mmzone.h |   10 ++++++++++
+ mm/compaction.c        |   10 +++++-----
+ mm/kmemleak.c          |    5 ++---
+ mm/memory_hotplug.c    |   10 +++++-----
+ mm/page_alloc.c        |   22 +++++++++-------------
+ mm/vmstat.c            |    2 +-
+ 6 files changed, 32 insertions(+), 27 deletions(-)
 
-diff -puN mm/ksm.c~ksm-stop-hotremove-lockdep-warning mm/ksm.c
---- a/mm/ksm.c~ksm-stop-hotremove-lockdep-warning
-+++ a/mm/ksm.c
-@@ -226,7 +226,9 @@ static unsigned int ksm_merge_across_nod
- #define KSM_RUN_STOP	0
- #define KSM_RUN_MERGE	1
- #define KSM_RUN_UNMERGE	2
--static unsigned int ksm_run = KSM_RUN_STOP;
-+#define KSM_RUN_OFFLINE	4
-+static unsigned long ksm_run = KSM_RUN_STOP;
-+static void wait_while_offlining(void);
- 
- static DECLARE_WAIT_QUEUE_HEAD(ksm_thread_wait);
- static DEFINE_MUTEX(ksm_thread_mutex);
-@@ -1700,6 +1702,7 @@ static int ksm_scan_thread(void *nothing
- 
- 	while (!kthread_should_stop()) {
- 		mutex_lock(&ksm_thread_mutex);
-+		wait_while_offlining();
- 		if (ksmd_should_run())
- 			ksm_do_scan(ksm_thread_pages_to_scan);
- 		mutex_unlock(&ksm_thread_mutex);
-@@ -2056,6 +2059,22 @@ void ksm_migrate_page(struct page *newpa
- #endif /* CONFIG_MIGRATION */
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-+static int just_wait(void *word)
-+{
-+	schedule();
-+	return 0;
-+}
-+
-+static void wait_while_offlining(void)
-+{
-+	while (ksm_run & KSM_RUN_OFFLINE) {
-+		mutex_unlock(&ksm_thread_mutex);
-+		wait_on_bit(&ksm_run, ilog2(KSM_RUN_OFFLINE),
-+				just_wait, TASK_UNINTERRUPTIBLE);
-+		mutex_lock(&ksm_thread_mutex);
-+	}
-+}
-+
- static void ksm_check_stable_tree(unsigned long start_pfn,
- 				  unsigned long end_pfn)
- {
-@@ -2098,15 +2117,15 @@ static int ksm_memory_callback(struct no
- 	switch (action) {
- 	case MEM_GOING_OFFLINE:
- 		/*
--		 * Keep it very simple for now: just lock out ksmd and
--		 * MADV_UNMERGEABLE while any memory is going offline.
--		 * mutex_lock_nested() is necessary because lockdep was alarmed
--		 * that here we take ksm_thread_mutex inside notifier chain
--		 * mutex, and later take notifier chain mutex inside
--		 * ksm_thread_mutex to unlock it.   But that's safe because both
--		 * are inside mem_hotplug_mutex.
-+		 * Prevent ksm_do_scan(), unmerge_and_remove_all_rmap_items()
-+		 * and remove_all_stable_nodes() while memory is going offline:
-+		 * it is unsafe for them to touch the stable tree at this time.
-+		 * But unmerge_ksm_pages(), rmap lookups and other entry points
-+		 * which do not need the ksm_thread_mutex are all safe.
- 		 */
--		mutex_lock_nested(&ksm_thread_mutex, SINGLE_DEPTH_NESTING);
-+		mutex_lock(&ksm_thread_mutex);
-+		ksm_run |= KSM_RUN_OFFLINE;
-+		mutex_unlock(&ksm_thread_mutex);
- 		break;
- 
- 	case MEM_OFFLINE:
-@@ -2122,11 +2141,20 @@ static int ksm_memory_callback(struct no
- 		/* fallthrough */
- 
- 	case MEM_CANCEL_OFFLINE:
-+		mutex_lock(&ksm_thread_mutex);
-+		ksm_run &= ~KSM_RUN_OFFLINE;
- 		mutex_unlock(&ksm_thread_mutex);
-+
-+		smp_mb();	/* wake_up_bit advises this */
-+		wake_up_bit(&ksm_run, ilog2(KSM_RUN_OFFLINE));
- 		break;
- 	}
- 	return NOTIFY_OK;
- }
-+#else
-+static void wait_while_offlining(void)
-+{
-+}
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- #ifdef CONFIG_SYSFS
-@@ -2189,7 +2217,7 @@ KSM_ATTR(pages_to_scan);
- static ssize_t run_show(struct kobject *kobj, struct kobj_attribute *attr,
- 			char *buf)
- {
--	return sprintf(buf, "%u\n", ksm_run);
-+	return sprintf(buf, "%lu\n", ksm_run);
+diff -puN include/linux/mmzone.h~mm-add-use-zone_end_pfn-and-zone_spans_pfn include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-add-use-zone_end_pfn-and-zone_spans_pfn
++++ a/include/linux/mmzone.h
+@@ -527,6 +527,16 @@ static inline int zone_is_oom_locked(con
+ 	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
  }
  
- static ssize_t run_store(struct kobject *kobj, struct kobj_attribute *attr,
-@@ -2212,6 +2240,7 @@ static ssize_t run_store(struct kobject 
++static inline unsigned zone_end_pfn(const struct zone *zone)
++{
++	return zone->zone_start_pfn + zone->spanned_pages;
++}
++
++static inline bool zone_spans_pfn(const struct zone *zone, unsigned long pfn)
++{
++	return zone->zone_start_pfn <= pfn && pfn < zone_end_pfn(zone);
++}
++
+ /*
+  * The "priority" of VM scanning is how much of the queues we will scan in one
+  * go. A value of 12 for DEF_PRIORITY implies that we will scan 1/4096th of the
+diff -puN mm/compaction.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn mm/compaction.c
+--- a/mm/compaction.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn
++++ a/mm/compaction.c
+@@ -86,7 +86,7 @@ static inline bool isolation_suitable(st
+ static void __reset_isolation_suitable(struct zone *zone)
+ {
+ 	unsigned long start_pfn = zone->zone_start_pfn;
+-	unsigned long end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++	unsigned long end_pfn = zone_end_pfn(zone);
+ 	unsigned long pfn;
+ 
+ 	zone->compact_cached_migrate_pfn = start_pfn;
+@@ -647,7 +647,7 @@ static void isolate_freepages(struct zon
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
++	unsigned long high_pfn, low_pfn, pfn, z_end_pfn, end_pfn;
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
+ 
+@@ -666,7 +666,7 @@ static void isolate_freepages(struct zon
  	 */
+ 	high_pfn = min(low_pfn, pfn);
  
- 	mutex_lock(&ksm_thread_mutex);
-+	wait_while_offlining();
- 	if (ksm_run != flags) {
- 		ksm_run = flags;
- 		if (flags & KSM_RUN_UNMERGE) {
-@@ -2254,6 +2283,7 @@ static ssize_t merge_across_nodes_store(
- 		return -EINVAL;
+-	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++	z_end_pfn = zone_end_pfn(zone);
  
- 	mutex_lock(&ksm_thread_mutex);
-+	wait_while_offlining();
- 	if (ksm_merge_across_nodes != knob) {
- 		if (ksm_pages_shared || remove_all_stable_nodes())
- 			err = -EBUSY;
-@@ -2366,10 +2396,7 @@ static int __init ksm_init(void)
- #endif /* CONFIG_SYSFS */
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+@@ -709,7 +709,7 @@ static void isolate_freepages(struct zon
+ 		 * only scans within a pageblock
+ 		 */
+ 		end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
+-		end_pfn = min(end_pfn, zone_end_pfn);
++		end_pfn = min(end_pfn, z_end_pfn);
+ 		isolated = isolate_freepages_block(cc, pfn, end_pfn,
+ 						   freelist, false);
+ 		nr_freepages += isolated;
+@@ -923,7 +923,7 @@ static int compact_zone(struct zone *zon
+ {
+ 	int ret;
+ 	unsigned long start_pfn = zone->zone_start_pfn;
+-	unsigned long end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++	unsigned long end_pfn = zone_end_pfn(zone);
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
--	/*
--	 * Choose a high priority since the callback takes ksm_thread_mutex:
--	 * later callbacks could only be taking locks which nest within that.
--	 */
-+	/* There is no significance to this priority 100 */
- 	hotplug_memory_notifier(ksm_memory_callback, 100);
- #endif
- 	return 0;
+ 	ret = compaction_suitable(zone, cc->order);
+ 	switch (ret) {
+diff -puN mm/kmemleak.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn
++++ a/mm/kmemleak.c
+@@ -1300,9 +1300,8 @@ static void kmemleak_scan(void)
+ 	 */
+ 	lock_memory_hotplug();
+ 	for_each_online_node(i) {
+-		pg_data_t *pgdat = NODE_DATA(i);
+-		unsigned long start_pfn = pgdat->node_start_pfn;
+-		unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
++		unsigned long start_pfn = node_start_pfn(i);
++		unsigned long end_pfn = node_end_pfn(i);
+ 		unsigned long pfn;
+ 
+ 		for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+diff -puN mm/memory_hotplug.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn
++++ a/mm/memory_hotplug.c
+@@ -299,7 +299,7 @@ static int __meminit move_pfn_range_left
+ 	pgdat_resize_lock(z1->zone_pgdat, &flags);
+ 
+ 	/* can't move pfns which are higher than @z2 */
+-	if (end_pfn > z2->zone_start_pfn + z2->spanned_pages)
++	if (end_pfn > zone_end_pfn(z2))
+ 		goto out_fail;
+ 	/* the move out part mast at the left most of @z2 */
+ 	if (start_pfn > z2->zone_start_pfn)
+@@ -315,7 +315,7 @@ static int __meminit move_pfn_range_left
+ 		z1_start_pfn = start_pfn;
+ 
+ 	resize_zone(z1, z1_start_pfn, end_pfn);
+-	resize_zone(z2, end_pfn, z2->zone_start_pfn + z2->spanned_pages);
++	resize_zone(z2, end_pfn, zone_end_pfn(z2));
+ 
+ 	pgdat_resize_unlock(z1->zone_pgdat, &flags);
+ 
+@@ -347,15 +347,15 @@ static int __meminit move_pfn_range_righ
+ 	if (z1->zone_start_pfn > start_pfn)
+ 		goto out_fail;
+ 	/* the move out part mast at the right most of @z1 */
+-	if (z1->zone_start_pfn + z1->spanned_pages >  end_pfn)
++	if (zone_end_pfn(z1) >  end_pfn)
+ 		goto out_fail;
+ 	/* must included/overlap */
+-	if (start_pfn >= z1->zone_start_pfn + z1->spanned_pages)
++	if (start_pfn >= zone_end_pfn(z1))
+ 		goto out_fail;
+ 
+ 	/* use end_pfn for z2's end_pfn if z2 is empty */
+ 	if (z2->spanned_pages)
+-		z2_end_pfn = z2->zone_start_pfn + z2->spanned_pages;
++		z2_end_pfn = zone_end_pfn(z2);
+ 	else
+ 		z2_end_pfn = end_pfn;
+ 
+diff -puN mm/page_alloc.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn
++++ a/mm/page_alloc.c
+@@ -250,9 +250,7 @@ static int page_outside_zone_boundaries(
+ 
+ 	do {
+ 		seq = zone_span_seqbegin(zone);
+-		if (pfn >= zone->zone_start_pfn + zone->spanned_pages)
+-			ret = 1;
+-		else if (pfn < zone->zone_start_pfn)
++		if (!zone_spans_pfn(zone, pfn))
+ 			ret = 1;
+ 	} while (zone_span_seqretry(zone, seq));
+ 
+@@ -990,9 +988,9 @@ int move_freepages_block(struct zone *zo
+ 	end_pfn = start_pfn + pageblock_nr_pages - 1;
+ 
+ 	/* Do not cross zone boundaries */
+-	if (start_pfn < zone->zone_start_pfn)
++	if (!zone_spans_pfn(zone, start_pfn))
+ 		start_page = page;
+-	if (end_pfn >= zone->zone_start_pfn + zone->spanned_pages)
++	if (!zone_spans_pfn(zone, end_pfn))
+ 		return 0;
+ 
+ 	return move_freepages(zone, start_page, end_page, migratetype);
+@@ -1286,7 +1284,7 @@ void mark_free_pages(struct zone *zone)
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 
+-	max_zone_pfn = zone->zone_start_pfn + zone->spanned_pages;
++	max_zone_pfn = zone_end_pfn(zone);
+ 	for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
+ 		if (pfn_valid(pfn)) {
+ 			struct page *page = pfn_to_page(pfn);
+@@ -3798,7 +3796,7 @@ static void setup_zone_migrate_reserve(s
+ 	 * the block.
+ 	 */
+ 	start_pfn = zone->zone_start_pfn;
+-	end_pfn = start_pfn + zone->spanned_pages;
++	end_pfn = zone_end_pfn(zone);
+ 	start_pfn = roundup(start_pfn, pageblock_nr_pages);
+ 	reserve = roundup(min_wmark_pages(zone), pageblock_nr_pages) >>
+ 							pageblock_order;
+@@ -3912,7 +3910,7 @@ void __meminit memmap_init_zone(unsigned
+ 		 * pfn out of zone.
+ 		 */
+ 		if ((z->zone_start_pfn <= pfn)
+-		    && (pfn < z->zone_start_pfn + z->spanned_pages)
++		    && (pfn < zone_end_pfn(z))
+ 		    && !(pfn & (pageblock_nr_pages - 1)))
+ 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 
+@@ -4713,7 +4711,7 @@ static void __init_refok alloc_node_mem_
+ 		 * for the buddy allocator to function correctly.
+ 		 */
+ 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
+-		end = pgdat->node_start_pfn + pgdat->node_spanned_pages;
++		end = pgdat_end_pfn(pgdat);
+ 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 		size =  (end - start) * sizeof(struct page);
+ 		map = alloc_remap(pgdat->node_id, size);
+@@ -5928,8 +5926,7 @@ void set_pageblock_flags_group(struct pa
+ 	pfn = page_to_pfn(page);
+ 	bitmap = get_pageblock_bitmap(zone, pfn);
+ 	bitidx = pfn_to_bitidx(zone, pfn);
+-	VM_BUG_ON(pfn < zone->zone_start_pfn);
+-	VM_BUG_ON(pfn >= zone->zone_start_pfn + zone->spanned_pages);
++	VM_BUG_ON(!zone_spans_pfn(zone, pfn));
+ 
+ 	for (; start_bitidx <= end_bitidx; start_bitidx++, value <<= 1)
+ 		if (flags & value)
+@@ -6027,8 +6024,7 @@ bool is_pageblock_removable_nolock(struc
+ 
+ 	zone = page_zone(page);
+ 	pfn = page_to_pfn(page);
+-	if (zone->zone_start_pfn > pfn ||
+-			zone->zone_start_pfn + zone->spanned_pages <= pfn)
++	if (!zone_spans_pfn(zone, pfn))
+ 		return false;
+ 
+ 	return !has_unmovable_pages(zone, page, 0, true);
+diff -puN mm/vmstat.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn mm/vmstat.c
+--- a/mm/vmstat.c~mm-add-use-zone_end_pfn-and-zone_spans_pfn
++++ a/mm/vmstat.c
+@@ -891,7 +891,7 @@ static void pagetypeinfo_showblockcount_
+ 	int mtype;
+ 	unsigned long pfn;
+ 	unsigned long start_pfn = zone->zone_start_pfn;
+-	unsigned long end_pfn = start_pfn + zone->spanned_pages;
++	unsigned long end_pfn = zone_end_pfn(zone);
+ 	unsigned long count[MIGRATE_TYPES] = { 0, };
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
 
 origin.patch
-revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
-pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
 
