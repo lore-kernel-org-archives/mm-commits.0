@@ -1,94 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-treat-unstable-nid-like-in-stable-tree.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:56:02 -0800
-Message-ID: <20130225205602.AAEDF5A42E5@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mmksm-swapoff-might-need-to-copy.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:56:11 -0800
+Message-ID: <20130225205611.CE8E531C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:35121 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759217Ab3BYU4D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:03 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so348639yhz.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:03 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:45237 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759787Ab3BYU4N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:13 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so363497qah.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, hannes@cmpxchg.org, izik.eidus@ravellosystems.com, mgorman@suse.de, pholasek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: treat unstable nid like in stable tree
+     Subject: mm,ksm: swapoff might need to copy
 has been removed from the -mm tree.  Its filename was
-     ksm-treat-unstable-nid-like-in-stable-tree.patch
+     mmksm-swapoff-might-need-to-copy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ksm: treat unstable nid like in stable tree
+Subject: mm,ksm: swapoff might need to copy
 
-An inconsistency emerged in reviewing the NUMA node changes to KSM: when
-meeting a page from the wrong NUMA node in a stable tree, we say that it's
-okay for comparisons, but not as a leaf for merging; whereas when meeting
-a page from the wrong NUMA node in an unstable tree, we bail out
-immediately.
+Before establishing that KSM page migration was the cause of my
+WARN_ON_ONCE(page_mapped(page))s, I suspected that they came from the lack
+of a ksm_might_need_to_copy() in swapoff's unuse_pte() - which in many
+respects is equivalent to faulting in a page.
 
-Now, it might be that a wrong NUMA node in an unstable tree is more likely
-to correlate with instablility (different content, with rbnode now
-misplaced) than page migration; but even so, we are accustomed to
-instablility in the unstable tree.
+In fact I've never caught that as the cause: but in theory it does at
+least need the KSM_RUN_UNMERGE check in ksm_might_need_to_copy(), to avoid
+bringing a KSM page back in when it's not supposed to be.
 
-Without strong evidence for which strategy is generally better, I'd rather
-be consistent with what's done in the stable tree: accept a page from the
-wrong NUMA node for comparison, but not as a leaf for merging.
+I intended to copy how it's done in do_swap_page(), but have a strong
+aversion to how "swapcache" ends up being used there: rework it with "page
+!= swapcache".
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Petr Holasek <pholasek@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Izik Eidus <izik.eidus@ravellosystems.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ mm/swapfile.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~ksm-treat-unstable-nid-like-in-stable-tree mm/ksm.c
---- a/mm/ksm.c~ksm-treat-unstable-nid-like-in-stable-tree
-+++ a/mm/ksm.c
-@@ -1342,16 +1342,6 @@ struct rmap_item *unstable_tree_search_i
- 			return NULL;
- 		}
+diff -puN mm/swapfile.c~mmksm-swapoff-might-need-to-copy mm/swapfile.c
+--- a/mm/swapfile.c~mmksm-swapoff-might-need-to-copy
++++ a/mm/swapfile.c
+@@ -874,11 +874,17 @@ unsigned int count_swap_pages(int type, 
+ static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, swp_entry_t entry, struct page *page)
+ {
++	struct page *swapcache;
+ 	struct mem_cgroup *memcg;
+ 	spinlock_t *ptl;
+ 	pte_t *pte;
+ 	int ret = 1;
  
--		/*
--		 * If tree_page has been migrated to another NUMA node, it
--		 * will be flushed out and put into the right unstable tree
--		 * next time: only merge with it if merge_across_nodes.
--		 */
--		if (!ksm_merge_across_nodes && page_to_nid(tree_page) != nid) {
--			put_page(tree_page);
--			return NULL;
--		}
--
- 		ret = memcmp_pages(page, tree_page);
++	swapcache = page;
++	page = ksm_might_need_to_copy(page, vma, addr);
++	if (unlikely(!page))
++		return -ENOMEM;
++
+ 	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page,
+ 					 GFP_KERNEL, &memcg)) {
+ 		ret = -ENOMEM;
+@@ -897,7 +903,10 @@ static int unuse_pte(struct vm_area_stru
+ 	get_page(page);
+ 	set_pte_at(vma->vm_mm, addr, pte,
+ 		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
+-	page_add_anon_rmap(page, vma, addr);
++	if (page == swapcache)
++		page_add_anon_rmap(page, vma, addr);
++	else /* ksm created a completely new copy */
++		page_add_new_anon_rmap(page, vma, addr);
+ 	mem_cgroup_commit_charge_swapin(page, memcg);
+ 	swap_free(entry);
+ 	/*
+@@ -908,6 +917,10 @@ static int unuse_pte(struct vm_area_stru
+ out:
+ 	pte_unmap_unlock(pte, ptl);
+ out_nolock:
++	if (page != swapcache) {
++		unlock_page(page);
++		put_page(page);
++	}
+ 	return ret;
+ }
  
- 		parent = *new;
-@@ -1361,6 +1351,15 @@ struct rmap_item *unstable_tree_search_i
- 		} else if (ret > 0) {
- 			put_page(tree_page);
- 			new = &parent->rb_right;
-+		} else if (!ksm_merge_across_nodes &&
-+			   page_to_nid(tree_page) != nid) {
-+			/*
-+			 * If tree_page has been migrated to another NUMA node,
-+			 * it will be flushed out and put in the right unstable
-+			 * tree next time: only merge with it when across_nodes.
-+			 */
-+			put_page(tree_page);
-+			return NULL;
- 		} else {
- 			*tree_pagep = tree_page;
- 			return tree_rmap_item;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
