@@ -1,83 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loopdev-ignore-negative-offset-when-calculate-loop-device-size.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:56:47 -0800
-Message-ID: <20130225205647.C13FF31C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] fs-direct-ioc-fix-possible-use-after-free-with-aio.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:56:50 -0800
+Message-ID: <20130225205650.BD0065A426D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:51667 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932091Ab3BYU4t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:49 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so159600yen.3
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:48 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:39705 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759460Ab3BYU4w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:52 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so347684ves.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yan@linux.vnet.ibm.com, axboe@kernel.dk, hindessm@uk.ibm.com, knikanth@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jack@suse.cz, axboe@kernel.dk, hch@infradead.org, jmoyer@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loopdev: ignore negative offset when calculate loop device size
+     Subject: fs/direct-io.c: fix possible use-after-free with AIO
 has been removed from the -mm tree.  Its filename was
-     loopdev-ignore-negative-offset-when-calculate-loop-device-size.patch
+     fs-direct-ioc-fix-possible-use-after-free-with-aio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Guo Chao <yan@linux.vnet.ibm.com>
-Subject: loopdev: ignore negative offset when calculate loop device size
+From: Jan Kara <jack@suse.cz>
+Subject: fs/direct-io.c: fix possible use-after-free with AIO
 
-Negative offset may cause loop device size larger than backing file
-size.
+Running AIO is pinning inode in memory using file reference.  Once AIO is
+completed using aio_complete(), file reference is put and inode can be
+freed from memory.  So we have to be sure that calling aio_complete() is
+the last thing we do with the inode.
 
- $ fallocate -l 1M a
- $ losetup --offset 0xffffffffffff0000 /dev/loop0 a
- $ blockdev --getsize64 /dev/loop0
- 1114112
- $ ls -l a
- -rw-r--r-- 1 root root 1048576 Jan 23 12:46 a
- $ cat /dev/loop0
- cat: /dev/loop0: Input/output error
-
-It makes no sense to do that. Only apply offset when it's positive.
-
-Fix a typo in the comment by the way.
-
-Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Guo Chao <yan@linux.vnet.ibm.com>
-Cc: M. Hindess <hindessm@uk.ibm.com>
-Cc: Nikanth Karthikesan <knikanth@suse.de>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/direct-io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/loop.c~loopdev-ignore-negative-offset-when-calculate-loop-device-size drivers/block/loop.c
---- a/drivers/block/loop.c~loopdev-ignore-negative-offset-when-calculate-loop-device-size
-+++ a/drivers/block/loop.c
-@@ -162,12 +162,13 @@ static struct loop_func_table *xfer_func
+diff -puN fs/direct-io.c~fs-direct-ioc-fix-possible-use-after-free-with-aio fs/direct-io.c
+--- a/fs/direct-io.c~fs-direct-ioc-fix-possible-use-after-free-with-aio
++++ a/fs/direct-io.c
+@@ -261,9 +261,9 @@ static ssize_t dio_complete(struct dio *
+ 		dio->end_io(dio->iocb, offset, transferred,
+ 			    dio->private, ret, is_async);
+ 	} else {
++		inode_dio_done(dio->inode);
+ 		if (is_async)
+ 			aio_complete(dio->iocb, ret, 0);
+-		inode_dio_done(dio->inode);
+ 	}
  
- static loff_t get_size(loff_t offset, loff_t sizelimit, struct file *file)
- {
--	loff_t size, loopsize;
-+	loff_t loopsize;
- 
- 	/* Compute loopsize in bytes */
--	size = i_size_read(file->f_mapping->host);
--	loopsize = size - offset;
--	/* offset is beyond i_size, wierd but possible */
-+	loopsize = i_size_read(file->f_mapping->host);
-+	if (offset > 0)
-+		loopsize -= offset;
-+	/* offset is beyond i_size, weird but possible */
- 	if (loopsize < 0)
- 		return 0;
- 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from yan@linux.vnet.ibm.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
+origin.patch
 linux-next.patch
+fs-change-return-values-from-eacces-to-eperm.patch
+fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs.patch
+fs-fix-hang-with-bsd-accounting-on-frozen-filesystem.patch
+ocfs2-add-freeze-protection-to-ocfs2_file_splice_write.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
+hfsplus-fix-issue-with-unzeroed-unused-b-tree-nodes.patch
+ocfs2-fix-possible-use-after-free-with-aio.patch
 
