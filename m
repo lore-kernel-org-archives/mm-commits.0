@@ -1,76 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:52:37 -0800
-Message-ID: <20130225205237.BE3FE5A426D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:52:40 -0800
+Message-ID: <20130225205240.C9FEC5A426D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:37709 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754791Ab3BYUwj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:39 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so348190yhz.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:38 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:62748 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759754Ab3BYUwm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:52:42 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so346785ves.5
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:52:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, liwanp@linux.vnet.ibm.com, mingo@kernel.org, simon.jeons@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: take THP into account when migrating pages for NUMA balancing
+     Subject: mm: numa: handle side-effects in count_vm_numa_events() for !CONFIG_NUMA_BALANCING
 has been removed from the -mm tree.  Its filename was
-     mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing.patch
+     mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: take THP into account when migrating pages for NUMA balancing
+Subject: mm: numa: handle side-effects in count_vm_numa_events() for !CONFIG_NUMA_BALANCING
 
-Wanpeng Li pointed out that numamigrate_isolate_page() assumes that only
-one base page is being migrated when in fact it can also be checking THP. 
-The consequences are that a migration will be attempted when a target node
-is nearly full and fail later.  It's unlikely to be user-visible but it
-should be fixed.  While we are there, migrate_balanced_pgdat() should
-treat nr_migrate_pages as an unsigned long as it is treated as a
-watermark.
+The current definitions for count_vm_numa_events() is wrong for
+!CONFIG_NUMA_BALANCING as the following would miss the side-effect.
+
+	count_vm_numa_events(NUMA_FOO, bar++);
+
+There are no such users of count_vm_numa_events() but this patch fixes it
+as it is a potential pitfall.  Ideally both would be converted to static
+inline but NUMA_PTE_UPDATES is not defined if !CONFIG_NUMA_BALANCING and
+creating dummy constants just to have a static inline would be similarly
+clumsy.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Suggested-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Simon Jeons <simon.jeons@gmail.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/vmstat.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing mm/migrate.c
---- a/mm/migrate.c~mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing
-+++ a/mm/migrate.c
-@@ -1461,7 +1461,7 @@ int migrate_vmas(struct mm_struct *mm, c
-  * pages. Currently it only checks the watermarks which crude
-  */
- static bool migrate_balanced_pgdat(struct pglist_data *pgdat,
--				   int nr_migrate_pages)
-+				   unsigned long nr_migrate_pages)
- {
- 	int z;
- 	for (z = pgdat->nr_zones - 1; z >= 0; z--) {
-@@ -1559,8 +1559,10 @@ int numamigrate_isolate_page(pg_data_t *
- {
- 	int ret = 0;
+diff -puN include/linux/vmstat.h~mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing
++++ a/include/linux/vmstat.h
+@@ -85,7 +85,7 @@ static inline void vm_events_fold_cpu(in
+ #define count_vm_numa_events(x, y) count_vm_events(x, y)
+ #else
+ #define count_vm_numa_event(x) do {} while (0)
+-#define count_vm_numa_events(x, y) do {} while (0)
++#define count_vm_numa_events(x, y) do { (void)(y); } while (0)
+ #endif /* CONFIG_NUMA_BALANCING */
  
-+	VM_BUG_ON(compound_order(page) && !PageTransHuge(page));
-+
- 	/* Avoid migrating to a node that is nearly full */
--	if (migrate_balanced_pgdat(pgdat, 1)) {
-+	if (migrate_balanced_pgdat(pgdat, 1UL << compound_order(page))) {
- 		int page_lru;
- 
- 		if (isolate_lru_page(page)) {
+ #define __count_zone_vm_events(item, zone, delta) \
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
