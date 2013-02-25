@@ -1,70 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-cleanup-mem_cgroup_init-comment.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:55:09 -0800
-Message-ID: <20130225205509.BA2D531C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:55:16 -0800
+Message-ID: <20130225205516.9FC5531C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:33572 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932155Ab3BYUzL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:11 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 3so70782qea.4
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:10 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:46901 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759261Ab3BYUzR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:55:17 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so347725ghb.0
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:55:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, htejun@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: cleanup mem_cgroup_init comment
+     Subject: ia64: use %ld to print pages calculated in nr_free_buffer_pages
 has been removed from the -mm tree.  Its filename was
-     memcg-cleanup-mem_cgroup_init-comment.patch
+     ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: cleanup mem_cgroup_init comment
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: ia64: use %ld to print pages calculated in nr_free_buffer_pages
 
-We should encourage all memcg controller initialization independent on a
-specific mem_cgroup to be done here rather than exploit css_alloc callback
-and assume that nothing happens before root cgroup is created.
+Now the function nr_free_buffer_pages returns unsigned long, so use %ld to
+print its return value.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/ia64/mm/contig.c    |    2 +-
+ arch/ia64/mm/discontig.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-cleanup-mem_cgroup_init-comment mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-cleanup-mem_cgroup_init-comment
-+++ a/mm/memcontrol.c
-@@ -6830,10 +6830,12 @@ static void __init enable_swap_cgroup(vo
- #endif
+diff -puN arch/ia64/mm/contig.c~ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages arch/ia64/mm/contig.c
+--- a/arch/ia64/mm/contig.c~ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages
++++ a/arch/ia64/mm/contig.c
+@@ -93,7 +93,7 @@ void show_mem(unsigned int filter)
+ 	printk(KERN_INFO "%d pages swap cached\n", total_cached);
+ 	printk(KERN_INFO "Total of %ld pages in page table cache\n",
+ 	       quicklist_total_size());
+-	printk(KERN_INFO "%d free buffer pages\n", nr_free_buffer_pages());
++	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
+ }
  
- /*
-- * The rest of init is performed during ->css_alloc() for root css which
-- * happens before initcalls.  hotcpu_notifier() can't be done together as
-- * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
-- * dependency.  Do it from a subsys_initcall().
-+ * subsys_initcall() for memory controller.
-+ *
-+ * Some parts like hotcpu_notifier() have to be initialized from this context
-+ * because of lock dependencies (cgroup_lock -> cpu hotplug) but basically
-+ * everything that doesn't depend on a specific mem_cgroup structure should
-+ * be initialized from here.
-  */
- static int __init mem_cgroup_init(void)
- {
+ 
+diff -puN arch/ia64/mm/discontig.c~ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~ia64-use-%ld-to-print-pages-calculated-in-nr_free_buffer_pages
++++ a/arch/ia64/mm/discontig.c
+@@ -666,7 +666,7 @@ void show_mem(unsigned int filter)
+ 	printk(KERN_INFO "%d pages swap cached\n", total_cached);
+ 	printk(KERN_INFO "Total of %ld pages in page table cache\n",
+ 	       quicklist_total_size());
+-	printk(KERN_INFO "%d free buffer pages\n", nr_free_buffer_pages());
++	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
 origin.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication-fix-fix.patch
+kexec-get-rid-of-duplicate-check-for-hole_end.patch
+kexec-prevent-double-free-on-image-allocation-failure.patch
+kexec-fix-memory-leak-in-function-kimage_normal_alloc.patch
+kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc.patch
 
