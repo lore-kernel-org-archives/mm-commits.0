@@ -1,32 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-remove-redundant-check-to-bd_openers.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:56:32 -0800
-Message-ID: <20130225205632.C0E1431C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] loopdev-fix-a-deadlock.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:56:35 -0800
+Message-ID: <20130225205635.CEC8C5A4277@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:44241 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759857Ab3BYU4d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:33 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so159595yen.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:33 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:63687 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759857Ab3BYU4h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:56:37 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so347863vea.2
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:56:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yan@linux.vnet.ibm.com, axboe@kernel.dk, hindessm@uk.ibm.com, knikanth@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: remove redundant check to bd_openers()
+     Subject: loopdev: fix a deadlock
 has been removed from the -mm tree.  Its filename was
-     block-remove-redundant-check-to-bd_openers.patch
+     loopdev-fix-a-deadlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Guo Chao <yan@linux.vnet.ibm.com>
-Subject: block: remove redundant check to bd_openers()
+Subject: loopdev: fix a deadlock
 
-bd_openers is stable under bd_mutex, no need to check it twice.
+bd_mutex and lo_ctl_mutex can be held in different order.
+
+Path #1:
+
+blkdev_open
+ blkdev_get
+  __blkdev_get (hold bd_mutex)
+   lo_open (hold lo_ctl_mutex)
+
+Path #2:
+
+blkdev_ioctl
+ lo_ioctl (hold lo_ctl_mutex)
+  lo_set_capacity (hold bd_mutex)
+
+Lockdep does not report it, because path #2 actually holds a subclass of
+lo_ctl_mutex.  This subclass seems creep into the code by mistake.  The
+patch author actually just mentioned it in the changelog, see commit
+f028f3b2 ("loop: fix circular locking in loop_clr_fd()"), also see:
+
+	http://marc.info/?l=linux-kernel&m=123806169129727&w=2
+
+Path #2 hold bd_mutex to call bd_set_size(), I've protected it
+with i_mutex in a previous patch, so drop bd_mutex at this site.
 
 Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -37,21 +60,24 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/loop.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/block_dev.c~block-remove-redundant-check-to-bd_openers fs/block_dev.c
---- a/fs/block_dev.c~block-remove-redundant-check-to-bd_openers
-+++ a/fs/block_dev.c
-@@ -1120,7 +1120,7 @@ static int __blkdev_get(struct block_dev
- 				}
- 			}
+diff -puN drivers/block/loop.c~loopdev-fix-a-deadlock drivers/block/loop.c
+--- a/drivers/block/loop.c~loopdev-fix-a-deadlock
++++ a/drivers/block/loop.c
+@@ -1285,11 +1285,9 @@ static int loop_set_capacity(struct loop
+ 	/* the width of sector_t may be narrow for bit-shift */
+ 	sz = sec;
+ 	sz <<= 9;
+-	mutex_lock(&bdev->bd_mutex);
+ 	bd_set_size(bdev, sz);
+ 	/* let user-space know about the new size */
+ 	kobject_uevent(&disk_to_dev(bdev->bd_disk)->kobj, KOBJ_CHANGE);
+-	mutex_unlock(&bdev->bd_mutex);
  
--			if (!ret && !bdev->bd_openers) {
-+			if (!ret) {
- 				bd_set_size(bdev,(loff_t)get_capacity(disk)<<9);
- 				bdi = blk_get_backing_dev_info(bdev);
- 				if (bdi == NULL)
+  out:
+ 	return err;
 _
 
 Patches currently in -mm which might be from yan@linux.vnet.ibm.com are
