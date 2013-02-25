@@ -1,187 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch removed from -mm tree
-Date: Mon, 25 Feb 2013 12:53:08 -0800
-Message-ID: <20130225205308.D3B7231C1FC@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-uninline-page_xchg_last_nid.patch removed from -mm tree
+Date: Mon, 25 Feb 2013 12:53:14 -0800
+Message-ID: <20130225205314.9845D31C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:55875 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758022Ab3BYUxK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:53:10 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so362525qaj.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:53:09 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:45408 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758022Ab3BYUxP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 15:53:15 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so347364ghb.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 12:53:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, caiqian@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, rientjes@google.com, tj@kernel.org, zliu@redhat.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: do not create memsw files if swap accounting is disabled
+     Subject: mm: uninline page_xchg_last_nid()
 has been removed from the -mm tree.  Its filename was
-     memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
+     mm-uninline-page_xchg_last_nid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: do not create memsw files if swap accounting is disabled
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: uninline page_xchg_last_nid()
 
-Zhouping Liu has reported that memsw files are exported even though swap
-accounting is runtime disabled if CONFIG_MEMCG_SWAP is enabled.  This
-behavior has been introduced by af36f906 (memcg: always create memsw files
-if CONFIG_CGROUP_MEM_RES_CTLR_SWAP) and it causes any attempt to open the
-file to return EOPNOTSUPP.  Although EOPNOTSUPP should say be clear that
-memsw operations are not supported in the given configuration it is fair
-to say that this behavior could be quite confusing.
+Andrew Morton pointed out that page_xchg_last_nid() and
+reset_page_last_nid() were "getting nuttily large" and asked that it be
+investigated.
 
-Let's tear memsw files out of default cgroup files and add them only if
-the swap accounting is really enabled (either by CONFIG_MEMCG_SWAP_ENABLED
-or swapaccount=1 boot parameter).  We can hook into mem_cgroup_init which
-is called when the memcg subsystem is initialized and which happens after
-boot command line is processed.
+reset_page_last_nid() is on the page free path and it would be unfortunate
+to make that path more expensive than it needs to be.  Due to the internal
+use of page_xchg_last_nid() it is already too expensive but fortunately,
+it should also be impossible for the page->flags to be updated in parallel
+when we call reset_page_last_nid().  Instead of unlining the function, it
+uses a simplier implementation that assumes no parallel updates and should
+now be sufficiently short for inlining.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Zhouping Liu <zliu@redhat.com>
-Tested-by: Zhouping Liu <zliu@redhat.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: CAI Qian <caiqian@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
+page_xchg_last_nid() is called in paths that are already quite expensive
+(splitting huge page, fault handling, migration) and it is reasonable to
+uninline.  There was not really a good place to place the function but
+mm/mmzone.c was the closest fit IMO.
+
+This patch saved 128 bytes of text in the vmlinux file for the kernel
+configuration I used for testing automatic NUMA balancing.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   94 ++++++++++++++++++++++++++--------------------
- 1 file changed, 54 insertions(+), 40 deletions(-)
+ include/linux/mm.h |   21 +++++----------------
+ mm/mmzone.c        |   20 +++++++++++++++++++-
+ 2 files changed, 24 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled
-+++ a/mm/memcontrol.c
-@@ -5823,33 +5823,6 @@ static struct cftype mem_cgroup_files[] 
- 		.read_seq_string = memcg_numa_stat_show,
- 	},
- #endif
--#ifdef CONFIG_MEMCG_SWAP
--	{
--		.name = "memsw.usage_in_bytes",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
--		.read = mem_cgroup_read,
--		.register_event = mem_cgroup_usage_register_event,
--		.unregister_event = mem_cgroup_usage_unregister_event,
--	},
--	{
--		.name = "memsw.max_usage_in_bytes",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
--		.trigger = mem_cgroup_reset,
--		.read = mem_cgroup_read,
--	},
--	{
--		.name = "memsw.limit_in_bytes",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
--		.write_string = mem_cgroup_write,
--		.read = mem_cgroup_read,
--	},
--	{
--		.name = "memsw.failcnt",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
--		.trigger = mem_cgroup_reset,
--		.read = mem_cgroup_read,
--	},
--#endif
- #ifdef CONFIG_MEMCG_KMEM
- 	{
- 		.name = "kmem.limit_in_bytes",
-@@ -5884,6 +5857,36 @@ static struct cftype mem_cgroup_files[] 
- 	{ },	/* terminate */
- };
- 
-+#ifdef CONFIG_MEMCG_SWAP
-+static struct cftype memsw_cgroup_files[] = {
-+	{
-+		.name = "memsw.usage_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
-+		.read = mem_cgroup_read,
-+		.register_event = mem_cgroup_usage_register_event,
-+		.unregister_event = mem_cgroup_usage_unregister_event,
-+	},
-+	{
-+		.name = "memsw.max_usage_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
-+		.trigger = mem_cgroup_reset,
-+		.read = mem_cgroup_read,
-+	},
-+	{
-+		.name = "memsw.limit_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
-+		.write_string = mem_cgroup_write,
-+		.read = mem_cgroup_read,
-+	},
-+	{
-+		.name = "memsw.failcnt",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
-+		.trigger = mem_cgroup_reset,
-+		.read = mem_cgroup_read,
-+	},
-+	{ },	/* terminate */
-+};
-+#endif
- static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *memcg, int node)
- {
- 	struct mem_cgroup_per_node *pn;
-@@ -6783,19 +6786,6 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.use_id = 1,
- };
- 
--/*
-- * The rest of init is performed during ->css_alloc() for root css which
-- * happens before initcalls.  hotcpu_notifier() can't be done together as
-- * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
-- * dependency.  Do it from a subsys_initcall().
-- */
--static int __init mem_cgroup_init(void)
--{
--	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
--	return 0;
--}
--subsys_initcall(mem_cgroup_init);
--
- #ifdef CONFIG_MEMCG_SWAP
- static int __init enable_swap_account(char *s)
- {
-@@ -6808,4 +6798,28 @@ static int __init enable_swap_account(ch
+diff -puN include/linux/mm.h~mm-uninline-page_xchg_last_nid include/linux/mm.h
+--- a/include/linux/mm.h~mm-uninline-page_xchg_last_nid
++++ a/include/linux/mm.h
+@@ -677,25 +677,14 @@ static inline int page_last_nid(struct p
+ 	return (page->flags >> LAST_NID_PGSHIFT) & LAST_NID_MASK;
  }
- __setup("swapaccount=", enable_swap_account);
  
-+static void __init memsw_file_init(void)
-+{
-+	if (really_do_swap_account)
-+		WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys,
-+					memsw_cgroup_files));
-+}
-+#else
-+static void __init memsw_file_init(void)
-+{
-+}
- #endif
+-static inline int page_xchg_last_nid(struct page *page, int nid)
+-{
+-	unsigned long old_flags, flags;
+-	int last_nid;
+-
+-	do {
+-		old_flags = flags = page->flags;
+-		last_nid = page_last_nid(page);
+-
+-		flags &= ~(LAST_NID_MASK << LAST_NID_PGSHIFT);
+-		flags |= (nid & LAST_NID_MASK) << LAST_NID_PGSHIFT;
+-	} while (unlikely(cmpxchg(&page->flags, old_flags, flags) != old_flags));
+-
+-	return last_nid;
+-}
++extern int page_xchg_last_nid(struct page *page, int nid);
+ 
+ static inline void reset_page_last_nid(struct page *page)
+ {
+-	page_xchg_last_nid(page, (1 << LAST_NID_SHIFT) - 1);
++	int nid = (1 << LAST_NID_SHIFT) - 1;
 +
-+/*
-+ * The rest of init is performed during ->css_alloc() for root css which
-+ * happens before initcalls.  hotcpu_notifier() can't be done together as
-+ * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
-+ * dependency.  Do it from a subsys_initcall().
-+ */
-+static int __init mem_cgroup_init(void)
++	page->flags &= ~(LAST_NID_MASK << LAST_NID_PGSHIFT);
++	page->flags |= (nid & LAST_NID_MASK) << LAST_NID_PGSHIFT;
+ }
+ #endif /* LAST_NID_NOT_IN_PAGE_FLAGS */
+ #else
+diff -puN mm/mmzone.c~mm-uninline-page_xchg_last_nid mm/mmzone.c
+--- a/mm/mmzone.c~mm-uninline-page_xchg_last_nid
++++ a/mm/mmzone.c
+@@ -1,7 +1,7 @@
+ /*
+  * linux/mm/mmzone.c
+  *
+- * management codes for pgdats and zones.
++ * management codes for pgdats, zones and page flags
+  */
+ 
+ 
+@@ -96,3 +96,21 @@ void lruvec_init(struct lruvec *lruvec)
+ 	for_each_lru(lru)
+ 		INIT_LIST_HEAD(&lruvec->lists[lru]);
+ }
++
++#if defined(CONFIG_NUMA_BALANCING) && !defined(LAST_NID_NOT_IN_PAGE_FLAGS)
++int page_xchg_last_nid(struct page *page, int nid)
 +{
-+	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
-+	memsw_file_init();
-+	return 0;
++	unsigned long old_flags, flags;
++	int last_nid;
++
++	do {
++		old_flags = flags = page->flags;
++		last_nid = page_last_nid(page);
++
++		flags &= ~(LAST_NID_MASK << LAST_NID_PGSHIFT);
++		flags |= (nid & LAST_NID_MASK) << LAST_NID_PGSHIFT;
++	} while (unlikely(cmpxchg(&page->flags, old_flags, flags) != old_flags));
++
++	return last_nid;
 +}
-+subsys_initcall(mem_cgroup_init);
++#endif
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+linux-next.patch
+revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
+pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
+mm-memmap_init_zone-performance-improvement.patch
+mm-accelerate-munlock-treatment-of-thp-pages.patch
 
