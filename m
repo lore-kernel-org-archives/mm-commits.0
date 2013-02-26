@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-make-prctlpr_set_mm-generally-available.patch added to -mm tree
-Date: Mon, 25 Feb 2013 16:12:31 -0800
-Message-ID: <20130226001232.00E145A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-platform-x86-thinkpad_acpic-handle-hkey-event-0x6040.patch added to -mm tree
+Date: Mon, 25 Feb 2013 16:53:01 -0800
+Message-ID: <20130226005301.AAB0031C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:36415 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932102Ab3BZAMd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 19:12:33 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 1so148426qee.3
-        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 16:12:32 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:38153 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535Ab3BZAxD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Feb 2013 19:53:03 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so380737ggn.2
+        for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2013 16:53:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u3557@miso.sublimeip.com, gorcunov@openvz.org, xemul@parallels.com
+Cc: richih.mailinglist@gmail.com, bp@alien8.de, hmh@hmh.eng.br, mjg@redhat.com
 
 
 The patch titled
-     Subject: kernel/sys.c: make prctl(PR_SET_MM) generally available
+     Subject: drivers/platform/x86/thinkpad_acpi.c: handle HKEY event 0x6040
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-make-prctlpr_set_mm-generally-available.patch
+     drivers-platform-x86-thinkpad_acpic-handle-hkey-event-0x6040.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Amnon Shiloh <u3557@miso.sublimeip.com>
-Subject: kernel/sys.c: make prctl(PR_SET_MM) generally available
+From: Richard Hartmann <richih.mailinglist@gmail.com>
+Subject: drivers/platform/x86/thinkpad_acpi.c: handle HKEY event 0x6040
 
-The purpose of this patch is to allow privileged processes to set
-their own per-memory memory-region fields:
+Handle HKEY event generated on AC power change.  The current message asks
+users to submit data related to this event which leads to a lot of
+confusion and noise on the mailing list.
 
-      start_code, end_code, start_data, end_data, start_brk, brk,
-      start_stack, arg_start, arg_end, env_start, env_end.
+The following is a list affected models and 'Message-Id' from
+ibm-acpi-devel@lists.sourceforge.net of people who saw this event when
+either plugging or unplugging the AC adapter or docking or undocking their
+laptop.
 
-This functionality is needed by any application or package that needs to
-reconstruct Linux processes, that is, to start them in any way other than
-by means of an "execve()" from an executable file.  This includes:
+X120e - CAAAujb5v9dHdbdxDVvhNJoG4UrZC1TgKqeB_zGpAy7q8kZHMEQ@mail.gmail.com
+X121e - 20120817143459.GB3462@x1.osrc.amd.com
+X220  - Confirmed by Richard Hartmann
+X220i - 4F406274.7070807@gmail.com
+X220t - 4F489F5B.9040705@cs.tu-berlin.de
+X230  - CAKx4u7kqvVH0-gstomsiVYdGC0i6=bGxzaQ8sq9gbg76TGme3w@mail.gmail.com
+T420  - 9c848ee30b006737d0534d906bab0cf6@niklaas-baudet.net
+T420s - 20120608080824.GS25324@hexapodia.org
+W520  - 20121008181050.GF2549@ericlaptop.home.christensenplace.us
 
-1. Restoring processes from a checkpoint-file (by all potential
-   user-level checkpointing packages, not only CRIU's).
-2. Restarting processes on another node after process migration.
-3. Starting duplicated copies of a running process (for reliability
-   and high-availablity).
-4. Starting a process from an executable format that is not supported
-   by Linux, thus requiring a "manual execve" by a user-level utility.
-5. Similarly, starting a process from a networked and/or crypted
-   executable that, for confidentiality, licensing or other reasons,
-   may not be written to the local file-systems.
-
-The code that does that was already included in the Linux kernel by the
-CRIU group, in the form of "prctl(PR_SET_MM)", but prior to this was
-enclosed within their private "#ifdef CONFIG_CHECKPOINT_RESTORE", which is
-normally disabled.  The patch removes those ifdefs.
-
-Signed-off-by: Amnon Shiloh <u3557@miso.sublimeip.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Richard Hartmann <richih.mailinglist@gmail.com>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Acked-by: Borislav Petkov <bp@alien8.de>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-make-prctlpr_set_mm-generally-available kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-make-prctlpr_set_mm-generally-available
-+++ a/kernel/sys.c
-@@ -1790,7 +1790,6 @@ SYSCALL_DEFINE1(umask, int, mask)
- 	return mask;
- }
+diff -puN drivers/platform/x86/thinkpad_acpi.c~drivers-platform-x86-thinkpad_acpic-handle-hkey-event-0x6040 drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~drivers-platform-x86-thinkpad_acpic-handle-hkey-event-0x6040
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -209,9 +209,8 @@ enum tpacpi_hkey_event_t {
+ 	TP_HKEY_EV_ALARM_SENSOR_XHOT	= 0x6022, /* sensor critically hot */
+ 	TP_HKEY_EV_THM_TABLE_CHANGED	= 0x6030, /* thermal table changed */
  
--#ifdef CONFIG_CHECKPOINT_RESTORE
- static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
- {
- 	struct fd exe;
-@@ -1984,17 +1983,12 @@ out:
- 	return error;
- }
+-	TP_HKEY_EV_UNK_6040		= 0x6040, /* Related to AC change?
+-						     some sort of APM hint,
+-						     W520 */
++	/* AC-related events */
++	TP_HKEY_EV_AC_CHANGED		= 0x6040, /* AC status changed */
  
-+#ifdef CONFIG_CHECKPOINT_RESTORE
- static int prctl_get_tid_address(struct task_struct *me, int __user **tid_addr)
- {
- 	return put_user(me->clear_child_tid, tid_addr);
- }
+ 	/* Misc */
+ 	TP_HKEY_EV_RFKILL_CHANGED	= 0x7000, /* rfkill switch changed */
+@@ -3629,6 +3628,12 @@ static bool hotkey_notify_6xxx(const u32
+ 			 "a sensor reports something is extremely hot!\n");
+ 		/* recommended action: immediate sleep/hibernate */
+ 		break;
++	case TP_HKEY_EV_AC_CHANGED:
++		/* X120e, X121e, X220, X220i, X220t, X230, T420, T420s, W520:
++		 * AC status changed; can be triggered by plugging or
++		 * unplugging AC adapter, docking or undocking. */
++
++		/* fallthrough */
+ 
+ 	case TP_HKEY_EV_KEY_NUMLOCK:
+ 	case TP_HKEY_EV_KEY_FN:
+_
+
+Patches currently in -mm which might be from richih.mailinglist@gmail.com are
+
+drivers-platform-x86-thinkpad_acpic-handle-hkey-event-0x6040.patch
+
