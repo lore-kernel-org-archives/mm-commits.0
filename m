@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix.patch added to -mm tree
-Date: Wed, 27 Feb 2013 14:41:42 -0800
-Message-ID: <20130227233356.2B96A31C107@corp2gmr1-1.hot.corp.google.com>
+Subject: + hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix.patch added to -mm tree
+Date: Wed, 27 Feb 2013 15:28:52 -0800
+Message-ID: <20130228002105.D5A3C31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:62241 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752033Ab3B0Xd5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 18:33:57 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so132392vch.0
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 15:33:57 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:52233 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab3B1AVI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:21:08 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so136918vea.4
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:21:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, sasha.levin@oracle.com
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix
+     Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix.patch
+     hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix
+Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix
 
 Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/net-procfs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/ethernet/mellanox/mlx4/en_rx.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix drivers/net/ethernet/mellanox/mlx4/en_rx.c
-diff -puN net/core/net-procfs.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix net/core/net-procfs.c
---- a/net/core/net-procfs.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix
-+++ a/net/core/net-procfs.c
-@@ -16,12 +16,11 @@ static inline struct net_device *dev_fro
+diff -puN drivers/net/ethernet/mellanox/mlx4/en_rx.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix drivers/net/ethernet/mellanox/mlx4/en_rx.c
+diff -puN net/core/net-procfs.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix net/core/net-procfs.c
+diff -puN drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c
+--- a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix
++++ a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c
+@@ -162,7 +162,7 @@ void qlcnic_add_lb_filter(struct qlcnic_
  {
- 	struct net *net = seq_file_net(seq);
- 	struct net_device *dev;
--	struct hlist_node *p;
- 	struct hlist_head *h;
- 	unsigned int count = 0, offset = get_offset(*pos);
+ 	struct ethhdr *phdr = (struct ethhdr *)(skb->data);
+ 	struct qlcnic_filter *fil, *tmp_fil;
+-	struct hlist_node *tmp_hnode, *n;
++	struct hlist_node *n;
+ 	struct hlist_head *head;
+ 	unsigned long time;
+ 	u64 src_addr = 0;
+@@ -179,7 +179,7 @@ void qlcnic_add_lb_filter(struct qlcnic_
+ 			 (adapter->fhash.fbucket_size - 1);
+ 		head = &(adapter->rx_fhash.fhead[hindex]);
  
- 	h = &net->dev_name_head[get_bucket(*pos)];
--	hlist_for_each_entry_rcu(dev, p, h, name_hlist) {
-+	hlist_for_each_entry_rcu(dev, h, name_hlist) {
- 		if (++count == offset)
- 			return dev;
- 	}
+-		hlist_for_each_entry_safe(tmp_fil, tmp_hnode, n, head, fnode) {
++		hlist_for_each_entry_safe(tmp_fil, n, head, fnode) {
+ 			if (!memcmp(tmp_fil->faddr, &src_addr, ETH_ALEN) &&
+ 			    tmp_fil->vlan_id == vlan_id) {
+ 				time = tmp_fil->ftime;
+@@ -205,7 +205,7 @@ void qlcnic_add_lb_filter(struct qlcnic_
+ 			 (adapter->fhash.fbucket_size - 1);
+ 		head = &(adapter->rx_fhash.fhead[hindex]);
+ 		spin_lock(&adapter->rx_mac_learn_lock);
+-		hlist_for_each_entry_safe(tmp_fil, tmp_hnode, n, head, fnode) {
++		hlist_for_each_entry_safe(tmp_fil, n, head, fnode) {
+ 			if (!memcmp(tmp_fil->faddr, &src_addr, ETH_ALEN) &&
+ 			    tmp_fil->vlan_id == vlan_id) {
+ 				found = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,4 +109,5 @@ hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
 hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
 hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix.patch
 
