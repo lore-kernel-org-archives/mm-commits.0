@@ -1,179 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch removed from -mm tree
-Date: Wed, 27 Feb 2013 12:50:55 -0800
-Message-ID: <20130227205056.12DC231C071@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] sched-proc-sched_stat-fails-on-very-very-large-machines.patch removed from -mm tree
+Date: Wed, 27 Feb 2013 12:51:05 -0800
+Message-ID: <20130227205105.BACE531C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:38268 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756767Ab3B0Uu6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 15:50:58 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so111591vch.0
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 12:50:57 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:35823 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752723Ab3B0UvH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 15:51:07 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so112191yhr.2
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 12:51:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, andi@firstfloor.org, hpa@linux.intel.com, hughd@google.com, mgorman@suse.de, mingo@elte.hu, shaohua.li@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: nzimmer@sgi.com, davej@redhat.com, fengguang.wu@intel.com, mingo@redhat.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pageattr: prevent PSE and GLOABL leftovers to confuse pmd/pte_present and pmd_huge
+     Subject: sched: /proc/sched_stat fails on very very large machines
 has been removed from the -mm tree.  Its filename was
-     pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
+     sched-proc-sched_stat-fails-on-very-very-large-machines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: pageattr: prevent PSE and GLOABL leftovers to confuse pmd/pte_present and pmd_huge
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: sched: /proc/sched_stat fails on very very large machines
 
-Without this patch any kernel code that reads kernel memory in non
-present kernel pte/pmds (as set by pageattr.c) will crash.
+On systems with 4096 cores doing a cat /proc/sched_stat fails.  We are
+trying to push all the data into a single kmalloc buffer.  The issue is on
+these very large machines all the data will not fit in 4mb.
 
-With this kernel code:
+A better solution is to not use the single_open() mechanism but to provide
+our own seq_operations.
 
-static struct page *crash_page;
-static unsigned long *crash_address;
-[..]
-	crash_page = alloc_pages(GFP_KERNEL, 9);
-	crash_address = page_address(crash_page);
-	if (set_memory_np((unsigned long)crash_address, 1))
-		printk("set_memory_np failure\n");
-[..]
+The output should be identical to previous version and thus not need the
+version number.
 
-The kernel will crash if inside the "crash tool" one would try to read
-the memory at the not present address.
-
-crash> p crash_address
-crash_address = $8 = (long unsigned int *) 0xffff88023c000000
-crash> rd 0xffff88023c000000
-[ *lockup* ]
-
-The lockup happens because _PAGE_GLOBAL and _PAGE_PROTNONE shares the
-same bit, and pageattr leaves _PAGE_GLOBAL set on a kernel pte which
-is then mistaken as _PAGE_PROTNONE (so pte_present returns true by
-mistake and the kernel fault then gets confused and loops).
-
-With THP the same can happen after we taught pmd_present to check
-_PAGE_PROTNONE and _PAGE_PSE in commit 027ef6c87853b0a9df5317 ("mm: thp:
-fix pmd_present for split_huge_page and PROT_NONE with THP").  THP has the
-same problem with _PAGE_GLOBAL as the 4k pages, but it also has a problem
-with _PAGE_PSE, which must be cleared too.
-
-After the patch is applied copy_user correctly returns -EFAULT and
-doesn't lockup anymore.
-
-crash> p crash_address
-crash_address = $9 = (long unsigned int *) 0xffff88023c000000
-crash> rd 0xffff88023c000000
-rd: read error: kernel virtual address: ffff88023c000000  type: "64-bit KVADDR"
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: "H. Peter Anvin" <hpa@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+[akpm@linux-foundation.org: fix memleak]
+[akpm@linux-foundation.org: fix spello in comment]
+[akpm@linux-foundation.org: fix warnings]
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pageattr.c |   50 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 47 insertions(+), 3 deletions(-)
+ kernel/sched/stats.c |   79 ++++++++++++++++++++++++++++++-----------
+ 1 file changed, 59 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/mm/pageattr.c~pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge arch/x86/mm/pageattr.c
---- a/arch/x86/mm/pageattr.c~pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge
-+++ a/arch/x86/mm/pageattr.c
-@@ -473,6 +473,19 @@ try_preserve_large_page(pte_t *kpte, uns
- 	pgprot_val(req_prot) |= pgprot_val(cpa->mask_set);
+diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines kernel/sched/stats.c
+--- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines
++++ a/kernel/sched/stats.c
+@@ -21,14 +21,17 @@ static int show_schedstat(struct seq_fil
+ 	if (mask_str == NULL)
+ 		return -ENOMEM;
  
- 	/*
-+	 * Set the PSE and GLOBAL flags only if the PRESENT flag is
-+	 * set otherwise pmd_present/pmd_huge will return true even on
-+	 * a non present pmd. The canon_pgprot will clear _PAGE_GLOBAL
-+	 * for the ancient hardware that doesn't support it.
-+	 */
-+	if (pgprot_val(new_prot) & _PAGE_PRESENT)
-+		pgprot_val(new_prot) |= _PAGE_PSE | _PAGE_GLOBAL;
-+	else
-+		pgprot_val(new_prot) &= ~(_PAGE_PSE | _PAGE_GLOBAL);
-+
-+	new_prot = canon_pgprot(new_prot);
-+
-+	/*
- 	 * old_pte points to the large page base address. So we need
- 	 * to add the offset of the virtual address:
- 	 */
-@@ -517,7 +530,7 @@ try_preserve_large_page(pte_t *kpte, uns
- 		 * The address is aligned and the number of pages
- 		 * covers the full page.
- 		 */
--		new_pte = pfn_pte(pte_pfn(old_pte), canon_pgprot(new_prot));
-+		new_pte = pfn_pte(pte_pfn(old_pte), new_prot);
- 		__set_pmd_pte(kpte, address, new_pte);
- 		cpa->flags |= CPA_FLUSHTLB;
- 		do_split = 0;
-@@ -561,16 +574,35 @@ int __split_large_page(pte_t *kpte, unsi
- #ifdef CONFIG_X86_64
- 	if (level == PG_LEVEL_1G) {
- 		pfninc = PMD_PAGE_SIZE >> PAGE_SHIFT;
--		pgprot_val(ref_prot) |= _PAGE_PSE;
-+		/*
-+		 * Set the PSE flags only if the PRESENT flag is set
-+		 * otherwise pmd_present/pmd_huge will return true
-+		 * even on a non present pmd.
-+		 */
-+		if (pgprot_val(ref_prot) & _PAGE_PRESENT)
-+			pgprot_val(ref_prot) |= _PAGE_PSE;
-+		else
-+			pgprot_val(ref_prot) &= ~_PAGE_PSE;
- 	}
+-	seq_printf(seq, "version %d\n", SCHEDSTAT_VERSION);
+-	seq_printf(seq, "timestamp %lu\n", jiffies);
+-	for_each_online_cpu(cpu) {
+-		struct rq *rq = cpu_rq(cpu);
++	if (v == (void *)1) {
++		seq_printf(seq, "version %d\n", SCHEDSTAT_VERSION);
++		seq_printf(seq, "timestamp %lu\n", jiffies);
++	} else {
++		struct rq *rq;
+ #ifdef CONFIG_SMP
+ 		struct sched_domain *sd;
+ 		int dcount = 0;
  #endif
++		cpu = (unsigned long)(v - 2);
++		rq = cpu_rq(cpu);
  
- 	/*
-+	 * Set the GLOBAL flags only if the PRESENT flag is set
-+	 * otherwise pmd/pte_present will return true even on a non
-+	 * present pmd/pte. The canon_pgprot will clear _PAGE_GLOBAL
-+	 * for the ancient hardware that doesn't support it.
-+	 */
-+	if (pgprot_val(ref_prot) & _PAGE_PRESENT)
-+		pgprot_val(ref_prot) |= _PAGE_GLOBAL;
+ 		/* runqueue-specific stats */
+ 		seq_printf(seq,
+@@ -77,30 +80,66 @@ static int show_schedstat(struct seq_fil
+ 	return 0;
+ }
+ 
+-static int schedstat_open(struct inode *inode, struct file *file)
++/*
++ * This itererator needs some explanation.
++ * It returns 1 for the header position.
++ * This means 2 is cpu 0.
++ * In a hotplugged system some cpus, including cpu 0, may be missing so we have
++ * to use cpumask_* to iterate over the cpus.
++ */
++static void *schedstat_start(struct seq_file *file, loff_t *offset)
+ {
+-	unsigned int size = PAGE_SIZE * (1 + num_online_cpus() / 32);
+-	char *buf = kmalloc(size, GFP_KERNEL);
+-	struct seq_file *m;
+-	int res;
++	unsigned long n = *offset;
+ 
+-	if (!buf)
+-		return -ENOMEM;
+-	res = single_open(file, show_schedstat, NULL);
+-	if (!res) {
+-		m = file->private_data;
+-		m->buf = buf;
+-		m->size = size;
+-	} else
+-		kfree(buf);
+-	return res;
++	if (n == 0)
++		return (void *) 1;
++
++	n--;
++
++	if (n > 0)
++		n = cpumask_next(n - 1, cpu_online_mask);
 +	else
-+		pgprot_val(ref_prot) &= ~_PAGE_GLOBAL;
++		n = cpumask_first(cpu_online_mask);
 +
-+	/*
- 	 * Get the target pfn from the original entry:
- 	 */
- 	pfn = pte_pfn(*kpte);
- 	for (i = 0; i < PTRS_PER_PTE; i++, pfn += pfninc)
--		set_pte(&pbase[i], pfn_pte(pfn, ref_prot));
-+		set_pte(&pbase[i], pfn_pte(pfn, canon_pgprot(ref_prot)));
- 
- 	if (pfn_range_is_mapped(PFN_DOWN(__pa(address)),
- 				PFN_DOWN(__pa(address)) + 1))
-@@ -685,6 +717,18 @@ repeat:
- 		new_prot = static_protections(new_prot, address, pfn);
- 
- 		/*
-+		 * Set the GLOBAL flags only if the PRESENT flag is
-+		 * set otherwise pte_present will return true even on
-+		 * a non present pte. The canon_pgprot will clear
-+		 * _PAGE_GLOBAL for the ancient hardware that doesn't
-+		 * support it.
-+		 */
-+		if (pgprot_val(new_prot) & _PAGE_PRESENT)
-+			pgprot_val(new_prot) |= _PAGE_GLOBAL;
-+		else
-+			pgprot_val(new_prot) &= ~_PAGE_GLOBAL;
++	*offset = n + 1;
 +
-+		/*
- 		 * We need to keep the pfn from the existing PTE,
- 		 * after all we're only going to change it's attributes
- 		 * not the memory it points to
++	if (n < nr_cpu_ids)
++		return (void *)(unsigned long)(n + 2);
++	return NULL;
++}
++
++static void *schedstat_next(struct seq_file *file, void *data, loff_t *offset)
++{
++	(*offset)++;
++	return schedstat_start(file, offset);
++}
++
++static void schedstat_stop(struct seq_file *file, void *data)
++{
+ }
+ 
++static const struct seq_operations schedstat_sops = {
++	.start = schedstat_start,
++	.next  = schedstat_next,
++	.stop  = schedstat_stop,
++	.show  = show_schedstat,
++};
++
++static int schedstat_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &schedstat_sops);
++}
++
++static int schedstat_release(struct inode *inode, struct file *file)
++{
++	return 0;
++};
++
+ static const struct file_operations proc_schedstat_operations = {
+ 	.open    = schedstat_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+-	.release = single_release,
++	.release = schedstat_release,
+ };
+ 
+ static int __init proc_schedstat_init(void)
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from nzimmer@sgi.com are
 
 origin.patch
-mm-accelerate-munlock-treatment-of-thp-pages.patch
+timer_list-split-timer_list_show_tickdevices.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+procfs-improve-scaling-in-proc.patch
 
