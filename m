@@ -1,227 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-change-return-values-from-eacces-to-eperm.patch removed from -mm tree
-Date: Wed, 27 Feb 2013 12:51:11 -0800
-Message-ID: <20130227205112.19D365A41BD@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] sched-proc-sched_debug-fails-on-very-very-large-machines.patch removed from -mm tree
+Date: Wed, 27 Feb 2013 12:51:08 -0800
+Message-ID: <20130227205108.D61C05A41BD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61351 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723Ab3B0UvN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 15:51:13 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so127757qaj.3
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 12:51:12 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:64324 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752723Ab3B0UvK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 15:51:10 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so127751qah.4
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 12:51:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhaohongjiang@huawei.com, jack@suse.cz, raven@themaw.net, swhiteho@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: nzimmer@sgi.com, davej@redhat.com, mingo@redhat.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: change return values from -EACCES to -EPERM
+     Subject: sched: /proc/sched_debug fails on very very large machines
 has been removed from the -mm tree.  Its filename was
-     fs-change-return-values-from-eacces-to-eperm.patch
+     sched-proc-sched_debug-fails-on-very-very-large-machines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhao Hongjiang <zhaohongjiang@huawei.com>
-Subject: fs: change return values from -EACCES to -EPERM
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: sched: /proc/sched_debug fails on very very large machines
 
-According to SUSv3:
+On systems with 4096 cores attemping to read /proc/sched_debug fails.  We
+are trying to push all the data into a single kmalloc buffer.  The issue
+is on these very large machines all the data will not fit in 4mb.
 
-[EACCES] Permission denied. An attempt was made to access a file in a way
-forbidden by its file access permissions.
+A better solution is to not us the single_open mechanism but to provide
+our own seq_operations and treat each cpu as an individual record.
 
-[EPERM] Operation not permitted. An attempt was made to perform an operation
-limited to processes with appropriate privileges or to the owner of a file
-or other resource.
+The output should be identical to previous version.
 
-So -EPERM should be returned if capability checks fails.
-
-Strictly speaking this is an API change since the error code user sees is
-altered.
-
-Signed-off-by: Zhao Hongjiang <zhaohongjiang@huawei.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Acked-by: Steven Whitehouse <swhiteho@redhat.com>
-Acked-by: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+[akpm@linux-foundation.org: whitespace fixlet]
+[akpm@linux-foundation.org: fix spello in comment]
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>)
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |    2 +-
- fs/dlm/config.c   |    2 +-
- fs/gfs2/sys.c     |   18 +++++++++---------
- fs/ncpfs/ioctl.c  |    2 +-
- fs/proc/base.c    |    6 +++---
- fs/udf/file.c     |    2 +-
- 6 files changed, 16 insertions(+), 16 deletions(-)
+ kernel/sched/debug.c |   90 +++++++++++++++++++++++++++++++++++------
+ 1 file changed, 79 insertions(+), 11 deletions(-)
 
-diff -puN fs/autofs4/root.c~fs-change-return-values-from-eacces-to-eperm fs/autofs4/root.c
---- a/fs/autofs4/root.c~fs-change-return-values-from-eacces-to-eperm
-+++ a/fs/autofs4/root.c
-@@ -587,7 +587,7 @@ static int autofs4_dir_unlink(struct ino
- 	
- 	/* This allows root to remove symlinks */
- 	if (!autofs4_oz_mode(sbi) && !capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
+diff -puN kernel/sched/debug.c~sched-proc-sched_debug-fails-on-very-very-large-machines kernel/sched/debug.c
+--- a/kernel/sched/debug.c~sched-proc-sched_debug-fails-on-very-very-large-machines
++++ a/kernel/sched/debug.c
+@@ -262,11 +262,11 @@ static void print_cpu(struct seq_file *m
+ 	{
+ 		unsigned int freq = cpu_khz ? : 1;
  
- 	if (atomic_dec_and_test(&ino->count)) {
- 		p_ino = autofs4_dentry_ino(dentry->d_parent);
-diff -puN fs/dlm/config.c~fs-change-return-values-from-eacces-to-eperm fs/dlm/config.c
---- a/fs/dlm/config.c~fs-change-return-values-from-eacces-to-eperm
-+++ a/fs/dlm/config.c
-@@ -158,7 +158,7 @@ static ssize_t cluster_set(struct dlm_cl
- 	unsigned int x;
- 
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	x = simple_strtoul(buf, NULL, 0);
- 
-diff -puN fs/gfs2/sys.c~fs-change-return-values-from-eacces-to-eperm fs/gfs2/sys.c
---- a/fs/gfs2/sys.c~fs-change-return-values-from-eacces-to-eperm
-+++ a/fs/gfs2/sys.c
-@@ -103,7 +103,7 @@ static ssize_t freeze_store(struct gfs2_
- 	int n = simple_strtol(buf, NULL, 0);
- 
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	switch (n) {
- 	case 0:
-@@ -133,7 +133,7 @@ static ssize_t withdraw_show(struct gfs2
- static ssize_t withdraw_store(struct gfs2_sbd *sdp, const char *buf, size_t len)
- {
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	if (simple_strtol(buf, NULL, 0) != 1)
- 		return -EINVAL;
-@@ -148,7 +148,7 @@ static ssize_t statfs_sync_store(struct 
- 				 size_t len)
- {
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	if (simple_strtol(buf, NULL, 0) != 1)
- 		return -EINVAL;
-@@ -161,7 +161,7 @@ static ssize_t quota_sync_store(struct g
- 				size_t len)
- {
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	if (simple_strtol(buf, NULL, 0) != 1)
- 		return -EINVAL;
-@@ -178,7 +178,7 @@ static ssize_t quota_refresh_user_store(
- 	u32 id;
- 
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	id = simple_strtoul(buf, NULL, 0);
- 
-@@ -198,7 +198,7 @@ static ssize_t quota_refresh_group_store
- 	u32 id;
- 
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	id = simple_strtoul(buf, NULL, 0);
- 
-@@ -221,7 +221,7 @@ static ssize_t demote_rq_store(struct gf
- 	int rv;
- 
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	rv = sscanf(buf, "%u:%llu %15s", &gltype, &glnum,
- 		    mode);
-@@ -532,7 +532,7 @@ static ssize_t quota_scale_store(struct 
- 	unsigned int x, y;
- 
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	if (sscanf(buf, "%u %u", &x, &y) != 2 || !y)
- 		return -EINVAL;
-@@ -551,7 +551,7 @@ static ssize_t tune_set(struct gfs2_sbd 
- 	unsigned int x;
- 
- 	if (!capable(CAP_SYS_ADMIN))
--		return -EACCES;
-+		return -EPERM;
- 
- 	x = simple_strtoul(buf, NULL, 0);
- 
-diff -puN fs/ncpfs/ioctl.c~fs-change-return-values-from-eacces-to-eperm fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~fs-change-return-values-from-eacces-to-eperm
-+++ a/fs/ncpfs/ioctl.c
-@@ -822,7 +822,7 @@ long ncp_ioctl(struct file *filp, unsign
- 	case NCP_IOC_CONN_LOGGED_IN:
- 	case NCP_IOC_SETROOT:
- 		if (!capable(CAP_SYS_ADMIN)) {
--			ret = -EACCES;
-+			ret = -EPERM;
- 			goto out;
- 		}
- 		break;
-diff -puN fs/proc/base.c~fs-change-return-values-from-eacces-to-eperm fs/proc/base.c
---- a/fs/proc/base.c~fs-change-return-values-from-eacces-to-eperm
-+++ a/fs/proc/base.c
-@@ -1711,7 +1711,7 @@ static int map_files_d_revalidate(struct
- 		return -ECHILD;
- 
- 	if (!capable(CAP_SYS_ADMIN)) {
--		status = -EACCES;
-+		status = -EPERM;
- 		goto out_notask;
+-		SEQ_printf(m, "\ncpu#%d, %u.%03u MHz\n",
++		SEQ_printf(m, "cpu#%d, %u.%03u MHz\n",
+ 			   cpu, freq / 1000, (freq % 1000));
  	}
+ #else
+-	SEQ_printf(m, "\ncpu#%d\n", cpu);
++	SEQ_printf(m, "cpu#%d\n", cpu);
+ #endif
  
-@@ -1844,7 +1844,7 @@ static struct dentry *proc_map_files_loo
- 	struct dentry *result;
- 	struct mm_struct *mm;
+ #define P(x)								\
+@@ -323,6 +323,7 @@ do {									\
+ 	print_rq(m, rq, cpu);
+ 	rcu_read_unlock();
+ 	spin_unlock_irqrestore(&sched_debug_lock, flags);
++	SEQ_printf(m, "\n");
+ }
  
--	result = ERR_PTR(-EACCES);
-+	result = ERR_PTR(-EPERM);
- 	if (!capable(CAP_SYS_ADMIN))
- 		goto out;
+ static const char *sched_tunable_scaling_names[] = {
+@@ -331,11 +332,10 @@ static const char *sched_tunable_scaling
+ 	"linear"
+ };
  
-@@ -1900,7 +1900,7 @@ proc_map_files_readdir(struct file *filp
- 	ino_t ino;
- 	int ret;
+-static int sched_debug_show(struct seq_file *m, void *v)
++static void sched_debug_header(struct seq_file *m)
+ {
+ 	u64 ktime, sched_clk, cpu_clk;
+ 	unsigned long flags;
+-	int cpu;
  
--	ret = -EACCES;
-+	ret = -EPERM;
- 	if (!capable(CAP_SYS_ADMIN))
- 		goto out;
+ 	local_irq_save(flags);
+ 	ktime = ktime_to_ns(ktime_get());
+@@ -377,33 +377,101 @@ static int sched_debug_show(struct seq_f
+ #undef PN
+ #undef P
  
-diff -puN fs/udf/file.c~fs-change-return-values-from-eacces-to-eperm fs/udf/file.c
---- a/fs/udf/file.c~fs-change-return-values-from-eacces-to-eperm
-+++ a/fs/udf/file.c
-@@ -204,7 +204,7 @@ long udf_ioctl(struct file *filp, unsign
- 		goto out;
- 	case UDF_RELOCATE_BLOCKS:
- 		if (!capable(CAP_SYS_ADMIN)) {
--			result = -EACCES;
-+			result = -EPERM;
- 			goto out;
- 		}
- 		if (get_user(old_block, (long __user *)arg)) {
+-	SEQ_printf(m, "  .%-40s: %d (%s)\n", "sysctl_sched_tunable_scaling",
++	SEQ_printf(m, "  .%-40s: %d (%s)\n",
++		"sysctl_sched_tunable_scaling",
+ 		sysctl_sched_tunable_scaling,
+ 		sched_tunable_scaling_names[sysctl_sched_tunable_scaling]);
++	SEQ_printf(m, "\n");
++}
+ 
+-	for_each_online_cpu(cpu)
+-		print_cpu(m, cpu);
++static int sched_debug_show(struct seq_file *m, void *v)
++{
++	int cpu = (unsigned long)(v - 2);
+ 
+-	SEQ_printf(m, "\n");
++	if (cpu != -1)
++		print_cpu(m, cpu);
++	else
++		sched_debug_header(m);
+ 
+ 	return 0;
+ }
+ 
+ void sysrq_sched_debug_show(void)
+ {
+-	sched_debug_show(NULL, NULL);
++	int cpu;
++
++	sched_debug_header(NULL);
++	for_each_online_cpu(cpu)
++		print_cpu(NULL, cpu);
++
++}
++
++/*
++ * This itererator needs some explanation.
++ * It returns 1 for the header position.
++ * This means 2 is cpu 0.
++ * In a hotplugged system some cpus, including cpu 0, may be missing so we have
++ * to use cpumask_* to iterate over the cpus.
++ */
++static void *sched_debug_start(struct seq_file *file, loff_t *offset)
++{
++	unsigned long n = *offset;
++
++	if (n == 0)
++		return (void *) 1;
++
++	n--;
++
++	if (n > 0)
++		n = cpumask_next(n - 1, cpu_online_mask);
++	else
++		n = cpumask_first(cpu_online_mask);
++
++	*offset = n + 1;
++
++	if (n < nr_cpu_ids)
++		return (void *)(unsigned long)(n + 2);
++	return NULL;
++}
++
++static void *sched_debug_next(struct seq_file *file, void *data, loff_t *offset)
++{
++	(*offset)++;
++	return sched_debug_start(file, offset);
++}
++
++static void sched_debug_stop(struct seq_file *file, void *data)
++{
++}
++
++static const struct seq_operations sched_debug_sops = {
++	.start = sched_debug_start,
++	.next = sched_debug_next,
++	.stop = sched_debug_stop,
++	.show = sched_debug_show,
++};
++
++static int sched_debug_release(struct inode *inode, struct file *file)
++{
++	seq_release(inode, file);
++
++	return 0;
+ }
+ 
+ static int sched_debug_open(struct inode *inode, struct file *filp)
+ {
+-	return single_open(filp, sched_debug_show, NULL);
++	int ret = 0;
++
++	ret = seq_open(filp, &sched_debug_sops);
++
++	return ret;
+ }
+ 
+ static const struct file_operations sched_debug_fops = {
+ 	.open		= sched_debug_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+-	.release	= single_release,
++	.release	= sched_debug_release,
+ };
+ 
+ static int __init init_sched_debug_procfs(void)
 _
 
-Patches currently in -mm which might be from zhaohongjiang@huawei.com are
+Patches currently in -mm which might be from nzimmer@sgi.com are
 
 origin.patch
-linux-next.patch
+timer_list-split-timer_list_show_tickdevices.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+procfs-improve-scaling-in-proc.patch
 
