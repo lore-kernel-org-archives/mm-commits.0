@@ -1,53 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] firewire-dont-use-idr_remove_all.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:34 -0800
-Message-ID: <20130228201235.279D831C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] atm-nicstar-dont-use-idr_remove_all.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:30 -0800
+Message-ID: <20130228201231.0E3B331C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:37823 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757023Ab3B1UMg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:36 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so244859ggn.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:35 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:56418 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756821Ab3B1UMb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:31 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so244891ggi.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: tj@kernel.org, chas@cmf.nrl.navy.mil, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firewire: don't use idr_remove_all()
+     Subject: atm/nicstar: don't use idr_remove_all()
 has been removed from the -mm tree.  Its filename was
-     firewire-dont-use-idr_remove_all.patch
+     atm-nicstar-dont-use-idr_remove_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: firewire: don't use idr_remove_all()
+Subject: atm/nicstar: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
 deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/core-cdev.c |    1 -
+ drivers/atm/nicstar.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/firewire/core-cdev.c~firewire-dont-use-idr_remove_all drivers/firewire/core-cdev.c
---- a/drivers/firewire/core-cdev.c~firewire-dont-use-idr_remove_all
-+++ a/drivers/firewire/core-cdev.c
-@@ -1779,7 +1779,6 @@ static int fw_device_op_release(struct i
- 	wait_event(client->tx_flush_wait, !has_outbound_transactions(client));
- 
- 	idr_for_each(&client->resource_idr, shutdown_resource, client);
--	idr_remove_all(&client->resource_idr);
- 	idr_destroy(&client->resource_idr);
- 
- 	list_for_each_entry_safe(event, next_event, &client->event_list, link)
+diff -puN drivers/atm/nicstar.c~atm-nicstar-dont-use-idr_remove_all drivers/atm/nicstar.c
+--- a/drivers/atm/nicstar.c~atm-nicstar-dont-use-idr_remove_all
++++ a/drivers/atm/nicstar.c
+@@ -251,7 +251,6 @@ static void nicstar_remove_one(struct pc
+ 		if (card->scd2vc[j] != NULL)
+ 			free_scq(card, card->scd2vc[j]->scq, card->scd2vc[j]->tx_vcc);
+ 	}
+-	idr_remove_all(&card->idr);
+ 	idr_destroy(&card->idr);
+ 	pci_free_consistent(card->pcidev, NS_RSQSIZE + NS_RSQ_ALIGNMENT,
+ 			    card->rsq.org, card->rsq.dma);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
