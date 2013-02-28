@@ -1,127 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftests-efivarfs-add-create-read-test.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:18:04 -0800
-Message-ID: <20130228201804.A7EAB31C1F0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] tools-testing-selftests-makefile-rearrange-targets.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:18:07 -0800
+Message-ID: <20130228201807.9CE295A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:34757 "EHLO
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54394 "EHLO
 	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754040Ab3B1USF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:18:05 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so261571qaj.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:18:05 -0800 (PST)
+	with ESMTP id S1754599Ab3B1USI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:18:08 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so261680qaj.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:18:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jk@ozlabs.org, dyoung@redhat.com, lxiang@redhat.com, matt.fleming@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dyoung@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/efivarfs: add create-read test
+     Subject: tools/testing/selftests/Makefile: rearrange targets
 has been removed from the -mm tree.  Its filename was
-     selftests-efivarfs-add-create-read-test.patch
+     tools-testing-selftests-makefile-rearrange-targets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeremy Kerr <jk@ozlabs.org>
-Subject: selftests/efivarfs: add create-read test
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tools/testing/selftests/Makefile: rearrange targets
 
-Test that reads from a newly-created efivarfs file (with no data written)
-will return EOF.
+Do it one-per-line to reduce patch conflict pain.
 
-Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
-Cc: Matt Fleming <matt.fleming@intel.com>
-Cc: Lingzhu Xiang <lxiang@redhat.com>
 Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/efivarfs/Makefile      |    2 
- tools/testing/selftests/efivarfs/create-read.c |   38 +++++++++++++++
- tools/testing/selftests/efivarfs/efivarfs.sh   |    7 ++
- 3 files changed, 46 insertions(+), 1 deletion(-)
+ tools/testing/selftests/Makefile |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/efivarfs/Makefile~selftests-efivarfs-add-create-read-test tools/testing/selftests/efivarfs/Makefile
---- a/tools/testing/selftests/efivarfs/Makefile~selftests-efivarfs-add-create-read-test
-+++ a/tools/testing/selftests/efivarfs/Makefile
-@@ -1,7 +1,7 @@
- CC = $(CROSS_COMPILE)gcc
- CFLAGS = -Wall
+diff -puN tools/testing/selftests/Makefile~tools-testing-selftests-makefile-rearrange-targets tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~tools-testing-selftests-makefile-rearrange-targets
++++ a/tools/testing/selftests/Makefile
+@@ -1,4 +1,10 @@
+-TARGETS = breakpoints kcmp mqueue vm cpu-hotplug memory-hotplug efivarfs
++TARGETS = breakpoints
++TARGETS += kcmp
++TARGETS += mqueue
++TARGETS += vm
++TARGETS += cpu-hotplug
++TARGETS += memory-hotplug
++TARGETS += efivarfs
  
--test_objs = open-unlink
-+test_objs = open-unlink create-read
- 
- all: $(test_objs)
- 
-diff -puN /dev/null tools/testing/selftests/efivarfs/create-read.c
---- /dev/null
-+++ a/tools/testing/selftests/efivarfs/create-read.c
-@@ -0,0 +1,38 @@
-+#include <stdio.h>
-+#include <stdint.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+#include <errno.h>
-+#include <string.h>
-+
-+int main(int argc, char **argv)
-+{
-+	const char *path;
-+	char buf[4];
-+	int fd, rc;
-+
-+	if (argc < 2) {
-+		fprintf(stderr, "usage: %s <path>\n", argv[0]);
-+		return EXIT_FAILURE;
-+	}
-+
-+	path = argv[1];
-+
-+	/* create a test variable */
-+	fd = open(path, O_RDWR | O_CREAT, 0600);
-+	if (fd < 0) {
-+		perror("open(O_WRONLY)");
-+		return EXIT_FAILURE;
-+	}
-+
-+	rc = read(fd, buf, sizeof(buf));
-+	if (rc != 0) {
-+		fprintf(stderr, "Reading a new var should return EOF\n");
-+		return EXIT_FAILURE;
-+	}
-+
-+	return EXIT_SUCCESS;
-+}
-diff -puN tools/testing/selftests/efivarfs/efivarfs.sh~selftests-efivarfs-add-create-read-test tools/testing/selftests/efivarfs/efivarfs.sh
---- a/tools/testing/selftests/efivarfs/efivarfs.sh~selftests-efivarfs-add-create-read-test
-+++ a/tools/testing/selftests/efivarfs/efivarfs.sh
-@@ -70,6 +70,12 @@ test_create_empty()
- 	fi
- }
- 
-+test_create_read()
-+{
-+	local file=$efivarfs_mount/$FUNCNAME-$test_guid
-+	./create-read $file
-+}
-+
- test_delete()
- {
- 	local attrs='\x07\x00\x00\x00'
-@@ -125,6 +131,7 @@ rc=0
- 
- run_test test_create
- run_test test_create_empty
-+run_test test_create_read
- run_test test_delete
- run_test test_zero_size_delete
- run_test test_open_unlink
+ all:
+ 	for TARGET in $(TARGETS); do \
 _
 
-Patches currently in -mm which might be from jk@ozlabs.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
