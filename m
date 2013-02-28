@@ -1,123 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:11:05 -0800
-Message-ID: <20130228201106.0BAA95A4242@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] lib-scatterlist-use-page-iterator-in-the-mapping-iterator.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:11:02 -0800
+Message-ID: <20130228201102.D335F5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:61151 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781Ab3B1ULH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:07 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so246323yhr.0
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:06 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:39247 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3B1ULE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:04 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so244481ghb.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: slava@dubeyko.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: imre.deak@intel.com, daniel.vetter@ffwll.ch, james.hogan@imgtec.com, maximlevitsky@gmail.com, swarren@wwwdotorg.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus: add osx.* prefix for handling namespace of Mac OS X extended attributes
+     Subject: lib/scatterlist: use page iterator in the mapping iterator
 has been removed from the -mm tree.  Its filename was
-     hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+     lib-scatterlist-use-page-iterator-in-the-mapping-iterator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: add osx.* prefix for handling namespace of Mac OS X extended attributes
+From: Imre Deak <imre.deak@intel.com>
+Subject: lib/scatterlist: use page iterator in the mapping iterator
 
-hfsplus: reworked support of extended attributes.
+For better code reuse use the newly added page iterator to iterate through
+the pages.  The offset, length within the page is still calculated by the
+mapping iterator as well as the actual mapping.  Idea from Tejun Heo.
 
-Current mainline implementation of hfsplus file system driver treats as
-extended attributes only two fields (fdType and fdCreator) of user_info
-field in file description record (struct hfsplus_cat_file).  It is
-possible to get or set only these two fields as extended attributes.  But
-HFS+ treats as com.apple.FinderInfo extended attribute an union of
-user_info and finder_info fields as for file (struct hfsplus_cat_file) as
-for folder (struct hfsplus_cat_folder).  Moreover, current mainline
-implementation of hfsplus file system driver doesn't support special
-metadata file - attributes tree.
-
-Mac OS X 10.4 and later support extended attributes by making use of the
-HFS+ filesystem Attributes file B*-tree feature which allows for named
-forks.  Mac OS X supports only inline extended attributes, limiting their
-size to 3802 bytes.  Any regular file may have a list of extended
-attributes.  HFS+ supports an arbitrary number of named forks.  Each
-attribute is denoted by a name and the associated data.  The name is a
-null-terminated Unicode string.  It is possible to list, to get, to set,
-and to remove extended attributes from files or directories.
-
-It exists some peculiarity during getting of extended attributes list by
-means of getfattr utility.  The getfattr utility expects prefix "user."
-before any extended attribute's name.  So, it ignores any names that don't
-contained such prefix.  Such behavior of getfattr utility results in
-unexpected empty output of extended attributes list even in the case when
-file (or folder) contains extended attributes.  It needs to use empty
-string as regular expression pattern for names matching (getfattr
---match="").  
-
-For support of extended attributes in HFS+:
-1. It was added necessary on-disk layout declarations related to Attributes
-   tree into hfsplus_raw.h file.
-2. It was added attributes.c file with implementation of functionality of
-   manipulation by records in Attributes tree.
-3. It was reworked hfsplus_listxattr, hfsplus_getxattr, hfsplus_setxattr
-   functions in ioctl.c. Moreover, it was added hfsplus_removexattr method.
-
-
-This patch:
-
-Add osx.* prefix for handling namespace of Mac OS X extended attributes.
-
-[akpm@linux-foundation.org: checkpatch fixes]
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Imre Deak <imre.deak@intel.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: James Hogan <james.hogan@imgtec.com> 
+Cc: Stephen Warren <swarren@wwwdotorg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/xattr.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/mmc/host/dw_mmc.c   |    4 +-
+ include/linux/scatterlist.h |    6 ++--
+ lib/scatterlist.c           |   50 ++++++++++++++++------------------
+ 3 files changed, 29 insertions(+), 31 deletions(-)
 
-diff -puN include/uapi/linux/xattr.h~hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes include/uapi/linux/xattr.h
---- a/include/uapi/linux/xattr.h~hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes
-+++ a/include/uapi/linux/xattr.h
-@@ -15,19 +15,22 @@
+diff -puN drivers/mmc/host/dw_mmc.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator drivers/mmc/host/dw_mmc.c
+--- a/drivers/mmc/host/dw_mmc.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator
++++ a/drivers/mmc/host/dw_mmc.c
+@@ -1453,7 +1453,7 @@ static void dw_mci_read_data_pio(struct 
+ 		if (!sg_miter_next(sg_miter))
+ 			goto done;
  
- /* Namespaces */
- #define XATTR_OS2_PREFIX "os2."
--#define XATTR_OS2_PREFIX_LEN (sizeof (XATTR_OS2_PREFIX) - 1)
-+#define XATTR_OS2_PREFIX_LEN (sizeof(XATTR_OS2_PREFIX) - 1)
+-		host->sg = sg_miter->__sg;
++		host->sg = sg_miter->piter.sg;
+ 		buf = sg_miter->addr;
+ 		remain = sg_miter->length;
+ 		offset = 0;
+@@ -1508,7 +1508,7 @@ static void dw_mci_write_data_pio(struct
+ 		if (!sg_miter_next(sg_miter))
+ 			goto done;
+ 
+-		host->sg = sg_miter->__sg;
++		host->sg = sg_miter->piter.sg;
+ 		buf = sg_miter->addr;
+ 		remain = sg_miter->length;
+ 		offset = 0;
+diff -puN include/linux/scatterlist.h~lib-scatterlist-use-page-iterator-in-the-mapping-iterator include/linux/scatterlist.h
+--- a/include/linux/scatterlist.h~lib-scatterlist-use-page-iterator-in-the-mapping-iterator
++++ a/include/linux/scatterlist.h
+@@ -293,11 +293,11 @@ struct sg_mapping_iter {
+ 	void			*addr;		/* pointer to the mapped area */
+ 	size_t			length;		/* length of the mapped area */
+ 	size_t			consumed;	/* number of consumed bytes */
++	struct sg_page_iter	piter;		/* page iterator */
+ 
+ 	/* these are internal states, keep away */
+-	struct scatterlist	*__sg;		/* current entry */
+-	unsigned int		__nents;	/* nr of remaining entries */
+-	unsigned int		__offset;	/* offset within sg */
++	unsigned int		__offset;	/* offset within page */
++	unsigned int		__remaining;	/* remaining bytes on page */
+ 	unsigned int		__flags;
+ };
+ 
+diff -puN lib/scatterlist.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator lib/scatterlist.c
+--- a/lib/scatterlist.c~lib-scatterlist-use-page-iterator-in-the-mapping-iterator
++++ a/lib/scatterlist.c
+@@ -449,9 +449,7 @@ void sg_miter_start(struct sg_mapping_it
+ {
+ 	memset(miter, 0, sizeof(struct sg_mapping_iter));
+ 
+-	miter->__sg = sgl;
+-	miter->__nents = nents;
+-	miter->__offset = 0;
++	__sg_page_iter_start(&miter->piter, sgl, nents, 0);
+ 	WARN_ON(!(flags & (SG_MITER_TO_SG | SG_MITER_FROM_SG)));
+ 	miter->__flags = flags;
+ }
+@@ -476,36 +474,35 @@ EXPORT_SYMBOL(sg_miter_start);
+  */
+ bool sg_miter_next(struct sg_mapping_iter *miter)
+ {
+-	unsigned int off, len;
+-
+-	/* check for end and drop resources from the last iteration */
+-	if (!miter->__nents)
+-		return false;
+-
+ 	sg_miter_stop(miter);
+ 
+-	/* get to the next sg if necessary.  __offset is adjusted by stop */
+-	while (miter->__offset == miter->__sg->length) {
+-		if (--miter->__nents) {
+-			miter->__sg = sg_next(miter->__sg);
+-			miter->__offset = 0;
+-		} else
++	/*
++	 * Get to the next page if necessary.
++	 * __remaining, __offset is adjusted by sg_miter_stop
++	 */
++	if (!miter->__remaining) {
++		struct scatterlist *sg;
++		unsigned long pgoffset;
 +
-+#define XATTR_MAC_OSX_PREFIX "osx."
-+#define XATTR_MAC_OSX_PREFIX_LEN (sizeof(XATTR_MAC_OSX_PREFIX) - 1)
++		if (!__sg_page_iter_next(&miter->piter))
+ 			return false;
+-	}
  
- #define XATTR_SECURITY_PREFIX	"security."
--#define XATTR_SECURITY_PREFIX_LEN (sizeof (XATTR_SECURITY_PREFIX) - 1)
-+#define XATTR_SECURITY_PREFIX_LEN (sizeof(XATTR_SECURITY_PREFIX) - 1)
+-	/* map the next page */
+-	off = miter->__sg->offset + miter->__offset;
+-	len = miter->__sg->length - miter->__offset;
+-
+-	miter->page = nth_page(sg_page(miter->__sg), off >> PAGE_SHIFT);
+-	off &= ~PAGE_MASK;
+-	miter->length = min_t(unsigned int, len, PAGE_SIZE - off);
+-	miter->consumed = miter->length;
++		sg = miter->piter.sg;
++		pgoffset = miter->piter.sg_pgoffset;
++
++		miter->__offset = pgoffset ? 0 : sg->offset;
++		miter->__remaining = sg->offset + sg->length -
++				(pgoffset << PAGE_SHIFT) - miter->__offset;
++		miter->__remaining = min_t(unsigned long, miter->__remaining,
++					   PAGE_SIZE - miter->__offset);
++	}
++	miter->page = miter->piter.page;
++	miter->consumed = miter->length = miter->__remaining;
  
- #define XATTR_SYSTEM_PREFIX "system."
--#define XATTR_SYSTEM_PREFIX_LEN (sizeof (XATTR_SYSTEM_PREFIX) - 1)
-+#define XATTR_SYSTEM_PREFIX_LEN (sizeof(XATTR_SYSTEM_PREFIX) - 1)
+ 	if (miter->__flags & SG_MITER_ATOMIC)
+-		miter->addr = kmap_atomic(miter->page) + off;
++		miter->addr = kmap_atomic(miter->page) + miter->__offset;
+ 	else
+-		miter->addr = kmap(miter->page) + off;
++		miter->addr = kmap(miter->page) + miter->__offset;
  
- #define XATTR_TRUSTED_PREFIX "trusted."
--#define XATTR_TRUSTED_PREFIX_LEN (sizeof (XATTR_TRUSTED_PREFIX) - 1)
-+#define XATTR_TRUSTED_PREFIX_LEN (sizeof(XATTR_TRUSTED_PREFIX) - 1)
+ 	return true;
+ }
+@@ -532,6 +529,7 @@ void sg_miter_stop(struct sg_mapping_ite
+ 	/* drop resources from the last iteration */
+ 	if (miter->addr) {
+ 		miter->__offset += miter->consumed;
++		miter->__remaining -= miter->consumed;
  
- #define XATTR_USER_PREFIX "user."
--#define XATTR_USER_PREFIX_LEN (sizeof (XATTR_USER_PREFIX) - 1)
-+#define XATTR_USER_PREFIX_LEN (sizeof(XATTR_USER_PREFIX) - 1)
- 
- /* Security namespace */
- #define XATTR_EVM_SUFFIX "evm"
+ 		if (miter->__flags & SG_MITER_TO_SG)
+ 			flush_kernel_dcache_page(miter->page);
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from imre.deak@intel.com are
 
 origin.patch
-hfsplus-add-all-necessary-declarations-for-acls-support.patch
-hfsplus-add-implementation-of-the-acls-support.patch
-hfsplus-integrate-of-implemented-acls-support-into-driver.patch
 
