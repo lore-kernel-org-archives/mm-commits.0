@@ -1,388 +1,1296 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-kconfig-centralise-config_arch_no_virt_to_bus.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:17:48 -0800
-Message-ID: <20130228201748.D16E631C1F0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] kfifo-move-kfifoc-from-kernel-to-lib.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:17:52 -0800
+Message-ID: <20130228201752.989F731C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:64756 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760166Ab3B1URu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:50 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so245297ggi.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:49 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:60606 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759441Ab3B1URx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:53 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so245420yen.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, James.Bottomley@HansenPartnership.com, Vineet.Gupta1@synopsys.com, benh@kernel.crashing.org, bhelgaas@google.com, davem@davemloft.net, hartleys@visionengravers.com, james.hogan@imgtec.com, lethal@linux-sh.org, linux-arch@vger.kernel.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: stefani@seibold.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch Kconfig: centralise CONFIG_ARCH_NO_VIRT_TO_BUS
+     Subject: kfifo: move kfifo.c from kernel/ to lib/
 has been removed from the -mm tree.  Its filename was
-     arch-kconfig-centralise-config_arch_no_virt_to_bus.patch
+     kfifo-move-kfifoc-from-kernel-to-lib.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: arch Kconfig: centralise CONFIG_ARCH_NO_VIRT_TO_BUS
+From: Stefani Seibold <stefani@seibold.net>
+Subject: kfifo: move kfifo.c from kernel/ to lib/
 
-Change it to CONFIG_HAVE_VIRT_TO_BUS and set it in all architecures
-that already provide virt_to_bus().
+Move kfifo.c from kernel/ to lib/
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reviewed-by: James Hogan <james.hogan@imgtec.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: H Hartley Sweeten <hartleys@visionengravers.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig            |    7 +++++++
- arch/alpha/Kconfig      |    1 +
- arch/arm/Kconfig        |    1 +
- arch/avr32/Kconfig      |    1 +
- arch/blackfin/Kconfig   |    1 +
- arch/cris/Kconfig       |    1 +
- arch/frv/Kconfig        |    1 +
- arch/h8300/Kconfig      |    1 +
- arch/ia64/Kconfig       |    1 +
- arch/m32r/Kconfig       |    1 +
- arch/m68k/Kconfig       |    1 +
- arch/microblaze/Kconfig |    1 +
- arch/mips/Kconfig       |    1 +
- arch/mn10300/Kconfig    |    1 +
- arch/openrisc/Kconfig   |    1 +
- arch/parisc/Kconfig     |    1 +
- arch/powerpc/Kconfig    |    4 +---
- arch/s390/Kconfig       |    1 +
- arch/score/Kconfig      |    1 +
- arch/sh/Kconfig         |    3 ---
- arch/sparc/Kconfig      |    3 ---
- arch/tile/Kconfig       |    1 +
- arch/unicore32/Kconfig  |    1 +
- arch/x86/Kconfig        |    1 +
- arch/xtensa/Kconfig     |    1 +
- mm/Kconfig              |    2 +-
- 26 files changed, 30 insertions(+), 10 deletions(-)
+ kernel/Makefile |    2 
+ kernel/kfifo.c  |  609 ----------------------------------------------
+ lib/Makefile    |    2 
+ lib/kfifo.c     |  609 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 611 insertions(+), 611 deletions(-)
 
-diff -puN arch/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/Kconfig
---- a/arch/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/Kconfig
-@@ -303,6 +303,13 @@ config ARCH_WANT_OLD_COMPAT_IPC
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
- 	bool
+diff -puN kernel/Makefile~kfifo-move-kfifoc-from-kernel-to-lib kernel/Makefile
+--- a/kernel/Makefile~kfifo-move-kfifoc-from-kernel-to-lib
++++ a/kernel/Makefile
+@@ -7,7 +7,7 @@ obj-y     = fork.o exec_domain.o panic.o
+ 	    sysctl.o sysctl_binary.o capability.o ptrace.o timer.o user.o \
+ 	    signal.o sys.o kmod.o workqueue.o pid.o task_work.o \
+ 	    rcupdate.o extable.o params.o posix-timers.o \
+-	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
++	    kthread.o wait.o sys_ni.o posix-cpu-timers.o mutex.o \
+ 	    hrtimer.o rwsem.o nsproxy.o srcu.o semaphore.o \
+ 	    notifier.o ksysfs.o cred.o \
+ 	    async.o range.o groups.o lglock.o smpboot.o
+diff -puN kernel/kfifo.c~kfifo-move-kfifoc-from-kernel-to-lib /dev/null
+--- a/kernel/kfifo.c
++++ /dev/null
+@@ -1,609 +0,0 @@
+-/*
+- * A generic kernel FIFO implementation
+- *
+- * Copyright (C) 2009/2010 Stefani Seibold <stefani@seibold.net>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/export.h>
+-#include <linux/slab.h>
+-#include <linux/err.h>
+-#include <linux/log2.h>
+-#include <linux/uaccess.h>
+-#include <linux/kfifo.h>
+-
+-/*
+- * internal helper to calculate the unused elements in a fifo
+- */
+-static inline unsigned int kfifo_unused(struct __kfifo *fifo)
+-{
+-	return (fifo->mask + 1) - (fifo->in - fifo->out);
+-}
+-
+-int __kfifo_alloc(struct __kfifo *fifo, unsigned int size,
+-		size_t esize, gfp_t gfp_mask)
+-{
+-	/*
+-	 * round down to the next power of 2, since our 'let the indices
+-	 * wrap' technique works only in this case.
+-	 */
+-	if (!is_power_of_2(size))
+-		size = rounddown_pow_of_two(size);
+-
+-	fifo->in = 0;
+-	fifo->out = 0;
+-	fifo->esize = esize;
+-
+-	if (size < 2) {
+-		fifo->data = NULL;
+-		fifo->mask = 0;
+-		return -EINVAL;
+-	}
+-
+-	fifo->data = kmalloc(size * esize, gfp_mask);
+-
+-	if (!fifo->data) {
+-		fifo->mask = 0;
+-		return -ENOMEM;
+-	}
+-	fifo->mask = size - 1;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(__kfifo_alloc);
+-
+-void __kfifo_free(struct __kfifo *fifo)
+-{
+-	kfree(fifo->data);
+-	fifo->in = 0;
+-	fifo->out = 0;
+-	fifo->esize = 0;
+-	fifo->data = NULL;
+-	fifo->mask = 0;
+-}
+-EXPORT_SYMBOL(__kfifo_free);
+-
+-int __kfifo_init(struct __kfifo *fifo, void *buffer,
+-		unsigned int size, size_t esize)
+-{
+-	size /= esize;
+-
+-	if (!is_power_of_2(size))
+-		size = rounddown_pow_of_two(size);
+-
+-	fifo->in = 0;
+-	fifo->out = 0;
+-	fifo->esize = esize;
+-	fifo->data = buffer;
+-
+-	if (size < 2) {
+-		fifo->mask = 0;
+-		return -EINVAL;
+-	}
+-	fifo->mask = size - 1;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(__kfifo_init);
+-
+-static void kfifo_copy_in(struct __kfifo *fifo, const void *src,
+-		unsigned int len, unsigned int off)
+-{
+-	unsigned int size = fifo->mask + 1;
+-	unsigned int esize = fifo->esize;
+-	unsigned int l;
+-
+-	off &= fifo->mask;
+-	if (esize != 1) {
+-		off *= esize;
+-		size *= esize;
+-		len *= esize;
+-	}
+-	l = min(len, size - off);
+-
+-	memcpy(fifo->data + off, src, l);
+-	memcpy(fifo->data, src + l, len - l);
+-	/*
+-	 * make sure that the data in the fifo is up to date before
+-	 * incrementing the fifo->in index counter
+-	 */
+-	smp_wmb();
+-}
+-
+-unsigned int __kfifo_in(struct __kfifo *fifo,
+-		const void *buf, unsigned int len)
+-{
+-	unsigned int l;
+-
+-	l = kfifo_unused(fifo);
+-	if (len > l)
+-		len = l;
+-
+-	kfifo_copy_in(fifo, buf, len, fifo->in);
+-	fifo->in += len;
+-	return len;
+-}
+-EXPORT_SYMBOL(__kfifo_in);
+-
+-static void kfifo_copy_out(struct __kfifo *fifo, void *dst,
+-		unsigned int len, unsigned int off)
+-{
+-	unsigned int size = fifo->mask + 1;
+-	unsigned int esize = fifo->esize;
+-	unsigned int l;
+-
+-	off &= fifo->mask;
+-	if (esize != 1) {
+-		off *= esize;
+-		size *= esize;
+-		len *= esize;
+-	}
+-	l = min(len, size - off);
+-
+-	memcpy(dst, fifo->data + off, l);
+-	memcpy(dst + l, fifo->data, len - l);
+-	/*
+-	 * make sure that the data is copied before
+-	 * incrementing the fifo->out index counter
+-	 */
+-	smp_wmb();
+-}
+-
+-unsigned int __kfifo_out_peek(struct __kfifo *fifo,
+-		void *buf, unsigned int len)
+-{
+-	unsigned int l;
+-
+-	l = fifo->in - fifo->out;
+-	if (len > l)
+-		len = l;
+-
+-	kfifo_copy_out(fifo, buf, len, fifo->out);
+-	return len;
+-}
+-EXPORT_SYMBOL(__kfifo_out_peek);
+-
+-unsigned int __kfifo_out(struct __kfifo *fifo,
+-		void *buf, unsigned int len)
+-{
+-	len = __kfifo_out_peek(fifo, buf, len);
+-	fifo->out += len;
+-	return len;
+-}
+-EXPORT_SYMBOL(__kfifo_out);
+-
+-static unsigned long kfifo_copy_from_user(struct __kfifo *fifo,
+-	const void __user *from, unsigned int len, unsigned int off,
+-	unsigned int *copied)
+-{
+-	unsigned int size = fifo->mask + 1;
+-	unsigned int esize = fifo->esize;
+-	unsigned int l;
+-	unsigned long ret;
+-
+-	off &= fifo->mask;
+-	if (esize != 1) {
+-		off *= esize;
+-		size *= esize;
+-		len *= esize;
+-	}
+-	l = min(len, size - off);
+-
+-	ret = copy_from_user(fifo->data + off, from, l);
+-	if (unlikely(ret))
+-		ret = DIV_ROUND_UP(ret + len - l, esize);
+-	else {
+-		ret = copy_from_user(fifo->data, from + l, len - l);
+-		if (unlikely(ret))
+-			ret = DIV_ROUND_UP(ret, esize);
+-	}
+-	/*
+-	 * make sure that the data in the fifo is up to date before
+-	 * incrementing the fifo->in index counter
+-	 */
+-	smp_wmb();
+-	*copied = len - ret;
+-	/* return the number of elements which are not copied */
+-	return ret;
+-}
+-
+-int __kfifo_from_user(struct __kfifo *fifo, const void __user *from,
+-		unsigned long len, unsigned int *copied)
+-{
+-	unsigned int l;
+-	unsigned long ret;
+-	unsigned int esize = fifo->esize;
+-	int err;
+-
+-	if (esize != 1)
+-		len /= esize;
+-
+-	l = kfifo_unused(fifo);
+-	if (len > l)
+-		len = l;
+-
+-	ret = kfifo_copy_from_user(fifo, from, len, fifo->in, copied);
+-	if (unlikely(ret)) {
+-		len -= ret;
+-		err = -EFAULT;
+-	} else
+-		err = 0;
+-	fifo->in += len;
+-	return err;
+-}
+-EXPORT_SYMBOL(__kfifo_from_user);
+-
+-static unsigned long kfifo_copy_to_user(struct __kfifo *fifo, void __user *to,
+-		unsigned int len, unsigned int off, unsigned int *copied)
+-{
+-	unsigned int l;
+-	unsigned long ret;
+-	unsigned int size = fifo->mask + 1;
+-	unsigned int esize = fifo->esize;
+-
+-	off &= fifo->mask;
+-	if (esize != 1) {
+-		off *= esize;
+-		size *= esize;
+-		len *= esize;
+-	}
+-	l = min(len, size - off);
+-
+-	ret = copy_to_user(to, fifo->data + off, l);
+-	if (unlikely(ret))
+-		ret = DIV_ROUND_UP(ret + len - l, esize);
+-	else {
+-		ret = copy_to_user(to + l, fifo->data, len - l);
+-		if (unlikely(ret))
+-			ret = DIV_ROUND_UP(ret, esize);
+-	}
+-	/*
+-	 * make sure that the data is copied before
+-	 * incrementing the fifo->out index counter
+-	 */
+-	smp_wmb();
+-	*copied = len - ret;
+-	/* return the number of elements which are not copied */
+-	return ret;
+-}
+-
+-int __kfifo_to_user(struct __kfifo *fifo, void __user *to,
+-		unsigned long len, unsigned int *copied)
+-{
+-	unsigned int l;
+-	unsigned long ret;
+-	unsigned int esize = fifo->esize;
+-	int err;
+-
+-	if (esize != 1)
+-		len /= esize;
+-
+-	l = fifo->in - fifo->out;
+-	if (len > l)
+-		len = l;
+-	ret = kfifo_copy_to_user(fifo, to, len, fifo->out, copied);
+-	if (unlikely(ret)) {
+-		len -= ret;
+-		err = -EFAULT;
+-	} else
+-		err = 0;
+-	fifo->out += len;
+-	return err;
+-}
+-EXPORT_SYMBOL(__kfifo_to_user);
+-
+-static int setup_sgl_buf(struct scatterlist *sgl, void *buf,
+-		int nents, unsigned int len)
+-{
+-	int n;
+-	unsigned int l;
+-	unsigned int off;
+-	struct page *page;
+-
+-	if (!nents)
+-		return 0;
+-
+-	if (!len)
+-		return 0;
+-
+-	n = 0;
+-	page = virt_to_page(buf);
+-	off = offset_in_page(buf);
+-	l = 0;
+-
+-	while (len >= l + PAGE_SIZE - off) {
+-		struct page *npage;
+-
+-		l += PAGE_SIZE;
+-		buf += PAGE_SIZE;
+-		npage = virt_to_page(buf);
+-		if (page_to_phys(page) != page_to_phys(npage) - l) {
+-			sg_set_page(sgl, page, l - off, off);
+-			sgl = sg_next(sgl);
+-			if (++n == nents || sgl == NULL)
+-				return n;
+-			page = npage;
+-			len -= l - off;
+-			l = off = 0;
+-		}
+-	}
+-	sg_set_page(sgl, page, len, off);
+-	return n + 1;
+-}
+-
+-static unsigned int setup_sgl(struct __kfifo *fifo, struct scatterlist *sgl,
+-		int nents, unsigned int len, unsigned int off)
+-{
+-	unsigned int size = fifo->mask + 1;
+-	unsigned int esize = fifo->esize;
+-	unsigned int l;
+-	unsigned int n;
+-
+-	off &= fifo->mask;
+-	if (esize != 1) {
+-		off *= esize;
+-		size *= esize;
+-		len *= esize;
+-	}
+-	l = min(len, size - off);
+-
+-	n = setup_sgl_buf(sgl, fifo->data + off, nents, l);
+-	n += setup_sgl_buf(sgl + n, fifo->data, nents - n, len - l);
+-
+-	return n;
+-}
+-
+-unsigned int __kfifo_dma_in_prepare(struct __kfifo *fifo,
+-		struct scatterlist *sgl, int nents, unsigned int len)
+-{
+-	unsigned int l;
+-
+-	l = kfifo_unused(fifo);
+-	if (len > l)
+-		len = l;
+-
+-	return setup_sgl(fifo, sgl, nents, len, fifo->in);
+-}
+-EXPORT_SYMBOL(__kfifo_dma_in_prepare);
+-
+-unsigned int __kfifo_dma_out_prepare(struct __kfifo *fifo,
+-		struct scatterlist *sgl, int nents, unsigned int len)
+-{
+-	unsigned int l;
+-
+-	l = fifo->in - fifo->out;
+-	if (len > l)
+-		len = l;
+-
+-	return setup_sgl(fifo, sgl, nents, len, fifo->out);
+-}
+-EXPORT_SYMBOL(__kfifo_dma_out_prepare);
+-
+-unsigned int __kfifo_max_r(unsigned int len, size_t recsize)
+-{
+-	unsigned int max = (1 << (recsize << 3)) - 1;
+-
+-	if (len > max)
+-		return max;
+-	return len;
+-}
+-EXPORT_SYMBOL(__kfifo_max_r);
+-
+-#define	__KFIFO_PEEK(data, out, mask) \
+-	((data)[(out) & (mask)])
+-/*
+- * __kfifo_peek_n internal helper function for determinate the length of
+- * the next record in the fifo
+- */
+-static unsigned int __kfifo_peek_n(struct __kfifo *fifo, size_t recsize)
+-{
+-	unsigned int l;
+-	unsigned int mask = fifo->mask;
+-	unsigned char *data = fifo->data;
+-
+-	l = __KFIFO_PEEK(data, fifo->out, mask);
+-
+-	if (--recsize)
+-		l |= __KFIFO_PEEK(data, fifo->out + 1, mask) << 8;
+-
+-	return l;
+-}
+-
+-#define	__KFIFO_POKE(data, in, mask, val) \
+-	( \
+-	(data)[(in) & (mask)] = (unsigned char)(val) \
+-	)
+-
+-/*
+- * __kfifo_poke_n internal helper function for storeing the length of
+- * the record into the fifo
+- */
+-static void __kfifo_poke_n(struct __kfifo *fifo, unsigned int n, size_t recsize)
+-{
+-	unsigned int mask = fifo->mask;
+-	unsigned char *data = fifo->data;
+-
+-	__KFIFO_POKE(data, fifo->in, mask, n);
+-
+-	if (recsize > 1)
+-		__KFIFO_POKE(data, fifo->in + 1, mask, n >> 8);
+-}
+-
+-unsigned int __kfifo_len_r(struct __kfifo *fifo, size_t recsize)
+-{
+-	return __kfifo_peek_n(fifo, recsize);
+-}
+-EXPORT_SYMBOL(__kfifo_len_r);
+-
+-unsigned int __kfifo_in_r(struct __kfifo *fifo, const void *buf,
+-		unsigned int len, size_t recsize)
+-{
+-	if (len + recsize > kfifo_unused(fifo))
+-		return 0;
+-
+-	__kfifo_poke_n(fifo, len, recsize);
+-
+-	kfifo_copy_in(fifo, buf, len, fifo->in + recsize);
+-	fifo->in += len + recsize;
+-	return len;
+-}
+-EXPORT_SYMBOL(__kfifo_in_r);
+-
+-static unsigned int kfifo_out_copy_r(struct __kfifo *fifo,
+-	void *buf, unsigned int len, size_t recsize, unsigned int *n)
+-{
+-	*n = __kfifo_peek_n(fifo, recsize);
+-
+-	if (len > *n)
+-		len = *n;
+-
+-	kfifo_copy_out(fifo, buf, len, fifo->out + recsize);
+-	return len;
+-}
+-
+-unsigned int __kfifo_out_peek_r(struct __kfifo *fifo, void *buf,
+-		unsigned int len, size_t recsize)
+-{
+-	unsigned int n;
+-
+-	if (fifo->in == fifo->out)
+-		return 0;
+-
+-	return kfifo_out_copy_r(fifo, buf, len, recsize, &n);
+-}
+-EXPORT_SYMBOL(__kfifo_out_peek_r);
+-
+-unsigned int __kfifo_out_r(struct __kfifo *fifo, void *buf,
+-		unsigned int len, size_t recsize)
+-{
+-	unsigned int n;
+-
+-	if (fifo->in == fifo->out)
+-		return 0;
+-
+-	len = kfifo_out_copy_r(fifo, buf, len, recsize, &n);
+-	fifo->out += n + recsize;
+-	return len;
+-}
+-EXPORT_SYMBOL(__kfifo_out_r);
+-
+-void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize)
+-{
+-	unsigned int n;
+-
+-	n = __kfifo_peek_n(fifo, recsize);
+-	fifo->out += n + recsize;
+-}
+-EXPORT_SYMBOL(__kfifo_skip_r);
+-
+-int __kfifo_from_user_r(struct __kfifo *fifo, const void __user *from,
+-	unsigned long len, unsigned int *copied, size_t recsize)
+-{
+-	unsigned long ret;
+-
+-	len = __kfifo_max_r(len, recsize);
+-
+-	if (len + recsize > kfifo_unused(fifo)) {
+-		*copied = 0;
+-		return 0;
+-	}
+-
+-	__kfifo_poke_n(fifo, len, recsize);
+-
+-	ret = kfifo_copy_from_user(fifo, from, len, fifo->in + recsize, copied);
+-	if (unlikely(ret)) {
+-		*copied = 0;
+-		return -EFAULT;
+-	}
+-	fifo->in += len + recsize;
+-	return 0;
+-}
+-EXPORT_SYMBOL(__kfifo_from_user_r);
+-
+-int __kfifo_to_user_r(struct __kfifo *fifo, void __user *to,
+-	unsigned long len, unsigned int *copied, size_t recsize)
+-{
+-	unsigned long ret;
+-	unsigned int n;
+-
+-	if (fifo->in == fifo->out) {
+-		*copied = 0;
+-		return 0;
+-	}
+-
+-	n = __kfifo_peek_n(fifo, recsize);
+-	if (len > n)
+-		len = n;
+-
+-	ret = kfifo_copy_to_user(fifo, to, len, fifo->out + recsize, copied);
+-	if (unlikely(ret)) {
+-		*copied = 0;
+-		return -EFAULT;
+-	}
+-	fifo->out += n + recsize;
+-	return 0;
+-}
+-EXPORT_SYMBOL(__kfifo_to_user_r);
+-
+-unsigned int __kfifo_dma_in_prepare_r(struct __kfifo *fifo,
+-	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize)
+-{
+-	if (!nents)
+-		BUG();
+-
+-	len = __kfifo_max_r(len, recsize);
+-
+-	if (len + recsize > kfifo_unused(fifo))
+-		return 0;
+-
+-	return setup_sgl(fifo, sgl, nents, len, fifo->in + recsize);
+-}
+-EXPORT_SYMBOL(__kfifo_dma_in_prepare_r);
+-
+-void __kfifo_dma_in_finish_r(struct __kfifo *fifo,
+-	unsigned int len, size_t recsize)
+-{
+-	len = __kfifo_max_r(len, recsize);
+-	__kfifo_poke_n(fifo, len, recsize);
+-	fifo->in += len + recsize;
+-}
+-EXPORT_SYMBOL(__kfifo_dma_in_finish_r);
+-
+-unsigned int __kfifo_dma_out_prepare_r(struct __kfifo *fifo,
+-	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize)
+-{
+-	if (!nents)
+-		BUG();
+-
+-	len = __kfifo_max_r(len, recsize);
+-
+-	if (len + recsize > fifo->in - fifo->out)
+-		return 0;
+-
+-	return setup_sgl(fifo, sgl, nents, len, fifo->out + recsize);
+-}
+-EXPORT_SYMBOL(__kfifo_dma_out_prepare_r);
+-
+-void __kfifo_dma_out_finish_r(struct __kfifo *fifo, size_t recsize)
+-{
+-	unsigned int len;
+-
+-	len = __kfifo_peek_n(fifo, recsize);
+-	fifo->out += len + recsize;
+-}
+-EXPORT_SYMBOL(__kfifo_dma_out_finish_r);
+diff -puN lib/Makefile~kfifo-move-kfifoc-from-kernel-to-lib lib/Makefile
+--- a/lib/Makefile~kfifo-move-kfifoc-from-kernel-to-lib
++++ a/lib/Makefile
+@@ -23,7 +23,7 @@ lib-y	+= kobject.o klist.o
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+ 	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
+-	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o
++	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o kfifo.o
+ obj-y += kstrtox.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
  
-+config HAVE_VIRT_TO_BUS
-+	bool
-+	help
-+	  An architecture should select this if it implements the
-+	  deprecated interface virt_to_bus().  All new architectures
-+	  should probably not select this.
+diff -puN /dev/null lib/kfifo.c
+--- /dev/null
++++ a/lib/kfifo.c
+@@ -0,0 +1,609 @@
++/*
++ * A generic kernel FIFO implementation
++ *
++ * Copyright (C) 2009/2010 Stefani Seibold <stefani@seibold.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ */
 +
- config HAVE_ARCH_SECCOMP_FILTER
- 	bool
- 	help
-diff -puN arch/alpha/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/alpha/Kconfig
-@@ -9,6 +9,7 @@ config ALPHA
- 	select HAVE_PERF_EVENTS
- 	select HAVE_DMA_ATTRS
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_IRQ_PROBE
- 	select AUTO_IRQ_AFFINITY if SMP
- 	select GENERIC_IRQ_SHOW
-diff -puN arch/arm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/arm/Kconfig
---- a/arch/arm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/arm/Kconfig
-@@ -49,6 +49,7 @@ config ARM
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_UID16
-+	select HAVE_VIRT_TO_BUS
- 	select KTIME_SCALAR
- 	select PERF_USE_VMALLOC
- 	select RTC_LIB
-diff -puN arch/avr32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/avr32/Kconfig
-@@ -7,6 +7,7 @@ config AVR32
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_ATOMIC64
- 	select HARDIRQS_SW_RESEND
-diff -puN arch/blackfin/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/blackfin/Kconfig
-@@ -33,6 +33,7 @@ config BLACKFIN
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select HAVE_UID16
-+	select HAVE_VIRT_TO_BUS
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_ATOMIC64
-diff -puN arch/cris/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/cris/Kconfig
---- a/arch/cris/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/cris/Kconfig
-@@ -43,6 +43,7 @@ config CRIS
- 	select GENERIC_ATOMIC64
- 	select HAVE_GENERIC_HARDIRQS
- 	select HAVE_UID16
-+	select HAVE_VIRT_TO_BUS
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_IOMAP
-diff -puN arch/frv/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/frv/Kconfig
---- a/arch/frv/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/frv/Kconfig
-@@ -6,6 +6,7 @@ config FRV
- 	select HAVE_PERF_EVENTS
- 	select HAVE_UID16
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_IRQ_SHOW
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
-diff -puN arch/h8300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/h8300/Kconfig
-@@ -5,6 +5,7 @@ config H8300
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_ATOMIC64
- 	select HAVE_UID16
-+	select HAVE_VIRT_TO_BUS
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_CPU_DEVICES
-diff -puN arch/ia64/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/ia64/Kconfig
-@@ -26,6 +26,7 @@ config IA64
- 	select HAVE_MEMBLOCK
- 	select HAVE_MEMBLOCK_NODE_MAP
- 	select HAVE_VIRT_CPU_ACCOUNTING
-+	select HAVE_VIRT_TO_BUS
- 	select ARCH_DISCARD_MEMBLOCK
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_PENDING_IRQ if SMP
-diff -puN arch/m32r/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/m32r/Kconfig
-@@ -10,6 +10,7 @@ config M32R
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_ATOMIC64
-diff -puN arch/m68k/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/m68k/Kconfig
-@@ -8,6 +8,7 @@ config M68K
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_ATOMIC64
- 	select HAVE_UID16
-+	select HAVE_VIRT_TO_BUS
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if RMW_INSNS
- 	select GENERIC_CPU_DEVICES
- 	select GENERIC_STRNCPY_FROM_USER if MMU
-diff -puN arch/microblaze/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/microblaze/Kconfig
-@@ -19,6 +19,7 @@ config MICROBLAZE
- 	select HAVE_DEBUG_KMEMLEAK
- 	select IRQ_DOMAIN
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_PCI_IOMAP
-diff -puN arch/mips/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/mips/Kconfig
---- a/arch/mips/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/mips/Kconfig
-@@ -38,6 +38,7 @@ config MIPS
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_CMOS_UPDATE
- 	select HAVE_MOD_ARCH_SPECIFIC
-+	select HAVE_VIRT_TO_BUS
- 	select MODULES_USE_ELF_REL if MODULES
- 	select MODULES_USE_ELF_RELA if MODULES && 64BIT
- 	select CLONE_BACKWARDS
-diff -puN arch/mn10300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/mn10300/Kconfig
---- a/arch/mn10300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/mn10300/Kconfig
-@@ -8,6 +8,7 @@ config MN10300
- 	select HAVE_ARCH_KGDB
- 	select GENERIC_ATOMIC64
- 	select HAVE_NMI_WATCHDOG if MN10300_WD_TIMER
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_CLOCKEVENTS
- 	select MODULES_USE_ELF_RELA
- 	select OLD_SIGSUSPEND3
-diff -puN arch/openrisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/openrisc/Kconfig
---- a/arch/openrisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/openrisc/Kconfig
-@@ -12,6 +12,7 @@ config OPENRISC
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-         select HAVE_ARCH_TRACEHOOK
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_IRQ_CHIP
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_IRQ_SHOW
-diff -puN arch/parisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/parisc/Kconfig
-@@ -19,6 +19,7 @@ config PARISC
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_STRNCPY_FROM_USER
- 	select HAVE_MOD_ARCH_SPECIFIC
-+	select HAVE_VIRT_TO_BUS
- 	select MODULES_USE_ELF_RELA
- 	select CLONE_BACKWARDS
- 	select TTY # Needed for pdc_cons.c
-diff -puN arch/powerpc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/powerpc/Kconfig
-@@ -87,9 +87,6 @@ config GENERIC_GPIO
- 	help
- 	  Generic GPIO API support
- 
--config ARCH_NO_VIRT_TO_BUS
--	def_bool PPC64
--
- config PPC
- 	bool
- 	default y
-@@ -101,6 +98,7 @@ config PPC
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select SYSCTL_EXCEPTION_TRACE
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-+	select HAVE_VIRT_TO_BUS if !PPC64
- 	select HAVE_IDE
- 	select HAVE_IOREMAP_PROT
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
-diff -puN arch/s390/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/s390/Kconfig
---- a/arch/s390/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/s390/Kconfig
-@@ -134,6 +134,7 @@ config S390
- 	select HAVE_SYSCALL_WRAPPERS
- 	select HAVE_UID16 if 32BIT
- 	select HAVE_VIRT_CPU_ACCOUNTING
-+	select HAVE_VIRT_TO_BUS
- 	select INIT_ALL_POSSIBLE
- 	select KTIME_SCALAR if 32BIT
- 	select MODULES_USE_ELF_RELA
-diff -puN arch/score/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/score/Kconfig
---- a/arch/score/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/score/Kconfig
-@@ -12,6 +12,7 @@ config SCORE
-        select GENERIC_CPU_DEVICES
-        select GENERIC_CLOCKEVENTS
-        select HAVE_MOD_ARCH_SPECIFIC
-+	select HAVE_VIRT_TO_BUS
- 	select MODULES_USE_ELF_REL
- 	select CLONE_BACKWARDS
- 
-diff -puN arch/sh/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/sh/Kconfig
---- a/arch/sh/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/sh/Kconfig
-@@ -148,9 +148,6 @@ config ARCH_HAS_ILOG2_U32
- config ARCH_HAS_ILOG2_U64
- 	def_bool n
- 
--config ARCH_NO_VIRT_TO_BUS
--	def_bool y
--
- config ARCH_HAS_DEFAULT_IDLE
- 	def_bool y
- 
-diff -puN arch/sparc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/sparc/Kconfig
-@@ -146,9 +146,6 @@ config GENERIC_GPIO
- 	help
- 	  Generic GPIO API support
- 
--config ARCH_NO_VIRT_TO_BUS
--	def_bool y
--
- config ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	def_bool y if SPARC64
- 
-diff -puN arch/tile/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/tile/Kconfig
---- a/arch/tile/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/tile/Kconfig
-@@ -17,6 +17,7 @@ config TILE
- 	select GENERIC_IRQ_SHOW
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select HAVE_SYSCALL_WRAPPERS if TILEGX
-+	select HAVE_VIRT_TO_BUS
- 	select SYS_HYPERVISOR
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select GENERIC_CLOCKEVENTS
-diff -puN arch/unicore32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/unicore32/Kconfig
---- a/arch/unicore32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/unicore32/Kconfig
-@@ -9,6 +9,7 @@ config UNICORE32
- 	select GENERIC_ATOMIC64
- 	select HAVE_KERNEL_LZO
- 	select HAVE_KERNEL_LZMA
-+	select HAVE_VIRT_TO_BUS
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_IRQ_PROBE
-diff -puN arch/x86/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/x86/Kconfig
---- a/arch/x86/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/x86/Kconfig
-@@ -112,6 +112,7 @@ config X86
- 	select GENERIC_STRNLEN_USER
- 	select HAVE_CONTEXT_TRACKING if X86_64
- 	select HAVE_IRQ_TIME_ACCOUNTING
-+	select HAVE_VIRT_TO_BUS
- 	select MODULES_USE_ELF_REL if X86_32
- 	select MODULES_USE_ELF_RELA if X86_64
- 	select CLONE_BACKWARDS if X86_32
-diff -puN arch/xtensa/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/arch/xtensa/Kconfig
-@@ -9,6 +9,7 @@ config XTENSA
- 	select HAVE_IDE
- 	select GENERIC_ATOMIC64
- 	select HAVE_GENERIC_HARDIRQS
-+	select HAVE_VIRT_TO_BUS
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_CPU_DEVICES
- 	select MODULES_USE_ELF_RELA
-diff -puN mm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus mm/Kconfig
---- a/mm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
-+++ a/mm/Kconfig
-@@ -287,7 +287,7 @@ config NR_QUICK
- 
- config VIRT_TO_BUS
- 	def_bool y
--	depends on !ARCH_NO_VIRT_TO_BUS
-+	depends on HAVE_VIRT_TO_BUS
- 
- config MMU_NOTIFIER
- 	bool
++#include <linux/kernel.h>
++#include <linux/export.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/log2.h>
++#include <linux/uaccess.h>
++#include <linux/kfifo.h>
++
++/*
++ * internal helper to calculate the unused elements in a fifo
++ */
++static inline unsigned int kfifo_unused(struct __kfifo *fifo)
++{
++	return (fifo->mask + 1) - (fifo->in - fifo->out);
++}
++
++int __kfifo_alloc(struct __kfifo *fifo, unsigned int size,
++		size_t esize, gfp_t gfp_mask)
++{
++	/*
++	 * round down to the next power of 2, since our 'let the indices
++	 * wrap' technique works only in this case.
++	 */
++	if (!is_power_of_2(size))
++		size = rounddown_pow_of_two(size);
++
++	fifo->in = 0;
++	fifo->out = 0;
++	fifo->esize = esize;
++
++	if (size < 2) {
++		fifo->data = NULL;
++		fifo->mask = 0;
++		return -EINVAL;
++	}
++
++	fifo->data = kmalloc(size * esize, gfp_mask);
++
++	if (!fifo->data) {
++		fifo->mask = 0;
++		return -ENOMEM;
++	}
++	fifo->mask = size - 1;
++
++	return 0;
++}
++EXPORT_SYMBOL(__kfifo_alloc);
++
++void __kfifo_free(struct __kfifo *fifo)
++{
++	kfree(fifo->data);
++	fifo->in = 0;
++	fifo->out = 0;
++	fifo->esize = 0;
++	fifo->data = NULL;
++	fifo->mask = 0;
++}
++EXPORT_SYMBOL(__kfifo_free);
++
++int __kfifo_init(struct __kfifo *fifo, void *buffer,
++		unsigned int size, size_t esize)
++{
++	size /= esize;
++
++	if (!is_power_of_2(size))
++		size = rounddown_pow_of_two(size);
++
++	fifo->in = 0;
++	fifo->out = 0;
++	fifo->esize = esize;
++	fifo->data = buffer;
++
++	if (size < 2) {
++		fifo->mask = 0;
++		return -EINVAL;
++	}
++	fifo->mask = size - 1;
++
++	return 0;
++}
++EXPORT_SYMBOL(__kfifo_init);
++
++static void kfifo_copy_in(struct __kfifo *fifo, const void *src,
++		unsigned int len, unsigned int off)
++{
++	unsigned int size = fifo->mask + 1;
++	unsigned int esize = fifo->esize;
++	unsigned int l;
++
++	off &= fifo->mask;
++	if (esize != 1) {
++		off *= esize;
++		size *= esize;
++		len *= esize;
++	}
++	l = min(len, size - off);
++
++	memcpy(fifo->data + off, src, l);
++	memcpy(fifo->data, src + l, len - l);
++	/*
++	 * make sure that the data in the fifo is up to date before
++	 * incrementing the fifo->in index counter
++	 */
++	smp_wmb();
++}
++
++unsigned int __kfifo_in(struct __kfifo *fifo,
++		const void *buf, unsigned int len)
++{
++	unsigned int l;
++
++	l = kfifo_unused(fifo);
++	if (len > l)
++		len = l;
++
++	kfifo_copy_in(fifo, buf, len, fifo->in);
++	fifo->in += len;
++	return len;
++}
++EXPORT_SYMBOL(__kfifo_in);
++
++static void kfifo_copy_out(struct __kfifo *fifo, void *dst,
++		unsigned int len, unsigned int off)
++{
++	unsigned int size = fifo->mask + 1;
++	unsigned int esize = fifo->esize;
++	unsigned int l;
++
++	off &= fifo->mask;
++	if (esize != 1) {
++		off *= esize;
++		size *= esize;
++		len *= esize;
++	}
++	l = min(len, size - off);
++
++	memcpy(dst, fifo->data + off, l);
++	memcpy(dst + l, fifo->data, len - l);
++	/*
++	 * make sure that the data is copied before
++	 * incrementing the fifo->out index counter
++	 */
++	smp_wmb();
++}
++
++unsigned int __kfifo_out_peek(struct __kfifo *fifo,
++		void *buf, unsigned int len)
++{
++	unsigned int l;
++
++	l = fifo->in - fifo->out;
++	if (len > l)
++		len = l;
++
++	kfifo_copy_out(fifo, buf, len, fifo->out);
++	return len;
++}
++EXPORT_SYMBOL(__kfifo_out_peek);
++
++unsigned int __kfifo_out(struct __kfifo *fifo,
++		void *buf, unsigned int len)
++{
++	len = __kfifo_out_peek(fifo, buf, len);
++	fifo->out += len;
++	return len;
++}
++EXPORT_SYMBOL(__kfifo_out);
++
++static unsigned long kfifo_copy_from_user(struct __kfifo *fifo,
++	const void __user *from, unsigned int len, unsigned int off,
++	unsigned int *copied)
++{
++	unsigned int size = fifo->mask + 1;
++	unsigned int esize = fifo->esize;
++	unsigned int l;
++	unsigned long ret;
++
++	off &= fifo->mask;
++	if (esize != 1) {
++		off *= esize;
++		size *= esize;
++		len *= esize;
++	}
++	l = min(len, size - off);
++
++	ret = copy_from_user(fifo->data + off, from, l);
++	if (unlikely(ret))
++		ret = DIV_ROUND_UP(ret + len - l, esize);
++	else {
++		ret = copy_from_user(fifo->data, from + l, len - l);
++		if (unlikely(ret))
++			ret = DIV_ROUND_UP(ret, esize);
++	}
++	/*
++	 * make sure that the data in the fifo is up to date before
++	 * incrementing the fifo->in index counter
++	 */
++	smp_wmb();
++	*copied = len - ret;
++	/* return the number of elements which are not copied */
++	return ret;
++}
++
++int __kfifo_from_user(struct __kfifo *fifo, const void __user *from,
++		unsigned long len, unsigned int *copied)
++{
++	unsigned int l;
++	unsigned long ret;
++	unsigned int esize = fifo->esize;
++	int err;
++
++	if (esize != 1)
++		len /= esize;
++
++	l = kfifo_unused(fifo);
++	if (len > l)
++		len = l;
++
++	ret = kfifo_copy_from_user(fifo, from, len, fifo->in, copied);
++	if (unlikely(ret)) {
++		len -= ret;
++		err = -EFAULT;
++	} else
++		err = 0;
++	fifo->in += len;
++	return err;
++}
++EXPORT_SYMBOL(__kfifo_from_user);
++
++static unsigned long kfifo_copy_to_user(struct __kfifo *fifo, void __user *to,
++		unsigned int len, unsigned int off, unsigned int *copied)
++{
++	unsigned int l;
++	unsigned long ret;
++	unsigned int size = fifo->mask + 1;
++	unsigned int esize = fifo->esize;
++
++	off &= fifo->mask;
++	if (esize != 1) {
++		off *= esize;
++		size *= esize;
++		len *= esize;
++	}
++	l = min(len, size - off);
++
++	ret = copy_to_user(to, fifo->data + off, l);
++	if (unlikely(ret))
++		ret = DIV_ROUND_UP(ret + len - l, esize);
++	else {
++		ret = copy_to_user(to + l, fifo->data, len - l);
++		if (unlikely(ret))
++			ret = DIV_ROUND_UP(ret, esize);
++	}
++	/*
++	 * make sure that the data is copied before
++	 * incrementing the fifo->out index counter
++	 */
++	smp_wmb();
++	*copied = len - ret;
++	/* return the number of elements which are not copied */
++	return ret;
++}
++
++int __kfifo_to_user(struct __kfifo *fifo, void __user *to,
++		unsigned long len, unsigned int *copied)
++{
++	unsigned int l;
++	unsigned long ret;
++	unsigned int esize = fifo->esize;
++	int err;
++
++	if (esize != 1)
++		len /= esize;
++
++	l = fifo->in - fifo->out;
++	if (len > l)
++		len = l;
++	ret = kfifo_copy_to_user(fifo, to, len, fifo->out, copied);
++	if (unlikely(ret)) {
++		len -= ret;
++		err = -EFAULT;
++	} else
++		err = 0;
++	fifo->out += len;
++	return err;
++}
++EXPORT_SYMBOL(__kfifo_to_user);
++
++static int setup_sgl_buf(struct scatterlist *sgl, void *buf,
++		int nents, unsigned int len)
++{
++	int n;
++	unsigned int l;
++	unsigned int off;
++	struct page *page;
++
++	if (!nents)
++		return 0;
++
++	if (!len)
++		return 0;
++
++	n = 0;
++	page = virt_to_page(buf);
++	off = offset_in_page(buf);
++	l = 0;
++
++	while (len >= l + PAGE_SIZE - off) {
++		struct page *npage;
++
++		l += PAGE_SIZE;
++		buf += PAGE_SIZE;
++		npage = virt_to_page(buf);
++		if (page_to_phys(page) != page_to_phys(npage) - l) {
++			sg_set_page(sgl, page, l - off, off);
++			sgl = sg_next(sgl);
++			if (++n == nents || sgl == NULL)
++				return n;
++			page = npage;
++			len -= l - off;
++			l = off = 0;
++		}
++	}
++	sg_set_page(sgl, page, len, off);
++	return n + 1;
++}
++
++static unsigned int setup_sgl(struct __kfifo *fifo, struct scatterlist *sgl,
++		int nents, unsigned int len, unsigned int off)
++{
++	unsigned int size = fifo->mask + 1;
++	unsigned int esize = fifo->esize;
++	unsigned int l;
++	unsigned int n;
++
++	off &= fifo->mask;
++	if (esize != 1) {
++		off *= esize;
++		size *= esize;
++		len *= esize;
++	}
++	l = min(len, size - off);
++
++	n = setup_sgl_buf(sgl, fifo->data + off, nents, l);
++	n += setup_sgl_buf(sgl + n, fifo->data, nents - n, len - l);
++
++	return n;
++}
++
++unsigned int __kfifo_dma_in_prepare(struct __kfifo *fifo,
++		struct scatterlist *sgl, int nents, unsigned int len)
++{
++	unsigned int l;
++
++	l = kfifo_unused(fifo);
++	if (len > l)
++		len = l;
++
++	return setup_sgl(fifo, sgl, nents, len, fifo->in);
++}
++EXPORT_SYMBOL(__kfifo_dma_in_prepare);
++
++unsigned int __kfifo_dma_out_prepare(struct __kfifo *fifo,
++		struct scatterlist *sgl, int nents, unsigned int len)
++{
++	unsigned int l;
++
++	l = fifo->in - fifo->out;
++	if (len > l)
++		len = l;
++
++	return setup_sgl(fifo, sgl, nents, len, fifo->out);
++}
++EXPORT_SYMBOL(__kfifo_dma_out_prepare);
++
++unsigned int __kfifo_max_r(unsigned int len, size_t recsize)
++{
++	unsigned int max = (1 << (recsize << 3)) - 1;
++
++	if (len > max)
++		return max;
++	return len;
++}
++EXPORT_SYMBOL(__kfifo_max_r);
++
++#define	__KFIFO_PEEK(data, out, mask) \
++	((data)[(out) & (mask)])
++/*
++ * __kfifo_peek_n internal helper function for determinate the length of
++ * the next record in the fifo
++ */
++static unsigned int __kfifo_peek_n(struct __kfifo *fifo, size_t recsize)
++{
++	unsigned int l;
++	unsigned int mask = fifo->mask;
++	unsigned char *data = fifo->data;
++
++	l = __KFIFO_PEEK(data, fifo->out, mask);
++
++	if (--recsize)
++		l |= __KFIFO_PEEK(data, fifo->out + 1, mask) << 8;
++
++	return l;
++}
++
++#define	__KFIFO_POKE(data, in, mask, val) \
++	( \
++	(data)[(in) & (mask)] = (unsigned char)(val) \
++	)
++
++/*
++ * __kfifo_poke_n internal helper function for storeing the length of
++ * the record into the fifo
++ */
++static void __kfifo_poke_n(struct __kfifo *fifo, unsigned int n, size_t recsize)
++{
++	unsigned int mask = fifo->mask;
++	unsigned char *data = fifo->data;
++
++	__KFIFO_POKE(data, fifo->in, mask, n);
++
++	if (recsize > 1)
++		__KFIFO_POKE(data, fifo->in + 1, mask, n >> 8);
++}
++
++unsigned int __kfifo_len_r(struct __kfifo *fifo, size_t recsize)
++{
++	return __kfifo_peek_n(fifo, recsize);
++}
++EXPORT_SYMBOL(__kfifo_len_r);
++
++unsigned int __kfifo_in_r(struct __kfifo *fifo, const void *buf,
++		unsigned int len, size_t recsize)
++{
++	if (len + recsize > kfifo_unused(fifo))
++		return 0;
++
++	__kfifo_poke_n(fifo, len, recsize);
++
++	kfifo_copy_in(fifo, buf, len, fifo->in + recsize);
++	fifo->in += len + recsize;
++	return len;
++}
++EXPORT_SYMBOL(__kfifo_in_r);
++
++static unsigned int kfifo_out_copy_r(struct __kfifo *fifo,
++	void *buf, unsigned int len, size_t recsize, unsigned int *n)
++{
++	*n = __kfifo_peek_n(fifo, recsize);
++
++	if (len > *n)
++		len = *n;
++
++	kfifo_copy_out(fifo, buf, len, fifo->out + recsize);
++	return len;
++}
++
++unsigned int __kfifo_out_peek_r(struct __kfifo *fifo, void *buf,
++		unsigned int len, size_t recsize)
++{
++	unsigned int n;
++
++	if (fifo->in == fifo->out)
++		return 0;
++
++	return kfifo_out_copy_r(fifo, buf, len, recsize, &n);
++}
++EXPORT_SYMBOL(__kfifo_out_peek_r);
++
++unsigned int __kfifo_out_r(struct __kfifo *fifo, void *buf,
++		unsigned int len, size_t recsize)
++{
++	unsigned int n;
++
++	if (fifo->in == fifo->out)
++		return 0;
++
++	len = kfifo_out_copy_r(fifo, buf, len, recsize, &n);
++	fifo->out += n + recsize;
++	return len;
++}
++EXPORT_SYMBOL(__kfifo_out_r);
++
++void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize)
++{
++	unsigned int n;
++
++	n = __kfifo_peek_n(fifo, recsize);
++	fifo->out += n + recsize;
++}
++EXPORT_SYMBOL(__kfifo_skip_r);
++
++int __kfifo_from_user_r(struct __kfifo *fifo, const void __user *from,
++	unsigned long len, unsigned int *copied, size_t recsize)
++{
++	unsigned long ret;
++
++	len = __kfifo_max_r(len, recsize);
++
++	if (len + recsize > kfifo_unused(fifo)) {
++		*copied = 0;
++		return 0;
++	}
++
++	__kfifo_poke_n(fifo, len, recsize);
++
++	ret = kfifo_copy_from_user(fifo, from, len, fifo->in + recsize, copied);
++	if (unlikely(ret)) {
++		*copied = 0;
++		return -EFAULT;
++	}
++	fifo->in += len + recsize;
++	return 0;
++}
++EXPORT_SYMBOL(__kfifo_from_user_r);
++
++int __kfifo_to_user_r(struct __kfifo *fifo, void __user *to,
++	unsigned long len, unsigned int *copied, size_t recsize)
++{
++	unsigned long ret;
++	unsigned int n;
++
++	if (fifo->in == fifo->out) {
++		*copied = 0;
++		return 0;
++	}
++
++	n = __kfifo_peek_n(fifo, recsize);
++	if (len > n)
++		len = n;
++
++	ret = kfifo_copy_to_user(fifo, to, len, fifo->out + recsize, copied);
++	if (unlikely(ret)) {
++		*copied = 0;
++		return -EFAULT;
++	}
++	fifo->out += n + recsize;
++	return 0;
++}
++EXPORT_SYMBOL(__kfifo_to_user_r);
++
++unsigned int __kfifo_dma_in_prepare_r(struct __kfifo *fifo,
++	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize)
++{
++	if (!nents)
++		BUG();
++
++	len = __kfifo_max_r(len, recsize);
++
++	if (len + recsize > kfifo_unused(fifo))
++		return 0;
++
++	return setup_sgl(fifo, sgl, nents, len, fifo->in + recsize);
++}
++EXPORT_SYMBOL(__kfifo_dma_in_prepare_r);
++
++void __kfifo_dma_in_finish_r(struct __kfifo *fifo,
++	unsigned int len, size_t recsize)
++{
++	len = __kfifo_max_r(len, recsize);
++	__kfifo_poke_n(fifo, len, recsize);
++	fifo->in += len + recsize;
++}
++EXPORT_SYMBOL(__kfifo_dma_in_finish_r);
++
++unsigned int __kfifo_dma_out_prepare_r(struct __kfifo *fifo,
++	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize)
++{
++	if (!nents)
++		BUG();
++
++	len = __kfifo_max_r(len, recsize);
++
++	if (len + recsize > fifo->in - fifo->out)
++		return 0;
++
++	return setup_sgl(fifo, sgl, nents, len, fifo->out + recsize);
++}
++EXPORT_SYMBOL(__kfifo_dma_out_prepare_r);
++
++void __kfifo_dma_out_finish_r(struct __kfifo *fifo, size_t recsize)
++{
++	unsigned int len;
++
++	len = __kfifo_peek_n(fifo, recsize);
++	fifo->out += len + recsize;
++}
++EXPORT_SYMBOL(__kfifo_dma_out_finish_r);
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from stefani@seibold.net are
 
 origin.patch
-linux-next.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
