@@ -1,97 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nbd-update-documentation-and-link-to-mailinglist.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:17:05 -0800
-Message-ID: <20130228201705.B35C231C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] nbd-fix-sparse-warning.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:17:08 -0800
+Message-ID: <20130228201708.A7C9031C25A@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:60892 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343Ab3B1URG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:06 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so246738yhz.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:06 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:52129 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754343Ab3B1URJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:09 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so245083vcd.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w@uter.be, Paul.Clements@steeleye.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
+To: elder@inktank.com, paul.clements@steeleye.com, paul.clements@us.sios.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nbd: update documentation and link to mailinglist
+     Subject: nbd: fix sparse warning
 has been removed from the -mm tree.  Its filename was
-     nbd-update-documentation-and-link-to-mailinglist.patch
+     nbd-fix-sparse-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wouter Verhelst <w@uter.be>
-Subject: nbd: update documentation and link to mailinglist
+From: Alex Elder <elder@inktank.com>
+Subject: nbd: fix sparse warning
 
-Documentation/blockdev/nbd.txt contained some documentation which was
-horribly outdated and probably still dates from the original patch that
-added NBD support to the kernel.
+I just fixed this in "drivers/block/rbd.c" and I noticed that
+"drivers/block/nbd.c" has the same problem.  Fix a warning issued by
+sparse by adding some lockdep annotations to indicate the queue lock gets
+dropped (because it's held when do_nbd_request() is called) and
+re-acquired within the function.
 
-This patch removes the useless and outdated bits.  The tools on nbd.sf.net
-are fully documented in manpages, which is where documentation for the
-non-kernel bits should live.
-
-Additionally, add a reference to the MAINTAINERS file for the nbd-general
-mailinglist that is used for discussion of the userland tools and the
-kernel module already.
-
-Signed-off-by: Wouter Verhelst <w@uter.be>
-Cc: Paul Clements <Paul.Clements@steeleye.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
+Signed-off-by: Alex Elder <elder@inktank.com>
+Cc: Paul Clements <paul.clements@steeleye.com>
+Cc: Paul Clements <paul.clements@us.sios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/nbd.txt |   38 +++----------------------------
- MAINTAINERS                    |    1 
- 2 files changed, 5 insertions(+), 34 deletions(-)
+ drivers/block/nbd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/blockdev/nbd.txt~nbd-update-documentation-and-link-to-mailinglist Documentation/blockdev/nbd.txt
---- a/Documentation/blockdev/nbd.txt~nbd-update-documentation-and-link-to-mailinglist
-+++ a/Documentation/blockdev/nbd.txt
-@@ -4,43 +4,13 @@
-    can use a remote server as one of its block devices. So every time
-    the client computer wants to read, e.g., /dev/nb0, it sends a
-    request over TCP to the server, which will reply with the data read.
--   This can be used for stations with low disk space (or even diskless -
--   if you boot from floppy) to borrow disk space from another computer.
--   Unlike NFS, it is possible to put any filesystem on it, etc. It should
--   even be possible to use NBD as a root filesystem (I've never tried),
--   but it requires a user-level program to be in the initrd to start.
--   It also allows you to run block-device in user land (making server
--   and client physically the same computer, communicating using loopback).
--   
--   Current state: It currently works. Network block device is stable.
--   I originally thought that it was impossible to swap over TCP. It
--   turned out not to be true - swapping over TCP now works and seems
--   to be deadlock-free, but it requires heavy patches into Linux's
--   network layer.
--   
-+   This can be used for stations with low disk space (or even diskless)
-+   to borrow disk space from another computer.
-+   Unlike NFS, it is possible to put any filesystem on it, etc.
-+
-    For more information, or to download the nbd-client and nbd-server
-    tools, go to http://nbd.sf.net/.
+diff -puN drivers/block/nbd.c~nbd-fix-sparse-warning drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-fix-sparse-warning
++++ a/drivers/block/nbd.c
+@@ -564,6 +564,7 @@ static int nbd_thread(void *data)
+  */
  
--   Howto: To setup nbd, you can simply do the following:
--
--   First, serve a device or file from a remote server:
--
--   nbd-server <port-number> <device-or-file-to-serve-to-client>
--
--   e.g.,
--	root@server1 # nbd-server 1234 /dev/sdb1
--
--	(serves sdb1 partition on TCP port 1234)
--
--   Then, on the local (client) system:
--
--   nbd-client <server-name-or-IP> <server-port-number> /dev/nb[0-n]
--
--   e.g.,
--	root@client1 # nbd-client server1 1234 /dev/nb0
--
--	(creates the nb0 device on client1)
+ static void do_nbd_request(struct request_queue *q)
++		__releases(q->queue_lock) __acquires(q->queue_lock)
+ {
+ 	struct request *req;
+ 	
+_
+
+Patches currently in -mm which might be from elder@inktank.com are
+
+origin.patch
+linux-next.patch
+
