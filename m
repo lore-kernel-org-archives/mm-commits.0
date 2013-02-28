@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nfs-idr_destroy-no-longer-needs-idr_remove_all.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:49 -0800
-Message-ID: <20130228201250.1BE3531C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] inotify-dont-use-idr_remove_all.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:51 -0800
+Message-ID: <20130228201252.16DB231C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:48440 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757143Ab3B1UMv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:51 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so245151yen.0
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:50 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:38046 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757143Ab3B1UMx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:53 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so245088qea.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfs: idr_destroy() no longer needs idr_remove_all()
+     Subject: inotify: don't use idr_remove_all()
 has been removed from the -mm tree.  Its filename was
-     nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
+     inotify-dont-use-idr_remove_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: nfs: idr_destroy() no longer needs idr_remove_all()
+Subject: inotify: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
-deprecated.  Drop reference to idr_remove_all().  Note that the code
-wasn't completely correct before because idr_remove() on all entries
-doesn't necessarily release all idr_layers which could lead to memory
-leak.
+deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/client.c |    1 -
+ fs/notify/inotify/inotify_fsnotify.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all fs/nfs/client.c
---- a/fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all
-+++ a/fs/nfs/client.c
-@@ -197,7 +197,6 @@ error_0:
- EXPORT_SYMBOL_GPL(nfs_alloc_client);
- 
- #if IS_ENABLED(CONFIG_NFS_V4)
--/* idr_remove_all is not needed as all id's are removed by nfs_put_client */
- void nfs_cleanup_cb_ident_idr(struct net *net)
+diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all fs/notify/inotify/inotify_fsnotify.c
+--- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all
++++ a/fs/notify/inotify/inotify_fsnotify.c
+@@ -197,7 +197,6 @@ static void inotify_free_group_priv(stru
  {
- 	struct nfs_net *nn = net_generic(net, nfs_net_id);
+ 	/* ideally the idr is empty and we won't hit the BUG in the callback */
+ 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
+-	idr_remove_all(&group->inotify_data.idr);
+ 	idr_destroy(&group->inotify_data.idr);
+ 	atomic_dec(&group->inotify_data.user->inotify_devs);
+ 	free_uid(group->inotify_data.user);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
