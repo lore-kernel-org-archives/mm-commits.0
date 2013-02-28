@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drm-via-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:13:54 -0800
-Message-ID: <20130228201354.A5F985A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drm-sis-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:13:51 -0800
+Message-ID: <20130228201351.B202F31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:47222 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757821Ab3B1UNz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:55 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so245010yen.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:55 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:41493 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757702Ab3B1UNw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:52 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so244844vcd.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tj@kernel.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/via: convert to idr_alloc()
+     Subject: drm/sis: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     drm-via-convert-to-idr_alloc.patch
+     drm-sis-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: drm/via: convert to idr_alloc()
+Subject: drm/sis: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
@@ -33,13 +33,13 @@ Acked-by: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/via/via_mm.c |   13 +++----------
+ drivers/gpu/drm/sis/sis_mm.c |   13 +++----------
  1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/gpu/drm/via/via_mm.c~drm-via-convert-to-idr_alloc drivers/gpu/drm/via/via_mm.c
---- a/drivers/gpu/drm/via/via_mm.c~drm-via-convert-to-idr_alloc
-+++ a/drivers/gpu/drm/via/via_mm.c
-@@ -148,17 +148,10 @@ int via_mem_alloc(struct drm_device *dev
+diff -puN drivers/gpu/drm/sis/sis_mm.c~drm-sis-convert-to-idr_alloc drivers/gpu/drm/sis/sis_mm.c
+--- a/drivers/gpu/drm/sis/sis_mm.c~drm-sis-convert-to-idr_alloc
++++ a/drivers/gpu/drm/sis/sis_mm.c
+@@ -128,17 +128,10 @@ static int sis_drm_alloc(struct drm_devi
  	if (retval)
  		goto fail_alloc;
  
