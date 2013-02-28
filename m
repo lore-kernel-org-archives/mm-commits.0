@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-max77686-fix-indentation-of-bit-definitions.patch added to -mm tree
-Date: Thu, 28 Feb 2013 14:27:03 -0800
-Message-ID: <20130228222704.2BC4831C1F0@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-max77686-add-missing-module-author-name.patch added to -mm tree
+Date: Thu, 28 Feb 2013 14:26:58 -0800
+Message-ID: <20130228222659.413335A41FD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:56302 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754951Ab3B1W1F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 17:27:05 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so262874yen.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 14:27:04 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36760 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753746Ab3B1W1A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 17:27:00 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so262645vcd.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 14:26:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max77686.c: fix indentation of bit definitions
+     Subject: drivers/rtc/rtc-max77686.c: add missing module author name
 has been added to the -mm tree.  Its filename is
-     rtc-max77686-fix-indentation-of-bit-definitions.patch
+     rtc-max77686-add-missing-module-author-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-max77686.c: fix indentation of bit definitions
+Subject: drivers/rtc/rtc-max77686.c: add missing module author name
 
-Fix indentation of bit definitions to enhance the readability.
+Add missing module author name to MODULE_AUTHOR macro.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-max77686.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-fix-indentation-of-bit-definitions drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~rtc-max77686-fix-indentation-of-bit-definitions
+diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-add-missing-module-author-name drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-max77686-add-missing-module-author-name
 +++ a/drivers/rtc/rtc-max77686.c
-@@ -24,7 +24,7 @@
+@@ -627,5 +627,5 @@ static struct platform_driver max77686_r
+ module_platform_driver(max77686_rtc_driver);
  
- /* RTC Control Register */
- #define BCD_EN_SHIFT			0
--#define BCD_EN_MASK				(1 << BCD_EN_SHIFT)
-+#define BCD_EN_MASK			(1 << BCD_EN_SHIFT)
- #define MODEL24_SHIFT			1
- #define MODEL24_MASK			(1 << MODEL24_SHIFT)
- /* RTC Update Register1 */
-@@ -33,12 +33,12 @@
- #define RTC_RBUDR_SHIFT			4
- #define RTC_RBUDR_MASK			(1 << RTC_RBUDR_SHIFT)
- /* WTSR and SMPL Register */
--#define WTSRT_SHIFT				0
--#define SMPLT_SHIFT				2
-+#define WTSRT_SHIFT			0
-+#define SMPLT_SHIFT			2
- #define WTSR_EN_SHIFT			6
- #define SMPL_EN_SHIFT			7
--#define WTSRT_MASK				(3 << WTSRT_SHIFT)
--#define SMPLT_MASK				(3 << SMPLT_SHIFT)
-+#define WTSRT_MASK			(3 << WTSRT_SHIFT)
-+#define SMPLT_MASK			(3 << SMPLT_SHIFT)
- #define WTSR_EN_MASK			(1 << WTSR_EN_SHIFT)
- #define SMPL_EN_MASK			(1 << SMPL_EN_SHIFT)
- /* RTC Hour register */
+ MODULE_DESCRIPTION("Maxim MAX77686 RTC driver");
+-MODULE_AUTHOR("<woong.byun@samsung.com>");
++MODULE_AUTHOR("Chiwoong Byun <woong.byun@samsung.com>");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
