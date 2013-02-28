@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch removed from -mm tree
-Date: Wed, 27 Feb 2013 16:47:30 -0800
-Message-ID: <20130228004730.E205131C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch removed from -mm tree
+Date: Wed, 27 Feb 2013 16:47:51 -0800
+Message-ID: <20130228004751.E81735A408F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:32805 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752497Ab3B1Arf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:47:35 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so139819qea.5
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:47:33 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:59512 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752963Ab3B1Arx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:47:53 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so139631ggn.4
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:47:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, dae@velatum.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, festevam@gmail.com, matt.fleming@intel.com, pjones@redhat.com, swarren@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
+     Subject: ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+     ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
 
-This patch was dropped because it was folded into drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
+This patch was dropped because it was folded into ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
+Subject: ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
 
-reduce scope of local `c'
+fix printk warning
 
-Cc: "Dae S. Kim" <dae@velatum.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dae S. Kim <dae@velatum.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Peter Jones <pjones@redhat.com>
+Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Fabio Estevam <festevam@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ block/partitions/efi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix drivers/char/misc.c
---- a/drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
-+++ a/drivers/char/misc.c
-@@ -183,7 +183,6 @@ static const struct file_operations misc
-  
- int misc_register(struct miscdevice * misc)
- {
--	struct miscdevice *c;
- 	dev_t dev;
- 	int err = 0;
+diff -puN block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix block/partitions/efi.c
+--- a/block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix
++++ a/block/partitions/efi.c
+@@ -321,7 +321,7 @@ static int is_gpt_valid(struct parsed_pa
  
-@@ -200,6 +199,8 @@ int misc_register(struct miscdevice * mi
- 		misc->minor = DYNAMIC_MINORS - i - 1;
- 		set_bit(i, misc_minors);
- 	} else {
-+		struct miscdevice *c;
-+
- 		list_for_each_entry(c, &misc_list, list) {
- 			if (c->minor == misc->minor) {
- 				mutex_unlock(&misc_mtx);
+ 	/* Check the GUID Partition Table header size is too small */
+ 	if (le32_to_cpu((*gpt)->header_size) < sizeof(gpt_header)) {
+-		pr_debug("GUID Partition Table Header size is too small: %u < %lu\n",
++		pr_debug("GUID Partition Table Header size is too small: %u < %zu\n",
+ 			le32_to_cpu((*gpt)->header_size),
+ 			sizeof(gpt_header));
+ 		goto fail;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +65,7 @@ lockdep-check-that-no-locks-held-at-freeze-time.patch
 fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
 idr-remove-length-restriction-from-idr_layer-bitmap.patch
 drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
-ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure-fix.patch
+ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure.patch
 dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
 selftests-add-tests-for-efivarfs-fix.patch
 selftests-add-tests-for-efivarfs-fix-fix.patch
