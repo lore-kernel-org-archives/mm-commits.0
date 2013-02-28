@@ -1,94 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sctp-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:58 -0800
-Message-ID: <20130228201558.E0D7D31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] nfs4client-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:16:01 -0800
+Message-ID: <20130228201601.E0AD331C25A@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:47917 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758441Ab3B1UP7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:59 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so245127ggi.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:59 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:39524 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756813Ab3B1UQC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:02 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246631yhz.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, nhorman@tuxdriver.com, sri@us.ibm.com, vyasevich@gmail.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sctp: convert to idr_alloc()
+     Subject: nfs4client: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     sctp-convert-to-idr_alloc.patch
+     nfs4client-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: sctp: convert to idr_alloc()
+Subject: nfs4client: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Acked-by: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Sridhar Samudrala <sri@us.ibm.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/associola.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ fs/nfs/nfs4client.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN net/sctp/associola.c~sctp-convert-to-idr_alloc net/sctp/associola.c
---- a/net/sctp/associola.c~sctp-convert-to-idr_alloc
-+++ a/net/sctp/associola.c
-@@ -1591,32 +1591,31 @@ int sctp_assoc_lookup_laddr(struct sctp_
- /* Set an association id for a given association */
- int sctp_assoc_set_id(struct sctp_association *asoc, gfp_t gfp)
- {
--	int assoc_id;
--	int error = 0;
-+	bool preload = gfp & __GFP_WAIT;
-+	int ret;
+diff -puN fs/nfs/nfs4client.c~nfs4client-convert-to-idr_alloc fs/nfs/nfs4client.c
+--- a/fs/nfs/nfs4client.c~nfs4client-convert-to-idr_alloc
++++ a/fs/nfs/nfs4client.c
+@@ -29,15 +29,14 @@ static int nfs_get_cb_ident_idr(struct n
  
- 	/* If the id is already assigned, keep it. */
- 	if (asoc->assoc_id)
--		return error;
+ 	if (clp->rpc_ops->version != 4 || minorversion != 0)
+ 		return ret;
 -retry:
--	if (unlikely(!idr_pre_get(&sctp_assocs_id, gfp)))
+-	if (!idr_pre_get(&nn->cb_ident_idr, GFP_KERNEL))
 -		return -ENOMEM;
-+		return 0;
- 
-+	if (preload)
-+		idr_preload(gfp);
- 	spin_lock_bh(&sctp_assocs_id_lock);
--	error = idr_get_new_above(&sctp_assocs_id, (void *)asoc,
--				    idr_low, &assoc_id);
--	if (!error) {
--		idr_low = assoc_id + 1;
-+	/* 0 is not a valid id, idr_low is always >= 1 */
-+	ret = idr_alloc(&sctp_assocs_id, asoc, idr_low, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
-+		idr_low = ret + 1;
- 		if (idr_low == INT_MAX)
- 			idr_low = 1;
- 	}
- 	spin_unlock_bh(&sctp_assocs_id_lock);
--	if (error == -EAGAIN)
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&nn->nfs_client_lock);
+-	ret = idr_get_new(&nn->cb_ident_idr, clp, &clp->cl_cb_ident);
++	ret = idr_alloc(&nn->cb_ident_idr, clp, 0, 0, GFP_NOWAIT);
++	if (ret >= 0)
++		clp->cl_cb_ident = ret;
+ 	spin_unlock(&nn->nfs_client_lock);
+-	if (ret == -EAGAIN)
 -		goto retry;
--	else if (error)
--		return error;
-+	if (preload)
-+		idr_preload_end();
-+	if (ret < 0)
-+		return ret;
- 
--	asoc->assoc_id = (sctp_assoc_t) assoc_id;
--	return error;
-+	asoc->assoc_id = (sctp_assoc_t)ret;
-+	return 0;
+-	return ret;
++	idr_preload_end();
++	return ret < 0 ? ret : 0;
  }
  
- /* Free the ASCONF queue */
+ #ifdef CONFIG_NFS_V4_1
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
