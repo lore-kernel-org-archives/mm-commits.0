@@ -1,71 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ib-amso1100-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:06 -0800
-Message-ID: <20130228201406.AD4935A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] i2c-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:00 -0800
+Message-ID: <20130228201400.B205531C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:59284 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755297Ab3B1UOH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:07 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so246549yhz.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:07 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:63520 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754404Ab3B1UOC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:02 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so246414yhr.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, swise@opengridcomputing.com, tom@opengridcomputing.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, wolfram@the-dreams.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: IB/amso1100: convert to idr_alloc()
+     Subject: i2c: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     ib-amso1100-convert-to-idr_alloc.patch
+     i2c-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/amso1100: convert to idr_alloc()
+Subject: i2c: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
-Cc: Tom Tucker <tom@opengridcomputing.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Wolfram Sang <wolfram@the-dreams.de>
+Tested-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/amso1100/c2_qp.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ drivers/i2c/i2c-core.c |   44 +++++++++------------------------------
+ 1 file changed, 11 insertions(+), 33 deletions(-)
 
-diff -puN drivers/infiniband/hw/amso1100/c2_qp.c~ib-amso1100-convert-to-idr_alloc drivers/infiniband/hw/amso1100/c2_qp.c
---- a/drivers/infiniband/hw/amso1100/c2_qp.c~ib-amso1100-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/amso1100/c2_qp.c
-@@ -382,14 +382,17 @@ static int c2_alloc_qpn(struct c2_dev *c
+diff -puN drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc
++++ a/drivers/i2c/i2c-core.c
+@@ -935,25 +935,17 @@ out_list:
+  */
+ int i2c_add_adapter(struct i2c_adapter *adapter)
  {
- 	int ret;
+-	int	id, res = 0;
+-
+-retry:
+-	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) == 0)
+-		return -ENOMEM;
++	int id;
  
--        do {
--		spin_lock_irq(&c2dev->qp_table.lock);
--		ret = idr_get_new_above(&c2dev->qp_table.idr, qp,
--					c2dev->qp_table.last++, &qp->qpn);
--		spin_unlock_irq(&c2dev->qp_table.lock);
--        } while ((ret == -EAGAIN) &&
--	 	 idr_pre_get(&c2dev->qp_table.idr, GFP_KERNEL));
--	return ret;
-+	idr_preload(GFP_KERNEL);
-+	spin_lock_irq(&c2dev->qp_table.lock);
+ 	mutex_lock(&core_lock);
+-	/* "above" here means "above or equal to", sigh */
+-	res = idr_get_new_above(&i2c_adapter_idr, adapter,
+-				__i2c_first_dynamic_bus_num, &id);
++	id = idr_alloc(&i2c_adapter_idr, adapter,
++		       __i2c_first_dynamic_bus_num, 0, GFP_KERNEL);
+ 	mutex_unlock(&core_lock);
+-
+-	if (res < 0) {
+-		if (res == -EAGAIN)
+-			goto retry;
+-		return res;
+-	}
++	if (id < 0)
++		return id;
+ 
+ 	adapter->nr = id;
 +
-+	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
-+			GFP_NOWAIT);
-+	if (ret >= 0)
-+		qp->qpn = ret;
-+
-+	spin_unlock_irq(&c2dev->qp_table.lock);
-+	idr_preload_end();
-+	return ret < 0 ? ret : 0;
+ 	return i2c_register_adapter(adapter);
  }
+ EXPORT_SYMBOL(i2c_add_adapter);
+@@ -984,33 +976,19 @@ EXPORT_SYMBOL(i2c_add_adapter);
+ int i2c_add_numbered_adapter(struct i2c_adapter *adap)
+ {
+ 	int	id;
+-	int	status;
  
- static void c2_free_qpn(struct c2_dev *c2dev, int qpn)
+ 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
+ 		return i2c_add_adapter(adap);
+ 	if (adap->nr & ~MAX_IDR_MASK)
+ 		return -EINVAL;
+ 
+-retry:
+-	if (idr_pre_get(&i2c_adapter_idr, GFP_KERNEL) == 0)
+-		return -ENOMEM;
+-
+ 	mutex_lock(&core_lock);
+-	/* "above" here means "above or equal to", sigh;
+-	 * we need the "equal to" result to force the result
+-	 */
+-	status = idr_get_new_above(&i2c_adapter_idr, adap, adap->nr, &id);
+-	if (status == 0 && id != adap->nr) {
+-		status = -EBUSY;
+-		idr_remove(&i2c_adapter_idr, id);
+-	}
++	id = idr_alloc(&i2c_adapter_idr, adap, adap->nr, adap->nr + 1,
++		       GFP_KERNEL);
+ 	mutex_unlock(&core_lock);
+-	if (status == -EAGAIN)
+-		goto retry;
+-
+-	if (status == 0)
+-		status = i2c_register_adapter(adap);
+-	return status;
++	if (id < 0)
++		return id == -ENOSPC ? -EBUSY : id;
++	return i2c_register_adapter(adap);
+ }
+ EXPORT_SYMBOL_GPL(i2c_add_numbered_adapter);
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
