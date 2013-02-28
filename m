@@ -1,86 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix.patch added to -mm tree
-Date: Wed, 27 Feb 2013 15:28:52 -0800
-Message-ID: <20130228002105.D5A3C31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-dropped] mm-use-vm_unmapped_area-on-parisc-architecture-fix.patch removed from -mm tree
+Date: Wed, 27 Feb 2013 16:37:28 -0800
+Message-ID: <20130228003728.7907431C071@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:52233 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838Ab3B1AVI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:21:08 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so136918vea.4
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:21:07 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:51884 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab3B1Ah3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:37:29 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so139006qea.3
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:37:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sasha.levin@oracle.com
+To: akpm@linux-foundation.org, deller@gmx.de, jejb@parisc-linux.org, riel@redhat.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix
-has been added to the -mm tree.  Its filename is
-     hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix.patch
+     Subject: mm-use-vm_unmapped_area-on-parisc-architecture-fix
+has been removed from the -mm tree.  Its filename was
+     mm-use-vm_unmapped_area-on-parisc-architecture-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-parisc-architecture.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix
+Subject: mm-use-vm_unmapped_area-on-parisc-architecture-fix
 
-Cc: Sasha Levin <sasha.levin@oracle.com>
+remove now-unused DCACHE_ALIGN(), per James
+
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/parisc/kernel/sys_parisc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/ethernet/mellanox/mlx4/en_rx.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix drivers/net/ethernet/mellanox/mlx4/en_rx.c
-diff -puN net/core/net-procfs.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix net/core/net-procfs.c
-diff -puN drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c
---- a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c~hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix
-+++ a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_io.c
-@@ -162,7 +162,7 @@ void qlcnic_add_lb_filter(struct qlcnic_
- {
- 	struct ethhdr *phdr = (struct ethhdr *)(skb->data);
- 	struct qlcnic_filter *fil, *tmp_fil;
--	struct hlist_node *tmp_hnode, *n;
-+	struct hlist_node *n;
- 	struct hlist_head *head;
- 	unsigned long time;
- 	u64 src_addr = 0;
-@@ -179,7 +179,7 @@ void qlcnic_add_lb_filter(struct qlcnic_
- 			 (adapter->fhash.fbucket_size - 1);
- 		head = &(adapter->rx_fhash.fhead[hindex]);
+diff -puN arch/parisc/kernel/sys_parisc.c~mm-use-vm_unmapped_area-on-parisc-architecture-fix arch/parisc/kernel/sys_parisc.c
+--- a/arch/parisc/kernel/sys_parisc.c~mm-use-vm_unmapped_area-on-parisc-architecture-fix
++++ a/arch/parisc/kernel/sys_parisc.c
+@@ -46,8 +46,6 @@ static unsigned long get_unshared_area(u
+ 	return vm_unmapped_area(&info);
+ }
  
--		hlist_for_each_entry_safe(tmp_fil, tmp_hnode, n, head, fnode) {
-+		hlist_for_each_entry_safe(tmp_fil, n, head, fnode) {
- 			if (!memcmp(tmp_fil->faddr, &src_addr, ETH_ALEN) &&
- 			    tmp_fil->vlan_id == vlan_id) {
- 				time = tmp_fil->ftime;
-@@ -205,7 +205,7 @@ void qlcnic_add_lb_filter(struct qlcnic_
- 			 (adapter->fhash.fbucket_size - 1);
- 		head = &(adapter->rx_fhash.fhead[hindex]);
- 		spin_lock(&adapter->rx_mac_learn_lock);
--		hlist_for_each_entry_safe(tmp_fil, tmp_hnode, n, head, fnode) {
-+		hlist_for_each_entry_safe(tmp_fil, n, head, fnode) {
- 			if (!memcmp(tmp_fil->faddr, &src_addr, ETH_ALEN) &&
- 			    tmp_fil->vlan_id == vlan_id) {
- 				found = 1;
+-#define DCACHE_ALIGN(addr) (((addr) + (SHMLBA - 1)) &~ (SHMLBA - 1))
+-
+ /*
+  * We need to know the offset to use.  Old scheme was to look for
+  * existing mapping and use the same offset.  New scheme is to use the
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-use-vm_unmapped_area-on-parisc-architecture-fix.patch
+mm-use-vm_unmapped_area-on-parisc-architecture.patch
 backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
 signal-allow-to-send-any-siginfo-to-itself-fix.patch
