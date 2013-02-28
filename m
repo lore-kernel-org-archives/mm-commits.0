@@ -1,109 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idr-deprecate-idr_remove_all.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:55 -0800
-Message-ID: <20130228201255.EDC4131C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:45 -0800
+Message-ID: <20130228201245.E79BB31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:35707 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757194Ab3B1UM4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:56 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so246306yhz.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:56 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:48037 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757143Ab3B1UMq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:46 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so245143yen.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, ccaulfie@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr: deprecate idr_remove_all()
+     Subject: dlm: use idr_for_each_entry() in recover_idr_clear() error path
 has been removed from the -mm tree.  Its filename was
-     idr-deprecate-idr_remove_all.patch
+     dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: idr: deprecate idr_remove_all()
+Subject: dlm: use idr_for_each_entry() in recover_idr_clear() error path
 
-There was only one legitimate use of idr_remove_all() and a lot more
-of incorrect uses (or lack of it).  Now that idr_destroy() implies
-idr_remove_all() and all the in-kernel users updated not to use it,
-there's no reason to keep it around.  Mark it deprecated so that we
-can later unexport it.
-
-idr_remove_all() is made an inline function calling __idr_remove_all()
-to avoid triggering deprecated warning on EXPORT_SYMBOL().
+Convert recover_idr_clear() to use idr_for_each_entry() instead of
+idr_for_each().  It's somewhat less efficient this way but it
+shouldn't matter in an error path.  This is to help with deprecation
+of idr_remove_all().
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   14 +++++++++++++-
- lib/idr.c           |   10 +++-------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ fs/dlm/recover.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/idr.h~idr-deprecate-idr_remove_all include/linux/idr.h
---- a/include/linux/idr.h~idr-deprecate-idr_remove_all
-+++ a/include/linux/idr.h
-@@ -110,10 +110,22 @@ int idr_for_each(struct idr *idp,
- void *idr_get_next(struct idr *idp, int *nextid);
- void *idr_replace(struct idr *idp, void *ptr, int id);
- void idr_remove(struct idr *idp, int id);
--void idr_remove_all(struct idr *idp);
- void idr_destroy(struct idr *idp);
- void idr_init(struct idr *idp);
- 
-+void __idr_remove_all(struct idr *idp);	/* don't use */
-+
-+/**
-+ * idr_remove_all - remove all ids from the given idr tree
-+ * @idp: idr handle
-+ *
-+ * If you're trying to destroy @idp, calling idr_destroy() is enough.
-+ * This is going away.  Don't use.
-+ */
-+static inline void __deprecated idr_remove_all(struct idr *idp)
-+{
-+	__idr_remove_all(idp);
-+}
- 
- /*
-  * IDA - IDR based id allocator, use when translation from id to
-diff -puN lib/idr.c~idr-deprecate-idr_remove_all lib/idr.c
---- a/lib/idr.c~idr-deprecate-idr_remove_all
-+++ a/lib/idr.c
-@@ -433,11 +433,7 @@ void idr_remove(struct idr *idp, int id)
+diff -puN fs/dlm/recover.c~dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path fs/dlm/recover.c
+--- a/fs/dlm/recover.c~dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path
++++ a/fs/dlm/recover.c
+@@ -351,23 +351,20 @@ static struct dlm_rsb *recover_idr_find(
+ 	return r;
  }
- EXPORT_SYMBOL(idr_remove);
  
--/**
-- * idr_remove_all - remove all ids from the given idr tree
-- * @idp: idr handle
-- */
--void idr_remove_all(struct idr *idp)
-+void __idr_remove_all(struct idr *idp)
+-static int recover_idr_clear_rsb(int id, void *p, void *data)
++static void recover_idr_clear(struct dlm_ls *ls)
  {
- 	int n, id, max;
- 	int bt_mask;
-@@ -470,7 +466,7 @@ void idr_remove_all(struct idr *idp)
- 	}
- 	idp->layers = 0;
- }
--EXPORT_SYMBOL(idr_remove_all);
-+EXPORT_SYMBOL(__idr_remove_all);
+-	struct dlm_ls *ls = data;
+-	struct dlm_rsb *r = p;
++	struct dlm_rsb *r;
++	int id;
  
- /**
-  * idr_destroy - release all cached layers within an idr tree
-@@ -487,7 +483,7 @@ EXPORT_SYMBOL(idr_remove_all);
-  */
- void idr_destroy(struct idr *idp)
- {
--	idr_remove_all(idp);
-+	__idr_remove_all(idp);
+-	r->res_id = 0;
+-	r->res_recover_locks_count = 0;
+-	ls->ls_recover_list_count--;
++	spin_lock(&ls->ls_recover_idr_lock);
  
- 	while (idp->id_free_cnt) {
- 		struct idr_layer *p = get_from_free_list(idp);
+-	dlm_put_rsb(r);
+-	return 0;
+-}
++	idr_for_each_entry(&ls->ls_recover_idr, r, id) {
++		r->res_id = 0;
++		r->res_recover_locks_count = 0;
++		ls->ls_recover_list_count--;
+ 
+-static void recover_idr_clear(struct dlm_ls *ls)
+-{
+-	spin_lock(&ls->ls_recover_idr_lock);
+-	idr_for_each(&ls->ls_recover_idr, recover_idr_clear_rsb, ls);
++		dlm_put_rsb(r);
++	}
+ 	idr_remove_all(&ls->ls_recover_idr);
+ 
+ 	if (ls->ls_recover_list_count != 0) {
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
