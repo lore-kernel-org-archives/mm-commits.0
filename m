@@ -1,97 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tegra-add-__init-__exit-annotation.patch added to -mm tree
-Date: Thu, 28 Feb 2013 13:33:10 -0800
-Message-ID: <20130228213310.8E8AB5A41DD@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] rtc-ds1307-long-block-operations-bugfix-fix.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 13:34:57 -0800
+Message-ID: <20130228213458.240B631C1E1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:35243 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758894Ab3B1VdL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:33:11 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so256761yhr.0
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:33:11 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:64505 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756136Ab3B1Ve7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:34:59 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so254889ghb.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:34:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+To: akpm@linux-foundation.org, ba@cykian.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-tegra: add __init/__exit annotation
-has been added to the -mm tree.  Its filename is
-     rtc-rtc-tegra-add-__init-__exit-annotation.patch
+     Subject: rtc-ds1307-long-block-operations-bugfix-fix
+has been removed from the -mm tree.  Its filename was
+     rtc-ds1307-long-block-operations-bugfix-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into rtc-ds1307-long-block-operations-bugfix.patch
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tegra: add __init/__exit annotation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-ds1307-long-block-operations-bugfix-fix
 
-When platform_driver_probe() is used, bind/unbind via sysfs is disabled. 
-Thus, __init/__exit annotations can be added to probe()/remove().
+rework code to avoid 80-column overflows
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Bertrand Achard <ba@cykian.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tegra.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-ds1307.c |   52 ++++++++++++++++++-------------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
-diff -puN drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-add-__init-__exit-annotation drivers/rtc/rtc-tegra.c
---- a/drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-add-__init-__exit-annotation
-+++ a/drivers/rtc/rtc-tegra.c
-@@ -309,7 +309,7 @@ static const struct of_device_id tegra_r
- };
- MODULE_DEVICE_TABLE(of, tegra_rtc_dt_match);
- 
--static int tegra_rtc_probe(struct platform_device *pdev)
-+static int __init tegra_rtc_probe(struct platform_device *pdev)
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-long-block-operations-bugfix-fix drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-long-block-operations-bugfix-fix
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -259,45 +259,45 @@ static s32 ds1307_write_block_data(const
+ static s32 ds1307_native_smbus_write_block_data(const struct i2c_client *client,
+ 				u8 command, u8 length, const u8 *values)
  {
- 	struct tegra_rtc_info *info;
- 	struct resource *res;
-@@ -379,7 +379,7 @@ err_dev_unreg:
- 	return ret;
+-	if (length <= I2C_SMBUS_BLOCK_MAX) {
++	u8 suboffset = 0;
++
++	if (length <= I2C_SMBUS_BLOCK_MAX)
+ 		return i2c_smbus_write_i2c_block_data(client,
+ 					command, length, values);
+-	} else {
+-		u8 suboffset = 0;
+-		while (suboffset < length) {
+-			s32 retval = i2c_smbus_write_i2c_block_data(client,
+-						command+suboffset,
+-						min(I2C_SMBUS_BLOCK_MAX, length-suboffset),
+-						values+suboffset);
+-			if (retval < 0)
+-				return retval;
+ 
+-			suboffset += I2C_SMBUS_BLOCK_MAX;
+-		}
+-		return length;
++	while (suboffset < length) {
++		s32 retval = i2c_smbus_write_i2c_block_data(client,
++				command + suboffset,
++				min(I2C_SMBUS_BLOCK_MAX, length - suboffset),
++				values + suboffset);
++		if (retval < 0)
++			return retval;
++
++		suboffset += I2C_SMBUS_BLOCK_MAX;
+ 	}
++	return length;
  }
  
--static int tegra_rtc_remove(struct platform_device *pdev)
-+static int __exit tegra_rtc_remove(struct platform_device *pdev)
+ static s32 ds1307_native_smbus_read_block_data(const struct i2c_client *client,
+ 				u8 command, u8 length, u8 *values)
  {
- 	struct tegra_rtc_info *info = platform_get_drvdata(pdev);
+-	if (length <= I2C_SMBUS_BLOCK_MAX) {
++	u8 suboffset = 0;
++
++	if (length <= I2C_SMBUS_BLOCK_MAX)
+ 		return i2c_smbus_read_i2c_block_data(client,
+ 					command, length, values);
+-	} else {
+-		u8 suboffset = 0;
+-		while (suboffset < length) {
+-			s32 retval = i2c_smbus_read_i2c_block_data(client,
+-						command+suboffset,
+-						min(I2C_SMBUS_BLOCK_MAX, length-suboffset),
+-						values+suboffset);
+-			if (retval < 0)
+-				return retval;
  
-@@ -439,7 +439,7 @@ static void tegra_rtc_shutdown(struct pl
+-			suboffset += I2C_SMBUS_BLOCK_MAX;
+-		}
+-		return length;
++	while (suboffset < length) {
++		s32 retval = i2c_smbus_read_i2c_block_data(client,
++				command + suboffset,
++				min(I2C_SMBUS_BLOCK_MAX, length - suboffset),
++				values + suboffset);
++		if (retval < 0)
++			return retval;
++
++		suboffset += I2C_SMBUS_BLOCK_MAX;
+ 	}
++	return length;
+ }
  
- MODULE_ALIAS("platform:tegra_rtc");
- static struct platform_driver tegra_rtc_driver = {
--	.remove		= tegra_rtc_remove,
-+	.remove		= __exit_p(tegra_rtc_remove),
- 	.shutdown	= tegra_rtc_shutdown,
- 	.driver		= {
- 		.name	= "tegra_rtc",
+ /*----------------------------------------------------------------------*/
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
