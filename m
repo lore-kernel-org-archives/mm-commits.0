@@ -1,97 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:17:36 -0800
-Message-ID: <20130228201736.A350731C1F0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-pps-clients-pps-gpioc-use-devm_kzalloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:17:39 -0800
+Message-ID: <20130228201739.9DDC731C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:39827 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759441Ab3B1URh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:37 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so245166ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:37 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:45395 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759441Ab3B1URk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:40 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so261676qah.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jj@chaosbits.net, konrad.wilk@oracle.com, shuah.khan@hp.com, mm-commits@vger.kernel.org
+To: Julia.Lawall@lip6.fr, giometti@enneenne.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/DMA-API-HOWTO.txt: fix typo
+     Subject: drivers/pps/clients/pps-gpio.c: use devm_kzalloc
 has been removed from the -mm tree.  Its filename was
-     dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+     drivers-pps-clients-pps-gpioc-use-devm_kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Documentation/DMA-API-HOWTO.txt: fix typo
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: drivers/pps/clients/pps-gpio.c: use devm_kzalloc
 
-Noted by Jesper
+devm_kzalloc allocates memory that is released when a driver detaches. 
+This patch uses devm_kzalloc for data that is allocated in the probe
+function of a platform device and is only freed in the remove function.
 
-Cc: Jesper Juhl <jj@chaosbits.net>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Shuah Khan <shuah.khan@hp.com>
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API-HOWTO.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pps/clients/pps-gpio.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/DMA-API-HOWTO.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix Documentation/DMA-API-HOWTO.txt
---- a/Documentation/DMA-API-HOWTO.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix
-+++ a/Documentation/DMA-API-HOWTO.txt
-@@ -752,7 +752,7 @@ Example 1:
- 		dma_unmap_single(dma_handle1);
- 	map_error_handling1:
+diff -puN drivers/pps/clients/pps-gpio.c~drivers-pps-clients-pps-gpioc-use-devm_kzalloc drivers/pps/clients/pps-gpio.c
+--- a/drivers/pps/clients/pps-gpio.c~drivers-pps-clients-pps-gpioc-use-devm_kzalloc
++++ a/drivers/pps/clients/pps-gpio.c
+@@ -128,7 +128,8 @@ static int pps_gpio_probe(struct platfor
+ 	}
  
--Example 2: (if buffers are allocated a loop, unmap all mapped buffers when
-+Example 2: (if buffers are allocated in a loop, unmap all mapped buffers when
- 	    mapping error is detected in the middle)
+ 	/* allocate space for device info */
+-	data = kzalloc(sizeof(struct pps_gpio_device_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct pps_gpio_device_data),
++			    GFP_KERNEL);
+ 	if (data == NULL) {
+ 		err = -ENOMEM;
+ 		goto return_error;
+@@ -150,7 +151,6 @@ static int pps_gpio_probe(struct platfor
+ 		pps_default_params |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR;
+ 	data->pps = pps_register_source(&data->info, pps_default_params);
+ 	if (data->pps == NULL) {
+-		kfree(data);
+ 		pr_err("failed to register IRQ %d as PPS source\n", irq);
+ 		err = -EINVAL;
+ 		goto return_error;
+@@ -164,7 +164,6 @@ static int pps_gpio_probe(struct platfor
+ 			get_irqf_trigger_flags(pdata), data->info.name, data);
+ 	if (ret) {
+ 		pps_unregister_source(data->pps);
+-		kfree(data);
+ 		pr_err("failed to acquire IRQ %d\n", irq);
+ 		err = -EINVAL;
+ 		goto return_error;
+@@ -190,7 +189,6 @@ static int pps_gpio_remove(struct platfo
+ 	gpio_free(pdata->gpio_pin);
+ 	pps_unregister_source(data->pps);
+ 	pr_info("removed IRQ %d as PPS source\n", data->irq);
+-	kfree(data);
+ 	return 0;
+ }
  
- 	dma_addr_t dma_addr;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
