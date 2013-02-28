@@ -1,112 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ib-ipath-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:18 -0800
-Message-ID: <20130228201418.AE9F131C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ib-ehca-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:15 -0800
+Message-ID: <20130228201415.97ED331C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:42310 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757903Ab3B1UOT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:19 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so245047yen.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:19 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:36261 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757832Ab3B1UOQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:16 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so244860ghb.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mike.marciniszyn@intel.com, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
+To: tj@kernel.org, hnguyen@de.ibm.com, raisch@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: IB/ipath: convert to idr_alloc()
+     Subject: IB/ehca: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     ib-ipath-convert-to-idr_alloc.patch
+     ib-ehca-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/ipath: convert to idr_alloc()
+Subject: IB/ehca: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
-[yongjun_wei@trendmicro.com.cn: use GFP_NOWAIT under spin lock]
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ipath/ipath_driver.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/ehca/ehca_cq.c |   27 +++++--------------
+ drivers/infiniband/hw/ehca/ehca_qp.c |   34 +++++++++++--------------
+ 2 files changed, 22 insertions(+), 39 deletions(-)
 
-diff -puN drivers/infiniband/hw/ipath/ipath_driver.c~ib-ipath-convert-to-idr_alloc drivers/infiniband/hw/ipath/ipath_driver.c
---- a/drivers/infiniband/hw/ipath/ipath_driver.c~ib-ipath-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -194,11 +194,6 @@ static struct ipath_devdata *ipath_alloc
- 	struct ipath_devdata *dd;
- 	int ret;
+diff -puN drivers/infiniband/hw/ehca/ehca_cq.c~ib-ehca-convert-to-idr_alloc drivers/infiniband/hw/ehca/ehca_cq.c
+--- a/drivers/infiniband/hw/ehca/ehca_cq.c~ib-ehca-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/ehca/ehca_cq.c
+@@ -128,7 +128,7 @@ struct ib_cq *ehca_create_cq(struct ib_d
+ 	void *vpage;
+ 	u32 counter;
+ 	u64 rpage, cqx_fec, h_ret;
+-	int ipz_rc, ret, i;
++	int ipz_rc, i;
+ 	unsigned long flags;
  
--	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
--		dd = ERR_PTR(-ENOMEM);
--		goto bail;
--	}
+ 	if (cqe >= 0xFFFFFFFF - 64 - additional_cqe)
+@@ -163,32 +163,19 @@ struct ib_cq *ehca_create_cq(struct ib_d
+ 	adapter_handle = shca->ipz_hca_handle;
+ 	param.eq_handle = shca->eq.ipz_eq_handle;
+ 
+-	do {
+-		if (!idr_pre_get(&ehca_cq_idr, GFP_KERNEL)) {
+-			cq = ERR_PTR(-ENOMEM);
+-			ehca_err(device, "Can't reserve idr nr. device=%p",
+-				 device);
+-			goto create_cq_exit1;
+-		}
 -
- 	dd = vzalloc(sizeof(*dd));
- 	if (!dd) {
- 		dd = ERR_PTR(-ENOMEM);
-@@ -206,9 +201,10 @@ static struct ipath_devdata *ipath_alloc
- 	}
- 	dd->ipath_unit = -1;
- 
+-		write_lock_irqsave(&ehca_cq_idr_lock, flags);
+-		ret = idr_get_new(&ehca_cq_idr, my_cq, &my_cq->token);
+-		write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
+-	} while (ret == -EAGAIN);
 +	idr_preload(GFP_KERNEL);
- 	spin_lock_irqsave(&ipath_devs_lock, flags);
- 
--	ret = idr_get_new(&unit_table, dd, &dd->ipath_unit);
-+	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_NOWAIT);
- 	if (ret < 0) {
- 		printk(KERN_ERR IPATH_DRV_NAME
- 		       ": Could not allocate unit ID: error %d\n", -ret);
-@@ -216,6 +212,7 @@ static struct ipath_devdata *ipath_alloc
- 		dd = ERR_PTR(ret);
- 		goto bail_unlock;
- 	}
-+	dd->ipath_unit = ret;
- 
- 	dd->pcidev = pdev;
- 	pci_set_drvdata(pdev, dd);
-@@ -224,7 +221,7 @@ static struct ipath_devdata *ipath_alloc
- 
- bail_unlock:
- 	spin_unlock_irqrestore(&ipath_devs_lock, flags);
--
++	write_lock_irqsave(&ehca_cq_idr_lock, flags);
++	my_cq->token = idr_alloc(&ehca_cq_idr, my_cq, 0, 0x2000000, GFP_NOWAIT);
++	write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
 +	idr_preload_end();
- bail:
- 	return dd;
- }
-@@ -2503,11 +2500,6 @@ static int __init infinipath_init(void)
- 	 * the PCI subsystem.
- 	 */
- 	idr_init(&unit_table);
--	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
--		printk(KERN_ERR IPATH_DRV_NAME ": idr_pre_get() failed\n");
--		ret = -ENOMEM;
--		goto bail;
--	}
  
- 	ret = pci_register_driver(&ipath_driver);
- 	if (ret < 0) {
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-origin.patch
-linux-next.patch
-slub-correctly-bootstrap-boot-caches.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-
+-	if (ret) {
++	if (my_cq->token < 0) {
+ 		cq = ERR_PTR(-ENOMEM);
+ 		ehca_err(device, "Can't allocate new idr entry. device=%p",
+ 			 device);
+ 		goto create_cq_exit1;
+ 	}
+ 
+-	if (my_cq->token > 0x1FFFFFF) {
+-		cq = ERR_PTR(-ENOMEM);
+-		ehca_err(device, "Invalid number of cq. device=%p", device);
+-		goto create_cq_exit2;
+-	}
+-
+ 	/*
+ 	 * CQs maximum depth is 4GB-64, but we need additional 20 as buffer
+ 	 * for receiving errors CQEs.
+diff -puN drivers/infiniband/hw/ehca/ehca_qp.c~ib-ehca-convert-to-idr_alloc drivers/infiniband/hw/ehca/ehca_qp.c
+--- a/drivers/infiniband/hw/ehca/ehca_qp.c~ib-ehca-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/ehca/ehca_qp.c
+@@ -636,30 +636,26 @@ static struct ehca_qp *internal_create_q
+ 		my_qp->send_cq =
+ 			container_of(init_attr->send_cq, struct ehca_cq, ib_cq);
+ 
+-	do {
+-		if (!idr_pre_get(&ehca_qp_idr, GFP_KERNEL)) {
++	idr_preload(GFP_KERNEL);
++	write_lock_irqsave(&ehca_qp_idr_lock, flags);
++
++	ret = idr_alloc(&ehca_qp_idr, my_qp, 0, 0x2000000, GFP_NOWAIT);
++	if (ret >= 0)
++		my_qp->token = ret;
++
++	write_unlock_irqrestore(&ehca_qp_idr_lock, flags);
++	idr_preload_end();
++	if (ret < 0) {
++		if (ret == -ENOSPC) {
++			ret = -EINVAL;
++			ehca_err(pd->device, "Invalid number of qp");
++		} else {
+ 			ret = -ENOMEM;
+-			ehca_err(pd->device, "Can't reserve idr resources.");
+-			goto create_qp_exit0;
++			ehca_err(pd->device, "Can't allocate new idr entry.");
+ 		}
+-
+-		write_lock_irqsave(&ehca_qp_idr_lock, flags);
+-		ret = idr_get_new(&ehca_qp_idr, my_qp, &my_qp->token);
+-		write_unlock_irqrestore(&ehca_qp_idr_lock, flags);
+-	} while (ret == -EAGAIN);
+-
+-	if (ret) {
+-		ret = -ENOMEM;
+-		ehca_err(pd->device, "Can't allocate new idr entry.");
+ 		goto create_qp_exit0;
+ 	}
+ 
+-	if (my_qp->token > 0x1FFFFFF) {
+-		ret = -EINVAL;
+-		ehca_err(pd->device, "Invalid number of qp");
+-		goto create_qp_exit1;
+-	}
