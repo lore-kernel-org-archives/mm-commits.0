@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-fix-memory-leak-in-function-kimage_normal_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:16 -0800
-Message-ID: <20130228201216.BEE105A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:19 -0800
+Message-ID: <20130228201219.BED5F31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:38292 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756407Ab3B1UMR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:17 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so245094yen.0
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:17 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53135 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756428Ab3B1UMV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:21 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so244704vcd.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zhangyanfei@cn.fujitsu.com, ebiederm@xmission.com, horms@verge.net.au, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: fix memory leak in function kimage_normal_alloc
+     Subject: kexec: avoid freeing NULL pointer in image_crash_alloc()
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-memory-leak-in-function-kimage_normal_alloc.patch
+     kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: kexec: fix memory leak in function kimage_normal_alloc
+Subject: kexec: avoid freeing NULL pointer in image_crash_alloc()
 
-If kimage_normal_alloc() fails to alloc pages for image->swap_page, it
-should call kimage_free_page_list() to free allocated pages in
-image->control_pages list before it frees image.
+Though there is no error if we free a NULL pointer, I think we could avoid
+this behaviour.  Change the code a little in kimage_crash_alloc() could
+avoid this kind of unnecessary free.
 
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -37,22 +37,22 @@ Reviewed-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ kernel/kexec.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-fix-memory-leak-in-function-kimage_normal_alloc kernel/kexec.c
---- a/kernel/kexec.c~kexec-fix-memory-leak-in-function-kimage_normal_alloc
+diff -puN kernel/kexec.c~kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc kernel/kexec.c
+--- a/kernel/kexec.c~kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc
 +++ a/kernel/kexec.c
-@@ -229,6 +229,8 @@ out:
+@@ -316,7 +316,7 @@ static int kimage_crash_alloc(struct kim
+ 		mend = mstart + image->segment[i].memsz - 1;
+ 		/* Ensure we are within the crash kernel limits */
+ 		if ((mstart < crashk_res.start) || (mend > crashk_res.end))
+-			goto out;
++			goto out_free;
+ 	}
  
- }
- 
-+static void kimage_free_page_list(struct list_head *list);
-+
- static int kimage_normal_alloc(struct kimage **rimage, unsigned long entry,
- 				unsigned long nr_segments,
- 				struct kexec_segment __user *segments)
-@@ -252,22 +254,22 @@ static int kimage_normal_alloc(struct ki
+ 	/*
+@@ -329,16 +329,15 @@ static int kimage_crash_alloc(struct kim
  					   get_order(KEXEC_CONTROL_PAGE_SIZE));
  	if (!image->control_code_page) {
  		printk(KERN_ERR "Could not allocate control_code_buffer\n");
@@ -60,15 +60,8 @@ diff -puN kernel/kexec.c~kexec-fix-memory-leak-in-function-kimage_normal_alloc k
 +		goto out_free;
  	}
  
- 	image->swap_page = kimage_alloc_control_pages(image, 0);
- 	if (!image->swap_page) {
- 		printk(KERN_ERR "Could not allocate swap buffer\n");
--		goto out;
-+		goto out_free;
- 	}
- 
 -	result = 0;
-- out:
+-out:
 -	if (result == 0)
 -		*rimage = image;
 -	else
@@ -77,7 +70,6 @@ diff -puN kernel/kexec.c~kexec-fix-memory-leak-in-function-kimage_normal_alloc k
 +	return 0;
  
 +out_free:
-+	kimage_free_page_list(&image->control_pages);
 +	kfree(image);
 +out:
  	return result;
