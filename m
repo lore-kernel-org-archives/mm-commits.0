@@ -1,133 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:39 -0800
-Message-ID: <20130228201540.353AB31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] cgroup-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:43 -0800
+Message-ID: <20130228201543.BA45D5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:59045 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758343Ab3B1UPl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:41 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so246533yhz.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:40 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:49062 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758305Ab3B1UPp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:45 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so245248qea.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, ebiederm@xmission.com, jmorris@namei.org, sedat.dilek@gmail.com, skinsbursky@parallels.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, lizefan@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: convert to idr_alloc()
+     Subject: cgroup: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     ipc-convert-to-idr_alloc.patch
+     cgroup-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: ipc: convert to idr_alloc()
+Subject: cgroup: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
-The new interface doesn't directly translate to the way idr_pre_get()
-was used around ipc_addid() as preloading disables preemption.  From
-my cursory reading, it seems like we should be able to do all
-allocation from ipc_addid(), so I moved it there.  Can you please
-check whether this would be okay?  If this is wrong and ipc_addid()
-should be allowed to be called from non-sleepable context, I'd suggest
-allocating id itself in the outer functions and later install the
-pointer using idr_replace().
-
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: James Morris <jmorris@namei.org>
+Acked-by: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   30 +++++++++---------------------
- 1 file changed, 9 insertions(+), 21 deletions(-)
+ kernel/cgroup.c |   27 ++++++++-------------------
+ 1 file changed, 8 insertions(+), 19 deletions(-)
 
-diff -puN ipc/util.c~ipc-convert-to-idr_alloc ipc/util.c
---- a/ipc/util.c~ipc-convert-to-idr_alloc
-+++ a/ipc/util.c
-@@ -252,7 +252,7 @@ int ipc_addid(struct ipc_ids* ids, struc
+diff -puN kernel/cgroup.c~cgroup-convert-to-idr_alloc kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-convert-to-idr_alloc
++++ a/kernel/cgroup.c
+@@ -5320,7 +5320,7 @@ EXPORT_SYMBOL_GPL(free_css_id);
+ static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
  {
- 	kuid_t euid;
- 	kgid_t egid;
--	int id, err;
-+	int id;
- 	int next_id = ids->next_id;
+ 	struct css_id *newid;
+-	int myid, error, size;
++	int ret, size;
  
- 	if (size > IPCMNI)
-@@ -261,17 +261,21 @@ int ipc_addid(struct ipc_ids* ids, struc
- 	if (ids->in_use >= size)
- 		return -ENOSPC;
+ 	BUG_ON(!ss->use_id);
  
-+	idr_preload(GFP_KERNEL);
+@@ -5328,35 +5328,24 @@ static struct css_id *get_new_cssid(stru
+ 	newid = kzalloc(size, GFP_KERNEL);
+ 	if (!newid)
+ 		return ERR_PTR(-ENOMEM);
+-	/* get id */
+-	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
+-		error = -ENOMEM;
+-		goto err_out;
+-	}
 +
- 	spin_lock_init(&new->lock);
- 	new->deleted = 0;
- 	rcu_read_lock();
- 	spin_lock(&new->lock);
- 
--	err = idr_get_new_above(&ids->ipcs_idr, new,
--				(next_id < 0) ? 0 : ipcid_to_idx(next_id), &id);
--	if (err) {
-+	id = idr_alloc(&ids->ipcs_idr, new,
-+		       (next_id < 0) ? 0 : ipcid_to_idx(next_id), 0,
-+		       GFP_NOWAIT);
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&ss->id_lock);
+ 	/* Don't use 0. allocates an ID of 1-65535 */
+-	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
++	ret = idr_alloc(&ss->idr, newid, 1, CSS_ID_MAX + 1, GFP_NOWAIT);
+ 	spin_unlock(&ss->id_lock);
 +	idr_preload_end();
-+	if (id < 0) {
- 		spin_unlock(&new->lock);
- 		rcu_read_unlock();
--		return err;
-+		return id;
- 	}
  
- 	ids->in_use++;
-@@ -307,19 +311,10 @@ static int ipcget_new(struct ipc_namespa
- 		struct ipc_ops *ops, struct ipc_params *params)
- {
- 	int err;
--retry:
--	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
--
--	if (!err)
--		return -ENOMEM;
+ 	/* Returns error when there are no free spaces for new ID.*/
+-	if (error) {
+-		error = -ENOSPC;
++	if (ret < 0)
+ 		goto err_out;
+-	}
+-	if (myid > CSS_ID_MAX)
+-		goto remove_idr;
  
- 	down_write(&ids->rw_mutex);
- 	err = ops->getnew(ns, params);
- 	up_write(&ids->rw_mutex);
--
--	if (err == -EAGAIN)
--		goto retry;
--
- 	return err;
+-	newid->id = myid;
++	newid->id = ret;
+ 	newid->depth = depth;
+ 	return newid;
+-remove_idr:
+-	error = -ENOSPC;
+-	spin_lock(&ss->id_lock);
+-	idr_remove(&ss->idr, myid);
+-	spin_unlock(&ss->id_lock);
+ err_out:
+ 	kfree(newid);
+-	return ERR_PTR(error);
++	return ERR_PTR(ret);
+ 
  }
  
-@@ -376,8 +371,6 @@ static int ipcget_public(struct ipc_name
- 	struct kern_ipc_perm *ipcp;
- 	int flg = params->flg;
- 	int err;
--retry:
--	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
- 
- 	/*
- 	 * Take the lock as a writer since we are potentially going to add
-@@ -389,8 +382,6 @@ retry:
- 		/* key not used */
- 		if (!(flg & IPC_CREAT))
- 			err = -ENOENT;
--		else if (!err)
--			err = -ENOMEM;
- 		else
- 			err = ops->getnew(ns, params);
- 	} else {
-@@ -413,9 +404,6 @@ retry:
- 	}
- 	up_write(&ids->rw_mutex);
- 
--	if (err == -EAGAIN)
--		goto retry;
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+origin.patch
+linux-next.patch
+slub-correctly-bootstrap-boot-caches.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+coredump-make-wait_for_dump_helpers-freezable.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+
