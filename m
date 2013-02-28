@@ -1,78 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-signalc-fix-suboptimal-printk-usage.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:11:37 -0800
-Message-ID: <20130228201137.AEA1831C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] coredump-remove-redundant-defines-for-dumpable-states.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:11:40 -0800
+Message-ID: <20130228201140.C42255A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:59099 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781Ab3B1ULi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:38 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so39726qcs.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:38 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:37216 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3B1ULm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:42 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so244780vea.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu, oleg@redhat.com, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: keescook@chromium.org, alan@linux.intel.com, dledford@redhat.com, ebiederm@xmission.com, gang.chen@asianux.com, james.l.morris@oracle.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/signal.c: fix suboptimal printk usage
+     Subject: coredump: remove redundant defines for dumpable states
 has been removed from the -mm tree.  Its filename was
-     kernel-signalc-fix-suboptimal-printk-usage.patch
+     coredump-remove-redundant-defines-for-dumpable-states.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: kernel/signal.c: fix suboptimal printk usage
+From: Kees Cook <keescook@chromium.org>
+Subject: coredump: remove redundant defines for dumpable states
 
-Several printk's were missing KERN_INFO and KERN_CONT flags.
-In addition, a printk that was outside a #if/#endif should have
-been inside, which would result in stray blank line on non-x86 boxes.
+The existing SUID_DUMP_* defines duplicate the newer SUID_DUMPABLE_*
+defines introduced in 54b501992dd ("coredump: warn about unsafe
+suid_dumpable / core_pattern combo").  Remove the new ones, and use the
+prior values instead.
 
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Chen Gang <gang.chen@asianux.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: James Morris <james.l.morris@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/coredump.c         |    2 +-
+ fs/exec.c             |   10 +++++-----
+ fs/proc/internal.h    |    3 ++-
+ include/linux/sched.h |    5 -----
+ kernel/sysctl.c       |    2 +-
+ 5 files changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN kernel/signal.c~kernel-signalc-fix-suboptimal-printk-usage kernel/signal.c
---- a/kernel/signal.c~kernel-signalc-fix-suboptimal-printk-usage
-+++ a/kernel/signal.c
-@@ -1157,11 +1157,11 @@ static int send_signal(int sig, struct s
- static void print_fatal_signal(int signr)
+diff -puN fs/coredump.c~coredump-remove-redundant-defines-for-dumpable-states fs/coredump.c
+--- a/fs/coredump.c~coredump-remove-redundant-defines-for-dumpable-states
++++ a/fs/coredump.c
+@@ -501,7 +501,7 @@ void do_coredump(siginfo_t *siginfo)
+ 	 * so we dump it as root in mode 2, and only into a controlled
+ 	 * environment (pipe handler or fully qualified path).
+ 	 */
+-	if (__get_dumpable(cprm.mm_flags) == SUID_DUMPABLE_SAFE) {
++	if (__get_dumpable(cprm.mm_flags) == SUID_DUMP_ROOT) {
+ 		/* Setuid core dump mode */
+ 		flag = O_EXCL;		/* Stop rewrite attacks */
+ 		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
+diff -puN fs/exec.c~coredump-remove-redundant-defines-for-dumpable-states fs/exec.c
+--- a/fs/exec.c~coredump-remove-redundant-defines-for-dumpable-states
++++ a/fs/exec.c
+@@ -1111,7 +1111,7 @@ void setup_new_exec(struct linux_binprm 
+ 	current->sas_ss_sp = current->sas_ss_size = 0;
+ 
+ 	if (uid_eq(current_euid(), current_uid()) && gid_eq(current_egid(), current_gid()))
+-		set_dumpable(current->mm, SUID_DUMPABLE_ENABLED);
++		set_dumpable(current->mm, SUID_DUMP_USER);
+ 	else
+ 		set_dumpable(current->mm, suid_dumpable);
+ 
+@@ -1639,17 +1639,17 @@ EXPORT_SYMBOL(set_binfmt);
+ void set_dumpable(struct mm_struct *mm, int value)
  {
- 	struct pt_regs *regs = signal_pt_regs();
--	printk("%s/%d: potentially unexpected fatal signal %d.\n",
-+	printk(KERN_INFO "%s/%d: potentially unexpected fatal signal %d.\n",
- 		current->comm, task_pid_nr(current), signr);
+ 	switch (value) {
+-	case SUID_DUMPABLE_DISABLED:
++	case SUID_DUMP_DISABLE:
+ 		clear_bit(MMF_DUMPABLE, &mm->flags);
+ 		smp_wmb();
+ 		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
+ 		break;
+-	case SUID_DUMPABLE_ENABLED:
++	case SUID_DUMP_USER:
+ 		set_bit(MMF_DUMPABLE, &mm->flags);
+ 		smp_wmb();
+ 		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
+ 		break;
+-	case SUID_DUMPABLE_SAFE:
++	case SUID_DUMP_ROOT:
+ 		set_bit(MMF_DUMP_SECURELY, &mm->flags);
+ 		smp_wmb();
+ 		set_bit(MMF_DUMPABLE, &mm->flags);
+@@ -1662,7 +1662,7 @@ int __get_dumpable(unsigned long mm_flag
+ 	int ret;
  
- #if defined(__i386__) && !defined(__arch_um__)
--	printk("code at %08lx: ", regs->ip);
-+	printk(KERN_INFO "code at %08lx: ", regs->ip);
- 	{
- 		int i;
- 		for (i = 0; i < 16; i++) {
-@@ -1169,11 +1169,11 @@ static void print_fatal_signal(int signr
+ 	ret = mm_flags & MMF_DUMPABLE_MASK;
+-	return (ret > SUID_DUMPABLE_ENABLED) ? SUID_DUMPABLE_SAFE : ret;
++	return (ret > SUID_DUMP_USER) ? SUID_DUMP_ROOT : ret;
+ }
  
- 			if (get_user(insn, (unsigned char *)(regs->ip + i)))
- 				break;
--			printk("%02x ", insn);
-+			printk(KERN_CONT "%02x ", insn);
- 		}
- 	}
-+	printk(KERN_CONT "\n");
- #endif
--	printk("\n");
- 	preempt_disable();
- 	show_regs(regs);
- 	preempt_enable();
-_
-
-Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
-
-origin.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch
-
+ int get_dumpable(struct mm_struct *mm)
+diff -puN fs/proc/internal.h~coredump-remove-redundant-defines-for-dumpable-states fs/proc/internal.h
+--- a/fs/proc/internal.h~coredump-remove-redundant-defines-for-dumpable-states
++++ a/fs/proc/internal.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/proc_fs.h>
++#include <linux/binfmts.h>
+ struct  ctl_table_header;
+ struct  mempolicy;
+ 
+@@ -108,7 +109,7 @@ static inline int task_dumpable(struct t
+ 	if (mm)
+ 		dumpable = get_dumpable(mm);
+ 	task_unlock(task);
+-	if (dumpable == SUID_DUMPABLE_ENABLED)
++	if (dumpable == SUID_DUMP_USER)
+ 		return 1;
+ 	return 0;
+ }
+diff -puN include/linux/sched.h~coredump-remove-redundant-defines-for-dumpable-states include/linux/sched.h
+--- a/include/linux/sched.h~coredump-remove-redundant-defines-for-dumpable-states
++++ a/include/linux/sched.h
+@@ -346,11 +346,6 @@ static inline void arch_pick_mmap_layout
+ extern void set_dumpable(struct mm_struct *mm, int value);
+ extern int get_dumpable(struct mm_struct *mm);
+ 
+-/* get/set_dumpable() values */
+-#define SUID_DUMPABLE_DISABLED	0
+-#define SUID_DUMPABLE_ENABLED	1
+-#define SUID_DUMPABLE_SAFE	2
