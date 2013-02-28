@@ -1,124 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] power-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:57 -0800
-Message-ID: <20130228201457.AD7B731C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] pps-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:00 -0800
+Message-ID: <20130228201500.9B48B31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:44275 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753060Ab3B1UO6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:58 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so244865ghb.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:58 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:56709 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753735Ab3B1UPB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:01 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so245123yen.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cbou@mail.ru, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, giometti@enneenne.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power: convert to idr_alloc()
+     Subject: pps: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     power-convert-to-idr_alloc.patch
+     pps-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: power: convert to idr_alloc()
+Subject: pps: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Anton Vorontsov <cbou@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/bq2415x_charger.c |   11 +++--------
- drivers/power/bq27x00_battery.c |    9 +++------
- drivers/power/ds2782_battery.c  |    9 ++-------
- 3 files changed, 8 insertions(+), 21 deletions(-)
+ drivers/pps/kapi.c |    2 +-
+ drivers/pps/pps.c  |   36 ++++++++++++++----------------------
+ 2 files changed, 15 insertions(+), 23 deletions(-)
 
-diff -puN drivers/power/bq2415x_charger.c~power-convert-to-idr_alloc drivers/power/bq2415x_charger.c
---- a/drivers/power/bq2415x_charger.c~power-convert-to-idr_alloc
-+++ a/drivers/power/bq2415x_charger.c
-@@ -1515,16 +1515,11 @@ static int bq2415x_probe(struct i2c_clie
+diff -puN drivers/pps/kapi.c~pps-convert-to-idr_alloc drivers/pps/kapi.c
+--- a/drivers/pps/kapi.c~pps-convert-to-idr_alloc
++++ a/drivers/pps/kapi.c
+@@ -102,7 +102,7 @@ struct pps_device *pps_register_source(s
+ 		goto pps_register_source_exit;
  	}
  
- 	/* Get new ID for the new device */
--	ret = idr_pre_get(&bq2415x_id, GFP_KERNEL);
--	if (ret == 0)
+-	/* These initializations must be done before calling idr_get_new()
++	/* These initializations must be done before calling idr_alloc()
+ 	 * in order to avoid reces into pps_event().
+ 	 */
+ 	pps->params.api_version = PPS_API_VERS;
+diff -puN drivers/pps/pps.c~pps-convert-to-idr_alloc drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-convert-to-idr_alloc
++++ a/drivers/pps/pps.c
+@@ -295,29 +295,21 @@ int pps_register_cdev(struct pps_device 
+ 	dev_t devt;
+ 
+ 	mutex_lock(&pps_idr_lock);
+-	/* Get new ID for the new PPS source */
+-	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
+-		mutex_unlock(&pps_idr_lock);
 -		return -ENOMEM;
--
- 	mutex_lock(&bq2415x_id_mutex);
--	ret = idr_get_new(&bq2415x_id, client, &num);
-+	num = idr_alloc(&bq2415x_id, client, 0, 0, GFP_KERNEL);
- 	mutex_unlock(&bq2415x_id_mutex);
--
--	if (ret < 0)
--		return ret;
-+	if (num < 0)
-+		return num;
- 
- 	name = kasprintf(GFP_KERNEL, "%s-%d", id->name, num);
- 	if (!name) {
-diff -puN drivers/power/bq27x00_battery.c~power-convert-to-idr_alloc drivers/power/bq27x00_battery.c
---- a/drivers/power/bq27x00_battery.c~power-convert-to-idr_alloc
-+++ a/drivers/power/bq27x00_battery.c
-@@ -791,14 +791,11 @@ static int bq27x00_battery_probe(struct 
- 	int retval = 0;
- 
- 	/* Get new ID for the new battery device */
--	retval = idr_pre_get(&battery_id, GFP_KERNEL);
--	if (retval == 0)
--		return -ENOMEM;
- 	mutex_lock(&battery_mutex);
--	retval = idr_get_new(&battery_id, client, &num);
-+	num = idr_alloc(&battery_id, client, 0, 0, GFP_KERNEL);
- 	mutex_unlock(&battery_mutex);
--	if (retval < 0)
--		return retval;
-+	if (num < 0)
-+		return num;
- 
- 	name = kasprintf(GFP_KERNEL, "%s-%d", id->name, num);
- 	if (!name) {
-diff -puN drivers/power/ds2782_battery.c~power-convert-to-idr_alloc drivers/power/ds2782_battery.c
---- a/drivers/power/ds2782_battery.c~power-convert-to-idr_alloc
-+++ a/drivers/power/ds2782_battery.c
-@@ -395,17 +395,12 @@ static int ds278x_battery_probe(struct i
- 	}
- 
- 	/* Get an ID for this battery */
--	ret = idr_pre_get(&battery_id, GFP_KERNEL);
--	if (ret == 0) {
--		ret = -ENOMEM;
--		goto fail_id;
 -	}
 -
- 	mutex_lock(&battery_lock);
--	ret = idr_get_new(&battery_id, client, &num);
-+	ret = idr_alloc(&battery_id, client, 0, 0, GFP_KERNEL);
- 	mutex_unlock(&battery_lock);
- 	if (ret < 0)
- 		goto fail_id;
-+	num = ret;
+-	/* Now really allocate the PPS source.
+-	 * After idr_get_new() calling the new source will be freely available
+-	 * into the kernel.
++	/*
++	 * Get new ID for the new PPS source.  After idr_alloc() calling
++	 * the new source will be freely available into the kernel.
+ 	 */
+-	err = idr_get_new(&pps_idr, pps, &pps->id);
+-	mutex_unlock(&pps_idr_lock);
+-
+-	if (err < 0)
+-		return err;
+-
+-	pps->id &= MAX_IDR_MASK;
+-	if (pps->id >= PPS_MAX_SOURCES) {
+-		pr_err("%s: too many PPS sources in the system\n",
+-					pps->info.name);
+-		err = -EBUSY;
+-		goto free_idr;
++	err = idr_alloc(&pps_idr, pps, 0, PPS_MAX_SOURCES, GFP_KERNEL);
++	if (err < 0) {
++		if (err == -ENOSPC) {
++			pr_err("%s: too many PPS sources in the system\n",
++			       pps->info.name);
++			err = -EBUSY;
++		}
++		goto out_unlock;
+ 	}
++	pps->id = err;
++	mutex_unlock(&pps_idr_lock);
  
- 	info = kzalloc(sizeof(*info), GFP_KERNEL);
- 	if (!info) {
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-origin.patch
-linux-next.patch
-slub-correctly-bootstrap-boot-caches.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-
+ 	devt = MKDEV(MAJOR(pps_devt), pps->id);
+ 
+@@ -351,8 +343,8 @@ del_cdev:
+ free_idr:
+ 	mutex_lock(&pps_idr_lock);
+ 	idr_remove(&pps_idr, pps->id);
++out_unlock:
+ 	mutex_unlock(&pps_idr_lock);
