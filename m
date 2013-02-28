@@ -1,86 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:16:35 -0800
-Message-ID: <20130228201635.B261C31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] block-partition-msdos-detect-aix-formatted-disks-even-without-55aa.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:16:38 -0800
+Message-ID: <20130228201638.C884931C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:57707 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759169Ab3B1UQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:37 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so245307yen.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:37 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:52981 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753103Ab3B1UQk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:40 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so245099ves.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dae@velatum.com, arnd@arndb.de, greg@kroah.com, mm-commits@vger.kernel.org
+To: phdm@macqel.be, andi@lisas.de, axboe@kernel.dk, hirofumi@mail.parknet.co.jp, olh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/char/misc.c:misc_register(): do not loop on misc_list unconditionally
+     Subject: block/partition/msdos: detect AIX formatted disks even without 55aa
 has been removed from the -mm tree.  Its filename was
-     drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
+     block-partition-msdos-detect-aix-formatted-disks-even-without-55aa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Dae S. Kim" <dae@velatum.com>
-Subject: drivers/char/misc.c:misc_register(): do not loop on misc_list unconditionally
+From: Philippe De Muyter <phdm@macqel.be>
+Subject: block/partition/msdos: detect AIX formatted disks even without 55aa
 
-If the minor number is assigned dynamically, there is no need to search
-for misc->minor in misc_list, since misc->minor == MISC_DYNAMIC_MINOR.
+AIX formatted disks do not always have the MSDOS 55aa signature.
+This happens e.g. for unbootable AIX disks.
 
-[akpm@linux-foundation.org: reduce scope of local `c']
-Signed-off-by: Dae S. Kim <dae@velatum.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>
+Up to now, such disks were not recognized as AIX disks, because of the
+missing 55aa.  Fix that by inverting the two tests.  Let's first
+check for the AIX magic strings, and only if that fails check for
+the MSDOS magic word.
+
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Olaf Hering <olh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ block/partitions/msdos.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally drivers/char/misc.c
---- a/drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally
-+++ a/drivers/char/misc.c
-@@ -183,19 +183,12 @@ static const struct file_operations misc
-  
- int misc_register(struct miscdevice * misc)
- {
--	struct miscdevice *c;
- 	dev_t dev;
- 	int err = 0;
- 
- 	INIT_LIST_HEAD(&misc->list);
- 
- 	mutex_lock(&misc_mtx);
--	list_for_each_entry(c, &misc_list, list) {
--		if (c->minor == misc->minor) {
--			mutex_unlock(&misc_mtx);
--			return -EBUSY;
--		}
--	}
- 
- 	if (misc->minor == MISC_DYNAMIC_MINOR) {
- 		int i = find_first_zero_bit(misc_minors, DYNAMIC_MINORS);
-@@ -205,6 +198,15 @@ int misc_register(struct miscdevice * mi
- 		}
- 		misc->minor = DYNAMIC_MINORS - i - 1;
- 		set_bit(i, misc_minors);
-+	} else {
-+		struct miscdevice *c;
+diff -puN block/partitions/msdos.c~block-partition-msdos-detect-aix-formatted-disks-even-without-55aa block/partitions/msdos.c
+--- a/block/partitions/msdos.c~block-partition-msdos-detect-aix-formatted-disks-even-without-55aa
++++ a/block/partitions/msdos.c
+@@ -455,14 +455,19 @@ int msdos_partition(struct parsed_partit
+ 	data = read_part_sector(state, 0, &sect);
+ 	if (!data)
+ 		return -1;
+-	if (!msdos_magic_present(data + 510)) {
 +
-+		list_for_each_entry(c, &misc_list, list) {
-+			if (c->minor == misc->minor) {
-+				mutex_unlock(&misc_mtx);
-+				return -EBUSY;
-+			}
-+		}
++	/*
++	 * Note order! (some AIX disks, e.g. unbootable kind,
++	 * have no MSDOS 55aa)
++	 */
++	if (aix_magic_present(state, data)) {
+ 		put_dev_sector(sect);
++		strlcat(state->pp_buf, " [AIX]", PAGE_SIZE);
+ 		return 0;
  	}
  
- 	dev = MKDEV(MISC_MAJOR, misc->minor);
+-	if (aix_magic_present(state, data)) {
++	if (!msdos_magic_present(data + 510)) {
+ 		put_dev_sector(sect);
+-		strlcat(state->pp_buf, " [AIX]", PAGE_SIZE);
+ 		return 0;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from dae@velatum.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
 origin.patch
 
