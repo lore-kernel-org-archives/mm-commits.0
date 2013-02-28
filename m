@@ -1,79 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dlm-dont-use-idr_remove_all.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:47 -0800
-Message-ID: <20130228201248.18FAE5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] idr-cosmetic-updates-to-struct-initializer-definitions.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:57 -0800
+Message-ID: <20130228201258.1432031C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:42879 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757122Ab3B1UMt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:49 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so244713vch.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:48 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:56885 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757194Ab3B1UM7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:59 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so244967qea.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, ccaulfie@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dlm: don't use idr_remove_all()
+     Subject: idr: cosmetic updates to struct / initializer definitions
 has been removed from the -mm tree.  Its filename was
-     dlm-dont-use-idr_remove_all.patch
+     idr-cosmetic-updates-to-struct-initializer-definitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dlm: don't use idr_remove_all()
+Subject: idr: cosmetic updates to struct / initializer definitions
 
-idr_destroy() can destroy idr by itself and idr_remove_all() is being
-deprecated.
+* Tab align fields like a normal person.
 
-The conversion isn't completely trivial for recover_idr_clear() as
-it's the only place in kernel which makes legitimate use of
-idr_remove_all() w/o idr_destroy().  Replace it with idr_remove() call
-inside idr_for_each_entry() loop.  It goes on top so that it matches
-the operation order in recover_idr_del().
+* Drop the unnecessary 0 inits from IDR_INIT().
+
+This patch is purely cosmetic.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Christine Caulfield <ccaulfie@redhat.com>
-Cc: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/lockspace.c |    1 -
- fs/dlm/recover.c   |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/idr.h |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-diff -puN fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all fs/dlm/lockspace.c
---- a/fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all
-+++ a/fs/dlm/lockspace.c
-@@ -796,7 +796,6 @@ static int release_lockspace(struct dlm_
- 	 */
+diff -puN include/linux/idr.h~idr-cosmetic-updates-to-struct-initializer-definitions include/linux/idr.h
+--- a/include/linux/idr.h~idr-cosmetic-updates-to-struct-initializer-definitions
++++ a/include/linux/idr.h
+@@ -49,28 +49,24 @@
+ #define MAX_IDR_FREE (MAX_IDR_LEVEL * 2)
  
- 	idr_for_each(&ls->ls_lkbidr, lkb_idr_free, ls);
--	idr_remove_all(&ls->ls_lkbidr);
- 	idr_destroy(&ls->ls_lkbidr);
+ struct idr_layer {
+-	unsigned long		 bitmap; /* A zero bit means "space here" */
++	unsigned long		bitmap;	/* A zero bit means "space here" */
+ 	struct idr_layer __rcu	*ary[1<<IDR_BITS];
+-	int			 count;	 /* When zero, we can release it */
+-	int			 layer;	 /* distance from leaf */
+-	struct rcu_head		 rcu_head;
++	int			count;	/* When zero, we can release it */
++	int			layer;	/* distance from leaf */
++	struct rcu_head		rcu_head;
+ };
  
- 	/*
-diff -puN fs/dlm/recover.c~dlm-dont-use-idr_remove_all fs/dlm/recover.c
---- a/fs/dlm/recover.c~dlm-dont-use-idr_remove_all
-+++ a/fs/dlm/recover.c
-@@ -359,13 +359,13 @@ static void recover_idr_clear(struct dlm
- 	spin_lock(&ls->ls_recover_idr_lock);
+ struct idr {
+-	struct idr_layer __rcu *top;
+-	struct idr_layer *id_free;
+-	int		  layers; /* only valid without concurrent changes */
+-	int		  id_free_cnt;
+-	spinlock_t	  lock;
++	struct idr_layer __rcu	*top;
++	struct idr_layer	*id_free;
++	int			layers;	/* only valid w/o concurrent changes */
++	int			id_free_cnt;
++	spinlock_t		lock;
+ };
  
- 	idr_for_each_entry(&ls->ls_recover_idr, r, id) {
-+		idr_remove(&ls->ls_recover_idr, id);
- 		r->res_id = 0;
- 		r->res_recover_locks_count = 0;
- 		ls->ls_recover_list_count--;
+-#define IDR_INIT(name)						\
+-{								\
+-	.top		= NULL,					\
+-	.id_free	= NULL,					\
+-	.layers 	= 0,					\
+-	.id_free_cnt	= 0,					\
+-	.lock		= __SPIN_LOCK_UNLOCKED(name.lock),	\
++#define IDR_INIT(name)							\
++{									\
++	.lock			= __SPIN_LOCK_UNLOCKED(name.lock),	\
+ }
+ #define DEFINE_IDR(name)	struct idr name = IDR_INIT(name)
  
- 		dlm_put_rsb(r);
- 	}
--	idr_remove_all(&ls->ls_recover_idr);
- 
- 	if (ls->ls_recover_list_count != 0) {
- 		log_error(ls, "warning: recover_list_count %d",
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
