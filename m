@@ -1,61 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nbd-fix-sparse-warning.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:17:08 -0800
-Message-ID: <20130228201708.A7C9031C25A@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] namespaces-utsname-fix-wrong-comment-about-clone_uts_ns.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:17:11 -0800
+Message-ID: <20130228201711.AA2C15A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:52129 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343Ab3B1URJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:09 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so245083vcd.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:09 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:61414 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754343Ab3B1URM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:12 -0500
+Received: by mail-qe0-f73.google.com with SMTP id a11so245519qen.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elder@inktank.com, paul.clements@steeleye.com, paul.clements@us.sios.com, mm-commits@vger.kernel.org
+To: yuanhan.liu@linux.intel.com, ebiederm@xmission.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nbd: fix sparse warning
+     Subject: kernel/utsname.c: fix wrong comment about clone_uts_ns()
 has been removed from the -mm tree.  Its filename was
-     nbd-fix-sparse-warning.patch
+     namespaces-utsname-fix-wrong-comment-about-clone_uts_ns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Elder <elder@inktank.com>
-Subject: nbd: fix sparse warning
+From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Subject: kernel/utsname.c: fix wrong comment about clone_uts_ns()
 
-I just fixed this in "drivers/block/rbd.c" and I noticed that
-"drivers/block/nbd.c" has the same problem.  Fix a warning issued by
-sparse by adding some lockdep annotations to indicate the queue lock gets
-dropped (because it's held when do_nbd_request() is called) and
-re-acquired within the function.
+Fix the wrong comment about the return value of clone_uts_ns()
 
-Signed-off-by: Alex Elder <elder@inktank.com>
-Cc: Paul Clements <paul.clements@steeleye.com>
-Cc: Paul Clements <paul.clements@us.sios.com>
+Signed-off-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/utsname.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/nbd.c~nbd-fix-sparse-warning drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-fix-sparse-warning
-+++ a/drivers/block/nbd.c
-@@ -564,6 +564,7 @@ static int nbd_thread(void *data)
+diff -puN kernel/utsname.c~namespaces-utsname-fix-wrong-comment-about-clone_uts_ns kernel/utsname.c
+--- a/kernel/utsname.c~namespaces-utsname-fix-wrong-comment-about-clone_uts_ns
++++ a/kernel/utsname.c
+@@ -30,7 +30,7 @@ static struct uts_namespace *create_uts_
+ /*
+  * Clone a new ns copying an original utsname, setting refcount to 1
+  * @old_ns: namespace to clone
+- * Return NULL on error (failure to kmalloc), new ns otherwise
++ * Return ERR_PTR(-ENOMEM) on error (failure to kmalloc), new ns otherwise
   */
- 
- static void do_nbd_request(struct request_queue *q)
-+		__releases(q->queue_lock) __acquires(q->queue_lock)
- {
- 	struct request *req;
- 	
+ static struct uts_namespace *clone_uts_ns(struct user_namespace *user_ns,
+ 					  struct uts_namespace *old_ns)
 _
 
-Patches currently in -mm which might be from elder@inktank.com are
+Patches currently in -mm which might be from yuanhan.liu@linux.intel.com are
 
 origin.patch
-linux-next.patch
 
