@@ -1,62 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-use-vm_unmapped_area-on-parisc-architecture-fix.patch removed from -mm tree
-Date: Wed, 27 Feb 2013 16:37:28 -0800
-Message-ID: <20130228003728.7907431C071@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-dropped] backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 27 Feb 2013 16:37:57 -0800
+Message-ID: <20130228003758.61DDC31C071@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:51884 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838Ab3B1Ah3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:37:29 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so139006qea.3
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:37:29 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:42067 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955Ab3B1Ah7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:37:59 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so138575vea.0
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:37:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, deller@gmx.de, jejb@parisc-linux.org, riel@redhat.com, walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Milo.Kim@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-use-vm_unmapped_area-on-parisc-architecture-fix
+     Subject: backlight-add-new-lp8788-backlight-driver-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-parisc-architecture-fix.patch
+     backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-parisc-architecture.patch
+This patch was dropped because it was folded into backlight-add-new-lp8788-backlight-driver.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-vm_unmapped_area-on-parisc-architecture-fix
+Subject: backlight-add-new-lp8788-backlight-driver-checkpatch-fixes
 
-remove now-unused DCACHE_ALIGN(), per James
 
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+WARNING: please write a paragraph that describes the config symbol fully
+#45: FILE: drivers/video/backlight/Kconfig:380:
++config BACKLIGHT_LP8788
+
+ERROR: code indent should use tabs where possible
+#446: FILE: include/linux/mfd/lp8788.h:242:
++^I^I            Only valid when bl_mode is LP8788_BL_COMB_PWM_BASED$
+
+total: 1 errors, 1 warnings, 403 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/backlight-add-new-lp8788-backlight-driver.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Kim, Milo" <Milo.Kim@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/sys_parisc.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/mfd/lp8788.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/parisc/kernel/sys_parisc.c~mm-use-vm_unmapped_area-on-parisc-architecture-fix arch/parisc/kernel/sys_parisc.c
---- a/arch/parisc/kernel/sys_parisc.c~mm-use-vm_unmapped_area-on-parisc-architecture-fix
-+++ a/arch/parisc/kernel/sys_parisc.c
-@@ -46,8 +46,6 @@ static unsigned long get_unshared_area(u
- 	return vm_unmapped_area(&info);
- }
- 
--#define DCACHE_ALIGN(addr) (((addr) + (SHMLBA - 1)) &~ (SHMLBA - 1))
--
- /*
-  * We need to know the offset to use.  Old scheme was to look for
-  * existing mapping and use the same offset.  New scheme is to use the
+diff -puN include/linux/mfd/lp8788.h~backlight-add-new-lp8788-backlight-driver-checkpatch-fixes include/linux/mfd/lp8788.h
+--- a/include/linux/mfd/lp8788.h~backlight-add-new-lp8788-backlight-driver-checkpatch-fixes
++++ a/include/linux/mfd/lp8788.h
+@@ -239,7 +239,7 @@ struct lp8788_charger_platform_data {
+  * @fall_time             : brightness ramp down step time
+  * @pwm_pol               : pwm polarity setting when bl_mode is pwm based
+  * @period_ns             : platform specific pwm period value. unit is nano.
+-		            Only valid when bl_mode is LP8788_BL_COMB_PWM_BASED
++			    Only valid when bl_mode is LP8788_BL_COMB_PWM_BASED
+  */
+ struct lp8788_backlight_platform_data {
+ 	char *name;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-use-vm_unmapped_area-on-parisc-architecture.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+backlight-add-new-lp8788-backlight-driver.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
 signal-allow-to-send-any-siginfo-to-itself-fix.patch
 fs-proc-clean-up-printks.patch
