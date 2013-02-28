@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-max77686-use-module_platform_driver.patch added to -mm tree
-Date: Thu, 28 Feb 2013 14:26:55 -0800
-Message-ID: <20130228222656.1EF7C5A4242@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch added to -mm tree
+Date: Thu, 28 Feb 2013 14:27:05 -0800
+Message-ID: <20130228222706.2A2E731C1F0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:59971 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab3B1W05 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 17:26:57 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so263021qea.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 14:26:56 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:41416 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760937Ab3B1W1H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 17:27:07 -0500
+Received: by mail-qe0-f73.google.com with SMTP id a11so263102qen.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 14:27:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max77686.c: use module_platform_driver()
+     Subject: drivers/rtc/rtc-max77686.c: use dev_info()/dev_emerg() instead of pr_info()/pr_emerg()
 has been added to the -mm tree.  Its filename is
-     rtc-max77686-use-module_platform_driver.patch
+     rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-max77686.c: use module_platform_driver()
+Subject: drivers/rtc/rtc-max77686.c: use dev_info()/dev_emerg() instead of pr_info()/pr_emerg()
 
-Use module_platform_driver() macro which makes the code smaller and
-simpler.
+dev_info()/dev_emerg() are preferred to pr_info()/pr_emerg().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/rtc/rtc-max77686.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-use-module_platform_driver drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~rtc-max77686-use-module_platform_driver
+diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg
 +++ a/drivers/rtc/rtc-max77686.c
-@@ -624,17 +624,7 @@ static struct platform_driver max77686_r
- 	.id_table	= rtc_id,
- };
+@@ -466,7 +466,7 @@ static void max77686_rtc_enable_smpl(str
  
--static int __init max77686_rtc_init(void)
--{
--	return platform_driver_register(&max77686_rtc_driver);
--}
--module_init(max77686_rtc_init);
--
--static void __exit max77686_rtc_exit(void)
--{
--	platform_driver_unregister(&max77686_rtc_driver);
--}
--module_exit(max77686_rtc_exit);
-+module_platform_driver(max77686_rtc_driver);
+ 	val = 0;
+ 	regmap_read(info->max77686->rtc_regmap, MAX77686_WTSR_SMPL_CNTL, &val);
+-	pr_info("%s: WTSR_SMPL(0x%02x)\n", __func__, val);
++	dev_info(info->dev, "%s: WTSR_SMPL(0x%02x)\n", __func__, val);
+ }
+ #endif /* MAX77686_RTC_WTSR_SMPL */
  
- MODULE_DESCRIPTION("Maxim MAX77686 RTC driver");
- MODULE_AUTHOR("<woong.byun@samsung.com>");
+@@ -589,11 +589,14 @@ static void max77686_rtc_shutdown(struct
+ 	for (i = 0; i < 3; i++) {
+ 		max77686_rtc_enable_wtsr(info, false);
+ 		regmap_read(info->max77686->rtc_regmap, MAX77686_WTSR_SMPL_CNTL, &val);
+-		pr_info("%s: WTSR_SMPL reg(0x%02x)\n", __func__, val);
+-		if (val & WTSR_EN_MASK)
+-			pr_emerg("%s: fail to disable WTSR\n", __func__);
+-		else {
+-			pr_info("%s: success to disable WTSR\n", __func__);
++		dev_info(info->dev, "%s: WTSR_SMPL reg(0x%02x)\n", __func__,
++				val);
++		if (val & WTSR_EN_MASK) {
++			dev_emerg(info->dev, "%s: fail to disable WTSR\n",
++					__func__);
++		} else {
++			dev_info(info->dev, "%s: success to disable WTSR\n",
++					__func__);
+ 			break;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
