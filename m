@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-pcap-add-__init-__exit-annotation.patch added to -mm tree
-Date: Thu, 28 Feb 2013 13:33:06 -0800
-Message-ID: <20130228213307.49CFC5A41DD@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-tegra-add-__init-__exit-annotation.patch added to -mm tree
+Date: Thu, 28 Feb 2013 13:33:10 -0800
+Message-ID: <20130228213310.8E8AB5A41DD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:57841 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759275Ab3B1VdI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:33:08 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so255056ggn.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:33:07 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:35243 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758894Ab3B1VdL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:33:11 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so256761yhr.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:33:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-pcap: add __init/__exit annotation
+     Subject: rtc: rtc-tegra: add __init/__exit annotation
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-pcap-add-__init-__exit-annotation.patch
+     rtc-rtc-tegra-add-__init-__exit-annotation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pcap: add __init/__exit annotation
+Subject: rtc: rtc-tegra: add __init/__exit annotation
 
 When platform_driver_probe() is used, bind/unbind via sysfs is disabled. 
 Thus, __init/__exit annotations can be added to probe()/remove().
@@ -43,39 +43,39 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcap.c |    6 +++---
+ drivers/rtc/rtc-tegra.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcap.c~rtc-rtc-pcap-add-__init-__exit-annotation drivers/rtc/rtc-pcap.c
---- a/drivers/rtc/rtc-pcap.c~rtc-rtc-pcap-add-__init-__exit-annotation
-+++ a/drivers/rtc/rtc-pcap.c
-@@ -139,7 +139,7 @@ static const struct rtc_class_ops pcap_r
- 	.alarm_irq_enable = pcap_rtc_alarm_irq_enable,
+diff -puN drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-add-__init-__exit-annotation drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-add-__init-__exit-annotation
++++ a/drivers/rtc/rtc-tegra.c
+@@ -309,7 +309,7 @@ static const struct of_device_id tegra_r
  };
+ MODULE_DEVICE_TABLE(of, tegra_rtc_dt_match);
  
--static int pcap_rtc_probe(struct platform_device *pdev)
-+static int __init pcap_rtc_probe(struct platform_device *pdev)
+-static int tegra_rtc_probe(struct platform_device *pdev)
++static int __init tegra_rtc_probe(struct platform_device *pdev)
  {
- 	struct pcap_rtc *pcap_rtc;
- 	int timer_irq, alarm_irq;
-@@ -183,7 +183,7 @@ fail_rtc:
- 	return err;
+ 	struct tegra_rtc_info *info;
+ 	struct resource *res;
+@@ -379,7 +379,7 @@ err_dev_unreg:
+ 	return ret;
  }
  
--static int pcap_rtc_remove(struct platform_device *pdev)
-+static int __exit pcap_rtc_remove(struct platform_device *pdev)
+-static int tegra_rtc_remove(struct platform_device *pdev)
++static int __exit tegra_rtc_remove(struct platform_device *pdev)
  {
- 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
+ 	struct tegra_rtc_info *info = platform_get_drvdata(pdev);
  
-@@ -196,7 +196,7 @@ static int pcap_rtc_remove(struct platfo
- }
+@@ -439,7 +439,7 @@ static void tegra_rtc_shutdown(struct pl
  
- static struct platform_driver pcap_rtc_driver = {
--	.remove = pcap_rtc_remove,
-+	.remove = __exit_p(pcap_rtc_remove),
- 	.driver = {
- 		.name  = "pcap-rtc",
- 		.owner = THIS_MODULE,
+ MODULE_ALIAS("platform:tegra_rtc");
+ static struct platform_driver tegra_rtc_driver = {
+-	.remove		= tegra_rtc_remove,
++	.remove		= __exit_p(tegra_rtc_remove),
+ 	.shutdown	= tegra_rtc_shutdown,
+ 	.driver		= {
+ 		.name	= "tegra_rtc",
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
