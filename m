@@ -1,30 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftests-efivarfs-add-empty-file-creation-test.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:18:01 -0800
-Message-ID: <20130228201801.EA46D5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] selftests-efivarfs-add-create-read-test.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:18:04 -0800
+Message-ID: <20130228201804.A7EAB31C1F0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:64170 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754040Ab3B1USC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:18:02 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so245427ggi.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:18:02 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:34757 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754040Ab3B1USF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:18:05 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so261571qaj.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:18:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jk@ozlabs.org, dyoung@redhat.com, lxiang@redhat.com, matt.fleming@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/efivarfs: add empty file creation test
+     Subject: selftests/efivarfs: add create-read test
 has been removed from the -mm tree.  Its filename was
-     selftests-efivarfs-add-empty-file-creation-test.patch
+     selftests-efivarfs-add-create-read-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jeremy Kerr <jk@ozlabs.org>
-Subject: selftests/efivarfs: add empty file creation test
+Subject: selftests/efivarfs: add create-read test
+
+Test that reads from a newly-created efivarfs file (with no data written)
+will return EOF.
 
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Cc: Matt Fleming <matt.fleming@intel.com>
@@ -33,36 +36,86 @@ Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/efivarfs/efivarfs.sh |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ tools/testing/selftests/efivarfs/Makefile      |    2 
+ tools/testing/selftests/efivarfs/create-read.c |   38 +++++++++++++++
+ tools/testing/selftests/efivarfs/efivarfs.sh   |    7 ++
+ 3 files changed, 46 insertions(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/efivarfs/efivarfs.sh~selftests-efivarfs-add-empty-file-creation-test tools/testing/selftests/efivarfs/efivarfs.sh
---- a/tools/testing/selftests/efivarfs/efivarfs.sh~selftests-efivarfs-add-empty-file-creation-test
+diff -puN tools/testing/selftests/efivarfs/Makefile~selftests-efivarfs-add-create-read-test tools/testing/selftests/efivarfs/Makefile
+--- a/tools/testing/selftests/efivarfs/Makefile~selftests-efivarfs-add-create-read-test
++++ a/tools/testing/selftests/efivarfs/Makefile
+@@ -1,7 +1,7 @@
+ CC = $(CROSS_COMPILE)gcc
+ CFLAGS = -Wall
+ 
+-test_objs = open-unlink
++test_objs = open-unlink create-read
+ 
+ all: $(test_objs)
+ 
+diff -puN /dev/null tools/testing/selftests/efivarfs/create-read.c
+--- /dev/null
++++ a/tools/testing/selftests/efivarfs/create-read.c
+@@ -0,0 +1,38 @@
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <string.h>
++
++int main(int argc, char **argv)
++{
++	const char *path;
++	char buf[4];
++	int fd, rc;
++
++	if (argc < 2) {
++		fprintf(stderr, "usage: %s <path>\n", argv[0]);
++		return EXIT_FAILURE;
++	}
++
++	path = argv[1];
++
++	/* create a test variable */
++	fd = open(path, O_RDWR | O_CREAT, 0600);
++	if (fd < 0) {
++		perror("open(O_WRONLY)");
++		return EXIT_FAILURE;
++	}
++
++	rc = read(fd, buf, sizeof(buf));
++	if (rc != 0) {
++		fprintf(stderr, "Reading a new var should return EOF\n");
++		return EXIT_FAILURE;
++	}
++
++	return EXIT_SUCCESS;
++}
+diff -puN tools/testing/selftests/efivarfs/efivarfs.sh~selftests-efivarfs-add-create-read-test tools/testing/selftests/efivarfs/efivarfs.sh
+--- a/tools/testing/selftests/efivarfs/efivarfs.sh~selftests-efivarfs-add-create-read-test
 +++ a/tools/testing/selftests/efivarfs/efivarfs.sh
-@@ -58,6 +58,18 @@ test_create()
+@@ -70,6 +70,12 @@ test_create_empty()
  	fi
  }
  
-+test_create_empty()
++test_create_read()
 +{
 +	local file=$efivarfs_mount/$FUNCNAME-$test_guid
-+
-+	: > $file
-+
-+	if [ ! -e $file ]; then
-+		echo "$file can not be created without writing" >&2
-+		exit 1
-+	fi
++	./create-read $file
 +}
 +
  test_delete()
  {
  	local attrs='\x07\x00\x00\x00'
-@@ -112,6 +124,7 @@ check_prereqs
- rc=0
+@@ -125,6 +131,7 @@ rc=0
  
  run_test test_create
-+run_test test_create_empty
+ run_test test_create_empty
++run_test test_create_read
  run_test test_delete
  run_test test_zero_size_delete
  run_test test_open_unlink
