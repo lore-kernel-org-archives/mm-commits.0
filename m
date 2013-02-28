@@ -1,72 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ib-ocrdma-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:24 -0800
-Message-ID: <20130228201424.9DDE431C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ib-qib-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:27 -0800
+Message-ID: <20130228201427.987ED5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:63257 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757903Ab3B1UOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:25 -0500
-Received: by mail-qe0-f73.google.com with SMTP id a11so245195qen.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:25 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:57229 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757903Ab3B1UO2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:28 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so245042ggn.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, roland@purestorage.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, infinipath@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: IB/ocrdma: convert to idr_alloc()
+     Subject: IB/qib: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     ib-ocrdma-convert-to-idr_alloc.patch
+     ib-qib-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/ocrdma: convert to idr_alloc()
+Subject: IB/qib: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Roland Dreier <roland@purestorage.com>
+Cc: Mike Marciniszyn <infinipath@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ocrdma/ocrdma_main.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/infiniband/hw/qib/qib_init.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN drivers/infiniband/hw/ocrdma/ocrdma_main.c~ib-ocrdma-convert-to-idr_alloc drivers/infiniband/hw/ocrdma/ocrdma_main.c
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c~ib-ocrdma-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -51,18 +51,6 @@ static DEFINE_IDR(ocrdma_dev_id);
+diff -puN drivers/infiniband/hw/qib/qib_init.c~ib-qib-convert-to-idr_alloc drivers/infiniband/hw/qib/qib_init.c
+--- a/drivers/infiniband/hw/qib/qib_init.c~ib-qib-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/qib/qib_init.c
+@@ -1060,22 +1060,23 @@ struct qib_devdata *qib_alloc_devdata(st
+ 	struct qib_devdata *dd;
+ 	int ret;
  
- static union ib_gid ocrdma_zero_sgid;
- 
--static int ocrdma_get_instance(void)
--{
--	int instance = 0;
+-	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
+-		dd = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
 -
--	/* Assign an unused number */
--	if (!idr_pre_get(&ocrdma_dev_id, GFP_KERNEL))
--		return -1;
--	if (idr_get_new(&ocrdma_dev_id, NULL, &instance))
--		return -1;
--	return instance;
--}
--
- void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
- {
- 	u8 mac_addr[6];
-@@ -416,7 +404,7 @@ static struct ocrdma_dev *ocrdma_add(str
- 		goto idr_err;
+ 	dd = (struct qib_devdata *) ib_alloc_device(sizeof(*dd) + extra);
+ 	if (!dd) {
+ 		dd = ERR_PTR(-ENOMEM);
+ 		goto bail;
+ 	}
  
- 	memcpy(&dev->nic_info, dev_info, sizeof(*dev_info));
--	dev->id = ocrdma_get_instance();
-+	dev->id = idr_alloc(&ocrdma_dev_id, NULL, 0, 0, GFP_KERNEL);
- 	if (dev->id < 0)
- 		goto idr_err;
++	idr_preload(GFP_KERNEL);
+ 	spin_lock_irqsave(&qib_devs_lock, flags);
+-	ret = idr_get_new(&qib_unit_table, dd, &dd->unit);
+-	if (ret >= 0)
++
++	ret = idr_alloc(&qib_unit_table, dd, 0, 0, GFP_NOWAIT);
++	if (ret >= 0) {
++		dd->unit = ret;
+ 		list_add(&dd->list, &qib_dev_list);
++	}
++
+ 	spin_unlock_irqrestore(&qib_devs_lock, flags);
++	idr_preload_end();
  
+ 	if (ret < 0) {
+ 		qib_early_err(&pdev->dev,
+@@ -1180,11 +1181,6 @@ static int __init qlogic_ib_init(void)
+ 	 * the PCI subsystem.
+ 	 */
+ 	idr_init(&qib_unit_table);
+-	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
+-		pr_err("idr_pre_get() failed\n");
+-		ret = -ENOMEM;
+-		goto bail_cq_wq;
+-	}
+ 
+ 	ret = pci_register_driver(&qib_driver);
+ 	if (ret < 0) {
+@@ -1199,7 +1195,6 @@ static int __init qlogic_ib_init(void)
+ 
+ bail_unit:
+ 	idr_destroy(&qib_unit_table);
+-bail_cq_wq:
+ 	destroy_workqueue(qib_cq_wq);
+ bail_dev:
+ 	qib_dev_cleanup();
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
