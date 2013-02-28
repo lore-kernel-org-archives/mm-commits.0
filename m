@@ -1,83 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:16:41 -0800
-Message-ID: <20130228201641.C897231C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] block-partitions-mac-obey-the-state-limit-constraint.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:16:44 -0800
+Message-ID: <20130228201644.A553031C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:60736 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab3B1UQm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:42 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so246821yhz.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:42 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:59176 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851Ab3B1UQp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:45 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so261503qaj.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pjones@redhat.com, axboe@kernel.dk, matt.fleming@intel.com, swarren@nvidia.com, mm-commits@vger.kernel.org
+To: ming.lei@canonical.com, axboe@kernel.dk, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block/partitions/efi.c: ensure that the GPT header is at least the size of the structure.
+     Subject: block/partitions/mac.c: obey the state->limit constraint
 has been removed from the -mm tree.  Its filename was
-     ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure.patch
+     block-partitions-mac-obey-the-state-limit-constraint.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Jones <pjones@redhat.com>
-Subject: block/partitions/efi.c: ensure that the GPT header is at least the size of the structure.
+From: Ming Lei <ming.lei@canonical.com>
+Subject: block/partitions/mac.c: obey the state->limit constraint
 
-UEFI 2.3.1D will include a change to the spec language mandating that a
-GPT header must be greater than *or equal to* the size of the defined
-structure.  While verifying that this would work on Linux, I discovered
-that we're not actually checking the minimum bound at all.
+It isn't necessary to read the information of partitions whose number is
+equal and more than state->limit since only maximum state->limit
+partitions will be added inside rescan_partitions().
 
-The result of this is that when we verify the checksum, it's possible that
-on a malformed header (with header_size of 0), we won't actually verify
-any data.
+That is also what other kind of partitions are doing.
 
-[akpm@linux-foundation.org: fix printk warning]
-Signed-off-by: Peter Jones <pjones@redhat.com>
-Acked-by: Matt Fleming <matt.fleming@intel.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/efi.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ block/partitions/mac.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure block/partitions/efi.c
---- a/block/partitions/efi.c~ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure
-+++ a/block/partitions/efi.c
-@@ -310,15 +310,23 @@ static int is_gpt_valid(struct parsed_pa
- 		goto fail;
+diff -puN block/partitions/mac.c~block-partitions-mac-obey-the-state-limit-constraint block/partitions/mac.c
+--- a/block/partitions/mac.c~block-partitions-mac-obey-the-state-limit-constraint
++++ a/block/partitions/mac.c
+@@ -63,6 +63,10 @@ int mac_partition(struct parsed_partitio
+ 		put_dev_sector(sect);
+ 		return 0;
  	}
- 
--	/* Check the GUID Partition Table header size */
-+	/* Check the GUID Partition Table header size is too big */
- 	if (le32_to_cpu((*gpt)->header_size) >
- 			bdev_logical_block_size(state->bdev)) {
--		pr_debug("GUID Partition Table Header size is wrong: %u > %u\n",
-+		pr_debug("GUID Partition Table Header size is too large: %u > %u\n",
- 			le32_to_cpu((*gpt)->header_size),
- 			bdev_logical_block_size(state->bdev));
- 		goto fail;
- 	}
- 
-+	/* Check the GUID Partition Table header size is too small */
-+	if (le32_to_cpu((*gpt)->header_size) < sizeof(gpt_header)) {
-+		pr_debug("GUID Partition Table Header size is too small: %u < %zu\n",
-+			le32_to_cpu((*gpt)->header_size),
-+			sizeof(gpt_header));
-+		goto fail;
-+	}
 +
- 	/* Check the GUID Partition Table CRC */
- 	origcrc = le32_to_cpu((*gpt)->header_crc32);
- 	(*gpt)->header_crc32 = 0;
++	if (blocks_in_map >= state->limit)
++		blocks_in_map = state->limit - 1;
++
+ 	strlcat(state->pp_buf, " [mac]", PAGE_SIZE);
+ 	for (slot = 1; slot <= blocks_in_map; ++slot) {
+ 		int pos = slot * secsize;
 _
 
-Patches currently in -mm which might be from pjones@redhat.com are
+Patches currently in -mm which might be from ming.lei@canonical.com are
 
 origin.patch
 
