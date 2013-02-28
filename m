@@ -1,152 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] hlist-drop-the-node-parameter-from-iterators-redo-kvm.patch removed from -mm tree
-Date: Wed, 27 Feb 2013 16:49:50 -0800
-Message-ID: <20130228004950.E54DD5A410E@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch removed from -mm tree
+Date: Wed, 27 Feb 2013 16:49:47 -0800
+Message-ID: <20130228004947.EB5B831C1CE@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:43922 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549Ab3B1Atw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:49:52 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so140069ggn.0
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:49:51 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:61613 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab3B1Atu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:49:50 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so139774vea.0
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:49:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foudnation.org, gleb@redhat.com, mtosatti@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, sasha.levin@oracle.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hlist-drop-the-node-parameter-from-iterators-redo-kvm
+     Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     hlist-drop-the-node-parameter-from-iterators-redo-kvm.patch
+     hlist-drop-the-node-parameter-from-iterators-fix-fix-fix.patch
 
 This patch was dropped because it was folded into hlist-drop-the-node-parameter-from-iterators.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foudnation.org>
-Subject: hlist-drop-the-node-parameter-from-iterators-redo-kvm
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
 
-Redo intrusive kvm changes
+fix warnings
 
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Gleb Natapov <gleb@redhat.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ kernel/cgroup.c             |    5 ++---
+ net/batman-adv/originator.c |    1 -
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~hlist-drop-the-node-parameter-from-iterators-redo-kvm arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~hlist-drop-the-node-parameter-from-iterators-redo-kvm
-+++ a/arch/x86/kvm/mmu.c
-@@ -1644,13 +1644,13 @@ static int kvm_mmu_prepare_zap_page(stru
- static void kvm_mmu_commit_zap_page(struct kvm *kvm,
- 				    struct list_head *invalid_list);
+diff -puN kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
++++ a/kernel/cgroup.c
+@@ -1610,7 +1610,6 @@ static struct dentry *cgroup_mount(struc
+ 		struct cgroupfs_root *existing_root;
+ 		const struct cred *cred;
+ 		int i;
+-		struct hlist_node *node;
+ 		struct css_set *cg;
  
--#define for_each_gfn_sp(kvm, sp, gfn, pos)				\
--  hlist_for_each_entry(sp, pos,						\
-+#define for_each_gfn_sp(kvm, sp, gfn)					\
-+  hlist_for_each_entry(sp,						\
-    &(kvm)->arch.mmu_page_hash[kvm_page_table_hashfn(gfn)], hash_link)	\
- 	if ((sp)->gfn != (gfn)) {} else
- 
--#define for_each_gfn_indirect_valid_sp(kvm, sp, gfn, pos)		\
--  hlist_for_each_entry(sp, pos,						\
-+#define for_each_gfn_indirect_valid_sp(kvm, sp, gfn)			\
-+  hlist_for_each_entry(sp,						\
-    &(kvm)->arch.mmu_page_hash[kvm_page_table_hashfn(gfn)], hash_link)	\
- 		if ((sp)->gfn != (gfn) || (sp)->role.direct ||		\
- 			(sp)->role.invalid) {} else
-@@ -1706,11 +1706,10 @@ static int kvm_sync_page(struct kvm_vcpu
- static void kvm_sync_pages(struct kvm_vcpu *vcpu,  gfn_t gfn)
+ 		BUG_ON(sb->s_root != NULL);
+@@ -4492,7 +4491,7 @@ int __init_or_module cgroup_load_subsys(
  {
- 	struct kvm_mmu_page *s;
--	struct hlist_node *node;
- 	LIST_HEAD(invalid_list);
- 	bool flush = false;
+ 	struct cgroup_subsys_state *css;
+ 	int i, ret;
+-	struct hlist_node *node, *tmp;
++	struct hlist_node *tmp;
+ 	struct css_set *cg;
+ 	unsigned long key;
  
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn) {
- 		if (!s->unsync)
- 			continue;
- 
-@@ -1848,7 +1847,6 @@ static struct kvm_mmu_page *kvm_mmu_get_
- 	union kvm_mmu_page_role role;
- 	unsigned quadrant;
- 	struct kvm_mmu_page *sp;
--	struct hlist_node *node;
- 	bool need_sync = false;
- 
- 	role = vcpu->arch.mmu.base_role;
-@@ -1863,7 +1861,7 @@ static struct kvm_mmu_page *kvm_mmu_get_
- 		quadrant &= (1 << ((PT32_PT_BITS - PT64_PT_BITS) * level)) - 1;
- 		role.quadrant = quadrant;
+@@ -4570,7 +4569,7 @@ int __init_or_module cgroup_load_subsys(
+ 		cg->subsys[ss->subsys_id] = css;
+ 		/* recompute hash and restore entry */
+ 		key = css_set_hash(cg->subsys);
+-		hash_add(css_set_table, node, key);
++		hash_add(css_set_table, &cg->hlist, key);
  	}
--	for_each_gfn_sp(vcpu->kvm, sp, gfn, node) {
-+	for_each_gfn_sp(vcpu->kvm, sp, gfn) {
- 		if (!need_sync && sp->unsync)
- 			need_sync = true;
+ 	write_unlock(&css_set_lock);
  
-@@ -2151,14 +2149,13 @@ void kvm_mmu_change_mmu_pages(struct kvm
- int kvm_mmu_unprotect_page(struct kvm *kvm, gfn_t gfn)
- {
- 	struct kvm_mmu_page *sp;
--	struct hlist_node *node;
- 	LIST_HEAD(invalid_list);
- 	int r;
- 
- 	pgprintk("%s: looking for gfn %llx\n", __func__, gfn);
- 	r = 0;
- 	spin_lock(&kvm->mmu_lock);
--	for_each_gfn_indirect_valid_sp(kvm, sp, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(kvm, sp, gfn) {
- 		pgprintk("%s: gfn %llx role %x\n", __func__, gfn,
- 			 sp->role.word);
- 		r = 1;
-@@ -2288,9 +2285,8 @@ static void __kvm_unsync_page(struct kvm
- static void kvm_unsync_pages(struct kvm_vcpu *vcpu,  gfn_t gfn)
- {
- 	struct kvm_mmu_page *s;
--	struct hlist_node *node;
- 
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn) {
- 		if (s->unsync)
- 			continue;
- 		WARN_ON(s->role.level != PT_PAGE_TABLE_LEVEL);
-@@ -2302,10 +2298,9 @@ static int mmu_need_write_protect(struct
- 				  bool can_unsync)
- {
- 	struct kvm_mmu_page *s;
--	struct hlist_node *node;
- 	bool need_unsync = false;
- 
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, s, gfn) {
- 		if (!can_unsync)
- 			return 1;
- 
-@@ -3933,7 +3928,6 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
- 	gfn_t gfn = gpa >> PAGE_SHIFT;
- 	union kvm_mmu_page_role mask = { .word = 0 };
- 	struct kvm_mmu_page *sp;
--	struct hlist_node *node;
- 	LIST_HEAD(invalid_list);
- 	u64 entry, gentry, *spte;
- 	int npte;
-@@ -3964,7 +3958,7 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
- 	kvm_mmu_audit(vcpu, AUDIT_PRE_PTE_WRITE);
- 
- 	mask.cr0_wp = mask.cr4_pae = mask.nxe = 1;
--	for_each_gfn_indirect_valid_sp(vcpu->kvm, sp, gfn, node) {
-+	for_each_gfn_indirect_valid_sp(vcpu->kvm, sp, gfn) {
- 		if (detect_write_misaligned(sp, gpa, bytes) ||
- 		      detect_write_flooding(sp)) {
- 			zap_page |= !!kvm_mmu_prepare_zap_page(vcpu->kvm, sp,
+diff -puN net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix net/batman-adv/originator.c
+--- a/net/batman-adv/originator.c~hlist-drop-the-node-parameter-from-iterators-fix-fix-fix
++++ a/net/batman-adv/originator.c
+@@ -408,7 +408,6 @@ int batadv_orig_seq_print_text(struct se
+ 	struct net_device *net_dev = (struct net_device *)seq->private;
+ 	struct batadv_priv *bat_priv = netdev_priv(net_dev);
+ 	struct batadv_hashtable *hash = bat_priv->orig_hash;
+-	struct hlist_node *node_tmp;
+ 	struct hlist_head *head;
+ 	struct batadv_hard_iface *primary_if;
+ 	struct batadv_orig_node *orig_node;
 _
 
-Patches currently in -mm which might be from akpm@linux-foudnation.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-use-vm_unmapped_area-on-parisc-architecture.patch
+backlight-add-new-lp8788-backlight-driver.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+fs-proc-clean-up-printks.patch
+fs-proc-vmcorec-put-if-tests-in-the-top-of-the-while-loop-to-reduce-duplication.patch
+lockdep-check-that-no-locks-held-at-freeze-time.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+idr-remove-length-restriction-from-idr_layer-bitmap.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
+ensure-that-the-gpt-header-is-at-least-the-size-of-the-structure.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+tools-testing-selftests-makefile-rearrange-targets.patch
+selftests-add-a-simple-doc.patch
 hlist-drop-the-node-parameter-from-iterators.patch
+hlist-drop-the-node-parameter-from-iterators-fix-fix-fix-fix-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix.patch
+hlist-drop-the-node-parameter-from-iterators-mlx4-fix-fix-fix.patch
 
