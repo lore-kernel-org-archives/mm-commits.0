@@ -1,145 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-scatterlist-add-simple-page-iterator.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:10:59 -0800
-Message-ID: <20130228201059.B6CC931C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:11:08 -0800
+Message-ID: <20130228201108.BC70B31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:49813 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781Ab3B1ULB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:01 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so246121yhr.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:00 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:48840 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3B1ULJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:09 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so244748yen.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: imre.deak@intel.com, daniel.vetter@ffwll.ch, maximlevitsky@gmail.com, swarren@wwwdotorg.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: slava@dubeyko.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/scatterlist: add simple page iterator
+     Subject: hfsplus: add on-disk layout declarations related to attributes tree
 has been removed from the -mm tree.  Its filename was
-     lib-scatterlist-add-simple-page-iterator.patch
+     hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Imre Deak <imre.deak@intel.com>
-Subject: lib/scatterlist: add simple page iterator
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: hfsplus: add on-disk layout declarations related to attributes tree
 
-Add an iterator to walk through a scatter list a page at a time starting
-at a specific page offset.  As opposed to the mapping iterator this is
-meant to be small, performing well even in simple loops like collecting
-all pages on the scatterlist into an array or setting up an iommu table
-based on the pages' DMA address.
+Add all necessary on-disk layout declarations related to attributes file.
 
-Signed-off-by: Imre Deak <imre.deak@intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Tested-by: Stephen Warren <swarren@wwwdotorg.org>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/scatterlist.h |   35 +++++++++++++++++++++++++++++++
- lib/scatterlist.c           |   38 ++++++++++++++++++++++++++++++++++
- 2 files changed, 73 insertions(+)
+ fs/hfsplus/hfsplus_raw.h |   68 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 66 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/scatterlist.h~lib-scatterlist-add-simple-page-iterator include/linux/scatterlist.h
---- a/include/linux/scatterlist.h~lib-scatterlist-add-simple-page-iterator
-+++ a/include/linux/scatterlist.h
-@@ -231,6 +231,41 @@ size_t sg_copy_to_buffer(struct scatterl
-  */
- #define SG_MAX_SINGLE_ALLOC		(PAGE_SIZE / sizeof(struct scatterlist))
+diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree fs/hfsplus/hfsplus_raw.h
+--- a/fs/hfsplus/hfsplus_raw.h~hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree
++++ a/fs/hfsplus/hfsplus_raw.h
+@@ -52,13 +52,23 @@
+ typedef __be32 hfsplus_cnid;
+ typedef __be16 hfsplus_unichr;
  
++#define HFSPLUS_MAX_STRLEN 255
++#define HFSPLUS_ATTR_MAX_STRLEN 127
++
+ /* A "string" as used in filenames, etc. */
+ struct hfsplus_unistr {
+ 	__be16 length;
+-	hfsplus_unichr unicode[255];
++	hfsplus_unichr unicode[HFSPLUS_MAX_STRLEN];
+ } __packed;
+ 
+-#define HFSPLUS_MAX_STRLEN 255
 +/*
-+ * sg page iterator
-+ *
-+ * Iterates over sg entries page-by-page.  On each successful iteration,
-+ * @piter->page points to the current page, @piter->sg to the sg holding this
-+ * page and @piter->sg_pgoffset to the page's page offset within the sg. The
-+ * iteration will stop either when a maximum number of sg entries was reached
-+ * or a terminating sg (sg_last(sg) == true) was reached.
++ * A "string" is used in attributes file
++ * for name of extended attribute
 + */
-+struct sg_page_iter {
-+	struct page		*page;		/* current page */
-+	struct scatterlist	*sg;		/* sg holding the page */
-+	unsigned int		sg_pgoffset;	/* page offset within the sg */
-+
-+	/* these are internal states, keep away */
-+	unsigned int		__nents;	/* remaining sg entries */
-+	int			__pg_advance;	/* nr pages to advance at the
-+						 * next step */
-+};
-+
-+bool __sg_page_iter_next(struct sg_page_iter *piter);
-+void __sg_page_iter_start(struct sg_page_iter *piter,
-+			  struct scatterlist *sglist, unsigned int nents,
-+			  unsigned long pgoffset);
-+
-+/**
-+ * for_each_sg_page - iterate over the pages of the given sg list
-+ * @sglist:	sglist to iterate over
-+ * @piter:	page iterator to hold current page, sg, sg_pgoffset
-+ * @nents:	maximum number of sg entries to iterate over
-+ * @pgoffset:	starting page offset
-+ */
-+#define for_each_sg_page(sglist, piter, nents, pgoffset)		   \
-+	for (__sg_page_iter_start((piter), (sglist), (nents), (pgoffset)); \
-+	     __sg_page_iter_next(piter);)
++struct hfsplus_attr_unistr {
++	__be16 length;
++	hfsplus_unichr unicode[HFSPLUS_ATTR_MAX_STRLEN];
++} __packed;
  
- /*
-  * Mapping sg iterator
-diff -puN lib/scatterlist.c~lib-scatterlist-add-simple-page-iterator lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlist-add-simple-page-iterator
-+++ a/lib/scatterlist.c
-@@ -394,6 +394,44 @@ int sg_alloc_table_from_pages(struct sg_
- }
- EXPORT_SYMBOL(sg_alloc_table_from_pages);
+ /* POSIX permissions */
+ struct hfsplus_perm {
+@@ -291,6 +301,8 @@ struct hfsplus_cat_file {
+ /* File attribute bits */
+ #define HFSPLUS_FILE_LOCKED		0x0001
+ #define HFSPLUS_FILE_THREAD_EXISTS	0x0002
++#define HFSPLUS_XATTR_EXISTS		0x0004
++#define HFSPLUS_ACL_EXISTS		0x0008
  
-+void __sg_page_iter_start(struct sg_page_iter *piter,
-+			  struct scatterlist *sglist, unsigned int nents,
-+			  unsigned long pgoffset)
-+{
-+	piter->__pg_advance = 0;
-+	piter->__nents = nents;
+ /* HFS+ catalog thread (part of a cat_entry) */
+ struct hfsplus_cat_thread {
+@@ -327,11 +339,63 @@ struct hfsplus_ext_key {
+ 
+ #define HFSPLUS_EXT_KEYLEN	sizeof(struct hfsplus_ext_key)
+ 
++#define HFSPLUS_XATTR_FINDER_INFO_NAME "com.apple.FinderInfo"
++#define HFSPLUS_XATTR_ACL_NAME "com.apple.system.Security"
 +
-+	piter->page = NULL;
-+	piter->sg = sglist;
-+	piter->sg_pgoffset = pgoffset;
-+}
-+EXPORT_SYMBOL(__sg_page_iter_start);
++#define HFSPLUS_ATTR_INLINE_DATA 0x10
++#define HFSPLUS_ATTR_FORK_DATA   0x20
++#define HFSPLUS_ATTR_EXTENTS     0x30
 +
-+static int sg_page_count(struct scatterlist *sg)
-+{
-+	return PAGE_ALIGN(sg->offset + sg->length) >> PAGE_SHIFT;
-+}
++/* HFS+ attributes tree key */
++struct hfsplus_attr_key {
++	__be16 key_len;
++	__be16 pad;
++	hfsplus_cnid cnid;
++	__be32 start_block;
++	struct hfsplus_attr_unistr key_name;
++} __packed;
 +
-+bool __sg_page_iter_next(struct sg_page_iter *piter)
-+{
-+	if (!piter->__nents || !piter->sg)
-+		return false;
++#define HFSPLUS_ATTR_KEYLEN	sizeof(struct hfsplus_attr_key)
 +
-+	piter->sg_pgoffset += piter->__pg_advance;
-+	piter->__pg_advance = 1;
++/* HFS+ fork data attribute */
++struct hfsplus_attr_fork_data {
++	__be32 record_type;
++	__be32 reserved;
++	struct hfsplus_fork_raw the_fork;
++} __packed;
 +
-+	while (piter->sg_pgoffset >= sg_page_count(piter->sg)) {
-+		piter->sg_pgoffset -= sg_page_count(piter->sg);
-+		piter->sg = sg_next(piter->sg);
-+		if (!--piter->__nents || !piter->sg)
-+			return false;
-+	}
-+	piter->page = nth_page(sg_page(piter->sg), piter->sg_pgoffset);
++/* HFS+ extension attribute */
++struct hfsplus_attr_extents {
++	__be32 record_type;
++	__be32 reserved;
++	struct hfsplus_extent extents;
++} __packed;
 +
-+	return true;
-+}
-+EXPORT_SYMBOL(__sg_page_iter_next);
++#define HFSPLUS_MAX_INLINE_DATA_SIZE 3802
 +
- /**
-  * sg_miter_start - start mapping iteration over a sg list
-  * @miter: sg mapping iter to be started
++/* HFS+ attribute inline data */
++struct hfsplus_attr_inline_data {
++	__be32 record_type;
++	__be32 reserved1;
++	u8 reserved2[6];
++	__be16 length;
++	u8 raw_bytes[HFSPLUS_MAX_INLINE_DATA_SIZE];
++} __packed;
++
++/* A data record in the attributes tree */
++typedef union {
++	__be32 record_type;
++	struct hfsplus_attr_fork_data fork_data;
++	struct hfsplus_attr_extents extents;
++	struct hfsplus_attr_inline_data inline_data;
++} __packed hfsplus_attr_entry;
++
+ /* HFS+ generic BTree key */
+ typedef union {
+ 	__be16 key_len;
+ 	struct hfsplus_cat_key cat;
+ 	struct hfsplus_ext_key ext;
++	struct hfsplus_attr_key attr;
+ } __packed hfsplus_btree_key;
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from imre.deak@intel.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
 origin.patch
+hfsplus-add-all-necessary-declarations-for-acls-support.patch
+hfsplus-add-implementation-of-the-acls-support.patch
+hfsplus-integrate-of-implemented-acls-support-into-driver.patch
 
