@@ -1,86 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mac80211-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:55 -0800
-Message-ID: <20130228201555.9928831C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] sctp-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:58 -0800
+Message-ID: <20130228201558.E0D7D31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:56591 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:47917 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758441Ab3B1UP4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:56 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so245119ggi.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:56 -0800 (PST)
+	with ESMTP id S1758441Ab3B1UP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:59 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so245127ggi.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, johannes@sipsolutions.net, mm-commits@vger.kernel.org
+To: tj@kernel.org, nhorman@tuxdriver.com, sri@us.ibm.com, vyasevich@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mac80211: convert to idr_alloc()
+     Subject: sctp: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     mac80211-convert-to-idr_alloc.patch
+     sctp-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mac80211: convert to idr_alloc()
+Subject: sctp: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Acked-by: Vlad Yasevich <vyasevich@gmail.com>
+Cc: Sridhar Samudrala <sri@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/main.c |    2 --
- net/mac80211/tx.c   |   18 ++++--------------
- 2 files changed, 4 insertions(+), 16 deletions(-)
+ net/sctp/associola.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN net/mac80211/main.c~mac80211-convert-to-idr_alloc net/mac80211/main.c
---- a/net/mac80211/main.c~mac80211-convert-to-idr_alloc
-+++ a/net/mac80211/main.c
-@@ -647,8 +647,6 @@ struct ieee80211_hw *ieee80211_alloc_hw(
+diff -puN net/sctp/associola.c~sctp-convert-to-idr_alloc net/sctp/associola.c
+--- a/net/sctp/associola.c~sctp-convert-to-idr_alloc
++++ a/net/sctp/associola.c
+@@ -1591,32 +1591,31 @@ int sctp_assoc_lookup_laddr(struct sctp_
+ /* Set an association id for a given association */
+ int sctp_assoc_set_id(struct sctp_association *asoc, gfp_t gfp)
+ {
+-	int assoc_id;
+-	int error = 0;
++	bool preload = gfp & __GFP_WAIT;
++	int ret;
  
- 	spin_lock_init(&local->ack_status_lock);
- 	idr_init(&local->ack_status_frames);
--	/* preallocate at least one entry */
--	idr_pre_get(&local->ack_status_frames, GFP_KERNEL);
+ 	/* If the id is already assigned, keep it. */
+ 	if (asoc->assoc_id)
+-		return error;
+-retry:
+-	if (unlikely(!idr_pre_get(&sctp_assocs_id, gfp)))
+-		return -ENOMEM;
++		return 0;
  
- 	sta_info_init(local);
++	if (preload)
++		idr_preload(gfp);
+ 	spin_lock_bh(&sctp_assocs_id_lock);
+-	error = idr_get_new_above(&sctp_assocs_id, (void *)asoc,
+-				    idr_low, &assoc_id);
+-	if (!error) {
+-		idr_low = assoc_id + 1;
++	/* 0 is not a valid id, idr_low is always >= 1 */
++	ret = idr_alloc(&sctp_assocs_id, asoc, idr_low, 0, GFP_NOWAIT);
++	if (ret >= 0) {
++		idr_low = ret + 1;
+ 		if (idr_low == INT_MAX)
+ 			idr_low = 1;
+ 	}
+ 	spin_unlock_bh(&sctp_assocs_id_lock);
+-	if (error == -EAGAIN)
+-		goto retry;
+-	else if (error)
+-		return error;
++	if (preload)
++		idr_preload_end();
++	if (ret < 0)
++		return ret;
  
-diff -puN net/mac80211/tx.c~mac80211-convert-to-idr_alloc net/mac80211/tx.c
---- a/net/mac80211/tx.c~mac80211-convert-to-idr_alloc
-+++ a/net/mac80211/tx.c
-@@ -2017,24 +2017,14 @@ netdev_tx_t ieee80211_subif_start_xmit(s
- 		skb = skb_clone(skb, GFP_ATOMIC);
- 		if (skb) {
- 			unsigned long flags;
--			int id, r;
-+			int id;
+-	asoc->assoc_id = (sctp_assoc_t) assoc_id;
+-	return error;
++	asoc->assoc_id = (sctp_assoc_t)ret;
++	return 0;
+ }
  
- 			spin_lock_irqsave(&local->ack_status_lock, flags);
--			r = idr_get_new_above(&local->ack_status_frames,
--					      orig_skb, 1, &id);
--			if (r == -EAGAIN) {
--				idr_pre_get(&local->ack_status_frames,
--					    GFP_ATOMIC);
--				r = idr_get_new_above(&local->ack_status_frames,
--						      orig_skb, 1, &id);
--			}
--			if (WARN_ON(!id) || id > 0xffff) {
--				idr_remove(&local->ack_status_frames, id);
--				r = -ERANGE;
--			}
-+			id = idr_alloc(&local->ack_status_frames, orig_skb,
-+				       1, 0x10000, GFP_ATOMIC);
- 			spin_unlock_irqrestore(&local->ack_status_lock, flags);
- 
--			if (!r) {
-+			if (id >= 0) {
- 				info_id = id;
- 				info_flags |= IEEE80211_TX_CTL_REQ_TX_STATUS;
- 			} else if (skb_shared(skb)) {
+ /* Free the ASCONF queue */
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
