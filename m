@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-tighten-msg-copy-loops.patch added to -mm tree
-Date: Thu, 28 Feb 2013 15:47:25 -0800
-Message-ID: <20130228234726.2274C31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: + ipc-remove-msg-handling-from-queue-scan.patch added to -mm tree
+Date: Thu, 28 Feb 2013 15:47:32 -0800
+Message-ID: <20130228234732.647D85A410E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:54664 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752846Ab3B1Xr1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:47:27 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so273827yhz.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:47:26 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:57533 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753094Ab3B1Xrd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:47:33 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so272368yen.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:47:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: peter@hurleysoftware.com, skinsbursky@parallels.com
 
 
 The patch titled
-     Subject: ipc: tighten msg copy loops
+     Subject: ipc: remove msg handling from queue scan
 has been added to the -mm tree.  Its filename is
-     ipc-tighten-msg-copy-loops.patch
+     ipc-remove-msg-handling-from-queue-scan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Hurley <peter@hurleysoftware.com>
-Subject: ipc: tighten msg copy loops
+Subject: ipc: remove msg handling from queue scan
+
+In preparation for refactoring the queue scan into a separate
+function, relocate msg copying.
 
 Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
 Acked-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msgutil.c |   32 +++++++++++---------------------
- 1 file changed, 11 insertions(+), 21 deletions(-)
+ ipc/msg.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN ipc/msgutil.c~ipc-tighten-msg-copy-loops ipc/msgutil.c
---- a/ipc/msgutil.c~ipc-tighten-msg-copy-loops
-+++ a/ipc/msgutil.c
-@@ -97,18 +97,14 @@ struct msg_msg *load_msg(const void __us
- 		goto out_err;
- 	}
- 
--	len -= alen;
--	src = ((char __user *)src) + alen;
--	seg = msg->next;
--	while (len > 0) {
-+	for (seg = msg->next; seg != NULL; seg = seg->next) {
-+		len -= alen;
-+		src = (char __user *)src + alen;
- 		alen = min(len, DATALEN_SEG);
- 		if (copy_from_user(seg + 1, src, alen)) {
- 			err = -EFAULT;
- 			goto out_err;
- 		}
--		seg = seg->next;
--		len -= alen;
--		src = ((char __user *)src) + alen;
- 	}
- 
- 	err = security_msg_msg_alloc(msg);
-@@ -135,15 +131,13 @@ struct msg_msg *copy_msg(struct msg_msg 
- 	alen = min(len, DATALEN_MSG);
- 	memcpy(dst + 1, src + 1, alen);
- 
--	len -= alen;
--	dst_pseg = dst->next;
--	src_pseg = src->next;
--	while (len > 0) {
-+	for (dst_pseg = dst->next, src_pseg = src->next;
-+	     src_pseg != NULL;
-+	     dst_pseg = dst_pseg->next, src_pseg = src_pseg->next) {
-+
-+		len -= alen;
- 		alen = min(len, DATALEN_SEG);
- 		memcpy(dst_pseg + 1, src_pseg + 1, alen);
--		dst_pseg = dst_pseg->next;
--		len -= alen;
--		src_pseg = src_pseg->next;
- 	}
- 
- 	dst->m_type = src->m_type;
-@@ -166,16 +160,12 @@ int store_msg(void __user *dest, struct 
- 	if (copy_to_user(dest, msg + 1, alen))
- 		return -1;
- 
--	len -= alen;
--	dest = ((char __user *)dest) + alen;
--	seg = msg->next;
--	while (len > 0) {
-+	for (seg = msg->next; seg != NULL; seg = seg->next) {
-+		len -= alen;
-+		dest = (char __user *)dest + alen;
- 		alen = min(len, DATALEN_SEG);
- 		if (copy_to_user(dest, seg + 1, alen))
- 			return -1;
--		len -= alen;
--		dest = ((char __user *)dest) + alen;
--		seg = seg->next;
- 	}
- 	return 0;
- }
+diff -puN ipc/msg.c~ipc-remove-msg-handling-from-queue-scan ipc/msg.c
+--- a/ipc/msg.c~ipc-remove-msg-handling-from-queue-scan
++++ a/ipc/msg.c
+@@ -862,16 +862,8 @@ long do_msgrcv(int msqid, void __user *b
+ 						walk_msg->m_type != 1) {
+ 					msgtyp = walk_msg->m_type - 1;
+ 				} else if (msgflg & MSG_COPY) {
+-					if (copy_number == msg_counter) {
+-						/*
+-						 * Found requested message.
+-						 * Copy it.
+-						 */
+-						msg = copy_msg(msg, copy);
+-						if (IS_ERR(msg))
+-							goto out_unlock;
++					if (copy_number == msg_counter)
+ 						break;
+-					}
+ 				} else
+ 					break;
+ 				msg_counter++;
+@@ -891,8 +883,10 @@ long do_msgrcv(int msqid, void __user *b
+ 			 * If we are copying, then do not unlink message and do
+ 			 * not update queue parameters.
+ 			 */
+-			if (msgflg & MSG_COPY)
++			if (msgflg & MSG_COPY) {
++				msg = copy_msg(msg, copy);
+ 				goto out_unlock;
++			}
+ 			list_del(&msg->m_list);
+ 			msq->q_qnum--;
+ 			msq->q_rtime = get_seconds();
 _
 
 Patches currently in -mm which might be from peter@hurleysoftware.com are
