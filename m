@@ -1,277 +1,388 @@
 From: akpm@linux-foundation.org
-Subject: [merged] w1-add-support-for-ds2413-dual-channel-addressable-switch.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:17:45 -0800
-Message-ID: <20130228201745.AB1E35A4242@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] arch-kconfig-centralise-config_arch_no_virt_to_bus.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:17:48 -0800
+Message-ID: <20130228201748.D16E631C1F0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:52870 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759441Ab3B1URq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:46 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so245408yen.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:46 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:64756 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760166Ab3B1URu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:17:50 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so245297ggi.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:17:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manio@skyboo.net, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, James.Bottomley@HansenPartnership.com, Vineet.Gupta1@synopsys.com, benh@kernel.crashing.org, bhelgaas@google.com, davem@davemloft.net, hartleys@visionengravers.com, james.hogan@imgtec.com, lethal@linux-sh.org, linux-arch@vger.kernel.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: w1: add support for DS2413 Dual Channel Addressable Switch
+     Subject: arch Kconfig: centralise CONFIG_ARCH_NO_VIRT_TO_BUS
 has been removed from the -mm tree.  Its filename was
-     w1-add-support-for-ds2413-dual-channel-addressable-switch.patch
+     arch-kconfig-centralise-config_arch_no_virt_to_bus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mariusz Bialonczyk <manio@skyboo.net>
-Subject: w1: add support for DS2413 Dual Channel Addressable Switch
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: arch Kconfig: centralise CONFIG_ARCH_NO_VIRT_TO_BUS
 
-Also fixes some whitespace inconsistency in Kconfig and w1_family.h when
-DS2408 chip support was added.
+Change it to CONFIG_HAVE_VIRT_TO_BUS and set it in all architecures
+that already provide virt_to_bus().
 
-Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
-Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reviewed-by: James Hogan <james.hogan@imgtec.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: H Hartley Sweeten <hartleys@visionengravers.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/Kconfig     |   13 +-
- drivers/w1/slaves/Makefile    |    3 
- drivers/w1/slaves/w1_ds2413.c |  177 ++++++++++++++++++++++++++++++++
- drivers/w1/w1_family.h        |    1 
- 4 files changed, 189 insertions(+), 5 deletions(-)
+ arch/Kconfig            |    7 +++++++
+ arch/alpha/Kconfig      |    1 +
+ arch/arm/Kconfig        |    1 +
+ arch/avr32/Kconfig      |    1 +
+ arch/blackfin/Kconfig   |    1 +
+ arch/cris/Kconfig       |    1 +
+ arch/frv/Kconfig        |    1 +
+ arch/h8300/Kconfig      |    1 +
+ arch/ia64/Kconfig       |    1 +
+ arch/m32r/Kconfig       |    1 +
+ arch/m68k/Kconfig       |    1 +
+ arch/microblaze/Kconfig |    1 +
+ arch/mips/Kconfig       |    1 +
+ arch/mn10300/Kconfig    |    1 +
+ arch/openrisc/Kconfig   |    1 +
+ arch/parisc/Kconfig     |    1 +
+ arch/powerpc/Kconfig    |    4 +---
+ arch/s390/Kconfig       |    1 +
+ arch/score/Kconfig      |    1 +
+ arch/sh/Kconfig         |    3 ---
+ arch/sparc/Kconfig      |    3 ---
+ arch/tile/Kconfig       |    1 +
+ arch/unicore32/Kconfig  |    1 +
+ arch/x86/Kconfig        |    1 +
+ arch/xtensa/Kconfig     |    1 +
+ mm/Kconfig              |    2 +-
+ 26 files changed, 30 insertions(+), 10 deletions(-)
 
-diff -puN drivers/w1/slaves/Kconfig~w1-add-support-for-ds2413-dual-channel-addressable-switch drivers/w1/slaves/Kconfig
---- a/drivers/w1/slaves/Kconfig~w1-add-support-for-ds2413-dual-channel-addressable-switch
-+++ a/drivers/w1/slaves/Kconfig
-@@ -17,11 +17,16 @@ config W1_SLAVE_SMEM
- 	  simple 64bit memory rom(ds2401/ds2411/ds1990*) to your wire.
+diff -puN arch/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/Kconfig
+--- a/arch/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/Kconfig
+@@ -303,6 +303,13 @@ config ARCH_WANT_OLD_COMPAT_IPC
+ 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+ 	bool
  
- config W1_SLAVE_DS2408
--        tristate "8-Channel Addressable Switch (IO Expander) 0x29 family support (DS2408)"
--        help
--          Say Y here if you want to use a 1-wire
-+	tristate "8-Channel Addressable Switch (IO Expander) 0x29 family support (DS2408)"
++config HAVE_VIRT_TO_BUS
++	bool
 +	help
-+	  Say Y here if you want to use a 1-wire
-+	  DS2408 8-Channel Addressable Switch device support
++	  An architecture should select this if it implements the
++	  deprecated interface virt_to_bus().  All new architectures
++	  should probably not select this.
++
+ config HAVE_ARCH_SECCOMP_FILTER
+ 	bool
+ 	help
+diff -puN arch/alpha/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/alpha/Kconfig
+@@ -9,6 +9,7 @@ config ALPHA
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_DMA_ATTRS
+ 	select HAVE_GENERIC_HARDIRQS
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_IRQ_PROBE
+ 	select AUTO_IRQ_AFFINITY if SMP
+ 	select GENERIC_IRQ_SHOW
+diff -puN arch/arm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/arm/Kconfig
+--- a/arch/arm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/arm/Kconfig
+@@ -49,6 +49,7 @@ config ARM
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_UID16
++	select HAVE_VIRT_TO_BUS
+ 	select KTIME_SCALAR
+ 	select PERF_USE_VMALLOC
+ 	select RTC_LIB
+diff -puN arch/avr32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/avr32/Kconfig
+--- a/arch/avr32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/avr32/Kconfig
+@@ -7,6 +7,7 @@ config AVR32
+ 	select HAVE_OPROFILE
+ 	select HAVE_KPROBES
+ 	select HAVE_GENERIC_HARDIRQS
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_ATOMIC64
+ 	select HARDIRQS_SW_RESEND
+diff -puN arch/blackfin/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/blackfin/Kconfig
+@@ -33,6 +33,7 @@ config BLACKFIN
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select HAVE_UID16
++	select HAVE_VIRT_TO_BUS
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_ATOMIC64
+diff -puN arch/cris/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/cris/Kconfig
+--- a/arch/cris/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/cris/Kconfig
+@@ -43,6 +43,7 @@ config CRIS
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select HAVE_UID16
++	select HAVE_VIRT_TO_BUS
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_IOMAP
+diff -puN arch/frv/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/frv/Kconfig
+--- a/arch/frv/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/frv/Kconfig
+@@ -6,6 +6,7 @@ config FRV
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_UID16
+ 	select HAVE_GENERIC_HARDIRQS
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_IRQ_SHOW
+ 	select HAVE_DEBUG_BUGVERBOSE
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+diff -puN arch/h8300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/h8300/Kconfig
+@@ -5,6 +5,7 @@ config H8300
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_UID16
++	select HAVE_VIRT_TO_BUS
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_CPU_DEVICES
+diff -puN arch/ia64/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/ia64/Kconfig
+@@ -26,6 +26,7 @@ config IA64
+ 	select HAVE_MEMBLOCK
+ 	select HAVE_MEMBLOCK_NODE_MAP
+ 	select HAVE_VIRT_CPU_ACCOUNTING
++	select HAVE_VIRT_TO_BUS
+ 	select ARCH_DISCARD_MEMBLOCK
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PENDING_IRQ if SMP
+diff -puN arch/m32r/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/m32r/Kconfig
+@@ -10,6 +10,7 @@ config M32R
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select HAVE_DEBUG_BUGVERBOSE
+ 	select HAVE_GENERIC_HARDIRQS
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_ATOMIC64
+diff -puN arch/m68k/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/m68k/Kconfig
+@@ -8,6 +8,7 @@ config M68K
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_UID16
++	select HAVE_VIRT_TO_BUS
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if RMW_INSNS
+ 	select GENERIC_CPU_DEVICES
+ 	select GENERIC_STRNCPY_FROM_USER if MMU
+diff -puN arch/microblaze/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/microblaze/Kconfig
+--- a/arch/microblaze/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/microblaze/Kconfig
+@@ -19,6 +19,7 @@ config MICROBLAZE
+ 	select HAVE_DEBUG_KMEMLEAK
+ 	select IRQ_DOMAIN
+ 	select HAVE_GENERIC_HARDIRQS
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_PCI_IOMAP
+diff -puN arch/mips/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/mips/Kconfig
+--- a/arch/mips/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/mips/Kconfig
+@@ -38,6 +38,7 @@ config MIPS
+ 	select GENERIC_CLOCKEVENTS
+ 	select GENERIC_CMOS_UPDATE
+ 	select HAVE_MOD_ARCH_SPECIFIC
++	select HAVE_VIRT_TO_BUS
+ 	select MODULES_USE_ELF_REL if MODULES
+ 	select MODULES_USE_ELF_RELA if MODULES && 64BIT
+ 	select CLONE_BACKWARDS
+diff -puN arch/mn10300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/mn10300/Kconfig
+--- a/arch/mn10300/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/mn10300/Kconfig
+@@ -8,6 +8,7 @@ config MN10300
+ 	select HAVE_ARCH_KGDB
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_NMI_WATCHDOG if MN10300_WD_TIMER
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_CLOCKEVENTS
+ 	select MODULES_USE_ELF_RELA
+ 	select OLD_SIGSUSPEND3
+diff -puN arch/openrisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/openrisc/Kconfig
+--- a/arch/openrisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/openrisc/Kconfig
+@@ -12,6 +12,7 @@ config OPENRISC
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+         select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_GENERIC_HARDIRQS
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_IRQ_CHIP
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_IRQ_SHOW
+diff -puN arch/parisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/parisc/Kconfig
+@@ -19,6 +19,7 @@ config PARISC
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_STRNCPY_FROM_USER
+ 	select HAVE_MOD_ARCH_SPECIFIC
++	select HAVE_VIRT_TO_BUS
+ 	select MODULES_USE_ELF_RELA
+ 	select CLONE_BACKWARDS
+ 	select TTY # Needed for pdc_cons.c
+diff -puN arch/powerpc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/powerpc/Kconfig
+@@ -87,9 +87,6 @@ config GENERIC_GPIO
+ 	help
+ 	  Generic GPIO API support
  
--		  DS2408 8-Channel Addressable Switch device support
-+config W1_SLAVE_DS2413
-+	tristate "Dual Channel Addressable Switch 0x3a family support (DS2413)"
-+	help
-+	  Say Y here if you want to use a 1-wire
-+	  DS2413 Dual Channel Addressable Switch device support
+-config ARCH_NO_VIRT_TO_BUS
+-	def_bool PPC64
+-
+ config PPC
+ 	bool
+ 	default y
+@@ -101,6 +98,7 @@ config PPC
+ 	select HAVE_FUNCTION_GRAPH_TRACER
+ 	select SYSCTL_EXCEPTION_TRACE
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
++	select HAVE_VIRT_TO_BUS if !PPC64
+ 	select HAVE_IDE
+ 	select HAVE_IOREMAP_PROT
+ 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
+diff -puN arch/s390/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/s390/Kconfig
+--- a/arch/s390/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/s390/Kconfig
+@@ -134,6 +134,7 @@ config S390
+ 	select HAVE_SYSCALL_WRAPPERS
+ 	select HAVE_UID16 if 32BIT
+ 	select HAVE_VIRT_CPU_ACCOUNTING
++	select HAVE_VIRT_TO_BUS
+ 	select INIT_ALL_POSSIBLE
+ 	select KTIME_SCALAR if 32BIT
+ 	select MODULES_USE_ELF_RELA
+diff -puN arch/score/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/score/Kconfig
+--- a/arch/score/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/score/Kconfig
+@@ -12,6 +12,7 @@ config SCORE
+        select GENERIC_CPU_DEVICES
+        select GENERIC_CLOCKEVENTS
+        select HAVE_MOD_ARCH_SPECIFIC
++	select HAVE_VIRT_TO_BUS
+ 	select MODULES_USE_ELF_REL
+ 	select CLONE_BACKWARDS
  
- config W1_SLAVE_DS2423
- 	tristate "Counter 1-wire device (DS2423)"
-diff -puN drivers/w1/slaves/Makefile~w1-add-support-for-ds2413-dual-channel-addressable-switch drivers/w1/slaves/Makefile
---- a/drivers/w1/slaves/Makefile~w1-add-support-for-ds2413-dual-channel-addressable-switch
-+++ a/drivers/w1/slaves/Makefile
-@@ -4,7 +4,8 @@
+diff -puN arch/sh/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/sh/Kconfig
+--- a/arch/sh/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/sh/Kconfig
+@@ -148,9 +148,6 @@ config ARCH_HAS_ILOG2_U32
+ config ARCH_HAS_ILOG2_U64
+ 	def_bool n
  
- obj-$(CONFIG_W1_SLAVE_THERM)	+= w1_therm.o
- obj-$(CONFIG_W1_SLAVE_SMEM)	+= w1_smem.o
--obj-$(CONFIG_W1_SLAVE_DS2408)   += w1_ds2408.o
-+obj-$(CONFIG_W1_SLAVE_DS2408)	+= w1_ds2408.o
-+obj-$(CONFIG_W1_SLAVE_DS2413)	+= w1_ds2413.o
- obj-$(CONFIG_W1_SLAVE_DS2423)	+= w1_ds2423.o
- obj-$(CONFIG_W1_SLAVE_DS2431)	+= w1_ds2431.o
- obj-$(CONFIG_W1_SLAVE_DS2433)	+= w1_ds2433.o
-diff -puN /dev/null drivers/w1/slaves/w1_ds2413.c
---- /dev/null
-+++ a/drivers/w1/slaves/w1_ds2413.c
-@@ -0,0 +1,177 @@
-+/*
-+ * w1_ds2413.c - w1 family 3a (DS2413) driver
-+ * based on w1_ds2408.c by Jean-Francois Dagenais <dagenaisj@sonatest.com>
-+ *
-+ * Copyright (c) 2013 Mariusz Bialonczyk <manio@skyboo.net>
-+ *
-+ * This source code is licensed under the GNU General Public License,
-+ * Version 2. See the file COPYING for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/device.h>
-+#include <linux/types.h>
-+#include <linux/delay.h>
-+#include <linux/slab.h>
-+
-+#include "../w1.h"
-+#include "../w1_int.h"
-+#include "../w1_family.h"
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Mariusz Bialonczyk <manio@skyboo.net>");
-+MODULE_DESCRIPTION("w1 family 3a driver for DS2413 2 Pin IO");
-+
-+#define W1_F3A_RETRIES                     3
-+#define W1_F3A_FUNC_PIO_ACCESS_READ        0xF5
-+#define W1_F3A_FUNC_PIO_ACCESS_WRITE       0x5A
-+#define W1_F3A_SUCCESS_CONFIRM_BYTE        0xAA
-+
-+static ssize_t w1_f3a_read_state(
-+	struct file *filp, struct kobject *kobj,
-+	struct bin_attribute *bin_attr,
-+	char *buf, loff_t off, size_t count)
-+{
-+	struct w1_slave *sl = kobj_to_w1_slave(kobj);
-+	dev_dbg(&sl->dev,
-+		"Reading %s kobj: %p, off: %0#10x, count: %zu, buff addr: %p",
-+		bin_attr->attr.name, kobj, (unsigned int)off, count, buf);
-+
-+	if (off != 0)
-+		return 0;
-+	if (!buf)
-+		return -EINVAL;
-+
-+	mutex_lock(&sl->master->bus_mutex);
-+	dev_dbg(&sl->dev, "mutex locked");
-+
-+	if (w1_reset_select_slave(sl)) {
-+		mutex_unlock(&sl->master->bus_mutex);
-+		return -EIO;
-+	}
-+
-+	w1_write_8(sl->master, W1_F3A_FUNC_PIO_ACCESS_READ);
-+	*buf = w1_read_8(sl->master);
-+
-+	mutex_unlock(&sl->master->bus_mutex);
-+	dev_dbg(&sl->dev, "mutex unlocked");
-+
-+	/* check for correct complement */
-+	if ((*buf & 0x0F) != ((~*buf >> 4) & 0x0F))
-+		return -EIO;
-+	else
-+		return 1;
-+}
-+
-+static ssize_t w1_f3a_write_output(
-+	struct file *filp, struct kobject *kobj,
-+	struct bin_attribute *bin_attr,
-+	char *buf, loff_t off, size_t count)
-+{
-+	struct w1_slave *sl = kobj_to_w1_slave(kobj);
-+	u8 w1_buf[3];
-+	unsigned int retries = W1_F3A_RETRIES;
-+
-+	if (count != 1 || off != 0)
-+		return -EFAULT;
-+
-+	dev_dbg(&sl->dev, "locking mutex for write_output");
-+	mutex_lock(&sl->master->bus_mutex);
-+	dev_dbg(&sl->dev, "mutex locked");
-+
-+	if (w1_reset_select_slave(sl))
-+		goto error;
-+
-+	/* according to the DS2413 datasheet the most significant 6 bits
-+	   should be set to "1"s, so do it now */
-+	*buf = *buf | 0xFC;
-+
-+	while (retries--) {
-+		w1_buf[0] = W1_F3A_FUNC_PIO_ACCESS_WRITE;
-+		w1_buf[1] = *buf;
-+		w1_buf[2] = ~(*buf);
-+		w1_write_block(sl->master, w1_buf, 3);
-+
-+		if (w1_read_8(sl->master) == W1_F3A_SUCCESS_CONFIRM_BYTE) {
-+			mutex_unlock(&sl->master->bus_mutex);
-+			dev_dbg(&sl->dev, "mutex unlocked, retries:%d", retries);
-+			return 1;
-+		}
-+		if (w1_reset_resume_command(sl->master))
-+			goto error;
-+	}
-+
-+error:
-+	mutex_unlock(&sl->master->bus_mutex);
-+	dev_dbg(&sl->dev, "mutex unlocked in error, retries:%d", retries);
-+	return -EIO;
-+}
-+
-+#define NB_SYSFS_BIN_FILES 2
-+static struct bin_attribute w1_f3a_sysfs_bin_files[NB_SYSFS_BIN_FILES] = {
-+	{
-+		.attr = {
-+			.name = "state",
-+			.mode = S_IRUGO,
-+		},
-+		.size = 1,
-+		.read = w1_f3a_read_state,
-+	},
-+	{
-+		.attr = {
-+			.name = "output",
-+			.mode = S_IRUGO | S_IWUSR | S_IWGRP,
-+		},
-+		.size = 1,
-+		.write = w1_f3a_write_output,
-+	}
-+};
-+
-+static int w1_f3a_add_slave(struct w1_slave *sl)
-+{
-+	int err = 0;
-+	int i;
-+
-+	for (i = 0; i < NB_SYSFS_BIN_FILES && !err; ++i)
-+		err = sysfs_create_bin_file(
-+			&sl->dev.kobj,
-+			&(w1_f3a_sysfs_bin_files[i]));
-+	if (err)
-+		while (--i >= 0)
-+			sysfs_remove_bin_file(&sl->dev.kobj,
-+				&(w1_f3a_sysfs_bin_files[i]));
-+	return err;
-+}
-+
-+static void w1_f3a_remove_slave(struct w1_slave *sl)
-+{
-+	int i;
-+	for (i = NB_SYSFS_BIN_FILES - 1; i >= 0; --i)
-+		sysfs_remove_bin_file(&sl->dev.kobj,
-+			&(w1_f3a_sysfs_bin_files[i]));
-+}
-+
-+static struct w1_family_ops w1_f3a_fops = {
-+	.add_slave      = w1_f3a_add_slave,
-+	.remove_slave   = w1_f3a_remove_slave,
-+};
-+
-+static struct w1_family w1_family_3a = {
-+	.fid = W1_FAMILY_DS2413,
-+	.fops = &w1_f3a_fops,
-+};
-+
-+static int __init w1_f3a_init(void)
-+{
-+	return w1_register_family(&w1_family_3a);
-+}
-+
-+static void __exit w1_f3a_exit(void)
-+{
-+	w1_unregister_family(&w1_family_3a);
-+}
-+
-+module_init(w1_f3a_init);
-+module_exit(w1_f3a_exit);
-diff -puN drivers/w1/w1_family.h~w1-add-support-for-ds2413-dual-channel-addressable-switch drivers/w1/w1_family.h
---- a/drivers/w1/w1_family.h~w1-add-support-for-ds2413-dual-channel-addressable-switch
-+++ a/drivers/w1/w1_family.h
-@@ -39,6 +39,7 @@
- #define W1_EEPROM_DS2431	0x2D
- #define W1_FAMILY_DS2760	0x30
- #define W1_FAMILY_DS2780	0x32
-+#define W1_FAMILY_DS2413	0x3A
- #define W1_THERM_DS1825		0x3B
- #define W1_FAMILY_DS2781	0x3D
- #define W1_THERM_DS28EA00	0x42
+-config ARCH_NO_VIRT_TO_BUS
+-	def_bool y
+-
+ config ARCH_HAS_DEFAULT_IDLE
+ 	def_bool y
+ 
+diff -puN arch/sparc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/sparc/Kconfig
+@@ -146,9 +146,6 @@ config GENERIC_GPIO
+ 	help
+ 	  Generic GPIO API support
+ 
+-config ARCH_NO_VIRT_TO_BUS
+-	def_bool y
+-
+ config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	def_bool y if SPARC64
+ 
+diff -puN arch/tile/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/tile/Kconfig
+--- a/arch/tile/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/tile/Kconfig
+@@ -17,6 +17,7 @@ config TILE
+ 	select GENERIC_IRQ_SHOW
+ 	select HAVE_DEBUG_BUGVERBOSE
+ 	select HAVE_SYSCALL_WRAPPERS if TILEGX
++	select HAVE_VIRT_TO_BUS
+ 	select SYS_HYPERVISOR
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_CLOCKEVENTS
+diff -puN arch/unicore32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/unicore32/Kconfig
+--- a/arch/unicore32/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/unicore32/Kconfig
+@@ -9,6 +9,7 @@ config UNICORE32
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_KERNEL_LZO
+ 	select HAVE_KERNEL_LZMA
++	select HAVE_VIRT_TO_BUS
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select GENERIC_FIND_FIRST_BIT
+ 	select GENERIC_IRQ_PROBE
+diff -puN arch/x86/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/x86/Kconfig
+--- a/arch/x86/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/x86/Kconfig
+@@ -112,6 +112,7 @@ config X86
+ 	select GENERIC_STRNLEN_USER
+ 	select HAVE_CONTEXT_TRACKING if X86_64
+ 	select HAVE_IRQ_TIME_ACCOUNTING
++	select HAVE_VIRT_TO_BUS
+ 	select MODULES_USE_ELF_REL if X86_32
+ 	select MODULES_USE_ELF_RELA if X86_64
+ 	select CLONE_BACKWARDS if X86_32
+diff -puN arch/xtensa/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/arch/xtensa/Kconfig
+@@ -9,6 +9,7 @@ config XTENSA
+ 	select HAVE_IDE
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_GENERIC_HARDIRQS
++	select HAVE_VIRT_TO_BUS
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_CPU_DEVICES
+ 	select MODULES_USE_ELF_RELA
+diff -puN mm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus mm/Kconfig
+--- a/mm/Kconfig~arch-kconfig-centralise-config_arch_no_virt_to_bus
++++ a/mm/Kconfig
+@@ -287,7 +287,7 @@ config NR_QUICK
+ 
+ config VIRT_TO_BUS
+ 	def_bool y
+-	depends on !ARCH_NO_VIRT_TO_BUS
++	depends on HAVE_VIRT_TO_BUS
+ 
+ config MMU_NOTIFIER
+ 	bool
 _
 
-Patches currently in -mm which might be from manio@skyboo.net are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
+linux-next.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
