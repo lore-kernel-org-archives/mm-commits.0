@@ -1,76 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:13:12 -0800
-Message-ID: <20130228201312.B968931C0A0__42432.8528963544$1362082425$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] block-loop-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:13:18 -0800
+Message-ID: <20130228201318.A8CE25A4242@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:62413 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757194Ab3B1UNN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:13 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so244965ggn.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:13 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:56664 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078Ab3B1UNT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:19 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so244859vea.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, axboe@kernel.dk, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: fix synchronization and limit check in blk_alloc_devt()
+     Subject: block/loop: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     block-fix-synchronization-and-limit-check-in-blk_alloc_devt.patch
+     block-loop-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: block: fix synchronization and limit check in blk_alloc_devt()
+Subject: block/loop: convert to idr_alloc()
 
-idr allocation in blk_alloc_devt() wasn't synchronized against lookup
-and removal, and its limit check was off by one - 1 << MINORBITS is
-the number of minors allowed, not the maximum allowed minor.
-
-Add locking and rename MAX_EXT_DEVT to NR_EXT_DEVT and fix limit
-checking.
+Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Acked-by: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ drivers/block/loop.c |   23 +++++------------------
+ 1 file changed, 5 insertions(+), 18 deletions(-)
 
-diff -puN block/genhd.c~block-fix-synchronization-and-limit-check-in-blk_alloc_devt block/genhd.c
---- a/block/genhd.c~block-fix-synchronization-and-limit-check-in-blk_alloc_devt
-+++ a/block/genhd.c
-@@ -26,7 +26,7 @@ static DEFINE_MUTEX(block_class_lock);
- struct kobject *block_depr;
+diff -puN drivers/block/loop.c~block-loop-convert-to-idr_alloc drivers/block/loop.c
+--- a/drivers/block/loop.c~block-loop-convert-to-idr_alloc
++++ a/drivers/block/loop.c
+@@ -1624,30 +1624,17 @@ static int loop_add(struct loop_device *
+ 	if (!lo)
+ 		goto out;
  
- /* for extended dynamic devt allocation, currently only one major is used */
--#define MAX_EXT_DEVT		(1 << MINORBITS)
-+#define NR_EXT_DEVT		(1 << MINORBITS)
+-	if (!idr_pre_get(&loop_index_idr, GFP_KERNEL))
+-		goto out_free_dev;
+-
++	/* allocate id, if @id >= 0, we're requesting that specific id */
+ 	if (i >= 0) {
+-		int m;
+-
+-		/* create specific i in the index */
+-		err = idr_get_new_above(&loop_index_idr, lo, i, &m);
+-		if (err >= 0 && i != m) {
+-			idr_remove(&loop_index_idr, m);
++		err = idr_alloc(&loop_index_idr, lo, i, i + 1, GFP_KERNEL);
++		if (err == -ENOSPC)
+ 			err = -EEXIST;
+-		}
+-	} else if (i == -1) {
+-		int m;
+-
+-		/* get next free nr */
+-		err = idr_get_new(&loop_index_idr, lo, &m);
+-		if (err >= 0)
+-			i = m;
+ 	} else {
+-		err = -EINVAL;
++		err = idr_alloc(&loop_index_idr, lo, 0, 0, GFP_KERNEL);
+ 	}
+ 	if (err < 0)
+ 		goto out_free_dev;
++	i = err;
  
- /* For extended devt allocation.  ext_devt_mutex prevents look up
-  * results from going away underneath its user.
-@@ -425,19 +425,16 @@ int blk_alloc_devt(struct hd_struct *par
- 			return -ENOMEM;
- 		mutex_lock(&ext_devt_mutex);
- 		rc = idr_get_new(&ext_devt_idr, part, &idx);
-+		if (!rc && idx >= NR_EXT_DEVT) {
-+			idr_remove(&ext_devt_idr, idx);
-+			rc = -EBUSY;
-+		}
- 		mutex_unlock(&ext_devt_mutex);
- 	} while (rc == -EAGAIN);
- 
- 	if (rc)
- 		return rc;
- 
--	if (idx > MAX_EXT_DEVT) {
--		mutex_lock(&ext_devt_mutex);
--		idr_remove(&ext_devt_idr, idx);
--		mutex_unlock(&ext_devt_mutex);
--		return -EBUSY;
--	}
+ 	lo->lo_queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!lo->lo_queue)
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+origin.patch
+linux-next.patch
+slub-correctly-bootstrap-boot-caches.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+coredump-make-wait_for_dump_helpers-freezable.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+
