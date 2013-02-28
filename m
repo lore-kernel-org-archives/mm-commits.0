@@ -1,183 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-partitions-optimize-memory-allocation-in-check_partition.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:16:47 -0800
-Message-ID: <20130228201647.B6DEB31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] sysctl-fix-null-checking-in-bin_dn_node_address.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:16:50 -0800
+Message-ID: <20130228201650.A3D065A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:64777 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759324Ab3B1UQs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:48 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so246658yhr.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:48 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:45405 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759385Ab3B1UQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:51 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246711yhz.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ming.lei@canonical.com, axboe@kernel.dk, balbi@ti.com, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: xi.wang@gmail.com, ebiederm@xmission.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block/partitions: optimize memory allocation in check_partition()
+     Subject: sysctl: fix null checking in bin_dn_node_address()
 has been removed from the -mm tree.  Its filename was
-     block-partitions-optimize-memory-allocation-in-check_partition.patch
+     sysctl-fix-null-checking-in-bin_dn_node_address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ming Lei <ming.lei@canonical.com>
-Subject: block/partitions: optimize memory allocation in check_partition()
+From: Xi Wang <xi.wang@gmail.com>
+Subject: sysctl: fix null checking in bin_dn_node_address()
 
-Currently, sizeof(struct parsed_partitions) may be 64KB in 32bit arch, so
-it is easy to trigger page allocation failure by check_partition,
-especially in hotplug block device situation(such as, USB mass storage,
-MMC card, ...), and Felipe Balbi has observed the failure.
+The null check of `strchr() + 1' is broken, which is always non-null,
+leading to OOB read.  Instead, check the result of strchr().
 
-This patch does below optimizations on the allocation of struct
-parsed_partitions to try to address the issue:
-
-- make parsed_partitions.parts as pointer so that the pointed memory can
-  fit in 32KB buffer, then approximate 32KB memory can be saved
-
-- vmalloc the buffer pointed by parsed_partitions.parts because 32KB is
-  still a bit big for kmalloc
-
-- given that many devices have the partition count limit, so only
-  allocate disk_max_parts() partitions instead of 256 partitions always
-
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
-Reported-by: Felipe Balbi <balbi@ti.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partition-generic.c |    4 +--
- block/partitions/check.c  |   37 +++++++++++++++++++++++++++++++-----
- block/partitions/check.h  |    4 ++-
- 3 files changed, 37 insertions(+), 8 deletions(-)
+ kernel/sysctl_binary.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN block/partition-generic.c~block-partitions-optimize-memory-allocation-in-check_partition block/partition-generic.c
---- a/block/partition-generic.c~block-partitions-optimize-memory-allocation-in-check_partition
-+++ a/block/partition-generic.c
-@@ -418,7 +418,7 @@ int rescan_partitions(struct gendisk *di
- 	int p, highest, res;
- rescan:
- 	if (state && !IS_ERR(state)) {
--		kfree(state);
-+		free_partitions(state);
- 		state = NULL;
- 	}
+diff -puN kernel/sysctl_binary.c~sysctl-fix-null-checking-in-bin_dn_node_address kernel/sysctl_binary.c
+--- a/kernel/sysctl_binary.c~sysctl-fix-null-checking-in-bin_dn_node_address
++++ a/kernel/sysctl_binary.c
+@@ -1171,9 +1171,10 @@ static ssize_t bin_dn_node_address(struc
  
-@@ -525,7 +525,7 @@ rescan:
- 			md_autodetect_dev(part_to_dev(part)->devt);
- #endif
- 	}
--	kfree(state);
-+	free_partitions(state);
- 	return 0;
- }
+ 		/* Convert the decnet address to binary */
+ 		result = -EIO;
+-		nodep = strchr(buf, '.') + 1;
++		nodep = strchr(buf, '.');
+ 		if (!nodep)
+ 			goto out;
++		++nodep;
  
-diff -puN block/partitions/check.c~block-partitions-optimize-memory-allocation-in-check_partition block/partitions/check.c
---- a/block/partitions/check.c~block-partitions-optimize-memory-allocation-in-check_partition
-+++ a/block/partitions/check.c
-@@ -14,6 +14,7 @@
-  */
- 
- #include <linux/slab.h>
-+#include <linux/vmalloc.h>
- #include <linux/ctype.h>
- #include <linux/genhd.h>
- 
-@@ -106,18 +107,45 @@ static int (*check_part[])(struct parsed
- 	NULL
- };
- 
-+static struct parsed_partitions *allocate_partitions(struct gendisk *hd)
-+{
-+	struct parsed_partitions *state;
-+	int nr;
-+
-+	state = kzalloc(sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return NULL;
-+
-+	nr = disk_max_parts(hd);
-+	state->parts = vzalloc(nr * sizeof(state->parts[0]));
-+	if (!state->parts) {
-+		kfree(state);
-+		return NULL;
-+	}
-+
-+	state->limit = nr;
-+
-+	return state;
-+}
-+
-+void free_partitions(struct parsed_partitions *state)
-+{
-+	vfree(state->parts);
-+	kfree(state);
-+}
-+
- struct parsed_partitions *
- check_partition(struct gendisk *hd, struct block_device *bdev)
- {
- 	struct parsed_partitions *state;
- 	int i, res, err;
- 
--	state = kzalloc(sizeof(struct parsed_partitions), GFP_KERNEL);
-+	state = allocate_partitions(hd);
- 	if (!state)
- 		return NULL;
- 	state->pp_buf = (char *)__get_free_page(GFP_KERNEL);
- 	if (!state->pp_buf) {
--		kfree(state);
-+		free_partitions(state);
- 		return NULL;
- 	}
- 	state->pp_buf[0] = '\0';
-@@ -128,10 +156,9 @@ check_partition(struct gendisk *hd, stru
- 	if (isdigit(state->name[strlen(state->name)-1]))
- 		sprintf(state->name, "p");
- 
--	state->limit = disk_max_parts(hd);
- 	i = res = err = 0;
- 	while (!res && check_part[i]) {
--		memset(&state->parts, 0, sizeof(state->parts));
-+		memset(state->parts, 0, state->limit * sizeof(state->parts[0]));
- 		res = check_part[i++](state);
- 		if (res < 0) {
- 			/* We have hit an I/O error which we don't report now.
-@@ -161,6 +188,6 @@ check_partition(struct gendisk *hd, stru
- 	printk(KERN_INFO "%s", state->pp_buf);
- 
- 	free_page((unsigned long)state->pp_buf);
--	kfree(state);
-+	free_partitions(state);
- 	return ERR_PTR(res);
- }
-diff -puN block/partitions/check.h~block-partitions-optimize-memory-allocation-in-check_partition block/partitions/check.h
---- a/block/partitions/check.h~block-partitions-optimize-memory-allocation-in-check_partition
-+++ a/block/partitions/check.h
-@@ -15,13 +15,15 @@ struct parsed_partitions {
- 		int flags;
- 		bool has_info;
- 		struct partition_meta_info info;
--	} parts[DISK_MAX_PARTS];
-+	} *parts;
- 	int next;
- 	int limit;
- 	bool access_beyond_eod;
- 	char *pp_buf;
- };
- 
-+void free_partitions(struct parsed_partitions *state);
-+
- struct parsed_partitions *
- check_partition(struct gendisk *, struct block_device *);
- 
+ 		area = simple_strtoul(buf, NULL, 10);
+ 		node = simple_strtoul(nodep, NULL, 10);
 _
 
-Patches currently in -mm which might be from ming.lei@canonical.com are
+Patches currently in -mm which might be from xi.wang@gmail.com are
 
 origin.patch
+drivers-usb-gadget-amd5536udcc-avoid-calling-dma_pool_create-with-null-dev.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
