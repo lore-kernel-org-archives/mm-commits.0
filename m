@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + matroxfb-convert-struct-i2c_msg-initialization-to-c99-format.patch added to -mm tree
-Date: Thu, 28 Feb 2013 13:40:34 -0800
-Message-ID: <20130228214034.9AD4F5A41DD@corp2gmr1-2.hot.corp.google.com>
+Subject: + hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix.patch added to -mm tree
+Date: Thu, 28 Feb 2013 13:49:42 -0800
+Message-ID: <20130228214942.941F931C25A@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:62979 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754931Ab3B1Vkg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:40:36 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so255930qea.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:40:35 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:51814 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab3B1Vtn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:49:43 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so257161vcd.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:49:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: omaplinuxkernel@gmail.com, FlorianSchandinat@gmx.de, julia@diku.dk, khali@linux-fr.org, shubhrajyoti@ti.com
+Cc: sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: matroxfb: convert struct i2c_msg initialization to C99 format
+     Subject: hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix
 has been added to the -mm tree.  Its filename is
-     matroxfb-convert-struct-i2c_msg-initialization-to-c99-format.patch
+     hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: matroxfb: convert struct i2c_msg initialization to C99 format
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix
 
-Convert the struct i2c_msg initialization to C99 format.  This makes
-maintaining and editing the code simpler.  Also helps once other fields
-like transferred are added in future.
-
-Thanks to Julia Lawall for automating the conversion.
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/matrox/matroxfb_maven.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/md/dm-cache-policy-cleaner.c |    3 +--
+ drivers/md/dm-cache-policy-mq.c      |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/matrox/matroxfb_maven.c~matroxfb-convert-struct-i2c_msg-initialization-to-c99-format drivers/video/matrox/matroxfb_maven.c
---- a/drivers/video/matrox/matroxfb_maven.c~matroxfb-convert-struct-i2c_msg-initialization-to-c99-format
-+++ a/drivers/video/matrox/matroxfb_maven.c
-@@ -137,8 +137,20 @@ static int* get_ctrl_ptr(struct maven_da
+diff -puN drivers/md/dm-cache-policy-cleaner.c~hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix drivers/md/dm-cache-policy-cleaner.c
+--- a/drivers/md/dm-cache-policy-cleaner.c~hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix
++++ a/drivers/md/dm-cache-policy-cleaner.c
+@@ -142,10 +142,9 @@ static struct wb_cache_entry *lookup_cac
+ 	struct hash *hash = &p->chash;
+ 	unsigned h = hash_64(from_oblock(oblock), hash->hash_bits);
+ 	struct wb_cache_entry *cur;
+-	struct hlist_node *tmp;
+ 	struct hlist_head *bucket = &hash->table[h];
  
- static int maven_get_reg(struct i2c_client* c, char reg) {
- 	char dst;
--	struct i2c_msg msgs[] = {{ c->addr, I2C_M_REV_DIR_ADDR, sizeof(reg), &reg },
--				 { c->addr, I2C_M_RD | I2C_M_NOSTART, sizeof(dst), &dst }};
-+	struct i2c_msg msgs[] = {
-+		{
-+			.addr = c->addr,
-+			.flags = I2C_M_REV_DIR_ADDR,
-+			.len = sizeof(reg),
-+			.buf = &reg
-+		},
-+		{
-+			.addr = c->addr,
-+			.flags = I2C_M_RD | I2C_M_NOSTART,
-+			.len = sizeof(dst),
-+			.buf = &dst
-+		}
-+	};
- 	s32 err;
+-	hlist_for_each_entry(cur, tmp, bucket, hlist) {
++	hlist_for_each_entry(cur, bucket, hlist) {
+ 		if (cur->oblock == oblock) {
+ 			/* Move upfront bucket for faster access. */
+ 			hlist_del(&cur->hlist);
+diff -puN drivers/md/dm-cache-policy-mq.c~hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix drivers/md/dm-cache-policy-mq.c
+--- a/drivers/md/dm-cache-policy-mq.c~hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix
++++ a/drivers/md/dm-cache-policy-mq.c
+@@ -369,10 +369,9 @@ static struct entry *hash_lookup(struct 
+ {
+ 	unsigned h = hash_64(from_oblock(oblock), mq->hash_bits);
+ 	struct hlist_head *bucket = mq->table + h;
+-	struct hlist_node *tmp;
+ 	struct entry *e;
  
- 	err = i2c_transfer(c->adapter, msgs, 2);
+-	hlist_for_each_entry(e, tmp, bucket, hlist)
++	hlist_for_each_entry(e, bucket, hlist)
+ 		if (e->oblock == oblock) {
+ 			hlist_del(&e->hlist);
+ 			hlist_add_head(&e->hlist, bucket);
 _
 
-Patches currently in -mm which might be from omaplinuxkernel@gmail.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-matroxfb-convert-struct-i2c_msg-initialization-to-c99-format.patch
+origin.patch
+linux-next.patch
+hlist-drop-the-node-parameter-from-iterators-dm-cache-policy-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
