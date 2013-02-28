@@ -1,80 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-loop-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:13:18 -0800
-Message-ID: <20130228201318.A8CE25A4242@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] atm-nicstar-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:13:21 -0800
+Message-ID: <20130228201321.CD4B531C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:56664 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078Ab3B1UNT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:19 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so244859vea.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:19 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:49186 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078Ab3B1UNW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:22 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so39444vbi.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: tj@kernel.org, chas@cmf.nrl.navy.mil, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block/loop: convert to idr_alloc()
+     Subject: atm/nicstar: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     block-loop-convert-to-idr_alloc.patch
+     atm-nicstar-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: block/loop: convert to idr_alloc()
+Subject: atm/nicstar: convert to idr_alloc()
 
-Convert to the much saner new idr interface.
+Convert to the much saner new idr interface.  The existing code looks
+buggy to me - ID 0 is treated as no-ID but allocation specifies 0 as
+lower limit and there's no error handling after partial success.  This
+conversion keeps the bugs unchanged.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Jens Axboe <axboe@kernel.dk>
+Acked-by: Chas Williams <chas@cmf.nrl.navy.mil>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+ drivers/atm/nicstar.c |   24 ++++++------------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
 
-diff -puN drivers/block/loop.c~block-loop-convert-to-idr_alloc drivers/block/loop.c
---- a/drivers/block/loop.c~block-loop-convert-to-idr_alloc
-+++ a/drivers/block/loop.c
-@@ -1624,30 +1624,17 @@ static int loop_add(struct loop_device *
- 	if (!lo)
- 		goto out;
+diff -puN drivers/atm/nicstar.c~atm-nicstar-convert-to-idr_alloc drivers/atm/nicstar.c
+--- a/drivers/atm/nicstar.c~atm-nicstar-convert-to-idr_alloc
++++ a/drivers/atm/nicstar.c
+@@ -949,11 +949,10 @@ static void free_scq(ns_dev *card, scq_i
+ static void push_rxbufs(ns_dev * card, struct sk_buff *skb)
+ {
+ 	struct sk_buff *handle1, *handle2;
+-	u32 id1 = 0, id2 = 0;
++	int id1, id2;
+ 	u32 addr1, addr2;
+ 	u32 stat;
+ 	unsigned long flags;
+-	int err;
  
--	if (!idr_pre_get(&loop_index_idr, GFP_KERNEL))
--		goto out_free_dev;
--
-+	/* allocate id, if @id >= 0, we're requesting that specific id */
- 	if (i >= 0) {
--		int m;
--
--		/* create specific i in the index */
--		err = idr_get_new_above(&loop_index_idr, lo, i, &m);
--		if (err >= 0 && i != m) {
--			idr_remove(&loop_index_idr, m);
-+		err = idr_alloc(&loop_index_idr, lo, i, i + 1, GFP_KERNEL);
-+		if (err == -ENOSPC)
- 			err = -EEXIST;
--		}
--	} else if (i == -1) {
--		int m;
--
--		/* get next free nr */
--		err = idr_get_new(&loop_index_idr, lo, &m);
--		if (err >= 0)
--			i = m;
- 	} else {
--		err = -EINVAL;
-+		err = idr_alloc(&loop_index_idr, lo, 0, 0, GFP_KERNEL);
- 	}
- 	if (err < 0)
- 		goto out_free_dev;
-+	i = err;
+ 	/* *BARF* */
+ 	handle2 = NULL;
+@@ -1026,23 +1025,12 @@ static void push_rxbufs(ns_dev * card, s
+ 				card->lbfqc += 2;
+ 		}
  
- 	lo->lo_queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!lo->lo_queue)
+-		do {
+-			if (!idr_pre_get(&card->idr, GFP_ATOMIC)) {
+-				printk(KERN_ERR
+-				       "nicstar%d: no free memory for idr\n",
+-				       card->index);
+-				goto out;
+-			}
+-
+-			if (!id1)
+-				err = idr_get_new_above(&card->idr, handle1, 0, &id1);
+-
+-			if (!id2 && err == 0)
+-				err = idr_get_new_above(&card->idr, handle2, 0, &id2);
+-
+-		} while (err == -EAGAIN);
++		id1 = idr_alloc(&card->idr, handle1, 0, 0, GFP_ATOMIC);
++		if (id1 < 0)
++			goto out;
+ 
+-		if (err)
++		id2 = idr_alloc(&card->idr, handle2, 0, 0, GFP_ATOMIC);
++		if (id2 < 0)
+ 			goto out;
+ 
+ 		spin_lock_irqsave(&card->res_lock, flags);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
