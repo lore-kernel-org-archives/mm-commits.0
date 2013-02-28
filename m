@@ -1,122 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dm-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:30 -0800
-Message-ID: <20130228201430.B56FC31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] memstick-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:33 -0800
+Message-ID: <20130228201433.B3D5F31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:56042 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757903Ab3B1UOb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:31 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so244968vea.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:31 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:51348 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755587Ab3B1UOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:34 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so245118vch.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, agk@redhat.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dm: convert to idr_alloc()
+     Subject: memstick: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     dm-convert-to-idr_alloc.patch
+     memstick-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dm: convert to idr_alloc()
+Subject: memstick: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm.c |   54 ++++++++++++----------------------------------
- 1 file changed, 15 insertions(+), 39 deletions(-)
+ drivers/memstick/core/memstick.c    |   21 ++++++++++-----------
+ drivers/memstick/core/mspro_block.c |   17 +++--------------
+ 2 files changed, 13 insertions(+), 25 deletions(-)
 
-diff -puN drivers/md/dm.c~dm-convert-to-idr_alloc drivers/md/dm.c
---- a/drivers/md/dm.c~dm-convert-to-idr_alloc
-+++ a/drivers/md/dm.c
-@@ -1755,62 +1755,38 @@ static void free_minor(int minor)
-  */
- static int specific_minor(int minor)
+diff -puN drivers/memstick/core/memstick.c~memstick-convert-to-idr_alloc drivers/memstick/core/memstick.c
+--- a/drivers/memstick/core/memstick.c~memstick-convert-to-idr_alloc
++++ a/drivers/memstick/core/memstick.c
+@@ -512,18 +512,17 @@ int memstick_add_host(struct memstick_ho
  {
--	int r, m;
-+	int r;
+ 	int rc;
  
- 	if (minor >= (1 << MINORBITS))
- 		return -EINVAL;
- 
--	r = idr_pre_get(&_minor_idr, GFP_KERNEL);
--	if (!r)
--		return -ENOMEM;
--
+-	while (1) {
+-		if (!idr_pre_get(&memstick_host_idr, GFP_KERNEL))
+-			return -ENOMEM;
 +	idr_preload(GFP_KERNEL);
- 	spin_lock(&_minor_lock);
++	spin_lock(&memstick_host_lock);
  
--	if (idr_find(&_minor_idr, minor)) {
--		r = -EBUSY;
--		goto out;
+-		spin_lock(&memstick_host_lock);
+-		rc = idr_get_new(&memstick_host_idr, host, &host->id);
+-		spin_unlock(&memstick_host_lock);
+-		if (!rc)
+-			break;
+-		else if (rc != -EAGAIN)
+-			return rc;
 -	}
--
--	r = idr_get_new_above(&_minor_idr, MINOR_ALLOCED, minor, &m);
--	if (r)
--		goto out;
--
--	if (m != minor) {
--		idr_remove(&_minor_idr, m);
--		r = -EBUSY;
--		goto out;
--	}
-+	r = idr_alloc(&_minor_idr, MINOR_ALLOCED, minor, minor + 1, GFP_NOWAIT);
- 
--out:
- 	spin_unlock(&_minor_lock);
--	return r;
++	rc = idr_alloc(&memstick_host_idr, host, 0, 0, GFP_NOWAIT);
++	if (rc >= 0)
++		host->id = rc;
++
++	spin_unlock(&memstick_host_lock);
 +	idr_preload_end();
-+	if (r < 0)
-+		return r == -ENOSPC ? -EBUSY : r;
-+	return 0;
- }
++	if (rc < 0)
++		return rc;
  
- static int next_free_minor(int *minor)
- {
--	int r, m;
--
--	r = idr_pre_get(&_minor_idr, GFP_KERNEL);
--	if (!r)
+ 	dev_set_name(&host->dev, "memstick%u", host->id);
+ 
+diff -puN drivers/memstick/core/mspro_block.c~memstick-convert-to-idr_alloc drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-convert-to-idr_alloc
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1213,21 +1213,10 @@ static int mspro_block_init_disk(struct 
+ 	msb->page_size = be16_to_cpu(sys_info->unit_size);
+ 
+ 	mutex_lock(&mspro_block_disk_lock);
+-	if (!idr_pre_get(&mspro_block_disk_idr, GFP_KERNEL)) {
+-		mutex_unlock(&mspro_block_disk_lock);
 -		return -ENOMEM;
-+	int r;
- 
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&_minor_lock);
- 
--	r = idr_get_new(&_minor_idr, MINOR_ALLOCED, &m);
--	if (r)
--		goto out;
--
--	if (m >= (1 << MINORBITS)) {
--		idr_remove(&_minor_idr, m);
--		r = -ENOSPC;
--		goto out;
 -	}
-+	r = idr_alloc(&_minor_idr, MINOR_ALLOCED, 0, 1 << MINORBITS, GFP_NOWAIT);
- 
--	*minor = m;
 -
--out:
- 	spin_unlock(&_minor_lock);
--	return r;
-+	idr_preload_end();
-+	if (r < 0)
-+		return r;
-+	*minor = r;
-+	return 0;
- }
+-	rc = idr_get_new(&mspro_block_disk_idr, card, &disk_id);
++	disk_id = idr_alloc(&mspro_block_disk_idr, card, 0, 256, GFP_KERNEL);
+ 	mutex_unlock(&mspro_block_disk_lock);
+-
+-	if (rc)
+-		return rc;
+-
+-	if ((disk_id << MSPRO_BLOCK_PART_SHIFT) > 255) {
+-		rc = -ENOSPC;
+-		goto out_release_id;
+-	}
++	if (disk_id < 0)
++		return disk_id;
  
- static const struct block_device_operations dm_blk_dops;
+ 	msb->disk = alloc_disk(1 << MSPRO_BLOCK_PART_SHIFT);
+ 	if (!msb->disk) {
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
