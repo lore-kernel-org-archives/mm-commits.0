@@ -1,124 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dlm-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:30 -0800
-Message-ID: <20130228201530.A661731C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] inotify-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:33 -0800
+Message-ID: <20130228201533.AC7C85A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:51143 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758303Ab3B1UPb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:31 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so245216ggi.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:31 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:58827 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758305Ab3B1UPe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:34 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so261338qaj.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dlm: convert to idr_alloc()
+     Subject: inotify: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     dlm-convert-to-idr_alloc.patch
+     inotify-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dlm: convert to idr_alloc()
+Subject: inotify: convert to idr_alloc()
 
-Convert to the much saner new idr interface.  Error return values from
-recover_idr_add() mix -1 and -errno.  The conversion doesn't change
-that but it looks iffy.
+Convert to the much saner new idr interface.
+
+Note that the adhoc cyclic id allocation is buggy.  If wraparound
+happens, the previous code with idr_get_new_above() may segfault and
+the converted code will trigger WARN and return -EINVAL.  Even if it's
+fixed to wrap to zero, the code will be prone to unnecessary -ENOSPC
+failures after the first wraparound.  We probably need to implement
+proper cyclic support in idr.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/lock.c    |   18 ++++++------------
- fs/dlm/recover.c |   27 +++++++++++++--------------
- 2 files changed, 19 insertions(+), 26 deletions(-)
+ fs/notify/inotify/inotify_user.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN fs/dlm/lock.c~dlm-convert-to-idr_alloc fs/dlm/lock.c
---- a/fs/dlm/lock.c~dlm-convert-to-idr_alloc
-+++ a/fs/dlm/lock.c
-@@ -1183,7 +1183,7 @@ static void detach_lkb(struct dlm_lkb *l
- static int create_lkb(struct dlm_ls *ls, struct dlm_lkb **lkb_ret)
+diff -puN fs/notify/inotify/inotify_user.c~inotify-convert-to-idr_alloc fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~inotify-convert-to-idr_alloc
++++ a/fs/notify/inotify/inotify_user.c
+@@ -364,22 +364,20 @@ static int inotify_add_to_idr(struct idr
  {
- 	struct dlm_lkb *lkb;
--	int rv, id;
-+	int rv;
+ 	int ret;
  
- 	lkb = dlm_allocate_lkb(ls);
- 	if (!lkb)
-@@ -1199,19 +1199,13 @@ static int create_lkb(struct dlm_ls *ls,
- 	mutex_init(&lkb->lkb_cb_mutex);
- 	INIT_WORK(&lkb->lkb_cb_work, dlm_callback_work);
- 
-- retry:
--	rv = idr_pre_get(&ls->ls_lkbidr, GFP_NOFS);
--	if (!rv)
--		return -ENOMEM;
+-	do {
+-		if (unlikely(!idr_pre_get(idr, GFP_KERNEL)))
+-			return -ENOMEM;
 -
-+	idr_preload(GFP_NOFS);
- 	spin_lock(&ls->ls_lkbidr_spin);
--	rv = idr_get_new_above(&ls->ls_lkbidr, lkb, 1, &id);
--	if (!rv)
--		lkb->lkb_id = id;
-+	rv = idr_alloc(&ls->ls_lkbidr, lkb, 1, 0, GFP_NOWAIT);
-+	if (rv >= 0)
-+		lkb->lkb_id = rv;
- 	spin_unlock(&ls->ls_lkbidr_spin);
--
--	if (rv == -EAGAIN)
--		goto retry;
-+	idr_preload_end();
- 
- 	if (rv < 0) {
- 		log_error(ls, "create_lkb idr error %d", rv);
-diff -puN fs/dlm/recover.c~dlm-convert-to-idr_alloc fs/dlm/recover.c
---- a/fs/dlm/recover.c~dlm-convert-to-idr_alloc
-+++ a/fs/dlm/recover.c
-@@ -305,27 +305,26 @@ static int recover_idr_empty(struct dlm_
- static int recover_idr_add(struct dlm_rsb *r)
- {
- 	struct dlm_ls *ls = r->res_ls;
--	int rv, id;
--
--	rv = idr_pre_get(&ls->ls_recover_idr, GFP_NOFS);
--	if (!rv)
--		return -ENOMEM;
-+	int rv;
- 
-+	idr_preload(GFP_NOFS);
- 	spin_lock(&ls->ls_recover_idr_lock);
- 	if (r->res_id) {
--		spin_unlock(&ls->ls_recover_idr_lock);
--		return -1;
--	}
--	rv = idr_get_new_above(&ls->ls_recover_idr, r, 1, &id);
--	if (rv) {
--		spin_unlock(&ls->ls_recover_idr_lock);
--		return rv;
-+		rv = -1;
-+		goto out_unlock;
- 	}
--	r->res_id = id;
-+	rv = idr_alloc(&ls->ls_recover_idr, r, 1, 0, GFP_NOWAIT);
-+	if (rv < 0)
-+		goto out_unlock;
+-		spin_lock(idr_lock);
+-		ret = idr_get_new_above(idr, i_mark, *last_wd + 1,
+-					&i_mark->wd);
++	idr_preload(GFP_KERNEL);
++	spin_lock(idr_lock);
 +
-+	r->res_id = rv;
- 	ls->ls_recover_list_count++;
- 	dlm_hold_rsb(r);
-+	rv = 0;
-+out_unlock:
- 	spin_unlock(&ls->ls_recover_idr_lock);
--	return 0;
++	ret = idr_alloc(idr, i_mark, *last_wd + 1, 0, GFP_NOWAIT);
++	if (ret >= 0) {
+ 		/* we added the mark to the idr, take a reference */
+-		if (!ret) {
+-			*last_wd = i_mark->wd;
+-			fsnotify_get_mark(&i_mark->fsn_mark);
+-		}
+-		spin_unlock(idr_lock);
+-	} while (ret == -EAGAIN);
++		i_mark->wd = ret;
++		*last_wd = i_mark->wd;
++		fsnotify_get_mark(&i_mark->fsn_mark);
++	}
+ 
+-	return ret;
++	spin_unlock(idr_lock);
 +	idr_preload_end();
-+	return rv;
++	return ret < 0 ? ret : 0;
  }
  
- static void recover_idr_del(struct dlm_rsb *r)
+ static struct inotify_inode_mark *inotify_idr_find_locked(struct fsnotify_group *group,
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
