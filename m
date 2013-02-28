@@ -1,78 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ib-cxgb4-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:12 -0800
-Message-ID: <20130228201412.A0CD231C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ib-ipath-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:18 -0800
+Message-ID: <20130228201418.AE9F131C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:39354 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755297Ab3B1UON (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:13 -0500
-Received: by mail-qe0-f73.google.com with SMTP id a11so245178qen.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:13 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:42310 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757903Ab3B1UOT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:19 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so245047yen.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, swise@opengridcomputing.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, mike.marciniszyn@intel.com, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: IB/cxgb4: convert to idr_alloc()
+     Subject: IB/ipath: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     ib-cxgb4-convert-to-idr_alloc.patch
+     ib-ipath-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: IB/cxgb4: convert to idr_alloc()
+Subject: IB/ipath: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
+[yongjun_wei@trendmicro.com.cn: use GFP_NOWAIT under spin lock]
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   25 +++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_driver.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN drivers/infiniband/hw/cxgb4/iw_cxgb4.h~ib-cxgb4-convert-to-idr_alloc drivers/infiniband/hw/cxgb4/iw_cxgb4.h
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h~ib-cxgb4-convert-to-idr_alloc
-+++ a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -260,20 +260,21 @@ static inline int _insert_handle(struct 
- 				 void *handle, u32 id, int lock)
- {
+diff -puN drivers/infiniband/hw/ipath/ipath_driver.c~ib-ipath-convert-to-idr_alloc drivers/infiniband/hw/ipath/ipath_driver.c
+--- a/drivers/infiniband/hw/ipath/ipath_driver.c~ib-ipath-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/ipath/ipath_driver.c
+@@ -194,11 +194,6 @@ static struct ipath_devdata *ipath_alloc
+ 	struct ipath_devdata *dd;
  	int ret;
--	int newid;
  
--	do {
--		if (!idr_pre_get(idr, lock ? GFP_KERNEL : GFP_ATOMIC))
--			return -ENOMEM;
--		if (lock)
--			spin_lock_irq(&rhp->lock);
--		ret = idr_get_new_above(idr, handle, id, &newid);
--		BUG_ON(!ret && newid != id);
--		if (lock)
--			spin_unlock_irq(&rhp->lock);
--	} while (ret == -EAGAIN);
-+	if (lock) {
-+		idr_preload(GFP_KERNEL);
-+		spin_lock_irq(&rhp->lock);
-+	}
-+
-+	ret = idr_alloc(idr, handle, id, id + 1, GFP_ATOMIC);
-+
-+	if (lock) {
-+		spin_unlock_irq(&rhp->lock);
-+		idr_preload_end();
-+	}
+-	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
+-		dd = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+ 	dd = vzalloc(sizeof(*dd));
+ 	if (!dd) {
+ 		dd = ERR_PTR(-ENOMEM);
+@@ -206,9 +201,10 @@ static struct ipath_devdata *ipath_alloc
+ 	}
+ 	dd->ipath_unit = -1;
  
--	return ret;
-+	BUG_ON(ret == -ENOSPC);
-+	return ret < 0 ? ret : 0;
++	idr_preload(GFP_KERNEL);
+ 	spin_lock_irqsave(&ipath_devs_lock, flags);
+ 
+-	ret = idr_get_new(&unit_table, dd, &dd->ipath_unit);
++	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_NOWAIT);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR IPATH_DRV_NAME
+ 		       ": Could not allocate unit ID: error %d\n", -ret);
+@@ -216,6 +212,7 @@ static struct ipath_devdata *ipath_alloc
+ 		dd = ERR_PTR(ret);
+ 		goto bail_unlock;
+ 	}
++	dd->ipath_unit = ret;
+ 
+ 	dd->pcidev = pdev;
+ 	pci_set_drvdata(pdev, dd);
+@@ -224,7 +221,7 @@ static struct ipath_devdata *ipath_alloc
+ 
+ bail_unlock:
+ 	spin_unlock_irqrestore(&ipath_devs_lock, flags);
+-
++	idr_preload_end();
+ bail:
+ 	return dd;
  }
+@@ -2503,11 +2500,6 @@ static int __init infinipath_init(void)
+ 	 * the PCI subsystem.
+ 	 */
+ 	idr_init(&unit_table);
+-	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
+-		printk(KERN_ERR IPATH_DRV_NAME ": idr_pre_get() failed\n");
+-		ret = -ENOMEM;
+-		goto bail;
+-	}
  
- static inline int insert_handle(struct c4iw_dev *rhp, struct idr *idr,
+ 	ret = pci_register_driver(&ipath_driver);
+ 	if (ret < 0) {
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
