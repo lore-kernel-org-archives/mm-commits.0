@@ -1,76 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-9p-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:52 -0800
-Message-ID: <20130228201552.B43845A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] events-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:46 -0800
+Message-ID: <20130228201546.B6B105A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:52389 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758441Ab3B1UPx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:53 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so245218ggi.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:53 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:47830 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758441Ab3B1UPr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:47 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246605yhz.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
+To: tj@kernel.org, a.p.zijlstra@chello.nl, acme@ghostprotocols.net, mingo@redhat.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net/9p: convert to idr_alloc()
+     Subject: events: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     net-9p-convert-to-idr_alloc.patch
+     events-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: net/9p: convert to idr_alloc()
+Subject: events: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/util.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ kernel/events/core.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN net/9p/util.c~net-9p-convert-to-idr_alloc net/9p/util.c
---- a/net/9p/util.c~net-9p-convert-to-idr_alloc
-+++ a/net/9p/util.c
-@@ -87,23 +87,18 @@ EXPORT_SYMBOL(p9_idpool_destroy);
+diff -puN kernel/events/core.c~events-convert-to-idr_alloc kernel/events/core.c
+--- a/kernel/events/core.c~events-convert-to-idr_alloc
++++ a/kernel/events/core.c
+@@ -5965,13 +5965,9 @@ int perf_pmu_register(struct pmu *pmu, c
+ 	pmu->name = name;
  
- int p9_idpool_get(struct p9_idpool *p)
- {
--	int i = 0;
--	int error;
-+	int i;
- 	unsigned long flags;
- 
--retry:
--	if (idr_pre_get(&p->pool, GFP_NOFS) == 0)
--		return -1;
+ 	if (type < 0) {
+-		int err = idr_pre_get(&pmu_idr, GFP_KERNEL);
+-		if (!err)
+-			goto free_pdc;
 -
-+	idr_preload(GFP_NOFS);
- 	spin_lock_irqsave(&p->lock, flags);
- 
- 	/* no need to store exactly p, we just need something non-null */
--	error = idr_get_new(&p->pool, p, &i);
--	spin_unlock_irqrestore(&p->lock, flags);
-+	i = idr_alloc(&p->pool, p, 0, 0, GFP_NOWAIT);
- 
--	if (error == -EAGAIN)
--		goto retry;
--	else if (error)
-+	spin_unlock_irqrestore(&p->lock, flags);
-+	idr_preload_end();
-+	if (i < 0)
- 		return -1;
- 
- 	p9_debug(P9_DEBUG_MUX, " id %d pool %p\n", i, p);
+-		err = idr_get_new_above(&pmu_idr, pmu, PERF_TYPE_MAX, &type);
+-		if (err) {
+-			ret = err;
++		type = idr_alloc(&pmu_idr, pmu, PERF_TYPE_MAX, 0, GFP_KERNEL);
++		if (type < 0) {
++			ret = type;
+ 			goto free_pdc;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
