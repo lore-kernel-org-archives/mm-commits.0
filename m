@@ -1,76 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scsi-lpfc-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:18 -0800
-Message-ID: <20130228201518.B933F31C211@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] thermal-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:21 -0800
+Message-ID: <20130228201521.9D99E31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:34498 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758236Ab3B1UPT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:19 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so261370qaj.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:19 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:37529 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758236Ab3B1UPW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:22 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so245255yen.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, James.Bottomley@HansenPartnership.com, james.smart@emulex.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scsi/lpfc: convert to idr_alloc()
+     Subject: thermal: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     scsi-lpfc-convert-to-idr_alloc.patch
+     thermal-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: scsi/lpfc: convert to idr_alloc()
+Subject: thermal: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: James Smart <james.smart@emulex.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/thermal/cpu_cooling.c |   17 +++++------------
+ drivers/thermal/thermal_sys.c |   17 +++++------------
+ 2 files changed, 10 insertions(+), 24 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-convert-to-idr_alloc drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-convert-to-idr_alloc
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -3165,14 +3165,10 @@ destroy_port(struct lpfc_vport *vport)
- int
- lpfc_get_instance(void)
+diff -puN drivers/thermal/cpu_cooling.c~thermal-convert-to-idr_alloc drivers/thermal/cpu_cooling.c
+--- a/drivers/thermal/cpu_cooling.c~thermal-convert-to-idr_alloc
++++ a/drivers/thermal/cpu_cooling.c
+@@ -73,21 +73,14 @@ static struct cpufreq_cooling_device *no
+  */
+ static int get_idr(struct idr *idr, int *id)
  {
--	int instance = 0;
+-	int err;
+-again:
+-	if (unlikely(idr_pre_get(idr, GFP_KERNEL) == 0))
+-		return -ENOMEM;
 +	int ret;
  
--	/* Assign an unused number */
--	if (!idr_pre_get(&lpfc_hba_index, GFP_KERNEL))
--		return -1;
--	if (idr_get_new(&lpfc_hba_index, NULL, &instance))
--		return -1;
--	return instance;
-+	ret = idr_alloc(&lpfc_hba_index, NULL, 0, 0, GFP_KERNEL);
-+	return ret < 0 ? -1 : ret;
+ 	mutex_lock(&cooling_cpufreq_lock);
+-	err = idr_get_new(idr, NULL, id);
++	ret = idr_alloc(idr, NULL, 0, 0, GFP_KERNEL);
+ 	mutex_unlock(&cooling_cpufreq_lock);
+-
+-	if (unlikely(err == -EAGAIN))
+-		goto again;
+-	else if (unlikely(err))
+-		return err;
+-
+-	*id = *id & MAX_IDR_MASK;
++	if (unlikely(ret < 0))
++		return ret;
++	*id = ret;
+ 	return 0;
  }
  
- /**
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-origin.patch
-linux-next.patch
-slub-correctly-bootstrap-boot-caches.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-
+diff -puN drivers/thermal/thermal_sys.c~thermal-convert-to-idr_alloc drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-convert-to-idr_alloc
++++ a/drivers/thermal/thermal_sys.c
+@@ -132,23 +132,16 @@ EXPORT_SYMBOL_GPL(thermal_unregister_gov
+ 
+ static int get_idr(struct idr *idr, struct mutex *lock, int *id)
+ {
+-	int err;
+-
+-again:
+-	if (unlikely(idr_pre_get(idr, GFP_KERNEL) == 0))
+-		return -ENOMEM;
++	int ret;
+ 
+ 	if (lock)
+ 		mutex_lock(lock);
+-	err = idr_get_new(idr, NULL, id);
++	ret = idr_alloc(idr, NULL, 0, 0, GFP_KERNEL);
+ 	if (lock)
+ 		mutex_unlock(lock);
+-	if (unlikely(err == -EAGAIN))
+-		goto again;
+-	else if (unlikely(err))
+-		return err;
