@@ -1,95 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idr-fix-a-subtle-bug-in-idr_get_next.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:25 -0800
-Message-ID: <20130228201225.DC4EE31C0A0__1511.3586247482$1362082387$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drm-dont-use-idr_remove_all.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:36 -0800
+Message-ID: <20130228201237.28F9131C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:42742 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756866Ab3B1UM1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:27 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so244921qea.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:26 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:54419 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753948Ab3B1UMi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:38 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so244649vcd.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, kamezawa.hiroyu@jp.fujitsu.com, stable@vger.kernel.org, teigland@redhat.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, airlied@linux.ie, inki.dae@samsung.com, jy0922.shim@samsung.com, kyungmin.park@samsung.com, sw0312.kim@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr: fix a subtle bug in idr_get_next()
+     Subject: drm: don't use idr_remove_all()
 has been removed from the -mm tree.  Its filename was
-     idr-fix-a-subtle-bug-in-idr_get_next.patch
+     drm-dont-use-idr_remove_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: idr: fix a subtle bug in idr_get_next()
+Subject: drm: don't use idr_remove_all()
 
-The iteration logic of idr_get_next() is borrowed mostly verbatim from
-idr_for_each().  It walks down the tree looking for the slot matching
-the current ID.  If the matching slot is not found, the ID is
-incremented by the distance of single slot at the given level and
-repeats.
+idr_destroy() can destroy idr by itself and idr_remove_all() is being
+deprecated.  Drop its usage.
 
-The implementation assumes that during the whole iteration id is
-aligned to the layer boundaries of the level closest to the leaf,
-which is true for all iterations starting from zero or an existing
-element and thus is fine for idr_for_each().
-
-However, idr_get_next() may be given any point and if the starting id
-hits in the middle of a non-existent layer, increment to the next
-layer will end up skipping the same offset into it.  For example, an
-IDR with IDs filled between [64, 127] would look like the following.
-
-          [  0  64 ... ]
-       /----/   |
-       |        |
-      NULL    [ 64 ... 127 ]
-
-If idr_get_next() is called with 63 as the starting point, it will try
-to follow down the pointer from 0.  As it is NULL, it will then try to
-proceed to the next slot in the same level by adding the slot distance
-at that level which is 64 - making the next try 127.  It goes around
-the loop and finds and returns 127 skipping [64, 126].
-
-Note that this bug also triggers in idr_for_each_entry() loop which
-deletes during iteration as deletions can make layers go away leaving
-the iteration with unaligned ID into missing layers.
-
-Fix it by ensuring proceeding to the next slot doesn't carry over the
-unaligned offset - ie. use round_up(id + 1, slot_distance) instead of
-id += slot_distance.
+* drm_ctxbitmap_cleanup() was calling idr_remove_all() but forgetting
+  idr_destroy() thus leaking all buffered free idr_layers.  Replace it
+  with idr_destroy().
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: David Teigland <teigland@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: David Airlie <airlied@linux.ie>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/drm_context.c           |    2 +-
+ drivers/gpu/drm/drm_crtc.c              |    1 -
+ drivers/gpu/drm/drm_drv.c               |    1 -
+ drivers/gpu/drm/drm_gem.c               |    2 --
+ drivers/gpu/drm/exynos/exynos_drm_ipp.c |    4 ----
+ drivers/gpu/drm/sis/sis_drv.c           |    1 -
+ drivers/gpu/drm/via/via_map.c           |    1 -
+ 7 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-a-subtle-bug-in-idr_get_next lib/idr.c
---- a/lib/idr.c~idr-fix-a-subtle-bug-in-idr_get_next
-+++ a/lib/idr.c
-@@ -625,7 +625,14 @@ void *idr_get_next(struct idr *idp, int 
- 			return p;
- 		}
+diff -puN drivers/gpu/drm/drm_context.c~drm-dont-use-idr_remove_all drivers/gpu/drm/drm_context.c
+--- a/drivers/gpu/drm/drm_context.c~drm-dont-use-idr_remove_all
++++ a/drivers/gpu/drm/drm_context.c
+@@ -118,7 +118,7 @@ int drm_ctxbitmap_init(struct drm_device
+ void drm_ctxbitmap_cleanup(struct drm_device * dev)
+ {
+ 	mutex_lock(&dev->struct_mutex);
+-	idr_remove_all(&dev->ctx_idr);
++	idr_destroy(&dev->ctx_idr);
+ 	mutex_unlock(&dev->struct_mutex);
+ }
  
--		id += 1 << n;
-+		/*
-+		 * Proceed to the next layer at the current level.  Unlike
-+		 * idr_for_each(), @id isn't guaranteed to be aligned to
-+		 * layer boundary at this point and adding 1 << n may
-+		 * incorrectly skip IDs.  Make sure we jump to the
-+		 * beginning of the next layer using round_up().
-+		 */
-+		id = round_up(id + 1, 1 << n);
- 		while (n < fls(id)) {
- 			n += IDR_BITS;
- 			p = *--paa;
+diff -puN drivers/gpu/drm/drm_crtc.c~drm-dont-use-idr_remove_all drivers/gpu/drm/drm_crtc.c
+--- a/drivers/gpu/drm/drm_crtc.c~drm-dont-use-idr_remove_all
++++ a/drivers/gpu/drm/drm_crtc.c
+@@ -1272,7 +1272,6 @@ void drm_mode_config_cleanup(struct drm_
+ 		crtc->funcs->destroy(crtc);
+ 	}
+ 
+-	idr_remove_all(&dev->mode_config.crtc_idr);
+ 	idr_destroy(&dev->mode_config.crtc_idr);
+ }
+ EXPORT_SYMBOL(drm_mode_config_cleanup);
+diff -puN drivers/gpu/drm/drm_drv.c~drm-dont-use-idr_remove_all drivers/gpu/drm/drm_drv.c
+--- a/drivers/gpu/drm/drm_drv.c~drm-dont-use-idr_remove_all
++++ a/drivers/gpu/drm/drm_drv.c
+@@ -297,7 +297,6 @@ static void __exit drm_core_exit(void)
+ 
+ 	unregister_chrdev(DRM_MAJOR, "drm");
+ 
+-	idr_remove_all(&drm_minors_idr);
+ 	idr_destroy(&drm_minors_idr);
+ }
+ 
+diff -puN drivers/gpu/drm/drm_gem.c~drm-dont-use-idr_remove_all drivers/gpu/drm/drm_gem.c
+--- a/drivers/gpu/drm/drm_gem.c~drm-dont-use-idr_remove_all
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -561,8 +561,6 @@ drm_gem_release(struct drm_device *dev, 
+ {
+ 	idr_for_each(&file_private->object_idr,
+ 		     &drm_gem_object_release_handle, file_private);
+-
+-	idr_remove_all(&file_private->object_idr);
+ 	idr_destroy(&file_private->object_idr);
+ }
+ 
+diff -puN drivers/gpu/drm/exynos/exynos_drm_ipp.c~drm-dont-use-idr_remove_all drivers/gpu/drm/exynos/exynos_drm_ipp.c
+--- a/drivers/gpu/drm/exynos/exynos_drm_ipp.c~drm-dont-use-idr_remove_all
++++ a/drivers/gpu/drm/exynos/exynos_drm_ipp.c
+@@ -1786,8 +1786,6 @@ err_iommu:
+ 			drm_iommu_detach_device(drm_dev, ippdrv->dev);
+ 
+ err_idr:
+-	idr_remove_all(&ctx->ipp_idr);
+-	idr_remove_all(&ctx->prop_idr);
+ 	idr_destroy(&ctx->ipp_idr);
+ 	idr_destroy(&ctx->prop_idr);
+ 	return ret;
+@@ -1965,8 +1963,6 @@ static int ipp_remove(struct platform_de
+ 	exynos_drm_subdrv_unregister(&ctx->subdrv);
+ 
+ 	/* remove,destroy ipp idr */
+-	idr_remove_all(&ctx->ipp_idr);
+-	idr_remove_all(&ctx->prop_idr);
+ 	idr_destroy(&ctx->ipp_idr);
+ 	idr_destroy(&ctx->prop_idr);
+ 
+diff -puN drivers/gpu/drm/sis/sis_drv.c~drm-dont-use-idr_remove_all drivers/gpu/drm/sis/sis_drv.c
+--- a/drivers/gpu/drm/sis/sis_drv.c~drm-dont-use-idr_remove_all
++++ a/drivers/gpu/drm/sis/sis_drv.c
+@@ -58,7 +58,6 @@ static int sis_driver_unload(struct drm_
+ {
+ 	drm_sis_private_t *dev_priv = dev->dev_private;
+ 
+-	idr_remove_all(&dev_priv->object_idr);
+ 	idr_destroy(&dev_priv->object_idr);
+ 
+ 	kfree(dev_priv);
+diff -puN drivers/gpu/drm/via/via_map.c~drm-dont-use-idr_remove_all drivers/gpu/drm/via/via_map.c
+--- a/drivers/gpu/drm/via/via_map.c~drm-dont-use-idr_remove_all
++++ a/drivers/gpu/drm/via/via_map.c
+@@ -120,7 +120,6 @@ int via_driver_unload(struct drm_device 
+ {
+ 	drm_via_private_t *dev_priv = dev->dev_private;
+ 
+-	idr_remove_all(&dev_priv->object_idr);
+ 	idr_destroy(&dev_priv->object_idr);
+ 
+ 	kfree(dev_priv);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
