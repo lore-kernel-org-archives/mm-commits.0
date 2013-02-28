@@ -1,96 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroup-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:43 -0800
-Message-ID: <20130228201543.BA45D5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] posix-timers-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:49 -0800
+Message-ID: <20130228201549.B11AE5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:49062 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758305Ab3B1UPp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:45 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so245248qea.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:44 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:41790 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758441Ab3B1UPu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:50 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so245132ves.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, lizefan@huawei.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: convert to idr_alloc()
+     Subject: posix-timers: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     cgroup-convert-to-idr_alloc.patch
+     posix-timers-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: cgroup: convert to idr_alloc()
+Subject: posix-timers: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Li Zefan <lizefan@huawei.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ kernel/posix-timers.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-convert-to-idr_alloc kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-convert-to-idr_alloc
-+++ a/kernel/cgroup.c
-@@ -5320,7 +5320,7 @@ EXPORT_SYMBOL_GPL(free_css_id);
- static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
- {
- 	struct css_id *newid;
--	int myid, error, size;
-+	int ret, size;
+diff -puN kernel/posix-timers.c~posix-timers-convert-to-idr_alloc kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-convert-to-idr_alloc
++++ a/kernel/posix-timers.c
+@@ -552,24 +552,22 @@ SYSCALL_DEFINE3(timer_create, const cloc
+ 		return -EAGAIN;
  
- 	BUG_ON(!ss->use_id);
- 
-@@ -5328,35 +5328,24 @@ static struct css_id *get_new_cssid(stru
- 	newid = kzalloc(size, GFP_KERNEL);
- 	if (!newid)
- 		return ERR_PTR(-ENOMEM);
--	/* get id */
--	if (unlikely(!idr_pre_get(&ss->idr, GFP_KERNEL))) {
--		error = -ENOMEM;
--		goto err_out;
+ 	spin_lock_init(&new_timer->it_lock);
+- retry:
+-	if (unlikely(!idr_pre_get(&posix_timers_id, GFP_KERNEL))) {
+-		error = -EAGAIN;
+-		goto out;
 -	}
 +
 +	idr_preload(GFP_KERNEL);
- 	spin_lock(&ss->id_lock);
- 	/* Don't use 0. allocates an ID of 1-65535 */
--	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
-+	ret = idr_alloc(&ss->idr, newid, 1, CSS_ID_MAX + 1, GFP_NOWAIT);
- 	spin_unlock(&ss->id_lock);
-+	idr_preload_end();
- 
- 	/* Returns error when there are no free spaces for new ID.*/
+ 	spin_lock_irq(&idr_lock);
+-	error = idr_get_new(&posix_timers_id, new_timer, &new_timer_id);
++	error = idr_alloc(&posix_timers_id, new_timer, 0, 0, GFP_NOWAIT);
+ 	spin_unlock_irq(&idr_lock);
 -	if (error) {
--		error = -ENOSPC;
-+	if (ret < 0)
- 		goto err_out;
--	}
--	if (myid > CSS_ID_MAX)
--		goto remove_idr;
+-		if (error == -EAGAIN)
+-			goto retry;
++	idr_preload_end();
++	if (error < 0) {
+ 		/*
+ 		 * Weird looking, but we return EAGAIN if the IDR is
+ 		 * full (proper POSIX return value for this)
+ 		 */
+-		error = -EAGAIN;
++		if (error == -ENOSPC)
++			error = -EAGAIN;
+ 		goto out;
+ 	}
++	new_timer_id = error;
  
--	newid->id = myid;
-+	newid->id = ret;
- 	newid->depth = depth;
- 	return newid;
--remove_idr:
--	error = -ENOSPC;
--	spin_lock(&ss->id_lock);
--	idr_remove(&ss->idr, myid);
--	spin_unlock(&ss->id_lock);
- err_out:
- 	kfree(newid);
--	return ERR_PTR(error);
-+	return ERR_PTR(ret);
- 
- }
- 
+ 	it_id_set = IT_ID_SET;
+ 	new_timer->it_id = (timer_t) new_timer_id;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
