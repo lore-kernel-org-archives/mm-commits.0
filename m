@@ -1,70 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drm-vmwgfx-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:13:57 -0800
-Message-ID: <20130228201357.AB54131C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ib-amso1100-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:06 -0800
+Message-ID: <20130228201406.AD4935A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:44099 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755297Ab3B1UN6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:58 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so244771vcd.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:58 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:59284 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755297Ab3B1UOH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:07 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246549yhz.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: tj@kernel.org, swise@opengridcomputing.com, tom@opengridcomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/vmwgfx: convert to idr_alloc()
+     Subject: IB/amso1100: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     drm-vmwgfx-convert-to-idr_alloc.patch
+     ib-amso1100-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: drm/vmwgfx: convert to idr_alloc()
+Subject: IB/amso1100: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: David Airlie <airlied@linux.ie>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Tucker <tom@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/amso1100/c2_qp.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drm-vmwgfx-convert-to-idr_alloc drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drm-vmwgfx-convert-to-idr_alloc
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
-@@ -177,17 +177,16 @@ int vmw_resource_alloc_id(struct vmw_res
+diff -puN drivers/infiniband/hw/amso1100/c2_qp.c~ib-amso1100-convert-to-idr_alloc drivers/infiniband/hw/amso1100/c2_qp.c
+--- a/drivers/infiniband/hw/amso1100/c2_qp.c~ib-amso1100-convert-to-idr_alloc
++++ a/drivers/infiniband/hw/amso1100/c2_qp.c
+@@ -382,14 +382,17 @@ static int c2_alloc_qpn(struct c2_dev *c
+ {
+ 	int ret;
  
- 	BUG_ON(res->id != -1);
- 
--	do {
--		if (unlikely(idr_pre_get(idr, GFP_KERNEL) == 0))
--			return -ENOMEM;
--
--		write_lock(&dev_priv->resource_lock);
--		ret = idr_get_new_above(idr, res, 1, &res->id);
--		write_unlock(&dev_priv->resource_lock);
-+	idr_preload(GFP_KERNEL);
-+	write_lock(&dev_priv->resource_lock);
- 
--	} while (ret == -EAGAIN);
-+	ret = idr_alloc(idr, res, 1, 0, GFP_NOWAIT);
-+	if (ret >= 0)
-+		res->id = ret;
- 
+-        do {
+-		spin_lock_irq(&c2dev->qp_table.lock);
+-		ret = idr_get_new_above(&c2dev->qp_table.idr, qp,
+-					c2dev->qp_table.last++, &qp->qpn);
+-		spin_unlock_irq(&c2dev->qp_table.lock);
+-        } while ((ret == -EAGAIN) &&
+-	 	 idr_pre_get(&c2dev->qp_table.idr, GFP_KERNEL));
 -	return ret;
-+	write_unlock(&dev_priv->resource_lock);
++	idr_preload(GFP_KERNEL);
++	spin_lock_irq(&c2dev->qp_table.lock);
++
++	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
++			GFP_NOWAIT);
++	if (ret >= 0)
++		qp->qpn = ret;
++
++	spin_unlock_irq(&c2dev->qp_table.lock);
 +	idr_preload_end();
 +	return ret < 0 ? ret : 0;
  }
  
- /**
+ static void c2_free_qpn(struct c2_dev *c2dev, int qpn)
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
