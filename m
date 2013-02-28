@@ -1,88 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:11:52 -0800
-Message-ID: <20130228201152.D0A945A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] seq-file-use-seek_-macros-instead-of-hardcoded-numbers.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:11:55 -0800
+Message-ID: <20130228201155.AED2931C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:63929 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781Ab3B1ULy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:54 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so244575vcd.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:53 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:49540 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3B1UL4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:56 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so244631ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: msb@chromium.org, benchan@chromium.org, mingo@redhat.com, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: use a freezable_schedule for the coredump_finish wait
+     Subject: seq-file: use SEEK_ macros instead of hardcoded numbers
 has been removed from the -mm tree.  Its filename was
-     coredump-use-a-freezable_schedule-for-the-coredump_finish-wait.patch
+     seq-file-use-seek_-macros-instead-of-hardcoded-numbers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mandeep Singh Baines <msb@chromium.org>
-Subject: coredump: use a freezable_schedule for the coredump_finish wait
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: seq-file: use SEEK_ macros instead of hardcoded numbers
 
-Prevents hung_task detector from panicing the machine. This is also
-needed to prevent this wait from blocking suspend.
-
-(It doesnt' currently block suspend but it would once the next
-patch in this series is applied.)
-
-[yongjun_wei@trendmicro.com.cn: kernel/exit.c: remove duplicated include]
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Ben Chan <benchan@chromium.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@redhat.com>
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 ++--
+ fs/seq_file.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~coredump-use-a-freezable_schedule-for-the-coredump_finish-wait kernel/exit.c
---- a/kernel/exit.c~coredump-use-a-freezable_schedule-for-the-coredump_finish-wait
-+++ a/kernel/exit.c
-@@ -20,6 +20,7 @@
- #include <linux/tsacct_kern.h>
- #include <linux/file.h>
- #include <linux/fdtable.h>
-+#include <linux/freezer.h>
- #include <linux/binfmts.h>
- #include <linux/nsproxy.h>
- #include <linux/pid_namespace.h>
-@@ -31,7 +32,6 @@
- #include <linux/mempolicy.h>
- #include <linux/taskstats_kern.h>
- #include <linux/delayacct.h>
--#include <linux/freezer.h>
- #include <linux/cgroup.h>
- #include <linux/syscalls.h>
- #include <linux/signal.h>
-@@ -485,7 +485,7 @@ static void exit_mm(struct task_struct *
- 			set_task_state(tsk, TASK_UNINTERRUPTIBLE);
- 			if (!self.task) /* see coredump_finish() */
+diff -puN fs/seq_file.c~seq-file-use-seek_-macros-instead-of-hardcoded-numbers fs/seq_file.c
+--- a/fs/seq_file.c~seq-file-use-seek_-macros-instead-of-hardcoded-numbers
++++ a/fs/seq_file.c
+@@ -308,9 +308,9 @@ loff_t seq_lseek(struct file *file, loff
+ 	mutex_lock(&m->lock);
+ 	m->version = file->f_version;
+ 	switch (whence) {
+-		case 1:
++		case SEEK_CUR:
+ 			offset += file->f_pos;
+-		case 0:
++		case SEEK_SET:
+ 			if (offset < 0)
  				break;
--			schedule();
-+			freezable_schedule();
- 		}
- 		__set_task_state(tsk, TASK_RUNNING);
- 		down_read(&mm->mmap_sem);
+ 			retval = offset;
 _
 
-Patches currently in -mm which might be from msb@chromium.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
+arm-wire-up-kcmp-syscall.patch
+kernel-sysc-make-prctlpr_set_mm-generally-available.patch
 
