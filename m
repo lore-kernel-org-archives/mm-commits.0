@@ -1,233 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idr-remove-length-restriction-from-idr_layer-bitmap.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:16:11 -0800
-Message-ID: <20130228201611.EF82D5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:16:08 -0800
+Message-ID: <20130228201608.C268D31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:55544 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756813Ab3B1UQN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:13 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so261461qah.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:12 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:56859 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756813Ab3B1UQK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:16:10 -0500
+Received: by mail-qc0-f201.google.com with SMTP id o22so39883qcr.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:16:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, hal.rosenstock@gmail.com, jackm@dev.mellanox.co.il, khali@linux-fr.org, mike.marciniszyn@intel.com, ogerlitz@mellanox.com, roland@kernel.org, sean.hefty@intel.com, viro@zeniv.linux.org.uk, wolfram@the-dreams.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr: remove length restriction from idr_layer->bitmap
+     Subject: idr: remove MAX_IDR_MASK and move left MAX_IDR_* into idr.c
 has been removed from the -mm tree.  Its filename was
-     idr-remove-length-restriction-from-idr_layer-bitmap.patch
+     idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: idr: remove length restriction from idr_layer->bitmap
+Subject: idr: remove MAX_IDR_MASK and move left MAX_IDR_* into idr.c
 
-Currently, idr->bitmap is declared as an unsigned long which restricts
-the number of bits an idr_layer can contain.  All bitops can handle
-arbitrary positive integer bit number and there's no reason for this
-restriction.
+MAX_IDR_MASK is another weirdness in the idr interface.  As idr covers
+whole positive integer range, it's defined as 0x7fffffff or INT_MAX.
 
-Declare idr_layer->bitmap using DECLARE_BITMAP() instead of a single
-unsigned long.
+Its usage in idr_find(), idr_replace() and idr_remove() is bizarre.
+They basically mask off the sign bit and operate on the rest, so if
+the caller, by accident, passes in a negative number, the sign bit
+will be masked off and the remaining part will be used as if that was
+the input, which is worse than crashing.
 
-* idr_layer->bitmap is now an array.  '&' dropped from params to
-  bitops.
+The constant is visible in idr.h and there are several users in the
+kernel.
 
-* Replaced "== IDR_FULL" tests with bitmap_full() and removed
-  IDR_FULL.
+* drivers/i2c/i2c-core.c:i2c_add_numbered_adapter()
 
-* Replaced find_next_bit() on ~bitmap with find_next_zero_bit().
+  Basically used to test if adap->nr is a negative number which isn't
+  -1 and returns -EINVAL if so.  idr_alloc() already has negative
+  @start checking (w/ WARN_ON_ONCE), so this can go away.
 
-* Replaced "bitmap = 0" with bitmap_clear().
+* drivers/infiniband/core/cm.c:cm_alloc_id()
+  drivers/infiniband/hw/mlx4/cm.c:id_map_alloc()
 
-This patch doesn't (or at least shouldn't) introduce any behavior
-changes.
+  Used to wrap cyclic @start.  Can be replaced with max(next, 0).
+  Note that this type of cyclic allocation using idr is buggy.  These
+  are prone to spurious -ENOSPC failure after the first wraparound.
 
-[akpm@linux-foundation.org: checkpatch fixes]
+* fs/super.c:get_anon_bdev()
+
+  The ID allocated from ida is masked off before being tested whether
+  it's inside valid range.  ida allocated ID can never be a negative
+  number and the masking is unnecessary.
+
+Update idr_*() functions to fail with -EINVAL when negative @id is
+specified and update other MAX_IDR_MASK users as described above.
+
+This leaves MAX_IDR_MASK without any user, remove it and relocate
+other MAX_IDR_* constants to lib/idr.c.
+
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Wolfram Sang <wolfram@the-dreams.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   12 +-----------
- lib/idr.c           |   34 +++++++++++++++++-----------------
- 2 files changed, 18 insertions(+), 28 deletions(-)
+ drivers/i2c/i2c-core.c          |    2 --
+ drivers/infiniband/core/cm.c    |    2 +-
+ drivers/infiniband/hw/mlx4/cm.c |    2 +-
+ fs/super.c                      |    2 +-
+ include/linux/idr.h             |   10 ----------
+ lib/idr.c                       |   24 +++++++++++++++++-------
+ 6 files changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/idr.h~idr-remove-length-restriction-from-idr_layer-bitmap include/linux/idr.h
---- a/include/linux/idr.h~idr-remove-length-restriction-from-idr_layer-bitmap
-+++ a/include/linux/idr.h
-@@ -19,18 +19,8 @@
+diff -puN drivers/i2c/i2c-core.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc
++++ a/drivers/i2c/i2c-core.c
+@@ -979,8 +979,6 @@ int i2c_add_numbered_adapter(struct i2c_
  
- #if BITS_PER_LONG == 32
- # define IDR_BITS 5
--# define IDR_FULL 0xfffffffful
--/* We can only use two of the bits in the top level because there is
--   only one possible bit in the top level (5 bits * 7 levels = 35
--   bits, but you only use 31 bits in the id). */
--# define TOP_LEVEL_FULL (IDR_FULL >> 30)
- #elif BITS_PER_LONG == 64
- # define IDR_BITS 6
--# define IDR_FULL 0xfffffffffffffffful
--/* We can only use two of the bits in the top level because there is
--   only one possible bit in the top level (6 bits * 6 levels = 36
--   bits, but you only use 31 bits in the id). */
--# define TOP_LEVEL_FULL (IDR_FULL >> 62)
- #else
- # error "BITS_PER_LONG is not 32 or 64"
- #endif
-@@ -39,7 +29,7 @@
+ 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
+ 		return i2c_add_adapter(adap);
+-	if (adap->nr & ~MAX_IDR_MASK)
+-		return -EINVAL;
+ 
+ 	mutex_lock(&core_lock);
+ 	id = idr_alloc(&i2c_adapter_idr, adap, adap->nr, adap->nr + 1,
+diff -puN drivers/infiniband/core/cm.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc drivers/infiniband/core/cm.c
+--- a/drivers/infiniband/core/cm.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc
++++ a/drivers/infiniband/core/cm.c
+@@ -390,7 +390,7 @@ static int cm_alloc_id(struct cm_id_priv
+ 
+ 	id = idr_alloc(&cm.local_id_table, cm_id_priv, next_id, 0, GFP_NOWAIT);
+ 	if (id >= 0)
+-		next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
++		next_id = max(id + 1, 0);
+ 
+ 	spin_unlock_irqrestore(&cm.lock, flags);
+ 	idr_preload_end();
+diff -puN drivers/infiniband/hw/mlx4/cm.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc drivers/infiniband/hw/mlx4/cm.c
+--- a/drivers/infiniband/hw/mlx4/cm.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc
++++ a/drivers/infiniband/hw/mlx4/cm.c
+@@ -225,7 +225,7 @@ id_map_alloc(struct ib_device *ibdev, in
+ 
+ 	ret = idr_alloc(&sriov->pv_id_table, ent, next_id, 0, GFP_NOWAIT);
+ 	if (ret >= 0) {
+-		next_id = ((unsigned)ret + 1) & MAX_IDR_MASK;
++		next_id = max(ret + 1, 0);
+ 		ent->pv_cm_id = (u32)ret;
+ 		sl_id_map_add(ibdev, ent);
+ 		list_add_tail(&ent->list, &sriov->cm_list);
+diff -puN fs/super.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc fs/super.c
+--- a/fs/super.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc
++++ a/fs/super.c
+@@ -842,7 +842,7 @@ int get_anon_bdev(dev_t *p)
+ 	else if (error)
+ 		return -EAGAIN;
+ 
+-	if ((dev & MAX_IDR_MASK) == (1 << MINORBITS)) {
++	if (dev == (1 << MINORBITS)) {
+ 		spin_lock(&unnamed_dev_lock);
+ 		ida_remove(&unnamed_dev_ida, dev);
+ 		if (unnamed_dev_start > dev)
+diff -puN include/linux/idr.h~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc include/linux/idr.h
+--- a/include/linux/idr.h~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc
++++ a/include/linux/idr.h
+@@ -38,16 +38,6 @@
+ #define IDR_SIZE (1 << IDR_BITS)
  #define IDR_MASK ((1 << IDR_BITS)-1)
  
+-#define MAX_IDR_SHIFT (sizeof(int)*8 - 1)
+-#define MAX_IDR_BIT (1U << MAX_IDR_SHIFT)
+-#define MAX_IDR_MASK (MAX_IDR_BIT - 1)
+-
+-/* Leave the possibility of an incomplete final layer */
+-#define MAX_IDR_LEVEL ((MAX_IDR_SHIFT + IDR_BITS - 1) / IDR_BITS)
+-
+-/* Number of id_layer structs to leave in free list */
+-#define MAX_IDR_FREE (MAX_IDR_LEVEL * 2)
+-
  struct idr_layer {
--	unsigned long		bitmap;	/* A zero bit means "space here" */
-+	DECLARE_BITMAP(bitmap, IDR_SIZE); /* A zero bit means "space here" */
+ 	unsigned long		bitmap;	/* A zero bit means "space here" */
  	struct idr_layer __rcu	*ary[1<<IDR_BITS];
- 	int			count;	/* When zero, we can release it */
- 	int			layer;	/* distance from leaf */
-diff -puN lib/idr.c~idr-remove-length-restriction-from-idr_layer-bitmap lib/idr.c
---- a/lib/idr.c~idr-remove-length-restriction-from-idr_layer-bitmap
+diff -puN lib/idr.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc lib/idr.c
+--- a/lib/idr.c~idr-remove-max_idr_mask-and-move-left-max_idr_-into-idrc
 +++ a/lib/idr.c
-@@ -157,18 +157,18 @@ static void idr_mark_full(struct idr_lay
- 	struct idr_layer *p = pa[0];
- 	int l = 0;
+@@ -38,6 +38,15 @@
+ #include <linux/percpu.h>
+ #include <linux/hardirq.h>
  
--	__set_bit(id & IDR_MASK, &p->bitmap);
-+	__set_bit(id & IDR_MASK, p->bitmap);
- 	/*
- 	 * If this layer is full mark the bit in the layer above to
- 	 * show that this part of the radix tree is full.  This may
- 	 * complete the layer above and require walking up the radix
- 	 * tree.
- 	 */
--	while (p->bitmap == IDR_FULL) {
-+	while (bitmap_full(p->bitmap, IDR_SIZE)) {
- 		if (!(p = pa[++l]))
- 			break;
- 		id = id >> IDR_BITS;
--		__set_bit((id & IDR_MASK), &p->bitmap);
-+		__set_bit((id & IDR_MASK), p->bitmap);
- 	}
- }
++#define MAX_IDR_SHIFT		(sizeof(int) * 8 - 1)
++#define MAX_IDR_BIT		(1U << MAX_IDR_SHIFT)
++
++/* Leave the possibility of an incomplete final layer */
++#define MAX_IDR_LEVEL ((MAX_IDR_SHIFT + IDR_BITS - 1) / IDR_BITS)
++
++/* Number of id_layer structs to leave in free list */
++#define MAX_IDR_FREE (MAX_IDR_LEVEL * 2)
++
+ static struct kmem_cache *idr_layer_cache;
+ static DEFINE_PER_CPU(struct idr_layer *, idr_preload_head);
+ static DEFINE_PER_CPU(int, idr_preload_cnt);
+@@ -542,8 +551,8 @@ void idr_remove(struct idr *idp, int id)
+ 	struct idr_layer *p;
+ 	struct idr_layer *to_free;
  
-@@ -221,7 +221,6 @@ static int sub_alloc(struct idr *idp, in
- 	int n, m, sh;
- 	struct idr_layer *p, *new;
- 	int l, id, oid;
--	unsigned long bm;
+-	/* Mask off upper bits we don't use for the search. */
+-	id &= MAX_IDR_MASK;
++	if (WARN_ON_ONCE(id < 0))
++		return;
  
- 	id = *starting_id;
-  restart:
-@@ -233,8 +232,7 @@ static int sub_alloc(struct idr *idp, in
- 		 * We run around this while until we reach the leaf node...
- 		 */
- 		n = (id >> (IDR_BITS*l)) & IDR_MASK;
--		bm = ~p->bitmap;
--		m = find_next_bit(&bm, IDR_SIZE, n);
-+		m = find_next_zero_bit(p->bitmap, IDR_SIZE, n);
- 		if (m == IDR_SIZE) {
- 			/* no space available go back to previous layer. */
- 			l++;
-@@ -326,7 +324,8 @@ build_up:
- 			for (new = p; p && p != idp->top; new = p) {
- 				p = p->ary[0];
- 				new->ary[0] = NULL;
--				new->bitmap = new->count = 0;
-+				new->count = 0;
-+				bitmap_clear(new->bitmap, 0, IDR_SIZE);
- 				__move_to_free_list(idp, new);
- 			}
- 			spin_unlock_irqrestore(&idp->lock, flags);
-@@ -335,8 +334,8 @@ build_up:
- 		new->ary[0] = p;
- 		new->count = 1;
- 		new->layer = layers-1;
--		if (p->bitmap == IDR_FULL)
--			__set_bit(0, &new->bitmap);
-+		if (bitmap_full(p->bitmap, IDR_SIZE))
-+			__set_bit(0, new->bitmap);
- 		p = new;
- 	}
- 	rcu_assign_pointer(idp->top, p);
-@@ -517,14 +516,14 @@ static void sub_remove(struct idr *idp, 
+ 	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
+ 	if (idp->top && idp->top->count == 1 && (idp->layers > 1) &&
+@@ -650,14 +659,14 @@ void *idr_find(struct idr *idp, int id)
+ 	int n;
+ 	struct idr_layer *p;
  
- 	while ((shift > 0) && p) {
- 		n = (id >> shift) & IDR_MASK;
--		__clear_bit(n, &p->bitmap);
-+		__clear_bit(n, p->bitmap);
- 		*++paa = &p->ary[n];
- 		p = p->ary[n];
- 		shift -= IDR_BITS;
- 	}
- 	n = id & IDR_MASK;
--	if (likely(p != NULL && test_bit(n, &p->bitmap))){
--		__clear_bit(n, &p->bitmap);
-+	if (likely(p != NULL && test_bit(n, p->bitmap))) {
-+		__clear_bit(n, p->bitmap);
- 		rcu_assign_pointer(p->ary[n], NULL);
- 		to_free = NULL;
- 		while(*paa && ! --((**paa)->count)){
-@@ -567,7 +566,8 @@ void idr_remove(struct idr *idp, int id)
- 		p = idp->top->ary[0];
- 		rcu_assign_pointer(idp->top, p);
- 		--idp->layers;
--		to_free->bitmap = to_free->count = 0;
-+		to_free->count = 0;
-+		bitmap_clear(to_free->bitmap, 0, IDR_SIZE);
- 		free_layer(to_free);
- 	}
- 	while (idp->id_free_cnt >= MAX_IDR_FREE) {
-@@ -827,7 +827,7 @@ void *idr_replace(struct idr *idp, void 
- 	}
++	if (WARN_ON_ONCE(id < 0))
++		return NULL;
++
+ 	p = rcu_dereference_raw(idp->top);
+ 	if (!p)
+ 		return NULL;
+ 	n = (p->layer+1) * IDR_BITS;
  
- 	n = id & IDR_MASK;
--	if (unlikely(p == NULL || !test_bit(n, &p->bitmap)))
-+	if (unlikely(p == NULL || !test_bit(n, p->bitmap)))
- 		return ERR_PTR(-ENOENT);
+-	/* Mask off upper bits we don't use for the search. */
+-	id &= MAX_IDR_MASK;
+-
+ 	if (id > idr_max(p->layer + 1))
+ 		return NULL;
+ 	BUG_ON(n == 0);
+@@ -799,14 +808,15 @@ void *idr_replace(struct idr *idp, void 
+ 	int n;
+ 	struct idr_layer *p, *old_p;
  
- 	old_p = p->ary[n];
-@@ -1024,7 +1024,7 @@ void ida_remove(struct ida *ida, int id)
- 	/* clear full bits while looking up the leaf idr_layer */
- 	while ((shift > 0) && p) {
- 		n = (idr_id >> shift) & IDR_MASK;
--		__clear_bit(n, &p->bitmap);
-+		__clear_bit(n, p->bitmap);
- 		p = p->ary[n];
- 		shift -= IDR_BITS;
- 	}
-@@ -1033,7 +1033,7 @@ void ida_remove(struct ida *ida, int id)
- 		goto err;
++	if (WARN_ON_ONCE(id < 0))
++		return ERR_PTR(-EINVAL);
++
+ 	p = idp->top;
+ 	if (!p)
+ 		return ERR_PTR(-EINVAL);
  
- 	n = idr_id & IDR_MASK;
--	__clear_bit(n, &p->bitmap);
-+	__clear_bit(n, p->bitmap);
+ 	n = (p->layer+1) * IDR_BITS;
  
- 	bitmap = (void *)p->ary[n];
- 	if (!test_bit(offset, bitmap->bitmap))
-@@ -1042,7 +1042,7 @@ void ida_remove(struct ida *ida, int id)
- 	/* update bitmap and remove it if empty */
- 	__clear_bit(offset, bitmap->bitmap);
- 	if (--bitmap->nr_busy == 0) {
--		__set_bit(n, &p->bitmap);	/* to please idr_remove() */
-+		__set_bit(n, p->bitmap);	/* to please idr_remove() */
- 		idr_remove(&ida->idr, idr_id);
- 		free_bitmap(ida, bitmap);
- 	}
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-origin.patch
-linux-next.patch
-slub-correctly-bootstrap-boot-caches.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-
+-	id &= MAX_IDR_MASK;
