@@ -1,100 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:36 -0800
-Message-ID: <20130228201536.A44285A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] ipc-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:39 -0800
+Message-ID: <20130228201540.353AB31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:33245 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753547Ab3B1UPh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:37 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so39515vbi.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:37 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:59045 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758343Ab3B1UPl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:41 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246533yhz.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, ebiederm@xmission.com, jmorris@namei.org, sedat.dilek@gmail.com, skinsbursky@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: convert to idr_alloc()
+     Subject: ipc: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-convert-to-idr_alloc.patch
+     ipc-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: ocfs2: convert to idr_alloc()
+Subject: ipc: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
+The new interface doesn't directly translate to the way idr_pre_get()
+was used around ipc_addid() as preloading disables preemption.  From
+my cursory reading, it seems like we should be able to do all
+allocation from ipc_addid(), so I moved it there.  Can you please
+check whether this would be okay?  If this is wrong and ipc_addid()
+should be allowed to be called from non-sleepable context, I'd suggest
+allocating id itself in the outer functions and later install the
+pointer using idr_replace().
+
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Acked-by: Joel Becker <jlbec@evilplan.org>
+Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |   32 +++++++++++++-------------------
- 1 file changed, 13 insertions(+), 19 deletions(-)
+ ipc/util.c |   30 +++++++++---------------------
+ 1 file changed, 9 insertions(+), 21 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -304,28 +304,22 @@ static u8 o2net_num_from_nn(struct o2net
- 
- static int o2net_prep_nsw(struct o2net_node *nn, struct o2net_status_wait *nsw)
+diff -puN ipc/util.c~ipc-convert-to-idr_alloc ipc/util.c
+--- a/ipc/util.c~ipc-convert-to-idr_alloc
++++ a/ipc/util.c
+@@ -252,7 +252,7 @@ int ipc_addid(struct ipc_ids* ids, struc
  {
--	int ret = 0;
--
--	do {
--		if (!idr_pre_get(&nn->nn_status_idr, GFP_ATOMIC)) {
--			ret = -EAGAIN;
--			break;
--		}
--		spin_lock(&nn->nn_lock);
--		ret = idr_get_new(&nn->nn_status_idr, nsw, &nsw->ns_id);
--		if (ret == 0)
--			list_add_tail(&nsw->ns_node_item,
--				      &nn->nn_status_list);
--		spin_unlock(&nn->nn_lock);
--	} while (ret == -EAGAIN);
-+	int ret;
+ 	kuid_t euid;
+ 	kgid_t egid;
+-	int id, err;
++	int id;
+ 	int next_id = ids->next_id;
  
--	if (ret == 0)  {
--		init_waitqueue_head(&nsw->ns_wq);
--		nsw->ns_sys_status = O2NET_ERR_NONE;
--		nsw->ns_status = 0;
-+	spin_lock(&nn->nn_lock);
-+	ret = idr_alloc(&nn->nn_status_idr, nsw, 0, 0, GFP_ATOMIC);
-+	if (ret >= 0) {
-+		nsw->ns_id = ret;
-+		list_add_tail(&nsw->ns_node_item, &nn->nn_status_list);
+ 	if (size > IPCMNI)
+@@ -261,17 +261,21 @@ int ipc_addid(struct ipc_ids* ids, struc
+ 	if (ids->in_use >= size)
+ 		return -ENOSPC;
+ 
++	idr_preload(GFP_KERNEL);
++
+ 	spin_lock_init(&new->lock);
+ 	new->deleted = 0;
+ 	rcu_read_lock();
+ 	spin_lock(&new->lock);
+ 
+-	err = idr_get_new_above(&ids->ipcs_idr, new,
+-				(next_id < 0) ? 0 : ipcid_to_idx(next_id), &id);
+-	if (err) {
++	id = idr_alloc(&ids->ipcs_idr, new,
++		       (next_id < 0) ? 0 : ipcid_to_idx(next_id), 0,
++		       GFP_NOWAIT);
++	idr_preload_end();
++	if (id < 0) {
+ 		spin_unlock(&new->lock);
+ 		rcu_read_unlock();
+-		return err;
++		return id;
  	}
-+	spin_unlock(&nn->nn_lock);
-+	if (ret < 0)
-+		return ret;
  
--	return ret;
-+	init_waitqueue_head(&nsw->ns_wq);
-+	nsw->ns_sys_status = O2NET_ERR_NONE;
-+	nsw->ns_status = 0;
-+	return 0;
+ 	ids->in_use++;
+@@ -307,19 +311,10 @@ static int ipcget_new(struct ipc_namespa
+ 		struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	int err;
+-retry:
+-	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
+-
+-	if (!err)
+-		return -ENOMEM;
+ 
+ 	down_write(&ids->rw_mutex);
+ 	err = ops->getnew(ns, params);
+ 	up_write(&ids->rw_mutex);
+-
+-	if (err == -EAGAIN)
+-		goto retry;
+-
+ 	return err;
  }
  
- static void o2net_complete_nsw_locked(struct o2net_node *nn,
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-origin.patch
-linux-next.patch
-slub-correctly-bootstrap-boot-caches.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-
+@@ -376,8 +371,6 @@ static int ipcget_public(struct ipc_name
+ 	struct kern_ipc_perm *ipcp;
+ 	int flg = params->flg;
+ 	int err;
+-retry:
+-	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
+ 
+ 	/*
+ 	 * Take the lock as a writer since we are potentially going to add
+@@ -389,8 +382,6 @@ retry:
+ 		/* key not used */
+ 		if (!(flg & IPC_CREAT))
+ 			err = -ENOENT;
+-		else if (!err)
+-			err = -ENOMEM;
+ 		else
+ 			err = ops->getnew(ns, params);
+ 	} else {
+@@ -413,9 +404,6 @@ retry:
+ 	}
+ 	up_write(&ids->rw_mutex);
+ 
+-	if (err == -EAGAIN)
+-		goto retry;
