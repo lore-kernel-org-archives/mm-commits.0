@@ -1,55 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] inotify-dont-use-idr_remove_all.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:51 -0800
-Message-ID: <20130228201252.16DB231C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] dlm-dont-use-idr_remove_all.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:47 -0800
+Message-ID: <20130228201248.18FAE5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:38046 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757143Ab3B1UMx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:53 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so245088qea.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:52 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:42879 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757122Ab3B1UMt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:49 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so244713vch.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, ccaulfie@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: inotify: don't use idr_remove_all()
+     Subject: dlm: don't use idr_remove_all()
 has been removed from the -mm tree.  Its filename was
-     inotify-dont-use-idr_remove_all.patch
+     dlm-dont-use-idr_remove_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: inotify: don't use idr_remove_all()
+Subject: dlm: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
-deprecated.  Drop its usage.
+deprecated.
+
+The conversion isn't completely trivial for recover_idr_clear() as
+it's the only place in kernel which makes legitimate use of
+idr_remove_all() w/o idr_destroy().  Replace it with idr_remove() call
+inside idr_for_each_entry() loop.  It goes on top so that it matches
+the operation order in recover_idr_del().
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Eric Paris <eparis@parisplace.org>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_fsnotify.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/dlm/lockspace.c |    1 -
+ fs/dlm/recover.c   |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all fs/notify/inotify/inotify_fsnotify.c
---- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all
-+++ a/fs/notify/inotify/inotify_fsnotify.c
-@@ -197,7 +197,6 @@ static void inotify_free_group_priv(stru
- {
- 	/* ideally the idr is empty and we won't hit the BUG in the callback */
- 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
--	idr_remove_all(&group->inotify_data.idr);
- 	idr_destroy(&group->inotify_data.idr);
- 	atomic_dec(&group->inotify_data.user->inotify_devs);
- 	free_uid(group->inotify_data.user);
+diff -puN fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all fs/dlm/lockspace.c
+--- a/fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all
++++ a/fs/dlm/lockspace.c
+@@ -796,7 +796,6 @@ static int release_lockspace(struct dlm_
+ 	 */
+ 
+ 	idr_for_each(&ls->ls_lkbidr, lkb_idr_free, ls);
+-	idr_remove_all(&ls->ls_lkbidr);
+ 	idr_destroy(&ls->ls_lkbidr);
+ 
+ 	/*
+diff -puN fs/dlm/recover.c~dlm-dont-use-idr_remove_all fs/dlm/recover.c
+--- a/fs/dlm/recover.c~dlm-dont-use-idr_remove_all
++++ a/fs/dlm/recover.c
+@@ -359,13 +359,13 @@ static void recover_idr_clear(struct dlm
+ 	spin_lock(&ls->ls_recover_idr_lock);
+ 
+ 	idr_for_each_entry(&ls->ls_recover_idr, r, id) {
++		idr_remove(&ls->ls_recover_idr, id);
+ 		r->res_id = 0;
+ 		r->res_recover_locks_count = 0;
+ 		ls->ls_recover_list_count--;
+ 
+ 		dlm_put_rsb(r);
+ 	}
+-	idr_remove_all(&ls->ls_recover_idr);
+ 
+ 	if (ls->ls_recover_list_count != 0) {
+ 		log_error(ls, "warning: recover_list_count %d",
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
