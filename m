@@ -1,116 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fat-add-extended-fileds-to-struct-fat_boot_sector.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:11:21 -0800
-Message-ID: <20130228201121.B257531C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] hfsplus-fix-issue-with-unzeroed-unused-b-tree-nodes.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:11:17 -0800
+Message-ID: <20130228201118.6234131C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:54458 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781Ab3B1ULX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:23 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so244813vch.0
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:22 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:64832 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3B1ULT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:11:19 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246091yhz.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bug-track@fisher-privat.net, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: slava@dubeyko.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, kalaracey@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: add extended fileds to struct fat_boot_sector
+     Subject: hfsplus: fix issue with unzeroed unused b-tree nodes
 has been removed from the -mm tree.  Its filename was
-     fat-add-extended-fileds-to-struct-fat_boot_sector.patch
+     hfsplus-fix-issue-with-unzeroed-unused-b-tree-nodes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Oleksij Rempel <bug-track@fisher-privat.net>
-Subject: fat: add extended fileds to struct fat_boot_sector
+=46rom: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: hfsplus: fix issue with unzeroed unused b-tree nodes
 
-Later we will need "state" field to check if volume was cleanly unmounted.
+The fsck_hfs (under MacOS X) complains about unzeroed unused b-tree nod=
+es
+after deletion of folders' tree under Linux.
 
-Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+SYMPTOMS:
+Running Disk Utiltiy's "Verify Disk" on "test" gives the following:
+Verifying volume =E2=80=9CTest=E2=80=9D
+Checking file systemChecking Journaled HFS Plus volume.
+Checking extents overflow file.
+Checking catalog file.
+Unused node is not erased (node =3D 3111)
+Checking multi-linked files.
+Checking catalog hierarchy.
+Checking extended attributes file.
+Checking volume bitmap.
+Checking volume information.
+The volume Test was found corrupt and needs to be repaired.
+Error: This disk needs to be repaired. Click Repair Disk.
+
+REPRODUCING PATH:
+
+1. Prepare HFS+ (non-case sensitive) partition (for example, 5GB)
+   under MacOS X.
+2. Copy linux kernel source tree (for example, 3.7-rc6 version) on
+   this partition under MacOS X.
+3. Then switch to Linux and mount this prepared partition.
+4. Execute `sudo rm -r` under prepared directory with linux kernel
+   source tree.
+5. Unmount and boot back into OS X.
+6. Open up Disk Utility and verify partition.
+
+REPRODUCIBILITY: 100%
+
+=46IX:
+
+It is added code of node clearing in hfs_bnode_put() method for the cas=
+e
+when node has flag HFS_BNODE_DELETED.
+
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Reported-by: Kyle Laracey <kalaracey@gmail.com>
+Acked-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c                |    8 +++----
- include/uapi/linux/msdos_fs.h |   36 ++++++++++++++++++++++++--------
- 2 files changed, 32 insertions(+), 12 deletions(-)
+ fs/hfsplus/bnode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/fat/inode.c~fat-add-extended-fileds-to-struct-fat_boot_sector fs/fat/inode.c
---- a/fs/fat/inode.c~fat-add-extended-fileds-to-struct-fat_boot_sector
-+++ a/fs/fat/inode.c
-@@ -1298,17 +1298,17 @@ int fat_fill_super(struct super_block *s
- 	sbi->prev_free = FAT_START_ENT;
- 	sb->s_maxbytes = 0xffffffff;
- 
--	if (!sbi->fat_length && b->fat32_length) {
-+	if (!sbi->fat_length && b->fat32.length) {
- 		struct fat_boot_fsinfo *fsinfo;
- 		struct buffer_head *fsinfo_bh;
- 
- 		/* Must be FAT32 */
- 		sbi->fat_bits = 32;
--		sbi->fat_length = le32_to_cpu(b->fat32_length);
--		sbi->root_cluster = le32_to_cpu(b->root_cluster);
-+		sbi->fat_length = le32_to_cpu(b->fat32.length);
-+		sbi->root_cluster = le32_to_cpu(b->fat32.root_cluster);
- 
- 		/* MC - if info_sector is 0, don't multiply by 0 */
--		sbi->fsinfo_sector = le16_to_cpu(b->info_sector);
-+		sbi->fsinfo_sector = le16_to_cpu(b->fat32.info_sector);
- 		if (sbi->fsinfo_sector == 0)
- 			sbi->fsinfo_sector = 1;
- 
-diff -puN include/uapi/linux/msdos_fs.h~fat-add-extended-fileds-to-struct-fat_boot_sector include/uapi/linux/msdos_fs.h
---- a/include/uapi/linux/msdos_fs.h~fat-add-extended-fileds-to-struct-fat_boot_sector
-+++ a/include/uapi/linux/msdos_fs.h
-@@ -120,14 +120,34 @@ struct fat_boot_sector {
- 	__le32	hidden;		/* hidden sectors (unused) */
- 	__le32	total_sect;	/* number of sectors (if sectors == 0) */
- 
--	/* The following fields are only used by FAT32 */
--	__le32	fat32_length;	/* sectors/FAT */
--	__le16	flags;		/* bit 8: fat mirroring, low 4: active fat */
--	__u8	version[2];	/* major, minor filesystem version */
--	__le32	root_cluster;	/* first cluster in root directory */
--	__le16	info_sector;	/* filesystem info sector */
--	__le16	backup_boot;	/* backup boot sector */
--	__le16	reserved2[6];	/* Unused */
-+	union {
-+		struct {
-+			/*  Extended BPB Fields for FAT16 */
-+			__u8	drive_number;	/* Physical drive number */
-+			__u8	state;		/* undocumented, but used
-+						   for mount state. */
-+			/* other fiealds are not added here */
-+		} fat16;
-+
-+		struct {
-+			/* only used by FAT32 */
-+			__le32	length;		/* sectors/FAT */
-+			__le16	flags;		/* bit 8: fat mirroring,
-+						   low 4: active fat */
-+			__u8	version[2];	/* major, minor filesystem
-+						   version */
-+			__le32	root_cluster;	/* first cluster in
-+						   root directory */
-+			__le16	info_sector;	/* filesystem info sector */
-+			__le16	backup_boot;	/* backup boot sector */
-+			__le16	reserved2[6];	/* Unused */
-+			/* Extended BPB Fields for FAT32 */
-+			__u8	drive_number;   /* Physical drive number */
-+			__u8    state;       	/* undocumented, but used
-+						   for mount state. */
-+			/* other fiealds are not added here */
-+		} fat32;
-+	};
- };
- 
- struct fat_boot_fsinfo {
+diff -puN fs/hfsplus/bnode.c~hfsplus-fix-issue-with-unzeroed-unused-b-t=
+ree-nodes fs/hfsplus/bnode.c
+--- a/fs/hfsplus/bnode.c~hfsplus-fix-issue-with-unzeroed-unused-b-tree-=
+nodes
++++ a/fs/hfsplus/bnode.c
+@@ -648,6 +648,8 @@ void hfs_bnode_put(struct hfs_bnode *nod
+ 		if (test_bit(HFS_BNODE_DELETED, &node->flags)) {
+ 			hfs_bnode_unhash(node);
+ 			spin_unlock(&tree->hash_lock);
++			hfs_bnode_clear(node, 0,
++				PAGE_CACHE_SIZE * tree->pages_per_bnode);
+ 			hfs_bmap_free(node);
+ 			hfs_bnode_free(node);
+ 			return;
 _
 
-Patches currently in -mm which might be from bug-track@fisher-privat.net are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
 origin.patch
+hfsplus-add-all-necessary-declarations-for-acls-support.patch
+hfsplus-add-implementation-of-the-acls-support.patch
+hfsplus-integrate-of-implemented-acls-support-into-driver.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
