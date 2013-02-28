@@ -1,66 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] i2c-convert-to-idr_alloc-fix.patch removed from -mm tree
-Date: Wed, 27 Feb 2013 16:44:32 -0800
-Message-ID: <20130228004433.1C05131C071@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] i2c-convert-to-idr_alloc-fix-fix.patch removed from -mm tree
+Date: Wed, 27 Feb 2013 16:44:37 -0800
+Message-ID: <20130228004438.47C2C5A408F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:42768 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752497Ab3B1Aoe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:44:34 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so138959ves.3
-        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:44:33 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:40930 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752497Ab3B1Aoj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Feb 2013 19:44:39 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so139377ggi.1
+        for <mm-commits@vger.kernel.org>; Wed, 27 Feb 2013 16:44:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tj@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, wolfram@the-dreams.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: i2c-convert-to-idr_alloc-fix
+     Subject: i2c: style cleanups after idr_alloc() conversion
 has been removed from the -mm tree.  Its filename was
-     i2c-convert-to-idr_alloc-fix.patch
+     i2c-convert-to-idr_alloc-fix-fix.patch
 
 This patch was dropped because it was folded into i2c-convert-to-idr_alloc.patch
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: i2c-convert-to-idr_alloc-fix
+Subject: i2c: style cleanups after idr_alloc() conversion
 
-v2: The original conversion accidentally dropped a call to
-    i2c_register_adapter() in i2c_add_numbered_adapter() leaving @adap
-    uninitialized and unregistered.  Reported by Mark Brown.  Fix it.
+Style cleanups suggested by Wolfram.
+
+* s/res/id/ in i2c_add_numbered_adapter() so that it matches
+  i2c_add_adapter().
+
+* Add a blank line before return in i2c_add_numbered_adapter().
+
+This patch is purely cosmetic.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jean Delvare <khali@linux-fr.org>
 Cc: Wolfram Sang <wolfram@the-dreams.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/i2c-core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/i2c/i2c-core.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc-fix drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc-fix
+diff -puN drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc-fix-fix drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c~i2c-convert-to-idr_alloc-fix-fix
 +++ a/drivers/i2c/i2c-core.c
-@@ -978,6 +978,8 @@ int i2c_add_numbered_adapter(struct i2c_
- 
- 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
- 		return i2c_add_adapter(adap);
-+	if (adap->nr & ~MAX_IDR_MASK)
-+		return -EINVAL;
+@@ -935,16 +935,17 @@ out_list:
+  */
+ int i2c_add_adapter(struct i2c_adapter *adapter)
+ {
+-	int res;
++	int id;
  
  	mutex_lock(&core_lock);
- 	id = idr_alloc(&i2c_adapter_idr, adap, adap->nr, adap->nr + 1,
-@@ -985,7 +987,7 @@ int i2c_add_numbered_adapter(struct i2c_
+-	res = idr_alloc(&i2c_adapter_idr, adapter,
+-			__i2c_first_dynamic_bus_num, 0, GFP_KERNEL);
++	id = idr_alloc(&i2c_adapter_idr, adapter,
++		       __i2c_first_dynamic_bus_num, 0, GFP_KERNEL);
  	mutex_unlock(&core_lock);
- 	if (id < 0)
- 		return id == -ENOSPC ? -EBUSY : id;
--	return 0;
-+	return i2c_register_adapter(adap);
- }
- EXPORT_SYMBOL_GPL(i2c_add_numbered_adapter);
+-	if (res < 0)
+-		return res;
++	if (id < 0)
++		return id;
++
++	adapter->nr = id;
  
+-	adapter->nr = res;
+ 	return i2c_register_adapter(adapter);
+ }
+ EXPORT_SYMBOL(i2c_add_adapter);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
@@ -108,7 +119,6 @@ drm-sis-convert-to-idr_alloc.patch
 drm-via-convert-to-idr_alloc.patch
 drm-vmwgfx-convert-to-idr_alloc.patch
 i2c-convert-to-idr_alloc.patch
-i2c-convert-to-idr_alloc-fix-fix.patch
 ib-core-convert-to-idr_alloc.patch
 ib-amso1100-convert-to-idr_alloc.patch
 ib-cxgb3-convert-to-idr_alloc.patch
