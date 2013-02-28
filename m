@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-refactor-msg-list-search-into-separate-function.patch added to -mm tree
-Date: Thu, 28 Feb 2013 15:47:40 -0800
-Message-ID: <20130228234741.1E6BC31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-add-devm_rtc_device_registerunregister.patch added to -mm tree
+Date: Thu, 28 Feb 2013 15:50:47 -0800
+Message-ID: <20130228235047.9C7F831C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:45060 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192Ab3B1Xrm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:47:42 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so46012qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:47:41 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:57518 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509Ab3B1Xus (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:50:48 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so273032ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:50:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter@hurleysoftware.com, skinsbursky@parallels.com
+Cc: jg1.han@samsung.com, tj@kernel.org
 
 
 The patch titled
-     Subject: ipc: refactor msg list search into separate function
+     Subject: rtc: add devm_rtc_device_{register,unregister}()
 has been added to the -mm tree.  Its filename is
-     ipc-refactor-msg-list-search-into-separate-function.patch
+     rtc-add-devm_rtc_device_registerunregister.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,98 +33,140 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: ipc: refactor msg list search into separate function
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: add devm_rtc_device_{register,unregister}()
 
-Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
-Acked-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+These functions allow the driver core to automatically clean up any
+allocation made by rtc drivers.  Thus it simplifies the error paths.
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   45 +++++++++++++++++++++++++--------------------
- 1 file changed, 25 insertions(+), 20 deletions(-)
+ drivers/rtc/class.c |   70 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/rtc.h |    6 +++
+ 2 files changed, 76 insertions(+)
 
-diff -puN ipc/msg.c~ipc-refactor-msg-list-search-into-separate-function ipc/msg.c
---- a/ipc/msg.c~ipc-refactor-msg-list-search-into-separate-function
-+++ a/ipc/msg.c
-@@ -807,6 +807,30 @@ static inline void free_copy(struct msg_
+diff -puN drivers/rtc/class.c~rtc-add-devm_rtc_device_registerunregister drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-add-devm_rtc_device_registerunregister
++++ a/drivers/rtc/class.c
+@@ -259,6 +259,76 @@ void rtc_device_unregister(struct rtc_de
  }
- #endif
+ EXPORT_SYMBOL_GPL(rtc_device_unregister);
  
-+struct msg_msg *find_msg(struct msg_queue *msq, long *msgtyp, int mode)
++static void devm_rtc_device_release(struct device *dev, void *res)
 +{
-+	struct msg_msg *msg;
-+	long count = 0;
++	struct rtc_device *rtc = *(struct rtc_device **)res;
 +
-+	list_for_each_entry(msg, &msq->q_messages, m_list) {
-+		if (testmsg(msg, *msgtyp, mode) &&
-+		    !security_msg_queue_msgrcv(msq, msg, current,
-+					       *msgtyp, mode)) {
-+			if (mode == SEARCH_LESSEQUAL && msg->m_type != 1) {
-+				*msgtyp = msg->m_type - 1;
-+			} else if (mode == SEARCH_NUMBER) {
-+				if (*msgtyp == count)
-+					return msg;
-+			} else
-+				return msg;
-+			count++;
-+		}
-+	}
-+
-+	return ERR_PTR(-EAGAIN);
++	rtc_device_unregister(rtc);
 +}
 +
++static int devm_rtc_device_match(struct device *dev, void *res, void *data)
++{
++	struct rtc **r = res;
 +
- long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
- 	       int msgflg,
- 	       long (*msg_handler)(void __user *, struct msg_msg *, size_t))
-@@ -837,32 +861,13 @@ long do_msgrcv(int msqid, void __user *b
++	return *r == data;
++}
++
++/**
++ * devm_rtc_device_register - resource managed rtc_device_register()
++ * @name: the name of the device
++ * @dev: the device to register
++ * @ops: the rtc operations structure
++ * @owner: the module owner
++ *
++ * @return a struct rtc on success, or an ERR_PTR on error
++ *
++ * Managed rtc_device_register(). The rtc_device returned from this function
++ * are automatically freed on driver detach. See rtc_device_register()
++ * for more information.
++ */
++
++struct rtc_device *devm_rtc_device_register(const char *name,
++					struct device *dev,
++					const struct rtc_class_ops *ops,
++					struct module *owner)
++{
++	struct rtc_device **ptr, *rtc;
++
++	ptr = devres_alloc(devm_rtc_device_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return ERR_PTR(-ENOMEM);
++
++	rtc = rtc_device_register(name, dev, ops, owner);
++	if (!IS_ERR(rtc)) {
++		*ptr = rtc;
++		devres_add(dev, ptr);
++	} else {
++		devres_free(ptr);
++	}
++
++	return rtc;
++}
++EXPORT_SYMBOL_GPL(devm_rtc_device_register);
++
++/**
++ * devm_rtc_device_unregister - resource managed devm_rtc_device_unregister()
++ * @dev: the device to unregister
++ * @rtc: the RTC class device to unregister
++ *
++ * Deallocated a rtc allocated with devm_rtc_device_register(). Normally this
++ * function will not need to be called and the resource management code will
++ * ensure that the resource is freed.
++ */
++void devm_rtc_device_unregister(struct device *dev, struct rtc_device *rtc)
++{
++	int rc;
++
++	rc = devres_release(dev, devm_rtc_device_release,
++				devm_rtc_device_match, rtc);
++	WARN_ON(rc);
++}
++EXPORT_SYMBOL_GPL(devm_rtc_device_unregister);
++
+ static int __init rtc_init(void)
+ {
+ 	rtc_class = class_create(THIS_MODULE, "rtc");
+diff -puN include/linux/rtc.h~rtc-add-devm_rtc_device_registerunregister include/linux/rtc.h
+--- a/include/linux/rtc.h~rtc-add-devm_rtc_device_registerunregister
++++ a/include/linux/rtc.h
+@@ -133,7 +133,13 @@ extern struct rtc_device *rtc_device_reg
+ 					struct device *dev,
+ 					const struct rtc_class_ops *ops,
+ 					struct module *owner);
++extern struct rtc_device *devm_rtc_device_register(const char *name,
++					struct device *dev,
++					const struct rtc_class_ops *ops,
++					struct module *owner);
+ extern void rtc_device_unregister(struct rtc_device *rtc);
++extern void devm_rtc_device_unregister(struct device *dev,
++					struct rtc_device *rtc);
  
- 	for (;;) {
- 		struct msg_receiver msr_d;
--		struct msg_msg *walk_msg;
--		long msg_counter = 0;
- 
- 		msg = ERR_PTR(-EACCES);
- 		if (ipcperms(ns, &msq->q_perm, S_IRUGO))
- 			goto out_unlock;
- 
--		msg = ERR_PTR(-EAGAIN);
--		list_for_each_entry(walk_msg, &msq->q_messages, m_list) {
-+		msg = find_msg(msq, &msgtyp, mode);
- 
--			if (testmsg(walk_msg, msgtyp, mode) &&
--			    !security_msg_queue_msgrcv(msq, walk_msg, current,
--						       msgtyp, mode)) {
--
--				msg = walk_msg;
--				if (mode == SEARCH_LESSEQUAL &&
--						walk_msg->m_type != 1) {
--					msgtyp = walk_msg->m_type - 1;
--				} else if (mode == SEARCH_NUMBER) {
--					if (msgtyp == msg_counter)
--						break;
--				} else
--					break;
--				msg_counter++;
--			}
--		}
- 		if (!IS_ERR(msg)) {
- 			/*
- 			 * Found a suitable message.
+ extern int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm);
+ extern int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm);
 _
 
-Patches currently in -mm which might be from peter@hurleysoftware.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
-ipc-fix-potential-oops-when-src-msg-4k-w-msg_copy.patch
-ipc-dont-allocate-a-copy-larger-than-max.patch
-ipc-clamp-with-min.patch
-ipc-separate-msg-allocation-from-userspace-copy.patch
-ipc-tighten-msg-copy-loops.patch
-ipc-set-efault-as-default-error-in-load_msg.patch
-ipc-remove-msg-handling-from-queue-scan.patch
-ipc-implement-msg_copy-as-a-new-receive-mode.patch
-ipc-simplify-msg-list-search.patch
-ipc-refactor-msg-list-search-into-separate-function.patch
+linux-next.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
