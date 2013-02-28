@@ -1,65 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] misc-tifm_core-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:42 -0800
-Message-ID: <20130228201442.A14F231C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mmc-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:45 -0800
+Message-ID: <20130228201445.9D99931C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:35385 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755587Ab3B1UOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:43 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so244933vch.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:43 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:64467 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755587Ab3B1UOq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:46 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so244942ghb.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, arnd@arndb.de, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, cjb@laptop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: misc/tifm_core: convert to idr_alloc()
+     Subject: mmc: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     misc-tifm_core-convert-to-idr_alloc.patch
+     mmc-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: misc/tifm_core: convert to idr_alloc()
+Subject: mmc: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Chris Ball <cjb@laptop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/tifm_core.c |   11 ++++++-----
+ drivers/mmc/core/host.c |   11 ++++++-----
  1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/tifm_core.c~misc-tifm_core-convert-to-idr_alloc drivers/misc/tifm_core.c
---- a/drivers/misc/tifm_core.c~misc-tifm_core-convert-to-idr_alloc
-+++ a/drivers/misc/tifm_core.c
-@@ -196,13 +196,14 @@ int tifm_add_adapter(struct tifm_adapter
- {
- 	int rc;
+diff -puN drivers/mmc/core/host.c~mmc-convert-to-idr_alloc drivers/mmc/core/host.c
+--- a/drivers/mmc/core/host.c~mmc-convert-to-idr_alloc
++++ a/drivers/mmc/core/host.c
+@@ -429,19 +429,20 @@ struct mmc_host *mmc_alloc_host(int extr
+ 	int err;
+ 	struct mmc_host *host;
  
--	if (!idr_pre_get(&tifm_adapter_idr, GFP_KERNEL))
--		return -ENOMEM;
+-	if (!idr_pre_get(&mmc_host_idr, GFP_KERNEL))
+-		return NULL;
 -
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&tifm_adapter_lock);
--	rc = idr_get_new(&tifm_adapter_idr, fm, &fm->id);
-+	rc = idr_alloc(&tifm_adapter_idr, fm, 0, 0, GFP_NOWAIT);
-+	if (rc >= 0)
-+		fm->id = rc;
- 	spin_unlock(&tifm_adapter_lock);
--	if (rc)
-+	idr_preload_end();
-+	if (rc < 0)
- 		return rc;
+ 	host = kzalloc(sizeof(struct mmc_host) + extra, GFP_KERNEL);
+ 	if (!host)
+ 		return NULL;
  
- 	dev_set_name(&fm->dev, "tifm%u", fm->id);
+ 	/* scanning will be enabled when we're ready */
+ 	host->rescan_disable = 1;
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&mmc_host_lock);
+-	err = idr_get_new(&mmc_host_idr, host, &host->index);
++	err = idr_alloc(&mmc_host_idr, host, 0, 0, GFP_NOWAIT);
++	if (err >= 0)
++		host->index = err;
+ 	spin_unlock(&mmc_host_lock);
+-	if (err)
++	idr_preload_end();
++	if (err < 0)
+ 		goto free;
+ 
+ 	dev_set_name(&host->class_dev, "mmc%d", host->index);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
