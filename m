@@ -1,162 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-accelerate-munlock-treatment-of-thp-pages.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:10:35 -0800
-Message-ID: <20130228201035.B4B7B31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ocfs2-fix-ocfs2_init_security_and_acl-to-initialize-acl-correctly.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:10:40 -0800
+Message-ID: <20130228201041.3F6075A41B6__21932.0628246807$1362082281$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:40914 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755080Ab3B1UKh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:10:37 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so244748ggi.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:10:36 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:37799 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755655Ab3B1UKm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:10:42 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246035yhz.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:10:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, aarcange@redhat.com, hughd@google.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: jeff.liu@oracle.com, boyu.mt@taobao.com, jlbec@evilplan.org, mfasheh@suse.com, stable@vger.kernel.org, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: accelerate munlock() treatment of THP pages
+     Subject: ocfs2: fix ocfs2_init_security_and_acl() to initialize acl correctly
 has been removed from the -mm tree.  Its filename was
-     mm-accelerate-munlock-treatment-of-thp-pages.patch
+     ocfs2-fix-ocfs2_init_security_and_acl-to-initialize-acl-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: accelerate munlock() treatment of THP pages
+From: Jeff Liu <jeff.liu@oracle.com>
+Subject: ocfs2: fix ocfs2_init_security_and_acl() to initialize acl correctly
 
-munlock_vma_pages_range() was always incrementing addresses by PAGE_SIZE
-at a time.  When munlocking THP pages (or the huge zero page), this
-resulted in taking the mm->page_table_lock 512 times in a row.
+We need to re-initialize the security for a new reflinked inode with its
+parent dirs if it isn't specified to be preserved for ocfs2_reflink(). 
+However, the code logic is broken at ocfs2_init_security_and_acl()
+although ocfs2_init_security_get() succeed.  As a result, ocfs2_acl_init()
+does not involked and therefore the default ACL of parent dir was missing
+on the new inode.
 
-We can do better by making use of the page_mask returned by
-follow_page_mask (for the huge zero page case), or the size of the page
-munlock_vma_page() operated on (for the true THP page case).
+Note this was introduced by 9d8f13ba3 ("security: new
+security_inode_init_security API adds function callback")
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+To reproduce:
+
+set default ACL for the parent dir(ocfs2 in this case):
+$ setfacl -m default:user:jeff:rwx ../ocfs2/
+$ getfacl ../ocfs2/
+# file: ../ocfs2/
+# owner: jeff
+# group: jeff
+user::rwx
+group::r-x
+other::r-x
+default:user::rwx
+default:user:jeff:rwx
+default:group::r-x
+default:mask::rwx
+default:other::r-x
+
+$ touch a
+$ getfacl a
+# file: a
+# owner: jeff
+# group: jeff
+user::rw-
+group::rw-
+other::r--
+
+Before patching, create reflink file b from a, the user
+default ACL entry(user:jeff:rwx)was missing:
+$ ./ocfs2_reflink a b
+$ getfacl b
+# file: b
+# owner: jeff
+# group: jeff
+user::rw-
+group::rw-
+other::r--
+
+In this case, the end user can also observed an error message at syslog:
+(ocfs2_reflink,3229,2):ocfs2_init_security_and_acl:7193 ERROR: status = 0
+
+After applying this patch, create reflink file c from a:
+$ ./ocfs2_reflink a c
+$ getfacl c
+# file: c
+# owner: jeff
+# group: jeff
+user::rw-
+user:jeff:rwx			#effective:rw-
+group::r-x			#effective:r--
+mask::rw-
+other::r--
+
+Test program:
+/* Usage: reflink <source> <dest> */
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+
+static int
+reflink_file(char const *src_name, char const *dst_name,
+	     bool preserve_attrs)
+{
+	int fd;
+
+#ifndef REFLINK_ATTR_NONE
+#  define REFLINK_ATTR_NONE 0
+#endif
+#ifndef REFLINK_ATTR_PRESERVE
+#  define REFLINK_ATTR_PRESERVE 1
+#endif
+#ifndef OCFS2_IOC_REFLINK
+	struct reflink_arguments {
+		uint64_t old_path;
+		uint64_t new_path;
+		uint64_t preserve;
+	};
+
+#  define OCFS2_IOC_REFLINK _IOW ('o', 4, struct reflink_arguments)
+#endif
+	struct reflink_arguments args = {
+		.old_path = (unsigned long) src_name,
+		.new_path = (unsigned long) dst_name,
+		.preserve = preserve_attrs ? REFLINK_ATTR_PRESERVE :
+					     REFLINK_ATTR_NONE,
+	};
+
+	fd = open(src_name, O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr, "Failed to open %s: %s\n",
+			src_name, strerror(errno));
+		return -1;
+	}
+
+	if (ioctl(fd, OCFS2_IOC_REFLINK, &args) < 0) {
+		fprintf(stderr, "Failed to reflink %s to %s: %s\n",
+			src_name, dst_name, strerror(errno));
+		return -1;
+	}
+}
+
+int
+main(int argc, char *argv[])
+{
+	if (argc != 3) {
+		fprintf(stdout, "Usage: %s source dest\n", argv[0]);
+		return 1;
+	}
+
+	return reflink_file(argv[1], argv[2], 0);
+}
+
+Signed-off-by: Jie Liu <jeff.liu@oracle.com>
+Reviewed-by: Tao Ma <boyu.mt@taobao.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- mm/mlock.c    |   34 +++++++++++++++++++++++-----------
- 2 files changed, 24 insertions(+), 12 deletions(-)
+ fs/ocfs2/xattr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/internal.h~mm-accelerate-munlock-treatment-of-thp-pages mm/internal.h
---- a/mm/internal.h~mm-accelerate-munlock-treatment-of-thp-pages
-+++ a/mm/internal.h
-@@ -195,7 +195,7 @@ static inline int mlocked_vma_newpage(st
-  * must be called with vma's mmap_sem held for read or write, and page locked.
-  */
- extern void mlock_vma_page(struct page *page);
--extern void munlock_vma_page(struct page *page);
-+extern unsigned int munlock_vma_page(struct page *page);
+diff -puN fs/ocfs2/xattr.c~ocfs2-fix-ocfs2_init_security_and_acl-to-initialize-acl-correctly fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-ocfs2_init_security_and_acl-to-initialize-acl-correctly
++++ a/fs/ocfs2/xattr.c
+@@ -7189,7 +7189,7 @@ int ocfs2_init_security_and_acl(struct i
+ 	struct buffer_head *dir_bh = NULL;
  
- /*
-  * Clear the page's PageMlocked().  This can be useful in a situation where
-diff -puN mm/mlock.c~mm-accelerate-munlock-treatment-of-thp-pages mm/mlock.c
---- a/mm/mlock.c~mm-accelerate-munlock-treatment-of-thp-pages
-+++ a/mm/mlock.c
-@@ -102,13 +102,16 @@ void mlock_vma_page(struct page *page)
-  * can't isolate the page, we leave it for putback_lru_page() and vmscan
-  * [page_referenced()/try_to_unmap()] to deal with.
-  */
--void munlock_vma_page(struct page *page)
-+unsigned int munlock_vma_page(struct page *page)
- {
-+	unsigned int page_mask = 0;
-+
- 	BUG_ON(!PageLocked(page));
- 
- 	if (TestClearPageMlocked(page)) {
--		mod_zone_page_state(page_zone(page), NR_MLOCK,
--				    -hpage_nr_pages(page));
-+		unsigned int nr_pages = hpage_nr_pages(page);
-+		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
-+		page_mask = nr_pages - 1;
- 		if (!isolate_lru_page(page)) {
- 			int ret = SWAP_AGAIN;
- 
-@@ -141,6 +144,8 @@ void munlock_vma_page(struct page *page)
- 				count_vm_event(UNEVICTABLE_PGMUNLOCKED);
- 		}
+ 	ret = ocfs2_init_security_get(inode, dir, qstr, NULL);
+-	if (!ret) {
++	if (ret) {
+ 		mlog_errno(ret);
+ 		goto leave;
  	}
-+
-+	return page_mask;
- }
- 
- /**
-@@ -159,7 +164,6 @@ long __mlock_vma_pages_range(struct vm_a
- 		unsigned long start, unsigned long end, int *nonblocking)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	unsigned long addr = start;
- 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
- 	int gup_flags;
- 
-@@ -189,7 +193,7 @@ long __mlock_vma_pages_range(struct vm_a
- 	 * We made sure addr is within a VMA, so the following will
- 	 * not result in a stack expansion that recurses back here.
- 	 */
--	return __get_user_pages(current, mm, addr, nr_pages, gup_flags,
-+	return __get_user_pages(current, mm, start, nr_pages, gup_flags,
- 				NULL, NULL, nonblocking);
- }
- 
-@@ -226,13 +230,12 @@ static int __mlock_posix_error_return(lo
- void munlock_vma_pages_range(struct vm_area_struct *vma,
- 			     unsigned long start, unsigned long end)
- {
--	unsigned long addr;
--
--	lru_add_drain();
- 	vma->vm_flags &= ~VM_LOCKED;
- 
--	for (addr = start; addr < end; addr += PAGE_SIZE) {
-+	while (start < end) {
- 		struct page *page;
-+		unsigned int page_mask, page_increm;
-+
- 		/*
- 		 * Although FOLL_DUMP is intended for get_dump_page(),
- 		 * it just so happens that its special treatment of the
-@@ -240,13 +243,22 @@ void munlock_vma_pages_range(struct vm_a
- 		 * suits munlock very well (and if somehow an abnormal page
- 		 * has sneaked into the range, we won't oops here: great).
- 		 */
--		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
-+		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
-+					&page_mask);
- 		if (page && !IS_ERR(page)) {
- 			lock_page(page);
--			munlock_vma_page(page);
-+			lru_add_drain();
-+			/*
-+			 * Any THP page found by follow_page_mask() may have
-+			 * gotten split before reaching munlock_vma_page(),
-+			 * so we need to recompute the page_mask here.
-+			 */
-+			page_mask = munlock_vma_page(page);
- 			unlock_page(page);
- 			put_page(page);
- 		}
-+		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
-+		start += page_increm * PAGE_SIZE;
- 		cond_resched();
- 	}
- }
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from jeff.liu@oracle.com are
 
 origin.patch
 linux-next.patch
-mm-remove-free_area_cache-use-in-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-powerpc-architecture.patch
-mm-remove-free_area_cache.patch
-mutex-subsystem-synchro-test-module.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 
