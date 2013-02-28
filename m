@@ -1,102 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memstick-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:14:33 -0800
-Message-ID: <20130228201433.B3D5F31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mfd-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:14:36 -0800
+Message-ID: <20130228201436.9A8CC5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:51348 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755587Ab3B1UOe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:34 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so245118vch.0
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:34 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:48991 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755587Ab3B1UOh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:14:37 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so261358qah.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:14:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, sameo@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memstick: convert to idr_alloc()
+     Subject: mfd: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     memstick-convert-to-idr_alloc.patch
+     mfd-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: memstick: convert to idr_alloc()
+Subject: mfd: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c    |   21 ++++++++++-----------
- drivers/memstick/core/mspro_block.c |   17 +++--------------
- 2 files changed, 13 insertions(+), 25 deletions(-)
+ drivers/mfd/rtsx_pcr.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-convert-to-idr_alloc drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-convert-to-idr_alloc
-+++ a/drivers/memstick/core/memstick.c
-@@ -512,18 +512,17 @@ int memstick_add_host(struct memstick_ho
- {
- 	int rc;
+diff -puN drivers/mfd/rtsx_pcr.c~mfd-convert-to-idr_alloc drivers/mfd/rtsx_pcr.c
+--- a/drivers/mfd/rtsx_pcr.c~mfd-convert-to-idr_alloc
++++ a/drivers/mfd/rtsx_pcr.c
+@@ -1091,15 +1091,14 @@ static int rtsx_pci_probe(struct pci_dev
+ 	}
+ 	handle->pcr = pcr;
  
--	while (1) {
--		if (!idr_pre_get(&memstick_host_idr, GFP_KERNEL))
--			return -ENOMEM;
+-	if (!idr_pre_get(&rtsx_pci_idr, GFP_KERNEL)) {
+-		ret = -ENOMEM;
+-		goto free_handle;
+-	}
+-
 +	idr_preload(GFP_KERNEL);
-+	spin_lock(&memstick_host_lock);
- 
--		spin_lock(&memstick_host_lock);
--		rc = idr_get_new(&memstick_host_idr, host, &host->id);
--		spin_unlock(&memstick_host_lock);
--		if (!rc)
--			break;
--		else if (rc != -EAGAIN)
--			return rc;
--	}
-+	rc = idr_alloc(&memstick_host_idr, host, 0, 0, GFP_NOWAIT);
-+	if (rc >= 0)
-+		host->id = rc;
-+
-+	spin_unlock(&memstick_host_lock);
+ 	spin_lock(&rtsx_pci_lock);
+-	ret = idr_get_new(&rtsx_pci_idr, pcr, &pcr->id);
++	ret = idr_alloc(&rtsx_pci_idr, pcr, 0, 0, GFP_NOWAIT);
++	if (ret >= 0)
++		pcr->id = ret;
+ 	spin_unlock(&rtsx_pci_lock);
+-	if (ret)
 +	idr_preload_end();
-+	if (rc < 0)
-+		return rc;
++	if (ret < 0)
+ 		goto free_handle;
  
- 	dev_set_name(&host->dev, "memstick%u", host->id);
- 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-convert-to-idr_alloc drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-convert-to-idr_alloc
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -1213,21 +1213,10 @@ static int mspro_block_init_disk(struct 
- 	msb->page_size = be16_to_cpu(sys_info->unit_size);
- 
- 	mutex_lock(&mspro_block_disk_lock);
--	if (!idr_pre_get(&mspro_block_disk_idr, GFP_KERNEL)) {
--		mutex_unlock(&mspro_block_disk_lock);
--		return -ENOMEM;
--	}
--
--	rc = idr_get_new(&mspro_block_disk_idr, card, &disk_id);
-+	disk_id = idr_alloc(&mspro_block_disk_idr, card, 0, 256, GFP_KERNEL);
- 	mutex_unlock(&mspro_block_disk_lock);
--
--	if (rc)
--		return rc;
--
--	if ((disk_id << MSPRO_BLOCK_PART_SHIFT) > 255) {
--		rc = -ENOSPC;
--		goto out_release_id;
--	}
-+	if (disk_id < 0)
-+		return disk_id;
- 
- 	msb->disk = alloc_disk(1 << MSPRO_BLOCK_PART_SHIFT);
- 	if (!msb->disk) {
+ 	pcr->pci = pcidev;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
