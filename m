@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-mv-add-__init-annotation.patch added to -mm tree
-Date: Thu, 28 Feb 2013 13:32:52 -0800
-Message-ID: <20130228213253.4C9E55A41DD@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-davinci-add-__exit-annotation.patch added to -mm tree
+Date: Thu, 28 Feb 2013 13:32:55 -0800
+Message-ID: <20130228213256.6A1EA5A41DD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:34495 "EHLO
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:52912 "EHLO
 	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759816Ab3B1Vcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:32:54 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so256422yhz.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:32:53 -0800 (PST)
+	with ESMTP id S1759816Ab3B1Vc5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:32:57 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so256492yhz.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:32:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-mv: add __init annotation
+     Subject: rtc: rtc-davinci: add __exit annotation
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-mv-add-__init-annotation.patch
+     rtc-rtc-davinci-add-__exit-annotation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-mv: add __init annotation
+Subject: rtc: rtc-davinci: add __exit annotation
 
 When platform_driver_probe() is used, bind/unbind via sysfs is disabled. 
 Thus, __init/__exit annotations can be added to probe()/remove().
@@ -43,21 +43,30 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-davinci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-mv.c~rtc-rtc-mv-add-__init-annotation drivers/rtc/rtc-mv.c
---- a/drivers/rtc/rtc-mv.c~rtc-rtc-mv-add-__init-annotation
-+++ a/drivers/rtc/rtc-mv.c
-@@ -215,7 +215,7 @@ static const struct rtc_class_ops mv_rtc
- 	.alarm_irq_enable = mv_rtc_alarm_irq_enable,
- };
+diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-add-__exit-annotation drivers/rtc/rtc-davinci.c
+--- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-add-__exit-annotation
++++ a/drivers/rtc/rtc-davinci.c
+@@ -564,7 +564,7 @@ fail1:
+ 	return ret;
+ }
  
--static int mv_rtc_probe(struct platform_device *pdev)
-+static int __init mv_rtc_probe(struct platform_device *pdev)
+-static int davinci_rtc_remove(struct platform_device *pdev)
++static int __exit davinci_rtc_remove(struct platform_device *pdev)
  {
- 	struct resource *res;
- 	struct rtc_plat_data *pdata;
+ 	struct davinci_rtc *davinci_rtc = platform_get_drvdata(pdev);
+ 
+@@ -581,7 +581,7 @@ static int davinci_rtc_remove(struct pla
+ 
+ static struct platform_driver davinci_rtc_driver = {
+ 	.probe		= davinci_rtc_probe,
+-	.remove		= davinci_rtc_remove,
++	.remove		= __exit_p(davinci_rtc_remove),
+ 	.driver		= {
+ 		.name = "rtc_davinci",
+ 		.owner = THIS_MODULE,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
