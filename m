@@ -1,133 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:11:58 -0800
-Message-ID: <20130228201158.A3BBD5A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kexec-add-the-values-related-to-buddy-system-for-filtering-free-pages.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:04 -0800
+Message-ID: <20130228201204.CBA1E31C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:43942 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781Ab3B1UMA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:00 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so244676vch.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:11:59 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:34334 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3B1UMG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:06 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so260971qaj.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gorcunov@openvz.org, mm-commits@vger.kernel.org
+To: kumagai-atsushi@mxc.nes.nec.co.jp, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/seq_file.c:seq_lseek(): fix switch statement indenting
+     Subject: kexec: add the values related to buddy system for filtering free pages.
 has been removed from the -mm tree.  Its filename was
-     fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+     kexec-add-the-values-related-to-buddy-system-for-filtering-free-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/seq_file.c:seq_lseek(): fix switch statement indenting
+From: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Subject: kexec: add the values related to buddy system for filtering free pages.
 
-[akpm@linux-foundation.org: checkpatch fixes]
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+tAdd adds the values related to buddy system to vmcoreinfo data so that
+makedumpfile (dump filtering command) can filter out all free pages with
+the new logic.
+
+It's faster than the current logic because it can distinguish free page by
+analyzing page structure at the same time as filtering for other
+unnecessary pages (e.g.  anonymous page).
+
+OTOH, the current logic has to trace free_list to distinguish free pages
+while analyzing page structure to filter out other unnecessary pages.
+
+The new logic uses the fact that buddy page is marked by _mapcount ==
+PAGE_BUDDY_MAPCOUNT_VALUE.  But, _mapcount shares its memory with other
+fields for SLAB/SLUB when PG_slab is set, so we need to check if PG_slab
+is set or not before looking up _mapcount value.  And we can get the order
+of buddy system from private field.  To sum it up, the values below are
+required for this logic.
+
+Required values:
+  - OFFSET(page._mapcount)
+  - OFFSET(page.private)
+  - NUMBER(PG_slab)
+  - NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE)
+
+Changelog from v1 to v2:
+1. remove SIZE(pageflags)
+  The new logic was changed after I sent v1 patch.
+  Accordingly, SIZE(pageflags) has been unnecessary for makedumpfile.
+
+What's makedumpfile:
+  makedumpfile creates a small dumpfile by excluding unnecessary pages
+  for the analysis. To distinguish unnecessary pages, makedumpfile gets
+  the vmcoreinfo data which has the minimum debugging information only
+  for dump filtering.
+
+Signed-off-by: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ kernel/kexec.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/seq_file.c~fs-seq_filec-seq_lseek-fix-switch-statement-indenting fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_filec-seq_lseek-fix-switch-statement-indenting
-+++ a/fs/seq_file.c
-@@ -308,27 +308,27 @@ loff_t seq_lseek(struct file *file, loff
- 	mutex_lock(&m->lock);
- 	m->version = file->f_version;
- 	switch (whence) {
--		case SEEK_CUR:
--			offset += file->f_pos;
--		case SEEK_SET:
--			if (offset < 0)
--				break;
--			retval = offset;
--			if (offset != m->read_pos) {
--				while ((retval=traverse(m, offset)) == -EAGAIN)
--					;
--				if (retval) {
--					/* with extreme prejudice... */
--					file->f_pos = 0;
--					m->read_pos = 0;
--					m->version = 0;
--					m->index = 0;
--					m->count = 0;
--				} else {
--					m->read_pos = offset;
--					retval = file->f_pos = offset;
--				}
-+	case SEEK_CUR:
-+		offset += file->f_pos;
-+	case SEEK_SET:
-+		if (offset < 0)
-+			break;
-+		retval = offset;
-+		if (offset != m->read_pos) {
-+			while ((retval = traverse(m, offset)) == -EAGAIN)
-+				;
-+			if (retval) {
-+				/* with extreme prejudice... */
-+				file->f_pos = 0;
-+				m->read_pos = 0;
-+				m->version = 0;
-+				m->index = 0;
-+				m->count = 0;
-+			} else {
-+				m->read_pos = offset;
-+				retval = file->f_pos = offset;
- 			}
-+		}
- 	}
- 	file->f_version = m->version;
- 	mutex_unlock(&m->lock);
+diff -puN kernel/kexec.c~kexec-add-the-values-related-to-buddy-system-for-filtering-free-pages kernel/kexec.c
+--- a/kernel/kexec.c~kexec-add-the-values-related-to-buddy-system-for-filtering-free-pages
++++ a/kernel/kexec.c
+@@ -1514,6 +1514,8 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_OFFSET(page, _count);
+ 	VMCOREINFO_OFFSET(page, mapping);
+ 	VMCOREINFO_OFFSET(page, lru);
++	VMCOREINFO_OFFSET(page, _mapcount);
++	VMCOREINFO_OFFSET(page, private);
+ 	VMCOREINFO_OFFSET(pglist_data, node_zones);
+ 	VMCOREINFO_OFFSET(pglist_data, nr_zones);
+ #ifdef CONFIG_FLAT_NODE_MEM_MAP
+@@ -1536,6 +1538,8 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_NUMBER(PG_lru);
+ 	VMCOREINFO_NUMBER(PG_private);
+ 	VMCOREINFO_NUMBER(PG_swapcache);
++	VMCOREINFO_NUMBER(PG_slab);
++	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
+ 
+ 	arch_crash_save_vmcoreinfo();
+ 	update_vmcoreinfo_note();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kumagai-atsushi@mxc.nes.nec.co.jp are
 
 origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
