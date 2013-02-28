@@ -1,103 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pps-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:00 -0800
-Message-ID: <20130228201500.9B48B31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] remoteproc-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:03 -0800
+Message-ID: <20130228201503.9ED6C5A42AB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:56709 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753735Ab3B1UPB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:01 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so245123yen.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:01 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:40464 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758168Ab3B1UPE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:04 -0500
+Received: by mail-qe0-f73.google.com with SMTP id a11so245298qen.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, giometti@enneenne.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, ohad@wizery.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pps: convert to idr_alloc()
+     Subject: remoteproc: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     pps-convert-to-idr_alloc.patch
+     remoteproc-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: pps: convert to idr_alloc()
+Subject: remoteproc: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kapi.c |    2 +-
- drivers/pps/pps.c  |   36 ++++++++++++++----------------------
- 2 files changed, 15 insertions(+), 23 deletions(-)
+ drivers/remoteproc/remoteproc_core.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pps/kapi.c~pps-convert-to-idr_alloc drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-convert-to-idr_alloc
-+++ a/drivers/pps/kapi.c
-@@ -102,7 +102,7 @@ struct pps_device *pps_register_source(s
- 		goto pps_register_source_exit;
- 	}
+diff -puN drivers/remoteproc/remoteproc_core.c~remoteproc-convert-to-idr_alloc drivers/remoteproc/remoteproc_core.c
+--- a/drivers/remoteproc/remoteproc_core.c~remoteproc-convert-to-idr_alloc
++++ a/drivers/remoteproc/remoteproc_core.c
+@@ -199,11 +199,6 @@ int rproc_alloc_vring(struct rproc_vdev 
+ 	/* actual size of vring (in bytes) */
+ 	size = PAGE_ALIGN(vring_size(rvring->len, rvring->align));
  
--	/* These initializations must be done before calling idr_get_new()
-+	/* These initializations must be done before calling idr_alloc()
- 	 * in order to avoid reces into pps_event().
- 	 */
- 	pps->params.api_version = PPS_API_VERS;
-diff -puN drivers/pps/pps.c~pps-convert-to-idr_alloc drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-convert-to-idr_alloc
-+++ a/drivers/pps/pps.c
-@@ -295,29 +295,21 @@ int pps_register_cdev(struct pps_device 
- 	dev_t devt;
- 
- 	mutex_lock(&pps_idr_lock);
--	/* Get new ID for the new PPS source */
--	if (idr_pre_get(&pps_idr, GFP_KERNEL) == 0) {
--		mutex_unlock(&pps_idr_lock);
+-	if (!idr_pre_get(&rproc->notifyids, GFP_KERNEL)) {
+-		dev_err(dev, "idr_pre_get failed\n");
 -		return -ENOMEM;
 -	}
 -
--	/* Now really allocate the PPS source.
--	 * After idr_get_new() calling the new source will be freely available
--	 * into the kernel.
-+	/*
-+	 * Get new ID for the new PPS source.  After idr_alloc() calling
-+	 * the new source will be freely available into the kernel.
+ 	/*
+ 	 * Allocate non-cacheable memory for the vring. In the future
+ 	 * this call will also configure the IOMMU for us
+@@ -221,12 +216,13 @@ int rproc_alloc_vring(struct rproc_vdev 
+ 	 * TODO: let the rproc know the notifyid of this vring
+ 	 * TODO: support predefined notifyids (via resource table)
  	 */
--	err = idr_get_new(&pps_idr, pps, &pps->id);
--	mutex_unlock(&pps_idr_lock);
--
--	if (err < 0)
--		return err;
--
--	pps->id &= MAX_IDR_MASK;
--	if (pps->id >= PPS_MAX_SOURCES) {
--		pr_err("%s: too many PPS sources in the system\n",
--					pps->info.name);
--		err = -EBUSY;
--		goto free_idr;
-+	err = idr_alloc(&pps_idr, pps, 0, PPS_MAX_SOURCES, GFP_KERNEL);
-+	if (err < 0) {
-+		if (err == -ENOSPC) {
-+			pr_err("%s: too many PPS sources in the system\n",
-+			       pps->info.name);
-+			err = -EBUSY;
-+		}
-+		goto out_unlock;
+-	ret = idr_get_new(&rproc->notifyids, rvring, &notifyid);
++	ret = idr_alloc(&rproc->notifyids, rvring, 0, 0, GFP_KERNEL);
+ 	if (ret) {
+-		dev_err(dev, "idr_get_new failed: %d\n", ret);
++		dev_err(dev, "idr_alloc failed: %d\n", ret);
+ 		dma_free_coherent(dev->parent, size, va, dma);
+ 		return ret;
  	}
-+	pps->id = err;
-+	mutex_unlock(&pps_idr_lock);
++	notifyid = ret;
  
- 	devt = MKDEV(MAJOR(pps_devt), pps->id);
- 
-@@ -351,8 +343,8 @@ del_cdev:
- free_idr:
- 	mutex_lock(&pps_idr_lock);
- 	idr_remove(&pps_idr, pps->id);
-+out_unlock:
- 	mutex_unlock(&pps_idr_lock);
+ 	/* Store largest notifyid */
+ 	rproc->max_notifyid = max(rproc->max_notifyid, notifyid);
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+origin.patch
+linux-next.patch
+slub-correctly-bootstrap-boot-caches.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+coredump-make-wait_for_dump_helpers-freezable.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+
