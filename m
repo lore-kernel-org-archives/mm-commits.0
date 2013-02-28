@@ -1,95 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-vm_unmapped_area-on-frv-architecture.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:10:47 -0800
-Message-ID: <20130228201047.A837331C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] maintainers-update-tegra-section-to-capture-all-tegra-files.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:10:56 -0800
+Message-ID: <20130228201056.BF2CA31C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:38282 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755709Ab3B1UKs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:10:48 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so244692ggn.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:10:48 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:39345 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3B1UK6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:10:58 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so244499ves.5
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:10:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, dhowells@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: swarren@nvidia.com, jak@jak-linux.org, joe@perches.com, marvin24@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() on frv architecture
+     Subject: MAINTAINERS: update Tegra section to capture all Tegra files
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-frv-architecture.patch
+     maintainers-update-tegra-section-to-capture-all-tegra-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() on frv architecture
+From: Stephen Warren <swarren@nvidia.com>
+Subject: MAINTAINERS: update Tegra section to capture all Tegra files
 
-Update the frv arch_get_unmapped_area function to make use of
-vm_unmapped_area() instead of implementing a brute force search.
+The intent is to ensure that all Tegra-related patches are sent to the
+linux-tegra@ mailing list, so people can keep up-to-date on all misc
+driver changes.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Doing this with a keyword is far simpler and more compact than listing all
+Tegra-related drivers, even if wildcards were used.
+
+Words such as integrate or integrator are common.  Ensure the character
+right before "tegra" isn't a-z (case-insensitive), to make sure the
+keyword doesn't match those.
+
+The only files that the keyword doesn't match are the NVEC driver.  Add
+the linux-tegra mailing list to the NVEC entry to solve this.
+
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Julian Andres Klode <jak@jak-linux.org>
+Cc: Marc Dietrich <marvin24@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/elf-fdpic.c |   49 +++++++++++++-------------------------
- 1 file changed, 17 insertions(+), 32 deletions(-)
+ MAINTAINERS |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/frv/mm/elf-fdpic.c~mm-use-vm_unmapped_area-on-frv-architecture arch/frv/mm/elf-fdpic.c
---- a/arch/frv/mm/elf-fdpic.c~mm-use-vm_unmapped_area-on-frv-architecture
-+++ a/arch/frv/mm/elf-fdpic.c
-@@ -60,7 +60,7 @@ unsigned long arch_get_unmapped_area(str
- 				     unsigned long pgoff, unsigned long flags)
- {
- 	struct vm_area_struct *vma;
--	unsigned long limit;
-+	struct vm_unmapped_area_info info;
+diff -puN MAINTAINERS~maintainers-update-tegra-section-to-capture-all-tegra-files MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-tegra-section-to-capture-all-tegra-files
++++ a/MAINTAINERS
+@@ -7540,6 +7540,7 @@ STAGING - NVIDIA COMPLIANT EMBEDDED CONT
+ M:	Julian Andres Klode <jak@jak-linux.org>
+ M:	Marc Dietrich <marvin24@gmx.de>
+ L:	ac100@lists.launchpad.net (moderated for non-subscribers)
++L:	linux-tegra@vger.kernel.org
+ S:	Maintained
+ F:	drivers/staging/nvec/
  
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
-@@ -79,39 +79,24 @@ unsigned long arch_get_unmapped_area(str
- 	}
+@@ -7832,9 +7833,7 @@ L:	linux-tegra@vger.kernel.org
+ Q:	http://patchwork.ozlabs.org/project/linux-tegra/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/swarren/linux-tegra.git
+ S:	Supported
+-F:	arch/arm/mach-tegra
+-F:	arch/arm/boot/dts/tegra*
+-F:	arch/arm/configs/tegra_defconfig
++K:	(?i)[^a-z]tegra
  
- 	/* search between the bottom of user VM and the stack grow area */
--	addr = PAGE_SIZE;
--	limit = (current->mm->start_stack - 0x00200000);
--	if (addr + len <= limit) {
--		limit -= len;
--
--		if (addr <= limit) {
--			vma = find_vma(current->mm, PAGE_SIZE);
--			for (; vma; vma = vma->vm_next) {
--				if (addr > limit)
--					break;
--				if (addr + len <= vma->vm_start)
--					goto success;
--				addr = vma->vm_end;
--			}
--		}
--	}
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = (current->mm->start_stack - 0x00200000);
-+	info.align_mask = 0;
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
-+	if (!(addr & ~PAGE_MASK))
-+		goto success;
-+	VM_BUG_ON(addr != -ENOMEM);
- 
- 	/* search from just above the WorkRAM area to the top of memory */
--	addr = PAGE_ALIGN(0x80000000);
--	limit = TASK_SIZE - len;
--	if (addr <= limit) {
--		vma = find_vma(current->mm, addr);
--		for (; vma; vma = vma->vm_next) {
--			if (addr > limit)
--				break;
--			if (addr + len <= vma->vm_start)
--				goto success;
--			addr = vma->vm_end;
--		}
+ TEHUTI ETHERNET DRIVER
+ M:	Andy Gospodarek <andy@greyhouse.net>
+_
+
+Patches currently in -mm which might be from swarren@nvidia.com are
+
+origin.patch
+linux-next.patch
+
