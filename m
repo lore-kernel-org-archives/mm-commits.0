@@ -1,53 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rpmsg-dont-use-idr_remove_all.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:43 -0800
-Message-ID: <20130228201243.F27D331C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] nfs-idr_destroy-no-longer-needs-idr_remove_all.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:49 -0800
+Message-ID: <20130228201250.1BE3531C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:54000 "EHLO
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:48440 "EHLO
 	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757103Ab3B1UMo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:44 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so245138yen.0
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:44 -0800 (PST)
+	with ESMTP id S1757143Ab3B1UMv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:51 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so245151yen.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, ohad@wizery.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rpmsg: don't use idr_remove_all()
+     Subject: nfs: idr_destroy() no longer needs idr_remove_all()
 has been removed from the -mm tree.  Its filename was
-     rpmsg-dont-use-idr_remove_all.patch
+     nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: rpmsg: don't use idr_remove_all()
+Subject: nfs: idr_destroy() no longer needs idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
-deprecated.  Drop its usage.
+deprecated.  Drop reference to idr_remove_all().  Note that the code
+wasn't completely correct before because idr_remove() on all entries
+doesn't necessarily release all idr_layers which could lead to memory
+leak.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rpmsg/virtio_rpmsg_bus.c |    1 -
+ fs/nfs/client.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-dont-use-idr_remove_all drivers/rpmsg/virtio_rpmsg_bus.c
---- a/drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-dont-use-idr_remove_all
-+++ a/drivers/rpmsg/virtio_rpmsg_bus.c
-@@ -1036,7 +1036,6 @@ static void rpmsg_remove(struct virtio_d
- 	if (vrp->ns_ept)
- 		__rpmsg_destroy_ept(vrp, vrp->ns_ept);
+diff -puN fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all fs/nfs/client.c
+--- a/fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all
++++ a/fs/nfs/client.c
+@@ -197,7 +197,6 @@ error_0:
+ EXPORT_SYMBOL_GPL(nfs_alloc_client);
  
--	idr_remove_all(&vrp->endpoints);
- 	idr_destroy(&vrp->endpoints);
- 
- 	vdev->config->del_vqs(vrp->vdev);
+ #if IS_ENABLED(CONFIG_NFS_V4)
+-/* idr_remove_all is not needed as all id's are removed by nfs_put_client */
+ void nfs_cleanup_cb_ident_idr(struct net *net)
+ {
+ 	struct nfs_net *nn = net_generic(net, nfs_net_id);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
