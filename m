@@ -1,87 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:19 -0800
-Message-ID: <20130228201219.BED5F31C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] idr-make-idr_destroy-imply-idr_remove_all.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:28 -0800
+Message-ID: <20130228201228.AA6145A4242@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:53135 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756428Ab3B1UMV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:21 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so244704vcd.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:20 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:58053 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756821Ab3B1UM3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:29 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so246269yhz.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhangyanfei@cn.fujitsu.com, ebiederm@xmission.com, horms@verge.net.au, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: avoid freeing NULL pointer in image_crash_alloc()
+     Subject: idr: make idr_destroy() imply idr_remove_all()
 has been removed from the -mm tree.  Its filename was
-     kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc.patch
+     idr-make-idr_destroy-imply-idr_remove_all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: kexec: avoid freeing NULL pointer in image_crash_alloc()
+From: Tejun Heo <tj@kernel.org>
+Subject: idr: make idr_destroy() imply idr_remove_all()
 
-Though there is no error if we free a NULL pointer, I think we could avoid
-this behaviour.  Change the code a little in kimage_crash_alloc() could
-avoid this kind of unnecessary free.
+idr is silly in quite a few ways, one of which is how it's supposed to
+be destroyed - idr_destroy() doesn't release IDs and doesn't even
+whine if the idr isn't empty.  If the caller forgets idr_remove_all(),
+it simply leaks memory.
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Reviewed-by: Simon Horman <horms@verge.net.au>
+Even ida gets this wrong and leaks memory on destruction.  There is
+absoltely no reason not to call idr_remove_all() from idr_destroy().
+Nobody is abusing idr_destroy() for shrinking free layer buffer and
+continues to use idr after idr_destroy(), so it's safe to do
+remove_all from destroy.
+
+In the whole kernel, there is only one place where idr_remove_all() is
+legitimiately used without following idr_destroy() while there are
+quite a few places where the caller forgets either idr_remove_all() or
+idr_destroy() leaking memory.
+
+This patch makes idr_destroy() call idr_destroy_all() and updates the
+function description accordingly.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ lib/idr.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc kernel/kexec.c
---- a/kernel/kexec.c~kexec-avoid-freeing-null-pointer-in-function-kimage_crash_alloc
-+++ a/kernel/kexec.c
-@@ -316,7 +316,7 @@ static int kimage_crash_alloc(struct kim
- 		mend = mstart + image->segment[i].memsz - 1;
- 		/* Ensure we are within the crash kernel limits */
- 		if ((mstart < crashk_res.start) || (mend > crashk_res.end))
--			goto out;
-+			goto out_free;
- 	}
- 
- 	/*
-@@ -329,16 +329,15 @@ static int kimage_crash_alloc(struct kim
- 					   get_order(KEXEC_CONTROL_PAGE_SIZE));
- 	if (!image->control_code_page) {
- 		printk(KERN_ERR "Could not allocate control_code_buffer\n");
--		goto out;
-+		goto out_free;
- 	}
- 
--	result = 0;
--out:
--	if (result == 0)
--		*rimage = image;
--	else
--		kfree(image);
-+	*rimage = image;
-+	return 0;
- 
-+out_free:
-+	kfree(image);
-+out:
- 	return result;
- }
- 
+diff -puN lib/idr.c~idr-make-idr_destroy-imply-idr_remove_all lib/idr.c
+--- a/lib/idr.c~idr-make-idr_destroy-imply-idr_remove_all
++++ a/lib/idr.c
+@@ -436,15 +436,6 @@ EXPORT_SYMBOL(idr_remove);
+ /**
+  * idr_remove_all - remove all ids from the given idr tree
+  * @idp: idr handle
+- *
+- * idr_destroy() only frees up unused, cached idp_layers, but this
+- * function will remove all id mappings and leave all idp_layers
+- * unused.
+- *
+- * A typical clean-up sequence for objects stored in an idr tree will
+- * use idr_for_each() to free all objects, if necessay, then
+- * idr_remove_all() to remove all ids, and idr_destroy() to free
+- * up the cached idr_layers.
+  */
+ void idr_remove_all(struct idr *idp)
+ {
+@@ -484,9 +475,20 @@ EXPORT_SYMBOL(idr_remove_all);
+ /**
+  * idr_destroy - release all cached layers within an idr tree
+  * @idp: idr handle
++ *
++ * Free all id mappings and all idp_layers.  After this function, @idp is
++ * completely unused and can be freed / recycled.  The caller is
++ * responsible for ensuring that no one else accesses @idp during or after
++ * idr_destroy().
++ *
++ * A typical clean-up sequence for objects stored in an idr tree will use
++ * idr_for_each() to free all objects, if necessay, then idr_destroy() to
++ * free up the id mappings and cached idr_layers.
+  */
+ void idr_destroy(struct idr *idp)
+ {
++	idr_remove_all(idp);
++
+ 	while (idp->id_free_cnt) {
+ 		struct idr_layer *p = get_from_free_list(idp);
+ 		kmem_cache_free(idr_layer_cache, p);
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-kexec-fix-wrong-types-of-some-local-variables.patch
-kexec-use-min_t-to-simplify-logic.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
+linux-next.patch
+slub-correctly-bootstrap-boot-caches.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+coredump-make-wait_for_dump_helpers-freezable.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
 
