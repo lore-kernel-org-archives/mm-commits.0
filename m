@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-max77686-add-missing-module-author-name.patch added to -mm tree
-Date: Thu, 28 Feb 2013 14:26:58 -0800
-Message-ID: <20130228222659.413335A41FD@corp2gmr1-2.hot.corp.google.com>
+Subject: + scripts-decodecode-make-faulting-insn-ptr-more-robust.patch added to -mm tree
+Date: Thu, 28 Feb 2013 14:55:02 -0800
+Message-ID: <20130228225503.151A931C4DB@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:36760 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746Ab3B1W1A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 17:27:00 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so262645vcd.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 14:26:59 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:38468 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752175Ab3B1WzE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 17:55:04 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so268797yhz.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 14:55:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: bp@suse.de, hpa@zytor.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max77686.c: add missing module author name
+     Subject: scripts/decodecode: make faulting insn ptr more robust
 has been added to the -mm tree.  Its filename is
-     rtc-max77686-add-missing-module-author-name.patch
+     scripts-decodecode-make-faulting-insn-ptr-more-robust.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-max77686.c: add missing module author name
+From: Borislav Petkov <bp@suse.de>
+Subject: scripts/decodecode: make faulting insn ptr more robust
 
-Add missing module author name to MODULE_AUTHOR macro.
+It can accidentally happen that the faulting insn (the exact instruction
+bytes) is repeated a little further on in the trace.  This causes that
+same instruction to be tagged twice, see example below.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+What we want to do, however, is to track back from the end of the whole
+disassembly so many lines as the slice which starts with the faulting
+instruction is long.  This leads us to the actual faulting instruction and
+*then* we tag it.
+
+While we're at it, we can drop the sed "g" flag because we address only
+this one line.
+
+Also, if we point to an instruction which changes decoding depending on
+the slice being objdumped, like a Jcc insn, for example, we do not even
+tag it as a faulting instruction because the instruction decode changes in
+the second slice but we use that second format as a regex on the fsrst
+disassembled buffer and more often than not that instruction doesn't
+match.
+
+Again, simply tag the line which is deduced from the original "<>" marking
+we've received from the kernel.
+
+This also solves the pathologic issue of multiple tagging like this:
+
+  29:*  0f 0b                   ud2         <-- trapping instruction
+  2b:*  0f 0b                   ud2         <-- trapping instruction
+  2d:*  0f 0b                   ud2         <-- trapping instruction
+
+Double tagging example:
+
+Code: 34 dd 40 30 ad 81 48 c7 c0 80 f6 00 00 48 8b 3c 30 48 01 c6 b8 ff ff ff ff 48 8d 57 f0 48 39 f7 74 2f 49 8b 4c 24 08 48 8b 47 f0 <48> 39 48 08 75 0e eb 2a 66 90 48 8b 40 f0 48 39 48 08 74 1e 48
+All code
+========
+   0:   34 dd                   xor    $0xdd,%al
+   2:   40 30 ad 81 48 c7 c0    xor    %bpl,-0x3f38b77f(%rbp)
+   9:   80 f6 00                xor    $0x0,%dh
+   c:   00 48 8b                add    %cl,-0x75(%rax)
+   f:   3c 30                   cmp    $0x30,%al
+  11:   48 01 c6                add    %rax,%rsi
+  14:   b8 ff ff ff ff          mov    $0xffffffff,%eax
+  19:   48 8d 57 f0             lea    -0x10(%rdi),%rdx
+  1d:   48 39 f7                cmp    %rsi,%rdi
+  20:   74 2f                   je     0x51
+  22:   49 8b 4c 24 08          mov    0x8(%r12),%rcx
+  27:   48 8b 47 f0             mov    -0x10(%rdi),%rax
+  2b:*  48 39 48 08             cmp    %rcx,0x8(%rax)     <-- trapping instruction
+  2f:   75 0e                   jne    0x3f
+  31:   eb 2a                   jmp    0x5d
+  33:   66 90                   xchg   %ax,%ax
+  35:   48 8b 40 f0             mov    -0x10(%rax),%rax
+  39:*  48 39 48 08             cmp    %rcx,0x8(%rax)     <-- trapping instruction
+  3d:   74 1e                   je     0x5d
+  3f:   48                      rex.W
+
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/decodecode |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-add-missing-module-author-name drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~rtc-max77686-add-missing-module-author-name
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -627,5 +627,5 @@ static struct platform_driver max77686_r
- module_platform_driver(max77686_rtc_driver);
+diff -puN scripts/decodecode~scripts-decodecode-make-faulting-insn-ptr-more-robust scripts/decodecode
+--- a/scripts/decodecode~scripts-decodecode-make-faulting-insn-ptr-more-robust
++++ a/scripts/decodecode
+@@ -89,10 +89,16 @@ echo $code >> $T.s
+ disas $T
+ cat $T.dis >> $T.aa
  
- MODULE_DESCRIPTION("Maxim MAX77686 RTC driver");
--MODULE_AUTHOR("<woong.byun@samsung.com>");
-+MODULE_AUTHOR("Chiwoong Byun <woong.byun@samsung.com>");
- MODULE_LICENSE("GPL");
++# (lines of whole $T.oo) - (lines of $T.aa, i.e. "Code starting") + 3,
++# i.e. the title + the "===..=" line (sed is counting from 1, 0 address is
++# special)
++faultlinenum=$(( $(wc -l $T.oo  | cut -d" " -f1) - \
++		 $(wc -l $T.aa  | cut -d" " -f1) + 3))
++
+ faultline=`cat $T.dis | head -1 | cut -d":" -f2-`
+ faultline=`echo "$faultline" | sed -e 's/\[/\\\[/g; s/\]/\\\]/g'`
+ 
+-cat $T.oo | sed -e "s/\($faultline\)/\*\1     <-- trapping instruction/g"
++cat $T.oo | sed -e "${faultlinenum}s/^\(.*:\)\(.*\)/\1\*\2\t\t<-- trapping instruction/"
+ echo
+ cat $T.aa
+ cleanup
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from bp@suse.de are
 
 origin.patch
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-max77686-use-module_platform_driver.patch
-rtc-max77686-add-missing-module-author-name.patch
-rtc-max77686-use-devm_kzalloc.patch
-rtc-max77686-fix-indentation-of-bit-definitions.patch
-rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+scripts-decodecode-make-faulting-insn-ptr-more-robust.patch
 
