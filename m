@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mtip32xx-convert-to-batch-completion-fix.patch added to -mm tree
-Date: Thu, 28 Feb 2013 15:28:07 -0800
-Message-ID: <20130228232807.C526D31C1F0@corp2gmr1-1.hot.corp.google.com>
+Subject: + ipc-fix-potential-oops-when-src-msg-4k-w-msg_copy.patch added to -mm tree
+Date: Thu, 28 Feb 2013 15:47:13 -0800
+Message-ID: <20130228234714.2DFBC31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:63286 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253Ab3B1X2K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:28:10 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so270509vch.2
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:28:09 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:53438 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752132Ab3B1XrP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:47:15 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so272442ggi.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:47:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: asamymuthupa@micron.com, axboe@kernel.dk, bcrl@kvack.org, jmoyer@redhat.com, koverstreet@google.com, zab@redhat.com
+Cc: peter@hurleysoftware.com, skinsbursky@parallels.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: conversion to bio batch completion
+     Subject: ipc: fix potential oops when src msg > 4k w/ MSG_COPY
 has been added to the -mm tree.  Its filename is
-     mtip32xx-convert-to-batch-completion-fix.patch
+     ipc-fix-potential-oops-when-src-msg-4k-w-msg_copy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,224 +33,28 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Asai Thambi S P <asamymuthupa@micron.com>
-Subject: conversion to bio batch completion
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: ipc: fix potential oops when src msg > 4k w/ MSG_COPY
 
-	* changes for conversion to bio batch completion from Kent
-	* fix to apply the above changes cleanly on latest mtip32xx code
-	* batch bio completion changes in
-		* mtip_command_cleanup()
-		* mtip_timeout_function()
-		* mtip_handle_tfe()
+If the src msg is > 4k, then dest->next points to the
+next allocated segment; resetting it just prior to dereferencing
+is bad.
 
-Signed-off-by: Asai Thambi S P <asamymuthupa@micron.com>
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Zach Brown <zab@redhat.com>
+Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+Acked-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/mtip32xx/mtip32xx.c |   36 +++++++++++++++++++++-------
- 1 file changed, 27 insertions(+), 9 deletions(-)
+ ipc/msgutil.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion-fix drivers/block/mtip32xx/mtip32xx.c
---- a/drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion-fix
-+++ a/drivers/block/mtip32xx/mtip32xx.c
-@@ -146,6 +146,9 @@ static void mtip_command_cleanup(struct 
- 	struct mtip_cmd *command;
- 	struct mtip_port *port = dd->port;
- 	static int in_progress;
-+	struct batch_complete batch;
-+
-+	batch_complete_init(&batch);
+diff -puN ipc/msgutil.c~ipc-fix-potential-oops-when-src-msg-4k-w-msg_copy ipc/msgutil.c
+--- a/ipc/msgutil.c~ipc-fix-potential-oops-when-src-msg-4k-w-msg_copy
++++ a/ipc/msgutil.c
+@@ -117,9 +117,6 @@ struct msg_msg *copy_msg(struct msg_msg 
+ 	if (alen > DATALEN_MSG)
+ 		alen = DATALEN_MSG;
  
- 	if (in_progress)
- 		return;
-@@ -162,7 +165,7 @@ static void mtip_command_cleanup(struct 
- 
- 			if (atomic_read(&command->active)
- 			    && (command->bio)) {
--				bio_endio(command->bio, -ENODEV);
-+				bio_endio_batch(command->bio, -ENODEV, &batch);
- 				command->bio = NULL;
- 			}
- 
-@@ -171,9 +174,10 @@ static void mtip_command_cleanup(struct 
- 				command->scatter_ents,
- 				command->direction);
- 		}
-+		up(&port->cmd_slot);
- 	}
- 
--	up(&port->cmd_slot);
-+	batch_complete(&batch);
- 
- 	set_bit(MTIP_DDF_CLEANUP_BIT, &dd->dd_flag);
- 	in_progress = 0;
-@@ -562,6 +566,9 @@ static void mtip_timeout_function(unsign
- 	unsigned int bit, group;
- 	unsigned int num_command_slots;
- 	unsigned long to, tagaccum[SLOTBITS_IN_LONGS];
-+	struct batch_complete batch;
-+
-+	batch_complete_init(&batch);
- 
- 	if (unlikely(!port))
- 		return;
-@@ -605,7 +612,7 @@ static void mtip_timeout_function(unsign
- 
- 			/* Call the async completion callback. */
- 			if (likely(command->bio))
--				bio_endio(command->bio, -EIO);
-+				bio_endio_batch(command->bio, -EIO, &batch);
- 			command->bio = NULL;
- 
- 			/* Unmap the DMA scatter list entries */
-@@ -625,6 +632,8 @@ static void mtip_timeout_function(unsign
- 		}
- 	}
- 
-+	batch_complete(&batch);
-+
- 	if (cmdto_cnt) {
- 		print_tags(port->dd, "timed out", tagaccum, cmdto_cnt);
- 		if (!test_bit(MTIP_PF_IC_ACTIVE_BIT, &port->flags)) {
-@@ -773,6 +782,7 @@ static void mtip_handle_tfe(struct drive
- 	unsigned char *buf;
- 	char *fail_reason = NULL;
- 	int fail_all_ncq_write = 0, fail_all_ncq_cmds = 0;
-+	struct batch_complete batch;
- 
- 	dev_warn(&dd->pdev->dev, "Taskfile error\n");
- 
-@@ -797,6 +807,7 @@ static void mtip_handle_tfe(struct drive
- 
- 	/* clear the tag accumulator */
- 	memset(tagaccum, 0, SLOTBITS_IN_LONGS * sizeof(long));
-+	batch_complete_init(&batch);
- 
- 	/* Loop through all the groups */
- 	for (group = 0; group < dd->slot_groups; group++) {
-@@ -823,7 +834,7 @@ static void mtip_handle_tfe(struct drive
- 				cmd->comp_func(port,
- 					 tag,
- 					 cmd->comp_data,
--					 0, NULL);
-+					 0, &batch);
- 			} else {
- 				dev_err(&port->dd->pdev->dev,
- 					"Missing completion func for tag %d",
-@@ -836,6 +847,7 @@ static void mtip_handle_tfe(struct drive
- 			}
- 		}
- 	}
-+	batch_complete(&batch);
- 
- 	print_tags(dd, "completed (TFE)", tagaccum, cmd_cnt);
- 
-@@ -877,6 +889,7 @@ static void mtip_handle_tfe(struct drive
- 
- 	/* clear the tag accumulator */
- 	memset(tagaccum, 0, SLOTBITS_IN_LONGS * sizeof(long));
-+	batch_complete_init(&batch);
- 
- 	/* Loop through all the groups */
- 	for (group = 0; group < dd->slot_groups; group++) {
-@@ -910,7 +923,7 @@ static void mtip_handle_tfe(struct drive
- 					if (cmd->comp_func) {
- 						cmd->comp_func(port, tag,
- 							cmd->comp_data,
--							-ENODATA, NULL);
-+							-ENODATA, &batch);
- 					}
- 					continue;
- 				}
-@@ -940,13 +953,15 @@ static void mtip_handle_tfe(struct drive
- 					port,
- 					tag,
- 					cmd->comp_data,
--					PORT_IRQ_TF_ERR, NULL);
-+					PORT_IRQ_TF_ERR, &batch);
- 			else
- 				dev_warn(&port->dd->pdev->dev,
- 					"Bad completion for tag %d\n",
- 					tag);
- 		}
- 	}
-+
-+	batch_complete(&batch);
- 	print_tags(dd, "reissued (TFE)", tagaccum, cmd_cnt);
- 
- handle_tfe_exit:
-@@ -994,8 +1009,8 @@ static inline void mtip_workq_sdbfx(stru
- 					port,
- 					tag,
- 					command->comp_data,
--						0,
--						&batch);
-+					0,
-+					&batch);
- 			} else {
- 				dev_warn(&dd->pdev->dev,
- 					"Null completion "
-@@ -1005,13 +1020,16 @@ static inline void mtip_workq_sdbfx(stru
- 				if (mtip_check_surprise_removal(
- 					dd->pdev)) {
- 					mtip_command_cleanup(dd);
--					return;
-+					goto out;
- 				}
- 			}
- 		}
- 		completed >>= 1;
- 	}
- 
-+out:
-+	batch_complete(&batch);
-+
- 	/* If last, re-enable interrupts */
- 	if (atomic_dec_return(&dd->irq_workers_active) == 0)
- 		writel(0xffffffff, dd->mmio + HOST_IRQ_STAT);
-_
-
-Patches currently in -mm which might be from asamymuthupa@micron.com are
-
-linux-next.patch
-mm-remove-old-aio-use_mm-comment.patch
-aio-remove-dead-code-from-aioh.patch
-gadget-remove-only-user-of-aio-retry.patch
-aio-remove-retry-based-aio.patch
-char-add-aio_readwrite-to-dev-nullzero.patch
-aio-kill-return-value-of-aio_complete.patch
-aio-kiocb_cancel.patch
-aio-move-private-stuff-out-of-aioh.patch
-aio-dprintk-pr_debug.patch
-aio-do-fget-after-aio_get_req.patch
-aio-make-aio_put_req-lockless.patch
-aio-refcounting-cleanup.patch
-wait-add-wait_event_hrtimeout.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
-aio-use-flush_dcache_page.patch
-aio-use-cancellation-list-lazily.patch
-aio-change-reqs_active-to-include-unreaped-completions.patch
-aio-kill-batch-allocation.patch
-aio-kill-struct-aio_ring_info.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-aio-reqs_active-reqs_available.patch
-aio-percpu-reqs_available.patch
-generic-dynamic-per-cpu-refcounting.patch
-aio-percpu-ioctx-refcount.patch
-aio-use-xchg-instead-of-completion_lock.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_key.patch
-aio-kill-ki_retry.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-virtio-blk-convert-to-batch-completion.patch
-mtip32xx-convert-to-batch-completion.patch
-mtip32xx-convert-to-batch-completion-fix.patch
-
+-	dst->next = NULL;
+-	dst->security = NULL;
