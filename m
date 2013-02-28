@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-nuc900-add-__init-__exit-annotation.patch added to -mm tree
-Date: Thu, 28 Feb 2013 13:33:03 -0800
-Message-ID: <20130228213304.4B92931C1E1@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-pcap-add-__init-__exit-annotation.patch added to -mm tree
+Date: Thu, 28 Feb 2013 13:33:06 -0800
+Message-ID: <20130228213307.49CFC5A41DD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:46078 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758894Ab3B1VdF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:33:05 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so254748ghb.4
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:33:04 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:57841 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759275Ab3B1VdI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 16:33:08 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so255056ggn.4
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 13:33:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-nuc900: add __init/__exit annotation
+     Subject: rtc: rtc-pcap: add __init/__exit annotation
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+     rtc-rtc-pcap-add-__init-__exit-annotation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-nuc900: add __init/__exit annotation
+Subject: rtc: rtc-pcap: add __init/__exit annotation
 
 When platform_driver_probe() is used, bind/unbind via sysfs is disabled. 
 Thus, __init/__exit annotations can be added to probe()/remove().
@@ -43,39 +43,39 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |    6 +++---
+ drivers/rtc/rtc-pcap.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-add-__init-__exit-annotation drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-add-__init-__exit-annotation
-+++ a/drivers/rtc/rtc-nuc900.c
-@@ -222,7 +222,7 @@ static struct rtc_class_ops nuc900_rtc_o
- 	.alarm_irq_enable = nuc900_alarm_irq_enable,
+diff -puN drivers/rtc/rtc-pcap.c~rtc-rtc-pcap-add-__init-__exit-annotation drivers/rtc/rtc-pcap.c
+--- a/drivers/rtc/rtc-pcap.c~rtc-rtc-pcap-add-__init-__exit-annotation
++++ a/drivers/rtc/rtc-pcap.c
+@@ -139,7 +139,7 @@ static const struct rtc_class_ops pcap_r
+ 	.alarm_irq_enable = pcap_rtc_alarm_irq_enable,
  };
  
--static int nuc900_rtc_probe(struct platform_device *pdev)
-+static int __init nuc900_rtc_probe(struct platform_device *pdev)
+-static int pcap_rtc_probe(struct platform_device *pdev)
++static int __init pcap_rtc_probe(struct platform_device *pdev)
  {
- 	struct resource *res;
- 	struct nuc900_rtc *nuc900_rtc;
-@@ -284,7 +284,7 @@ fail1:	kfree(nuc900_rtc);
+ 	struct pcap_rtc *pcap_rtc;
+ 	int timer_irq, alarm_irq;
+@@ -183,7 +183,7 @@ fail_rtc:
  	return err;
  }
  
--static int nuc900_rtc_remove(struct platform_device *pdev)
-+static int __exit nuc900_rtc_remove(struct platform_device *pdev)
+-static int pcap_rtc_remove(struct platform_device *pdev)
++static int __exit pcap_rtc_remove(struct platform_device *pdev)
  {
- 	struct nuc900_rtc *nuc900_rtc = platform_get_drvdata(pdev);
- 	struct resource *res;
-@@ -304,7 +304,7 @@ static int nuc900_rtc_remove(struct plat
+ 	struct pcap_rtc *pcap_rtc = platform_get_drvdata(pdev);
+ 
+@@ -196,7 +196,7 @@ static int pcap_rtc_remove(struct platfo
  }
  
- static struct platform_driver nuc900_rtc_driver = {
--	.remove		= nuc900_rtc_remove,
-+	.remove		= __exit_p(nuc900_rtc_remove),
- 	.driver		= {
- 		.name	= "nuc900-rtc",
- 		.owner	= THIS_MODULE,
+ static struct platform_driver pcap_rtc_driver = {
+-	.remove = pcap_rtc_remove,
++	.remove = __exit_p(pcap_rtc_remove),
+ 	.driver = {
+ 		.name  = "pcap-rtc",
+ 		.owner = THIS_MODULE,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
