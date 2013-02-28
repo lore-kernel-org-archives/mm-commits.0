@@ -1,88 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] inotify-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:15:33 -0800
-Message-ID: <20130228201533.AC7C85A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] ocfs2-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:15:36 -0800
+Message-ID: <20130228201536.A44285A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:58827 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758305Ab3B1UPe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:34 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so261338qaj.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:34 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:33245 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753547Ab3B1UPh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:15:37 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so39515vbi.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:15:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: inotify: convert to idr_alloc()
+     Subject: ocfs2: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     inotify-convert-to-idr_alloc.patch
+     ocfs2-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: inotify: convert to idr_alloc()
+Subject: ocfs2: convert to idr_alloc()
 
 Convert to the much saner new idr interface.
 
-Note that the adhoc cyclic id allocation is buggy.  If wraparound
-happens, the previous code with idr_get_new_above() may segfault and
-the converted code will trigger WARN and return -EINVAL.  Even if it's
-fixed to wrap to zero, the code will be prone to unnecessary -ENOSPC
-failures after the first wraparound.  We probably need to implement
-proper cyclic support in idr.
-
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Eric Paris <eparis@parisplace.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ fs/ocfs2/cluster/tcp.c |   32 +++++++++++++-------------------
+ 1 file changed, 13 insertions(+), 19 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-convert-to-idr_alloc fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-convert-to-idr_alloc
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -364,22 +364,20 @@ static int inotify_add_to_idr(struct idr
- {
- 	int ret;
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-convert-to-idr_alloc
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -304,28 +304,22 @@ static u8 o2net_num_from_nn(struct o2net
  
--	do {
--		if (unlikely(!idr_pre_get(idr, GFP_KERNEL)))
--			return -ENOMEM;
+ static int o2net_prep_nsw(struct o2net_node *nn, struct o2net_status_wait *nsw)
+ {
+-	int ret = 0;
 -
--		spin_lock(idr_lock);
--		ret = idr_get_new_above(idr, i_mark, *last_wd + 1,
--					&i_mark->wd);
-+	idr_preload(GFP_KERNEL);
-+	spin_lock(idr_lock);
-+
-+	ret = idr_alloc(idr, i_mark, *last_wd + 1, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
- 		/* we added the mark to the idr, take a reference */
--		if (!ret) {
--			*last_wd = i_mark->wd;
--			fsnotify_get_mark(&i_mark->fsn_mark);
+-	do {
+-		if (!idr_pre_get(&nn->nn_status_idr, GFP_ATOMIC)) {
+-			ret = -EAGAIN;
+-			break;
 -		}
--		spin_unlock(idr_lock);
+-		spin_lock(&nn->nn_lock);
+-		ret = idr_get_new(&nn->nn_status_idr, nsw, &nsw->ns_id);
+-		if (ret == 0)
+-			list_add_tail(&nsw->ns_node_item,
+-				      &nn->nn_status_list);
+-		spin_unlock(&nn->nn_lock);
 -	} while (ret == -EAGAIN);
-+		i_mark->wd = ret;
-+		*last_wd = i_mark->wd;
-+		fsnotify_get_mark(&i_mark->fsn_mark);
-+	}
++	int ret;
+ 
+-	if (ret == 0)  {
+-		init_waitqueue_head(&nsw->ns_wq);
+-		nsw->ns_sys_status = O2NET_ERR_NONE;
+-		nsw->ns_status = 0;
++	spin_lock(&nn->nn_lock);
++	ret = idr_alloc(&nn->nn_status_idr, nsw, 0, 0, GFP_ATOMIC);
++	if (ret >= 0) {
++		nsw->ns_id = ret;
++		list_add_tail(&nsw->ns_node_item, &nn->nn_status_list);
+ 	}
++	spin_unlock(&nn->nn_lock);
++	if (ret < 0)
++		return ret;
  
 -	return ret;
-+	spin_unlock(idr_lock);
-+	idr_preload_end();
-+	return ret < 0 ? ret : 0;
++	init_waitqueue_head(&nsw->ns_wq);
++	nsw->ns_sys_status = O2NET_ERR_NONE;
++	nsw->ns_status = 0;
++	return 0;
  }
  
- static struct inotify_inode_mark *inotify_idr_find_locked(struct fsnotify_group *group,
+ static void o2net_complete_nsw_locked(struct o2net_node *nn,
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
