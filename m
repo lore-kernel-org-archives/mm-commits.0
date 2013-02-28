@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch added to -mm tree
-Date: Thu, 28 Feb 2013 15:10:25 -0800
-Message-ID: <20130228231025.9F11A5A410E@corp2gmr1-2.hot.corp.google.com>
+Subject: + mtip32xx-convert-to-batch-completion-fix.patch added to -mm tree
+Date: Thu, 28 Feb 2013 15:28:07 -0800
+Message-ID: <20130228232807.C526D31C1F0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:63798 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752561Ab3B1XK1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:10:27 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so44888vbi.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:10:26 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:63286 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253Ab3B1X2K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:28:10 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so270509vch.2
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:28:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, dave@linux.vnet.ibm.com, mgorman@suse.de, mhocko@suse.cz
+Cc: asamymuthupa@micron.com, axboe@kernel.dk, bcrl@kvack.org, jmoyer@redhat.com, koverstreet@google.com, zab@redhat.com
 
 
 The patch titled
-     Subject: mm, show_mem: suppress page counts in non-blockable contexts
+     Subject: conversion to bio batch completion
 has been added to the -mm tree.  Its filename is
-     mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
+     mtip32xx-convert-to-batch-completion-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,147 +33,224 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, show_mem: suppress page counts in non-blockable contexts
+From: Asai Thambi S P <asamymuthupa@micron.com>
+Subject: conversion to bio batch completion
 
-On large systems with a lot of memory, walking all RAM to determine page
-types may take a half second or even more.
+	* changes for conversion to bio batch completion from Kent
+	* fix to apply the above changes cleanly on latest mtip32xx code
+	* batch bio completion changes in
+		* mtip_command_cleanup()
+		* mtip_timeout_function()
+		* mtip_handle_tfe()
 
-In non-blockable contexts, the page allocator will emit a page allocation
-failure warning unless __GFP_NOWARN is specified.  In such contexts, irqs
-are typically disabled and such a lengthy delay may result in soft
-lockups.
-
-To fix this, suppress the page walk in such contexts when printing the
-page allocation failure warning.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Zach Brown <zab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c       |    3 +++
- arch/ia64/mm/contig.c    |    2 ++
- arch/ia64/mm/discontig.c |    2 ++
- arch/parisc/mm/init.c    |    2 ++
- arch/unicore32/mm/init.c |    3 +++
- include/linux/mm.h       |    3 ++-
- lib/show_mem.c           |    3 +++
- mm/page_alloc.c          |    7 +++++++
- 8 files changed, 24 insertions(+), 1 deletion(-)
+ drivers/block/mtip32xx/mtip32xx.c |   36 +++++++++++++++++++++-------
+ 1 file changed, 27 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/mm/init.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/arch/arm/mm/init.c
-@@ -99,6 +99,9 @@ void show_mem(unsigned int filter)
- 	printk("Mem-info:\n");
- 	show_free_areas(filter);
- 
-+	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
-+		return;
+diff -puN drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion-fix drivers/block/mtip32xx/mtip32xx.c
+--- a/drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion-fix
++++ a/drivers/block/mtip32xx/mtip32xx.c
+@@ -146,6 +146,9 @@ static void mtip_command_cleanup(struct 
+ 	struct mtip_cmd *command;
+ 	struct mtip_port *port = dd->port;
+ 	static int in_progress;
++	struct batch_complete batch;
 +
- 	for_each_bank (i, mi) {
- 		struct membank *bank = &mi->bank[i];
- 		unsigned int pfn1, pfn2;
-diff -puN arch/ia64/mm/contig.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/arch/ia64/mm/contig.c
-@@ -47,6 +47,8 @@ void show_mem(unsigned int filter)
- 	printk(KERN_INFO "Mem-info:\n");
- 	show_free_areas(filter);
- 	printk(KERN_INFO "Node memory in pages:\n");
-+	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
-+		return;
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long present;
- 		unsigned long flags;
-diff -puN arch/ia64/mm/discontig.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts arch/ia64/mm/discontig.c
---- a/arch/ia64/mm/discontig.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/arch/ia64/mm/discontig.c
-@@ -623,6 +623,8 @@ void show_mem(unsigned int filter)
++	batch_complete_init(&batch);
  
- 	printk(KERN_INFO "Mem-info:\n");
- 	show_free_areas(filter);
-+	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
-+		return;
- 	printk(KERN_INFO "Node memory in pages:\n");
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long present;
-diff -puN arch/parisc/mm/init.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/arch/parisc/mm/init.c
-@@ -697,6 +697,8 @@ void show_mem(unsigned int filter)
- 
- 	printk(KERN_INFO "Mem-info:\n");
- 	show_free_areas(filter);
-+	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
-+		return;
- #ifndef CONFIG_DISCONTIGMEM
- 	i = max_mapnr;
- 	while (i-- > 0) {
-diff -puN arch/unicore32/mm/init.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts arch/unicore32/mm/init.c
---- a/arch/unicore32/mm/init.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/arch/unicore32/mm/init.c
-@@ -66,6 +66,9 @@ void show_mem(unsigned int filter)
- 	printk(KERN_DEFAULT "Mem-info:\n");
- 	show_free_areas(filter);
- 
-+	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
-+		return;
-+
- 	for_each_bank(i, mi) {
- 		struct membank *bank = &mi->bank[i];
- 		unsigned int pfn1, pfn2;
-diff -puN include/linux/mm.h~mm-show_mem-suppress-page-counts-in-non-blockable-contexts include/linux/mm.h
---- a/include/linux/mm.h~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/include/linux/mm.h
-@@ -900,7 +900,8 @@ extern void pagefault_out_of_memory(void
-  * Flags passed to show_mem() and show_free_areas() to suppress output in
-  * various contexts.
-  */
--#define SHOW_MEM_FILTER_NODES	(0x0001u)	/* filter disallowed nodes */
-+#define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
-+#define SHOW_MEM_FILTER_PAGE_COUNT	(0x0002u)	/* page type count */
- 
- extern void show_free_areas(unsigned int flags);
- extern bool skip_free_areas_node(unsigned int flags, int nid);
-diff -puN lib/show_mem.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts lib/show_mem.c
---- a/lib/show_mem.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/lib/show_mem.c
-@@ -18,6 +18,9 @@ void show_mem(unsigned int filter)
- 	printk("Mem-Info:\n");
- 	show_free_areas(filter);
- 
-+	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
-+		return;
-+
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long i, flags;
- 
-diff -puN mm/page_alloc.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts mm/page_alloc.c
---- a/mm/page_alloc.c~mm-show_mem-suppress-page-counts-in-non-blockable-contexts
-+++ a/mm/page_alloc.c
-@@ -2009,6 +2009,13 @@ void warn_alloc_failed(gfp_t gfp_mask, i
+ 	if (in_progress)
  		return;
+@@ -162,7 +165,7 @@ static void mtip_command_cleanup(struct 
  
- 	/*
-+	 * Walking all memory to count page types is very expensive and should
-+	 * be inhibited in non-blockable contexts.
-+	 */
-+	if (!(gfp_mask & __GFP_WAIT))
-+		filter |= SHOW_MEM_FILTER_PAGE_COUNT;
+ 			if (atomic_read(&command->active)
+ 			    && (command->bio)) {
+-				bio_endio(command->bio, -ENODEV);
++				bio_endio_batch(command->bio, -ENODEV, &batch);
+ 				command->bio = NULL;
+ 			}
+ 
+@@ -171,9 +174,10 @@ static void mtip_command_cleanup(struct 
+ 				command->scatter_ents,
+ 				command->direction);
+ 		}
++		up(&port->cmd_slot);
+ 	}
+ 
+-	up(&port->cmd_slot);
++	batch_complete(&batch);
+ 
+ 	set_bit(MTIP_DDF_CLEANUP_BIT, &dd->dd_flag);
+ 	in_progress = 0;
+@@ -562,6 +566,9 @@ static void mtip_timeout_function(unsign
+ 	unsigned int bit, group;
+ 	unsigned int num_command_slots;
+ 	unsigned long to, tagaccum[SLOTBITS_IN_LONGS];
++	struct batch_complete batch;
 +
-+	/*
- 	 * This documents exceptions given to allocations in certain
- 	 * contexts that are allowed to allocate outside current's set
- 	 * of allowed nodes.
++	batch_complete_init(&batch);
+ 
+ 	if (unlikely(!port))
+ 		return;
+@@ -605,7 +612,7 @@ static void mtip_timeout_function(unsign
+ 
+ 			/* Call the async completion callback. */
+ 			if (likely(command->bio))
+-				bio_endio(command->bio, -EIO);
++				bio_endio_batch(command->bio, -EIO, &batch);
+ 			command->bio = NULL;
+ 
+ 			/* Unmap the DMA scatter list entries */
+@@ -625,6 +632,8 @@ static void mtip_timeout_function(unsign
+ 		}
+ 	}
+ 
++	batch_complete(&batch);
++
+ 	if (cmdto_cnt) {
+ 		print_tags(port->dd, "timed out", tagaccum, cmdto_cnt);
+ 		if (!test_bit(MTIP_PF_IC_ACTIVE_BIT, &port->flags)) {
+@@ -773,6 +782,7 @@ static void mtip_handle_tfe(struct drive
+ 	unsigned char *buf;
+ 	char *fail_reason = NULL;
+ 	int fail_all_ncq_write = 0, fail_all_ncq_cmds = 0;
++	struct batch_complete batch;
+ 
+ 	dev_warn(&dd->pdev->dev, "Taskfile error\n");
+ 
+@@ -797,6 +807,7 @@ static void mtip_handle_tfe(struct drive
+ 
+ 	/* clear the tag accumulator */
+ 	memset(tagaccum, 0, SLOTBITS_IN_LONGS * sizeof(long));
++	batch_complete_init(&batch);
+ 
+ 	/* Loop through all the groups */
+ 	for (group = 0; group < dd->slot_groups; group++) {
+@@ -823,7 +834,7 @@ static void mtip_handle_tfe(struct drive
+ 				cmd->comp_func(port,
+ 					 tag,
+ 					 cmd->comp_data,
+-					 0, NULL);
++					 0, &batch);
+ 			} else {
+ 				dev_err(&port->dd->pdev->dev,
+ 					"Missing completion func for tag %d",
+@@ -836,6 +847,7 @@ static void mtip_handle_tfe(struct drive
+ 			}
+ 		}
+ 	}
++	batch_complete(&batch);
+ 
+ 	print_tags(dd, "completed (TFE)", tagaccum, cmd_cnt);
+ 
+@@ -877,6 +889,7 @@ static void mtip_handle_tfe(struct drive
+ 
+ 	/* clear the tag accumulator */
+ 	memset(tagaccum, 0, SLOTBITS_IN_LONGS * sizeof(long));
++	batch_complete_init(&batch);
+ 
+ 	/* Loop through all the groups */
+ 	for (group = 0; group < dd->slot_groups; group++) {
+@@ -910,7 +923,7 @@ static void mtip_handle_tfe(struct drive
+ 					if (cmd->comp_func) {
+ 						cmd->comp_func(port, tag,
+ 							cmd->comp_data,
+-							-ENODATA, NULL);
++							-ENODATA, &batch);
+ 					}
+ 					continue;
+ 				}
+@@ -940,13 +953,15 @@ static void mtip_handle_tfe(struct drive
+ 					port,
+ 					tag,
+ 					cmd->comp_data,
+-					PORT_IRQ_TF_ERR, NULL);
++					PORT_IRQ_TF_ERR, &batch);
+ 			else
+ 				dev_warn(&port->dd->pdev->dev,
+ 					"Bad completion for tag %d\n",
+ 					tag);
+ 		}
+ 	}
++
++	batch_complete(&batch);
+ 	print_tags(dd, "reissued (TFE)", tagaccum, cmd_cnt);
+ 
+ handle_tfe_exit:
+@@ -994,8 +1009,8 @@ static inline void mtip_workq_sdbfx(stru
+ 					port,
+ 					tag,
+ 					command->comp_data,
+-						0,
+-						&batch);
++					0,
++					&batch);
+ 			} else {
+ 				dev_warn(&dd->pdev->dev,
+ 					"Null completion "
+@@ -1005,13 +1020,16 @@ static inline void mtip_workq_sdbfx(stru
+ 				if (mtip_check_surprise_removal(
+ 					dd->pdev)) {
+ 					mtip_command_cleanup(dd);
+-					return;
++					goto out;
+ 				}
+ 			}
+ 		}
+ 		completed >>= 1;
+ 	}
+ 
++out:
++	batch_complete(&batch);
++
+ 	/* If last, re-enable interrupts */
+ 	if (atomic_dec_return(&dd->irq_workers_active) == 0)
+ 		writel(0xffffffff, dd->mmio + HOST_IRQ_STAT);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from asamymuthupa@micron.com are
 
-origin.patch
-mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+linux-next.patch
+mm-remove-old-aio-use_mm-comment.patch
+aio-remove-dead-code-from-aioh.patch
+gadget-remove-only-user-of-aio-retry.patch
+aio-remove-retry-based-aio.patch
+char-add-aio_readwrite-to-dev-nullzero.patch
+aio-kill-return-value-of-aio_complete.patch
+aio-kiocb_cancel.patch
+aio-move-private-stuff-out-of-aioh.patch
+aio-dprintk-pr_debug.patch
+aio-do-fget-after-aio_get_req.patch
+aio-make-aio_put_req-lockless.patch
+aio-refcounting-cleanup.patch
+wait-add-wait_event_hrtimeout.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
+aio-use-flush_dcache_page.patch
+aio-use-cancellation-list-lazily.patch
+aio-change-reqs_active-to-include-unreaped-completions.patch
+aio-kill-batch-allocation.patch
+aio-kill-struct-aio_ring_info.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+aio-reqs_active-reqs_available.patch
+aio-percpu-reqs_available.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-percpu-ioctx-refcount.patch
+aio-use-xchg-instead-of-completion_lock.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_key.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+virtio-blk-convert-to-batch-completion.patch
+mtip32xx-convert-to-batch-completion.patch
+mtip32xx-convert-to-batch-completion-fix.patch
 
