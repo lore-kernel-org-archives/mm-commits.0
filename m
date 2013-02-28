@@ -1,90 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] atm-nicstar-convert-to-idr_alloc.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:13:21 -0800
-Message-ID: <20130228201321.CD4B531C211@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drbd-convert-to-idr_alloc.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:13:24 -0800
+Message-ID: <20130228201324.A92125A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:49186 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078Ab3B1UNW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:22 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so39444vbi.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:22 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:42107 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078Ab3B1UNZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:25 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so246595yhr.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, chas@cmf.nrl.navy.mil, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: atm/nicstar: convert to idr_alloc()
+     Subject: drbd: convert to idr_alloc()
 has been removed from the -mm tree.  Its filename was
-     atm-nicstar-convert-to-idr_alloc.patch
+     drbd-convert-to-idr_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: atm/nicstar: convert to idr_alloc()
+Subject: drbd: convert to idr_alloc()
 
-Convert to the much saner new idr interface.  The existing code looks
-buggy to me - ID 0 is treated as no-ID but allocation specifies 0 as
-lower limit and there's no error handling after partial success.  This
-conversion keeps the bugs unchanged.
+Convert to the much saner new idr interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Chas Williams <chas@cmf.nrl.navy.mil>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/nicstar.c |   24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ drivers/block/drbd/drbd_main.c |   29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN drivers/atm/nicstar.c~atm-nicstar-convert-to-idr_alloc drivers/atm/nicstar.c
---- a/drivers/atm/nicstar.c~atm-nicstar-convert-to-idr_alloc
-+++ a/drivers/atm/nicstar.c
-@@ -949,11 +949,10 @@ static void free_scq(ns_dev *card, scq_i
- static void push_rxbufs(ns_dev * card, struct sk_buff *skb)
- {
- 	struct sk_buff *handle1, *handle2;
--	u32 id1 = 0, id2 = 0;
-+	int id1, id2;
- 	u32 addr1, addr2;
- 	u32 stat;
- 	unsigned long flags;
--	int err;
+diff -puN drivers/block/drbd/drbd_main.c~drbd-convert-to-idr_alloc drivers/block/drbd/drbd_main.c
+--- a/drivers/block/drbd/drbd_main.c~drbd-convert-to-idr_alloc
++++ a/drivers/block/drbd/drbd_main.c
+@@ -2660,25 +2660,24 @@ enum drbd_ret_code conn_new_minor(struct
+ 	mdev->read_requests = RB_ROOT;
+ 	mdev->write_requests = RB_ROOT;
  
- 	/* *BARF* */
- 	handle2 = NULL;
-@@ -1026,23 +1025,12 @@ static void push_rxbufs(ns_dev * card, s
- 				card->lbfqc += 2;
- 		}
+-	if (!idr_pre_get(&minors, GFP_KERNEL))
+-		goto out_no_minor_idr;
+-	if (idr_get_new_above(&minors, mdev, minor, &minor_got))
++	minor_got = idr_alloc(&minors, mdev, minor, minor + 1, GFP_KERNEL);
++	if (minor_got < 0) {
++		if (minor_got == -ENOSPC) {
++			err = ERR_MINOR_EXISTS;
++			drbd_msg_put_info("requested minor exists already");
++		}
+ 		goto out_no_minor_idr;
+-	if (minor_got != minor) {
+-		err = ERR_MINOR_EXISTS;
+-		drbd_msg_put_info("requested minor exists already");
+-		goto out_idr_remove_minor;
+ 	}
  
--		do {
--			if (!idr_pre_get(&card->idr, GFP_ATOMIC)) {
--				printk(KERN_ERR
--				       "nicstar%d: no free memory for idr\n",
--				       card->index);
--				goto out;
--			}
--
--			if (!id1)
--				err = idr_get_new_above(&card->idr, handle1, 0, &id1);
--
--			if (!id2 && err == 0)
--				err = idr_get_new_above(&card->idr, handle2, 0, &id2);
--
--		} while (err == -EAGAIN);
-+		id1 = idr_alloc(&card->idr, handle1, 0, 0, GFP_ATOMIC);
-+		if (id1 < 0)
-+			goto out;
+-	if (!idr_pre_get(&tconn->volumes, GFP_KERNEL))
+-		goto out_idr_remove_minor;
+-	if (idr_get_new_above(&tconn->volumes, mdev, vnr, &vnr_got))
++	vnr_got = idr_alloc(&tconn->volumes, mdev, vnr, vnr + 1, GFP_KERNEL);
++	if (vnr_got < 0) {
++		if (vnr_got == -ENOSPC) {
++			err = ERR_INVALID_REQUEST;
++			drbd_msg_put_info("requested volume exists already");
++		}
+ 		goto out_idr_remove_minor;
+-	if (vnr_got != vnr) {
+-		err = ERR_INVALID_REQUEST;
+-		drbd_msg_put_info("requested volume exists already");
+-		goto out_idr_remove_vol;
+ 	}
++
+ 	add_disk(disk);
+ 	kref_init(&mdev->kref); /* one ref for both idrs and the the add_disk */
  
--		if (err)
-+		id2 = idr_alloc(&card->idr, handle2, 0, 0, GFP_ATOMIC);
-+		if (id2 < 0)
- 			goto out;
+@@ -2689,8 +2688,6 @@ enum drbd_ret_code conn_new_minor(struct
  
- 		spin_lock_irqsave(&card->res_lock, flags);
+ 	return NO_ERROR;
+ 
+-out_idr_remove_vol:
+-	idr_remove(&tconn->volumes, vnr_got);
+ out_idr_remove_minor:
+ 	idr_remove(&minors, minor_got);
+ 	synchronize_rcu();
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
