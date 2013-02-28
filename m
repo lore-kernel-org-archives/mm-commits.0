@@ -1,185 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:13:00 -0800
-Message-ID: <20130228201300.B36F731C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] idr-remove-_idr_rc_to_errno-hack.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:13:03 -0800
+Message-ID: <20130228201303.B15C45A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:59006 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770Ab3B1UNB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:01 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so261167qaj.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:01 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:36018 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755770Ab3B1UNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:13:04 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so245086qea.3
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:13:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr: relocate idr_for_each_entry() and reorganize id[r|a]_get_new()
+     Subject: idr: remove _idr_rc_to_errno() hack
 has been removed from the -mm tree.  Its filename was
-     idr-relocate-idr_for_each_entry-and-reorganize-id_get_new.patch
+     idr-remove-_idr_rc_to_errno-hack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: idr: relocate idr_for_each_entry() and reorganize id[r|a]_get_new()
+Subject: idr: remove _idr_rc_to_errno() hack
 
-* Move idr_for_each_entry() definition next to other idr related
-  definitions.
+idr uses -1, IDR_NEED_TO_GROW and IDR_NOMORE_SPACE to communicate
+exception conditions internally.  The return value is later translated
+to errno values using _idr_rc_to_errno().
 
-* Make id[r|a]_get_new() inline wrappers of id[r|a]_get_new_above().
+This is confusing.  Drop the custom ones and consistently use -EAGAIN
+for "tree needs to grow", -ENOMEM for "need more memory" and -ENOSPC
+for "ran out of ID space".
 
-This changes the implementation of idr_get_new() but the new
-implementation is trivial.  This patch doesn't introduce any
-functional change.
+Due to the weird memory preloading mechanism, [ra]_get_new*() return
+-EAGAIN on memory shortage, so we need to substitute -ENOMEM w/
+-EAGAIN on those interface functions.  They'll eventually be cleaned
+up and the translations will go away.
+
+This patch doesn't introduce any functional changes.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   47 ++++++++++++++++++++++++++++++----------
- lib/idr.c           |   49 ------------------------------------------
- 2 files changed, 35 insertions(+), 61 deletions(-)
+ include/linux/idr.h |    6 ------
+ lib/idr.c           |   35 +++++++++++++++++++++++------------
+ 2 files changed, 23 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/idr.h~idr-relocate-idr_for_each_entry-and-reorganize-id_get_new include/linux/idr.h
---- a/include/linux/idr.h~idr-relocate-idr_for_each_entry-and-reorganize-id_get_new
+diff -puN include/linux/idr.h~idr-remove-_idr_rc_to_errno-hack include/linux/idr.h
+--- a/include/linux/idr.h~idr-remove-_idr_rc_to_errno-hack
 +++ a/include/linux/idr.h
-@@ -99,7 +99,6 @@ struct idr {
- 
- void *idr_find(struct idr *idp, int id);
- int idr_pre_get(struct idr *idp, gfp_t gfp_mask);
--int idr_get_new(struct idr *idp, void *ptr, int *id);
- int idr_get_new_above(struct idr *idp, void *ptr, int starting_id, int *id);
- int idr_for_each(struct idr *idp,
- 		 int (*fn)(int id, void *p, void *data), void *data);
-@@ -109,6 +108,30 @@ void idr_remove(struct idr *idp, int id)
- void idr_destroy(struct idr *idp);
- void idr_init(struct idr *idp);
- 
-+/**
-+ * idr_get_new - allocate new idr entry
-+ * @idp: idr handle
-+ * @ptr: pointer you want associated with the id
-+ * @id: pointer to the allocated handle
-+ *
-+ * Simple wrapper around idr_get_new_above() w/ @starting_id of zero.
-+ */
-+static inline int idr_get_new(struct idr *idp, void *ptr, int *id)
-+{
-+	return idr_get_new_above(idp, ptr, 0, id);
-+}
-+
-+/**
-+ * idr_for_each_entry - iterate over an idr's elements of a given type
-+ * @idp:     idr handle
-+ * @entry:   the type * to use as cursor
-+ * @id:      id entry's key
-+ */
-+#define idr_for_each_entry(idp, entry, id)				\
-+	for (id = 0, entry = (typeof(entry))idr_get_next((idp), &(id)); \
-+	     entry != NULL;                                             \
-+	     ++id, entry = (typeof(entry))idr_get_next((idp), &(id)))
-+
- void __idr_remove_all(struct idr *idp);	/* don't use */
- 
- /**
-@@ -149,7 +172,6 @@ struct ida {
- 
- int ida_pre_get(struct ida *ida, gfp_t gfp_mask);
- int ida_get_new_above(struct ida *ida, int starting_id, int *p_id);
--int ida_get_new(struct ida *ida, int *p_id);
- void ida_remove(struct ida *ida, int id);
- void ida_destroy(struct ida *ida);
- void ida_init(struct ida *ida);
-@@ -158,17 +180,18 @@ int ida_simple_get(struct ida *ida, unsi
- 		   gfp_t gfp_mask);
- void ida_simple_remove(struct ida *ida, unsigned int id);
- 
--void __init idr_init_cache(void);
--
- /**
-- * idr_for_each_entry - iterate over an idr's elements of a given type
-- * @idp:     idr handle
-- * @entry:   the type * to use as cursor
-- * @id:      id entry's key
-+ * ida_get_new - allocate new ID
-+ * @ida:	idr handle
-+ * @p_id:	pointer to the allocated handle
-+ *
-+ * Simple wrapper around ida_get_new_above() w/ @starting_id of zero.
-  */
--#define idr_for_each_entry(idp, entry, id)				\
--	for (id = 0, entry = (typeof(entry))idr_get_next((idp), &(id)); \
--	     entry != NULL;                                             \
--	     ++id, entry = (typeof(entry))idr_get_next((idp), &(id)))
-+static inline int ida_get_new(struct ida *ida, int *p_id)
-+{
-+	return ida_get_new_above(ida, 0, p_id);
-+}
-+
-+void __init idr_init_cache(void);
- 
- #endif /* __IDR_H__ */
-diff -puN lib/idr.c~idr-relocate-idr_for_each_entry-and-reorganize-id_get_new lib/idr.c
---- a/lib/idr.c~idr-relocate-idr_for_each_entry-and-reorganize-id_get_new
-+++ a/lib/idr.c
-@@ -317,36 +317,6 @@ int idr_get_new_above(struct idr *idp, v
+@@ -70,12 +70,6 @@ struct idr {
  }
- EXPORT_SYMBOL(idr_get_new_above);
+ #define DEFINE_IDR(name)	struct idr name = IDR_INIT(name)
  
--/**
-- * idr_get_new - allocate new idr entry
-- * @idp: idr handle
-- * @ptr: pointer you want associated with the id
-- * @id: pointer to the allocated handle
-- *
-- * If allocation from IDR's private freelist fails, idr_get_new_above() will
-- * return %-EAGAIN.  The caller should retry the idr_pre_get() call to refill
-- * IDR's preallocation and then retry the idr_get_new_above() call.
-- *
-- * If the idr is full idr_get_new_above() will return %-ENOSPC.
-- *
-- * @id returns a value in the range %0 ... %0x7fffffff
-- */
--int idr_get_new(struct idr *idp, void *ptr, int *id)
--{
--	int rv;
+-/* Actions to be taken after a call to _idr_sub_alloc */
+-#define IDR_NEED_TO_GROW -2
+-#define IDR_NOMORE_SPACE -3
 -
--	rv = idr_get_new_above_int(idp, ptr, 0);
+-#define _idr_rc_to_errno(rc) ((rc) == -1 ? -EAGAIN : -ENOSPC)
+-
+ /**
+  * DOC: idr sync
+  * idr synchronization (stolen from radix-tree.h)
+diff -puN lib/idr.c~idr-remove-_idr_rc_to_errno-hack lib/idr.c
+--- a/lib/idr.c~idr-remove-_idr_rc_to_errno-hack
++++ a/lib/idr.c
+@@ -133,6 +133,21 @@ int idr_pre_get(struct idr *idp, gfp_t g
+ }
+ EXPORT_SYMBOL(idr_pre_get);
+ 
++/**
++ * sub_alloc - try to allocate an id without growing the tree depth
++ * @idp: idr handle
++ * @starting_id: id to start search at
++ * @id: pointer to the allocated handle
++ * @pa: idr_layer[MAX_IDR_LEVEL] used as backtrack buffer
++ *
++ * Allocate an id in range [@starting_id, INT_MAX] from @idp without
++ * growing its depth.  Returns
++ *
++ *  the allocated id >= 0 if successful,
++ *  -EAGAIN if the tree needs to grow for allocation to succeed,
++ *  -ENOSPC if the id space is exhausted,
++ *  -ENOMEM if more idr_layers need to be allocated.
++ */
+ static int sub_alloc(struct idr *idp, int *starting_id, struct idr_layer **pa)
+ {
+ 	int n, m, sh;
+@@ -161,7 +176,7 @@ static int sub_alloc(struct idr *idp, in
+ 			/* if already at the top layer, we need to grow */
+ 			if (id >= 1 << (idp->layers * IDR_BITS)) {
+ 				*starting_id = id;
+-				return IDR_NEED_TO_GROW;
++				return -EAGAIN;
+ 			}
+ 			p = pa[l];
+ 			BUG_ON(!p);
+@@ -180,7 +195,7 @@ static int sub_alloc(struct idr *idp, in
+ 			id = ((id >> sh) ^ n ^ m) << sh;
+ 		}
+ 		if ((id >= MAX_IDR_BIT) || (id < 0))
+-			return IDR_NOMORE_SPACE;
++			return -ENOSPC;
+ 		if (l == 0)
+ 			break;
+ 		/*
+@@ -189,7 +204,7 @@ static int sub_alloc(struct idr *idp, in
+ 		if (!p->ary[m]) {
+ 			new = get_from_free_list(idp);
+ 			if (!new)
+-				return -1;
++				return -ENOMEM;
+ 			new->layer = l-1;
+ 			rcu_assign_pointer(p->ary[m], new);
+ 			p->count++;
+@@ -215,7 +230,7 @@ build_up:
+ 	layers = idp->layers;
+ 	if (unlikely(!p)) {
+ 		if (!(p = get_from_free_list(idp)))
+-			return -1;
++			return -ENOMEM;
+ 		p->layer = 0;
+ 		layers = 1;
+ 	}
+@@ -246,7 +261,7 @@ build_up:
+ 				__move_to_free_list(idp, new);
+ 			}
+ 			spin_unlock_irqrestore(&idp->lock, flags);
+-			return -1;
++			return -ENOMEM;
+ 		}
+ 		new->ary[0] = p;
+ 		new->count = 1;
+@@ -258,7 +273,7 @@ build_up:
+ 	rcu_assign_pointer(idp->top, p);
+ 	idp->layers = layers;
+ 	v = sub_alloc(idp, &id, pa);
+-	if (v == IDR_NEED_TO_GROW)
++	if (v == -EAGAIN)
+ 		goto build_up;
+ 	return(v);
+ }
+@@ -306,12 +321,8 @@ int idr_get_new_above(struct idr *idp, v
+ 	int rv;
+ 
+ 	rv = idr_get_new_above_int(idp, ptr, starting_id);
 -	/*
 -	 * This is a cheap hack until the IDR code can be fixed to
 -	 * return proper error values.
 -	 */
--	if (rv < 0)
+ 	if (rv < 0)
 -		return _idr_rc_to_errno(rv);
--	*id = rv;
--	return 0;
--}
--EXPORT_SYMBOL(idr_get_new);
--
- static void idr_remove_warning(int id)
- {
- 	printk(KERN_WARNING
-@@ -857,25 +827,6 @@ int ida_get_new_above(struct ida *ida, i
- EXPORT_SYMBOL(ida_get_new_above);
++		return rv == -ENOMEM ? -EAGAIN : rv;
+ 	*id = rv;
+ 	return 0;
+ }
+@@ -766,7 +777,7 @@ int ida_get_new_above(struct ida *ida, i
+ 	/* get vacant slot */
+ 	t = idr_get_empty_slot(&ida->idr, idr_id, pa);
+ 	if (t < 0)
+-		return _idr_rc_to_errno(t);
++		return t == -ENOMEM ? -EAGAIN : t;
  
- /**
-- * ida_get_new - allocate new ID
-- * @ida:	idr handle
-- * @p_id:	pointer to the allocated handle
-- *
-- * Allocate new ID.  It should be called with any required locks.
-- *
-- * If memory is required, it will return %-EAGAIN, you should unlock
-- * and go back to the idr_pre_get() call.  If the idr is full, it will
-- * return %-ENOSPC.
-- *
-- * @p_id returns a value in the range %0 ... %0x7fffffff.
-- */
--int ida_get_new(struct ida *ida, int *p_id)
--{
--	return ida_get_new_above(ida, 0, p_id);
--}
--EXPORT_SYMBOL(ida_get_new);
+ 	if (t * IDA_BITMAP_BITS >= MAX_IDR_BIT)
+ 		return -ENOSPC;
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+origin.patch
+linux-next.patch
+slub-correctly-bootstrap-boot-caches.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+coredump-make-wait_for_dump_helpers-freezable.patch
+nfsd-idr_destroy-no-longer-needs-idr_remove_all.patch
+
