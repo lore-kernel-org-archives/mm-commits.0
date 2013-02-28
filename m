@@ -1,61 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-get-rid-of-duplicate-check-for-hole_end.patch removed from -mm tree
-Date: Thu, 28 Feb 2013 12:12:07 -0800
-Message-ID: <20130228201207.A78A85A41B6@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kexec-export-pg_hwpoison-flag-into-vmcoreinfo.patch removed from -mm tree
+Date: Thu, 28 Feb 2013 12:12:10 -0800
+Message-ID: <20130228201210.B6A0F5A41B6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:37763 "EHLO
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:39125 "EHLO
 	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756342Ab3B1UMI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:08 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so244834yen.5
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:08 -0800 (PST)
+	with ESMTP id S1756212Ab3B1UML (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 15:12:11 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so245002yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 12:12:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhangyanfei@cn.fujitsu.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mitsuhiro.tanino.gm@hitachi.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: get rid of duplicate check for hole_end
+     Subject: kexec: export PG_hwpoison flag into vmcoreinfo
 has been removed from the -mm tree.  Its filename was
-     kexec-get-rid-of-duplicate-check-for-hole_end.patch
+     kexec-export-pg_hwpoison-flag-into-vmcoreinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: kexec: get rid of duplicate check for hole_end
+From: Mitsuhiro Tanino <mitsuhiro.tanino.gm@hitachi.com>
+Subject: kexec: export PG_hwpoison flag into vmcoreinfo
 
-hole_end has been checked to make sure it is <= crash_res.end in the while
-condition check, so the if condition check is duplicate.
+This patch exports a PG_hwpoison into vmcoreinfo when
+CONFIG_MEMORY_FAILURE is defined.  "makedumpfile" needs to read
+information of memory, such as 'mem_section', 'zone', 'pageflags' from
+vmcore.
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+We introduce a function into "makedumpfile" to exclude hwpoison page from
+vmcore dump.  In order to introduce this function, PG_hwpoison flag have
+to export into vmcoreinfo.
+
+Signed-off-by: Mitsuhiro Tanino <mitsuhiro.tanino.gm@hitachi.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Mitsuhiro Tanino <mitsuhiro.tanino.gm@hitachi.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/kexec.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/kexec.c~kexec-get-rid-of-duplicate-check-for-hole_end kernel/kexec.c
---- a/kernel/kexec.c~kexec-get-rid-of-duplicate-check-for-hole_end
+diff -puN kernel/kexec.c~kexec-export-pg_hwpoison-flag-into-vmcoreinfo kernel/kexec.c
+--- a/kernel/kexec.c~kexec-export-pg_hwpoison-flag-into-vmcoreinfo
 +++ a/kernel/kexec.c
-@@ -503,8 +503,6 @@ static struct page *kimage_alloc_crash_c
+@@ -1537,6 +1537,9 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_NUMBER(PG_private);
+ 	VMCOREINFO_NUMBER(PG_swapcache);
+ 	VMCOREINFO_NUMBER(PG_slab);
++#ifdef CONFIG_MEMORY_FAILURE
++	VMCOREINFO_NUMBER(PG_hwpoison);
++#endif
+ 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
  
- 		if (hole_end > KEXEC_CRASH_CONTROL_MEMORY_LIMIT)
- 			break;
--		if (hole_end > crashk_res.end)
--			break;
- 		/* See if I overlap any of the segments */
- 		for (i = 0; i < image->nr_segments; i++) {
- 			unsigned long mstart, mend;
+ 	arch_crash_save_vmcoreinfo();
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from mitsuhiro.tanino.gm@hitachi.com are
 
 origin.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-kexec-fix-wrong-types-of-some-local-variables.patch
-kexec-use-min_t-to-simplify-logic.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
 
