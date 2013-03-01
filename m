@@ -1,76 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-correctly-bootstrap-boot-caches.patch removed from -mm tree
-Date: Fri, 01 Mar 2013 12:47:14 -0800
-Message-ID: <20130301204714.C225431C24F@corp2gmr1-1.hot.corp.google.com>
+Subject: + semaphore-give-an-unlikely-for-downs-timeout.patch added to -mm tree
+Date: Fri, 01 Mar 2013 13:08:48 -0800
+Message-ID: <20130301210849.4027B5A4123@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:58792 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483Ab3CAUrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Mar 2013 15:47:16 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so378541vch.2
-        for <mm-commits@vger.kernel.org>; Fri, 01 Mar 2013 12:47:15 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:56240 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752135Ab3CAVIu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Mar 2013 16:08:50 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so381233ghb.3
+        for <mm-commits@vger.kernel.org>; Fri, 01 Mar 2013 13:08:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glommer@parallels.com, StMichalke@web.de, cl@linux.com, kamezawa.hiroyu@jp.fujitsu.com, penberg@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lig.fnst@cn.fujitsu.com, jkosina@suse.cz
 
 
 The patch titled
-     Subject: slub: correctly bootstrap boot caches
-has been removed from the -mm tree.  Its filename was
-     slub-correctly-bootstrap-boot-caches.patch
+     Subject: semaphore: use unlikely() for down's timeout
+has been added to the -mm tree.  Its filename is
+     semaphore-give-an-unlikely-for-downs-timeout.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@parallels.com>
-Subject: slub: correctly bootstrap boot caches
+From: liguang <lig.fnst@cn.fujitsu.com>
+Subject: semaphore: use unlikely() for down's timeout
 
-After we create a boot cache, we may allocate from it until it is
-bootstraped.  This will move the page from the partial list to the cpu
-slab list.  If this happens, the loop:
-
-	list_for_each_entry(p, &n->partial, lru)
-
-that we use to scan for all partial pages will yield nothing, and the
-pages will keep pointing to the boot cpu cache, which is of course,
-invalid.  To do that, we should flush the cache to make sure that the cpu
-slab is back to the partial list.
-
-Signed-off-by: Glauber Costa <glommer@parallels.com>
-Reported-by: Steffen Michalke <StMichalke@web.de>
-Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/semaphore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-correctly-bootstrap-boot-caches mm/slub.c
---- a/mm/slub.c~slub-correctly-bootstrap-boot-caches
-+++ a/mm/slub.c
-@@ -3552,6 +3552,12 @@ static struct kmem_cache * __init bootst
- 
- 	memcpy(s, static_cache, kmem_cache->object_size);
- 
-+	/*
-+	 * This runs very early, and only the boot processor is supposed to be
-+	 * up.  Even if it weren't true, IRQs are not up so we couldn't fire
-+	 * IPIs around.
-+	 */
-+	__flush_cpu_slab(s, smp_processor_id());
- 	for_each_node_state(node, N_NORMAL_MEMORY) {
- 		struct kmem_cache_node *n = get_node(s, node);
- 		struct page *p;
+diff -puN kernel/semaphore.c~semaphore-give-an-unlikely-for-downs-timeout kernel/semaphore.c
+--- a/kernel/semaphore.c~semaphore-give-an-unlikely-for-downs-timeout
++++ a/kernel/semaphore.c
+@@ -214,7 +214,7 @@ static inline int __sched __down_common(
+ 	for (;;) {
+ 		if (signal_pending_state(state, task))
+ 			goto interrupted;
+-		if (timeout <= 0)
++		if (unlikely(timeout <= 0))
+ 			goto timed_out;
+ 		__set_task_state(task, state);
+ 		raw_spin_unlock_irq(&sem->lock);
 _
 
-Patches currently in -mm which might be from glommer@parallels.com are
+Patches currently in -mm which might be from lig.fnst@cn.fujitsu.com are
 
-origin.patch
-linux-next.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+semaphore-give-an-unlikely-for-downs-timeout.patch
+semaphore-boolize-semaphore_waiters-up.patch
 
