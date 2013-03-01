@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicyc-fix-sp_node_init-argument-ordering.patch added to -mm tree
-Date: Thu, 28 Feb 2013 15:55:58 -0800
-Message-ID: <20130228235558.AE63F5A432E@corp2gmr1-2.hot.corp.google.com>
+Subject: + shmem-fix-build-regression.patch added to -mm tree
+Date: Thu, 28 Feb 2013 16:31:36 -0800
+Message-ID: <20130301003136.BEB3031C1E1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:60664 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752175Ab3B1X4A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 18:56:00 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so273598vcd.3
-        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 15:55:59 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:52499 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754373Ab3CAAbh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Feb 2013 19:31:37 -0500
+Received: by mail-qe0-f73.google.com with SMTP id a11so277331qen.0
+        for <mm-commits@vger.kernel.org>; Thu, 28 Feb 2013 16:31:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, davej@redhat.com, dhillf@gmail.com, hughd@google.com, mgorman@suse.de, sasha.levin@oracle.com
+Cc: wsa@the-dreams.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/mempolicy.c: fix sp_node_init() argument ordering
+     Subject: shmem: fix build regression
 has been added to the -mm tree.  Its filename is
-     mm-mempolicyc-fix-sp_node_init-argument-ordering.patch
+     shmem-fix-build-regression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm/mempolicy.c: fix sp_node_init() argument ordering
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: shmem: fix build regression
 
-Currently, n_new is wrongly initialized.  start and end parameter are
-inverted.  Let's fix it.
+commit 6b4d0b27 (clean shmem_file_setup() a bit) broke allnoconfig since
+this needs the NOMMU path where 'error' is still needed:
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Jones <davej@redhat.com>
+mm/shmem.c:2935:2: error: 'error' undeclared (first use in this function)
+
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+---
+ 1 file changed, 1 insertion(+)
+
+index ed2befb..56ff7d7 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mempolicy.c~mm-mempolicyc-fix-sp_node_init-argument-ordering mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicyc-fix-sp_node_init-argument-ordering
-+++ a/mm/mempolicy.c
-@@ -2390,7 +2390,7 @@ restart:
- 
- 				*mpol_new = *n->policy;
- 				atomic_set(&mpol_new->refcnt, 1);
--				sp_node_init(n_new, n->end, end, mpol_new);
-+				sp_node_init(n_new, end, n->end, mpol_new);
- 				n->end = start;
- 				sp_insert(sp, n_new);
- 				n_new = NULL;
+diff -puN mm/shmem.c~shmem-fix-build-regression mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-build-regression
++++ a/mm/shmem.c
+@@ -2897,6 +2897,7 @@ static struct dentry_operations anon_ops
+  */
+ struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags)
+ {
++	int error;
+ 	struct file *res;
+ 	struct inode *inode;
+ 	struct path path;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from wsa@the-dreams.de are
 
 origin.patch
-mm-mempolicyc-fix-wrong-sp_node-insertion.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
-mm-mempolicyc-fix-sp_node_init-argument-ordering.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
+shmem-fix-build-regression.patch
+shmem-fix-build-regression-fix.patch
 
