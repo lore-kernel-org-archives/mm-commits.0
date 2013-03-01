@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + semaphore-give-an-unlikely-for-downs-timeout.patch added to -mm tree
-Date: Fri, 01 Mar 2013 13:08:48 -0800
-Message-ID: <20130301210849.4027B5A4123@corp2gmr1-2.hot.corp.google.com>
+Subject: + semaphore-boolize-semaphore_waiters-up.patch added to -mm tree
+Date: Fri, 01 Mar 2013 13:08:51 -0800
+Message-ID: <20130301210852.1F8E731C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:56240 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752135Ab3CAVIu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Mar 2013 16:08:50 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so381233ghb.3
-        for <mm-commits@vger.kernel.org>; Fri, 01 Mar 2013 13:08:49 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:33520 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752317Ab3CAVIx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Mar 2013 16:08:53 -0500
+Received: by mail-qe0-f73.google.com with SMTP id a11so381623qen.2
+        for <mm-commits@vger.kernel.org>; Fri, 01 Mar 2013 13:08:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: lig.fnst@cn.fujitsu.com, jkosina@suse.cz
 
 
 The patch titled
-     Subject: semaphore: use unlikely() for down's timeout
+     Subject: semaphore: use `bool' type for semaphore_waiter's up
 has been added to the -mm tree.  Its filename is
-     semaphore-give-an-unlikely-for-downs-timeout.patch
+     semaphore-boolize-semaphore_waiters-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: liguang <lig.fnst@cn.fujitsu.com>
-Subject: semaphore: use unlikely() for down's timeout
+Subject: semaphore: use `bool' type for semaphore_waiter's up
 
 Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
 Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/semaphore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/semaphore.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/semaphore.c~semaphore-give-an-unlikely-for-downs-timeout kernel/semaphore.c
---- a/kernel/semaphore.c~semaphore-give-an-unlikely-for-downs-timeout
+diff -puN kernel/semaphore.c~semaphore-boolize-semaphore_waiters-up kernel/semaphore.c
+--- a/kernel/semaphore.c~semaphore-boolize-semaphore_waiters-up
 +++ a/kernel/semaphore.c
-@@ -214,7 +214,7 @@ static inline int __sched __down_common(
+@@ -193,7 +193,7 @@ EXPORT_SYMBOL(up);
+ struct semaphore_waiter {
+ 	struct list_head list;
+ 	struct task_struct *task;
+-	int up;
++	bool up;
+ };
+ 
+ /*
+@@ -209,7 +209,7 @@ static inline int __sched __down_common(
+ 
+ 	list_add_tail(&waiter.list, &sem->wait_list);
+ 	waiter.task = task;
+-	waiter.up = 0;
++	waiter.up = false;
+ 
  	for (;;) {
  		if (signal_pending_state(state, task))
- 			goto interrupted;
--		if (timeout <= 0)
-+		if (unlikely(timeout <= 0))
- 			goto timed_out;
- 		__set_task_state(task, state);
- 		raw_spin_unlock_irq(&sem->lock);
+@@ -258,6 +258,6 @@ static noinline void __sched __up(struct
+ 	struct semaphore_waiter *waiter = list_first_entry(&sem->wait_list,
+ 						struct semaphore_waiter, list);
+ 	list_del(&waiter->list);
+-	waiter->up = 1;
++	waiter->up = true;
+ 	wake_up_process(waiter->task);
+ }
 _
 
 Patches currently in -mm which might be from lig.fnst@cn.fujitsu.com are
