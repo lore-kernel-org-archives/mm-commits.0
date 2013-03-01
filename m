@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + semaphore-boolize-semaphore_waiters-up.patch added to -mm tree
-Date: Fri, 01 Mar 2013 13:08:51 -0800
-Message-ID: <20130301210852.1F8E731C0A0@corp2gmr1-1.hot.corp.google.com>
+Subject: + i2o-check-copy_from_user-size-parameter.patch added to -mm tree
+Date: Fri, 01 Mar 2013 13:14:37 -0800
+Message-ID: <20130301211437.9CF3C31C0A0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:33520 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752317Ab3CAVIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Mar 2013 16:08:53 -0500
-Received: by mail-qe0-f73.google.com with SMTP id a11so381623qen.2
-        for <mm-commits@vger.kernel.org>; Fri, 01 Mar 2013 13:08:52 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:40337 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751381Ab3CAVOj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Mar 2013 16:14:39 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so886qaj.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Mar 2013 13:14:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lig.fnst@cn.fujitsu.com, jkosina@suse.cz
+Cc: dan.carpenter@oracle.com, alan@linux.intel.com, jkosina@suse.cz, standby24x7@gmail.com
 
 
 The patch titled
-     Subject: semaphore: use `bool' type for semaphore_waiter's up
+     Subject: i2o: check copy_from_user() size parameter
 has been added to the -mm tree.  Its filename is
-     semaphore-boolize-semaphore_waiters-up.patch
+     i2o-check-copy_from_user-size-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: liguang <lig.fnst@cn.fujitsu.com>
-Subject: semaphore: use `bool' type for semaphore_waiter's up
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: i2o: check copy_from_user() size parameter
 
-Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
+Limit the size of the copy so we don't corrupt memory.  Hopefully this can
+only be called by root, but fixing this makes the static checkers happier.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Masanari Iida <standby24x7@gmail.com>
+Cc: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/semaphore.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/message/i2o/i2o_config.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN kernel/semaphore.c~semaphore-boolize-semaphore_waiters-up kernel/semaphore.c
---- a/kernel/semaphore.c~semaphore-boolize-semaphore_waiters-up
-+++ a/kernel/semaphore.c
-@@ -193,7 +193,7 @@ EXPORT_SYMBOL(up);
- struct semaphore_waiter {
- 	struct list_head list;
- 	struct task_struct *task;
--	int up;
-+	bool up;
- };
- 
- /*
-@@ -209,7 +209,7 @@ static inline int __sched __down_common(
- 
- 	list_add_tail(&waiter.list, &sem->wait_list);
- 	waiter.task = task;
--	waiter.up = 0;
-+	waiter.up = false;
- 
- 	for (;;) {
- 		if (signal_pending_state(state, task))
-@@ -258,6 +258,6 @@ static noinline void __sched __up(struct
- 	struct semaphore_waiter *waiter = list_first_entry(&sem->wait_list,
- 						struct semaphore_waiter, list);
- 	list_del(&waiter->list);
--	waiter->up = 1;
-+	waiter->up = true;
- 	wake_up_process(waiter->task);
- }
+diff -puN drivers/message/i2o/i2o_config.c~i2o-check-copy_from_user-size-parameter drivers/message/i2o/i2o_config.c
+--- a/drivers/message/i2o/i2o_config.c~i2o-check-copy_from_user-size-parameter
++++ a/drivers/message/i2o/i2o_config.c
+@@ -687,6 +687,11 @@ static int i2o_cfg_passthru32(struct fil
+ 		}
+ 		size = size >> 16;
+ 		size *= 4;
++		if (size > sizeof(rmsg)) {
++			rcode = -EINVAL;
++			goto sg_list_cleanup;
++		}
++
+ 		/* Copy in the user's I2O command */
+ 		if (copy_from_user(rmsg, user_msg, size)) {
+ 			rcode = -EFAULT;
+@@ -922,6 +927,11 @@ static int i2o_cfg_passthru(unsigned lon
+ 		}
+ 		size = size >> 16;
+ 		size *= 4;
++		if (size > sizeof(rmsg)) {
++			rcode = -EFAULT;
++			goto sg_list_cleanup;
++		}
++
+ 		/* Copy in the user's I2O command */
+ 		if (copy_from_user(rmsg, user_msg, size)) {
+ 			rcode = -EFAULT;
 _
 
-Patches currently in -mm which might be from lig.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-semaphore-give-an-unlikely-for-downs-timeout.patch
-semaphore-boolize-semaphore_waiters-up.patch
+origin.patch
+linux-next.patch
+i2o-check-copy_from_user-size-parameter.patch
 
