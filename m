@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + zcache-convert-to-idr_alloc.patch added to -mm tree
-Date: Tue, 05 Mar 2013 14:08:16 -0800
-Message-ID: <20130305220816.B99FC5A41D3@corp2gmr1-2.hot.corp.google.com>
+Subject: + mlx4-remove-leftover-idr_pre_get-call.patch added to -mm tree
+Date: Tue, 05 Mar 2013 14:08:14 -0800
+Message-ID: <20130305220814.A5AEF5A41D3@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:38235 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab3CEWIR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 17:08:17 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so794077yhz.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 14:08:17 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53099 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921Ab3CEWIP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 17:08:15 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so791914vcd.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 14:08:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, dan.magenheimer@oracle.com, gregkh@linuxfoundation.org
+Cc: tj@kernel.org, jackm@dev.mellanox.co.il, ogerlitz@mellanox.com, roland@purestorage.com
 
 
 The patch titled
-     Subject: zcache: convert to idr_alloc()
+     Subject: mlx4: remove leftover idr_pre_get() call
 has been added to the -mm tree.  Its filename is
-     zcache-convert-to-idr_alloc.patch
+     mlx4-remove-leftover-idr_pre_get-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: zcache: convert to idr_alloc()
+Subject: mlx4: remove leftover idr_pre_get() call
 
-idr_get_new*() and friends are about to be deprecated.  Convert to the
-new idr_alloc() interface.
-
-Only compile tested.
+6a9200603d ("IB/mlx4: convert to idr_alloc()") forgot to remove
+idr_pre_get() call in mlx4_ib_cm_paravirt_init().  It's unnecessary
+and idr_pre_get() will soon be deprecated.  Remove it.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zcache/ramster/tcp.c |   25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx4/cm.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/staging/zcache/ramster/tcp.c~zcache-convert-to-idr_alloc drivers/staging/zcache/ramster/tcp.c
---- a/drivers/staging/zcache/ramster/tcp.c~zcache-convert-to-idr_alloc
-+++ a/drivers/staging/zcache/ramster/tcp.c
-@@ -300,27 +300,22 @@ static u8 r2net_num_from_nn(struct r2net
- 
- static int r2net_prep_nsw(struct r2net_node *nn, struct r2net_status_wait *nsw)
- {
--	int ret = 0;
-+	int ret;
- 
--	do {
--		if (!idr_pre_get(&nn->nn_status_idr, GFP_ATOMIC)) {
--			ret = -EAGAIN;
--			break;
--		}
--		spin_lock(&nn->nn_lock);
--		ret = idr_get_new(&nn->nn_status_idr, nsw, &nsw->ns_id);
--		if (ret == 0)
--			list_add_tail(&nsw->ns_node_item,
--				      &nn->nn_status_list);
--		spin_unlock(&nn->nn_lock);
--	} while (ret == -EAGAIN);
-+	spin_lock(&nn->nn_lock);
-+	ret = idr_alloc(&nn->nn_status_idr, nsw, 0, 0, GFP_ATOMIC);
-+	if (ret >= 0) {
-+		nsw->ns_id = ret;
-+		list_add_tail(&nsw->ns_node_item, &nn->nn_status_list);
-+	}
-+	spin_unlock(&nn->nn_lock);
- 
--	if (ret == 0)  {
-+	if (ret >= 0) {
- 		init_waitqueue_head(&nsw->ns_wq);
- 		nsw->ns_sys_status = R2NET_ERR_NONE;
- 		nsw->ns_status = 0;
-+		return 0;
- 	}
--
- 	return ret;
+diff -puN drivers/infiniband/hw/mlx4/cm.c~mlx4-remove-leftover-idr_pre_get-call drivers/infiniband/hw/mlx4/cm.c
+--- a/drivers/infiniband/hw/mlx4/cm.c~mlx4-remove-leftover-idr_pre_get-call
++++ a/drivers/infiniband/hw/mlx4/cm.c
+@@ -362,7 +362,6 @@ void mlx4_ib_cm_paravirt_init(struct mlx
+ 	INIT_LIST_HEAD(&dev->sriov.cm_list);
+ 	dev->sriov.sl_id_map = RB_ROOT;
+ 	idr_init(&dev->sriov.pv_id_table);
+-	idr_pre_get(&dev->sriov.pv_id_table, GFP_KERNEL);
  }
  
+ /* slave = -1 ==> all slaves */
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
