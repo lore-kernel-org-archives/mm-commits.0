@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-add-support-for-lz4-compressed-kernel.patch added to -mm tree
-Date: Tue, 05 Mar 2013 15:09:08 -0800
-Message-ID: <20130305230908.DD8E231C1E1@corp2gmr1-1.hot.corp.google.com>
+Subject: + dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch added to -mm tree
+Date: Tue, 05 Mar 2013 15:37:51 -0800
+Message-ID: <20130305233751.D0EC531C1D8@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:56022 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694Ab3CEXJK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 18:09:10 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so269015qcs.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 15:09:09 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:49431 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970Ab3CEXhx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 18:37:53 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so800817ggn.4
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 15:37:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyungsik.lee@lge.com, bp@alien8.de, florian@openwrt.org, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de
+Cc: ben@decadent.org.uk, stable@vger.kernel.org, tmhikaru@gmail.com, zhenzhong.duan@oracle.com
 
 
 The patch titled
-     Subject: x86: add support for LZ4-compressed kernel
+     Subject: dmi_scan: fix missing check for _DMI_ signature in smbios_present()
 has been added to the -mm tree.  Its filename is
-     x86-add-support-for-lz4-compressed-kernel.patch
+     dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kyungsik Lee <kyungsik.lee@lge.com>
-Subject: x86: add support for LZ4-compressed kernel
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: dmi_scan: fix missing check for _DMI_ signature in smbios_present()
 
-Integrate the LZ4 decompression code to the x86 pre-boot code.
+Commit 9f9c9cbb6057 ('drivers/firmware/dmi_scan.c: fetch dmi version from
+SMBIOS if it exists') hoisted the check for "_DMI_" into
+dmi_scan_machine(), which means that we don't bother to check for "_DMI_"
+at offset 16 in an SMBIOS entry.  smbios_present() may also call
+dmi_present() for an address where we found "_SM_", if it failed further
+validation.
 
-Signed-off-by: Kyungsik Lee <kyungsik.lee@lge.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Florian Fainelli <florian@openwrt.org>
+Check for "_DMI_" in smbios_present() before calling dmi_present().
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Reported-by: Tim McGrath <tmhikaru@gmail.com>
+Tested-by: Tim Mcgrath <tmhikaru@gmail.com>
+Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                  |    1 +
- arch/x86/boot/compressed/Makefile |    5 ++++-
- arch/x86/boot/compressed/misc.c   |    4 ++++
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/firmware/dmi_scan.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-add-support-for-lz4-compressed-kernel arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-add-support-for-lz4-compressed-kernel
-+++ a/arch/x86/Kconfig
-@@ -65,6 +65,7 @@ config X86
- 	select HAVE_KERNEL_LZMA
- 	select HAVE_KERNEL_XZ
- 	select HAVE_KERNEL_LZO
-+	select HAVE_KERNEL_LZ4
- 	select HAVE_HW_BREAKPOINT
- 	select HAVE_MIXED_BREAKPOINTS_REGS
- 	select PERF_EVENTS
-diff -puN arch/x86/boot/compressed/Makefile~x86-add-support-for-lz4-compressed-kernel arch/x86/boot/compressed/Makefile
---- a/arch/x86/boot/compressed/Makefile~x86-add-support-for-lz4-compressed-kernel
-+++ a/arch/x86/boot/compressed/Makefile
-@@ -4,7 +4,7 @@
- # create a compressed vmlinux image from the original vmlinux
- #
- 
--targets := vmlinux.lds vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma vmlinux.bin.xz vmlinux.bin.lzo head_$(BITS).o misc.o string.o cmdline.o early_serial_console.o piggy.o
-+targets := vmlinux.lds vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma vmlinux.bin.xz vmlinux.bin.lzo vmlinux.bin.lz4 head_$(BITS).o misc.o string.o cmdline.o early_serial_console.o piggy.o
- 
- KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -O2
- KBUILD_CFLAGS += -fno-strict-aliasing -fPIC
-@@ -64,12 +64,15 @@ $(obj)/vmlinux.bin.xz: $(vmlinux.bin.all
- 	$(call if_changed,xzkern)
- $(obj)/vmlinux.bin.lzo: $(vmlinux.bin.all-y) FORCE
- 	$(call if_changed,lzo)
-+$(obj)/vmlinux.bin.lz4: $(vmlinux.bin.all-y) FORCE
-+	$(call if_changed,lz4)
- 
- suffix-$(CONFIG_KERNEL_GZIP)	:= gz
- suffix-$(CONFIG_KERNEL_BZIP2)	:= bz2
- suffix-$(CONFIG_KERNEL_LZMA)	:= lzma
- suffix-$(CONFIG_KERNEL_XZ)	:= xz
- suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
-+suffix-$(CONFIG_KERNEL_LZ4) 	:= lz4
- 
- quiet_cmd_mkpiggy = MKPIGGY $@
-       cmd_mkpiggy = $(obj)/mkpiggy $< > $@ || ( rm -f $@ ; false )
-diff -puN arch/x86/boot/compressed/misc.c~x86-add-support-for-lz4-compressed-kernel arch/x86/boot/compressed/misc.c
---- a/arch/x86/boot/compressed/misc.c~x86-add-support-for-lz4-compressed-kernel
-+++ a/arch/x86/boot/compressed/misc.c
-@@ -145,6 +145,10 @@ static int lines, cols;
- #include "../../../../lib/decompress_unlzo.c"
- #endif
- 
-+#ifdef CONFIG_KERNEL_LZ4
-+#include "../../../../lib/decompress_unlz4.c"
-+#endif
-+
- static void scroll(void)
+diff -puN drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present
++++ a/drivers/firmware/dmi_scan.c
+@@ -442,7 +442,6 @@ static int __init dmi_present(const char
+ static int __init smbios_present(const char __iomem *p)
  {
- 	int i;
+ 	u8 buf[32];
+-	int offset = 0;
+ 
+ 	memcpy_fromio(buf, p, 32);
+ 	if ((buf[5] < 32) && dmi_checksum(buf, buf[5])) {
+@@ -461,9 +460,9 @@ static int __init smbios_present(const c
+ 			dmi_ver = 0x0206;
+ 			break;
+ 		}
+-		offset = 16;
++		return memcmp(q + 16, "_DMI_", 5) || dmi_present(p + 16);
+ 	}
+-	return dmi_present(buf + offset);
++	return 1;
+ }
+ 
+ void __init dmi_scan_machine(void)
 _
 
-Patches currently in -mm which might be from kyungsik.lee@lge.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
-decompressor-add-lz4-decompressor-module.patch
-lib-add-support-for-lz4-compressed-kernel.patch
-arm-add-support-for-lz4-compressed-kernel.patch
-x86-add-support-for-lz4-compressed-kernel.patch
+linux-next.patch
+dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch
+dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
 
