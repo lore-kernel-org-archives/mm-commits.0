@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch added to -mm tree
-Date: Tue, 05 Mar 2013 14:45:02 -0800
-Message-ID: <20130305224502.8676E31C20C@corp2gmr1-1.hot.corp.google.com>
+Subject: + decompressor-add-lz4-decompressor-module.patch added to -mm tree
+Date: Tue, 05 Mar 2013 15:09:00 -0800
+Message-ID: <20130305230900.D9CDC5A4253@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:41718 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755104Ab3CEWpE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 17:45:04 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so414304qaj.5
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 14:45:03 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:39568 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467Ab3CEXJE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 18:09:04 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so799034ves.5
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 15:09:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, paulmck@linux.vnet.ibm.com, peter.senna@gmail.com, rusty@rustcorp.com.au, sasha.levin@oracle.com, tglx@linutronix.de
+Cc: kyungsik.lee@lge.com, bp@alien8.de, florian@openwrt.org, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de
 
 
 The patch titled
-     Subject: Revert parts of "hlist: drop the node parameter from iterators"
+     Subject: decompressor: add LZ4 decompressor module
 has been added to the -mm tree.  Its filename is
-     revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch
+     decompressor-add-lz4-decompressor-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,519 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Revert parts of "hlist: drop the node parameter from iterators"
+From: Kyungsik Lee <kyungsik.lee@lge.com>
+Subject: decompressor: add LZ4 decompressor module
 
-commit b67bfe0d42 "hlist: drop the node parameter from iterators" did a
-lot of nice changes but also contains two small hunks that seem to have
-slipped in accidentally and have no apparent connection to the intent of
-the patch.
+Add support for LZ4 decompression in the Linux Kernel.  LZ4 Decompression
+APIs for kernel are based on LZ4 implementation by Yann Collet.
 
-This reverts the two extraneous changes.
+LZ4 homepage: http://fastcompression.blogspot.com/p/lz4.html
+LZ4 source repository: http://code.google.com/p/lz4/
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Florian Fainelli <florian@openwrt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smpboot.c      |    2 +-
- net/9p/trans_virtio.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/lz4.h      |   51 +++++
+ lib/lz4/lz4_decompress.c |  326 +++++++++++++++++++++++++++++++++++++
+ lib/lz4/lz4defs.h        |   94 ++++++++++
+ 3 files changed, 471 insertions(+)
 
-diff -puN kernel/smpboot.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators kernel/smpboot.c
---- a/kernel/smpboot.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators
-+++ a/kernel/smpboot.c
-@@ -131,7 +131,7 @@ static int smpboot_thread_fn(void *data)
- 			continue;
- 		}
- 
--		//BUG_ON(td->cpu != smp_processor_id());
-+		BUG_ON(td->cpu != smp_processor_id());
- 
- 		/* Check for state change setup */
- 		switch (td->status) {
-diff -puN net/9p/trans_virtio.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators
-+++ a/net/9p/trans_virtio.c
-@@ -655,7 +655,7 @@ static struct p9_trans_module p9_virtio_
- 	.create = p9_virtio_create,
- 	.close = p9_virtio_close,
- 	.request = p9_virtio_request,
--	//.zc_request = p9_virtio_zc_request,
-+	.zc_request = p9_virtio_zc_request,
- 	.cancel = p9_virtio_cancel,
- 	/*
- 	 * We leave one entry for input and one entry for response
+diff -puN /dev/null include/linux/lz4.h
+--- /dev/null
++++ a/include/linux/lz4.h
+@@ -0,0 +1,51 @@
++#ifndef __LZ4_H__
++#define __LZ4_H__
++/*
++ * LZ4 Kernel Interface
++ *
++ * Copyright (C) 2013, LG Electronics, Kyungsik Lee <kyungsik.lee@lge.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * lz4_compressbound()
++ * Provides the maximum size that LZ4 may output in a "worst case" scenario
++ * (input data not compressible)
++ */
++static inline size_t lz4_compressbound(size_t isize)
++{
++	return isize + (isize / 255) + 16;
++}
++
++/*
++ * lz4_decompress()
++ *	src     : source address of the compressed data
++ *	src_len : is the input size, whcih is returned after decompress done
++ *	dest	: output buffer address of the decompressed data
++ *	actual_dest_len: is the size of uncompressed data, supposing it's known
++ *	return  : Success if return 0
++ *		  Error if return (< 0)
++ *	note :  Destination buffer must be already allocated.
++ *		slightly faster than lz4_decompress_unknownoutputsize()
++ */
++int lz4_decompress(const char *src, size_t *src_len, char *dest,
++		size_t actual_dest_len);
++
++/*
++ * lz4_decompress_unknownoutputsize()
++ *	src     : source address of the compressed data
++ *	src_len : is the input size, therefore the compressed size
++ *	dest	: output buffer address of the decompressed data
++ *	dest_len: is the max size of the destination buffer, which is
++ *			returned with actual size of decompressed data after
++ *			decompress done
++ *	return  : Success if return 0
++ *		  Error if return (< 0)
++ *	note :  Destination buffer must be already allocated.
++ */
++int lz4_decompress_unknownoutputsize(const char *src, size_t src_len,
++		char *dest, size_t *dest_len);
++#endif
+diff -puN /dev/null lib/lz4/lz4_decompress.c
+--- /dev/null
++++ a/lib/lz4/lz4_decompress.c
+@@ -0,0 +1,326 @@
++/*
++ * LZ4 Decompressor for Linux kernel
++ *
++ * Copyright (C) 2013 LG Electronics Co., Ltd. (http://www.lge.com/)
++ *
++ * Based on LZ4 implementation by Yann Collet.
++ *
++ * LZ4 - Fast LZ compression algorithm
++ * Copyright (C) 2011-2012, Yann Collet.
++ * BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are
++ * met:
++ *
++ *     * Redistributions of source code must retain the above copyright
++ * notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above
++ * copyright notice, this list of conditions and the following disclaimer
++ * in the documentation and/or other materials provided with the
++ * distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ *  You can contact the author at :
++ *  - LZ4 homepage : http://fastcompression.blogspot.com/p/lz4.html
++ *  - LZ4 source repository : http://code.google.com/p/lz4/
++ */
++
++#ifndef STATIC
++#include <linux/module.h>
++#include <linux/kernel.h>
++#endif
++#include <linux/lz4.h>
++
++#include <asm/unaligned.h>
++
++#include "lz4defs.h"
++
++static int lz4_uncompress(const char *source, char *dest, int osize)
++{
++	const BYTE *ip = (const BYTE *) source;
++	const BYTE *ref;
++	BYTE *op = (BYTE *) dest;
++	BYTE * const oend = op + osize;
++	BYTE *cpy;
++	unsigned token;
++	size_t length;
++	size_t dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
++#if LZ4_ARCH64
++	size_t dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
++#endif
++
++	while (1) {
++
++		/* get runlength */
++		token = *ip++;
++		length = (token >> ML_BITS);
++		if (length == RUN_MASK) {
++			size_t len;
++
++			len = *ip++;
++			for (; len == 255; length += 255)
++				len = *ip++;
++			length += len;
++		}
++
++		/* copy literals */
++		cpy = op + length;
++		if (unlikely(cpy > oend - COPYLENGTH)) {
++			/*
++			 * Error: not enough place for another match
++			 * (min 4) + 5 literals
++			 */
++			if (cpy != oend)
++				goto _output_error;
++
++			memcpy(op, ip, length);
++			ip += length;
++			break; /* EOF */
++		}
++		LZ4_WILDCOPY(ip, op, cpy);
++		ip -= (op - cpy);
++		op = cpy;
++
++		/* get offset */
++		LZ4_READ_LITTLEENDIAN_16(ref, cpy, ip);
++		ip += 2;
++
++		/* Error: offset create reference outside destination buffer */
++		if (unlikely(ref < (BYTE *const) dest))
++			goto _output_error;
++
++		/* get matchlength */
++		length = token & ML_MASK;
++		if (length == ML_MASK) {
++			for (; *ip == 255; length += 255)
++				ip++;
++			length += *ip++;
++		}
++
++		/* copy repeated sequence */
++		if (unlikely((op - ref) < STEPSIZE)) {
++#if LZ4_ARCH64
++			size_t dec64 = dec64table[op - ref];
++#else
++			const int dec64 = 0;
++#endif
++			op[0] = ref[0];
++			op[1] = ref[1];
++			op[2] = ref[2];
++			op[3] = ref[3];
++			op += 4;
++			ref += 4;
++			ref -= dec32table[op-ref];
++			PUT4(ref, op);
++			op += STEPSIZE - 4;
++			ref -= dec64;
++		} else {
++			LZ4_COPYSTEP(ref, op);
++		}
++		cpy = op + length - (STEPSIZE - 4);
++		if (cpy > (oend - COPYLENGTH)) {
++
++			/* Error: request to write beyond destination buffer */
++			if (cpy > oend)
++				goto _output_error;
++			LZ4_SECURECOPY(ref, op, (oend - COPYLENGTH));
++			while (op < cpy)
++				*op++ = *ref++;
++			op = cpy;
++			/*
++			 * Check EOF (should never happen, since last 5 bytes
++			 * are supposed to be literals)
++			 */
++			if (op == oend)
++				goto _output_error;
++			continue;
++		}
++		LZ4_SECURECOPY(ref, op, cpy);
++		op = cpy; /* correction */
++	}
++	/* end of decoding */
++	return (int) (((char *)ip) - source);
++
++	/* write overflow error detected */
++_output_error:
++	return (int) (-(((char *)ip) - source));
++}
++
++static int lz4_uncompress_unknownoutputsize(const char *source, char *dest,
++				int isize, size_t maxoutputsize)
++{
++	const BYTE *ip = (const BYTE *) source;
++	const BYTE *const iend = ip + isize;
++	const BYTE *ref;
++
++
++	BYTE *op = (BYTE *) dest;
++	BYTE * const oend = op + maxoutputsize;
++	BYTE *cpy;
++
++	size_t dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
++#if LZ4_ARCH64
++	size_t dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
++#endif
++
++	/* Main Loop */
++	while (ip < iend) {
++
++		unsigned token;
++		size_t length;
++
++		/* get runlength */
++		token = *ip++;
++		length = (token >> ML_BITS);
++		if (length == RUN_MASK) {
++			int s = 255;
++			while ((ip < iend) && (s == 255)) {
++				s = *ip++;
++				length += s;
++			}
++		}
++		/* copy literals */
++		cpy = op + length;
++		if ((cpy > oend - COPYLENGTH) ||
++			(ip + length > iend - COPYLENGTH)) {
++
++			if (cpy > oend)
++				goto _output_error;/* writes beyond buffer */
++
++			if (ip + length != iend)
++				goto _output_error;/*
++						    * Error: LZ4 format requires
++						    * to consume all input
++						    * at this stage
++						    */
++			memcpy(op, ip, length);
++			op += length;
++			break;/* Necessarily EOF, due to parsing restrictions */
++		}
++		LZ4_WILDCOPY(ip, op, cpy);
++		ip -= (op - cpy);
++		op = cpy;
++
++		/* get offset */
++		LZ4_READ_LITTLEENDIAN_16(ref, cpy, ip);
++		ip += 2;
++		if (ref < (BYTE * const) dest)
++			goto _output_error;
++			/*
++			 * Error : offset creates reference
++			 * outside of destination buffer
++			 */
++
++		/* get matchlength */
++		length = (token & ML_MASK);
++		if (length == ML_MASK) {
++			while (ip < iend) {
++				int s = *ip++;
++				length += s;
++				if (s == 255)
++					continue;
++				break;
++			}
++		}
++
++		/* copy repeated sequence */
++		if (unlikely((op - ref) < STEPSIZE)) {
++#if LZ4_ARCH64
++			size_t dec64 = dec64table[op - ref];
++#else
++			const int dec64 = 0;
++#endif
++				op[0] = ref[0];
++				op[1] = ref[1];
++				op[2] = ref[2];
++				op[3] = ref[3];
++				op += 4;
++				ref += 4;
++				ref -= dec32table[op - ref];
++				PUT4(ref, op);
++				op += STEPSIZE - 4;
++				ref -= dec64;
++		} else {
++			LZ4_COPYSTEP(ref, op);
++		}
++		cpy = op + length - (STEPSIZE-4);
++		if (cpy > oend - COPYLENGTH) {
++			if (cpy > oend)
++				goto _output_error; /* write outside of buf */
++
++			LZ4_SECURECOPY(ref, op, (oend - COPYLENGTH));
++			while (op < cpy)
++				*op++ = *ref++;
++			op = cpy;
++			/*
++			 * Check EOF (should never happen, since last 5 bytes
++			 * are supposed to be literals)
++			 */
++			if (op == oend)
++				goto _output_error;
++			continue;
++		}
++		LZ4_SECURECOPY(ref, op, cpy);
++		op = cpy; /* correction */
++	}
++	/* end of decoding */
++	return (int) (((char *) op) - dest);
++
++	/* write overflow error detected */
++_output_error:
++	return (int) (-(((char *) ip) - source));
++}
++
++int lz4_decompress(const char *src, size_t *src_len, char *dest,
++		size_t actual_dest_len)
++{
++	int ret = -1;
++	int input_len = 0;
++
++	input_len = lz4_uncompress(src, dest, actual_dest_len);
++	if (input_len < 0)
++		goto exit_0;
++	*src_len = input_len;
++
++	return 0;
++exit_0:
++	return ret;
++}
++#ifndef STATIC
++EXPORT_SYMBOL_GPL(lz4_decompress);
++#endif
++
++int lz4_decompress_unknownoutputsize(const char *src, size_t src_len,
++		char *dest, size_t *dest_len)
++{
++	int ret = -1;
++	int out_len = 0;
++
++	out_len = lz4_uncompress_unknownoutputsize(src, dest, src_len,
++					*dest_len);
++	if (out_len < 0)
++		goto exit_0;
++	*dest_len = out_len;
++
++	return 0;
++exit_0:
++	return ret;
++}
++#ifndef STATIC
++EXPORT_SYMBOL_GPL(lz4_decompress_unknownoutputsize);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("LZ4 Decompressor");
++#endif
+diff -puN /dev/null lib/lz4/lz4defs.h
+--- /dev/null
++++ a/lib/lz4/lz4defs.h
+@@ -0,0 +1,94 @@
++/*
++ * lz4defs.h -- architecture specific defines
++ *
++ * Copyright (C) 2013, LG Electronics, Kyungsik Lee <kyungsik.lee@lge.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Detects 64 bits mode
++ */
++#if (defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) \
++	|| defined(__ppc64__) || defined(__LP64__))
++#define LZ4_ARCH64 1
++#else
++#define LZ4_ARCH64 0
++#endif
++
++/*
++ * Architecture-specific macros
++ */
++#define BYTE	u8
++#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)		\
++	|| defined(CONFIG_ARM) && __LINUX_ARM_ARCH__ >= 6	\
++	&& defined(ARM_EFFICIENT_UNALIGNED_ACCESS)
++typedef struct _U32_S { u32 v; } U32_S;
++typedef struct _U64_S { u64 v; } U64_S;
++
++#define A32(x) (((U32_S *)(x))->v)
++#define A64(x) (((U64_S *)(x))->v)
++
++#define PUT4(s, d) (A32(d) = A32(s))
++#define PUT8(s, d) (A64(d) = A64(s))
++#else /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
++
++#define PUT4(s, d) \
++	put_unaligned(get_unaligned((const u32 *) s), (u32 *) d)
++#define PUT8(s, d) \
++	put_unaligned(get_unaligned((const u64 *) s), (u64 *) d)
++#endif
++
++#define COPYLENGTH 8
++#define ML_BITS  4
++#define ML_MASK  ((1U << ML_BITS) - 1)
++#define RUN_BITS (8 - ML_BITS)
++#define RUN_MASK ((1U << RUN_BITS) - 1)
++
++#if LZ4_ARCH64/* 64-bit */
++#define STEPSIZE 8
++
++#define LZ4_COPYSTEP(s, d)	\
++	do {			\
++		PUT8(s, d);	\
++		d += 8;		\
++		s += 8;		\
++	} while (0)
++
++#define LZ4_COPYPACKET(s, d)	LZ4_COPYSTEP(s, d)
++
++#define LZ4_SECURECOPY(s, d, e)			\
++	do {					\
++		if (d < e) {			\
++			LZ4_WILDCOPY(s, d, e);	\
++		}				\
++	} while (0)
++
++#else	/* 32-bit */
++#define STEPSIZE 4
++
++#define LZ4_COPYSTEP(s, d)	\
++	do {			\
++		PUT4(s, d);	\
++		d += 4;		\
++		s += 4;		\
++	} while (0)
++
++#define LZ4_COPYPACKET(s, d)		\
++	do {				\
++		LZ4_COPYSTEP(s, d);	\
++		LZ4_COPYSTEP(s, d);	\
++	} while (0)
++
++#define LZ4_SECURECOPY	LZ4_WILDCOPY
++#endif
++
++#define LZ4_READ_LITTLEENDIAN_16(d, s, p) \
++	(d = s - get_unaligned_le16(p))
++
++#define LZ4_WILDCOPY(s, d, e)		\
++	do {				\
++		LZ4_COPYPACKET(s, d);	\
++	} while (d < e)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from kyungsik.lee@lge.com are
 
-linux-next.patch
-revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch
-kconfig-consolidate-config_debug_strict_user_copy_checks.patch
+decompressor-add-lz4-decompressor-module.patch
+lib-add-support-for-lz4-compressed-kernel.patch
+arm-add-support-for-lz4-compressed-kernel.patch
+x86-add-support-for-lz4-compressed-kernel.patch
 
