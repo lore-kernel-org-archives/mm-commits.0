@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch added to -mm tree
-Date: Tue, 05 Mar 2013 15:37:53 -0800
-Message-ID: <20130305233753.B5AC531C1D8@corp2gmr1-1.hot.corp.google.com>
+Subject: + lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch added to -mm tree
+Date: Tue, 05 Mar 2013 15:47:36 -0800
+Message-ID: <20130305234736.EC14531C204@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:51768 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523Ab3CEXhz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 18:37:55 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so801665ves.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 15:37:54 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:47350 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753295Ab3CEXri (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 18:47:38 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so804318yhr.0
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 15:47:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben@decadent.org.uk, tmhikaru@gmail.com, zhenzhong.duan@oracle.com
+Cc: walken@google.com, ak@linux.intel.com, laijs@cn.fujitsu.com, mingo@redhat.com, oleg@redhat.com, paulmck@us.ibm.com, peterz@infradead.org, rostedt@goodmis.org, rusty@rustcorp.com.au, srivatsa.bhat@linux.vnet.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: dmi_scan: refactor dmi_scan_machine(), {smbios,dmi}_present()
+     Subject: lockdep: introduce lock_acquire_exclusive/shared helper macros
 has been added to the -mm tree.  Its filename is
-     dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
+     lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,166 +33,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: dmi_scan: refactor dmi_scan_machine(), {smbios,dmi}_present()
+From: Michel Lespinasse <walken@google.com>
+Subject: lockdep: introduce lock_acquire_exclusive/shared helper macros
 
-Move the calls to memcpy_fromio() up into the loop in dmi_scan_machine(),
-and move the signature checks back down into dmi_decode().  We need to
-check at 16-byte intervals but keep a 32-byte buffer for an SMBIOS entry,
-so shift the buffer after each iteration.
+In lockdep.h, the spinlock/mutex/rwsem/rwlock/lock_map acquire macros have
+different definitions based on the value of CONFIG_PROVE_LOCKING.  We have
+separate ifdefs for each of these definitions, which seems redundant.
 
-Merge smbios_present() into dmi_present(), so we look for an SMBIOS
-signature at the beginning of the given buffer and then for a DMI
-signature at an offset of 16 bytes.
+Introduce lock_acquire_{exclusive,shared,shared_recursive} helpers which
+will have different definitions based on CONFIG_PROVE_LOCKING.  Then all
+other helper macros can be defined based on the above ones, which reduces
+the amount of ifdefined code.
 
-Reported-by: Tim McGrath <tmhikaru@gmail.com>
-Tested-by: Tim Mcgrath <tmhikaru@gmail.com>
-Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |   80 +++++++++++++++-------------------
- 1 file changed, 37 insertions(+), 43 deletions(-)
+ include/linux/lockdep.h |  102 ++++++++++----------------------------
+ 1 file changed, 28 insertions(+), 74 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present
-+++ a/drivers/firmware/dmi_scan.c
-@@ -410,22 +410,45 @@ static void __init dmi_dump_ids(void)
- 	printk(KERN_CONT "\n");
- }
+diff -puN include/linux/lockdep.h~lockdep-introduce-lock_acquire_exclusive-shared-helper-macros include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-introduce-lock_acquire_exclusive-shared-helper-macros
++++ a/include/linux/lockdep.h
+@@ -365,7 +365,7 @@ extern void lockdep_trace_alloc(gfp_t ma
  
--static int __init dmi_present(const char __iomem *p)
-+static int __init dmi_present(const char *buf)
+ #define lockdep_recursing(tsk)	((tsk)->lockdep_recursion)
+ 
+-#else /* !LOCKDEP */
++#else /* !CONFIG_LOCKDEP */
+ 
+ static inline void lockdep_off(void)
  {
--	u8 buf[15];
-+	int smbios_ver;
+@@ -479,82 +479,36 @@ static inline void print_irqtrace_events
+  * on the per lock-class debug mode:
+  */
  
--	memcpy_fromio(buf, p, 15);
--	if (dmi_checksum(buf, 15)) {
-+	if (memcmp(buf, "_SM_", 4) == 0 &&
-+	    buf[5] < 32 && dmi_checksum(buf, buf[5])) {
-+		smbios_ver = (buf[6] << 8) + buf[7];
-+
-+		/* Some BIOS report weird SMBIOS version, fix that up */
-+		switch (smbios_ver) {
-+		case 0x021F:
-+		case 0x0221:
-+			pr_debug("SMBIOS version fixup(2.%d->2.%d)\n",
-+				 smbios_ver & 0xFF, 3);
-+			smbios_ver = 0x0203;
-+			break;
-+		case 0x0233:
-+			pr_debug("SMBIOS version fixup(2.%d->2.%d)\n", 51, 6);
-+			smbios_ver = 0x0206;
-+			break;
-+		}
-+	} else {
-+		smbios_ver = 0;
-+	}
-+
-+	buf += 16;
-+
-+	if (memcmp(buf, "_DMI_", 5) == 0 && dmi_checksum(buf, 15)) {
- 		dmi_num = (buf[13] << 8) | buf[12];
- 		dmi_len = (buf[7] << 8) | buf[6];
- 		dmi_base = (buf[11] << 24) | (buf[10] << 16) |
- 			(buf[9] << 8) | buf[8];
- 
- 		if (dmi_walk_early(dmi_decode) == 0) {
--			if (dmi_ver)
-+			if (smbios_ver) {
-+				dmi_ver = smbios_ver;
- 				pr_info("SMBIOS %d.%d present.\n",
- 				       dmi_ver >> 8, dmi_ver & 0xFF);
--			else {
-+			} else {
- 				dmi_ver = (buf[14] & 0xF0) << 4 |
- 					   (buf[14] & 0x0F);
- 				pr_info("Legacy DMI %d.%d present.\n",
-@@ -435,40 +458,14 @@ static int __init dmi_present(const char
- 			return 0;
- 		}
- 	}
--	dmi_ver = 0;
--	return 1;
--}
- 
--static int __init smbios_present(const char __iomem *p)
--{
--	u8 buf[32];
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-# ifdef CONFIG_PROVE_LOCKING
+-#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
+-#  define spin_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
+-# else
+-#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
+-#  define spin_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, NULL, i)
+-# endif
+-# define spin_release(l, n, i)			lock_release(l, n, i)
+-#else
+-# define spin_acquire(l, s, t, i)		do { } while (0)
+-# define spin_release(l, n, i)			do { } while (0)
+-#endif
 -
--	memcpy_fromio(buf, p, 32);
--	if ((buf[5] < 32) && dmi_checksum(buf, buf[5])) {
--		dmi_ver = (buf[6] << 8) + buf[7];
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-# ifdef CONFIG_PROVE_LOCKING
+-#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
+-#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 2, NULL, i)
+-# else
+-#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
+-#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 1, NULL, i)
+-# endif
+-# define rwlock_release(l, n, i)		lock_release(l, n, i)
+-#else
+-# define rwlock_acquire(l, s, t, i)		do { } while (0)
+-# define rwlock_acquire_read(l, s, t, i)	do { } while (0)
+-# define rwlock_release(l, n, i)		do { } while (0)
+-#endif
 -
--		/* Some BIOS report weird SMBIOS version, fix that up */
--		switch (dmi_ver) {
--		case 0x021F:
--		case 0x0221:
--			pr_debug("SMBIOS version fixup(2.%d->2.%d)\n",
--			       dmi_ver & 0xFF, 3);
--			dmi_ver = 0x0203;
--			break;
--		case 0x0233:
--			pr_debug("SMBIOS version fixup(2.%d->2.%d)\n", 51, 6);
--			dmi_ver = 0x0206;
--			break;
--		}
--		return memcmp(q + 16, "_DMI_", 5) || dmi_present(p + 16);
--	}
- 	return 1;
- }
- 
- void __init dmi_scan_machine(void)
- {
- 	char __iomem *p, *q;
--	int rc;
-+	char buf[32];
- 
- 	if (efi_enabled(EFI_CONFIG_TABLES)) {
- 		if (efi.smbios == EFI_INVALID_TABLE_ADDR)
-@@ -481,10 +478,10 @@ void __init dmi_scan_machine(void)
- 		p = dmi_ioremap(efi.smbios, 32);
- 		if (p == NULL)
- 			goto error;
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-# ifdef CONFIG_PROVE_LOCKING
+-#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
+-#  define mutex_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
+-# else
+-#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
+-#  define mutex_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, n, i)
+-# endif
+-# define mutex_release(l, n, i)			lock_release(l, n, i)
+-#else
+-# define mutex_acquire(l, s, t, i)		do { } while (0)
+-# define mutex_acquire_nest(l, s, t, n, i)	do { } while (0)
+-# define mutex_release(l, n, i)			do { } while (0)
+-#endif
 -
--		rc = smbios_present(p);
-+		memcpy_fromio(buf, p, 32);
- 		dmi_iounmap(p, 32);
--		if (!rc) {
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-# ifdef CONFIG_PROVE_LOCKING
+-#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
+-#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
+-#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 2, NULL, i)
+-# else
+-#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
+-#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, n, i)
+-#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 1, NULL, i)
+-# endif
++#ifdef CONFIG_PROVE_LOCKING
++ #define lock_acquire_exclusive(l, s, t, n, i)		lock_acquire(l, s, t, 0, 2, n, i)
++ #define lock_acquire_shared(l, s, t, n, i)		lock_acquire(l, s, t, 1, 2, n, i)
++ #define lock_acquire_shared_recursive(l, s, t, n, i)	lock_acquire(l, s, t, 2, 2, n, i)
++#else
++ #define lock_acquire_exclusive(l, s, t, n, i)		lock_acquire(l, s, t, 0, 1, n, i)
++ #define lock_acquire_shared(l, s, t, n, i)		lock_acquire(l, s, t, 1, 1, n, i)
++ #define lock_acquire_shared_recursive(l, s, t, n, i)	lock_acquire(l, s, t, 2, 1, n, i)
++#endif
 +
-+		if (!dmi_present(buf)) {
- 			dmi_available = 1;
- 			goto out;
- 		}
-@@ -499,18 +496,15 @@ void __init dmi_scan_machine(void)
- 		if (p == NULL)
- 			goto error;
++#define spin_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
++#define spin_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
++#define spin_release(l, n, i)			lock_release(l, n, i)
++
++#define rwlock_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
++#define rwlock_acquire_read(l, s, t, i)		lock_acquire_shared_recursive(l, s, t, NULL, i)
++#define rwlock_release(l, n, i)			lock_release(l, n, i)
++
++#define mutex_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
++#define mutex_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
++#define mutex_release(l, n, i)			lock_release(l, n, i)
++
++#define rwsem_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
++#define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
++#define rwsem_acquire_read(l, s, t, i)		lock_acquire_shared(l, s, t, NULL, i)
+ # define rwsem_release(l, n, i)			lock_release(l, n, i)
+-#else
+-# define rwsem_acquire(l, s, t, i)		do { } while (0)
+-# define rwsem_acquire_nest(l, s, t, n, i)	do { } while (0)
+-# define rwsem_acquire_read(l, s, t, i)		do { } while (0)
+-# define rwsem_release(l, n, i)			do { } while (0)
+-#endif
  
-+		memset(buf, 0, 16);
- 		for (q = p; q < p + 0x10000; q += 16) {
--			if (memcmp(q, "_SM_", 4) == 0 && q - p <= 0xFFE0)
--				rc = smbios_present(q);
--			else if (memcmp(q, "_DMI_", 5) == 0)
--				rc = dmi_present(q);
--			else
--				continue;
--			if (!rc) {
-+			memcpy_fromio(buf + 16, q, 16);
-+			if (!dmi_present(buf)) {
- 				dmi_available = 1;
- 				dmi_iounmap(p, 0x10000);
- 				goto out;
- 			}
-+			memcpy(buf, buf + 16, 16);
- 		}
- 		dmi_iounmap(p, 0x10000);
- 	}
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-# ifdef CONFIG_PROVE_LOCKING
+-#  define lock_map_acquire(l)		lock_acquire(l, 0, 0, 0, 2, NULL, _THIS_IP_)
+-#  define lock_map_acquire_read(l)	lock_acquire(l, 0, 0, 2, 2, NULL, _THIS_IP_)
+-# else
+-#  define lock_map_acquire(l)		lock_acquire(l, 0, 0, 0, 1, NULL, _THIS_IP_)
+-#  define lock_map_acquire_read(l)	lock_acquire(l, 0, 0, 2, 1, NULL, _THIS_IP_)
+-# endif
++#define lock_map_acquire(l)			lock_acquire_exclusive(l, 0, 0, NULL, _THIS_IP_)
++#define lock_map_acquire_read(l)		lock_acquire_shared_recursive(l, 0, 0, NULL, _THIS_IP_)
+ # define lock_map_release(l)			lock_release(l, 1, _THIS_IP_)
+-#else
+-# define lock_map_acquire(l)			do { } while (0)
+-# define lock_map_acquire_read(l)		do { } while (0)
+-# define lock_map_release(l)			do { } while (0)
+-#endif
+ 
+ #ifdef CONFIG_PROVE_LOCKING
+ # define might_lock(lock) 						\
 _
 
-Patches currently in -mm which might be from ben@decadent.org.uk are
+Patches currently in -mm which might be from walken@google.com are
 
-linux-next.patch
-dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch
-dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
+mm-remove-free_area_cache-use-in-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-powerpc-architecture.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+mm-remove-free_area_cache.patch
+mutex-subsystem-synchro-test-module.patch
 
