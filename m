@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-improve-scaling-in-proc-fix.patch added to -mm tree
-Date: Tue, 05 Mar 2013 14:34:29 -0800
-Message-ID: <20130305223429.6456D5A415F@corp2gmr1-2.hot.corp.google.com>
+Subject: + revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch added to -mm tree
+Date: Tue, 05 Mar 2013 14:45:02 -0800
+Message-ID: <20130305224502.8676E31C20C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:60822 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755197Ab3CEWea (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 17:34:30 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so265302vbb.4
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 14:34:30 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:41718 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755104Ab3CEWpE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 17:45:04 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so414304qaj.5
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 14:45:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sasha.levin@oracle.com, nzimmer@sgi.com
+Cc: arnd@arndb.de, paulmck@linux.vnet.ibm.com, peter.senna@gmail.com, rusty@rustcorp.com.au, sasha.levin@oracle.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: procfs: missing rcu unlock in proc_reg_release
+     Subject: Revert parts of "hlist: drop the node parameter from iterators"
 has been added to the -mm tree.  Its filename is
-     procfs-improve-scaling-in-proc-fix.patch
+     revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: procfs: missing rcu unlock in proc_reg_release
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Revert parts of "hlist: drop the node parameter from iterators"
 
-Commit "procfs: improve scaling in proc" forgot to unlock rcu read lock
-if the proc file didn't have ops struct.
+commit b67bfe0d42 "hlist: drop the node parameter from iterators" did a
+lot of nice changes but also contains two small hunks that seem to have
+slipped in accidentally and have no apparent connection to the intent of
+the patch.
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
+This reverts the two extraneous changes.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/smpboot.c      |    2 +-
+ net/9p/trans_virtio.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/inode.c~procfs-improve-scaling-in-proc-fix fs/proc/inode.c
---- a/fs/proc/inode.c~procfs-improve-scaling-in-proc-fix
-+++ a/fs/proc/inode.c
-@@ -400,6 +400,7 @@ static int proc_reg_release(struct inode
- 	rcu_read_lock();
- 	fops = rcu_dereference(pde->proc_fops);
- 	if (!fops) {
-+		rcu_read_unlock();
- 		/*
- 		 * Can't simply exit, __fput() will think that everything is OK,
- 		 * and move on to freeing struct file. remove_proc_entry() will
+diff -puN kernel/smpboot.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators kernel/smpboot.c
+--- a/kernel/smpboot.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators
++++ a/kernel/smpboot.c
+@@ -131,7 +131,7 @@ static int smpboot_thread_fn(void *data)
+ 			continue;
+ 		}
+ 
+-		//BUG_ON(td->cpu != smp_processor_id());
++		BUG_ON(td->cpu != smp_processor_id());
+ 
+ 		/* Check for state change setup */
+ 		switch (td->status) {
+diff -puN net/9p/trans_virtio.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators net/9p/trans_virtio.c
+--- a/net/9p/trans_virtio.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators
++++ a/net/9p/trans_virtio.c
+@@ -655,7 +655,7 @@ static struct p9_trans_module p9_virtio_
+ 	.create = p9_virtio_create,
+ 	.close = p9_virtio_close,
+ 	.request = p9_virtio_request,
+-	//.zc_request = p9_virtio_zc_request,
++	.zc_request = p9_virtio_zc_request,
+ 	.cancel = p9_virtio_cancel,
+ 	/*
+ 	 * We leave one entry for input and one entry for response
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 linux-next.patch
-mm-mempolicyc-fix-wrong-sp_node-insertion.patch
-mm-mempolicyc-fix-sp_node_init-argument-ordering.patch
-watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-epoll-support-for-disabling-items-and-a-self-test-app-fix.patch
-procfs-improve-scaling-in-proc-fix.patch
+revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch
+kconfig-consolidate-config_debug_strict_user_copy_checks.patch
 
