@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mlx4-remove-leftover-idr_pre_get-call.patch added to -mm tree
-Date: Tue, 05 Mar 2013 14:08:14 -0800
-Message-ID: <20130305220814.A5AEF5A41D3@corp2gmr1-2.hot.corp.google.com>
+Subject: + workqueue-convert-to-idr_alloc.patch added to -mm tree
+Date: Tue, 05 Mar 2013 14:08:12 -0800
+Message-ID: <20130305220812.C02AA31C1C6@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:53099 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab3CEWIP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 17:08:15 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so791914vcd.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 14:08:15 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:58368 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921Ab3CEWIN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 17:08:13 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so791581ggn.4
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 14:08:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, jackm@dev.mellanox.co.il, ogerlitz@mellanox.com, roland@purestorage.com
+Cc: tj@kernel.org
 
 
 The patch titled
-     Subject: mlx4: remove leftover idr_pre_get() call
+     Subject: workqueue: convert to idr_alloc()
 has been added to the -mm tree.  Its filename is
-     mlx4-remove-leftover-idr_pre_get-call.patch
+     workqueue-convert-to-idr_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mlx4: remove leftover idr_pre_get() call
+Subject: workqueue: convert to idr_alloc()
 
-6a9200603d ("IB/mlx4: convert to idr_alloc()") forgot to remove
-idr_pre_get() call in mlx4_ib_cm_paravirt_init().  It's unnecessary
-and idr_pre_get() will soon be deprecated.  Remove it.
+idr_get_new*() and friends are about to be deprecated.  Convert to the
+new idr_alloc() interface.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/mlx4/cm.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/workqueue.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/infiniband/hw/mlx4/cm.c~mlx4-remove-leftover-idr_pre_get-call drivers/infiniband/hw/mlx4/cm.c
---- a/drivers/infiniband/hw/mlx4/cm.c~mlx4-remove-leftover-idr_pre_get-call
-+++ a/drivers/infiniband/hw/mlx4/cm.c
-@@ -362,7 +362,6 @@ void mlx4_ib_cm_paravirt_init(struct mlx
- 	INIT_LIST_HEAD(&dev->sriov.cm_list);
- 	dev->sriov.sl_id_map = RB_ROOT;
- 	idr_init(&dev->sriov.pv_id_table);
--	idr_pre_get(&dev->sriov.pv_id_table, GFP_KERNEL);
+diff -puN kernel/workqueue.c~workqueue-convert-to-idr_alloc kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-convert-to-idr_alloc
++++ a/kernel/workqueue.c
+@@ -457,11 +457,12 @@ static int worker_pool_assign_id(struct
+ 	int ret;
+ 
+ 	mutex_lock(&worker_pool_idr_mutex);
+-	idr_pre_get(&worker_pool_idr, GFP_KERNEL);
+-	ret = idr_get_new(&worker_pool_idr, pool, &pool->id);
++	ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_KERNEL);
++	if (ret >= 0)
++		pool->id = ret;
+ 	mutex_unlock(&worker_pool_idr_mutex);
+ 
+-	return ret;
++	return ret < 0 ? ret : 0;
  }
  
- /* slave = -1 ==> all slaves */
+ /*
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
