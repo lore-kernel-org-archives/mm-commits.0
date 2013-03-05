@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch added to -mm tree
-Date: Tue, 05 Mar 2013 15:47:39 -0800
-Message-ID: <20130305234739.EEA5731C204@corp2gmr1-1.hot.corp.google.com>
+Subject: + ksm-fix-m68k-build-only-numa-needs-pfn_to_nid.patch added to -mm tree
+Date: Tue, 05 Mar 2013 15:54:39 -0800
+Message-ID: <20130305235439.759C531C266@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:57621 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295Ab3CEXrl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 18:47:41 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so801912ghb.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 15:47:41 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54777 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753277Ab3CEXyk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 18:54:40 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so421689qaj.5
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 15:54:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, ak@linux.intel.com, laijs@cn.fujitsu.com, mingo@redhat.com, oleg@redhat.com, paulmck@us.ibm.com, peterz@infradead.org, rostedt@goodmis.org, rusty@rustcorp.com.au, srivatsa.bhat@linux.vnet.ibm.com, tglx@linutronix.de
+Cc: hughd@google.com, geert@linux-m68k.org, pholasek@redhat.com
 
 
 The patch titled
-     Subject: lglock: update lockdep annotations to report recursive local locks
+     Subject: ksm: fix m68k build: only NUMA needs pfn_to_nid
 has been added to the -mm tree.  Its filename is
-     lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+     ksm-fix-m68k-build-only-numa-needs-pfn_to_nid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: lglock: update lockdep annotations to report recursive local locks
+From: Hugh Dickins <hughd@google.com>
+Subject: ksm: fix m68k build: only NUMA needs pfn_to_nid
 
-Oleg Nesterov recently noticed that the lockdep annotations in lglock.c
-are not sufficient to detect some obvious deadlocks, such as
-lg_local_lock(LOCK) + lg_local_lock(LOCK) or spin_lock(X) +
-lg_local_lock(Y) vs lg_local_lock(Y) + spin_lock(X).
+A CONFIG_DISCONTIGMEM=y m68k config gave
 
-Both issues are easily fixed by indicating to lockdep that lglock's local
-locks are not recursive.  We shouldn't use the rwlock acquire/release
-functions here, as lglock doesn't share the same semantics.  Instead we
-can base our lockdep annotations on the lock_acquire_shared (for local
-lglock) and lock_acquire_exclusive (for global lglock) helpers.
+mm/ksm.c: In function `get_kpfn_nid':
+mm/ksm.c:492: error: implicit declaration of function `pfn_to_nid'
 
-I am not proposing new lglock specific helpers as I don't see the point of
-the existing second level of helpers :)
+linux/mmzone.h declares it for CONFIG_SPARSEMEM and CONFIG_FLATMEM, but
+expects the arch's asm/mmzone.h to declare it for CONFIG_DISCONTIGMEM
+(see arch/mips/include/asm/mmzone.h for example).
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Or perhaps it is only expected when CONFIG_NUMA=y: too much of a maze,
+and m68k got away without it so far, so fix the build in mm/ksm.c.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Petr Holasek <pholasek@redhat.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lglock.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/ksm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/lglock.c~lglock-update-lockdep-annotations-to-report-recursive-local-locks kernel/lglock.c
---- a/kernel/lglock.c~lglock-update-lockdep-annotations-to-report-recursive-local-locks
-+++ a/kernel/lglock.c
-@@ -21,7 +21,7 @@ void lg_local_lock(struct lglock *lg)
- 	arch_spinlock_t *lock;
- 
- 	preempt_disable();
--	rwlock_acquire_read(&lg->lock_dep_map, 0, 0, _RET_IP_);
-+	lock_acquire_shared(&lg->lock_dep_map, 0, 0, NULL, _RET_IP_);
- 	lock = this_cpu_ptr(lg->lock);
- 	arch_spin_lock(lock);
+diff -puN mm/ksm.c~ksm-fix-m68k-build-only-numa-needs-pfn_to_nid mm/ksm.c
+--- a/mm/ksm.c~ksm-fix-m68k-build-only-numa-needs-pfn_to_nid
++++ a/mm/ksm.c
+@@ -489,7 +489,7 @@ out:		page = NULL;
+  */
+ static inline int get_kpfn_nid(unsigned long kpfn)
+ {
+-	return ksm_merge_across_nodes ? 0 : pfn_to_nid(kpfn);
++	return ksm_merge_across_nodes ? 0 : NUMA(pfn_to_nid(kpfn));
  }
-@@ -31,7 +31,7 @@ void lg_local_unlock(struct lglock *lg)
- {
- 	arch_spinlock_t *lock;
  
--	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
-+	lock_release(&lg->lock_dep_map, 1, _RET_IP_);
- 	lock = this_cpu_ptr(lg->lock);
- 	arch_spin_unlock(lock);
- 	preempt_enable();
-@@ -43,7 +43,7 @@ void lg_local_lock_cpu(struct lglock *lg
- 	arch_spinlock_t *lock;
- 
- 	preempt_disable();
--	rwlock_acquire_read(&lg->lock_dep_map, 0, 0, _RET_IP_);
-+	lock_acquire_shared(&lg->lock_dep_map, 0, 0, NULL, _RET_IP_);
- 	lock = per_cpu_ptr(lg->lock, cpu);
- 	arch_spin_lock(lock);
- }
-@@ -53,7 +53,7 @@ void lg_local_unlock_cpu(struct lglock *
- {
- 	arch_spinlock_t *lock;
- 
--	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
-+	lock_release(&lg->lock_dep_map, 1, _RET_IP_);
- 	lock = per_cpu_ptr(lg->lock, cpu);
- 	arch_spin_unlock(lock);
- 	preempt_enable();
-@@ -65,7 +65,7 @@ void lg_global_lock(struct lglock *lg)
- 	int i;
- 
- 	preempt_disable();
--	rwlock_acquire(&lg->lock_dep_map, 0, 0, _RET_IP_);
-+	lock_acquire_exclusive(&lg->lock_dep_map, 0, 0, NULL, _RET_IP_);
- 	for_each_possible_cpu(i) {
- 		arch_spinlock_t *lock;
- 		lock = per_cpu_ptr(lg->lock, i);
-@@ -78,7 +78,7 @@ void lg_global_unlock(struct lglock *lg)
- {
- 	int i;
- 
--	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
-+	lock_release(&lg->lock_dep_map, 1, _RET_IP_);
- 	for_each_possible_cpu(i) {
- 		arch_spinlock_t *lock;
- 		lock = per_cpu_ptr(lg->lock, i);
+ static void remove_node_from_stable_tree(struct stable_node *stable_node)
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-remove-free_area_cache-use-in-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-powerpc-architecture.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-mm-remove-free_area_cache.patch
-mutex-subsystem-synchro-test-module.patch
+mm-mempolicyc-fix-wrong-sp_node-insertion.patch
+mm-mempolicyc-fix-sp_node_init-argument-ordering.patch
+ksm-fix-m68k-build-only-numa-needs-pfn_to_nid.patch
+mm-trace-filemap-add-and-del.patch
+mm-shmemc-remove-an-ifdef.patch
 
