@@ -1,108 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 04 Mar 2013 16:33:06 -0800
-Message-ID: <20130305003306.819105A4123@corp2gmr1-2.hot.corp.google.com>
+Subject: [alternative-merged] shmem-fix-build-regression.patch removed from -mm tree
+Date: Mon, 04 Mar 2013 16:34:27 -0800
+Message-ID: <20130305003427.F18D65A410E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:44561 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758341Ab3CEAdH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Mar 2013 19:33:07 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so674295ghb.4
-        for <mm-commits@vger.kernel.org>; Mon, 04 Mar 2013 16:33:06 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:53812 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758341Ab3CEAe2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Mar 2013 19:34:28 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so676986yhz.1
+        for <mm-commits@vger.kernel.org>; Mon, 04 Mar 2013 16:34:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: wsa@the-dreams.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: shmem: fix build regression
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     shmem-fix-build-regression.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: shmem: fix build regression
 
+commit 6b4d0b27 (clean shmem_file_setup() a bit) broke allnoconfig since
+this needs the NOMMU path where 'error' is still needed:
+
+mm/shmem.c:2935:2: error: 'error' undeclared (first use in this function)
+
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+---
+ 1 file changed, 1 insertion(+)
+
+index ed2befb..56ff7d7 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-dove/board-dt.c |    4 ----
- fs/nfsd/nfs4state.c           |    4 ----
- 2 files changed, 8 deletions(-)
+ mm/shmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/arm/mach-dove/board-dt.c~linux-next-git-rejects arch/arm/mach-dove/board-dt.c
---- a/arch/arm/mach-dove/board-dt.c~linux-next-git-rejects
-+++ a/arch/arm/mach-dove/board-dt.c
-@@ -85,11 +85,7 @@ DT_MACHINE_START(DOVE_DT, "Marvell Dove 
- 	.map_io		= dove_map_io,
- 	.init_early	= dove_init_early,
- 	.init_irq	= orion_dt_init_irq,
--<<<<<<< HEAD
--	.init_time	= dove_timer_init,
--=======
- 	.init_time      = dove_timer_init,
-->>>>>>> linux-next/akpm-base
- 	.init_machine	= dove_dt_init,
- 	.restart	= dove_restart,
- 	.dt_compat	= dove_dt_board_compat,
-diff -puN fs/nfsd/nfs4state.c~linux-next-git-rejects fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~linux-next-git-rejects
-+++ a/fs/nfsd/nfs4state.c
-@@ -1079,10 +1079,6 @@ free_client(struct nfs4_client *clp)
- 	}
- 	free_svc_cred(&clp->cl_cred);
- 	kfree(clp->cl_name.data);
--<<<<<<< HEAD
--=======
--	idr_remove_all(&clp->cl_stateids);
-->>>>>>> linux-next/akpm-base
- 	idr_destroy(&clp->cl_stateids);
- 	kfree(clp);
- }
+diff -puN mm/shmem.c~shmem-fix-build-regression mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-build-regression
++++ a/mm/shmem.c
+@@ -2897,6 +2897,7 @@ static struct dentry_operations anon_ops
+  */
+ struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags)
+ {
++	int error;
+ 	struct file *res;
+ 	struct inode *inode;
+ 	struct path path;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wsa@the-dreams.de are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
 shmem-fix-build-regression-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
