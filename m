@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-starfire-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:33 -0800
-Message-ID: <20130306233833.BD33B31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-tegra-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:37 -0800
+Message-ID: <20130306233837.BE1605A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:39984 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3CFXie (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:34 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so932700ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:34 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:61245 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3CFXii (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:38 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so932706yen.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-starfire: use module_platform_driver_probe()
+     Subject: rtc: rtc-tegra: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-starfire-use-module_platform_driver_probe.patch
+     rtc-rtc-tegra-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-starfire: use module_platform_driver_probe()
+Subject: rtc: rtc-tegra: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,29 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-starfire.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/rtc/rtc-tegra.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-module_platform_driver_probe drivers/rtc/rtc-starfire.c
---- a/drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-starfire.c
-@@ -66,15 +66,4 @@ static struct platform_driver starfire_r
- 	.remove		= __exit_p(starfire_rtc_remove),
+diff -puN drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-use-module_platform_driver_probe drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-tegra.c
+@@ -452,17 +452,7 @@ static struct platform_driver tegra_rtc_
+ #endif
  };
  
--static int __init starfire_rtc_init(void)
+-static int __init tegra_rtc_init(void)
 -{
--	return platform_driver_probe(&starfire_rtc_driver, starfire_rtc_probe);
+-	return platform_driver_probe(&tegra_rtc_driver, tegra_rtc_probe);
 -}
+-module_init(tegra_rtc_init);
 -
--static void __exit starfire_rtc_exit(void)
+-static void __exit tegra_rtc_exit(void)
 -{
--	platform_driver_unregister(&starfire_rtc_driver);
+-	platform_driver_unregister(&tegra_rtc_driver);
 -}
--
--module_init(starfire_rtc_init);
--module_exit(starfire_rtc_exit);
-+module_platform_driver_probe(starfire_rtc_driver, starfire_rtc_probe);
+-module_exit(tegra_rtc_exit);
++module_platform_driver_probe(tegra_rtc_driver, tegra_rtc_probe);
+ 
+ MODULE_AUTHOR("Jon Mayo <jmayo@nvidia.com>");
+ MODULE_DESCRIPTION("driver for Tegra internal RTC");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
