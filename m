@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + printk-tracing-rework-console-tracing.patch added to -mm tree
-Date: Wed, 06 Mar 2013 14:53:37 -0800
-Message-ID: <20130306225337.764925A403C@corp2gmr1-2.hot.corp.google.com>
+Date: Wed, 06 Mar 2013 14:53:50 -0800
+Message-ID: <20130306225350.AF5C65A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:41831 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab3CFWxi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 17:53:38 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so928208vcd.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 14:53:38 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:59779 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756387Ab3CFWxv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 17:53:51 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so928705yen.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 14:53:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -44,7 +44,7 @@ Without start and end parameters handling, printk tracing became more
 simple as: trace_console(text, len);
 
 Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
-cked-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
