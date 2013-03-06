@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-mv-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:17 -0800
-Message-ID: <20130306233817.BF4BE31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-nuc900-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:19 -0800
+Message-ID: <20130306233819.BD4D45A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:40071 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:18 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so933198qea.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:18 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:41462 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXiU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:20 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so932658yen.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-mv: use module_platform_driver_probe()
+     Subject: rtc: rtc-nuc900: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-mv-use-module_platform_driver_probe.patch
+     rtc-rtc-nuc900-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-mv: use module_platform_driver_probe()
+Subject: rtc: rtc-nuc900: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,32 +43,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mv.c |   13 +------------
+ drivers/rtc/rtc-nuc900.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-mv.c~rtc-rtc-mv-use-module_platform_driver_probe drivers/rtc/rtc-mv.c
---- a/drivers/rtc/rtc-mv.c~rtc-rtc-mv-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-mv.c
-@@ -311,18 +311,7 @@ static struct platform_driver mv_rtc_dri
+diff -puN drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-module_platform_driver_probe drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-nuc900.c
+@@ -311,18 +311,7 @@ static struct platform_driver nuc900_rtc
  	},
  };
  
--static __init int mv_init(void)
+-static int __init nuc900_rtc_init(void)
 -{
--	return platform_driver_probe(&mv_rtc_driver, mv_rtc_probe);
+-	return platform_driver_probe(&nuc900_rtc_driver, nuc900_rtc_probe);
 -}
 -
--static __exit void mv_exit(void)
+-static void __exit nuc900_rtc_exit(void)
 -{
--	platform_driver_unregister(&mv_rtc_driver);
+-	platform_driver_unregister(&nuc900_rtc_driver);
 -}
 -
--module_init(mv_init);
--module_exit(mv_exit);
-+module_platform_driver_probe(mv_rtc_driver, mv_rtc_probe);
+-module_init(nuc900_rtc_init);
+-module_exit(nuc900_rtc_exit);
++module_platform_driver_probe(nuc900_rtc_driver, nuc900_rtc_probe);
  
- MODULE_AUTHOR("Saeed Bishara <saeed@marvell.com>");
- MODULE_DESCRIPTION("Marvell RTC driver");
+ MODULE_AUTHOR("Wan ZongShun <mcuos.com@gmail.com>");
+ MODULE_DESCRIPTION("nuc910/nuc920 RTC driver");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
