@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1511-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:00 -0800
-Message-ID: <20130306212100.BE47031C241@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ds1553-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:02 -0800
+Message-ID: <20130306212102.BFE4131C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:59137 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab3CFVVC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:02 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so917522vch.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:01 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:64156 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754367Ab3CFVVD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:03 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so917517yen.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ds1511: use devm_rtc_device_register()
+     Subject: rtc: rtc-ds1553: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+     rtc-rtc-ds1553-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1511: use devm_rtc_device_register()
+Subject: rtc: rtc-ds1553: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,39 +43,38 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1511.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-ds1553.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1511.c~rtc-rtc-ds1511-use-devm_rtc_device_register drivers/rtc/rtc-ds1511.c
---- a/drivers/rtc/rtc-ds1511.c~rtc-rtc-ds1511-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -538,15 +538,14 @@ static int ds1511_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-ds1553.c~rtc-rtc-ds1553-use-devm_rtc_device_register drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtc-rtc-ds1553-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -326,15 +326,14 @@ static int ds1553_rtc_probe(struct platf
  		}
  	}
  
--	rtc = rtc_device_register(pdev->name, &pdev->dev, &ds1511_rtc_ops,
--		THIS_MODULE);
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &ds1511_rtc_ops,
-+					THIS_MODULE);
+-	rtc = rtc_device_register(pdev->name, &pdev->dev,
++	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				  &ds1553_rtc_ops, THIS_MODULE);
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
  	pdata->rtc = rtc;
  
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
 -	if (ret)
--		rtc_device_unregister(pdata->rtc);
+-		rtc_device_unregister(rtc);
 +
  	return ret;
  }
  
-@@ -555,7 +554,6 @@ static int ds1511_rtc_remove(struct plat
+@@ -343,7 +342,6 @@ static int ds1553_rtc_remove(struct plat
  	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
  
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
 -	rtc_device_unregister(pdata->rtc);
- 	if (pdata->irq > 0) {
- 		/*
- 		 * disable the alarm interrupt
+ 	if (pdata->irq > 0)
+ 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
