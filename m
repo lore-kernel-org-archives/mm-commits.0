@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:13 -0800
-Message-ID: <20130306233813.BE69E31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-msm6242-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:15 -0800
+Message-ID: <20130306233815.C301D5A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:34355 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:14 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so551164qah.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:14 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:41495 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXiR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:17 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so933282vea.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: jg1.han@samsung.com, geert@linux-m68k.org
 
 
 The patch titled
-     Subject: rtc: rtc-mc13xxx: use module_platform_driver_probe()
+     Subject: rtc: rtc-msm6242: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
+     rtc-rtc-msm6242-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-mc13xxx: use module_platform_driver_probe()
+Subject: rtc: rtc-msm6242: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mc13xxx.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/rtc/rtc-msm6242.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-rtc-mc13xxx-use-module_platform_driver_probe drivers/rtc/rtc-mc13xxx.c
---- a/drivers/rtc/rtc-mc13xxx.c~rtc-rtc-mc13xxx-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-mc13xxx.c
-@@ -420,17 +420,7 @@ static struct platform_driver mc13xxx_rt
- 	},
+diff -puN drivers/rtc/rtc-msm6242.c~rtc-rtc-msm6242-use-module_platform_driver_probe drivers/rtc/rtc-msm6242.c
+--- a/drivers/rtc/rtc-msm6242.c~rtc-rtc-msm6242-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-msm6242.c
+@@ -252,18 +252,7 @@ static struct platform_driver msm6242_rt
+ 	.remove	= __exit_p(msm6242_rtc_remove),
  };
  
--static int __init mc13xxx_rtc_init(void)
+-static int __init msm6242_rtc_init(void)
 -{
--	return platform_driver_probe(&mc13xxx_rtc_driver, &mc13xxx_rtc_probe);
+-	return platform_driver_probe(&msm6242_rtc_driver, msm6242_rtc_probe);
 -}
--module_init(mc13xxx_rtc_init);
 -
--static void __exit mc13xxx_rtc_exit(void)
+-static void __exit msm6242_rtc_fini(void)
 -{
--	platform_driver_unregister(&mc13xxx_rtc_driver);
+-	platform_driver_unregister(&msm6242_rtc_driver);
 -}
--module_exit(mc13xxx_rtc_exit);
-+module_platform_driver_probe(mc13xxx_rtc_driver, &mc13xxx_rtc_probe);
+-
+-module_init(msm6242_rtc_init);
+-module_exit(msm6242_rtc_fini);
++module_platform_driver_probe(msm6242_rtc_driver, msm6242_rtc_probe);
  
- MODULE_AUTHOR("Sascha Hauer <s.hauer@pengutronix.de>");
- MODULE_DESCRIPTION("RTC driver for Freescale MC13XXX PMIC");
+ MODULE_AUTHOR("Geert Uytterhoeven <geert@linux-m68k.org>");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
