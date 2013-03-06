@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tx4939-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:44 -0800
-Message-ID: <20130306212144.AC9BB31C241@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-vt8500-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:46 -0800
+Message-ID: <20130306212146.9F5BD5A41F7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:57767 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755642Ab3CFVVp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:45 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so343745qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:45 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:47932 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755669Ab3CFVVs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:48 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so536252qaj.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-tx4939: use devm_rtc_device_register()
+     Subject: rtc: rtc-vt8500: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+     rtc-rtc-vt8500-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tx4939: use devm_rtc_device_register()
+Subject: rtc: rtc-vt8500: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,37 +43,45 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tx4939.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-vt8500.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-devm_rtc_device_register drivers/rtc/rtc-tx4939.c
---- a/drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-tx4939.c
-@@ -268,14 +268,13 @@ static int __init tx4939_rtc_probe(struc
- 	if (devm_request_irq(&pdev->dev, irq, tx4939_rtc_interrupt,
- 			     0, pdev->name, &pdev->dev) < 0)
- 		return -EBUSY;
--	rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				  &tx4939_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
- 	pdata->rtc = rtc;
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
--	if (ret)
--		rtc_device_unregister(rtc);
-+
+diff -puN drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_rtc_device_register drivers/rtc/rtc-vt8500.c
+--- a/drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-vt8500.c
+@@ -252,7 +252,7 @@ static int vt8500_rtc_probe(struct platf
+ 	writel(VT8500_RTC_CR_ENABLE,
+ 	       vt8500_rtc->regbase + VT8500_RTC_CR);
+ 
+-	vt8500_rtc->rtc = rtc_device_register("vt8500-rtc", &pdev->dev,
++	vt8500_rtc->rtc = devm_rtc_device_register(&pdev->dev, "vt8500-rtc",
+ 					      &vt8500_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(vt8500_rtc->rtc)) {
+ 		ret = PTR_ERR(vt8500_rtc->rtc);
+@@ -266,13 +266,11 @@ static int vt8500_rtc_probe(struct platf
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "can't get irq %i, err %d\n",
+ 			vt8500_rtc->irq_alarm, ret);
+-		goto err_unreg;
++		goto err_return;
+ 	}
+ 
+ 	return 0;
+ 
+-err_unreg:
+-	rtc_device_unregister(vt8500_rtc->rtc);
+ err_return:
  	return ret;
  }
+@@ -281,8 +279,6 @@ static int vt8500_rtc_remove(struct plat
+ {
+ 	struct vt8500_rtc *vt8500_rtc = platform_get_drvdata(pdev);
  
-@@ -284,7 +283,6 @@ static int __exit tx4939_rtc_remove(stru
- 	struct tx4939rtc_plat_data *pdata = platform_get_drvdata(pdev);
+-	rtc_device_unregister(vt8500_rtc->rtc);
+-
+ 	/* Disable alarm matching */
+ 	writel(0, vt8500_rtc->regbase + VT8500_RTC_IS);
  
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
--	rtc_device_unregister(pdata->rtc);
- 	spin_lock_irq(&pdata->lock);
- 	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
- 	spin_unlock_irq(&pdata->lock);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
