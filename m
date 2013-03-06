@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:37:57 -0800
-Message-ID: <20130306233757.93B6431C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-au1xxx-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:37:59 -0800
+Message-ID: <20130306233759.BD6FF31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:64219 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXh6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:37:58 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so353607qcs.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:37:58 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:44827 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXiB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:01 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so932990vea.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-at91rm9200: use module_platform_driver_probe()
+     Subject: rtc: rtc-au1xxx: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
+     rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-at91rm9200: use module_platform_driver_probe()
+Subject: rtc: rtc-au1xxx: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,32 +43,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   13 +------------
+ drivers/rtc/rtc-au1xxx.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-use-module_platform_driver_probe drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -390,18 +390,7 @@ static struct platform_driver at91_rtc_d
- 	},
+diff -puN drivers/rtc/rtc-au1xxx.c~rtc-rtc-au1xxx-use-module_platform_driver_probe drivers/rtc/rtc-au1xxx.c
+--- a/drivers/rtc/rtc-au1xxx.c~rtc-rtc-au1xxx-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-au1xxx.c
+@@ -134,18 +134,7 @@ static struct platform_driver au1xrtc_dr
+ 	.remove		= au1xtoy_rtc_remove,
  };
  
--static int __init at91_rtc_init(void)
+-static int __init au1xtoy_rtc_init(void)
 -{
--	return platform_driver_probe(&at91_rtc_driver, at91_rtc_probe);
+-	return platform_driver_probe(&au1xrtc_driver, au1xtoy_rtc_probe);
 -}
 -
--static void __exit at91_rtc_exit(void)
+-static void __exit au1xtoy_rtc_exit(void)
 -{
--	platform_driver_unregister(&at91_rtc_driver);
+-	platform_driver_unregister(&au1xrtc_driver);
 -}
 -
--module_init(at91_rtc_init);
--module_exit(at91_rtc_exit);
-+module_platform_driver_probe(at91_rtc_driver, at91_rtc_probe);
+-module_init(au1xtoy_rtc_init);
+-module_exit(au1xtoy_rtc_exit);
++module_platform_driver_probe(au1xrtc_driver, au1xtoy_rtc_probe);
  
- MODULE_AUTHOR("Rick Bronson");
- MODULE_DESCRIPTION("RTC driver for Atmel AT91RM9200");
+ MODULE_DESCRIPTION("Au1xxx TOY-counter-based RTC driver");
+ MODULE_AUTHOR("Manuel Lauss <manuel.lauss@gmail.com>");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
