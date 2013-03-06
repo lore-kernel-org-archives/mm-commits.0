@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-88pm80x-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:20:50 -0800
-Message-ID: <20130306212050.A44B95A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-coh90133-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:20:52 -0800
+Message-ID: <20130306212052.BCEF931C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:49372 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755394Ab3CFVUv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:20:51 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so917570yen.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:51 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:36839 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754308Ab3CFVUx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:20:53 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so917731yen.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-88pm80x: use devm_rtc_device_register()
+     Subject: rtc: rtc-coh90133: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+     rtc-rtc-coh90133-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-88pm80x: use devm_rtc_device_register()
+Subject: rtc: rtc-coh90133: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,29 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm80x.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/rtc/rtc-coh901331.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-use-devm_rtc_device_register drivers/rtc/rtc-88pm80x.c
---- a/drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-88pm80x.c
-@@ -312,7 +312,7 @@ static int pm80x_rtc_probe(struct platfo
- 	}
- 	rtc_tm_to_time(&tm, &ticks);
+diff -puN drivers/rtc/rtc-coh901331.c~rtc-rtc-coh90133-use-devm_rtc_device_register drivers/rtc/rtc-coh901331.c
+--- a/drivers/rtc/rtc-coh901331.c~rtc-rtc-coh90133-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-coh901331.c
+@@ -155,7 +155,6 @@ static int __exit coh901331_remove(struc
+ 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
  
--	info->rtc_dev = rtc_device_register("88pm80x-rtc", &pdev->dev,
-+	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "88pm80x-rtc",
- 					    &pm80x_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(info->rtc_dev)) {
- 		ret = PTR_ERR(info->rtc_dev);
-@@ -346,7 +346,6 @@ static int pm80x_rtc_remove(struct platf
- {
- 	struct pm80x_rtc_info *info = platform_get_drvdata(pdev);
- 	platform_set_drvdata(pdev, NULL);
--	rtc_device_unregister(info->rtc_dev);
- 	pm80x_free_irq(info->chip, info->irq, info);
- 	return 0;
- }
+ 	if (rtap) {
+-		rtc_device_unregister(rtap->rtc);
+ 		clk_unprepare(rtap->clk);
+ 		platform_set_drvdata(pdev, NULL);
+ 	}
+@@ -211,8 +210,8 @@ static int __init coh901331_probe(struct
+ 	clk_disable(rtap->clk);
+ 
+ 	platform_set_drvdata(pdev, rtap);
+-	rtap->rtc = rtc_device_register("coh901331", &pdev->dev, &coh901331_ops,
+-					 THIS_MODULE);
++	rtap->rtc = devm_rtc_device_register(&pdev->dev, "coh901331",
++					&coh901331_ops, THIS_MODULE);
+ 	if (IS_ERR(rtap->rtc)) {
+ 		ret = PTR_ERR(rtap->rtc);
+ 		goto out_no_rtc;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
