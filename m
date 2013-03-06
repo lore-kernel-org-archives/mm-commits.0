@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbc-make-hugetlb_register_node-static.patch added to -mm tree
-Date: Wed, 06 Mar 2013 14:51:35 -0800
-Message-ID: <20130306225135.5F1EE31C1E1@corp2gmr1-1.hot.corp.google.com>
+Subject: + printk-tracing-rework-console-tracing.patch added to -mm tree
+Date: Wed, 06 Mar 2013 14:53:37 -0800
+Message-ID: <20130306225337.764925A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:38431 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581Ab3CFWvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 17:51:36 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so546986qaj.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 14:51:35 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:41831 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838Ab3CFWxi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 17:53:38 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so928208vcd.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 14:53:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: claudiughioc@gmail.com, claudiu.ghioc@gmail.com
+Cc: jovi.zhangwei@huawei.com, fweisbec@gmail.com, kay@vrfy.org, rostedt@goodmis.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: make hugetlb_[un]register_node() static
+     Subject: printk/tracing: rework console tracing
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-make-hugetlb_register_node-static.patch
+     printk-tracing-rework-console-tracing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Claudiu Ghioc <claudiughioc@gmail.com>
-Subject: mm/hugetlb.c: make hugetlb_[un]register_node() static
+From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
+Subject: printk/tracing: rework console tracing
 
-Fixes sparse warnings:
+commit 7ff9554bb ("printk: convert byte-buffer to variable-length record
+buffer") removed start and end parameters in call_console_drivers, but
+those parameters still exists in include/trace/events/printk.h.
 
-mm/hugetlb.c:1764:6: warning: symbol 'hugetlb_unregister_node' was not declared. Should it be static?
+Without start and end parameters handling, printk tracing became more
+simple as: trace_console(text, len);
 
-mm/hugetlb.c:1808:6: warning: symbol 'hugetlb_register_node' was not declared. Should it be static?
-
-Signed-off-by: Claudiu Ghioc <claudiu.ghioc@gmail.com>
+Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
+cked-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/trace/events/printk.h |   25 ++++++-------------------
+ kernel/printk.c               |    2 +-
+ 2 files changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-make-hugetlb_register_node-static mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-make-hugetlb_register_node-static
-+++ a/mm/hugetlb.c
-@@ -1761,7 +1761,7 @@ static struct hstate *kobj_to_node_hstat
-  * Unregister hstate attributes from a single node device.
-  * No-op if no hstate attributes attached.
-  */
--void hugetlb_unregister_node(struct node *node)
-+static void hugetlb_unregister_node(struct node *node)
+diff -puN include/trace/events/printk.h~printk-tracing-rework-console-tracing include/trace/events/printk.h
+--- a/include/trace/events/printk.h~printk-tracing-rework-console-tracing
++++ a/include/trace/events/printk.h
+@@ -6,31 +6,18 @@
+ 
+ #include <linux/tracepoint.h>
+ 
+-TRACE_EVENT_CONDITION(console,
+-	TP_PROTO(const char *log_buf, unsigned start, unsigned end,
+-		 unsigned log_buf_len),
++TRACE_EVENT(console,
++	TP_PROTO(const char *text, size_t len),
+ 
+-	TP_ARGS(log_buf, start, end, log_buf_len),
+-
+-	TP_CONDITION(start != end),
++	TP_ARGS(text, len),
+ 
+ 	TP_STRUCT__entry(
+-		__dynamic_array(char, msg, end - start + 1)
++		__dynamic_array(char, msg, len + 1)
+ 	),
+ 
+ 	TP_fast_assign(
+-		if ((start & (log_buf_len - 1)) > (end & (log_buf_len - 1))) {
+-			memcpy(__get_dynamic_array(msg),
+-			       log_buf + (start & (log_buf_len - 1)),
+-			       log_buf_len - (start & (log_buf_len - 1)));
+-			memcpy((char *)__get_dynamic_array(msg) +
+-			       log_buf_len - (start & (log_buf_len - 1)),
+-			       log_buf, end & (log_buf_len - 1));
+-		} else
+-			memcpy(__get_dynamic_array(msg),
+-			       log_buf + (start & (log_buf_len - 1)),
+-			       end - start);
+-		((char *)__get_dynamic_array(msg))[end - start] = 0;
++		memcpy(__get_dynamic_array(msg), text, len);
++		((char *)__get_dynamic_array(msg))[len] = 0;
+ 	),
+ 
+ 	TP_printk("%s", __get_str(msg))
+diff -puN kernel/printk.c~printk-tracing-rework-console-tracing kernel/printk.c
+--- a/kernel/printk.c~printk-tracing-rework-console-tracing
++++ a/kernel/printk.c
+@@ -1285,7 +1285,7 @@ static void call_console_drivers(int lev
  {
- 	struct hstate *h;
- 	struct node_hstate *nhs = &node_hstates[node->dev.id];
-@@ -1805,7 +1805,7 @@ static void hugetlb_unregister_all_nodes
-  * Register hstate attributes for a single node device.
-  * No-op if attributes already registered.
-  */
--void hugetlb_register_node(struct node *node)
-+static void hugetlb_register_node(struct node *node)
- {
- 	struct hstate *h;
- 	struct node_hstate *nhs = &node_hstates[node->dev.id];
+ 	struct console *con;
+ 
+-	trace_console(text, 0, len, len);
++	trace_console(text, len);
+ 
+ 	if (level >= console_loglevel && !ignore_loglevel)
+ 		return;
 _
 
-Patches currently in -mm which might be from claudiughioc@gmail.com are
+Patches currently in -mm which might be from jovi.zhangwei@huawei.com are
 
-mm-hugetlbc-make-hugetlb_register_node-static.patch
+printk-tracing-rework-console-tracing.patch
 
