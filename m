@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-msm6242-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:15 -0800
-Message-ID: <20130306233815.C301D5A4005@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-mv-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:17 -0800
+Message-ID: <20130306233817.BF4BE31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:41495 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:17 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so933282vea.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:16 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:40071 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXiS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:18 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so933198qea.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, geert@linux-m68k.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-msm6242: use module_platform_driver_probe()
+     Subject: rtc: rtc-mv: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-msm6242-use-module_platform_driver_probe.patch
+     rtc-rtc-mv-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-msm6242: use module_platform_driver_probe()
+Subject: rtc: rtc-mv: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-msm6242.c |   13 +------------
+ drivers/rtc/rtc-mv.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-msm6242.c~rtc-rtc-msm6242-use-module_platform_driver_probe drivers/rtc/rtc-msm6242.c
---- a/drivers/rtc/rtc-msm6242.c~rtc-rtc-msm6242-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-msm6242.c
-@@ -252,18 +252,7 @@ static struct platform_driver msm6242_rt
- 	.remove	= __exit_p(msm6242_rtc_remove),
+diff -puN drivers/rtc/rtc-mv.c~rtc-rtc-mv-use-module_platform_driver_probe drivers/rtc/rtc-mv.c
+--- a/drivers/rtc/rtc-mv.c~rtc-rtc-mv-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-mv.c
+@@ -311,18 +311,7 @@ static struct platform_driver mv_rtc_dri
+ 	},
  };
  
--static int __init msm6242_rtc_init(void)
+-static __init int mv_init(void)
 -{
--	return platform_driver_probe(&msm6242_rtc_driver, msm6242_rtc_probe);
+-	return platform_driver_probe(&mv_rtc_driver, mv_rtc_probe);
 -}
 -
--static void __exit msm6242_rtc_fini(void)
+-static __exit void mv_exit(void)
 -{
--	platform_driver_unregister(&msm6242_rtc_driver);
+-	platform_driver_unregister(&mv_rtc_driver);
 -}
 -
--module_init(msm6242_rtc_init);
--module_exit(msm6242_rtc_fini);
-+module_platform_driver_probe(msm6242_rtc_driver, msm6242_rtc_probe);
+-module_init(mv_init);
+-module_exit(mv_exit);
++module_platform_driver_probe(mv_rtc_driver, mv_rtc_probe);
  
- MODULE_AUTHOR("Geert Uytterhoeven <geert@linux-m68k.org>");
- MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Saeed Bishara <saeed@marvell.com>");
+ MODULE_DESCRIPTION("Marvell RTC driver");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
