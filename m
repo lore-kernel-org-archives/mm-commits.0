@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-spear-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:32 -0800
-Message-ID: <20130306212132.B26E05A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:34 -0800
+Message-ID: <20130306212134.AB5625A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:62902 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755578Ab3CFVVd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:33 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so536163qah.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:33 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:49017 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755584Ab3CFVVf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:35 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so917870ves.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, viresh.kumar@linaro.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-spear: use devm_rtc_device_register()
+     Subject: rtc: rtc-stk17ta8: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-spear-use-devm_rtc_device_register.patch
+     rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-spear: use devm_rtc_device_register()
+Subject: rtc: rtc-stk17ta8: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-spear.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-stk17ta8.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-spear.c~rtc-rtc-spear-use-devm_rtc_device_register drivers/rtc/rtc-spear.c
---- a/drivers/rtc/rtc-spear.c~rtc-rtc-spear-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-spear.c
-@@ -400,8 +400,8 @@ static int spear_rtc_probe(struct platfo
- 	spin_lock_init(&config->lock);
- 	platform_set_drvdata(pdev, config);
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-rtc-stk17ta8-use-devm_rtc_device_register drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-rtc-stk17ta8-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -336,14 +336,13 @@ static int stk17ta8_rtc_probe(struct pla
+ 		}
+ 	}
  
--	config->rtc = rtc_device_register(pdev->name, &pdev->dev,
--			&spear_rtc_ops, THIS_MODULE);
-+	config->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-+					&spear_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(config->rtc)) {
- 		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
- 				PTR_ERR(config->rtc));
-@@ -427,7 +427,6 @@ static int spear_rtc_remove(struct platf
- {
- 	struct spear_rtc_config *config = platform_get_drvdata(pdev);
+-	pdata->rtc = rtc_device_register(pdev->name, &pdev->dev,
++	pdata->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				  &stk17ta8_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(pdata->rtc))
+ 		return PTR_ERR(pdata->rtc);
  
--	rtc_device_unregister(config->rtc);
- 	spear_rtc_disable_interrupt(config);
- 	clk_disable_unprepare(config->clk);
- 	device_init_wakeup(&pdev->dev, 0);
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
+-	if (ret)
+-		rtc_device_unregister(pdata->rtc);
++
+ 	return ret;
+ }
+ 
+@@ -352,7 +351,6 @@ static int stk17ta8_rtc_remove(struct pl
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
+-	rtc_device_unregister(pdata->rtc);
+ 	if (pdata->irq > 0)
+ 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
