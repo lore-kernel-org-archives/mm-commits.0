@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-nuc900-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:19 -0800
-Message-ID: <20130306233819.BD4D45A4005@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-omap-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:21 -0800
+Message-ID: <20130306233821.BE17B5A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:41462 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:20 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so932658yen.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:20 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:33340 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXiW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:22 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so933011ves.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-nuc900: use module_platform_driver_probe()
+     Subject: rtc: rtc-omap: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-nuc900-use-module_platform_driver_probe.patch
+     rtc-rtc-omap-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-nuc900: use module_platform_driver_probe()
+Subject: rtc: rtc-omap: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,32 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/rtc/rtc-omap.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-module_platform_driver_probe drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-nuc900.c
-@@ -311,18 +311,7 @@ static struct platform_driver nuc900_rtc
- 	},
+diff -puN drivers/rtc/rtc-omap.c~rtc-rtc-omap-use-module_platform_driver_probe drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-rtc-omap-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-omap.c
+@@ -550,17 +550,7 @@ static struct platform_driver omap_rtc_d
+ 	.id_table	= omap_rtc_devtype,
  };
  
--static int __init nuc900_rtc_init(void)
+-static int __init rtc_init(void)
 -{
--	return platform_driver_probe(&nuc900_rtc_driver, nuc900_rtc_probe);
+-	return platform_driver_probe(&omap_rtc_driver, omap_rtc_probe);
 -}
+-module_init(rtc_init);
 -
--static void __exit nuc900_rtc_exit(void)
+-static void __exit rtc_exit(void)
 -{
--	platform_driver_unregister(&nuc900_rtc_driver);
+-	platform_driver_unregister(&omap_rtc_driver);
 -}
--
--module_init(nuc900_rtc_init);
--module_exit(nuc900_rtc_exit);
-+module_platform_driver_probe(nuc900_rtc_driver, nuc900_rtc_probe);
+-module_exit(rtc_exit);
++module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
  
- MODULE_AUTHOR("Wan ZongShun <mcuos.com@gmail.com>");
- MODULE_DESCRIPTION("nuc910/nuc920 RTC driver");
+ MODULE_AUTHOR("George G. Davis (and others)");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
