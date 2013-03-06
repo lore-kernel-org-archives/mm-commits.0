@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-davinci-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:20:58 -0800
-Message-ID: <20130306212058.C2D875A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-ds1511-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:00 -0800
+Message-ID: <20130306212100.BE47031C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:55682 "EHLO
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:59137 "EHLO
 	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753478Ab3CFVVA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:00 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so917373vch.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:59 -0800 (PST)
+	with ESMTP id S1754308Ab3CFVVC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:02 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so917522vch.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-davinci: use devm_rtc_device_register()
+     Subject: rtc: rtc-ds1511: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-davinci-use-devm_rtc_device_register.patch
+     rtc-rtc-ds1511-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-davinci: use devm_rtc_device_register()
+Subject: rtc: rtc-ds1511: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,48 +43,39 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-davinci.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-ds1511.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_rtc_device_register drivers/rtc/rtc-davinci.c
---- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-davinci.c
-@@ -523,7 +523,7 @@ static int __init davinci_rtc_probe(stru
- 
- 	platform_set_drvdata(pdev, davinci_rtc);
- 
--	davinci_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	davinci_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				    &davinci_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(davinci_rtc->rtc)) {
- 		ret = PTR_ERR(davinci_rtc->rtc);
-@@ -543,7 +543,7 @@ static int __init davinci_rtc_probe(stru
- 			  0, "davinci_rtc", davinci_rtc);
- 	if (ret < 0) {
- 		dev_err(dev, "unable to register davinci RTC interrupt\n");
--		goto fail2;
-+		goto fail1;
+diff -puN drivers/rtc/rtc-ds1511.c~rtc-rtc-ds1511-use-devm_rtc_device_register drivers/rtc/rtc-ds1511.c
+--- a/drivers/rtc/rtc-ds1511.c~rtc-rtc-ds1511-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ds1511.c
+@@ -538,15 +538,14 @@ static int ds1511_rtc_probe(struct platf
+ 		}
  	}
  
- 	/* Enable interrupts */
-@@ -557,8 +557,6 @@ static int __init davinci_rtc_probe(stru
+-	rtc = rtc_device_register(pdev->name, &pdev->dev, &ds1511_rtc_ops,
+-		THIS_MODULE);
++	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &ds1511_rtc_ops,
++					THIS_MODULE);
+ 	if (IS_ERR(rtc))
+ 		return PTR_ERR(rtc);
+ 	pdata->rtc = rtc;
  
- 	return 0;
- 
--fail2:
--	rtc_device_unregister(davinci_rtc->rtc);
- fail1:
- 	platform_set_drvdata(pdev, NULL);
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
+-	if (ret)
+-		rtc_device_unregister(pdata->rtc);
++
  	return ret;
-@@ -572,8 +570,6 @@ static int __exit davinci_rtc_remove(str
+ }
  
- 	rtcif_write(davinci_rtc, 0, PRTCIF_INTEN);
+@@ -555,7 +554,6 @@ static int ds1511_rtc_remove(struct plat
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
  
--	rtc_device_unregister(davinci_rtc->rtc);
--
- 	platform_set_drvdata(pdev, NULL);
- 
- 	return 0;
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
+-	rtc_device_unregister(pdata->rtc);
+ 	if (pdata->irq > 0) {
+ 		/*
+ 		 * disable the alarm interrupt
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
