@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + uwb-rename-random32-to-prandom_u32.patch added to -mm tree
-Date: Tue, 05 Mar 2013 17:02:13 -0800
-Message-ID: <20130306010213.C3E615A41EB@corp2gmr1-2.hot.corp.google.com>
+Subject: + video-uvesafb-rename-random32-to-prandom_u32.patch added to -mm tree
+Date: Tue, 05 Mar 2013 17:02:09 -0800
+Message-ID: <20130306010209.C80A05A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:34633 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755049Ab3CFBCO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:14 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so809242yen.4
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:14 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:42845 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755049Ab3CFBCL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:11 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so809703qea.5
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, greg@kroah.com
+Cc: akinobu.mita@gmail.com, FlorianSchandinat@gmx.de, spock@gentoo.org
 
 
 The patch titled
-     Subject: uwb: rename random32() to prandom_u32()
+     Subject: video/uvesafb: rename random32() to prandom_u32()
 has been added to the -mm tree.  Its filename is
-     uwb-rename-random32-to-prandom_u32.patch
+     video-uvesafb-rename-random32-to-prandom_u32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: uwb: rename random32() to prandom_u32()
+Subject: video/uvesafb: rename random32() to prandom_u32()
 
 Use preferable function name which implies using a pseudo-random
 number generator.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Michal Januszewski <spock@gentoo.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/rsv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/uvesafb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/uwb/rsv.c~uwb-rename-random32-to-prandom_u32 drivers/uwb/rsv.c
---- a/drivers/uwb/rsv.c~uwb-rename-random32-to-prandom_u32
-+++ a/drivers/uwb/rsv.c
-@@ -231,7 +231,7 @@ void uwb_rsv_backoff_win_increment(struc
- 		return;
+diff -puN drivers/video/uvesafb.c~video-uvesafb-rename-random32-to-prandom_u32 drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~video-uvesafb-rename-random32-to-prandom_u32
++++ a/drivers/video/uvesafb.c
+@@ -166,7 +166,7 @@ static int uvesafb_exec(struct uvesafb_k
+ 	memcpy(&m->id, &uvesafb_cn_id, sizeof(m->id));
+ 	m->seq = seq;
+ 	m->len = len;
+-	m->ack = random32();
++	m->ack = prandom_u32();
  
- 	bow->window <<= 1;
--	bow->n = random32() & (bow->window - 1);
-+	bow->n = prandom_u32() & (bow->window - 1);
- 	dev_dbg(dev, "new_window=%d, n=%d\n: ", bow->window, bow->n);
- 
- 	/* reset the timer associated variables */
-@@ -557,7 +557,7 @@ int uwb_rsv_establish(struct uwb_rsv *rs
- 	if (ret)
- 		goto out;
- 
--	rsv->tiebreaker = random32() & 1;
-+	rsv->tiebreaker = prandom_u32() & 1;
- 	/* get available mas bitmap */
- 	uwb_drp_available(rc, &available);
- 
+ 	/* uvesafb_task structure */
+ 	memcpy(m + 1, &task->t, sizeof(task->t));
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
