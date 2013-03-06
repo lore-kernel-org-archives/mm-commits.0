@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1553-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:02 -0800
-Message-ID: <20130306212102.BFE4131C241@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-imxdi-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:08 -0800
+Message-ID: <20130306212108.BE3E831C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:64156 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754367Ab3CFVVD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:03 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so917517yen.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:03 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:58669 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754367Ab3CFVVJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:09 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so917487ghb.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ds1553: use devm_rtc_device_register()
+     Subject: rtc: rtc-imxdi: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+     rtc-rtc-imxdi-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1553: use devm_rtc_device_register()
+Subject: rtc: rtc-imxdi: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,37 +43,29 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1553.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-imxdi.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1553.c~rtc-rtc-ds1553-use-devm_rtc_device_register drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtc-rtc-ds1553-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -326,15 +326,14 @@ static int ds1553_rtc_probe(struct platf
- 		}
+diff -puN drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_rtc_device_register drivers/rtc/rtc-imxdi.c
+--- a/drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-imxdi.c
+@@ -464,7 +464,7 @@ static int __init dryice_rtc_probe(struc
  	}
  
--	rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				  &ds1553_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
- 	pdata->rtc = rtc;
+ 	platform_set_drvdata(pdev, imxdi);
+-	imxdi->rtc = rtc_device_register(pdev->name, &pdev->dev,
++	imxdi->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				  &dryice_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(imxdi->rtc)) {
+ 		rc = PTR_ERR(imxdi->rtc);
+@@ -488,8 +488,6 @@ static int __exit dryice_rtc_remove(stru
+ 	/* mask all interrupts */
+ 	__raw_writel(0, imxdi->ioaddr + DIER);
  
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
--	if (ret)
--		rtc_device_unregister(rtc);
-+
- 	return ret;
- }
+-	rtc_device_unregister(imxdi->rtc);
+-
+ 	clk_disable_unprepare(imxdi->clk);
  
-@@ -343,7 +342,6 @@ static int ds1553_rtc_remove(struct plat
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
--	rtc_device_unregister(pdata->rtc);
- 	if (pdata->irq > 0)
- 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
  	return 0;
 _
 
