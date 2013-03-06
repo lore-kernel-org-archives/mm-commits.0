@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-sh-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:31 -0800
-Message-ID: <20130306233831.CB1FF31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-starfire-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:33 -0800
+Message-ID: <20130306233833.BD33B31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:58126 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3CFXic (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:32 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so934789yhr.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:32 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:39984 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3CFXie (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:34 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so932700ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, lethal@linux-sh.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-sh: use module_platform_driver_probe()
+     Subject: rtc: rtc-starfire: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-sh-use-module_platform_driver_probe.patch
+     rtc-rtc-starfire-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-sh: use module_platform_driver_probe()
+Subject: rtc: rtc-starfire: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sh.c |   13 +------------
+ drivers/rtc/rtc-starfire.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-sh.c~rtc-rtc-sh-use-module_platform_driver_probe drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-rtc-sh-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-sh.c
-@@ -820,18 +820,7 @@ static struct platform_driver sh_rtc_pla
- 	.remove		= __exit_p(sh_rtc_remove),
+diff -puN drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-module_platform_driver_probe drivers/rtc/rtc-starfire.c
+--- a/drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-starfire.c
+@@ -66,15 +66,4 @@ static struct platform_driver starfire_r
+ 	.remove		= __exit_p(starfire_rtc_remove),
  };
  
--static int __init sh_rtc_init(void)
+-static int __init starfire_rtc_init(void)
 -{
--	return platform_driver_probe(&sh_rtc_platform_driver, sh_rtc_probe);
+-	return platform_driver_probe(&starfire_rtc_driver, starfire_rtc_probe);
 -}
 -
--static void __exit sh_rtc_exit(void)
+-static void __exit starfire_rtc_exit(void)
 -{
--	platform_driver_unregister(&sh_rtc_platform_driver);
+-	platform_driver_unregister(&starfire_rtc_driver);
 -}
 -
--module_init(sh_rtc_init);
--module_exit(sh_rtc_exit);
-+module_platform_driver_probe(sh_rtc_platform_driver, sh_rtc_probe);
- 
- MODULE_DESCRIPTION("SuperH on-chip RTC driver");
- MODULE_VERSION(DRV_VERSION);
+-module_init(starfire_rtc_init);
+-module_exit(starfire_rtc_exit);
++module_platform_driver_probe(starfire_rtc_driver, starfire_rtc_probe);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
