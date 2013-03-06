@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ep93xx-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:06 -0800
-Message-ID: <20130306212106.BB85F5A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-ds1742-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:04 -0800
+Message-ID: <20130306212104.C125831C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:63103 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754367Ab3CFVVH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:07 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so917229vcd.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:07 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:48552 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754367Ab3CFVVF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:05 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so917378ggi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ep93xx: use devm_rtc_device_register()
+     Subject: rtc: rtc-ds1742: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+     rtc-rtc-ds1742-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ep93xx: use devm_rtc_device_register()
+Subject: rtc: rtc-ds1742: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,49 +43,40 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ep93xx.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-ds1742.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ep93xx.c~rtc-rtc-ep93xx-use-devm_rtc_device_register drivers/rtc/rtc-ep93xx.c
---- a/drivers/rtc/rtc-ep93xx.c~rtc-rtc-ep93xx-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-ep93xx.c
-@@ -153,8 +153,8 @@ static int ep93xx_rtc_probe(struct platf
- 	pdev->dev.platform_data = ep93xx_rtc;
- 	platform_set_drvdata(pdev, ep93xx_rtc);
+diff -puN drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-use-devm_rtc_device_register drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -208,17 +208,14 @@ static int ds1742_rtc_probe(struct platf
  
--	ep93xx_rtc->rtc = rtc_device_register(pdev->name,
--				&pdev->dev, &ep93xx_rtc_ops, THIS_MODULE);
-+	ep93xx_rtc->rtc = devm_rtc_device_register(&pdev->dev,
-+				pdev->name, &ep93xx_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(ep93xx_rtc->rtc)) {
- 		err = PTR_ERR(ep93xx_rtc->rtc);
- 		goto exit;
-@@ -162,12 +162,10 @@ static int ep93xx_rtc_probe(struct platf
+ 	pdata->last_jiffies = jiffies;
+ 	platform_set_drvdata(pdev, pdata);
+-	rtc = rtc_device_register(pdev->name, &pdev->dev,
++	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				  &ds1742_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc))
+ 		return PTR_ERR(rtc);
+ 	pdata->rtc = rtc;
  
- 	err = sysfs_create_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
- 	if (err)
--		goto fail;
-+		goto exit;
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
+-	if (ret) {
+-		dev_err(&pdev->dev, "creating nvram file in sysfs failed\n");
+-		rtc_device_unregister(rtc);
+-	}
++
+ 	return ret;
+ }
  
+@@ -227,7 +224,6 @@ static int ds1742_rtc_remove(struct plat
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
+-	rtc_device_unregister(pdata->rtc);
  	return 0;
+ }
  
--fail:
--	rtc_device_unregister(ep93xx_rtc->rtc);
- exit:
- 	platform_set_drvdata(pdev, NULL);
- 	pdev->dev.platform_data = NULL;
-@@ -176,11 +174,8 @@ exit:
- 
- static int ep93xx_rtc_remove(struct platform_device *pdev)
- {
--	struct ep93xx_rtc *ep93xx_rtc = platform_get_drvdata(pdev);
--
- 	sysfs_remove_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
- 	platform_set_drvdata(pdev, NULL);
--	rtc_device_unregister(ep93xx_rtc->rtc);
- 	pdev->dev.platform_data = NULL;
- 
- 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
