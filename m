@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + video-uvesafb-rename-random32-to-prandom_u32.patch added to -mm tree
-Date: Tue, 05 Mar 2013 17:02:09 -0800
-Message-ID: <20130306010209.C80A05A41EB@corp2gmr1-2.hot.corp.google.com>
+Subject: + xfs-rename-random32-to-prandom_u32.patch added to -mm tree
+Date: Tue, 05 Mar 2013 17:02:11 -0800
+Message-ID: <20130306010211.D61BE31C20C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:42845 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755049Ab3CFBCL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:11 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so809703qea.5
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:10 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:55665 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753560Ab3CFBCN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:13 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so275263qcs.3
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, FlorianSchandinat@gmx.de, spock@gentoo.org
+Cc: akinobu.mita@gmail.com, bpm@sgi.com, elder@kernel.org
 
 
 The patch titled
-     Subject: video/uvesafb: rename random32() to prandom_u32()
+     Subject: xfs: rename random32() to prandom_u32()
 has been added to the -mm tree.  Its filename is
-     video-uvesafb-rename-random32-to-prandom_u32.patch
+     xfs-rename-random32-to-prandom_u32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: video/uvesafb: rename random32() to prandom_u32()
+Subject: xfs: rename random32() to prandom_u32()
 
 Use preferable function name which implies using a pseudo-random
 number generator.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Michal Januszewski <spock@gentoo.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Acked-by: <bpm@sgi.com>
+Cc: Ben Myers <bpm@sgi.com>
+Cc: Alex Elder <elder@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/xfs_alloc.c  |    2 +-
+ fs/xfs/xfs_error.c  |    2 +-
+ fs/xfs/xfs_ialloc.c |    2 +-
+ fs/xfs/xfs_log.c    |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~video-uvesafb-rename-random32-to-prandom_u32 drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~video-uvesafb-rename-random32-to-prandom_u32
-+++ a/drivers/video/uvesafb.c
-@@ -166,7 +166,7 @@ static int uvesafb_exec(struct uvesafb_k
- 	memcpy(&m->id, &uvesafb_cn_id, sizeof(m->id));
- 	m->seq = seq;
- 	m->len = len;
--	m->ack = random32();
-+	m->ack = prandom_u32();
+diff -puN fs/xfs/xfs_alloc.c~xfs-rename-random32-to-prandom_u32 fs/xfs/xfs_alloc.c
+--- a/fs/xfs/xfs_alloc.c~xfs-rename-random32-to-prandom_u32
++++ a/fs/xfs/xfs_alloc.c
+@@ -842,7 +842,7 @@ xfs_alloc_ag_vextent_near(
+ 	 */
+ 	int		dofirst;	/* set to do first algorithm */
  
- 	/* uvesafb_task structure */
- 	memcpy(m + 1, &task->t, sizeof(task->t));
+-	dofirst = random32() & 1;
++	dofirst = prandom_u32() & 1;
+ #endif
+ 
+ restart:
+diff -puN fs/xfs/xfs_error.c~xfs-rename-random32-to-prandom_u32 fs/xfs/xfs_error.c
+--- a/fs/xfs/xfs_error.c~xfs-rename-random32-to-prandom_u32
++++ a/fs/xfs/xfs_error.c
+@@ -66,7 +66,7 @@ xfs_error_test(int error_tag, int *fsidp
+ 	int i;
+ 	int64_t fsid;
+ 
+-	if (random32() % randfactor)
++	if (prandom_u32() % randfactor)
+ 		return 0;
+ 
+ 	memcpy(&fsid, fsidp, sizeof(xfs_fsid_t));
+diff -puN fs/xfs/xfs_ialloc.c~xfs-rename-random32-to-prandom_u32 fs/xfs/xfs_ialloc.c
+--- a/fs/xfs/xfs_ialloc.c~xfs-rename-random32-to-prandom_u32
++++ a/fs/xfs/xfs_ialloc.c
+@@ -369,7 +369,7 @@ xfs_ialloc_ag_alloc(
+ 	 * number from being easily guessable.
+ 	 */
+ 	error = xfs_ialloc_inode_init(args.mp, tp, agno, args.agbno,
+-			args.len, random32());
++			args.len, prandom_u32());
+ 
+ 	if (error)
+ 		return error;
+diff -puN fs/xfs/xfs_log.c~xfs-rename-random32-to-prandom_u32 fs/xfs/xfs_log.c
+--- a/fs/xfs/xfs_log.c~xfs-rename-random32-to-prandom_u32
++++ a/fs/xfs/xfs_log.c
+@@ -3485,7 +3485,7 @@ xlog_ticket_alloc(
+ 	tic->t_curr_res		= unit_bytes;
+ 	tic->t_cnt		= cnt;
+ 	tic->t_ocnt		= cnt;
+-	tic->t_tid		= random32();
++	tic->t_tid		= prandom_u32();
+ 	tic->t_clientid		= client;
+ 	tic->t_flags		= XLOG_TIC_INITED;
+ 	tic->t_trans_type	= 0;
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
