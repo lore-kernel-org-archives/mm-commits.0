@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ps3-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:25 -0800
-Message-ID: <20130306233825.C43F45A4005@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-pxa-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:27 -0800
+Message-ID: <20130306233827.BD16431C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:48799 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3CFXi1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:27 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so933126vea.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:26 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:55169 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3CFXi2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:28 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so934876yhz.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, geert@linux-m68k.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ps3: use module_platform_driver_probe()
+     Subject: rtc: rtc-pxa: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ps3-use-module_platform_driver_probe.patch
+     rtc-rtc-pxa-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ps3: use module_platform_driver_probe()
+Subject: rtc: rtc-pxa: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ps3.c |   13 +------------
+ drivers/rtc/rtc-pxa.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-ps3.c~rtc-rtc-ps3-use-module_platform_driver_probe drivers/rtc/rtc-ps3.c
---- a/drivers/rtc/rtc-ps3.c~rtc-rtc-ps3-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-ps3.c
-@@ -85,18 +85,7 @@ static struct platform_driver ps3_rtc_dr
- 	.remove = __exit_p(ps3_rtc_remove),
+diff -puN drivers/rtc/rtc-pxa.c~rtc-rtc-pxa-use-module_platform_driver_probe drivers/rtc/rtc-pxa.c
+--- a/drivers/rtc/rtc-pxa.c~rtc-rtc-pxa-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-pxa.c
+@@ -452,18 +452,7 @@ static struct platform_driver pxa_rtc_dr
+ 	},
  };
  
--static int __init ps3_rtc_init(void)
+-static int __init pxa_rtc_init(void)
 -{
--	return platform_driver_probe(&ps3_rtc_driver, ps3_rtc_probe);
+-	return platform_driver_probe(&pxa_rtc_driver, pxa_rtc_probe);
 -}
 -
--static void __exit ps3_rtc_fini(void)
+-static void __exit pxa_rtc_exit(void)
 -{
--	platform_driver_unregister(&ps3_rtc_driver);
+-	platform_driver_unregister(&pxa_rtc_driver);
 -}
 -
--module_init(ps3_rtc_init);
--module_exit(ps3_rtc_fini);
-+module_platform_driver_probe(ps3_rtc_driver, ps3_rtc_probe);
+-module_init(pxa_rtc_init);
+-module_exit(pxa_rtc_exit);
++module_platform_driver_probe(pxa_rtc_driver, pxa_rtc_probe);
  
- MODULE_AUTHOR("Sony Corporation");
- MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Robert Jarzmik <robert.jarzmik@free.fr>");
+ MODULE_DESCRIPTION("PXA27x/PXA3xx Realtime Clock Driver (RTC)");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -149,4 +148,5 @@ rtc-rtc-tx4939-use-devm_rtc_device_register.patch
 rtc-rtc-vt8500-use-devm_rtc_device_register.patch
 rtc-rtc-wm831x-use-devm_rtc_device_register.patch
 rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+backlight-atmel-pwm-bl-use-module_platform_driver_probe.patch
 
