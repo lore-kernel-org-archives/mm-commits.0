@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-efi-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:07 -0800
-Message-ID: <20130306233807.BFA8E31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-imxdi-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:11 -0800
+Message-ID: <20130306233811.BAECA31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:47833 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:08 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so932662ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:08 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:63384 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXiM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:12 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so933000ves.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-efi: use module_platform_driver_probe()
+     Subject: rtc: rtc-imxdi: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-efi-use-module_platform_driver_probe.patch
+     rtc-rtc-imxdi-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-efi: use module_platform_driver_probe()
+Subject: rtc: rtc-imxdi: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,32 +43,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-efi.c |   13 +------------
+ drivers/rtc/rtc-imxdi.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-efi.c~rtc-rtc-efi-use-module_platform_driver_probe drivers/rtc/rtc-efi.c
---- a/drivers/rtc/rtc-efi.c~rtc-rtc-efi-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-efi.c
-@@ -218,18 +218,7 @@ static struct platform_driver efi_rtc_dr
- 	.remove = __exit_p(efi_rtc_remove),
+diff -puN drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-module_platform_driver_probe drivers/rtc/rtc-imxdi.c
+--- a/drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-imxdi.c
+@@ -513,18 +513,7 @@ static struct platform_driver dryice_rtc
+ 	.remove = __exit_p(dryice_rtc_remove),
  };
  
--static int __init efi_rtc_init(void)
+-static int __init dryice_rtc_init(void)
 -{
--	return platform_driver_probe(&efi_rtc_driver, efi_rtc_probe);
+-	return platform_driver_probe(&dryice_rtc_driver, dryice_rtc_probe);
 -}
 -
--static void __exit efi_rtc_exit(void)
+-static void __exit dryice_rtc_exit(void)
 -{
--	platform_driver_unregister(&efi_rtc_driver);
+-	platform_driver_unregister(&dryice_rtc_driver);
 -}
 -
--module_init(efi_rtc_init);
--module_exit(efi_rtc_exit);
-+module_platform_driver_probe(efi_rtc_driver, efi_rtc_probe);
+-module_init(dryice_rtc_init);
+-module_exit(dryice_rtc_exit);
++module_platform_driver_probe(dryice_rtc_driver, dryice_rtc_probe);
  
- MODULE_AUTHOR("dann frazier <dannf@hp.com>");
- MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Freescale Semiconductor, Inc.");
+ MODULE_AUTHOR("Baruch Siach <baruch@tkos.co.il>");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
