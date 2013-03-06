@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:05:21 -0800
-Message-ID: <20130306230521.6DAF25A433F@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:06:30 -0800
+Message-ID: <20130306230630.75C5031C11E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:38711 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab3CFXFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:05:22 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so350017vbb.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:05:22 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:55173 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309Ab3CFXGb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:06:31 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so930351vea.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:06:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, rmallon@gmail.com
+Cc: sachin.kamat@linaro.org, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, thierry.reding@avionic-design.de
 
 
 The patch titled
-     Subject: drivers/video/backlight/ep93xx_bl.c: remove incorrect __init annotation
+     Subject: drivers/video/exynos/exynos_mipi_dsi.c: convert to devm_ioremap_resource()
 has been added to the -mm tree.  Its filename is
-     backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+     drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/ep93xx_bl.c: remove incorrect __init annotation
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/video/exynos/exynos_mipi_dsi.c: convert to devm_ioremap_resource()
 
-When platform_driver_probe() is not used, bind/unbind via sysfs is
-enabled.  Thus, __init/__exit annotations should be removed from
-probe()/remove().
+Use the newly introduced devm_ioremap_resource() instead of
+devm_request_and_ioremap() which provides more consistent error handling.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Ryan Mallon <rmallon@gmail.com>
+devm_ioremap_resource() provides its own error messages; so all explicit
+error messages can be removed from the failure code paths.
+
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Donghwa Lee <dh09.lee@samsung.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ep93xx_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/exynos/exynos_mipi_dsi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx_bl-remove-incorrect-__init-annotation drivers/video/backlight/ep93xx_bl.c
---- a/drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx_bl-remove-incorrect-__init-annotation
-+++ a/drivers/video/backlight/ep93xx_bl.c
-@@ -60,7 +60,7 @@ static const struct backlight_ops ep93xx
- 	.get_brightness	= ep93xxbl_get_brightness,
- };
+diff -puN drivers/video/exynos/exynos_mipi_dsi.c~drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource drivers/video/exynos/exynos_mipi_dsi.c
+--- a/drivers/video/exynos/exynos_mipi_dsi.c~drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource
++++ a/drivers/video/exynos/exynos_mipi_dsi.c
+@@ -32,6 +32,7 @@
+ #include <linux/notifier.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
++#include <linux/err.h>
  
--static int __init ep93xxbl_probe(struct platform_device *dev)
-+static int ep93xxbl_probe(struct platform_device *dev)
- {
- 	struct ep93xxbl *ep93xxbl;
- 	struct backlight_device *bl;
+ #include <video/exynos_mipi_dsim.h>
+ 
+@@ -384,10 +385,9 @@ static int exynos_mipi_dsi_probe(struct
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 
+-	dsim->reg_base = devm_request_and_ioremap(&pdev->dev, res);
+-	if (!dsim->reg_base) {
+-		dev_err(&pdev->dev, "failed to remap io region\n");
+-		ret = -ENOMEM;
++	dsim->reg_base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(dsim->reg_base)) {
++		ret = PTR_ERR(dsim->reg_base);
+ 		goto error;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-max77686-use-module_platform_driver.patch
-rtc-max77686-add-missing-module-author-name.patch
-rtc-max77686-use-devm_kzalloc.patch
-rtc-max77686-fix-indentation-of-bit-definitions.patch
-rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
-rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
-rtc-rtc-coh90133-use-devm_rtc_device_register.patch
-rtc-rtc-da9052-use-devm_rtc_device_register.patch
-rtc-rtc-da9055-use-devm_rtc_device_register.patch
-rtc-rtc-davinci-use-devm_rtc_device_register.patch
-rtc-rtc-ds1511-use-devm_rtc_device_register.patch
-rtc-rtc-ds1553-use-devm_rtc_device_register.patch
-rtc-rtc-ds1742-use-devm_rtc_device_register.patch
-rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
-rtc-rtc-imxdi-use-devm_rtc_device_register.patch
-rtc-rtc-lp8788-use-devm_rtc_device_register.patch
-rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
-rtc-rtc-max77686-use-devm_rtc_device_register.patch
-rtc-rtc-max8907-use-devm_rtc_device_register.patch
-rtc-rtc-max8997-use-devm_rtc_device_register.patch
-rtc-rtc-mv-use-devm_rtc_device_register.patch
-rtc-rtc-mxc-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_rtc_device_register.patch
-rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
-rtc-rtc-s3c-use-devm_rtc_device_register.patch
-rtc-rtc-snvs-use-devm_rtc_device_register.patch
-rtc-rtc-spear-use-devm_rtc_device_register.patch
-rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
-rtc-rtc-tegra-use-devm_rtc_device_register.patch
-rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
-rtc-rtc-tps65910-use-devm_rtc_device_register.patch
-rtc-rtc-tps80031-use-devm_rtc_device_register.patch
-rtc-rtc-tx4939-use-devm_rtc_device_register.patch
-rtc-rtc-vt8500-use-devm_rtc_device_register.patch
-rtc-rtc-wm831x-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
 
