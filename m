@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:12:36 -0800
-Message-ID: <20130306211236.6DBFE31C1B6@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-88pm80x-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:20:50 -0800
+Message-ID: <20130306212050.A44B95A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:63835 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753478Ab3CFVMh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:12:37 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so916724ves.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:12:37 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:49372 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755394Ab3CFVUv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:20:51 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so917570yen.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben@decadent.org.uk, stable@vger.kernel.org, tmhikaru@gmail.com, zhenzhong.duan@oracle.com
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix
+     Subject: rtc: rtc-88pm80x: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix.patch
+     rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-88pm80x: use devm_rtc_device_register()
 
-Cc: <stable@vger.kernel.org>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Tim McGrath <tmhikaru@gmail.com>
-Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
+devm_rtc_device_register() is device managed and makes cleanup
+paths simpler.
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-88pm80x.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix
-+++ a/drivers/firmware/dmi_scan.c
-@@ -460,7 +460,7 @@ static int __init smbios_present(const c
- 			dmi_ver = 0x0206;
- 			break;
- 		}
--		return memcmp(q + 16, "_DMI_", 5) || dmi_present(p + 16);
-+		return memcmp(p + 16, "_DMI_", 5) || dmi_present(p + 16);
+diff -puN drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-use-devm_rtc_device_register drivers/rtc/rtc-88pm80x.c
+--- a/drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-88pm80x.c
+@@ -312,7 +312,7 @@ static int pm80x_rtc_probe(struct platfo
  	}
- 	return 1;
+ 	rtc_tm_to_time(&tm, &ticks);
+ 
+-	info->rtc_dev = rtc_device_register("88pm80x-rtc", &pdev->dev,
++	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "88pm80x-rtc",
+ 					    &pm80x_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		ret = PTR_ERR(info->rtc_dev);
+@@ -346,7 +346,6 @@ static int pm80x_rtc_remove(struct platf
+ {
+ 	struct pm80x_rtc_info *info = platform_get_drvdata(pdev);
+ 	platform_set_drvdata(pdev, NULL);
+-	rtc_device_unregister(info->rtc_dev);
+ 	pm80x_free_irq(info->chip, info->irq, info);
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+rtc-rtc-coh90133-use-devm_rtc_device_register.patch
+rtc-rtc-da9052-use-devm_rtc_device_register.patch
+rtc-rtc-da9055-use-devm_rtc_device_register.patch
+rtc-rtc-davinci-use-devm_rtc_device_register.patch
+rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+rtc-rtc-lp8788-use-devm_rtc_device_register.patch
+rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+rtc-rtc-max77686-use-devm_rtc_device_register.patch
+rtc-rtc-max8907-use-devm_rtc_device_register.patch
+rtc-rtc-max8997-use-devm_rtc_device_register.patch
+rtc-rtc-mv-use-devm_rtc_device_register.patch
+rtc-rtc-mxc-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_rtc_device_register.patch
+rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
+rtc-rtc-s3c-use-devm_rtc_device_register.patch
+rtc-rtc-snvs-use-devm_rtc_device_register.patch
+rtc-rtc-spear-use-devm_rtc_device_register.patch
+rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
+rtc-rtc-tegra-use-devm_rtc_device_register.patch
+rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+rtc-rtc-tps65910-use-devm_rtc_device_register.patch
+rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
