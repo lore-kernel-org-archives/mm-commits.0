@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-generic-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:09 -0800
-Message-ID: <20130306233809.BA6DE31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-efi-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:07 -0800
+Message-ID: <20130306233807.BFA8E31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:56279 "EHLO
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:47833 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:10 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so932555ghb.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:10 -0800 (PST)
+	with ESMTP id S1752904Ab3CFXiI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:08 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so932662ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-generic: use module_platform_driver_probe()
+     Subject: rtc: rtc-efi: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-generic-use-module_platform_driver_probe.patch
+     rtc-rtc-efi-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-generic: use module_platform_driver_probe()
+Subject: rtc: rtc-efi: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,31 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-generic.c |   13 +------------
+ drivers/rtc/rtc-efi.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-generic.c~rtc-rtc-generic-use-module_platform_driver_probe drivers/rtc/rtc-generic.c
---- a/drivers/rtc/rtc-generic.c~rtc-rtc-generic-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-generic.c
-@@ -65,18 +65,7 @@ static struct platform_driver generic_rt
- 	.remove = __exit_p(generic_rtc_remove),
+diff -puN drivers/rtc/rtc-efi.c~rtc-rtc-efi-use-module_platform_driver_probe drivers/rtc/rtc-efi.c
+--- a/drivers/rtc/rtc-efi.c~rtc-rtc-efi-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-efi.c
+@@ -218,18 +218,7 @@ static struct platform_driver efi_rtc_dr
+ 	.remove = __exit_p(efi_rtc_remove),
  };
  
--static int __init generic_rtc_init(void)
+-static int __init efi_rtc_init(void)
 -{
--	return platform_driver_probe(&generic_rtc_driver, generic_rtc_probe);
+-	return platform_driver_probe(&efi_rtc_driver, efi_rtc_probe);
 -}
 -
--static void __exit generic_rtc_fini(void)
+-static void __exit efi_rtc_exit(void)
 -{
--	platform_driver_unregister(&generic_rtc_driver);
+-	platform_driver_unregister(&efi_rtc_driver);
 -}
 -
--module_init(generic_rtc_init);
--module_exit(generic_rtc_fini);
-+module_platform_driver_probe(generic_rtc_driver, generic_rtc_probe);
+-module_init(efi_rtc_init);
+-module_exit(efi_rtc_exit);
++module_platform_driver_probe(efi_rtc_driver, efi_rtc_probe);
  
- MODULE_AUTHOR("Kyle McMartin <kyle@mcmartin.ca>");
+ MODULE_AUTHOR("dann frazier <dannf@hp.com>");
  MODULE_LICENSE("GPL");
 _
 
