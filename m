@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:37:55 -0800
-Message-ID: <20130306233755.BF29C31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:37:57 -0800
+Message-ID: <20130306233757.93B6431C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:39824 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3CFXh5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:37:57 -0500
-Received: by mail-vb0-f73.google.com with SMTP id fj18so351916vbb.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:37:56 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64219 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXh6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:37:58 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so353607qcs.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:37:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-at32ap700x: use module_platform_driver_probe()
+     Subject: rtc: rtc-at91rm9200: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
+     rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-at32ap700x: use module_platform_driver_probe()
+Subject: rtc: rtc-at91rm9200: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,31 +43,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at32ap700x.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-use-module_platform_driver_probe drivers/rtc/rtc-at32ap700x.c
---- a/drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-at32ap700x.c
-@@ -302,17 +302,7 @@ static struct platform_driver at32_rtc_d
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-use-module_platform_driver_probe drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -390,18 +390,7 @@ static struct platform_driver at91_rtc_d
  	},
  };
  
--static int __init at32_rtc_init(void)
+-static int __init at91_rtc_init(void)
 -{
--	return platform_driver_probe(&at32_rtc_driver, at32_rtc_probe);
+-	return platform_driver_probe(&at91_rtc_driver, at91_rtc_probe);
 -}
--module_init(at32_rtc_init);
 -
--static void __exit at32_rtc_exit(void)
+-static void __exit at91_rtc_exit(void)
 -{
--	platform_driver_unregister(&at32_rtc_driver);
+-	platform_driver_unregister(&at91_rtc_driver);
 -}
--module_exit(at32_rtc_exit);
-+module_platform_driver_probe(at32_rtc_driver, at32_rtc_probe);
+-
+-module_init(at91_rtc_init);
+-module_exit(at91_rtc_exit);
++module_platform_driver_probe(at91_rtc_driver, at91_rtc_probe);
  
- MODULE_AUTHOR("Hans-Christian Egtvedt <hcegtvedt@atmel.com>");
- MODULE_DESCRIPTION("Real time clock for AVR32 AT32AP700x");
+ MODULE_AUTHOR("Rick Bronson");
+ MODULE_DESCRIPTION("RTC driver for Atmel AT91RM9200");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
