@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-da9052-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:20:54 -0800
-Message-ID: <20130306212054.C0F6E5A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-da9055-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:20:56 -0800
+Message-ID: <20130306212056.BE06331C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:48391 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab3CFVUz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:20:55 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so917264ggn.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:55 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:47062 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753478Ab3CFVU5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:20:57 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so917367ggi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-da9052: use devm_rtc_device_register()
+     Subject: rtc: rtc-da9055: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-da9052-use-devm_rtc_device_register.patch
+     rtc-rtc-da9055-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-da9052: use devm_rtc_device_register()
+Subject: rtc: rtc-da9055: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,26 +43,26 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9052.c |    5 +----
+ drivers/rtc/rtc-da9055.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-use-devm_rtc_device_register drivers/rtc/rtc-da9052.c
---- a/drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-da9052.c
-@@ -249,7 +249,7 @@ static int da9052_rtc_probe(struct platf
- 		return ret;
- 	}
+diff -puN drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-use-devm_rtc_device_register drivers/rtc/rtc-da9055.c
+--- a/drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-da9055.c
+@@ -294,7 +294,7 @@ static int da9055_rtc_probe(struct platf
+ 
+ 	device_init_wakeup(&pdev->dev, 1);
  
 -	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
 +	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				       &da9052_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc))
- 		return PTR_ERR(rtc->rtc);
-@@ -259,9 +259,6 @@ static int da9052_rtc_probe(struct platf
+ 					&da9055_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rtc)) {
+ 		ret = PTR_ERR(rtc->rtc);
+@@ -317,9 +317,6 @@ err_rtc:
  
- static int da9052_rtc_remove(struct platform_device *pdev)
+ static int da9055_rtc_remove(struct platform_device *pdev)
  {
--	struct da9052_rtc *rtc = pdev->dev.platform_data;
+-	struct da9055_rtc *rtc = pdev->dev.platform_data;
 -
 -	rtc_device_unregister(rtc->rtc);
  	platform_set_drvdata(pdev, NULL);
