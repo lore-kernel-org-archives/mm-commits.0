@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:06:30 -0800
-Message-ID: <20130306230630.75C5031C11E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ab3100-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:37:53 -0800
+Message-ID: <20130306233753.C29A631C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:55173 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab3CFXGb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:06:31 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so930351vea.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:06:31 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:59804 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3CFXhy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:37:54 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so932492ghb.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:37:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, thierry.reding@avionic-design.de
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/video/exynos/exynos_mipi_dsi.c: convert to devm_ioremap_resource()
+     Subject: rtc: rtc-ab3100: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
+     rtc-rtc-ab3100-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/exynos/exynos_mipi_dsi.c: convert to devm_ioremap_resource()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-ab3100: use module_platform_driver_probe()
 
-Use the newly introduced devm_ioremap_resource() instead of
-devm_request_and_ioremap() which provides more consistent error handling.
+Use module_platform_driver_probe() macro which makes the code smaller and
+simpler.
 
-devm_ioremap_resource() provides its own error messages; so all explicit
-error messages can be removed from the failure code paths.
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Donghwa Lee <dh09.lee@samsung.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/exynos/exynos_mipi_dsi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-ab3100.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/video/exynos/exynos_mipi_dsi.c~drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource drivers/video/exynos/exynos_mipi_dsi.c
---- a/drivers/video/exynos/exynos_mipi_dsi.c~drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource
-+++ a/drivers/video/exynos/exynos_mipi_dsi.c
-@@ -32,6 +32,7 @@
- #include <linux/notifier.h>
- #include <linux/regulator/consumer.h>
- #include <linux/pm_runtime.h>
-+#include <linux/err.h>
+diff -puN drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-use-module_platform_driver_probe drivers/rtc/rtc-ab3100.c
+--- a/drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-ab3100.c
+@@ -257,19 +257,7 @@ static struct platform_driver ab3100_rtc
+ 	.remove	 = __exit_p(ab3100_rtc_remove),
+ };
  
- #include <video/exynos_mipi_dsim.h>
+-static int __init ab3100_rtc_init(void)
+-{
+-	return platform_driver_probe(&ab3100_rtc_driver,
+-				     ab3100_rtc_probe);
+-}
+-
+-static void __exit ab3100_rtc_exit(void)
+-{
+-	platform_driver_unregister(&ab3100_rtc_driver);
+-}
+-
+-module_init(ab3100_rtc_init);
+-module_exit(ab3100_rtc_exit);
++module_platform_driver_probe(ab3100_rtc_driver, ab3100_rtc_probe);
  
-@@ -384,10 +385,9 @@ static int exynos_mipi_dsi_probe(struct
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 
--	dsim->reg_base = devm_request_and_ioremap(&pdev->dev, res);
--	if (!dsim->reg_base) {
--		dev_err(&pdev->dev, "failed to remap io region\n");
--		ret = -ENOMEM;
-+	dsim->reg_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(dsim->reg_base)) {
-+		ret = PTR_ERR(dsim->reg_base);
- 		goto error;
- 	}
- 
+ MODULE_AUTHOR("Linus Walleij <linus.walleij@stericsson.com>");
+ MODULE_DESCRIPTION("AB3100 RTC Driver");
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
-drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+rtc-rtc-ab3100-use-module_platform_driver_probe.patch
+rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
+rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
+rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
+rtc-rtc-coh901331-use-module_platform_driver_probe.patch
+rtc-rtc-davinci-use-module_platform_driver_probe.patch
+rtc-rtc-ds1302-use-module_platform_driver_probe.patch
+rtc-rtc-efi-use-module_platform_driver_probe.patch
+rtc-rtc-generic-use-module_platform_driver_probe.patch
+rtc-rtc-imxdi-use-module_platform_driver_probe.patch
+rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
+rtc-rtc-msm6242-use-module_platform_driver_probe.patch
+rtc-rtc-mv-use-module_platform_driver_probe.patch
+rtc-rtc-nuc900-use-module_platform_driver_probe.patch
+rtc-rtc-omap-use-module_platform_driver_probe.patch
+rtc-rtc-pcap-use-module_platform_driver_probe.patch
+rtc-rtc-ps3-use-module_platform_driver_probe.patch
+rtc-rtc-pxa-use-module_platform_driver_probe.patch
+rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
+rtc-rtc-sh-use-module_platform_driver_probe.patch
+rtc-rtc-starfire-use-module_platform_driver_probe.patch
+rtc-rtc-sun4v-use-module_platform_driver_probe.patch
+rtc-rtc-tegra-use-module_platform_driver_probe.patch
+rtc-rtc-tx4939-use-module_platform_driver_probe.patch
+rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+rtc-rtc-coh90133-use-devm_rtc_device_register.patch
+rtc-rtc-da9052-use-devm_rtc_device_register.patch
+rtc-rtc-da9055-use-devm_rtc_device_register.patch
+rtc-rtc-davinci-use-devm_rtc_device_register.patch
+rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+rtc-rtc-lp8788-use-devm_rtc_device_register.patch
+rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+rtc-rtc-max77686-use-devm_rtc_device_register.patch
+rtc-rtc-max8907-use-devm_rtc_device_register.patch
+rtc-rtc-max8997-use-devm_rtc_device_register.patch
+rtc-rtc-mv-use-devm_rtc_device_register.patch
+rtc-rtc-mxc-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_rtc_device_register.patch
+rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
+rtc-rtc-s3c-use-devm_rtc_device_register.patch
+rtc-rtc-snvs-use-devm_rtc_device_register.patch
+rtc-rtc-spear-use-devm_rtc_device_register.patch
+rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
+rtc-rtc-tegra-use-devm_rtc_device_register.patch
+rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+rtc-rtc-tps65910-use-devm_rtc_device_register.patch
+rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
