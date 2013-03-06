@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-pcap-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:23 -0800
-Message-ID: <20130306233823.BE70431C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ps3-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:25 -0800
+Message-ID: <20130306233825.C43F45A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:49250 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:24 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so351938vbi.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:24 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:48799 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3CFXi1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:27 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so933126vea.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: jg1.han@samsung.com, geert@linux-m68k.org
 
 
 The patch titled
-     Subject: rtc: rtc-pcap: use module_platform_driver_probe()
+     Subject: rtc: rtc-ps3: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-pcap-use-module_platform_driver_probe.patch
+     rtc-rtc-ps3-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pcap: use module_platform_driver_probe()
+Subject: rtc: rtc-ps3: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcap.c |   13 +------------
+ drivers/rtc/rtc-ps3.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcap.c~rtc-rtc-pcap-use-module_platform_driver_probe drivers/rtc/rtc-pcap.c
---- a/drivers/rtc/rtc-pcap.c~rtc-rtc-pcap-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-pcap.c
-@@ -203,18 +203,7 @@ static struct platform_driver pcap_rtc_d
- 	},
+diff -puN drivers/rtc/rtc-ps3.c~rtc-rtc-ps3-use-module_platform_driver_probe drivers/rtc/rtc-ps3.c
+--- a/drivers/rtc/rtc-ps3.c~rtc-rtc-ps3-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-ps3.c
+@@ -85,18 +85,7 @@ static struct platform_driver ps3_rtc_dr
+ 	.remove = __exit_p(ps3_rtc_remove),
  };
  
--static int __init rtc_pcap_init(void)
+-static int __init ps3_rtc_init(void)
 -{
--	return platform_driver_probe(&pcap_rtc_driver, pcap_rtc_probe);
+-	return platform_driver_probe(&ps3_rtc_driver, ps3_rtc_probe);
 -}
 -
--static void __exit rtc_pcap_exit(void)
+-static void __exit ps3_rtc_fini(void)
 -{
--	platform_driver_unregister(&pcap_rtc_driver);
+-	platform_driver_unregister(&ps3_rtc_driver);
 -}
 -
--module_init(rtc_pcap_init);
--module_exit(rtc_pcap_exit);
-+module_platform_driver_probe(pcap_rtc_driver, pcap_rtc_probe);
+-module_init(ps3_rtc_init);
+-module_exit(ps3_rtc_fini);
++module_platform_driver_probe(ps3_rtc_driver, ps3_rtc_probe);
  
- MODULE_DESCRIPTION("Motorola pcap rtc driver");
- MODULE_AUTHOR("guiming zhuo <gmzhuo@gmail.com>");
+ MODULE_AUTHOR("Sony Corporation");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
