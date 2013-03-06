@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tps6586x-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:38 -0800
-Message-ID: <20130306212138.BD7D831C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-tps65910-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:40 -0800
+Message-ID: <20130306212140.BC29D5A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:34307 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755602Ab3CFVVj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:39 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so917437vch.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:39 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36161 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755626Ab3CFVVl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:41 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so917354vcd.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-tps6586x: use devm_rtc_device_register()
+     Subject: rtc: rtc-tps65910: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+     rtc-rtc-tps65910-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tps6586x: use devm_rtc_device_register()
+Subject: rtc: rtc-tps65910: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,31 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps6586x.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/rtc/rtc-tps65910.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_rtc_device_register drivers/rtc/rtc-tps6586x.c
---- a/drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-tps6586x.c
-@@ -274,7 +274,7 @@ static int tps6586x_rtc_probe(struct pla
- 	}
+diff -puN drivers/rtc/rtc-tps65910.c~rtc-rtc-tps65910-use-devm_rtc_device_register drivers/rtc/rtc-tps65910.c
+--- a/drivers/rtc/rtc-tps65910.c~rtc-rtc-tps65910-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-tps65910.c
+@@ -276,7 +276,7 @@ static int tps65910_rtc_probe(struct pla
+ 	tps_rtc->irq = irq;
+ 	device_set_wakeup_capable(&pdev->dev, 1);
  
- 	platform_set_drvdata(pdev, rtc);
--	rtc->rtc = rtc_device_register(dev_name(&pdev->dev), &pdev->dev,
-+	rtc->rtc = devm_rtc_device_register(&pdev->dev, dev_name(&pdev->dev),
- 				       &tps6586x_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc)) {
- 		ret = PTR_ERR(rtc->rtc);
-@@ -306,12 +306,10 @@ fail_rtc_register:
- 
- static int tps6586x_rtc_remove(struct platform_device *pdev)
+-	tps_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
++	tps_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 		&tps65910_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(tps_rtc->rtc)) {
+ 		ret = PTR_ERR(tps_rtc->rtc);
+@@ -295,12 +295,8 @@ static int tps65910_rtc_probe(struct pla
+  */
+ static int tps65910_rtc_remove(struct platform_device *pdev)
  {
--	struct tps6586x_rtc *rtc = platform_get_drvdata(pdev);
- 	struct device *tps_dev = to_tps6586x_dev(&pdev->dev);
+-	/* leave rtc running, but disable irqs */
+-	struct tps65910_rtc *tps_rtc = platform_get_drvdata(pdev);
+-
+ 	tps65910_rtc_alarm_irq_enable(&pdev->dev, 0);
  
- 	tps6586x_update(tps_dev, RTC_CTRL, 0,
- 		RTC_ENABLE | OSC_SRC_SEL | PRE_BYPASS | CL_SEL_MASK);
--	rtc_device_unregister(rtc->rtc);
+-	rtc_device_unregister(tps_rtc->rtc);
  	return 0;
  }
  
