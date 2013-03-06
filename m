@@ -1,61 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] procfs-improve-scaling-in-proc-fix.patch removed from -mm tree
-Date: Tue, 05 Mar 2013 16:01:52 -0800
-Message-ID: <20130306000153.269295A415F@corp2gmr1-2.hot.corp.google.com>
+Subject: + vm-adjust-ifdef-for-tiny_rcu.patch added to -mm tree
+Date: Tue, 05 Mar 2013 16:04:40 -0800
+Message-ID: <20130306000440.6F9E831C1B6@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:55697 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754918Ab3CFABy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 19:01:54 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so803830yen.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 16:01:53 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:41893 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755190Ab3CFAEl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 19:04:41 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so805976yhz.3
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 16:04:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, nzimmer@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: paulmck@linux.vnet.ibm.com, andi@firstfloor.org
 
 
 The patch titled
-     Subject: procfs: missing rcu unlock in proc_reg_release
-has been removed from the -mm tree.  Its filename was
-     procfs-improve-scaling-in-proc-fix.patch
+     Subject: vm: adjust ifdef for TINY_RCU
+has been added to the -mm tree.  Its filename is
+     vm-adjust-ifdef-for-tiny_rcu.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: procfs: missing rcu unlock in proc_reg_release
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: vm: adjust ifdef for TINY_RCU
 
-Commit "procfs: improve scaling in proc" forgot to unlock rcu read lock
-if the proc file didn't have ops struct.
+There is an ifdef in page_cache_get_speculative() that checks for !SMP and
+TREE_RCU, which has been an impossible combination since the advent of
+TINY_RCU.  The ifdef enables a fastpath that is valid when preemption is
+disabled by rcu_read_lock() in UP systems, which is the case when TINY_RCU
+is enabled.  This commit therefore adjusts the ifdef to generate the
+fastpath when TINY_RCU is enabled.
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Reported-by: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/pagemap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/inode.c~procfs-improve-scaling-in-proc-fix fs/proc/inode.c
---- a/fs/proc/inode.c~procfs-improve-scaling-in-proc-fix
-+++ a/fs/proc/inode.c
-@@ -400,6 +400,7 @@ static int proc_reg_release(struct inode
- 	rcu_read_lock();
- 	fops = rcu_dereference(pde->proc_fops);
- 	if (!fops) {
-+		rcu_read_unlock();
- 		/*
- 		 * Can't simply exit, __fput() will think that everything is OK,
- 		 * and move on to freeing struct file. remove_proc_entry() will
+diff -puN include/linux/pagemap.h~vm-adjust-ifdef-for-tiny_rcu include/linux/pagemap.h
+--- a/include/linux/pagemap.h~vm-adjust-ifdef-for-tiny_rcu
++++ a/include/linux/pagemap.h
+@@ -149,7 +149,7 @@ static inline int page_cache_get_specula
+ {
+ 	VM_BUG_ON(in_interrupt());
+ 
+-#if !defined(CONFIG_SMP) && defined(CONFIG_TREE_RCU)
++#ifdef CONFIG_TINY_RCU
+ # ifdef CONFIG_PREEMPT_COUNT
+ 	VM_BUG_ON(!in_atomic());
+ # endif
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
-linux-next.patch
-mm-mempolicyc-fix-wrong-sp_node-insertion.patch
-mm-mempolicyc-fix-sp_node_init-argument-ordering.patch
 revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch
-watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-epoll-support-for-disabling-items-and-a-self-test-app-fix.patch
+mkcapflagspl-convert-to-mkcapflagssh.patch
+headers_installpl-convert-to-headers_installsh.patch
+vm-adjust-ifdef-for-tiny_rcu.patch
+procfs-improve-scaling-in-proc.patch
+procfs-improve-scaling-in-proc-v5.patch
 
