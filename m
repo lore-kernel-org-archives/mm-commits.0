@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-sun4v-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:35 -0800
-Message-ID: <20130306233835.CAAB75A4005@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-tx4939-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:39 -0800
+Message-ID: <20130306233839.BEA9E31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:44074 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3CFXig (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:36 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so933278qea.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:36 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:36913 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3CFXik (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:40 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so551256qaj.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-sun4v: use module_platform_driver_probe()
+     Subject: rtc: rtc-tx4939: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-sun4v-use-module_platform_driver_probe.patch
+     rtc-rtc-tx4939-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-sun4v: use module_platform_driver_probe()
+Subject: rtc: rtc-tx4939: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,32 +43,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sun4v.c |   13 +------------
+ drivers/rtc/rtc-tx4939.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-module_platform_driver_probe drivers/rtc/rtc-sun4v.c
---- a/drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-sun4v.c
-@@ -106,18 +106,7 @@ static struct platform_driver sun4v_rtc_
- 	.remove		= __exit_p(sun4v_rtc_remove),
+diff -puN drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-module_platform_driver_probe drivers/rtc/rtc-tx4939.c
+--- a/drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-tx4939.c
+@@ -299,18 +299,7 @@ static struct platform_driver tx4939_rtc
+ 	},
  };
  
--static int __init sun4v_rtc_init(void)
+-static int __init tx4939rtc_init(void)
 -{
--	return platform_driver_probe(&sun4v_rtc_driver, sun4v_rtc_probe);
+-	return platform_driver_probe(&tx4939_rtc_driver, tx4939_rtc_probe);
 -}
 -
--static void __exit sun4v_rtc_exit(void)
+-static void __exit tx4939rtc_exit(void)
 -{
--	platform_driver_unregister(&sun4v_rtc_driver);
+-	platform_driver_unregister(&tx4939_rtc_driver);
 -}
 -
--module_init(sun4v_rtc_init);
--module_exit(sun4v_rtc_exit);
-+module_platform_driver_probe(sun4v_rtc_driver, sun4v_rtc_probe);
+-module_init(tx4939rtc_init);
+-module_exit(tx4939rtc_exit);
++module_platform_driver_probe(tx4939_rtc_driver, tx4939_rtc_probe);
  
- MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
- MODULE_DESCRIPTION("SUN4V RTC driver");
+ MODULE_AUTHOR("Atsushi Nemoto <anemo@mba.ocn.ne.jp>");
+ MODULE_DESCRIPTION("TX4939 internal RTC driver");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -78,6 +78,7 @@ drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
 drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
 backlight-platform_lcd-remove-unnecessary-ifdefs.patch
 backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+backlight-atmel-pwm-bl-use-module_platform_driver_probe.patch
 rtc-rtc-mv-add-__init-annotation.patch
 rtc-rtc-davinci-add-__exit-annotation.patch
 rtc-rtc-ds1302-add-__exit-annotation.patch
@@ -148,5 +149,4 @@ rtc-rtc-tx4939-use-devm_rtc_device_register.patch
 rtc-rtc-vt8500-use-devm_rtc_device_register.patch
 rtc-rtc-wm831x-use-devm_rtc_device_register.patch
 rtc-rtc-palmas-use-devm_request_threaded_irq.patch
-backlight-atmel-pwm-bl-use-module_platform_driver_probe.patch
 
