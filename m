@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tegra-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:36 -0800
-Message-ID: <20130306212136.BE48A5A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-tps6586x-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:38 -0800
+Message-ID: <20130306212138.BD7D831C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:45065 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755589Ab3CFVVh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:37 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so917736yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:37 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:34307 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755602Ab3CFVVj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:39 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so917437vch.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-tegra: use devm_rtc_device_register()
+     Subject: rtc: rtc-tps6586x: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-tegra-use-devm_rtc_device_register.patch
+     rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tegra: use devm_rtc_device_register()
+Subject: rtc: rtc-tps6586x: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,41 +43,34 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tegra.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-tps6586x.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-use-devm_rtc_device_register drivers/rtc/rtc-tegra.c
---- a/drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-tegra.c
-@@ -348,8 +348,8 @@ static int __init tegra_rtc_probe(struct
+diff -puN drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_rtc_device_register drivers/rtc/rtc-tps6586x.c
+--- a/drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-tps6586x.c
+@@ -274,7 +274,7 @@ static int tps6586x_rtc_probe(struct pla
+ 	}
  
- 	device_init_wakeup(&pdev->dev, 1);
+ 	platform_set_drvdata(pdev, rtc);
+-	rtc->rtc = rtc_device_register(dev_name(&pdev->dev), &pdev->dev,
++	rtc->rtc = devm_rtc_device_register(&pdev->dev, dev_name(&pdev->dev),
+ 				       &tps6586x_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rtc)) {
+ 		ret = PTR_ERR(rtc->rtc);
+@@ -306,12 +306,10 @@ fail_rtc_register:
  
--	info->rtc_dev = rtc_device_register(
--		pdev->name, &pdev->dev, &tegra_rtc_ops, THIS_MODULE);
-+	info->rtc_dev = devm_rtc_device_register(
-+		&pdev->dev, pdev->name, &tegra_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(info->rtc_dev)) {
- 		ret = PTR_ERR(info->rtc_dev);
- 		info->rtc_dev = NULL;
-@@ -374,17 +374,11 @@ static int __init tegra_rtc_probe(struct
+ static int tps6586x_rtc_remove(struct platform_device *pdev)
+ {
+-	struct tps6586x_rtc *rtc = platform_get_drvdata(pdev);
+ 	struct device *tps_dev = to_tps6586x_dev(&pdev->dev);
+ 
+ 	tps6586x_update(tps_dev, RTC_CTRL, 0,
+ 		RTC_ENABLE | OSC_SRC_SEL | PRE_BYPASS | CL_SEL_MASK);
+-	rtc_device_unregister(rtc->rtc);
  	return 0;
- 
- err_dev_unreg:
--	rtc_device_unregister(info->rtc_dev);
--
- 	return ret;
  }
  
- static int __exit tegra_rtc_remove(struct platform_device *pdev)
- {
--	struct tegra_rtc_info *info = platform_get_drvdata(pdev);
--
--	rtc_device_unregister(info->rtc_dev);
--
- 	platform_set_drvdata(pdev, NULL);
- 
- 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
