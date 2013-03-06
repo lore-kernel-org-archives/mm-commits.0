@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-mv-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:20 -0800
-Message-ID: <20130306212120.B59875A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-mxc-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:22 -0800
+Message-ID: <20130306212122.BC4F75A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:60596 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755327Ab3CFVVV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:21 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so343774qcr.0
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:21 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:43103 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755543Ab3CFVVX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:23 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so917556vch.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-mv: use devm_rtc_device_register()
+     Subject: rtc: rtc-mxc: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-mv-use-devm_rtc_device_register.patch
+     rtc-rtc-mxc-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-mv: use devm_rtc_device_register()
+Subject: rtc: rtc-mxc: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,36 +43,29 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mv.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-mxc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-mv.c~rtc-rtc-mv-use-devm_rtc_device_register drivers/rtc/rtc-mv.c
---- a/drivers/rtc/rtc-mv.c~rtc-rtc-mv-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-mv.c
-@@ -262,12 +262,13 @@ static int __init mv_rtc_probe(struct pl
- 
- 	if (pdata->irq >= 0) {
+diff -puN drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-use-devm_rtc_device_register drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-mxc.c
+@@ -439,7 +439,7 @@ static int mxc_rtc_probe(struct platform
+ 	if (pdata->irq >=0)
  		device_init_wakeup(&pdev->dev, 1);
--		pdata->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+		pdata->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 						 &mv_rtc_alarm_ops,
- 						 THIS_MODULE);
--	} else
--		pdata->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	} else {
-+		pdata->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 						 &mv_rtc_ops, THIS_MODULE);
-+	}
- 	if (IS_ERR(pdata->rtc))
- 		return PTR_ERR(pdata->rtc);
  
-@@ -291,7 +292,6 @@ static int __exit mv_rtc_remove(struct p
- 	if (pdata->irq >= 0)
- 		device_init_wakeup(&pdev->dev, 0);
+-	rtc = rtc_device_register(pdev->name, &pdev->dev, &mxc_rtc_ops,
++	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &mxc_rtc_ops,
+ 				  THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+ 		ret = PTR_ERR(rtc);
+@@ -464,8 +464,6 @@ static int mxc_rtc_remove(struct platfor
+ {
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
  
 -	rtc_device_unregister(pdata->rtc);
- 	return 0;
- }
+-
+ 	clk_disable_unprepare(pdata->clk);
+ 	platform_set_drvdata(pdev, NULL);
  
 _
 
