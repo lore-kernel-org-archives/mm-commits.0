@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-vt8500-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:46 -0800
-Message-ID: <20130306212146.9F5BD5A41F7@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-wm831x-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:48 -0800
+Message-ID: <20130306212148.BCB8F31C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:47932 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755669Ab3CFVVs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:48 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so536252qaj.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:47 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:44237 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755698Ab3CFVVt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:49 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so917595yen.4
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-vt8500: use devm_rtc_device_register()
+     Subject: rtc: rtc-wm831x: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+     rtc-rtc-wm831x-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-vt8500: use devm_rtc_device_register()
+Subject: rtc: rtc-wm831x: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,44 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vt8500.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-wm831x.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_rtc_device_register drivers/rtc/rtc-vt8500.c
---- a/drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-vt8500.c
-@@ -252,7 +252,7 @@ static int vt8500_rtc_probe(struct platf
- 	writel(VT8500_RTC_CR_ENABLE,
- 	       vt8500_rtc->regbase + VT8500_RTC_CR);
+diff -puN drivers/rtc/rtc-wm831x.c~rtc-rtc-wm831x-use-devm_rtc_device_register drivers/rtc/rtc-wm831x.c
+--- a/drivers/rtc/rtc-wm831x.c~rtc-rtc-wm831x-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-wm831x.c
+@@ -436,7 +436,7 @@ static int wm831x_rtc_probe(struct platf
  
--	vt8500_rtc->rtc = rtc_device_register("vt8500-rtc", &pdev->dev,
-+	vt8500_rtc->rtc = devm_rtc_device_register(&pdev->dev, "vt8500-rtc",
- 					      &vt8500_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(vt8500_rtc->rtc)) {
- 		ret = PTR_ERR(vt8500_rtc->rtc);
-@@ -266,13 +266,11 @@ static int vt8500_rtc_probe(struct platf
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "can't get irq %i, err %d\n",
- 			vt8500_rtc->irq_alarm, ret);
--		goto err_unreg;
-+		goto err_return;
- 	}
+ 	device_init_wakeup(&pdev->dev, 1);
  
- 	return 0;
+-	wm831x_rtc->rtc = rtc_device_register("wm831x", &pdev->dev,
++	wm831x_rtc->rtc = devm_rtc_device_register(&pdev->dev, "wm831x",
+ 					      &wm831x_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(wm831x_rtc->rtc)) {
+ 		ret = PTR_ERR(wm831x_rtc->rtc);
+@@ -462,10 +462,6 @@ err:
  
--err_unreg:
--	rtc_device_unregister(vt8500_rtc->rtc);
- err_return:
- 	return ret;
- }
-@@ -281,8 +279,6 @@ static int vt8500_rtc_remove(struct plat
+ static int wm831x_rtc_remove(struct platform_device *pdev)
  {
- 	struct vt8500_rtc *vt8500_rtc = platform_get_drvdata(pdev);
- 
--	rtc_device_unregister(vt8500_rtc->rtc);
+-	struct wm831x_rtc *wm831x_rtc = platform_get_drvdata(pdev);
 -
- 	/* Disable alarm matching */
- 	writel(0, vt8500_rtc->regbase + VT8500_RTC_IS);
+-	rtc_device_unregister(wm831x_rtc->rtc);
+-
+ 	return 0;
+ }
  
 _
 
