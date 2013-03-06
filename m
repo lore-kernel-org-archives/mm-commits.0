@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-rename-random32-to-prandom_u32.patch added to -mm tree
-Date: Tue, 05 Mar 2013 17:01:55 -0800
-Message-ID: <20130306010155.CD3905A41EB@corp2gmr1-2.hot.corp.google.com>
+Subject: + kernel-rename-random32-to-prandom_u32.patch added to -mm tree
+Date: Tue, 05 Mar 2013 17:02:01 -0800
+Message-ID: <20130306010201.AE9C65A4253@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:60759 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194Ab3CFBB4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:01:56 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so811172yhz.5
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:01:56 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:62182 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753Ab3CFBCC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:02 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so809311yen.2
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     Subject: x86: rename random32() to prandom_u32()
+     Subject: kernel/: rename random32() to prandom_u32()
 has been added to the -mm tree.  Its filename is
-     x86-rename-random32-to-prandom_u32.patch
+     kernel-rename-random32-to-prandom_u32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: x86: rename random32() to prandom_u32()
+Subject: kernel/: rename random32() to prandom_u32()
 
 Use preferable function name which implies using a pseudo-random
 number generator.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pageattr-test.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/rcutree.c      |    2 +-
+ kernel/test_kprobes.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/pageattr-test.c~x86-rename-random32-to-prandom_u32 arch/x86/mm/pageattr-test.c
---- a/arch/x86/mm/pageattr-test.c~x86-rename-random32-to-prandom_u32
-+++ a/arch/x86/mm/pageattr-test.c
-@@ -132,10 +132,10 @@ static int pageattr_test(void)
- 	failed += print_split(&sa);
+diff -puN kernel/rcutree.c~kernel-rename-random32-to-prandom_u32 kernel/rcutree.c
+--- a/kernel/rcutree.c~kernel-rename-random32-to-prandom_u32
++++ a/kernel/rcutree.c
+@@ -1319,7 +1319,7 @@ static int rcu_gp_init(struct rcu_state
+ 					    rnp->grphi, rnp->qsmask);
+ 		raw_spin_unlock_irq(&rnp->lock);
+ #ifdef CONFIG_PROVE_RCU_DELAY
+-		if ((random32() % (rcu_num_nodes * 8)) == 0)
++		if ((prandom_u32() % (rcu_num_nodes * 8)) == 0)
+ 			schedule_timeout_uninterruptible(2);
+ #endif /* #ifdef CONFIG_PROVE_RCU_DELAY */
+ 		cond_resched();
+diff -puN kernel/test_kprobes.c~kernel-rename-random32-to-prandom_u32 kernel/test_kprobes.c
+--- a/kernel/test_kprobes.c~kernel-rename-random32-to-prandom_u32
++++ a/kernel/test_kprobes.c
+@@ -365,7 +365,7 @@ int init_test_probes(void)
+ 	target2 = kprobe_target2;
  
- 	for (i = 0; i < NTEST; i++) {
--		unsigned long pfn = random32() % max_pfn_mapped;
-+		unsigned long pfn = prandom_u32() % max_pfn_mapped;
+ 	do {
+-		rand1 = random32();
++		rand1 = prandom_u32();
+ 	} while (rand1 <= div_factor);
  
- 		addr[i] = (unsigned long)__va(pfn << PAGE_SHIFT);
--		len[i] = random32() % 100;
-+		len[i] = prandom_u32() % 100;
- 		len[i] = min_t(unsigned long, len[i], max_pfn_mapped - pfn - 1);
- 
- 		if (len[i] == 0)
+ 	printk(KERN_INFO "Kprobe smoke test started\n");
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
