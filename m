@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-rename-random32-to-prandom_u32.patch added to -mm tree
-Date: Tue, 05 Mar 2013 17:02:07 -0800
-Message-ID: <20130306010207.C346731C204@corp2gmr1-1.hot.corp.google.com>
+Subject: + uwb-rename-random32-to-prandom_u32.patch added to -mm tree
+Date: Tue, 05 Mar 2013 17:02:13 -0800
+Message-ID: <20130306010213.C3E615A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:41222 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754753Ab3CFBCJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:09 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so809336yen.3
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:08 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:34633 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755049Ab3CFBCO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:14 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so809242yen.4
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, cjb@laptop.org
+Cc: akinobu.mita@gmail.com, greg@kroah.com
 
 
 The patch titled
-     Subject: mmc: rename random32() to prandom_u32()
+     Subject: uwb: rename random32() to prandom_u32()
 has been added to the -mm tree.  Its filename is
-     mmc-rename-random32-to-prandom_u32.patch
+     uwb-rename-random32-to-prandom_u32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mmc: rename random32() to prandom_u32()
+Subject: uwb: rename random32() to prandom_u32()
 
 Use preferable function name which implies using a pseudo-random
 number generator.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/core.c |    4 ++--
+ drivers/uwb/rsv.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/core.c~mmc-rename-random32-to-prandom_u32 drivers/mmc/core/core.c
---- a/drivers/mmc/core/core.c~mmc-rename-random32-to-prandom_u32
-+++ a/drivers/mmc/core/core.c
-@@ -120,8 +120,8 @@ static void mmc_should_fail_request(stru
- 	    !should_fail(&host->fail_mmc_request, data->blksz * data->blocks))
+diff -puN drivers/uwb/rsv.c~uwb-rename-random32-to-prandom_u32 drivers/uwb/rsv.c
+--- a/drivers/uwb/rsv.c~uwb-rename-random32-to-prandom_u32
++++ a/drivers/uwb/rsv.c
+@@ -231,7 +231,7 @@ void uwb_rsv_backoff_win_increment(struc
  		return;
  
--	data->error = data_errors[random32() % ARRAY_SIZE(data_errors)];
--	data->bytes_xfered = (random32() % (data->bytes_xfered >> 9)) << 9;
-+	data->error = data_errors[prandom_u32() % ARRAY_SIZE(data_errors)];
-+	data->bytes_xfered = (prandom_u32() % (data->bytes_xfered >> 9)) << 9;
- }
+ 	bow->window <<= 1;
+-	bow->n = random32() & (bow->window - 1);
++	bow->n = prandom_u32() & (bow->window - 1);
+ 	dev_dbg(dev, "new_window=%d, n=%d\n: ", bow->window, bow->n);
  
- #else /* CONFIG_FAIL_MMC_REQUEST */
+ 	/* reset the timer associated variables */
+@@ -557,7 +557,7 @@ int uwb_rsv_establish(struct uwb_rsv *rs
+ 	if (ret)
+ 		goto out;
+ 
+-	rsv->tiebreaker = random32() & 1;
++	rsv->tiebreaker = prandom_u32() & 1;
+ 	/* get available mas bitmap */
+ 	uwb_drp_available(rc, &available);
+ 
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
