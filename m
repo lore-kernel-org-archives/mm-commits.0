@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-rename-random32-to-prandom_u32.patch added to -mm tree
-Date: Tue, 05 Mar 2013 17:02:01 -0800
-Message-ID: <20130306010201.AE9C65A4253@corp2gmr1-2.hot.corp.google.com>
+Subject: + drbd-rename-random32-to-prandom_u32.patch added to -mm tree
+Date: Tue, 05 Mar 2013 17:02:03 -0800
+Message-ID: <20130306010203.C55C85A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:62182 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754753Ab3CFBCC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:02 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so809311yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:02 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:56240 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753Ab3CFBCE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:04 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so428060qaj.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: akinobu.mita@gmail.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: kernel/: rename random32() to prandom_u32()
+     Subject: drbd: rename random32() to prandom_u32()
 has been added to the -mm tree.  Its filename is
-     kernel-rename-random32-to-prandom_u32.patch
+     drbd-rename-random32-to-prandom_u32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: kernel/: rename random32() to prandom_u32()
+Subject: drbd: rename random32() to prandom_u32()
 
 Use preferable function name which implies using a pseudo-random
 number generator.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutree.c      |    2 +-
- kernel/test_kprobes.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/drbd/drbd_receiver.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/rcutree.c~kernel-rename-random32-to-prandom_u32 kernel/rcutree.c
---- a/kernel/rcutree.c~kernel-rename-random32-to-prandom_u32
-+++ a/kernel/rcutree.c
-@@ -1319,7 +1319,7 @@ static int rcu_gp_init(struct rcu_state
- 					    rnp->grphi, rnp->qsmask);
- 		raw_spin_unlock_irq(&rnp->lock);
- #ifdef CONFIG_PROVE_RCU_DELAY
--		if ((random32() % (rcu_num_nodes * 8)) == 0)
-+		if ((prandom_u32() % (rcu_num_nodes * 8)) == 0)
- 			schedule_timeout_uninterruptible(2);
- #endif /* #ifdef CONFIG_PROVE_RCU_DELAY */
- 		cond_resched();
-diff -puN kernel/test_kprobes.c~kernel-rename-random32-to-prandom_u32 kernel/test_kprobes.c
---- a/kernel/test_kprobes.c~kernel-rename-random32-to-prandom_u32
-+++ a/kernel/test_kprobes.c
-@@ -365,7 +365,7 @@ int init_test_probes(void)
- 	target2 = kprobe_target2;
+diff -puN drivers/block/drbd/drbd_receiver.c~drbd-rename-random32-to-prandom_u32 drivers/block/drbd/drbd_receiver.c
+--- a/drivers/block/drbd/drbd_receiver.c~drbd-rename-random32-to-prandom_u32
++++ a/drivers/block/drbd/drbd_receiver.c
+@@ -757,7 +757,8 @@ static struct socket *drbd_wait_for_conn
+ 	rcu_read_unlock();
  
- 	do {
--		rand1 = random32();
-+		rand1 = prandom_u32();
- 	} while (rand1 <= div_factor);
+ 	timeo = connect_int * HZ;
+-	timeo += (random32() & 1) ? timeo / 7 : -timeo / 7; /* 28.5% random jitter */
++	/* 28.5% random jitter */
++	timeo += (prandom_u32() & 1) ? timeo / 7 : -timeo / 7;
  
- 	printk(KERN_INFO "Kprobe smoke test started\n");
+ 	err = wait_for_completion_interruptible_timeout(&ad->door_bell, timeo);
+ 	if (err <= 0)
+@@ -953,7 +954,7 @@ retry:
+ 				conn_warn(tconn, "Error receiving initial packet\n");
+ 				sock_release(s);
+ randomize:
+-				if (random32() & 1)
++				if (prandom_u32() & 1)
+ 					goto retry;
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
