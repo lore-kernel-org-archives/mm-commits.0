@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-snvs-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:30 -0800
-Message-ID: <20130306212130.C0E565A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-s3c-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:28 -0800
+Message-ID: <20130306212128.BFF295A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:62374 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754380Ab3CFVVb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:31 -0500
-Received: by mail-qe0-f73.google.com with SMTP id a11so918087qen.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:31 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:41184 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754380Ab3CFVV3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:29 -0500
+Received: by mail-ye0-f202.google.com with SMTP id q5so917641yen.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-snvs: use devm_rtc_device_register()
+     Subject: rtc: rtc-s3c: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-snvs-use-devm_rtc_device_register.patch
+     rtc-rtc-s3c-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-snvs: use devm_rtc_device_register()
+Subject: rtc: rtc-s3c: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,32 +43,40 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-snvs.c |    6 +-----
+ drivers/rtc/rtc-s3c.c |    6 +-----
  1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-snvs.c~rtc-rtc-snvs-use-devm_rtc_device_register drivers/rtc/rtc-snvs.c
---- a/drivers/rtc/rtc-snvs.c~rtc-rtc-snvs-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-snvs.c
-@@ -283,7 +283,7 @@ static int snvs_rtc_probe(struct platfor
- 		return ret;
- 	}
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-use-devm_rtc_device_register drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-s3c.c
+@@ -423,10 +423,7 @@ static void s3c_rtc_enable(struct platfo
  
--	data->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	data->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 					&snvs_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(data->rtc)) {
- 		ret = PTR_ERR(data->rtc);
-@@ -296,10 +296,6 @@ static int snvs_rtc_probe(struct platfor
- 
- static int snvs_rtc_remove(struct platform_device *pdev)
+ static int s3c_rtc_remove(struct platform_device *dev)
  {
--	struct snvs_rtc_data *data = platform_get_drvdata(pdev);
+-	struct rtc_device *rtc = platform_get_drvdata(dev);
 -
--	rtc_device_unregister(data->rtc);
--
- 	return 0;
- }
+ 	platform_set_drvdata(dev, NULL);
+-	rtc_device_unregister(rtc);
  
+ 	s3c_rtc_setaie(&dev->dev, 0);
+ 
+@@ -511,7 +508,7 @@ static int s3c_rtc_probe(struct platform
+ 
+ 	/* register RTC and exit */
+ 
+-	rtc = rtc_device_register("s3c", &pdev->dev, &s3c_rtcops,
++	rtc = devm_rtc_device_register(&pdev->dev, "s3c", &s3c_rtcops,
+ 				  THIS_MODULE);
+ 
+ 	if (IS_ERR(rtc)) {
+@@ -574,7 +571,6 @@ static int s3c_rtc_probe(struct platform
+ 
+  err_alarm_irq:
+ 	platform_set_drvdata(pdev, NULL);
+-	rtc_device_unregister(rtc);
+ 
+  err_nortc:
+ 	s3c_rtc_enable(pdev, 0);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
