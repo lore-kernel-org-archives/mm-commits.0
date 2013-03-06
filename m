@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tx4939-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:39 -0800
-Message-ID: <20130306233839.BEA9E31C24E@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:39:33 -0800
+Message-ID: <20130306233933.6BF8631C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:36913 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3CFXik (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:40 -0500
-Received: by mail-qa0-f74.google.com with SMTP id o13so551256qaj.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:40 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:53832 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979Ab3CFXje (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:39:34 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so353682qcs.5
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:39:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: rtc: rtc-tx4939: use module_platform_driver_probe()
+     Subject: drivers/video/backlight/atmel-pwm-bl.c: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-tx4939-use-module_platform_driver_probe.patch
+     drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tx4939: use module_platform_driver_probe()
+Subject: drivers/video/backlight/atmel-pwm-bl.c: use module_platform_driver_probe()
 
-Use module_platform_driver_probe() macro which makes the code smaller and
-simpler.
+Use the module_platform_driver_probe() macro which makes the code smaller
+and simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tx4939.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/video/backlight/atmel-pwm-bl.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-module_platform_driver_probe drivers/rtc/rtc-tx4939.c
---- a/drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-tx4939.c
-@@ -299,18 +299,7 @@ static struct platform_driver tx4939_rtc
- 	},
+diff -puN drivers/video/backlight/atmel-pwm-bl.c~drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe drivers/video/backlight/atmel-pwm-bl.c
+--- a/drivers/video/backlight/atmel-pwm-bl.c~drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe
++++ a/drivers/video/backlight/atmel-pwm-bl.c
+@@ -225,17 +225,7 @@ static struct platform_driver atmel_pwm_
+ 	.remove = __exit_p(atmel_pwm_bl_remove),
  };
  
--static int __init tx4939rtc_init(void)
+-static int __init atmel_pwm_bl_init(void)
 -{
--	return platform_driver_probe(&tx4939_rtc_driver, tx4939_rtc_probe);
+-	return platform_driver_probe(&atmel_pwm_bl_driver, atmel_pwm_bl_probe);
 -}
+-module_init(atmel_pwm_bl_init);
 -
--static void __exit tx4939rtc_exit(void)
+-static void __exit atmel_pwm_bl_exit(void)
 -{
--	platform_driver_unregister(&tx4939_rtc_driver);
+-	platform_driver_unregister(&atmel_pwm_bl_driver);
 -}
--
--module_init(tx4939rtc_init);
--module_exit(tx4939rtc_exit);
-+module_platform_driver_probe(tx4939_rtc_driver, tx4939_rtc_probe);
+-module_exit(atmel_pwm_bl_exit);
++module_platform_driver_probe(atmel_pwm_bl_driver, atmel_pwm_bl_probe);
  
- MODULE_AUTHOR("Atsushi Nemoto <anemo@mba.ocn.ne.jp>");
- MODULE_DESCRIPTION("TX4939 internal RTC driver");
+ MODULE_AUTHOR("Hans-Christian egtvedt <hans-christian.egtvedt@atmel.com>");
+ MODULE_DESCRIPTION("Atmel PWM backlight driver");
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -78,7 +78,7 @@ drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
 drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
 backlight-platform_lcd-remove-unnecessary-ifdefs.patch
 backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
-backlight-atmel-pwm-bl-use-module_platform_driver_probe.patch
+drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
 rtc-rtc-mv-add-__init-annotation.patch
 rtc-rtc-davinci-add-__exit-annotation.patch
 rtc-rtc-ds1302-add-__exit-annotation.patch
