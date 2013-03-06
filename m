@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:34:20 -0800
-Message-ID: <20130306213420.74A5A31C1B5@corp2gmr1-1.hot.corp.google.com>
+Subject: + futex-fix-kernel-doc-notation-and-spello.patch added to -mm tree
+Date: Wed, 06 Mar 2013 14:07:02 -0800
+Message-ID: <20130306220702.6F38C31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:42727 "EHLO
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:44584 "EHLO
 	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752350Ab3CFVeV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:34:21 -0500
-Received: by mail-ye0-f201.google.com with SMTP id m12so918822yen.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:34:21 -0800 (PST)
+	with ESMTP id S1755655Ab3CFWHE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 17:07:04 -0500
+Received: by mail-ye0-f201.google.com with SMTP id m12so923598yen.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 14:07:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, a.zummo@towertech.it, tj@kernel.org
+Cc: rdunlap@infradead.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: drivers/rtc/class.c: use struct device as the first argument for devm_rtc_device_register()
+     Subject: futex: fix kernel-doc notation and spello
 has been added to the -mm tree.  Its filename is
-     rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+     futex-fix-kernel-doc-notation-and-spello.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,113 +33,155 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/class.c: use struct device as the first argument for devm_rtc_device_register()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: futex: fix kernel-doc notation and spello
 
-Other devm_* APIs use 'struct device *dev' as the first argument.  Thus,
-in order to sync with other devm_* functions, struct device is used as the
-first argument for devm_rtc_device_register().
+Fix kernel-doc warning in futex.c and convert 'Returns' to the new Return:
+kenrel-doc notation format.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Warning(kernel/futex.c:2286): Excess function parameter 'clockrt' description in 'futex_wait_requeue_pi'
+
+Fix one spello.
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    6 +++---
- include/linux/rtc.h |    4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ kernel/futex.c |   46 +++++++++++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register
-+++ a/drivers/rtc/class.c
-@@ -275,8 +275,8 @@ static int devm_rtc_device_match(struct
- 
- /**
-  * devm_rtc_device_register - resource managed rtc_device_register()
-- * @name: the name of the device
-  * @dev: the device to register
-+ * @name: the name of the device
-  * @ops: the rtc operations structure
-  * @owner: the module owner
+diff -puN kernel/futex.c~futex-fix-kernel-doc-notation-and-spello kernel/futex.c
+--- a/kernel/futex.c~futex-fix-kernel-doc-notation-and-spello
++++ a/kernel/futex.c
+@@ -223,7 +223,8 @@ static void drop_futex_key_refs(union fu
+  * @rw:		mapping needs to be read/write (values: VERIFY_READ,
+  *              VERIFY_WRITE)
   *
-@@ -287,8 +287,8 @@ static int devm_rtc_device_match(struct
-  * for more information.
+- * Returns a negative error code or 0
++ * Return: a negative error code or 0
++ *
+  * The key words are stored in *key on success.
+  *
+  * For shared mappings, it's (page->index, file_inode(vma->vm_file),
+@@ -705,9 +706,9 @@ lookup_pi_state(u32 uval, struct futex_h
+  *			be "current" except in the case of requeue pi.
+  * @set_waiters:	force setting the FUTEX_WAITERS bit (1) or not (0)
+  *
+- * Returns:
+- *  0 - ready to wait
+- *  1 - acquired the lock
++ * Return:
++ *  0 - ready to wait;
++ *  1 - acquired the lock;
+  * <0 - error
+  *
+  * The hb->lock and futex_key refs shall be held by the caller.
+@@ -1191,9 +1192,9 @@ void requeue_pi_wake_futex(struct futex_
+  * then direct futex_lock_pi_atomic() to force setting the FUTEX_WAITERS bit.
+  * hb1 and hb2 must be held by the caller.
+  *
+- * Returns:
+- *  0 - failed to acquire the lock atomicly
+- *  1 - acquired the lock
++ * Return:
++ *  0 - failed to acquire the lock atomically;
++ *  1 - acquired the lock;
+  * <0 - error
   */
- 
--struct rtc_device *devm_rtc_device_register(const char *name,
--					struct device *dev,
-+struct rtc_device *devm_rtc_device_register(struct device *dev,
-+					const char *name,
- 					const struct rtc_class_ops *ops,
- 					struct module *owner)
- {
-diff -puN include/linux/rtc.h~rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register
-+++ a/include/linux/rtc.h
-@@ -133,8 +133,8 @@ extern struct rtc_device *rtc_device_reg
- 					struct device *dev,
- 					const struct rtc_class_ops *ops,
- 					struct module *owner);
--extern struct rtc_device *devm_rtc_device_register(const char *name,
--					struct device *dev,
-+extern struct rtc_device *devm_rtc_device_register(struct device *dev,
-+					const char *name,
- 					const struct rtc_class_ops *ops,
- 					struct module *owner);
- extern void rtc_device_unregister(struct rtc_device *rtc);
+ static int futex_proxy_trylock_atomic(u32 __user *pifutex,
+@@ -1254,8 +1255,8 @@ static int futex_proxy_trylock_atomic(u3
+  * Requeue waiters on uaddr1 to uaddr2. In the requeue_pi case, try to acquire
+  * uaddr2 atomically on behalf of the top waiter.
+  *
+- * Returns:
+- * >=0 - on success, the number of tasks requeued or woken
++ * Return:
++ * >=0 - on success, the number of tasks requeued or woken;
+  *  <0 - on error
+  */
+ static int futex_requeue(u32 __user *uaddr1, unsigned int flags,
+@@ -1536,8 +1537,8 @@ static inline void queue_me(struct futex
+  * The q->lock_ptr must not be held by the caller. A call to unqueue_me() must
+  * be paired with exactly one earlier call to queue_me().
+  *
+- * Returns:
+- *   1 - if the futex_q was still queued (and we removed unqueued it)
++ * Return:
++ *   1 - if the futex_q was still queued (and we removed unqueued it);
+  *   0 - if the futex_q was already removed by the waking thread
+  */
+ static int unqueue_me(struct futex_q *q)
+@@ -1707,9 +1708,9 @@ static long futex_wait_restart(struct re
+  * the pi_state owner as well as handle race conditions that may allow us to
+  * acquire the lock. Must be called with the hb lock held.
+  *
+- * Returns:
+- *  1 - success, lock taken
+- *  0 - success, lock not taken
++ * Return:
++ *  1 - success, lock taken;
++ *  0 - success, lock not taken;
+  * <0 - on error (-EFAULT)
+  */
+ static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
+@@ -1824,8 +1825,8 @@ static void futex_wait_queue_me(struct f
+  * Return with the hb lock held and a q.key reference on success, and unlocked
+  * with no q.key reference on failure.
+  *
+- * Returns:
+- *  0 - uaddr contains val and hb has been locked
++ * Return:
++ *  0 - uaddr contains val and hb has been locked;
+  * <1 - -EFAULT or -EWOULDBLOCK (uaddr does not contain val) and hb is unlocked
+  */
+ static int futex_wait_setup(u32 __user *uaddr, u32 val, unsigned int flags,
+@@ -2203,9 +2204,9 @@ pi_faulted:
+  * the wakeup and return the appropriate error code to the caller.  Must be
+  * called with the hb lock held.
+  *
+- * Returns
+- *  0 - no early wakeup detected
+- * <0 - -ETIMEDOUT or -ERESTARTNOINTR
++ * Return:
++ *  0 = no early wakeup detected;
++ * <0 = -ETIMEDOUT or -ERESTARTNOINTR
+  */
+ static inline
+ int handle_early_requeue_pi_wakeup(struct futex_hash_bucket *hb,
+@@ -2247,7 +2248,6 @@ int handle_early_requeue_pi_wakeup(struc
+  * @val:	the expected value of uaddr
+  * @abs_time:	absolute timeout
+  * @bitset:	32 bit wakeup bitset set by userspace, defaults to all
+- * @clockrt:	whether to use CLOCK_REALTIME (1) or CLOCK_MONOTONIC (0)
+  * @uaddr2:	the pi futex we will take prior to returning to user-space
+  *
+  * The caller will wait on uaddr and will be requeued by futex_requeue() to
+@@ -2258,7 +2258,7 @@ int handle_early_requeue_pi_wakeup(struc
+  * there was a need to.
+  *
+  * We call schedule in futex_wait_queue_me() when we enqueue and return there
+- * via the following:
++ * via the following--
+  * 1) wakeup on uaddr2 after an atomic lock acquisition by futex_requeue()
+  * 2) wakeup on uaddr2 after a requeue
+  * 3) signal
+@@ -2276,8 +2276,8 @@ int handle_early_requeue_pi_wakeup(struc
+  *
+  * If 4 or 7, we cleanup and return with -ETIMEDOUT.
+  *
+- * Returns:
+- *  0 - On success
++ * Return:
++ *  0 - On success;
+  * <0 - On error
+  */
+ static int futex_wait_requeue_pi(u32 __user *uaddr, unsigned int flags,
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-max77686-use-module_platform_driver.patch
-rtc-max77686-add-missing-module-author-name.patch
-rtc-max77686-use-devm_kzalloc.patch
-rtc-max77686-fix-indentation-of-bit-definitions.patch
-rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
-rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
-rtc-rtc-coh90133-use-devm_rtc_device_register.patch
-rtc-rtc-da9052-use-devm_rtc_device_register.patch
-rtc-rtc-da9055-use-devm_rtc_device_register.patch
-rtc-rtc-davinci-use-devm_rtc_device_register.patch
-rtc-rtc-ds1511-use-devm_rtc_device_register.patch
-rtc-rtc-ds1553-use-devm_rtc_device_register.patch
-rtc-rtc-ds1742-use-devm_rtc_device_register.patch
-rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
-rtc-rtc-imxdi-use-devm_rtc_device_register.patch
-rtc-rtc-lp8788-use-devm_rtc_device_register.patch
-rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
-rtc-rtc-max77686-use-devm_rtc_device_register.patch
-rtc-rtc-max8907-use-devm_rtc_device_register.patch
-rtc-rtc-max8997-use-devm_rtc_device_register.patch
-rtc-rtc-mv-use-devm_rtc_device_register.patch
-rtc-rtc-mxc-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_rtc_device_register.patch
-rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
-rtc-rtc-s3c-use-devm_rtc_device_register.patch
-rtc-rtc-snvs-use-devm_rtc_device_register.patch
-rtc-rtc-spear-use-devm_rtc_device_register.patch
-rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
-rtc-rtc-tegra-use-devm_rtc_device_register.patch
-rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
-rtc-rtc-tps65910-use-devm_rtc_device_register.patch
-rtc-rtc-tps80031-use-devm_rtc_device_register.patch
-rtc-rtc-tx4939-use-devm_rtc_device_register.patch
-rtc-rtc-vt8500-use-devm_rtc_device_register.patch
-rtc-rtc-wm831x-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+futex-fix-kernel-doc-notation-and-spello.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 
