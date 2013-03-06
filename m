@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-imxdi-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:08 -0800
-Message-ID: <20130306212108.BE3E831C241@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ep93xx-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:06 -0800
+Message-ID: <20130306212106.BB85F5A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:58669 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754367Ab3CFVVJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:09 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so917487ghb.5
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:09 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:63103 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754367Ab3CFVVH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:07 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so917229vcd.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-imxdi: use devm_rtc_device_register()
+     Subject: rtc: rtc-ep93xx: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+     rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-imxdi: use devm_rtc_device_register()
+Subject: rtc: rtc-ep93xx: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,28 +43,47 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-imxdi.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/rtc/rtc-ep93xx.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_rtc_device_register drivers/rtc/rtc-imxdi.c
---- a/drivers/rtc/rtc-imxdi.c~rtc-rtc-imxdi-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-imxdi.c
-@@ -464,7 +464,7 @@ static int __init dryice_rtc_probe(struc
- 	}
+diff -puN drivers/rtc/rtc-ep93xx.c~rtc-rtc-ep93xx-use-devm_rtc_device_register drivers/rtc/rtc-ep93xx.c
+--- a/drivers/rtc/rtc-ep93xx.c~rtc-rtc-ep93xx-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ep93xx.c
+@@ -153,8 +153,8 @@ static int ep93xx_rtc_probe(struct platf
+ 	pdev->dev.platform_data = ep93xx_rtc;
+ 	platform_set_drvdata(pdev, ep93xx_rtc);
  
- 	platform_set_drvdata(pdev, imxdi);
--	imxdi->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	imxdi->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				  &dryice_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(imxdi->rtc)) {
- 		rc = PTR_ERR(imxdi->rtc);
-@@ -488,8 +488,6 @@ static int __exit dryice_rtc_remove(stru
- 	/* mask all interrupts */
- 	__raw_writel(0, imxdi->ioaddr + DIER);
+-	ep93xx_rtc->rtc = rtc_device_register(pdev->name,
+-				&pdev->dev, &ep93xx_rtc_ops, THIS_MODULE);
++	ep93xx_rtc->rtc = devm_rtc_device_register(&pdev->dev,
++				pdev->name, &ep93xx_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(ep93xx_rtc->rtc)) {
+ 		err = PTR_ERR(ep93xx_rtc->rtc);
+ 		goto exit;
+@@ -162,12 +162,10 @@ static int ep93xx_rtc_probe(struct platf
  
--	rtc_device_unregister(imxdi->rtc);
+ 	err = sysfs_create_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
+ 	if (err)
+-		goto fail;
++		goto exit;
+ 
+ 	return 0;
+ 
+-fail:
+-	rtc_device_unregister(ep93xx_rtc->rtc);
+ exit:
+ 	platform_set_drvdata(pdev, NULL);
+ 	pdev->dev.platform_data = NULL;
+@@ -176,11 +174,8 @@ exit:
+ 
+ static int ep93xx_rtc_remove(struct platform_device *pdev)
+ {
+-	struct ep93xx_rtc *ep93xx_rtc = platform_get_drvdata(pdev);
 -
- 	clk_disable_unprepare(imxdi->clk);
+ 	sysfs_remove_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
+ 	platform_set_drvdata(pdev, NULL);
+-	rtc_device_unregister(ep93xx_rtc->rtc);
+ 	pdev->dev.platform_data = NULL;
  
  	return 0;
 _
