@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-davinci-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:03 -0800
-Message-ID: <20130306233803.BF43B31C25B@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ds1302-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:05 -0800
+Message-ID: <20130306233805.BA87F31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:52715 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3CFXiF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:05 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so932506ghb.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:04 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:54452 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab3CFXiG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:06 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so353690qcs.3
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-davinci: use module_platform_driver_probe()
+     Subject: rtc: rtc-ds1302: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-davinci-use-module_platform_driver_probe.patch
+     rtc-rtc-ds1302-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-davinci: use module_platform_driver_probe()
+Subject: rtc: rtc-ds1302: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
@@ -43,31 +43,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-davinci.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/rtc/rtc-ds1302.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-module_platform_driver_probe drivers/rtc/rtc-davinci.c
---- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-davinci.c
-@@ -588,17 +588,7 @@ static struct platform_driver davinci_rt
- 	},
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-use-module_platform_driver_probe drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -252,18 +252,7 @@ static struct platform_driver ds1302_pla
+ 	.remove		= __exit_p(ds1302_rtc_remove),
  };
  
--static int __init rtc_init(void)
+-static int __init ds1302_rtc_init(void)
 -{
--	return platform_driver_probe(&davinci_rtc_driver, davinci_rtc_probe);
+-	return platform_driver_probe(&ds1302_platform_driver, ds1302_rtc_probe);
 -}
--module_init(rtc_init);
 -
--static void __exit rtc_exit(void)
+-static void __exit ds1302_rtc_exit(void)
 -{
--	platform_driver_unregister(&davinci_rtc_driver);
+-	platform_driver_unregister(&ds1302_platform_driver);
 -}
--module_exit(rtc_exit);
-+module_platform_driver_probe(davinci_rtc_driver, davinci_rtc_probe);
+-
+-module_init(ds1302_rtc_init);
+-module_exit(ds1302_rtc_exit);
++module_platform_driver_probe(ds1302_platform_driver, ds1302_rtc_probe);
  
- MODULE_AUTHOR("Miguel Aguilar <miguel.aguilar@ridgerun.com>");
- MODULE_DESCRIPTION("Texas Instruments DaVinci PRTC Driver");
+ MODULE_DESCRIPTION("Dallas DS1302 RTC driver");
+ MODULE_VERSION(DRV_VERSION);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
