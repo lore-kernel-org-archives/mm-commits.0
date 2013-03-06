@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-palmas-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:24 -0800
-Message-ID: <20130306212124.BC9D931C241@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-pcf8523-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:26 -0800
+Message-ID: <20130306212126.BC8875A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:54621 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755578Ab3CFVVZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:25 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so919748yhr.2
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:25 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:35301 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754380Ab3CFVV1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:27 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so918002vea.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-palmas: use devm_rtc_device_register()
+     Subject: rtc: rtc-pcf8523: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-palmas-use-devm_rtc_device_register.patch
+     rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-palmas: use devm_rtc_device_register()
+Subject: rtc: rtc-pcf8523: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,38 +43,29 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-palmas.c |    6 +-----
+ drivers/rtc/rtc-pcf8523.c |    6 +-----
  1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_rtc_device_register drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -264,7 +264,7 @@ static int palmas_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-pcf8523.c~rtc-rtc-pcf8523-use-devm_rtc_device_register drivers/rtc/rtc-pcf8523.c
+--- a/drivers/rtc/rtc-pcf8523.c~rtc-rtc-pcf8523-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-pcf8523.c
+@@ -307,7 +307,7 @@ static int pcf8523_probe(struct i2c_clie
+ 	if (err < 0)
+ 		return err;
  
- 	palmas_rtc->irq = platform_get_irq(pdev, 0);
+-	pcf->rtc = rtc_device_register(DRIVER_NAME, &client->dev,
++	pcf->rtc = devm_rtc_device_register(&client->dev, DRIVER_NAME,
+ 				       &pcf8523_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(pcf->rtc))
+ 		return PTR_ERR(pcf->rtc);
+@@ -319,10 +319,6 @@ static int pcf8523_probe(struct i2c_clie
  
--	palmas_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	palmas_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				&palmas_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(palmas_rtc->rtc)) {
- 		ret = PTR_ERR(palmas_rtc->rtc);
-@@ -279,7 +279,6 @@ static int palmas_rtc_probe(struct platf
- 			dev_name(&pdev->dev), palmas_rtc);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "IRQ request failed, err = %d\n", ret);
--		rtc_device_unregister(palmas_rtc->rtc);
- 		return ret;
- 	}
- 
-@@ -289,11 +288,8 @@ static int palmas_rtc_probe(struct platf
- 
- static int palmas_rtc_remove(struct platform_device *pdev)
+ static int pcf8523_remove(struct i2c_client *client)
  {
--	struct palmas_rtc *palmas_rtc = platform_get_drvdata(pdev);
+-	struct pcf8523 *pcf = i2c_get_clientdata(client);
 -
- 	palmas_rtc_alarm_irq_enable(&pdev->dev, 0);
- 	free_irq(palmas_rtc->irq, palmas_rtc);
--	rtc_device_unregister(palmas_rtc->rtc);
+-	rtc_device_unregister(pcf->rtc);
+-
  	return 0;
  }
  
