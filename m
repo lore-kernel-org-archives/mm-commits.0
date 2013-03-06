@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rename-random32-to-prandom_u32.patch added to -mm tree
-Date: Tue, 05 Mar 2013 17:01:59 -0800
-Message-ID: <20130306010159.B4A0F5A41EB@corp2gmr1-2.hot.corp.google.com>
+Subject: + x86-rename-random32-to-prandom_u32.patch added to -mm tree
+Date: Tue, 05 Mar 2013 17:01:55 -0800
+Message-ID: <20130306010155.CD3905A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:49663 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754753Ab3CFBCA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:02:00 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so809183vcd.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:02:00 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:60759 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab3CFBB4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Mar 2013 20:01:56 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z6so811172yhz.5
+        for <mm-commits@vger.kernel.org>; Tue, 05 Mar 2013 17:01:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm/: rename random32() to prandom_u32()
+     Subject: x86: rename random32() to prandom_u32()
 has been added to the -mm tree.  Its filename is
-     mm-rename-random32-to-prandom_u32.patch
+     x86-rename-random32-to-prandom_u32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mm/: rename random32() to prandom_u32()
+Subject: x86: rename random32() to prandom_u32()
 
 Use preferable function name which implies using a pseudo-random
 number generator.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/pageattr-test.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/swapfile.c~mm-rename-random32-to-prandom_u32 mm/swapfile.c
---- a/mm/swapfile.c~mm-rename-random32-to-prandom_u32
-+++ a/mm/swapfile.c
-@@ -2120,7 +2120,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	if (p->bdev) {
- 		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
- 			p->flags |= SWP_SOLIDSTATE;
--			p->cluster_next = 1 + (random32() % p->highest_bit);
-+			p->cluster_next = 1 + (prandom_u32() % p->highest_bit);
- 		}
- 		if ((swap_flags & SWAP_FLAG_DISCARD) && discard_swap(p) == 0)
- 			p->flags |= SWP_DISCARDABLE;
+diff -puN arch/x86/mm/pageattr-test.c~x86-rename-random32-to-prandom_u32 arch/x86/mm/pageattr-test.c
+--- a/arch/x86/mm/pageattr-test.c~x86-rename-random32-to-prandom_u32
++++ a/arch/x86/mm/pageattr-test.c
+@@ -132,10 +132,10 @@ static int pageattr_test(void)
+ 	failed += print_split(&sa);
+ 
+ 	for (i = 0; i < NTEST; i++) {
+-		unsigned long pfn = random32() % max_pfn_mapped;
++		unsigned long pfn = prandom_u32() % max_pfn_mapped;
+ 
+ 		addr[i] = (unsigned long)__va(pfn << PAGE_SHIFT);
+-		len[i] = random32() % 100;
++		len[i] = prandom_u32() % 100;
+ 		len[i] = min_t(unsigned long, len[i], max_pfn_mapped - pfn - 1);
+ 
+ 		if (len[i] == 0)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
