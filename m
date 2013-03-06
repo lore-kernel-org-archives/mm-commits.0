@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:12 -0800
-Message-ID: <20130306212112.B755D5A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-max77686-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:14 -0800
+Message-ID: <20130306212114.846AC5A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:64703 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754367Ab3CFVVN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:13 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so917828ves.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:13 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:62414 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755327Ab3CFVVP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:15 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so342062vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-lpc32xx: use devm_rtc_device_register()
+     Subject: rtc: rtc-max77686: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+     rtc-rtc-max77686-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-lpc32xx: use devm_rtc_device_register()
+Subject: rtc: rtc-max77686: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
-paths simpler.
+paths simpler. Also, this patch uses devm_request_threaded_irq().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-lpc32xx.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-max77686.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-lpc32xx.c~rtc-rtc-lpc32xx-use-devm_rtc_device_register drivers/rtc/rtc-lpc32xx.c
---- a/drivers/rtc/rtc-lpc32xx.c~rtc-rtc-lpc32xx-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-lpc32xx.c
-@@ -273,8 +273,8 @@ static int lpc32xx_rtc_probe(struct plat
+diff -puN drivers/rtc/rtc-max77686.c~rtc-rtc-max77686-use-devm_rtc_device_register drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-rtc-max77686-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-max77686.c
+@@ -538,8 +538,8 @@ static int max77686_rtc_probe(struct pla
  
- 	platform_set_drvdata(pdev, rtc);
+ 	device_init_wakeup(&pdev->dev, 1);
  
--	rtc->rtc = rtc_device_register(RTC_NAME, &pdev->dev, &lpc32xx_rtc_ops,
--		THIS_MODULE);
-+	rtc->rtc = devm_rtc_device_register(&pdev->dev, RTC_NAME,
-+					&lpc32xx_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc)) {
- 		dev_err(&pdev->dev, "Can't get RTC\n");
- 		platform_set_drvdata(pdev, NULL);
-@@ -307,7 +307,6 @@ static int lpc32xx_rtc_remove(struct pla
- 		device_init_wakeup(&pdev->dev, 0);
+-	info->rtc_dev = rtc_device_register("max77686-rtc", &pdev->dev,
+-			&max77686_rtc_ops, THIS_MODULE);
++	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "max77686-rtc",
++					&max77686_rtc_ops, THIS_MODULE);
  
- 	platform_set_drvdata(pdev, NULL);
--	rtc_device_unregister(rtc->rtc);
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		dev_info(&pdev->dev, "%s: fail\n", __func__);
+@@ -555,8 +555,8 @@ static int max77686_rtc_probe(struct pla
+ 		goto err_rtc;
+ 	info->virq = virq;
  
+-	ret = request_threaded_irq(virq, NULL, max77686_rtc_alarm_irq, 0,
+-			"rtc-alarm0", info);
++	ret = devm_request_threaded_irq(&pdev->dev, virq, NULL,
++				max77686_rtc_alarm_irq, 0, "rtc-alarm0", info);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "Failed to request alarm IRQ: %d: %d\n",
+ 			info->virq, ret);
+@@ -569,13 +569,6 @@ err_rtc:
+ 
+ static int max77686_rtc_remove(struct platform_device *pdev)
+ {
+-	struct max77686_rtc_info *info = platform_get_drvdata(pdev);
+-
+-	if (info) {
+-		free_irq(info->virq, info);
+-		rtc_device_unregister(info->rtc_dev);
+-	}
+-
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
