@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-da9055-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:20:56 -0800
-Message-ID: <20130306212056.BE06331C241@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-davinci-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:20:58 -0800
+Message-ID: <20130306212058.C2D875A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:47062 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753478Ab3CFVU5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:20:57 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so917367ggi.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:57 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:55682 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753478Ab3CFVVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:00 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so917373vch.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:20:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-da9055: use devm_rtc_device_register()
+     Subject: rtc: rtc-davinci: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-da9055-use-devm_rtc_device_register.patch
+     rtc-rtc-davinci-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-da9055: use devm_rtc_device_register()
+Subject: rtc: rtc-davinci: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,28 +43,45 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9055.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/rtc/rtc-davinci.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-use-devm_rtc_device_register drivers/rtc/rtc-da9055.c
---- a/drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-da9055.c
-@@ -294,7 +294,7 @@ static int da9055_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_rtc_device_register drivers/rtc/rtc-davinci.c
+--- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-davinci.c
+@@ -523,7 +523,7 @@ static int __init davinci_rtc_probe(stru
  
- 	device_init_wakeup(&pdev->dev, 1);
+ 	platform_set_drvdata(pdev, davinci_rtc);
  
--	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 					&da9055_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc)) {
- 		ret = PTR_ERR(rtc->rtc);
-@@ -317,9 +317,6 @@ err_rtc:
+-	davinci_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
++	davinci_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				    &davinci_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(davinci_rtc->rtc)) {
+ 		ret = PTR_ERR(davinci_rtc->rtc);
+@@ -543,7 +543,7 @@ static int __init davinci_rtc_probe(stru
+ 			  0, "davinci_rtc", davinci_rtc);
+ 	if (ret < 0) {
+ 		dev_err(dev, "unable to register davinci RTC interrupt\n");
+-		goto fail2;
++		goto fail1;
+ 	}
  
- static int da9055_rtc_remove(struct platform_device *pdev)
- {
--	struct da9055_rtc *rtc = pdev->dev.platform_data;
+ 	/* Enable interrupts */
+@@ -557,8 +557,6 @@ static int __init davinci_rtc_probe(stru
+ 
+ 	return 0;
+ 
+-fail2:
+-	rtc_device_unregister(davinci_rtc->rtc);
+ fail1:
+ 	platform_set_drvdata(pdev, NULL);
+ 	return ret;
+@@ -572,8 +570,6 @@ static int __exit davinci_rtc_remove(str
+ 
+ 	rtcif_write(davinci_rtc, 0, PRTCIF_INTEN);
+ 
+-	rtc_device_unregister(davinci_rtc->rtc);
 -
--	rtc_device_unregister(rtc->rtc);
  	platform_set_drvdata(pdev, NULL);
  
  	return 0;
