@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1742-use-devm_rtc_device_register.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:21:04 -0800
-Message-ID: <20130306212104.C125831C241@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-lp8788-use-devm_rtc_device_register.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:21:10 -0800
+Message-ID: <20130306212110.BF3A131C241@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:48552 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754367Ab3CFVVF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:05 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so917378ggi.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:05 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:39122 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754367Ab3CFVVM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:21:12 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so917392vch.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:21:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ds1742: use devm_rtc_device_register()
+     Subject: rtc: rtc-lp8788: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+     rtc-rtc-lp8788-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1742: use devm_rtc_device_register()
+Subject: rtc: rtc-lp8788: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup
 paths simpler.
@@ -43,40 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1742.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-lp8788.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-use-devm_rtc_device_register drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~rtc-rtc-ds1742-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -208,17 +208,14 @@ static int ds1742_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-lp8788.c~rtc-rtc-lp8788-use-devm_rtc_device_register drivers/rtc/rtc-lp8788.c
+--- a/drivers/rtc/rtc-lp8788.c~rtc-rtc-lp8788-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-lp8788.c
+@@ -299,7 +299,7 @@ static int lp8788_rtc_probe(struct platf
  
- 	pdata->last_jiffies = jiffies;
- 	platform_set_drvdata(pdev, pdata);
--	rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				  &ds1742_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
- 	pdata->rtc = rtc;
+ 	device_init_wakeup(dev, 1);
  
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
--	if (ret) {
--		dev_err(&pdev->dev, "creating nvram file in sysfs failed\n");
--		rtc_device_unregister(rtc);
--	}
-+
- 	return ret;
- }
+-	rtc->rdev = rtc_device_register("lp8788_rtc", dev,
++	rtc->rdev = devm_rtc_device_register(dev, "lp8788_rtc",
+ 					&lp8788_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rdev)) {
+ 		dev_err(dev, "can not register rtc device\n");
+@@ -314,9 +314,6 @@ static int lp8788_rtc_probe(struct platf
  
-@@ -227,7 +224,6 @@ static int ds1742_rtc_remove(struct plat
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ static int lp8788_rtc_remove(struct platform_device *pdev)
+ {
+-	struct lp8788_rtc *rtc = platform_get_drvdata(pdev);
+-
+-	rtc_device_unregister(rtc->rdev);
+ 	platform_set_drvdata(pdev, NULL);
  
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
--	rtc_device_unregister(pdata->rtc);
  	return 0;
- }
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
