@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + staging-zcache-enable-ramster-to-be-built-loaded-as-a-module.patch added to -mm tree
-Date: Wed, 06 Mar 2013 13:10:19 -0800
-Message-ID: <20130306211019.F39195A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + staging-zcache-enable-zcache-to-be-built-loaded-as-a-module.patch added to -mm tree
+Date: Wed, 06 Mar 2013 13:10:22 -0800
+Message-ID: <20130306211022.EFD8131C1B6@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:60875 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755404Ab3CFVKV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:10:21 -0500
-Received: by mail-ve0-f202.google.com with SMTP id m1so916395ves.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:10:20 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:51787 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755394Ab3CFVKY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 16:10:24 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so915981ggi.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 13:10:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: dan.magenheimer@oracle.com, andor.daam@googlemail.com, fschmaus@gmail.com, i
 
 
 The patch titled
-     Subject: staging: zcache: enable ramster to be built/loaded as a module
+     Subject: staging: zcache: enable zcache to be built/loaded as a module
 has been added to the -mm tree.  Its filename is
-     staging-zcache-enable-ramster-to-be-built-loaded-as-a-module.patch
+     staging-zcache-enable-zcache-to-be-built-loaded-as-a-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Magenheimer <dan.magenheimer@oracle.com>
-Subject: staging: zcache: enable ramster to be built/loaded as a module
+Subject: staging: zcache: enable zcache to be built/loaded as a module
 
-Enable module support for ramster.  Note runtime dependency disallows
-loading if cleancache/frontswap lazy initialization patches are not
-present.
+Allow zcache to be built/loaded as a module.  Note runtime dependency
+disallows loading if cleancache/frontswap lazy initialization patches are
+not present.  Zsmalloc support has not yet been merged into zcache but,
+once merged, could now easily be selected via a module_param.
 
 If built-in (not built as a module), the original mechanism of enabling via
 a kernel boot parameter is retained, but this should be considered deprecated.
@@ -46,8 +47,11 @@ a kernel boot parameter is retained, but this should be considered deprecated.
 Note that module unload is explicitly not yet supported.
 
 Signed-off-by: Dan Magenheimer <dan.magenheimer@oracle.com>
-[v1: Fixed compile issues since ramster_init now has four arguments]
-[v2: Fixed rebase on ramster->zcache move]
+[v1: Rebased with different order of patches]
+[v2: Removed [CLEANCACHE|FRONTSWAP]_HAS_LAZY_INIT ifdef]
+[v3: Rebased on top of ramster->zcache move]
+[v4: Redid the Makefile]
+[v5: s/ZCACHE2/ZCACHE/]
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Bob Liu <lliubbo@gmail.com>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
@@ -58,220 +62,239 @@ Cc: Stefan Hengelein <ilendir@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zcache/ramster.h                     |    6 +-
- drivers/staging/zcache/ramster/nodemanager.c         |    9 +--
- drivers/staging/zcache/ramster/ramster.c             |   29 ++++++++--
- drivers/staging/zcache/ramster/ramster.h             |    2 
- drivers/staging/zcache/ramster/ramster_nodemanager.h |    2 
- drivers/staging/zcache/zcache-main.c                 |    2 
- 6 files changed, 38 insertions(+), 12 deletions(-)
+ drivers/staging/zcache/Kconfig       |    6 +--
+ drivers/staging/zcache/tmem.c        |    6 ++-
+ drivers/staging/zcache/tmem.h        |    8 ++--
+ drivers/staging/zcache/zcache-main.c |   45 +++++++++++++++++++++++--
+ drivers/staging/zcache/zcache.h      |    2 -
+ 5 files changed, 55 insertions(+), 12 deletions(-)
 
-diff -puN drivers/staging/zcache/ramster.h~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module drivers/staging/zcache/ramster.h
---- a/drivers/staging/zcache/ramster.h~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/ramster.h
-@@ -11,10 +11,14 @@
- #ifndef _ZCACHE_RAMSTER_H_
- #define _ZCACHE_RAMSTER_H_
+diff -puN drivers/staging/zcache/Kconfig~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/Kconfig
+--- a/drivers/staging/zcache/Kconfig~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
++++ a/drivers/staging/zcache/Kconfig
+@@ -1,5 +1,5 @@
+ config ZCACHE
+-	bool "Dynamic compression of swap pages and clean pagecache pages"
++	tristate "Dynamic compression of swap pages and clean pagecache pages"
+ 	depends on CRYPTO=y && SWAP=y && CLEANCACHE && FRONTSWAP
+ 	select CRYPTO_LZO
+ 	default n
+@@ -19,8 +19,8 @@ config ZCACHE_DEBUG
+ 	  how zcache is doing. You probably want to set this to 'N'.
  
-+#ifdef CONFIG_RAMSTER_MODULE
-+#define CONFIG_RAMSTER
-+#endif
-+
+ config RAMSTER
+-	bool "Cross-machine RAM capacity sharing, aka peer-to-peer tmem"
+-	depends on CONFIGFS_FS=y && SYSFS=y && !HIGHMEM && ZCACHE=y
++	tristate "Cross-machine RAM capacity sharing, aka peer-to-peer tmem"
++	depends on CONFIGFS_FS=y && SYSFS=y && !HIGHMEM && ZCACHE
+ 	depends on NET
+ 	# must ensure struct page is 8-byte aligned
+ 	select HAVE_ALIGNED_STRUCT_PAGE if !64_BIT
+diff -puN drivers/staging/zcache/tmem.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/tmem.c
+--- a/drivers/staging/zcache/tmem.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
++++ a/drivers/staging/zcache/tmem.c
+@@ -35,7 +35,8 @@
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+ #include <linux/atomic.h>
+-#ifdef CONFIG_RAMSTER
++#include <linux/export.h>
++#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
+ #include <linux/delay.h>
+ #endif
+ 
+@@ -641,6 +642,7 @@ void *tmem_localify_get_pampd(struct tme
+ 	/* note, hashbucket remains locked */
+ 	return pampd;
+ }
++EXPORT_SYMBOL_GPL(tmem_localify_get_pampd);
+ 
+ void tmem_localify_finish(struct tmem_obj *obj, uint32_t index,
+ 			  void *pampd, void *saved_hb, bool delete)
+@@ -658,6 +660,7 @@ void tmem_localify_finish(struct tmem_ob
+ 	}
+ 	spin_unlock(&hb->lock);
+ }
++EXPORT_SYMBOL_GPL(tmem_localify_finish);
+ 
+ /*
+  * For ramster only.  Helper function to support asynchronous tmem_get.
+@@ -719,6 +722,7 @@ out:
+ 	spin_unlock(&hb->lock);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(tmem_replace);
+ #endif
+ 
+ /*
+diff -puN drivers/staging/zcache/tmem.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/tmem.h
+--- a/drivers/staging/zcache/tmem.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
++++ a/drivers/staging/zcache/tmem.h
+@@ -126,7 +126,7 @@ static inline unsigned tmem_oid_hash(str
+ 				TMEM_HASH_BUCKET_BITS);
+ }
+ 
+-#ifdef CONFIG_RAMSTER
++#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
+ struct tmem_xhandle {
+ 	uint8_t client_id;
+ 	uint8_t xh_data_cksum;
+@@ -171,7 +171,7 @@ struct tmem_obj {
+ 	unsigned int objnode_tree_height;
+ 	unsigned long objnode_count;
+ 	long pampd_count;
+-#ifdef CONFIG_RAMSTER
++#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
+ 	/*
+ 	 * for current design of ramster, all pages belonging to
+ 	 * an object reside on the same remotenode and extra is
+@@ -215,7 +215,7 @@ struct tmem_pamops {
+ 				uint32_t);
+ 	void (*free)(void *, struct tmem_pool *,
+ 				struct tmem_oid *, uint32_t, bool);
+-#ifdef CONFIG_RAMSTER
++#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
+ 	void (*new_obj)(struct tmem_obj *);
+ 	void (*free_obj)(struct tmem_pool *, struct tmem_obj *, bool);
+ 	void *(*repatriate_preload)(void *, struct tmem_pool *,
+@@ -247,7 +247,7 @@ extern int tmem_flush_page(struct tmem_p
+ extern int tmem_flush_object(struct tmem_pool *, struct tmem_oid *);
+ extern int tmem_destroy_pool(struct tmem_pool *);
+ extern void tmem_new_pool(struct tmem_pool *, uint32_t);
+-#ifdef CONFIG_RAMSTER
++#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
+ extern int tmem_replace(struct tmem_pool *, struct tmem_oid *, uint32_t index,
+ 			void *);
+ extern void *tmem_localify_get_pampd(struct tmem_pool *, struct tmem_oid *,
+diff -puN drivers/staging/zcache/zcache-main.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/zcache-main.c
+--- a/drivers/staging/zcache/zcache-main.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
++++ a/drivers/staging/zcache/zcache-main.c
+@@ -36,8 +36,10 @@
+ #include "debug.h"
  #ifdef CONFIG_RAMSTER
- #include "ramster/ramster.h"
+ static bool ramster_enabled __read_mostly;
++static int disable_frontswap_selfshrink;
  #else
--static inline void ramster_init(bool x, bool y, bool z)
-+static inline void ramster_init(bool x, bool y, bool z, bool w)
- {
- }
+ #define ramster_enabled false
++#define disable_frontswap_selfshrink 0
+ #endif
  
-diff -puN drivers/staging/zcache/ramster/nodemanager.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module drivers/staging/zcache/ramster/nodemanager.c
---- a/drivers/staging/zcache/ramster/nodemanager.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/ramster/nodemanager.c
-@@ -949,7 +949,7 @@ static void __exit exit_r2nm(void)
- 	r2hb_exit();
- }
+ #ifndef __PG_WAS_ACTIVE
+@@ -74,8 +76,12 @@ static char *namestr __read_mostly = "zc
+ 	(__GFP_FS | __GFP_NORETRY | __GFP_NOWARN | __GFP_NOMEMALLOC)
  
--static int __init init_r2nm(void)
-+int r2nm_init(void)
- {
- 	int ret = -1;
- 
-@@ -986,10 +986,11 @@ out_r2hb:
- out:
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(r2nm_init);
- 
- MODULE_AUTHOR("Oracle");
- MODULE_LICENSE("GPL");
- 
--/* module_init(init_r2nm) */
--late_initcall(init_r2nm);
--/* module_exit(exit_r2nm) */
-+#ifndef CONFIG_RAMSTER_MODULE
-+late_initcall(r2nm_init);
+ /* crypto API for zcache  */
++#ifdef CONFIG_ZCACHE_MODULE
++static char *zcache_comp_name = "lzo";
++#else
+ #define ZCACHE_COMP_NAME_SZ CRYPTO_MAX_ALG_NAME
+ static char zcache_comp_name[ZCACHE_COMP_NAME_SZ] __read_mostly;
 +#endif
-diff -puN drivers/staging/zcache/ramster/ramster.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module drivers/staging/zcache/ramster/ramster.c
---- a/drivers/staging/zcache/ramster/ramster.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/ramster/ramster.c
-@@ -92,7 +92,7 @@ static ssize_t ramster_remote_page_flush
- #include <linux/debugfs.h>
- #define	zdfs	debugfs_create_size_t
- #define	zdfs64	debugfs_create_u64
--static int __init ramster_debugfs_init(void)
-+static int ramster_debugfs_init(void)
+ static struct crypto_comp * __percpu *zcache_comp_pcpu_tfms __read_mostly;
+ 
+ enum comp_op {
+@@ -1627,6 +1633,7 @@ struct frontswap_ops *zcache_frontswap_r
+  * OR NOTHING HAPPENS!
+  */
+ 
++#ifndef CONFIG_ZCACHE_MODULE
+ static int __init enable_zcache(char *s)
  {
- 	struct dentry *root = debugfs_create_dir("ramster", NULL);
- 	if (root == NULL)
-@@ -191,6 +191,7 @@ int ramster_do_preload_flnode(struct tme
- 		kmem_cache_free(ramster_flnode_cache, flnode);
- 	return ret;
+ 	zcache_enabled = true;
+@@ -1693,18 +1700,27 @@ static int __init enable_zcache_compress
+ 	return 1;
  }
-+EXPORT_SYMBOL_GPL(ramster_do_preload_flnode);
- 
- /*
-  * Called by the message handler after a (still compressed) page has been
-@@ -458,6 +459,7 @@ void *ramster_pampd_free(void *pampd, st
- 	}
- 	return local_pampd;
- }
-+EXPORT_SYMBOL_GPL(ramster_pampd_free);
- 
- void ramster_count_foreign_pages(bool eph, int count)
- {
-@@ -489,6 +491,7 @@ void ramster_count_foreign_pages(bool ep
- 		ramster_foreign_pers_pages = c;
- 	}
- }
-+EXPORT_SYMBOL_GPL(ramster_count_foreign_pages);
- 
- /*
-  * For now, just push over a few pages every few seconds to
-@@ -674,7 +677,7 @@ requeue:
- 	ramster_remotify_queue_delayed_work(HZ);
- }
- 
--void __init ramster_remotify_init(void)
-+void ramster_remotify_init(void)
- {
- 	unsigned long n = 60UL;
- 	ramster_remotify_workqueue =
-@@ -849,8 +852,10 @@ static bool frontswap_selfshrinking __re
- static void selfshrink_process(struct work_struct *work);
- static DECLARE_DELAYED_WORK(selfshrink_worker, selfshrink_process);
- 
-+#ifndef CONFIG_RAMSTER_MODULE
- /* Enable/disable with kernel boot option. */
- static bool use_frontswap_selfshrink __initdata = true;
+ __setup("zcache=", enable_zcache_compressor);
 +#endif
  
- /*
-  * The default values for the following parameters were deemed reasonable
-@@ -905,6 +910,7 @@ static void frontswap_selfshrink(void)
- 	frontswap_shrink(tgt_frontswap_pages);
- }
  
-+#ifndef CONFIG_RAMSTER_MODULE
- static int __init ramster_nofrontswap_selfshrink_setup(char *s)
- {
- 	use_frontswap_selfshrink = false;
-@@ -912,6 +918,7 @@ static int __init ramster_nofrontswap_se
- }
- 
- __setup("noselfshrink", ramster_nofrontswap_selfshrink_setup);
-+#endif
- 
- static void selfshrink_process(struct work_struct *work)
- {
-@@ -930,6 +937,7 @@ void ramster_cpu_up(int cpu)
- 	per_cpu(ramster_remoteputmem1, cpu) = p1;
- 	per_cpu(ramster_remoteputmem2, cpu) = p2;
- }
-+EXPORT_SYMBOL_GPL(ramster_cpu_up);
- 
- void ramster_cpu_down(int cpu)
- {
-@@ -945,6 +953,7 @@ void ramster_cpu_down(int cpu)
- 		kp->flnode = NULL;
- 	}
- }
-+EXPORT_SYMBOL_GPL(ramster_cpu_down);
- 
- void ramster_register_pamops(struct tmem_pamops *pamops)
- {
-@@ -955,9 +964,11 @@ void ramster_register_pamops(struct tmem
- 	pamops->repatriate = ramster_pampd_repatriate;
- 	pamops->repatriate_preload = ramster_pampd_repatriate_preload;
- }
-+EXPORT_SYMBOL_GPL(ramster_register_pamops);
- 
--void __init ramster_init(bool cleancache, bool frontswap,
--				bool frontswap_exclusive_gets)
-+void ramster_init(bool cleancache, bool frontswap,
-+				bool frontswap_exclusive_gets,
-+				bool frontswap_selfshrink)
+-static int __init zcache_comp_init(void)
++static int zcache_comp_init(void)
  {
  	int ret = 0;
  
-@@ -972,10 +983,17 @@ void __init ramster_init(bool cleancache
- 	if (ret)
- 		pr_err("ramster: can't create sysfs for ramster\n");
- 	(void)r2net_register_handlers();
-+#ifdef CONFIG_RAMSTER_MODULE
-+	ret = r2nm_init();
-+	if (ret)
-+		pr_err("ramster: can't init r2net\n");
-+	frontswap_selfshrinking = frontswap_selfshrink;
+ 	/* check crypto algorithm */
++#ifdef CONFIG_ZCACHE_MODULE
++	ret = crypto_has_comp(zcache_comp_name, 0, 0);
++	if (!ret) {
++		ret = -1;
++		goto out;
++	}
 +#else
-+	frontswap_selfshrinking = use_frontswap_selfshrink;
-+#endif
- 	INIT_LIST_HEAD(&ramster_rem_op_list);
- 	ramster_flnode_cache = kmem_cache_create("ramster_flnode",
- 				sizeof(struct flushlist_node), 0, 0, NULL);
--	frontswap_selfshrinking = use_frontswap_selfshrink;
- 	if (frontswap_selfshrinking) {
- 		pr_info("ramster: Initializing frontswap selfshrink driver.\n");
- 		schedule_delayed_work(&selfshrink_worker,
-@@ -983,3 +1001,4 @@ void __init ramster_init(bool cleancache
+ 	if (*zcache_comp_name != '\0') {
+ 		ret = crypto_has_comp(zcache_comp_name, 0, 0);
+ 		if (!ret)
+ 			pr_info("zcache: %s not supported\n",
+ 					zcache_comp_name);
++		goto out;
  	}
- 	ramster_remotify_init();
+ 	if (!ret)
+ 		strcpy(zcache_comp_name, "lzo");
+@@ -1713,6 +1729,7 @@ static int __init zcache_comp_init(void)
+ 		ret = 1;
+ 		goto out;
+ 	}
++#endif
+ 	pr_info("zcache: using %s compressor\n", zcache_comp_name);
+ 
+ 	/* alloc percpu transforms */
+@@ -1724,10 +1741,13 @@ out:
+ 	return ret;
  }
-+EXPORT_SYMBOL_GPL(ramster_init);
-diff -puN drivers/staging/zcache/ramster/ramster.h~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module drivers/staging/zcache/ramster/ramster.h
---- a/drivers/staging/zcache/ramster/ramster.h~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/ramster/ramster.h
-@@ -147,7 +147,7 @@ extern int r2net_register_handlers(void)
- extern int r2net_remote_target_node_set(int);
  
- extern int ramster_remotify_pageframe(bool);
--extern void ramster_init(bool, bool, bool);
-+extern void ramster_init(bool, bool, bool, bool);
- extern void ramster_register_pamops(struct tmem_pamops *);
- extern int ramster_localify(int, struct tmem_oid *oidp, uint32_t, char *,
- 				unsigned int, void *);
-diff -puN drivers/staging/zcache/ramster/ramster_nodemanager.h~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module drivers/staging/zcache/ramster/ramster_nodemanager.h
---- a/drivers/staging/zcache/ramster/ramster_nodemanager.h~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/ramster/ramster_nodemanager.h
-@@ -36,4 +36,6 @@
- /* host name, group name, cluster name all 64 bytes */
- #define R2NM_MAX_NAME_LEN        64    /* __NEW_UTS_LEN */
+-static int __init zcache_init(void)
++static int zcache_init(void)
+ {
+ 	int ret = 0;
  
-+extern int r2nm_init(void);
-+
- #endif /* _RAMSTER_NODEMANAGER_H */
-diff -puN drivers/staging/zcache/zcache-main.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module drivers/staging/zcache/zcache-main.c
---- a/drivers/staging/zcache/zcache-main.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/zcache-main.c
-@@ -1802,7 +1802,7 @@ static int __init zcache_init(void)
++#ifdef CONFIG_ZCACHE_MODULE
++	zcache_enabled = 1;
++#endif
+ 	if (ramster_enabled) {
+ 		namestr = "ramster";
+ 		ramster_register_pamops(&zcache_pamops);
+@@ -1802,9 +1822,28 @@ static int __init zcache_init(void)
  	}
  	if (ramster_enabled)
  		ramster_init(!disable_cleancache, !disable_frontswap,
--				frontswap_has_exclusive_gets);
-+				frontswap_has_exclusive_gets, false);
+-				frontswap_has_exclusive_gets, false);
++				frontswap_has_exclusive_gets,
++				!disable_frontswap_selfshrink);
  out:
  	return ret;
  }
+ 
++#ifdef CONFIG_ZCACHE_MODULE
++#ifdef CONFIG_RAMSTER
++module_param(ramster_enabled, int, S_IRUGO);
++module_param(disable_frontswap_selfshrink, int, S_IRUGO);
++#endif
++module_param(disable_cleancache, int, S_IRUGO);
++module_param(disable_frontswap, int, S_IRUGO);
++#ifdef FRONTSWAP_HAS_EXCLUSIVE_GETS
++module_param(frontswap_has_exclusive_gets, bool, S_IRUGO);
++#endif
++module_param(disable_frontswap_ignore_nonactive, int, S_IRUGO);
++module_param(zcache_comp_name, charp, S_IRUGO);
++module_init(zcache_init);
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Dan Magenheimer <dan.magenheimer@oracle.com>");
++MODULE_DESCRIPTION("In-kernel compression of cleancache/frontswap pages");
++#else
+ late_initcall(zcache_init);
++#endif
+diff -puN drivers/staging/zcache/zcache.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/zcache.h
+--- a/drivers/staging/zcache/zcache.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
++++ a/drivers/staging/zcache/zcache.h
+@@ -39,7 +39,7 @@ extern int zcache_flush_page(int, int, s
+ extern int zcache_flush_object(int, int, struct tmem_oid *);
+ extern void zcache_decompress_to_page(char *, unsigned int, struct page *);
+ 
+-#ifdef CONFIG_RAMSTER
++#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
+ extern void *zcache_pampd_create(char *, unsigned int, bool, int,
+ 				struct tmem_handle *);
+ int zcache_autocreate_pool(unsigned int cli_id, unsigned int pool_id, bool eph);
 _
 
 Patches currently in -mm which might be from dan.magenheimer@oracle.com are
