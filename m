@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rp5c01-use-module_platform_driver_probe.patch added to -mm tree
-Date: Wed, 06 Mar 2013 15:38:29 -0800
-Message-ID: <20130306233829.C2EAE5A4005@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-sh-use-module_platform_driver_probe.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:38:31 -0800
+Message-ID: <20130306233831.CB1FF31C24E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:48186 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757421Ab3CFXia (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:30 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so932697yen.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:30 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:58126 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3CFXic (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:38:32 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so934789yhr.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:38:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, geert@linux-m68k.org
+Cc: jg1.han@samsung.com, lethal@linux-sh.org
 
 
 The patch titled
-     Subject: rtc: rtc-rp5c01: use module_platform_driver_probe()
+     Subject: rtc: rtc-sh: use module_platform_driver_probe()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
+     rtc-rtc-sh-use-module_platform_driver_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rp5c01: use module_platform_driver_probe()
+Subject: rtc: rtc-sh: use module_platform_driver_probe()
 
 Use module_platform_driver_probe() macro which makes the code smaller and
 simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rp5c01.c |   13 +------------
+ drivers/rtc/rtc-sh.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-rp5c01.c~rtc-rtc-rp5c01-use-module_platform_driver_probe drivers/rtc/rtc-rp5c01.c
---- a/drivers/rtc/rtc-rp5c01.c~rtc-rtc-rp5c01-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-rp5c01.c
-@@ -294,18 +294,7 @@ static struct platform_driver rp5c01_rtc
- 	.remove	= __exit_p(rp5c01_rtc_remove),
+diff -puN drivers/rtc/rtc-sh.c~rtc-rtc-sh-use-module_platform_driver_probe drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-rtc-sh-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-sh.c
+@@ -820,18 +820,7 @@ static struct platform_driver sh_rtc_pla
+ 	.remove		= __exit_p(sh_rtc_remove),
  };
  
--static int __init rp5c01_rtc_init(void)
+-static int __init sh_rtc_init(void)
 -{
--	return platform_driver_probe(&rp5c01_rtc_driver, rp5c01_rtc_probe);
+-	return platform_driver_probe(&sh_rtc_platform_driver, sh_rtc_probe);
 -}
 -
--static void __exit rp5c01_rtc_fini(void)
+-static void __exit sh_rtc_exit(void)
 -{
--	platform_driver_unregister(&rp5c01_rtc_driver);
+-	platform_driver_unregister(&sh_rtc_platform_driver);
 -}
 -
--module_init(rp5c01_rtc_init);
--module_exit(rp5c01_rtc_fini);
-+module_platform_driver_probe(rp5c01_rtc_driver, rp5c01_rtc_probe);
+-module_init(sh_rtc_init);
+-module_exit(sh_rtc_exit);
++module_platform_driver_probe(sh_rtc_platform_driver, sh_rtc_probe);
  
- MODULE_AUTHOR("Geert Uytterhoeven <geert@linux-m68k.org>");
- MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("SuperH on-chip RTC driver");
+ MODULE_VERSION(DRV_VERSION);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
