@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + printk-tracing-rework-console-tracing.patch added to -mm tree
-Date: Wed, 06 Mar 2013 14:53:50 -0800
-Message-ID: <20130306225350.AF5C65A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch added to -mm tree
+Date: Wed, 06 Mar 2013 15:05:21 -0800
+Message-ID: <20130306230521.6DAF25A433F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:59779 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756387Ab3CFWxv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 17:53:51 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so928705yen.3
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 14:53:51 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:38711 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309Ab3CFXFW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 18:05:22 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so350017vbb.0
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 15:05:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jovi.zhangwei@huawei.com, fweisbec@gmail.com, kay@vrfy.org, rostedt@goodmis.org
+Cc: jg1.han@samsung.com, rmallon@gmail.com
 
 
 The patch titled
-     Subject: printk/tracing: rework console tracing
+     Subject: drivers/video/backlight/ep93xx_bl.c: remove incorrect __init annotation
 has been added to the -mm tree.  Its filename is
-     printk-tracing-rework-console-tracing.patch
+     backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Subject: printk/tracing: rework console tracing
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/ep93xx_bl.c: remove incorrect __init annotation
 
-commit 7ff9554bb ("printk: convert byte-buffer to variable-length record
-buffer") removed start and end parameters in call_console_drivers, but
-those parameters still exists in include/trace/events/printk.h.
+When platform_driver_probe() is not used, bind/unbind via sysfs is
+enabled.  Thus, __init/__exit annotations should be removed from
+probe()/remove().
 
-Without start and end parameters handling, printk tracing became more
-simple as: trace_console(text, len);
-
-Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Kay Sievers <kay@vrfy.org>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Ryan Mallon <rmallon@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/printk.h |   25 ++++++-------------------
- kernel/printk.c               |    2 +-
- 2 files changed, 7 insertions(+), 20 deletions(-)
+ drivers/video/backlight/ep93xx_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/trace/events/printk.h~printk-tracing-rework-console-tracing include/trace/events/printk.h
---- a/include/trace/events/printk.h~printk-tracing-rework-console-tracing
-+++ a/include/trace/events/printk.h
-@@ -6,31 +6,18 @@
+diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx_bl-remove-incorrect-__init-annotation drivers/video/backlight/ep93xx_bl.c
+--- a/drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx_bl-remove-incorrect-__init-annotation
++++ a/drivers/video/backlight/ep93xx_bl.c
+@@ -60,7 +60,7 @@ static const struct backlight_ops ep93xx
+ 	.get_brightness	= ep93xxbl_get_brightness,
+ };
  
- #include <linux/tracepoint.h>
- 
--TRACE_EVENT_CONDITION(console,
--	TP_PROTO(const char *log_buf, unsigned start, unsigned end,
--		 unsigned log_buf_len),
-+TRACE_EVENT(console,
-+	TP_PROTO(const char *text, size_t len),
- 
--	TP_ARGS(log_buf, start, end, log_buf_len),
--
--	TP_CONDITION(start != end),
-+	TP_ARGS(text, len),
- 
- 	TP_STRUCT__entry(
--		__dynamic_array(char, msg, end - start + 1)
-+		__dynamic_array(char, msg, len + 1)
- 	),
- 
- 	TP_fast_assign(
--		if ((start & (log_buf_len - 1)) > (end & (log_buf_len - 1))) {
--			memcpy(__get_dynamic_array(msg),
--			       log_buf + (start & (log_buf_len - 1)),
--			       log_buf_len - (start & (log_buf_len - 1)));
--			memcpy((char *)__get_dynamic_array(msg) +
--			       log_buf_len - (start & (log_buf_len - 1)),
--			       log_buf, end & (log_buf_len - 1));
--		} else
--			memcpy(__get_dynamic_array(msg),
--			       log_buf + (start & (log_buf_len - 1)),
--			       end - start);
--		((char *)__get_dynamic_array(msg))[end - start] = 0;
-+		memcpy(__get_dynamic_array(msg), text, len);
-+		((char *)__get_dynamic_array(msg))[len] = 0;
- 	),
- 
- 	TP_printk("%s", __get_str(msg))
-diff -puN kernel/printk.c~printk-tracing-rework-console-tracing kernel/printk.c
---- a/kernel/printk.c~printk-tracing-rework-console-tracing
-+++ a/kernel/printk.c
-@@ -1285,7 +1285,7 @@ static void call_console_drivers(int lev
+-static int __init ep93xxbl_probe(struct platform_device *dev)
++static int ep93xxbl_probe(struct platform_device *dev)
  {
- 	struct console *con;
- 
--	trace_console(text, 0, len, len);
-+	trace_console(text, len);
- 
- 	if (level >= console_loglevel && !ignore_loglevel)
- 		return;
+ 	struct ep93xxbl *ep93xxbl;
+ 	struct backlight_device *bl;
 _
 
-Patches currently in -mm which might be from jovi.zhangwei@huawei.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-printk-tracing-rework-console-tracing.patch
+linux-next.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+rtc-rtc-coh90133-use-devm_rtc_device_register.patch
+rtc-rtc-da9052-use-devm_rtc_device_register.patch
+rtc-rtc-da9055-use-devm_rtc_device_register.patch
+rtc-rtc-davinci-use-devm_rtc_device_register.patch
+rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+rtc-rtc-lp8788-use-devm_rtc_device_register.patch
+rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+rtc-rtc-max77686-use-devm_rtc_device_register.patch
+rtc-rtc-max8907-use-devm_rtc_device_register.patch
+rtc-rtc-max8997-use-devm_rtc_device_register.patch
+rtc-rtc-mv-use-devm_rtc_device_register.patch
+rtc-rtc-mxc-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_rtc_device_register.patch
+rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
+rtc-rtc-s3c-use-devm_rtc_device_register.patch
+rtc-rtc-snvs-use-devm_rtc_device_register.patch
+rtc-rtc-spear-use-devm_rtc_device_register.patch
+rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
+rtc-rtc-tegra-use-devm_rtc_device_register.patch
+rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+rtc-rtc-tps65910-use-devm_rtc_device_register.patch
+rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
