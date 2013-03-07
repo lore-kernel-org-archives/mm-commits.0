@@ -1,102 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + randy-has-moved.patch added to -mm tree
-Date: Thu, 07 Mar 2013 13:46:09 -0800
-Message-ID: <20130307214609.6EDA95A424B@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable.patch removed from -mm tree
+Date: Thu, 07 Mar 2013 13:47:16 -0800
+Message-ID: <20130307214716.A9DD531C3AA@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:43908 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759748Ab3CGVqK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 16:46:10 -0500
-Received: by mail-ye0-f202.google.com with SMTP id q5so94118yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 13:46:10 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:52910 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752764Ab3CGVrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 16:47:18 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so94133vcd.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 13:47:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rdunlap@infradead.org, harryxiyou@gmail.com, k-keiichi@bx.jp.nec.com
+To: artem.savkov@gmail.com, aaron.lu@intel.com, ibm-acpi@hmh.eng.br, maciej.rutecki@gmail.com, matthew.garrett@nebula.com, msb@chromium.org, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Randy has moved
-has been added to the -mm tree.  Its filename is
-     randy-has-moved.patch
+     Subject: drivers/platform/x86/thinkpad_acpi.c: move hotkey_thread_mutex lock after set_freezable()
+has been removed from the -mm tree.  Its filename was
+     drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Randy has moved
+From: Artem Savkov <artem.savkov@gmail.com>
+Subject: drivers/platform/x86/thinkpad_acpi.c: move hotkey_thread_mutex lock after set_freezable()
 
-Update email address and CREDITS info.  xenotime.net is defunct.
+set_freezable() runs try_to_freeze() during which no locks should be held.
+hotkey_thread_mutex lock should be moved closer to where it is actually
+needed.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Harry Wei <harryxiyou@gmail.com>
-Cc: Keiichi KII <k-keiichi@bx.jp.nec.com>
+This fixes a boot-time lockdep warning which results from "lockdep: check
+that no locks held at freeze time".
 
+Signed-off-by: Artem Savkov <artem.savkov@gmail.com>
+Cc: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mandeep Singh Baines <msb@chromium.org>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS                          |    6 +++---
- Documentation/SubmittingPatches  |    3 +--
- Documentation/printk-formats.txt |    2 +-
- 3 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN CREDITS~randy-has-moved CREDITS
---- a/CREDITS~randy-has-moved
-+++ a/CREDITS
-@@ -953,11 +953,11 @@ S: Blacksburg, Virginia 24061
- S: USA
+diff -puN drivers/platform/x86/thinkpad_acpi.c~drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~drivers-platform-x86-thinkpad_acpic-move-hotkey_thread_mutex-lock-after-set_freezable
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -2462,13 +2462,13 @@ static int hotkey_kthread(void *data)
+ 	unsigned int poll_freq;
+ 	bool was_frozen;
  
- N: Randy Dunlap
--E: rdunlap@xenotime.net
--W: http://www.xenotime.net/linux/linux.html
--W: http://www.linux-usb.org
-+E: rdunlap@infradead.org
-+W: http://www.infradead.org/~rdunlap/
- D: Linux-USB subsystem, USB core/UHCI/printer/storage drivers
- D: x86 SMP, ACPI, bootflag hacking
-+D: documentation, builds
- S: (ask for current address)
- S: USA
+-	mutex_lock(&hotkey_thread_mutex);
+-
+ 	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
+ 		goto exit;
  
-diff -puN Documentation/SubmittingPatches~randy-has-moved Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~randy-has-moved
-+++ a/Documentation/SubmittingPatches
-@@ -60,8 +60,7 @@ own source tree.  For example:
- "dontdiff" is a list of files which are generated by the kernel during
- the build process, and should be ignored in any diff(1)-generated
- patch.  The "dontdiff" file is included in the kernel tree in
--2.6.12 and later.  For earlier kernel versions, you can get it
--from <http://www.xenotime.net/linux/doc/dontdiff>.
-+2.6.12 and later.
+ 	set_freezable();
  
- Make sure your patch does not include any extra files which do not
- belong in a patch submission.  Make sure to review your patch -after-
-diff -puN Documentation/printk-formats.txt~randy-has-moved Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~randy-has-moved
-+++ a/Documentation/printk-formats.txt
-@@ -170,5 +170,5 @@ Reminder: sizeof() result is of type siz
- Thank you for your cooperation and attention.
++	mutex_lock(&hotkey_thread_mutex);
++
+ 	so = 0;
+ 	si = 1;
+ 	t = 0;
+@@ -2522,8 +2522,8 @@ static int hotkey_kthread(void *data)
+ 		si ^= 1;
+ 	}
  
+-exit:
+ 	mutex_unlock(&hotkey_thread_mutex);
++exit:
+ 	return 0;
+ }
  
--By Randy Dunlap <rdunlap@xenotime.net> and
-+By Randy Dunlap <rdunlap@infradead.org> and
- Andrew Murray <amurray@mpc-data.co.uk>
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from artem.savkov@gmail.com are
 
-linux-next.patch
-randy-has-moved.patch
-futex-fix-kernel-doc-notation-and-spello.patch
-debugging-keep-track-of-page-owners-fix-2.patch
+thinkpad-acpi-kill-hotkey_thread_mutex.patch
 
