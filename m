@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thinkpad-acpi-kill-hotkey_thread_mutex.patch added to -mm tree
-Date: Thu, 07 Mar 2013 13:48:05 -0800
-Message-ID: <20130307214805.8E99D31C3A8@corp2gmr1-1.hot.corp.google.com>
+Subject: + memcg-initialize-kmem-cache-destroying-work-earlier.patch added to -mm tree
+Date: Thu, 07 Mar 2013 13:54:19 -0800
+Message-ID: <20130307215419.8E2CE31C643@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:47139 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754356Ab3CGVsI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 16:48:08 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so94312vcd.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 13:48:06 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:50752 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758733Ab3CGVyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 16:54:20 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so95974ggn.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 13:54:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, aaron.lu@intel.com, artem.savkov@gmail.com, ibm-acpi@hmh.eng.br, maciej.rutecki@gmail.com, matthew.garrett@nebula.com, msb@chromium.org, rjw@sisk.pl, tj@kernel.org
+Cc: khlebnikov@openvz.org, glommer@parallels.com
 
 
 The patch titled
-     Subject: thinkpad-acpi: kill hotkey_thread_mutex
+     Subject: memcg: initialize kmem-cache destroying work earlier
 has been added to the -mm tree.  Its filename is
-     thinkpad-acpi-kill-hotkey_thread_mutex.patch
+     memcg-initialize-kmem-cache-destroying-work-earlier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: thinkpad-acpi: kill hotkey_thread_mutex
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: memcg: initialize kmem-cache destroying work earlier
 
-hotkey_kthread() does try_to_freeze() under hotkey_thread_mutex.
+Fix a warning from lockdep caused by calling cancel_work_sync() for
+uninitialized struct work.  This path has been triggered by destructon
+kmem-cache hierarchy via destroying its root kmem-cache.
 
-We can simply kill this mutex, hotkey_poll_stop_sync() does not need to
-serialize with hotkey_kthread().  When kthread_stop() returns the thread
-is already dead, it called do_exit()->complete_vfork_done().
+[  250.781400] cache ffff88003c072d80
+[  250.783706] obj ffff88003b410000 cache ffff88003c072d80
+[  250.786312] obj ffff88003b924000 cache ffff88003c20bd40
+[  250.787233] INFO: trying to register non-static key.
+[  250.788046] the code is fine but needs lockdep annotation.
+[  250.788184] turning off the locking correctness validator.
+[  250.788184] Pid: 2825, comm: insmod Tainted: G           O 3.9.0-rc1-next-20130307+ #611
+[  250.788184] Call Trace:
+[  250.788184]  [<ffffffff81092ea2>] __lock_acquire+0x16a2/0x1cb0
+[  250.788184]  [<ffffffff81093a6a>] lock_acquire+0x8a/0x120
+[  250.788184]  [<ffffffff81058ae0>] ? cancel_delayed_work+0xb0/0xb0
+[  250.788184]  [<ffffffff81058b18>] flush_work+0x38/0x2a0
+[  250.788184]  [<ffffffff81058ae0>] ? cancel_delayed_work+0xb0/0xb0
+[  250.788184]  [<ffffffff8109438e>] ? mark_held_locks+0xae/0x120
+[  250.788184]  [<ffffffff81058dfd>] ? __cancel_work_timer+0x7d/0xf0
+[  250.788184]  [<ffffffff81094505>] ? trace_hardirqs_on_caller+0x105/0x1d0
+[  250.788184]  [<ffffffff81058e09>] __cancel_work_timer+0x89/0xf0
+[  250.788184]  [<ffffffff81058e8b>] cancel_work_sync+0xb/0x10
+[  250.788184]  [<ffffffff8114a401>] kmem_cache_destroy_memcg_children+0x81/0xb0
+[  250.788184]  [<ffffffff81114a6f>] kmem_cache_destroy+0xf/0xe0
+[  250.788184]  [<ffffffffa000a0cb>] init_module+0xcb/0x1000 [kmem_test]
+[  250.788184]  [<ffffffffa000a000>] ? 0xffffffffa0009fff
+[  250.788184]  [<ffffffff810002fa>] do_one_initcall+0x11a/0x170
+[  250.788184]  [<ffffffff8109fdb0>] load_module+0x19b0/0x2320
+[  250.788184]  [<ffffffff8109bfa0>] ? __unlink_module+0x30/0x30
+[  250.788184]  [<ffffffff817f365c>] ? retint_restore_args+0xe/0xe
+[  250.788184]  [<ffffffff817f365c>] ? retint_restore_args+0xe/0xe
+[  250.788184]  [<ffffffff810a07e6>] SyS_init_module+0xc6/0xf0
+[  250.788184]  [<ffffffff817fb1d2>] system_call_fastpath+0x16/0x1b
 
-Reported-by: Artem Savkov <artem.savkov@gmail.com>
-Reported-by: Maciej Rutecki <maciej.rutecki@gmail.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
-Cc: Matthew Garrett <matthew.garrett@nebula.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mandeep Singh Baines <msb@chromium.org>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: Tejun Heo <tj@kernel.org>
+#include <linux/module.h>
+#include <linux/slab.h>
+#include <linux/mm.h>
+#include <linux/workqueue.h>
+
+int __init mod_init(void)
+{
+	int size = 256;
+	struct kmem_cache *cache;
+	void *obj;
+	struct page *page;
+
+	cache = kmem_cache_create("kmem_cache_test", size, size, 0, NULL);
+	if (!cache)
+		return -ENOMEM;
+
+	printk("cache %p\n", cache);
+
+	obj = kmem_cache_alloc(cache, GFP_KERNEL);
+	if (obj) {
+		page = virt_to_head_page(obj);
+		printk("obj %p cache %p\n", obj, page->slab_cache);
+		kmem_cache_free(cache, obj);
+	}
+
+	flush_scheduled_work();
+
+	obj = kmem_cache_alloc(cache, GFP_KERNEL);
+	if (obj) {
+		page = virt_to_head_page(obj);
+		printk("obj %p cache %p\n", obj, page->slab_cache);
+		kmem_cache_free(cache, obj);
+	}
+
+	kmem_cache_destroy(cache);
+
+	return -EBUSY;
+}
+
+module_init(mod_init);
+MODULE_LICENSE("GPL");
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/thinkpad_acpi.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ mm/memcontrol.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-kill-hotkey_thread_mutex drivers/platform/x86/thinkpad_acpi.c
---- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-kill-hotkey_thread_mutex
-+++ a/drivers/platform/x86/thinkpad_acpi.c
-@@ -1964,9 +1964,6 @@ struct tp_nvram_state {
- /* kthread for the hotkey poller */
- static struct task_struct *tpacpi_hotkey_task;
- 
--/* Acquired while the poller kthread is running, use to sync start/stop */
--static struct mutex hotkey_thread_mutex;
--
- /*
-  * Acquire mutex to write poller control variables as an
-  * atomic block.
-@@ -2462,8 +2459,6 @@ static int hotkey_kthread(void *data)
- 	unsigned int poll_freq;
- 	bool was_frozen;
- 
--	mutex_lock(&hotkey_thread_mutex);
--
- 	if (tpacpi_lifecycle == TPACPI_LIFE_EXITING)
- 		goto exit;
- 
-@@ -2523,7 +2518,6 @@ static int hotkey_kthread(void *data)
- 	}
- 
- exit:
--	mutex_unlock(&hotkey_thread_mutex);
- 	return 0;
+diff -puN mm/memcontrol.c~memcg-initialize-kmem-cache-destroying-work-earlier mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-initialize-kmem-cache-destroying-work-earlier
++++ a/mm/memcontrol.c
+@@ -3012,6 +3012,8 @@ void memcg_update_array_size(int num)
+ 		memcg_limited_groups_array_size = memcg_caches_array_size(num);
  }
  
-@@ -2533,9 +2527,6 @@ static void hotkey_poll_stop_sync(void)
- 	if (tpacpi_hotkey_task) {
- 		kthread_stop(tpacpi_hotkey_task);
- 		tpacpi_hotkey_task = NULL;
--		mutex_lock(&hotkey_thread_mutex);
--		/* at this point, the thread did exit */
--		mutex_unlock(&hotkey_thread_mutex);
++static void kmem_cache_destroy_work_func(struct work_struct *w);
++
+ int memcg_update_cache_size(struct kmem_cache *s, int num_groups)
+ {
+ 	struct memcg_cache_params *cur_params = s->memcg_params;
+@@ -3031,6 +3033,8 @@ int memcg_update_cache_size(struct kmem_
+ 			return -ENOMEM;
+ 		}
+ 
++		INIT_WORK(&s->memcg_params->destroy,
++				kmem_cache_destroy_work_func);
+ 		s->memcg_params->is_root_cache = true;
+ 
+ 		/*
+@@ -3078,6 +3082,8 @@ int memcg_register_cache(struct mem_cgro
+ 	if (!s->memcg_params)
+ 		return -ENOMEM;
+ 
++	INIT_WORK(&s->memcg_params->destroy,
++			kmem_cache_destroy_work_func);
+ 	if (memcg) {
+ 		s->memcg_params->memcg = memcg;
+ 		s->memcg_params->root_cache = root_cache;
+@@ -3358,8 +3364,6 @@ static void mem_cgroup_destroy_all_cache
+ 	list_for_each_entry(params, &memcg->memcg_slab_caches, list) {
+ 		cachep = memcg_params_to_cache(params);
+ 		cachep->memcg_params->dead = true;
+-		INIT_WORK(&cachep->memcg_params->destroy,
+-				  kmem_cache_destroy_work_func);
+ 		schedule_work(&cachep->memcg_params->destroy);
  	}
- }
- 
-@@ -3234,7 +3225,6 @@ static int __init hotkey_init(struct ibm
- 	mutex_init(&hotkey_mutex);
- 
- #ifdef CONFIG_THINKPAD_ACPI_HOTKEY_POLL
--	mutex_init(&hotkey_thread_mutex);
- 	mutex_init(&hotkey_thread_data_mutex);
- #endif
- 
+ 	mutex_unlock(&memcg->slab_caches_mutex);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
-thinkpad-acpi-kill-hotkey_thread_mutex.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
+memcg-initialize-kmem-cache-destroying-work-earlier.patch
+drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch
 
