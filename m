@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-initialize-kmem-cache-destroying-work-earlier.patch added to -mm tree
-Date: Thu, 07 Mar 2013 13:54:19 -0800
-Message-ID: <20130307215419.8E2CE31C643@corp2gmr1-1.hot.corp.google.com>
+Subject: + alpha-boot-fix-build-breakage-introduced-by-systemh-disintegration.patch added to -mm tree
+Date: Thu, 07 Mar 2013 13:56:25 -0800
+Message-ID: <20130307215625.7300731C11E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:50752 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758733Ab3CGVyU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 16:54:20 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so95974ggn.4
-        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 13:54:20 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:60146 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758860Ab3CGV40 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 16:56:26 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so96351ggi.5
+        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 13:56:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, glommer@parallels.com
+Cc: will.deacon@arm.com, david.rusling@linaro.org, dhowells@redhat.com
 
 
 The patch titled
-     Subject: memcg: initialize kmem-cache destroying work earlier
+     Subject: alpha: boot: fix build breakage introduced by system.h disintegration
 has been added to the -mm tree.  Its filename is
-     memcg-initialize-kmem-cache-destroying-work-earlier.patch
+     alpha-boot-fix-build-breakage-introduced-by-systemh-disintegration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,136 +33,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: memcg: initialize kmem-cache destroying work earlier
+From: Will Deacon <will.deacon@arm.com>
+Subject: alpha: boot: fix build breakage introduced by system.h disintegration
 
-Fix a warning from lockdep caused by calling cancel_work_sync() for
-uninitialized struct work.  This path has been triggered by destructon
-kmem-cache hierarchy via destroying its root kmem-cache.
+Commit ec2212088c42 ("Disintegrate asm/system.h for Alpha") removed the
+system.h include from boot/head.S, which puts the PAL_* asm constants out
+of scope.
 
-[  250.781400] cache ffff88003c072d80
-[  250.783706] obj ffff88003b410000 cache ffff88003c072d80
-[  250.786312] obj ffff88003b924000 cache ffff88003c20bd40
-[  250.787233] INFO: trying to register non-static key.
-[  250.788046] the code is fine but needs lockdep annotation.
-[  250.788184] turning off the locking correctness validator.
-[  250.788184] Pid: 2825, comm: insmod Tainted: G           O 3.9.0-rc1-next-20130307+ #611
-[  250.788184] Call Trace:
-[  250.788184]  [<ffffffff81092ea2>] __lock_acquire+0x16a2/0x1cb0
-[  250.788184]  [<ffffffff81093a6a>] lock_acquire+0x8a/0x120
-[  250.788184]  [<ffffffff81058ae0>] ? cancel_delayed_work+0xb0/0xb0
-[  250.788184]  [<ffffffff81058b18>] flush_work+0x38/0x2a0
-[  250.788184]  [<ffffffff81058ae0>] ? cancel_delayed_work+0xb0/0xb0
-[  250.788184]  [<ffffffff8109438e>] ? mark_held_locks+0xae/0x120
-[  250.788184]  [<ffffffff81058dfd>] ? __cancel_work_timer+0x7d/0xf0
-[  250.788184]  [<ffffffff81094505>] ? trace_hardirqs_on_caller+0x105/0x1d0
-[  250.788184]  [<ffffffff81058e09>] __cancel_work_timer+0x89/0xf0
-[  250.788184]  [<ffffffff81058e8b>] cancel_work_sync+0xb/0x10
-[  250.788184]  [<ffffffff8114a401>] kmem_cache_destroy_memcg_children+0x81/0xb0
-[  250.788184]  [<ffffffff81114a6f>] kmem_cache_destroy+0xf/0xe0
-[  250.788184]  [<ffffffffa000a0cb>] init_module+0xcb/0x1000 [kmem_test]
-[  250.788184]  [<ffffffffa000a000>] ? 0xffffffffa0009fff
-[  250.788184]  [<ffffffff810002fa>] do_one_initcall+0x11a/0x170
-[  250.788184]  [<ffffffff8109fdb0>] load_module+0x19b0/0x2320
-[  250.788184]  [<ffffffff8109bfa0>] ? __unlink_module+0x30/0x30
-[  250.788184]  [<ffffffff817f365c>] ? retint_restore_args+0xe/0xe
-[  250.788184]  [<ffffffff817f365c>] ? retint_restore_args+0xe/0xe
-[  250.788184]  [<ffffffff810a07e6>] SyS_init_module+0xc6/0xf0
-[  250.788184]  [<ffffffff817fb1d2>] system_call_fastpath+0x16/0x1b
+Include <asm/pal.h> so we can get building again.
 
-#include <linux/module.h>
-#include <linux/slab.h>
-#include <linux/mm.h>
-#include <linux/workqueue.h>
-
-int __init mod_init(void)
-{
-	int size = 256;
-	struct kmem_cache *cache;
-	void *obj;
-	struct page *page;
-
-	cache = kmem_cache_create("kmem_cache_test", size, size, 0, NULL);
-	if (!cache)
-		return -ENOMEM;
-
-	printk("cache %p\n", cache);
-
-	obj = kmem_cache_alloc(cache, GFP_KERNEL);
-	if (obj) {
-		page = virt_to_head_page(obj);
-		printk("obj %p cache %p\n", obj, page->slab_cache);
-		kmem_cache_free(cache, obj);
-	}
-
-	flush_scheduled_work();
-
-	obj = kmem_cache_alloc(cache, GFP_KERNEL);
-	if (obj) {
-		page = virt_to_head_page(obj);
-		printk("obj %p cache %p\n", obj, page->slab_cache);
-		kmem_cache_free(cache, obj);
-	}
-
-	kmem_cache_destroy(cache);
-
-	return -EBUSY;
-}
-
-module_init(mod_init);
-MODULE_LICENSE("GPL");
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Glauber Costa <glommer@parallels.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Cc: David Rusling <david.rusling@linaro.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/alpha/boot/head.S |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memcontrol.c~memcg-initialize-kmem-cache-destroying-work-earlier mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-initialize-kmem-cache-destroying-work-earlier
-+++ a/mm/memcontrol.c
-@@ -3012,6 +3012,8 @@ void memcg_update_array_size(int num)
- 		memcg_limited_groups_array_size = memcg_caches_array_size(num);
- }
+diff -puN arch/alpha/boot/head.S~alpha-boot-fix-build-breakage-introduced-by-systemh-disintegration arch/alpha/boot/head.S
+--- a/arch/alpha/boot/head.S~alpha-boot-fix-build-breakage-introduced-by-systemh-disintegration
++++ a/arch/alpha/boot/head.S
+@@ -4,6 +4,7 @@
+  * initial bootloader stuff..
+  */
  
-+static void kmem_cache_destroy_work_func(struct work_struct *w);
-+
- int memcg_update_cache_size(struct kmem_cache *s, int num_groups)
- {
- 	struct memcg_cache_params *cur_params = s->memcg_params;
-@@ -3031,6 +3033,8 @@ int memcg_update_cache_size(struct kmem_
- 			return -ENOMEM;
- 		}
++#include <asm/pal.h>
  
-+		INIT_WORK(&s->memcg_params->destroy,
-+				kmem_cache_destroy_work_func);
- 		s->memcg_params->is_root_cache = true;
- 
- 		/*
-@@ -3078,6 +3082,8 @@ int memcg_register_cache(struct mem_cgro
- 	if (!s->memcg_params)
- 		return -ENOMEM;
- 
-+	INIT_WORK(&s->memcg_params->destroy,
-+			kmem_cache_destroy_work_func);
- 	if (memcg) {
- 		s->memcg_params->memcg = memcg;
- 		s->memcg_params->root_cache = root_cache;
-@@ -3358,8 +3364,6 @@ static void mem_cgroup_destroy_all_cache
- 	list_for_each_entry(params, &memcg->memcg_slab_caches, list) {
- 		cachep = memcg_params_to_cache(params);
- 		cachep->memcg_params->dead = true;
--		INIT_WORK(&cachep->memcg_params->destroy,
--				  kmem_cache_destroy_work_func);
- 		schedule_work(&cachep->memcg_params->destroy);
- 	}
- 	mutex_unlock(&memcg->slab_caches_mutex);
+ 	.set noreorder
+ 	.globl	__start
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from will.deacon@arm.com are
 
-memcg-initialize-kmem-cache-destroying-work-earlier.patch
-drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch
+linux-next.patch
+alpha-boot-fix-build-breakage-introduced-by-systemh-disintegration.patch
 
