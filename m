@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-rename-random32-to-prandom_u32-fix.patch added to -mm tree
-Date: Thu, 07 Mar 2013 14:49:00 -0800
-Message-ID: <20130307224900.D163A31C2CC@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-usb-dwc3-ep0c-fix-sparc64-build.patch added to -mm tree
+Date: Thu, 07 Mar 2013 15:14:23 -0800
+Message-ID: <20130307231423.6CFC05A41EC@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:63219 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908Ab3CGWtB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 17:49:01 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so102264ggn.0
-        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 14:49:01 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:55126 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759998Ab3CGXOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 18:14:25 -0500
+Received: by mail-qe0-f73.google.com with SMTP id a11so105035qen.4
+        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 15:14:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com, davem@davemloft.net
+Cc: akpm@linux-foundation.org, balbi@ti.com, gregkh@linuxfoundation.org
 
 
 The patch titled
-     Subject: drivers-net-rename-random32-to-prandom_u32-fix
+     Subject: drivers/usb/dwc3/ep0.c: fix sparc64 build
 has been added to the -mm tree.  Its filename is
-     drivers-net-rename-random32-to-prandom_u32-fix.patch
+     drivers-usb-dwc3-ep0c-fix-sparc64-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-net-rename-random32-to-prandom_u32-fix
+Subject: drivers/usb/dwc3/ep0.c: fix sparc64 build
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+drivers/usb/dwc3/ep0.c: In function `__dwc3_ep0_do_control_data':
+drivers/usb/dwc3/ep0.c:905: error: `typeof' applied to a bit-field
+
+Looks like a gcc-3.4.5/sparc64 bug.
+
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/team/team_mode_random.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/dwc3/ep0.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/team/team_mode_random.c~drivers-net-rename-random32-to-prandom_u32-fix drivers/net/team/team_mode_random.c
---- a/drivers/net/team/team_mode_random.c~drivers-net-rename-random32-to-prandom_u32-fix
-+++ a/drivers/net/team/team_mode_random.c
-@@ -18,7 +18,7 @@
+diff -puN drivers/usb/dwc3/ep0.c~drivers-usb-dwc3-ep0c-fix-sparc64-build drivers/usb/dwc3/ep0.c
+--- a/drivers/usb/dwc3/ep0.c~drivers-usb-dwc3-ep0c-fix-sparc64-build
++++ a/drivers/usb/dwc3/ep0.c
+@@ -891,7 +891,8 @@ static void __dwc3_ep0_do_control_data(s
+ 				DWC3_TRBCTL_CONTROL_DATA);
+ 	} else if (!IS_ALIGNED(req->request.length, dep->endpoint.maxpacket)
+ 			&& (dep->number == 0)) {
+-		u32		transfer_size;
++		u32	transfer_size;
++		u32	maxpacket;
  
- static u32 random_N(unsigned int N)
- {
--	return reciprocal_divide(random32(), N);
-+	return reciprocal_divide(prandom_u32(), N);
- }
+ 		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
+ 				dep->number);
+@@ -902,8 +903,8 @@ static void __dwc3_ep0_do_control_data(s
  
- static bool rnd_transmit(struct team *team, struct sk_buff *skb)
+ 		WARN_ON(req->request.length > DWC3_EP0_BOUNCE_SIZE);
+ 
+-		transfer_size = roundup(req->request.length,
+-				(u32) dep->endpoint.maxpacket);
++		maxpacket = dep->endpoint.maxpacket;
++		transfer_size = roundup(req->request.length, maxpacket);
+ 
+ 		dwc->ep0_bounced = true;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,4 +122,6 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+drivers-usb-dwc3-ep0c-fix-sparc64-build.patch
+a-fix.patch
 
