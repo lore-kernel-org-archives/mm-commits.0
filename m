@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-prevent-use-of-unitialized-variable.patch added to -mm tree
-Date: Wed, 06 Mar 2013 16:21:49 -0800
-Message-ID: <20130307002149.6FECB5A4005@corp2gmr1-2.hot.corp.google.com>
+Subject: [obsolete] checkpatch-prevent-use-of-unitialized-variable.patch removed from -mm tree
+Date: Wed, 06 Mar 2013 16:36:07 -0800
+Message-ID: <20130307003607.C195A31C1B5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:41722 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757586Ab3CGAVu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 19:21:50 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so937163vea.4
-        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 16:21:49 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:63032 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932105Ab3CGAgJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Mar 2013 19:36:09 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so355345vbb.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Mar 2013 16:36:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: iveqy@iveqy.com, joe@perches.com
+To: iveqy@iveqy.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: checkpatch: prevent use of unitialized variable
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      checkpatch-prevent-use-of-unitialized-variable.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Fredrik Gustafsson <iveqy@iveqy.com>
@@ -80,5 +70,4 @@ _
 
 Patches currently in -mm which might be from iveqy@iveqy.com are
 
-checkpatch-prevent-use-of-unitialized-variable.patch
 
