@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pid_namespacec-h-simplify-defines-fix.patch added to -mm tree
-Date: Thu, 07 Mar 2013 14:22:59 -0800
-Message-ID: <20130307222259.BE2D55A42FE@corp2gmr1-2.hot.corp.google.com>
+Subject: + include-linux-res_counterh-needs-errnoh.patch added to -mm tree
+Date: Thu, 07 Mar 2013 14:45:47 -0800
+Message-ID: <20130307224548.4F47331C2D7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:58833 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751471Ab3CGWXB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 17:23:01 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so99400yhz.5
-        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 14:23:00 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:33005 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752809Ab3CGWpt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Mar 2013 17:45:49 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so101799yhr.2
+        for <mm-commits@vger.kernel.org>; Thu, 07 Mar 2013 14:45:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, raphael.scarv@gmail.com
+Cc: akpm@linux-foundation.org, fweisbec@redhat.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, tj@kernel.org
 
 
 The patch titled
-     Subject: pid_namespacec-h-simplify-defines-fix
+     Subject: include/linux/res_counter.h needs errno.h
 has been added to the -mm tree.  Its filename is
-     pid_namespacec-h-simplify-defines-fix.patch
+     include-linux-res_counterh-needs-errnoh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pid_namespacec-h-simplify-defines-fix
+Subject: include/linux/res_counter.h needs errno.h
 
-kernel/pid.c:54:1: warning: "BITS_PER_PAGE" redefined
+alpha allmodconfig:
 
-Cc: Raphael S.Carvalho <raphael.scarv@gmail.com>
+In file included from mm/memcontrol.c:28:
+include/linux/res_counter.h: In function 'res_counter_set_limit':
+include/linux/res_counter.h:203: error: 'EBUSY' undeclared (first use in this function)
+include/linux/res_counter.h:203: error: (Each undeclared identifier is reported only once
+include/linux/res_counter.h:203: error: for each function it appears in.)
+
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Frederic Weisbecker <fweisbec@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |    1 +
- kernel/pid.c                  |    3 ---
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ include/linux/res_counter.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/pid_namespace.h~pid_namespacec-h-simplify-defines-fix include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~pid_namespacec-h-simplify-defines-fix
-+++ a/include/linux/pid_namespace.h
-@@ -14,6 +14,7 @@ struct pidmap {
- };
+diff -puN include/linux/res_counter.h~include-linux-res_counterh-needs-errnoh include/linux/res_counter.h
+--- a/include/linux/res_counter.h~include-linux-res_counterh-needs-errnoh
++++ a/include/linux/res_counter.h
+@@ -14,6 +14,7 @@
+  */
  
- #define BITS_PER_PAGE		(PAGE_SIZE * 8)
-+#define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
- #define PIDMAP_ENTRIES		((PID_MAX_LIMIT+BITS_PER_PAGE-1)/BITS_PER_PAGE)
+ #include <linux/spinlock.h>
++#include <linux/errno.h>
  
- struct bsd_acct_struct;
-diff -puN kernel/pid.c~pid_namespacec-h-simplify-defines-fix kernel/pid.c
---- a/kernel/pid.c~pid_namespacec-h-simplify-defines-fix
-+++ a/kernel/pid.c
-@@ -51,9 +51,6 @@ int pid_max = PID_MAX_DEFAULT;
- int pid_max_min = RESERVED_PIDS + 1;
- int pid_max_max = PID_MAX_LIMIT;
- 
--#define BITS_PER_PAGE		(PAGE_SIZE*8)
--#define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
--
- static inline int mk_pid(struct pid_namespace *pid_ns,
- 		struct pidmap *map, int off)
- {
+ /*
+  * The core object. the cgroup that wishes to account for some
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,4 +112,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+include-linux-res_counterh-needs-errnoh.patch
 
