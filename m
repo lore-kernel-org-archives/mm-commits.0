@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch added to -mm tree
-Date: Fri, 08 Mar 2013 13:02:20 -0800
-Message-ID: <20130308210220.715CB31C00F@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-video-console-fbcon_cwc-fix-compiler-warning-in-cw_update_attr.patch added to -mm tree
+Date: Fri, 08 Mar 2013 13:03:36 -0800
+Message-ID: <20130308210336.6EF7E5A4123@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:36856 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755096Ab3CHVCV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:02:21 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so201200yhz.5
-        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:02:20 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:63896 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932702Ab3CHVDh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:03:37 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so147965vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:03:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: devendra.aaru@gmail.com, jg1.han@samsung.com, milo.kim@ti.com
+Cc: devendra.aaru@gmail.com, FlorianSchandinat@gmx.de
 
 
 The patch titled
-     Subject: drivers/video/backlight/lp855x_bl.c: fix compiler warning in lp855x_probe
+     Subject: drivers/video/console/fbcon_cw.c: fix compiler warning in cw_update_attr
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
+     drivers-video-console-fbcon_cwc-fix-compiler-warning-in-cw_update_attr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: drivers/video/backlight/lp855x_bl.c: fix compiler warning in lp855x_probe
+Subject: drivers/video/console/fbcon_cw.c: fix compiler warning in cw_update_attr
 
-while doing with make W=1 gcc (gcc (GCC) 4.7.2 20121109 (Red Hat 4.7.2-8))
+with make W=1
 
-found
+saw
 
-drivers/video/backlight/lp855x_bl.c: In function `lp855x_probe':
-drivers/video/backlight/lp855x_bl.c:342:35: warning: variable `mode' set but not used [-Wunused-but-set-variable]
+drivers/video/console/fbcon_cw.c: In function `cw_update_attr':
+drivers/video/console/fbcon_cw.c:30:8: warning: variable `t' set but not used [-Wunused-but-set-variable]
 
-fixed by removing it as since its not used anywhere
+fixed by removing as since its used nowhere
 
 Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
-Cc: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/console/fbcon_cw.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -339,7 +339,6 @@ static int lp855x_probe(struct i2c_clien
+diff -puN drivers/video/console/fbcon_cw.c~drivers-video-console-fbcon_cwc-fix-compiler-warning-in-cw_update_attr drivers/video/console/fbcon_cw.c
+--- a/drivers/video/console/fbcon_cw.c~drivers-video-console-fbcon_cwc-fix-compiler-warning-in-cw_update_attr
++++ a/drivers/video/console/fbcon_cw.c
+@@ -27,7 +27,7 @@ static void cw_update_attr(u8 *dst, u8 *
  {
- 	struct lp855x *lp;
- 	struct lp855x_platform_data *pdata = cl->dev.platform_data;
--	enum lp855x_brightness_ctrl_mode mode;
- 	int ret;
+ 	int i, j, offset = (vc->vc_font.height < 10) ? 1 : 2;
+ 	int width = (vc->vc_font.height + 7) >> 3;
+-	u8 c, t = 0, msk = ~(0xff >> offset);
++	u8 c, msk = ~(0xff >> offset);
  
- 	if (!pdata) {
-@@ -354,7 +353,6 @@ static int lp855x_probe(struct i2c_clien
- 	if (!lp)
- 		return -ENOMEM;
- 
--	mode = pdata->mode;
- 	lp->client = cl;
- 	lp->dev = &cl->dev;
- 	lp->pdata = pdata;
+ 	for (i = 0; i < vc->vc_font.width; i++) {
+ 		for (j = 0; j < width; j++) {
+@@ -40,7 +40,6 @@ static void cw_update_attr(u8 *dst, u8 *
+ 				c = ~c;
+ 			src++;
+ 			*dst++ = c;
+-			t = c;
+ 		}
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from devendra.aaru@gmail.com are
 
+drivers-video-console-fbcon_cwc-fix-compiler-warning-in-cw_update_attr.patch
 drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
 
