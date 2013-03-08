@@ -1,114 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch removed from -mm tree
-Date: Fri, 08 Mar 2013 13:07:51 -0800
-Message-ID: <20130308210751.8A3715A4123@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] coredump-make-wait_for_dump_helpers-freezable.patch removed from -mm tree
+Date: Fri, 08 Mar 2013 13:07:54 -0800
+Message-ID: <20130308210754.8EA5A5A4123@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:50381 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932987Ab3CHVHw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:07:52 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z6so201830yhz.3
-        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:07:52 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:44420 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932987Ab3CHVHz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:07:55 -0500
+Received: by mail-qc0-f202.google.com with SMTP id k26so148907qcs.3
+        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:07:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rafael.j.wysocki@intel.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: freezer: do not send a fake signal to a PF_DUMPCORE thread
+     Subject: coredump: make wait_for_dump_helpers() freezable
 has been removed from the -mm tree.  Its filename was
-     freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread.patch
+     coredump-make-wait_for_dump_helpers-freezable.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: freezer: do not send a fake signal to a PF_DUMPCORE thread
+Subject: coredump: make wait_for_dump_helpers() freezable
 
-A coredumping thread can't be frozen anyway but the fake signal sent by
-freeze_task() can confuse dump_write/wait_for_dump_helpers/etc and
-interrupt the coredump.
+wait_for_dump_helpers() calls wake_up/kill_fasync from inside the
+wait_event-like loop.  This is not needed and in fact this is not strictly
+correct, we can/should do this only once after we change pipe->writers. 
+We could even check if it becomes zero.
 
-We are going to make the do_coredump() paths freezable but the fake
-TIF_SIGPENDING doesn't help, it only makes sense when we assume that the
-target can return to user-mode and call get_signal_to_deliver().
+With this change it is trivial to convert this code to use
+wait_event_freezable() and make this function freezable/killable, only
+SIGKILL can set TIF_SIGPENDING.
 
-Change freeze_task() to check PF_DUMPCORE along with PF_KTHREAD.  We need
-to recheck PF_DUMPCORE under ->siglock to avoid the race with
-zap_threads() which can set this flag right before we take the lock.
- 
+With this patch we check pipe->readers without pipe_lock(), this is fine. 
+Once we see pipe->readers == 1 we know that the handler decremented the
+counter, this is all we need.
+
+Note: wait_event_freezable() is "strange", perhaps it should be changed or
+simply removed.  In the latter case we can change this code again to use
+freezer_do_not_count + wait_event_interruptible.
+
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Mandeep Singh Baines <msb@chromium.org>
+Acked-by: Mandeep Singh Baines <msb@chromium.org>
 Cc: Neil Horman <nhorman@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/freezer.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ fs/coredump.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/freezer.c~freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread kernel/freezer.c
---- a/kernel/freezer.c~freezer-do-not-send-a-fake-signal-to-a-pf_dumpcore-thread
-+++ a/kernel/freezer.c
-@@ -85,14 +85,21 @@ bool __refrigerator(bool check_kthr_stop
- }
- EXPORT_SYMBOL(__refrigerator);
+diff -puN fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable fs/coredump.c
+--- a/fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable
++++ a/fs/coredump.c
+@@ -32,6 +32,7 @@
+ #include <linux/pipe_fs_i.h>
+ #include <linux/oom.h>
+ #include <linux/compat.h>
++#include <linux/freezer.h>
  
--static void fake_signal_wake_up(struct task_struct *p)
-+static bool fake_signal_wake_up(struct task_struct *p)
- {
- 	unsigned long flags;
-+	bool ret = false;
-+
-+	if (p->flags & (PF_KTHREAD | PF_DUMPCORE))
-+		return ret;
+ #include <asm/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -428,17 +429,16 @@ static void wait_for_dump_helpers(struct
+ 	pipe_lock(pipe);
+ 	pipe->readers++;
+ 	pipe->writers--;
++	wake_up_interruptible_sync(&pipe->wait);
++	kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
++	pipe_unlock(pipe);
  
- 	if (lock_task_sighand(p, &flags)) {
--		signal_wake_up(p, 0);
-+		ret = !(p->flags & PF_DUMPCORE);
-+		if (ret)
-+			signal_wake_up(p, 0);
- 		unlock_task_sighand(p, &flags);
- 	}
-+	return ret;
- }
+-	while ((pipe->readers > 1) && (!signal_pending(current))) {
+-		wake_up_interruptible_sync(&pipe->wait);
+-		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
+-		pipe_wait(pipe);
+-	}
++	wait_event_freezable(pipe->wait, pipe->readers == 1);
  
- /**
-@@ -100,8 +107,8 @@ static void fake_signal_wake_up(struct t
-  * @p: task to send the request to
-  *
-  * If @p is freezing, the freeze request is sent either by sending a fake
-- * signal (if it's not a kernel thread) or waking it up (if it's a kernel
-- * thread).
-+ * signal (if it's not a kernel thread or a coredumping thread) or waking
-+ * it up otherwise.
-  *
-  * RETURNS:
-  * %false, if @p is not freezing or already frozen; %true, otherwise
-@@ -116,9 +123,7 @@ bool freeze_task(struct task_struct *p)
- 		return false;
- 	}
- 
--	if (!(p->flags & PF_KTHREAD))
--		fake_signal_wake_up(p);
--	else
-+	if (!fake_signal_wake_up(p))
- 		wake_up_state(p, TASK_INTERRUPTIBLE);
- 
- 	spin_unlock_irqrestore(&freezer_lock, flags);
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-thinkpad-acpi-kill-hotkey_thread_mutex.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-make-wait_for_dump_helpers-freezable.patch
-
++	pipe_lock(pipe);
+ 	pipe->readers--;
+ 	pipe->writers++;
+ 	pipe_unlock(pipe);
