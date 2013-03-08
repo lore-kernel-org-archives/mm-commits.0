@@ -1,62 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 08 Mar 2013 12:08:10 -0800
-Message-ID: <20130308200810.6409C31C2BC@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix.patch removed from -mm tree
+Date: Fri, 08 Mar 2013 12:18:46 -0800
+Message-ID: <20130308201847.1AB7631C1CE@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:52581 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755399Ab3CHUIL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 15:08:11 -0500
-Received: by mail-qc0-f201.google.com with SMTP id o22so144098qcr.2
-        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 12:08:10 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:44019 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752929Ab3CHUSs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 15:18:48 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so144183vbb.4
+        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 12:18:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, ben@decadent.org.uk, stable@vger.kernel.org, tmhikaru@gmail.com, zhenzhong.duan@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix
+has been removed from the -mm tree.  Its filename was
+     dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix
 
+Cc: <stable@vger.kernel.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Tim McGrath <tmhikaru@gmail.com>
+Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/driver.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/firmware/dmi_scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/regulator/driver.h~linux-next-git-rejects include/linux/regulator/driver.h
---- a/include/linux/regulator/driver.h~linux-next-git-rejects
-+++ a/include/linux/regulator/driver.h
-@@ -200,11 +200,8 @@ enum regulator_type {
-  *                output when using regulator_set_voltage_sel_regmap
-  * @enable_reg: Register for control when using regmap enable/disable ops
-  * @enable_mask: Mask for control when using regmap enable/disable ops
--<<<<<<< HEAD
--=======
-  * @enable_is_inverted: A flag to indicate set enable_mask bits to disable
-  *                      when using regulator_enable_regmap and friends APIs.
-->>>>>>> linux-next/akpm-base
-  * @bypass_reg: Register for control when using regmap set_bypass
-  * @bypass_mask: Mask for control when using regmap set_bypass
-  *
+diff -puN drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix
++++ a/drivers/firmware/dmi_scan.c
+@@ -460,7 +460,7 @@ static int __init smbios_present(const c
+ 			dmi_ver = 0x0206;
+ 			break;
+ 		}
+-		return memcmp(q + 16, "_DMI_", 5) || dmi_present(p + 16);
++		return memcmp(p + 16, "_DMI_", 5) || dmi_present(p + 16);
+ 	}
+ 	return 1;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +56,7 @@ linux-next.patch
 linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
-dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present-fix.patch
+dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch
 include-linux-res_counterh-needs-errnoh.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
