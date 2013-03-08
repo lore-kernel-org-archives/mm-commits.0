@@ -1,86 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] coredump-make-wait_for_dump_helpers-freezable.patch removed from -mm tree
-Date: Fri, 08 Mar 2013 13:07:54 -0800
-Message-ID: <20130308210754.8EA5A5A4123@corp2gmr1-2.hot.corp.google.com>
+Subject: + coredump-introduce-dump_interrupted.patch added to -mm tree
+Date: Fri, 08 Mar 2013 13:20:58 -0800
+Message-ID: <20130308212058.D51EF31C1B7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:44420 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932987Ab3CHVHz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:07:55 -0500
-Received: by mail-qc0-f202.google.com with SMTP id k26so148907qcs.3
-        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:07:55 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:33346 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932413Ab3CHVVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:21:00 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so149292vbi.3
+        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:20:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org
 
 
 The patch titled
-     Subject: coredump: make wait_for_dump_helpers() freezable
-has been removed from the -mm tree.  Its filename was
-     coredump-make-wait_for_dump_helpers-freezable.patch
+     Subject: coredump: introduce dump_interrupted()
+has been added to the -mm tree.  Its filename is
+     coredump-introduce-dump_interrupted.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: make wait_for_dump_helpers() freezable
+Subject: coredump: introduce dump_interrupted()
 
-wait_for_dump_helpers() calls wake_up/kill_fasync from inside the
-wait_event-like loop.  This is not needed and in fact this is not strictly
-correct, we can/should do this only once after we change pipe->writers. 
-We could even check if it becomes zero.
+By discussion with Mandeep.
 
-With this change it is trivial to convert this code to use
-wait_event_freezable() and make this function freezable/killable, only
-SIGKILL can set TIF_SIGPENDING.
+Change dump_write(), dump_seek() and do_coredump() to check
+signal_pending() and abort if it is true.
 
-With this patch we check pipe->readers without pipe_lock(), this is fine. 
-Once we see pipe->readers == 1 we know that the handler decremented the
-counter, this is all we need.
+We add the new trivial helper, dump_interrupted(), to document that this
+probably needs more work and to simplify the potential freezer changes. 
+Perhaps it will have more callers.
 
-Note: wait_event_freezable() is "strange", perhaps it should be changed or
-simply removed.  In the latter case we can change this code again to use
-freezer_do_not_count + wait_event_interruptible.
+Ideally it should do try_to_freeze() but then we need the unpleasant
+changes in dump_write() and wait_for_dump_helpers().  So far we simply
+accept the fact that the freezer can truncate a core-dump but at least you
+can reliably suspend.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Mandeep Singh Baines <msb@chromium.org>
 Cc: Neil Horman <nhorman@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/coredump.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable fs/coredump.c
---- a/fs/coredump.c~coredump-make-wait_for_dump_helpers-freezable
+diff -puN fs/coredump.c~coredump-introduce-dump_interrupted fs/coredump.c
+--- a/fs/coredump.c~coredump-introduce-dump_interrupted
 +++ a/fs/coredump.c
-@@ -32,6 +32,7 @@
- #include <linux/pipe_fs_i.h>
- #include <linux/oom.h>
- #include <linux/compat.h>
-+#include <linux/freezer.h>
+@@ -418,6 +418,17 @@ static void coredump_finish(struct mm_st
+ 	mm->core_state = NULL;
+ }
  
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -428,17 +429,16 @@ static void wait_for_dump_helpers(struct
- 	pipe_lock(pipe);
- 	pipe->readers++;
- 	pipe->writers--;
-+	wake_up_interruptible_sync(&pipe->wait);
-+	kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
-+	pipe_unlock(pipe);
++static bool dump_interrupted(void)
++{
++	/*
++	 * SIGKILL or freezing() interrupt the coredumping. Perhaps we
++	 * can do try_to_freeze() and check __fatal_signal_pending(),
++	 * but then we need to teach dump_write() to restart and clear
++	 * TIF_SIGPENDING.
++	 */
++	return signal_pending(current);
++}
++
+ static void wait_for_dump_helpers(struct file *file)
+ {
+ 	struct pipe_inode_info *pipe;
+@@ -636,7 +647,7 @@ void do_coredump(siginfo_t *siginfo)
+ 	if (displaced)
+ 		put_files_struct(displaced);
  
--	while ((pipe->readers > 1) && (!signal_pending(current))) {
--		wake_up_interruptible_sync(&pipe->wait);
--		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
--		pipe_wait(pipe);
--	}
-+	wait_event_freezable(pipe->wait, pipe->readers == 1);
+-	core_dumped = binfmt->core_dump(&cprm);
++	core_dumped = !dump_interrupted() && binfmt->core_dump(&cprm);
  
-+	pipe_lock(pipe);
- 	pipe->readers--;
- 	pipe->writers++;
- 	pipe_unlock(pipe);
+ 	if (ispipe && core_pipe_limit)
+ 		wait_for_dump_helpers(cprm.file);
+@@ -664,7 +675,9 @@ fail:
+  */
+ int dump_write(struct file *file, const void *addr, int nr)
+ {
+-	return access_ok(VERIFY_READ, addr, nr) && file->f_op->write(file, addr, nr, &file->f_pos) == nr;
++	return !dump_interrupted() &&
++		access_ok(VERIFY_READ, addr, nr) &&
++		file->f_op->write(file, addr, nr, &file->f_pos) == nr;
+ }
+ EXPORT_SYMBOL(dump_write);
+ 
+@@ -673,7 +686,8 @@ int dump_seek(struct file *file, loff_t
+ 	int ret = 1;
+ 
+ 	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
+-		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
++		if (dump_interrupted() ||
++		    file->f_op->llseek(file, off, SEEK_CUR) < 0)
+ 			return 0;
+ 	} else {
+ 		char *buf = (char *)get_zeroed_page(GFP_KERNEL);
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+thinkpad-acpi-kill-hotkey_thread_mutex.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
+selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-introduce-dump_interrupted.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
+
