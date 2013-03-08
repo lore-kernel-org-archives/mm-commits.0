@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch added to -mm tree
-Date: Fri, 08 Mar 2013 13:21:02 -0800
-Message-ID: <20130308212102.D8ACD31C1B7@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-remove_memory-fix-end_pfn-setting.patch added to -mm tree
+Date: Fri, 08 Mar 2013 13:31:49 -0800
+Message-ID: <20130308213149.E1A1D5A41F7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:48876 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932413Ab3CHVVE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:21:04 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so4697qah.0
-        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:21:03 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:36939 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756372Ab3CHVbv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 16:31:51 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so204061ggn.4
+        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 13:31:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org
+Cc: toshi.kani@hp.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com
 
 
 The patch titled
-     Subject: coredump: change wait_for_dump_helpers() to use wait_event_interruptible()
+     Subject: mm: remove_memory(): fix end_pfn setting
 has been added to the -mm tree.  Its filename is
-     coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
+     mm-remove_memory-fix-end_pfn-setting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: change wait_for_dump_helpers() to use wait_event_interruptible()
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: mm: remove_memory(): fix end_pfn setting
 
-wait_for_dump_helpers() calls wake_up/kill_fasync from inside the
-wait_event-like loop.  This is not needed and in fact this is not strictly
-correct, we can/should do this only once after we change pipe->writers. 
-We could even check if it becomes zero.
+remove_memory() calls walk_memory_range() with [start_pfn, end_pfn), where
+end_pfn is exclusive in this range.  Therefore, end_pfn needs to be set to
+the next page of the end address.
 
-Change this code to use use wait_event_interruptible(), this can also help
-to make this wait freezable.
-
-With this patch we check pipe->readers without pipe_lock(), this is fine. 
-Once we see pipe->readers == 1 we know that the handler decremented the
-counter, this is all we need.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Neil Horman <nhorman@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Wu Jianguo <wujianguo@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/coredump.c~coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible fs/coredump.c
---- a/fs/coredump.c~coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible
-+++ a/fs/coredump.c
-@@ -439,17 +439,20 @@ static void wait_for_dump_helpers(struct
- 	pipe_lock(pipe);
- 	pipe->readers++;
- 	pipe->writers--;
-+	wake_up_interruptible_sync(&pipe->wait);
-+	kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
-+	pipe_unlock(pipe);
+diff -puN mm/memory_hotplug.c~mm-remove_memory-fix-end_pfn-setting mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-remove_memory-fix-end_pfn-setting
++++ a/mm/memory_hotplug.c
+@@ -1801,7 +1801,7 @@ int __ref remove_memory(int nid, u64 sta
+ 	int retry = 1;
  
--	while ((pipe->readers > 1) && (!signal_pending(current))) {
--		wake_up_interruptible_sync(&pipe->wait);
--		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
--		pipe_wait(pipe);
--	}
-+	/*
-+	 * We actually want wait_event_freezable() but then we need
-+	 * to clear TIF_SIGPENDING and improve dump_interrupted().
-+	 */
-+	wait_event_interruptible(pipe->wait, pipe->readers == 1);
+ 	start_pfn = PFN_DOWN(start);
+-	end_pfn = start_pfn + PFN_DOWN(size);
++	end_pfn = PFN_UP(start + size - 1);
  
-+	pipe_lock(pipe);
- 	pipe->readers--;
- 	pipe->writers++;
- 	pipe_unlock(pipe);
+ 	/*
+ 	 * When CONFIG_MEMCG is on, one memory block may be used by other
+_
+
+Patches currently in -mm which might be from toshi.kani@hp.com are
+
+mm-walk_memory_range-fix-typo-in-comment.patch
+mm-remove_memory-fix-end_pfn-setting.patch
+
