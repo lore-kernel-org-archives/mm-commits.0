@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-linkageh-fix-symbol-prefix-handling.patch added to -mm tree
-Date: Fri, 08 Mar 2013 15:43:22 -0800
-Message-ID: <20130308234322.7807C31C022@corp2gmr1-1.hot.corp.google.com>
+Subject: + direct-io-fix-boundary-block-handling.patch added to -mm tree
+Date: Fri, 08 Mar 2013 16:08:48 -0800
+Message-ID: <20130309000848.7393731C1B5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:36313 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab3CHXnX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 18:43:23 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so215490vcd.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 15:43:22 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:41990 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752522Ab3CIAIt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Mar 2013 19:08:49 -0500
+Received: by mail-qe0-f73.google.com with SMTP id a11so218841qen.4
+        for <mm-commits@vger.kernel.org>; Fri, 08 Mar 2013 16:08:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: james.hogan@imgtec.com
+Cc: jack@suse.cz, k-mio@sx.jp.nec.com
 
 
 The patch titled
-     Subject: linux/linkage.h: fix symbol prefix handling
+     Subject: direct-io: Fix boundary block handling
 has been added to the -mm tree.  Its filename is
-     linux-linkageh-fix-symbol-prefix-handling.patch
+     direct-io-fix-boundary-block-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,106 +33,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: James Hogan <james.hogan@imgtec.com>
-Subject: linux/linkage.h: fix symbol prefix handling
+From: Jan Kara <jack@suse.cz>
+Subject: direct-io: Fix boundary block handling
 
-e1b5bb6d1236d4a ("consolidate cond_syscall and SYSCALL_ALIAS
-declarations") broke the build on blackfin and metag due to the following
-code:
+When we read/write a file sequentially, we will read/write not only the
+data blocks but also the indirect blocks that may not be physically
+adjacent to the data blocks.  So filesystems sets BG_Boundary flag to
+submit the previous I/O before reading/writing an indirect block.
 
-  #ifndef SYMBOL_NAME
-  #ifdef CONFIG_SYMBOL_PREFIX
-  #define SYMBOL_NAME(x) CONFIG_SYMBOL_PREFIX ## x
-  #else
-  #define SYMBOL_NAME(x) x
-  #endif
-  #endif
-  #define __SYMBOL_NAME(x) __stringify(SYMBOL_NAME(x))
+However generic direct IO code mishandles buffer_boundary() flag, sets
+sdio->boundary before each submit_page_section() call which results in
+sending only one page bios as underlying code thinks this page is the last
+in the contiguous extent.  So fix the problem by setting sdio->boundary
+only if the current page is really the last one in the mapped extent.
 
-__stringify literally stringifies CONFIG_SYMBOL_PREFIX ##x, so you get
-lines like this in the assembly output:
-
-  .weak CONFIG_SYMBOL_PREFIXsys_quotactl
-  .set
-  CONFIG_SYMBOL_PREFIXsys_quotactl,CONFIG_SYMBOL_PREFIXsys_ni_syscall
-
-This is fixed by defining SYMBOL_PREFIX from the command line for c files
-in addition to assembly for architectures that set CONFIG_SYMBOL_PREFIX
-(scripts/Makefile.lib), and defining __SYMBOL_NAME as:
-
-  #define __SYMBOL_NAME(x) __stringify(SYMBOL_PREFIX) #x
-
-We first have to ensure SYMBOL_PREFIX is defined (which avoids polluting
-the command lines for architectures that don't use symbol prefixes).  Also
-the definition of SYMBOL_PREFIX in <linux/kernel.h> is removed as it
-conflicts, isn't used anywhere, and is defined as a string so differs from
-the assembly definition.
-
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Kazuya Mio <k-mio@sx.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h  |    7 -------
- include/linux/linkage.h |   12 +++++-------
- scripts/Makefile.lib    |    1 +
- 3 files changed, 6 insertions(+), 14 deletions(-)
+ fs/direct-io.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~linux-linkageh-fix-symbol-prefix-handling include/linux/kernel.h
---- a/include/linux/kernel.h~linux-linkageh-fix-symbol-prefix-handling
-+++ a/include/linux/kernel.h
-@@ -723,13 +723,6 @@ static inline void ftrace_dump(enum ftra
- /* Trap pasters of __FUNCTION__ at compile-time */
- #define __FUNCTION__ (__func__)
+diff -puN fs/direct-io.c~direct-io-fix-boundary-block-handling fs/direct-io.c
+--- a/fs/direct-io.c~direct-io-fix-boundary-block-handling
++++ a/fs/direct-io.c
+@@ -969,7 +969,8 @@ do_holes:
+ 			this_chunk_bytes = this_chunk_blocks << blkbits;
+ 			BUG_ON(this_chunk_bytes == 0);
  
--/* This helps us to avoid #ifdef CONFIG_SYMBOL_PREFIX */
--#ifdef CONFIG_SYMBOL_PREFIX
--#define SYMBOL_PREFIX CONFIG_SYMBOL_PREFIX
--#else
--#define SYMBOL_PREFIX ""
--#endif
--
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
-diff -puN include/linux/linkage.h~linux-linkageh-fix-symbol-prefix-handling include/linux/linkage.h
---- a/include/linux/linkage.h~linux-linkageh-fix-symbol-prefix-handling
-+++ a/include/linux/linkage.h
-@@ -15,14 +15,12 @@
- #define asmlinkage CPP_ASMLINKAGE
- #endif
- 
--#ifndef SYMBOL_NAME
--#ifdef CONFIG_SYMBOL_PREFIX
--#define SYMBOL_NAME(x) CONFIG_SYMBOL_PREFIX ## x
--#else
--#define SYMBOL_NAME(x) x
-+/* This helps us to avoid #ifdef SYMBOL_PREFIX */
-+#ifndef SYMBOL_PREFIX
-+#define SYMBOL_PREFIX
- #endif
--#endif
--#define __SYMBOL_NAME(x) __stringify(SYMBOL_NAME(x))
-+
-+#define __SYMBOL_NAME(x) __stringify(SYMBOL_PREFIX) #x
- 
- #ifndef cond_syscall
- #define cond_syscall(x) asm(".weak\t" __SYMBOL_NAME(x) \
-diff -puN scripts/Makefile.lib~linux-linkageh-fix-symbol-prefix-handling scripts/Makefile.lib
---- a/scripts/Makefile.lib~linux-linkageh-fix-symbol-prefix-handling
-+++ a/scripts/Makefile.lib
-@@ -123,6 +123,7 @@ ifdef CONFIG_SYMBOL_PREFIX
- _sym_flags = -DSYMBOL_PREFIX=$(patsubst "%",%,$(CONFIG_SYMBOL_PREFIX))
- _cpp_flags += $(_sym_flags)
- _a_flags += $(_sym_flags)
-+_c_flags += $(_sym_flags)
- endif
- 
- 
+-			sdio->boundary = buffer_boundary(map_bh);
++			if (this_chunk_blocks == sdio->blocks_available)
++				sdio->boundary = buffer_boundary(map_bh);
+ 			ret = submit_page_section(dio, sdio, page,
+ 						  offset_in_page,
+ 						  this_chunk_bytes,
 _
 
-Patches currently in -mm which might be from james.hogan@imgtec.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 linux-next.patch
-linux-linkageh-fix-symbol-prefix-handling.patch
-debug_locksh-make-warning-more-verbose.patch
+fs-return-eagain-when-o_nonblock-write-should-block-on-frozen-fs.patch
+fs-fix-hang-with-bsd-accounting-on-frozen-filesystem.patch
+ocfs2-add-freeze-protection-to-ocfs2_file_splice_write.patch
+direct-io-fix-boundary-block-handling.patch
 
