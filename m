@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + decompressors-fix-typo-powerpc.patch added to -mm tree
-Date: Mon, 11 Mar 2013 16:36:46 -0700
-Message-ID: <20130311233646.747C15A431F@corp2gmr1-2.hot.corp.google.com>
+Subject: + atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive.patch added to -mm tree
+Date: Mon, 11 Mar 2013 16:44:36 -0700
+Message-ID: <20130311234436.744C45A4121@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:47919 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754178Ab3CKXgr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 19:36:47 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so245392qah.4
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 16:36:47 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:39336 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753549Ab3CKXoi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 19:44:38 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so371627vbb.2
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 16:44:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pebolle@tiscali.nl, benh@kernel.crashing.org, florian@openwrt.org, lasse.collin@tukaani.org
+Cc: tom.leiming@gmail.com, shli@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: decompressors: fix typo "POWERPC"
+     Subject: atomic: improve atomic_inc_unless_negative/atomic_dec_unless_positive
 has been added to the -mm tree.  Its filename is
-     decompressors-fix-typo-powerpc.patch
+     atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: decompressors: fix typo "POWERPC"
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: atomic: improve atomic_inc_unless_negative/atomic_dec_unless_positive
 
-Commit 5dc49c75a2 ("decompressors: make the default XZ_DEC_* config match
-the selected architecture") added
+Generally, both atomic_inc_unless_negative() and
+atomic_dec_unless_positive() need at least two atomic_cmpxchg() to
+complete the atomic operation.  In fact, the 1st atomic_cmpxchg() is just
+used to read current value of the atomic variable at most times.
 
-	default y if POWERPC
+Considered memory barrier, bus lock, cache walking, etc.  things may be
+involved in atomic_cmpxchg(), it is much expensive than atomic_read(),
+which is just the simple below:
 
-to lib/xz/Kconfig.  But there is no Kconfig symbol POWERPC.  The most
-general Kconfig symbol for the powerpc architecture is PPC.  So let's use
-that.
+	(*(volatile int *)&(v)->counter)
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-Cc: Florian Fainelli <florian@openwrt.org>
-Cc: Lasse Collin <lasse.collin@tukaani.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+so this patch can save one extra atomic_cmpxchg() for the two helpers
+under general situation, and should improve them a bit.
+
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xz/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/atomic.h |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN lib/xz/Kconfig~decompressors-fix-typo-powerpc lib/xz/Kconfig
---- a/lib/xz/Kconfig~decompressors-fix-typo-powerpc
-+++ a/lib/xz/Kconfig
-@@ -15,7 +15,7 @@ config XZ_DEC_X86
+diff -puN include/linux/atomic.h~atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive include/linux/atomic.h
+--- a/include/linux/atomic.h~atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive
++++ a/include/linux/atomic.h
+@@ -63,26 +63,34 @@ static inline int atomic_inc_not_zero_hi
+ #ifndef atomic_inc_unless_negative
+ static inline int atomic_inc_unless_negative(atomic_t *p)
+ {
+-	int v, v1;
+-	for (v = 0; v >= 0; v = v1) {
+-		v1 = atomic_cmpxchg(p, v, v + 1);
+-		if (likely(v1 == v))
++	int v, t;
++
++	v = atomic_read(p);
++	while (1) {
++		if (unlikely(v < 0))
++			return 0;
++		t = atomic_cmpxchg(p, v, v + 1);
++		if (likely(t == v))
+ 			return 1;
++		v = t;
+ 	}
+-	return 0;
+ }
+ #endif
  
- config XZ_DEC_POWERPC
- 	bool "PowerPC BCJ filter decoder"
--	default y if POWERPC
-+	default y if PPC
- 	select XZ_DEC_BCJ
+ #ifndef atomic_dec_unless_positive
+ static inline int atomic_dec_unless_positive(atomic_t *p)
+ {
+-	int v, v1;
+-	for (v = 0; v <= 0; v = v1) {
+-		v1 = atomic_cmpxchg(p, v, v - 1);
+-		if (likely(v1 == v))
++	int v, t;
++
++	v = atomic_read(p);
++	while (1) {
++		if (unlikely(v > 0))
++			return 0;
++		t = atomic_cmpxchg(p, v, v - 1);
++		if (likely(t == v))
+ 			return 1;
++		v = t;
+ 	}
+-	return 0;
+ }
+ #endif
  
- config XZ_DEC_IA64
 _
 
-Patches currently in -mm which might be from pebolle@tiscali.nl are
+Patches currently in -mm which might be from tom.leiming@gmail.com are
 
-origin.patch
-linux-next.patch
-decompressors-fix-typo-powerpc.patch
+atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive.patch
 
