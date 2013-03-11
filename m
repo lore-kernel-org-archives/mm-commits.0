@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + signal-always-clear-sa_restorer-on-execve.patch added to -mm tree
-Date: Mon, 11 Mar 2013 13:22:55 -0700
-Message-ID: <20130311202255.942745A4121@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-tegra-use-managed-rtc_device_register.patch added to -mm tree
+Date: Mon, 11 Mar 2013 13:28:18 -0700
+Message-ID: <20130311202818.CB5B831C18B@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:49089 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753913Ab3CKUW5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:22:57 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so226123qah.4
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:22:56 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:60050 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754505Ab3CKU2U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:28:20 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so353504qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:28:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: keescook@chromium.org, ebiederm@xmission.com, jln@google.com, oleg@redhat.com, pageexec@freemail.hu, re.emese@gmail.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk
+Cc: ldewangan@nvidia.com, jg1.han@samsung.com, swarren@nvidia.com, thierry.reding@avionic-design.de
 
 
 The patch titled
-     Subject: signal: always clear sa_restorer on execve
+     Subject: drivers/rtc/rtc-tegra.c: use managed rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     signal-always-clear-sa_restorer-on-execve.patch
+     rtc-tegra-use-managed-rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: signal: always clear sa_restorer on execve
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: drivers/rtc/rtc-tegra.c: use managed rtc_device_register()
 
-When the new signal handlers are set up, the location of sa_restorer is
-not cleared, leaking a parent process's address space location to
-children.  This allows for a potential bypass of the parent's ASLR by
-examining the sa_restorer value returned when calling sigaction().
+Use devm_rtc_device_register() for registering RTC device.  This will
+reduce the code for unregistering RTC device in cleanup path and remove
+the implementation of remove callback of platform driver.
 
-Based on what should be considered "secret" about addresses, it only
-matters across the exec not the fork (since the VMAs haven't changed until
-the exec).  But since exec sets SIG_DFL and keeps sa_restorer, this is
-where it should be fixed.
-
-Given the few uses of sa_restorer, a "set" function was not written since
-this would be the only use.  Instead, we use __ARCH_HAS_SA_RESTORER, as
-already done in other places.
-
-Example of the leak before applying this patch:
-
-$ cat /proc/$$/maps
-...
-7fb9f3083000-7fb9f3238000 r-xp 00000000 fd:01 404469 .../libc-2.15.so
-...
-$ ./leak
-...
-7f278bc74000-7f278be29000 r-xp 00000000 fd:01 404469 .../libc-2.15.so
-...
-1 0 (nil) 0x7fb9f30b94a0
-2 4000000 (nil) 0x7f278bcaa4a0
-3 4000000 (nil) 0x7f278bcaa4a0
-4 0 (nil) 0x7fb9f30b94a0
-...
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Emese Revfy <re.emese@gmail.com>
-Cc: Emese Revfy <re.emese@gmail.com>
-Cc: PaX Team <pageexec@freemail.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Julien Tinnes <jln@google.com>
-Cc: stable@vger.kernel.org
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Reviewed-by: Stephen Warren <swarren@nvidia.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/rtc/rtc-tegra.c |   27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
 
-diff -puN kernel/signal.c~signal-always-clear-sa_restorer-on-execve kernel/signal.c
---- a/kernel/signal.c~signal-always-clear-sa_restorer-on-execve
-+++ a/kernel/signal.c
-@@ -485,6 +485,9 @@ flush_signal_handlers(struct task_struct
- 		if (force_default || ka->sa.sa_handler != SIG_IGN)
- 			ka->sa.sa_handler = SIG_DFL;
- 		ka->sa.sa_flags = 0;
-+#ifdef __ARCH_HAS_SA_RESTORER
-+		ka->sa.sa_restorer = NULL;
-+#endif
- 		sigemptyset(&ka->sa.sa_mask);
- 		ka++;
+diff -puN drivers/rtc/rtc-tegra.c~rtc-tegra-use-managed-rtc_device_register drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-tegra-use-managed-rtc_device_register
++++ a/drivers/rtc/rtc-tegra.c
+@@ -349,13 +349,11 @@ static int __init tegra_rtc_probe(struct
+ 
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+-	info->rtc_dev = rtc_device_register(
+-		pdev->name, &pdev->dev, &tegra_rtc_ops, THIS_MODULE);
++	info->rtc_dev = devm_rtc_device_register(dev_name(&pdev->dev),
++				&pdev->dev, &tegra_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		ret = PTR_ERR(info->rtc_dev);
+-		info->rtc_dev = NULL;
+-		dev_err(&pdev->dev,
+-			"Unable to register device (err=%d).\n",
++		dev_err(&pdev->dev, "Unable to register device (err=%d).\n",
+ 			ret);
+ 		return ret;
  	}
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-linux-next.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-signal-always-clear-sa_restorer-on-execve.patch
-
+@@ -367,28 +365,12 @@ static int __init tegra_rtc_probe(struct
+ 		dev_err(&pdev->dev,
+ 			"Unable to request interrupt for device (err=%d).\n",
+ 			ret);
+-		goto err_dev_unreg;
++		return ret;
+ 	}
+ 
+ 	dev_notice(&pdev->dev, "Tegra internal Real Time Clock\n");
+ 
+ 	return 0;
+-
+-err_dev_unreg:
+-	rtc_device_unregister(info->rtc_dev);
+-
+-	return ret;
+-}
+-
+-static int __exit tegra_rtc_remove(struct platform_device *pdev)
+-{
+-	struct tegra_rtc_info *info = platform_get_drvdata(pdev);
+-
+-	rtc_device_unregister(info->rtc_dev);
+-
+-	platform_set_drvdata(pdev, NULL);
