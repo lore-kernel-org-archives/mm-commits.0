@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch added to -mm tree
-Date: Mon, 11 Mar 2013 15:00:59 -0700
-Message-ID: <20130311220059.BFE625A41EC@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch added to -mm tree
+Date: Mon, 11 Mar 2013 15:01:01 -0700
+Message-ID: <20130311220101.C47325A41EC@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:57961 "EHLO
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:46011 "EHLO
 	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132Ab3CKWBA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 18:01:00 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so237347qah.0
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 15:01:00 -0700 (PDT)
+	with ESMTP id S1754132Ab3CKWBC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 18:01:02 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so237243qah.2
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 15:01:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/omap1_bl.c: use dev_info() instead of pr_info()
+     Subject: drivers/video/backlight/generic_bl.c: use dev_info() instead of pr_info()
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
+     drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/omap1_bl.c: use dev_info() instead of pr_info()
+Subject: drivers/video/backlight/generic_bl.c: use dev_info() instead of pr_info()
 
 dev_info() is preferred to pr_info().
 
@@ -42,14 +42,14 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/omap1_bl.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/backlight/generic_bl.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/omap1_bl.c~drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -18,8 +18,6 @@
-  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+diff -puN drivers/video/backlight/generic_bl.c~drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info drivers/video/backlight/generic_bl.c
+--- a/drivers/video/backlight/generic_bl.c~drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info
++++ a/drivers/video/backlight/generic_bl.c
+@@ -9,8 +9,6 @@
+  *
   */
  
 -#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -57,15 +57,24 @@ diff -puN drivers/video/backlight/omap1_bl.c~drivers-video-backlight-omap1_blc-u
  #include <linux/module.h>
  #include <linux/kernel.h>
  #include <linux/init.h>
-@@ -170,7 +168,7 @@ static int omapbl_probe(struct platform_
- 	dev->props.brightness = pdata->default_intensity;
- 	omapbl_update_status(dev);
+@@ -108,7 +106,7 @@ static int genericbl_probe(struct platfo
  
--	pr_info("OMAP LCD backlight initialised\n");
-+	dev_info(&pdev->dev, "OMAP LCD backlight initialised\n");
+ 	generic_backlight_device = bd;
  
+-	pr_info("Generic Backlight Driver Initialized.\n");
++	dev_info(&pdev->dev, "Generic Backlight Driver Initialized.\n");
  	return 0;
  }
+ 
+@@ -122,7 +120,7 @@ static int genericbl_remove(struct platf
+ 
+ 	backlight_device_unregister(bd);
+ 
+-	pr_info("Generic Backlight Driver Unloaded\n");
++	dev_info(&pdev->dev, "Generic Backlight Driver Unloaded\n");
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
