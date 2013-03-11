@@ -1,69 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ksm-fix-m68k-build-only-numa-needs-pfn_to_nid.patch removed from -mm tree
-Date: Mon, 11 Mar 2013 13:16:48 -0700
-Message-ID: <20130311201648.7B36C31C18B@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch removed from -mm tree
+Date: Mon, 11 Mar 2013 13:16:45 -0700
+Message-ID: <20130311201645.804EE31C2B0__44882.3582185016$1363033037$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:60655 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753913Ab3CKUQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:49 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so351986qcr.2
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:49 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:64574 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753566Ab3CKUQq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:46 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so423683ggn.0
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, geert@linux-m68k.org, pholasek@redhat.com, mm-commits@vger.kernel.org
+To: ben@decadent.org.uk, stable@vger.kernel.org, tmhikaru@gmail.com, zhenzhong.duan@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: fix m68k build: only NUMA needs pfn_to_nid
+     Subject: dmi_scan: fix missing check for _DMI_ signature in smbios_present()
 has been removed from the -mm tree.  Its filename was
-     ksm-fix-m68k-build-only-numa-needs-pfn_to_nid.patch
+     dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: ksm: fix m68k build: only NUMA needs pfn_to_nid
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: dmi_scan: fix missing check for _DMI_ signature in smbios_present()
 
-A CONFIG_DISCONTIGMEM=y m68k config gave
+Commit 9f9c9cbb6057 ('drivers/firmware/dmi_scan.c: fetch dmi version from
+SMBIOS if it exists') hoisted the check for "_DMI_" into
+dmi_scan_machine(), which means that we don't bother to check for "_DMI_"
+at offset 16 in an SMBIOS entry.  smbios_present() may also call
+dmi_present() for an address where we found "_SM_", if it failed further
+validation.
 
-mm/ksm.c: In function `get_kpfn_nid':
-mm/ksm.c:492: error: implicit declaration of function `pfn_to_nid'
+Check for "_DMI_" in smbios_present() before calling dmi_present().
 
-linux/mmzone.h declares it for CONFIG_SPARSEMEM and CONFIG_FLATMEM, but
-expects the arch's asm/mmzone.h to declare it for CONFIG_DISCONTIGMEM
-(see arch/mips/include/asm/mmzone.h for example).
-
-Or perhaps it is only expected when CONFIG_NUMA=y: too much of a maze,
-and m68k got away without it so far, so fix the build in mm/ksm.c.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Petr Holasek <pholasek@redhat.com>
+[akpm@linux-foundation.org: fix build]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Reported-by: Tim McGrath <tmhikaru@gmail.com>
+Tested-by: Tim Mcgrath <tmhikaru@gmail.com>
+Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firmware/dmi_scan.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/ksm.c~ksm-fix-m68k-build-only-numa-needs-pfn_to_nid mm/ksm.c
---- a/mm/ksm.c~ksm-fix-m68k-build-only-numa-needs-pfn_to_nid
-+++ a/mm/ksm.c
-@@ -489,7 +489,7 @@ out:		page = NULL;
-  */
- static inline int get_kpfn_nid(unsigned long kpfn)
+diff -puN drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present
++++ a/drivers/firmware/dmi_scan.c
+@@ -442,7 +442,6 @@ static int __init dmi_present(const char
+ static int __init smbios_present(const char __iomem *p)
  {
--	return ksm_merge_across_nodes ? 0 : pfn_to_nid(kpfn);
-+	return ksm_merge_across_nodes ? 0 : NUMA(pfn_to_nid(kpfn));
+ 	u8 buf[32];
+-	int offset = 0;
+ 
+ 	memcpy_fromio(buf, p, 32);
+ 	if ((buf[5] < 32) && dmi_checksum(buf, buf[5])) {
+@@ -461,9 +460,9 @@ static int __init smbios_present(const c
+ 			dmi_ver = 0x0206;
+ 			break;
+ 		}
+-		offset = 16;
++		return memcmp(p + 16, "_DMI_", 5) || dmi_present(p + 16);
+ 	}
+-	return dmi_present(buf + offset);
++	return 1;
  }
  
- static void remove_node_from_stable_tree(struct stable_node *stable_node)
+ void __init dmi_scan_machine(void)
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
-mm-trace-filemap-add-and-del.patch
-mm-trace-filemap-add-and-del-v2.patch
-mm-shmemc-remove-an-ifdef.patch
+dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
 
