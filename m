@@ -1,78 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch removed from -mm tree
-Date: Mon, 11 Mar 2013 13:16:45 -0700
-Message-ID: <20130311201645.804EE31C2B0__44882.3582185016$1363033037$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] randy-has-moved.patch removed from -mm tree
+Date: Mon, 11 Mar 2013 13:16:51 -0700
+Message-ID: <20130311201651.755805A41E9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:64574 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753566Ab3CKUQq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:46 -0400
-Received: by mail-gg0-f201.google.com with SMTP id l2so423683ggn.0
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:46 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:50307 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753913Ab3CKUQw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:52 -0400
+Received: by mail-qa0-f74.google.com with SMTP id o13so225347qaj.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@decadent.org.uk, stable@vger.kernel.org, tmhikaru@gmail.com, zhenzhong.duan@oracle.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, harryxiyou@gmail.com, k-keiichi@bx.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dmi_scan: fix missing check for _DMI_ signature in smbios_present()
+     Subject: Randy has moved
 has been removed from the -mm tree.  Its filename was
-     dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present.patch
+     randy-has-moved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: dmi_scan: fix missing check for _DMI_ signature in smbios_present()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Randy has moved
 
-Commit 9f9c9cbb6057 ('drivers/firmware/dmi_scan.c: fetch dmi version from
-SMBIOS if it exists') hoisted the check for "_DMI_" into
-dmi_scan_machine(), which means that we don't bother to check for "_DMI_"
-at offset 16 in an SMBIOS entry.  smbios_present() may also call
-dmi_present() for an address where we found "_SM_", if it failed further
-validation.
+Update email address and CREDITS info.  xenotime.net is defunct.
 
-Check for "_DMI_" in smbios_present() before calling dmi_present().
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Harry Wei <harryxiyou@gmail.com>
+Cc: Keiichi KII <k-keiichi@bx.jp.nec.com>
 
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
-Reported-by: Tim McGrath <tmhikaru@gmail.com>
-Tested-by: Tim Mcgrath <tmhikaru@gmail.com>
-Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ CREDITS                          |    6 +++---
+ Documentation/SubmittingPatches  |    3 +--
+ Documentation/printk-formats.txt |    2 +-
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi_scan-fix-missing-check-for-_dmi_-signature-in-smbios_present
-+++ a/drivers/firmware/dmi_scan.c
-@@ -442,7 +442,6 @@ static int __init dmi_present(const char
- static int __init smbios_present(const char __iomem *p)
- {
- 	u8 buf[32];
--	int offset = 0;
+diff -puN CREDITS~randy-has-moved CREDITS
+--- a/CREDITS~randy-has-moved
++++ a/CREDITS
+@@ -953,11 +953,11 @@ S: Blacksburg, Virginia 24061
+ S: USA
  
- 	memcpy_fromio(buf, p, 32);
- 	if ((buf[5] < 32) && dmi_checksum(buf, buf[5])) {
-@@ -461,9 +460,9 @@ static int __init smbios_present(const c
- 			dmi_ver = 0x0206;
- 			break;
- 		}
--		offset = 16;
-+		return memcmp(p + 16, "_DMI_", 5) || dmi_present(p + 16);
- 	}
--	return dmi_present(buf + offset);
-+	return 1;
- }
+ N: Randy Dunlap
+-E: rdunlap@xenotime.net
+-W: http://www.xenotime.net/linux/linux.html
+-W: http://www.linux-usb.org
++E: rdunlap@infradead.org
++W: http://www.infradead.org/~rdunlap/
+ D: Linux-USB subsystem, USB core/UHCI/printer/storage drivers
+ D: x86 SMP, ACPI, bootflag hacking
++D: documentation, builds
+ S: (ask for current address)
+ S: USA
  
- void __init dmi_scan_machine(void)
+diff -puN Documentation/SubmittingPatches~randy-has-moved Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~randy-has-moved
++++ a/Documentation/SubmittingPatches
+@@ -60,8 +60,7 @@ own source tree.  For example:
+ "dontdiff" is a list of files which are generated by the kernel during
+ the build process, and should be ignored in any diff(1)-generated
+ patch.  The "dontdiff" file is included in the kernel tree in
+-2.6.12 and later.  For earlier kernel versions, you can get it
+-from <http://www.xenotime.net/linux/doc/dontdiff>.
++2.6.12 and later.
+ 
+ Make sure your patch does not include any extra files which do not
+ belong in a patch submission.  Make sure to review your patch -after-
+diff -puN Documentation/printk-formats.txt~randy-has-moved Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~randy-has-moved
++++ a/Documentation/printk-formats.txt
+@@ -170,5 +170,5 @@ Reminder: sizeof() result is of type siz
+ Thank you for your cooperation and attention.
+ 
+ 
+-By Randy Dunlap <rdunlap@xenotime.net> and
++By Randy Dunlap <rdunlap@infradead.org> and
+ Andrew Murray <amurray@mpc-data.co.uk>
 _
 
-Patches currently in -mm which might be from ben@decadent.org.uk are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
+origin.patch
+linux-next.patch
+futex-fix-kernel-doc-notation-and-spello.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 
