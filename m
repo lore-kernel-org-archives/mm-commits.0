@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch added to -mm tree
-Date: Mon, 11 Mar 2013 14:44:16 -0700
-Message-ID: <20130311214416.C73C531C095@corp2gmr1-1.hot.corp.google.com>
+Subject: + kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch added to -mm tree
+Date: Mon, 11 Mar 2013 14:57:45 -0700
+Message-ID: <20130311215745.D17145A41EC@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:60921 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234Ab3CKVoS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 17:44:18 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so360761vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 14:44:17 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:47797 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754134Ab3CKV5q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 17:57:46 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so435310ggn.0
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 14:57:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, joe@perches.com, marcin.slusarz@gmail.com, swarren@nvidia.com
+Cc: raphael.scarv@gmail.com, ebiederm@xmission.com, serge.hallyn@canonical.com
 
 
 The patch titled
-     Subject: get_maintainer-use-filename-only-regex-match-for-tegra-fix
+     Subject: kernel/pid.c: improve flow of a loop inside alloc_pidmap.
 has been added to the -mm tree.  Its filename is
-     get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+     kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: get_maintainer-use-filename-only-regex-match-for-tegra-fix
+From: Raphael S. Carvalho <raphael.scarv@gmail.com>
+Subject: kernel/pid.c: improve flow of a loop inside alloc_pidmap.
 
-fix typo in docs, per Marcin
+find_next_offset() searches for an available "cleaned bit" in the
+respective pid bitmap (page), so returns the offset if found, otherwise it
+returns a value equals to BITS_PER_PAGE.
 
-Cc: Joe Perches <joe@perches.com>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Stephen Warren <swarren@nvidia.com>
+For example, suppose find_next_offset didn't find any available bit, so
+there's no purpose to call mk_pid (Wasteful Cpu Cycles).
+
+Therefore, I found it could be better to call mk_pid after the checking
+(offset < BITS_PER_PAGE) returned sucessfully!  Another point: If (offset
+< BITS_PER_PAGE) results in a "failure", then mk_pid would be called again
+afterwards.
+
+Signed-off-by: Raphael S. Carvalho <raphael.scarv@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/pid.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra-fix MAINTAINERS
---- a/MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra-fix
-+++ a/MAINTAINERS
-@@ -91,7 +91,7 @@ Descriptions of section entries:
- 	   F:	*/net/*		all files in "any top level directory"/net
- 	   One pattern per line.  Multiple F: lines acceptable.
- 	N: Files and directories with regex patterns.
--	   N:	[^a-z]tegra	all files whose patch contains the word tegra
-+	   N:	[^a-z]tegra	all files whose path contains the word tegra
- 	   One pattern per line.  Multiple N: lines acceptable.
- 	X: Files and directories that are NOT maintained, same rules as F:
- 	   Files exclusions are tested before file matches.
+diff -puN kernel/pid.c~kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap kernel/pid.c
+--- a/kernel/pid.c~kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap
++++ a/kernel/pid.c
+@@ -190,8 +190,8 @@ static int alloc_pidmap(struct pid_names
+ 					return pid;
+ 				}
+ 				offset = find_next_offset(map, offset);
+-				pid = mk_pid(pid_ns, map, offset);
+-			} while (offset < BITS_PER_PAGE && pid < pid_max);
++			} while (offset < BITS_PER_PAGE &&
++				(pid = mk_pid(pid_ns, map, offset)) < pid_max);
+ 		}
+ 		if (map < &pid_ns->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
+ 			++map;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from raphael.scarv@gmail.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-include-linux-res_counterh-needs-errnoh.patch
-signal-always-clear-sa_restorer-on-execve-fix.patch
-kernel-signalc-use-__arch_has_sa_restorer-instead-of-sa_restorer.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-drivers-usb-dwc3-ep0c-fix-sparc64-build.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines.patch
 pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
