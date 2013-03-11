@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-rename-random32-to-prandom_u32-fix.patch added to -mm tree
-Date: Mon, 11 Mar 2013 16:11:32 -0700
-Message-ID: <20130311231132.6C18E5A4121@corp2gmr1-2.hot.corp.google.com>
+Subject: + vmscan-minor-cleanup-for-kswapd.patch added to -mm tree
+Date: Mon, 11 Mar 2013 16:14:06 -0700
+Message-ID: <20130311231406.689BC31C107@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:64781 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899Ab3CKXLd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 19:11:33 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so243435qah.0
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 16:11:33 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:63071 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753899Ab3CKXOH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 19:14:07 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so441383yen.2
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 16:14:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, JBottomley@parallels.com, andrew.vasquez@qlogic.com
+Cc: dhillf@gmail.com
 
 
 The patch titled
-     Subject: scsi: fix the wrong position of the comment
+     Subject: mm/vmscan.c: minor cleanup for kswapd
 has been added to the -mm tree.  Its filename is
-     scsi-rename-random32-to-prandom_u32-fix.patch
+     vmscan-minor-cleanup-for-kswapd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: scsi: fix the wrong position of the comment
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm/vmscan.c: minor cleanup for kswapd
 
-This fixes the wrong position of the comment introduced by
-scsi-rename-random32-to-prandom_u32.patch in the -mm tree.
+Local variable total_scanned is no longer used.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_attr.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_attr.c~scsi-rename-random32-to-prandom_u32-fix drivers/scsi/qla2xxx/qla_attr.c
---- a/drivers/scsi/qla2xxx/qla_attr.c~scsi-rename-random32-to-prandom_u32-fix
-+++ a/drivers/scsi/qla2xxx/qla_attr.c
-@@ -1939,13 +1939,13 @@ qla24xx_vport_delete(struct fc_vport *fc
- 	}
+diff -puN mm/vmscan.c~vmscan-minor-cleanup-for-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-minor-cleanup-for-kswapd
++++ a/mm/vmscan.c
+@@ -2619,7 +2619,6 @@ static unsigned long balance_pgdat(pg_da
+ 	bool pgdat_is_balanced = false;
+ 	int i;
+ 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
+-	unsigned long total_scanned;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+@@ -2639,7 +2638,6 @@ static unsigned long balance_pgdat(pg_da
+ 		.gfp_mask = sc.gfp_mask,
+ 	};
+ loop_again:
+-	total_scanned = 0;
+ 	sc.priority = DEF_PRIORITY;
+ 	sc.nr_reclaimed = 0;
+ 	sc.may_writepage = !laptop_mode;
+@@ -2730,7 +2728,6 @@ loop_again:
+ 							order, sc.gfp_mask,
+ 							&nr_soft_scanned);
+ 			sc.nr_reclaimed += nr_soft_reclaimed;
+-			total_scanned += nr_soft_scanned;
  
- 	/* No pending activities shall be there on the vha now */
--	if (ql2xextended_error_logging & ql_dbg_user)
--		msleep(prandom_u32() % 10);
-+	if (ql2xextended_error_logging & ql_dbg_user) {
- 		/*
- 		 * Just to see if something falls on the net we have placed
- 		 * below
- 		 */
--
-+		msleep(prandom_u32() % 10);
-+	}
- 	BUG_ON(atomic_read(&vha->vref_count));
+ 			/*
+ 			 * We put equal pressure on every zone, unless
+@@ -2765,7 +2762,6 @@ loop_again:
+ 				reclaim_state->reclaimed_slab = 0;
+ 				nr_slab = shrink_slab(&shrink, sc.nr_scanned, lru_pages);
+ 				sc.nr_reclaimed += reclaim_state->reclaimed_slab;
+-				total_scanned += sc.nr_scanned;
  
- 	qla2x00_free_fcports(vha);
+ 				if (nr_slab == 0 && !zone_reclaimable(zone))
+ 					zone->all_unreclaimable = 1;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
-linux-next.patch
-gfs2-use-memchr_inv.patch
-raid6test-use-prandom_bytes.patch
-uuid-use-prandom_bytes.patch
-x86-pageattr-test-remove-srandom32-call.patch
-x86-rename-random32-to-prandom_u32.patch
-lib-rename-random32-to-prandom_u32.patch
-mm-rename-random32-to-prandom_u32.patch
-kernel-rename-random32-to-prandom_u32.patch
-drbd-rename-random32-to-prandom_u32.patch
-infiniband-rename-random32-to-prandom_u32.patch
-mmc-rename-random32-to-prandom_u32.patch
-video-uvesafb-rename-random32-to-prandom_u32.patch
-xfs-rename-random32-to-prandom_u32.patch
-uwb-rename-random32-to-prandom_u32.patch
-lguest-rename-random32-to-prandom_u32.patch
-scsi-rename-random32-to-prandom_u32.patch
-scsi-rename-random32-to-prandom_u32-fix.patch
-drivers-net-rename-random32-to-prandom_u32.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-net-sunrpc-rename-random32-to-prandom_u32.patch
-net-sched-rename-random32-to-prandom_u32.patch
-net-netfilter-rename-random32-to-prandom_u32.patch
-net-core-rename-random32-to-prandom_u32.patch
-net-core-remove-duplicate-statements-by-do-while-loop.patch
-net-rename-random32-to-prandom.patch
-remove-unused-random32-and-srandom32.patch
+rmap-recompute-pgoff-for-unmapping-huge-page.patch
+vmscan-minor-cleanup-for-kswapd.patch
 
