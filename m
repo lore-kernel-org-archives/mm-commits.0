@@ -1,63 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mempolicyc-fix-sp_node_init-argument-ordering.patch removed from -mm tree
-Date: Mon, 11 Mar 2013 13:16:36 -0700
-Message-ID: <20130311201636.81A5531C18B@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] idr-remove-warn_on_once-on-negative-ids.patch removed from -mm tree
+Date: Mon, 11 Mar 2013 13:16:39 -0700
+Message-ID: <20130311201639.6DD425A41E9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:49072 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020Ab3CKUQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:37 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so225271qah.2
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:37 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:36953 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753020Ab3CKUQk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:40 -0400
+Received: by mail-vc0-f201.google.com with SMTP id n11so423581vch.4
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, davej@redhat.com, dhillf@gmail.com, hughd@google.com, mgorman@suse.de, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, markus@trippelsdorf.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: fix sp_node_init() argument ordering
+     Subject: idr: remove WARN_ON_ONCE() on negative IDs
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicyc-fix-sp_node_init-argument-ordering.patch
+     idr-remove-warn_on_once-on-negative-ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm/mempolicy.c: fix sp_node_init() argument ordering
+From: Tejun Heo <tj@kernel.org>
+Subject: idr: remove WARN_ON_ONCE() on negative IDs
 
-Currently, n_new is wrongly initialized.  start and end parameter are
-inverted.  Let's fix it.
+idr_find(), idr_remove() and idr_replace() used to silently ignore the
+sign bit and perform lookup with the rest of the bits.  The weird behavior
+has been changed such that negative IDs are treated as invalid.  As the
+behavior change was subtle, WARN_ON_ONCE() was added in the hope of
+determining who's calling idr functions with negative IDs so that they can
+be examined for problems.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Jones <davej@redhat.com>
+Up until now, all two reported cases are ID number coming directly from
+userland and getting fed into idr_find() and the warnings seem to cause
+more problems than being helpful.  Drop the WARN_ON_ONCE()s.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: <markus@trippelsdorf.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/idr.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicyc-fix-sp_node_init-argument-ordering mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicyc-fix-sp_node_init-argument-ordering
-+++ a/mm/mempolicy.c
-@@ -2390,7 +2390,7 @@ restart:
+diff -puN lib/idr.c~idr-remove-warn_on_once-on-negative-ids lib/idr.c
+--- a/lib/idr.c~idr-remove-warn_on_once-on-negative-ids
++++ a/lib/idr.c
+@@ -569,8 +569,7 @@ void idr_remove(struct idr *idp, int id)
+ 	struct idr_layer *p;
+ 	struct idr_layer *to_free;
  
- 				*mpol_new = *n->policy;
- 				atomic_set(&mpol_new->refcnt, 1);
--				sp_node_init(n_new, n->end, end, mpol_new);
-+				sp_node_init(n_new, end, n->end, mpol_new);
- 				n->end = start;
- 				sp_insert(sp, n_new);
- 				n_new = NULL;
+-	/* see comment in idr_find_slowpath() */
+-	if (WARN_ON_ONCE(id < 0))
++	if (id < 0)
+ 		return;
+ 
+ 	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
+@@ -667,15 +666,7 @@ void *idr_find_slowpath(struct idr *idp,
+ 	int n;
+ 	struct idr_layer *p;
+ 
+-	/*
+-	 * If @id is negative, idr_find() used to ignore the sign bit and
+-	 * performed lookup with the rest of bits, which is weird and can
+-	 * lead to very obscure bugs.  We're now returning NULL for all
+-	 * negative IDs but just in case somebody was depending on the sign
+-	 * bit being ignored, let's trigger WARN_ON_ONCE() so that they can
+-	 * be detected and fixed.  WARN_ON_ONCE() can later be removed.
+-	 */
+-	if (WARN_ON_ONCE(id < 0))
++	if (id < 0)
+ 		return NULL;
+ 
+ 	p = rcu_dereference_raw(idp->top);
+@@ -824,8 +815,7 @@ void *idr_replace(struct idr *idp, void
+ 	int n;
+ 	struct idr_layer *p, *old_p;
+ 
+-	/* see comment in idr_find_slowpath() */
+-	if (WARN_ON_ONCE(id < 0))
++	if (id < 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	p = idp->top;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
-mm-remove_memory-fix-end_pfn-setting.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
+linux-next.patch
+include-linux-res_counterh-needs-errnoh.patch
+thinkpad-acpi-kill-hotkey_thread_mutex.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+memblock-add-assertion-for-zero-allocation-alignment.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-introduce-dump_interrupted.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
+nfsd-remove-unused-get_new_stid.patch
+nfsd-convert-to-idr_alloc.patch
+workqueue-convert-to-idr_alloc.patch
+mlx4-remove-leftover-idr_pre_get-call.patch
+zcache-convert-to-idr_alloc.patch
+tidspbridge-convert-to-idr_alloc.patch
+idr-deprecate-idr_pre_get-and-idr_get_new.patch
 
