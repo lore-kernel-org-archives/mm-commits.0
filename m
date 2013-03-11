@@ -1,156 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] rtc-rtc-tegra-use-devm_rtc_device_register.patch removed from -mm tree
-Date: Mon, 11 Mar 2013 13:28:25 -0700
-Message-ID: <20130311202826.00FC65A4121@corp2gmr1-2.hot.corp.google.com>
+Subject: + get_maintainer-use-filename-only-regex-match-for-tegra.patch added to -mm tree
+Date: Mon, 11 Mar 2013 13:57:31 -0700
+Message-ID: <20130311205731.7947F5A4278@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:50652 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754505Ab3CKU21 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:28:27 -0400
-Received: by mail-vc0-f202.google.com with SMTP id m8so425019vcd.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:28:26 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:50844 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753020Ab3CKU5c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:57:32 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so428965vea.0
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:57:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: swarren@nvidia.com, joe@perches.com, marcin.slusarz@gmail.com
 
 
 The patch titled
-     Subject: rtc: rtc-tegra: use devm_rtc_device_register()
-has been removed from the -mm tree.  Its filename was
-     rtc-rtc-tegra-use-devm_rtc_device_register.patch
+     Subject: get_maintainer: use filename-only regex match for Tegra
+has been added to the -mm tree.  Its filename is
+     get_maintainer-use-filename-only-regex-match-for-tegra.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tegra: use devm_rtc_device_register()
+From: Stephen Warren <swarren@nvidia.com>
+Subject: get_maintainer: use filename-only regex match for Tegra
 
-devm_rtc_device_register() is device managed and makes cleanup
-paths simpler.
+Create a new N: entry type in MAINTAINERS which performs a regex match
+against filenames; either those extracted from patch +++ or --- lines, or
+those specified on the command-line using the -f option.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+This provides the same benefits as using a K: regex option to match a set
+of filenames (see commit eb90d08 "get_maintainer: allow keywords to match
+filenames"), but without the disadvantage that "random" file content, such
+as comments, will ever match the regex.  Hence, revert most of that
+commit.
+
+Switch the Tegra entry from using K: to N:
+
+Reported-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Suggested-by: Joe Perches <joe@perches.com>
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tegra.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ MAINTAINERS               |   14 ++++++++------
+ scripts/get_maintainer.pl |    2 +-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-use-devm_rtc_device_register drivers/rtc/rtc-tegra.c
---- a/drivers/rtc/rtc-tegra.c~rtc-rtc-tegra-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-tegra.c
-@@ -348,8 +348,8 @@ static int __init tegra_rtc_probe(struct
+diff -puN MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra MAINTAINERS
+--- a/MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra
++++ a/MAINTAINERS
+@@ -90,6 +90,9 @@ Descriptions of section entries:
+ 	   F:	drivers/net/*	all files in drivers/net, but not below
+ 	   F:	*/net/*		all files in "any top level directory"/net
+ 	   One pattern per line.  Multiple F: lines acceptable.
++	N: Files and directories with regex patterns.
++	   N:	[^a-z]tegra	all files whose patch contains the word tegra
++	   One pattern per line.  Multiple N: lines acceptable.
+ 	X: Files and directories that are NOT maintained, same rules as F:
+ 	   Files exclusions are tested before file matches.
+ 	   Can be useful for excluding a specific subdirectory, for instance:
+@@ -97,13 +100,12 @@ Descriptions of section entries:
+ 	   X:	net/ipv6/
+ 	   matches all files in and below net excluding net/ipv6/
+ 	K: Keyword perl extended regex pattern to match content in a
+-	   patch or file, or an affected filename.  For instance:
++	   patch or file.  For instance:
+ 	   K: of_get_profile
+-	      matches patch or file content, or filenames, that contain
+-	      "of_get_profile"
++	      matches patches or files that contain "of_get_profile"
+ 	   K: \b(printk|pr_(info|err))\b
+-	      matches patch or file content, or filenames, that contain one or
+-	      more of the words printk, pr_info or pr_err
++	      matches patches or files that contain one or more of the words
++	      printk, pr_info or pr_err
+ 	   One regex pattern per line.  Multiple K: lines acceptable.
  
- 	device_init_wakeup(&pdev->dev, 1);
+ Note: For the hard of thinking, this list is meant to remain in alphabetical
+@@ -7850,7 +7852,7 @@ L:	linux-tegra@vger.kernel.org
+ Q:	http://patchwork.ozlabs.org/project/linux-tegra/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/swarren/linux-tegra.git
+ S:	Supported
+-K:	(?i)[^a-z]tegra
++N:	[^a-z]tegra
  
--	info->rtc_dev = rtc_device_register(
--		pdev->name, &pdev->dev, &tegra_rtc_ops, THIS_MODULE);
-+	info->rtc_dev = devm_rtc_device_register(
-+		&pdev->dev, pdev->name, &tegra_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(info->rtc_dev)) {
- 		ret = PTR_ERR(info->rtc_dev);
- 		info->rtc_dev = NULL;
-@@ -374,17 +374,11 @@ static int __init tegra_rtc_probe(struct
- 	return 0;
- 
- err_dev_unreg:
--	rtc_device_unregister(info->rtc_dev);
--
- 	return ret;
- }
- 
- static int __exit tegra_rtc_remove(struct platform_device *pdev)
- {
--	struct tegra_rtc_info *info = platform_get_drvdata(pdev);
--
--	rtc_device_unregister(info->rtc_dev);
--
- 	platform_set_drvdata(pdev, NULL);
- 
- 	return 0;
+ TEHUTI ETHERNET DRIVER
+ M:	Andy Gospodarek <andy@greyhouse.net>
+diff -puN scripts/get_maintainer.pl~get_maintainer-use-filename-only-regex-match-for-tegra scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-use-filename-only-regex-match-for-tegra
++++ a/scripts/get_maintainer.pl
+@@ -611,7 +611,7 @@ sub get_maintainers {
+ 				    $hash{$tvi} = $value_pd;
+ 				}
+ 			    }
+-			} elsif ($type eq 'K') {
++			} elsif ($type eq 'N') {
+ 			    if ($file =~ m/$value/x) {
+ 				$hash{$tvi} = 0;
+ 			    }
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from swarren@nvidia.com are
 
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
-drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
-drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
-drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-max77686-use-module_platform_driver.patch
-rtc-max77686-add-missing-module-author-name.patch
-rtc-max77686-use-devm_kzalloc.patch
-rtc-max77686-fix-indentation-of-bit-definitions.patch
-rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
-rtc-rtc-ab3100-use-module_platform_driver_probe.patch
-rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
-rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
-rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
-rtc-rtc-coh901331-use-module_platform_driver_probe.patch
-rtc-rtc-davinci-use-module_platform_driver_probe.patch
-rtc-rtc-ds1302-use-module_platform_driver_probe.patch
-rtc-rtc-efi-use-module_platform_driver_probe.patch
-rtc-rtc-generic-use-module_platform_driver_probe.patch
-rtc-rtc-imxdi-use-module_platform_driver_probe.patch
-rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
-rtc-rtc-msm6242-use-module_platform_driver_probe.patch
-rtc-rtc-mv-use-module_platform_driver_probe.patch
-rtc-rtc-nuc900-use-module_platform_driver_probe.patch
-rtc-rtc-omap-use-module_platform_driver_probe.patch
-rtc-rtc-pcap-use-module_platform_driver_probe.patch
-rtc-rtc-ps3-use-module_platform_driver_probe.patch
-rtc-rtc-pxa-use-module_platform_driver_probe.patch
-rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
-rtc-rtc-sh-use-module_platform_driver_probe.patch
-rtc-rtc-starfire-use-module_platform_driver_probe.patch
-rtc-rtc-sun4v-use-module_platform_driver_probe.patch
-rtc-rtc-tegra-use-module_platform_driver_probe.patch
-rtc-rtc-tx4939-use-module_platform_driver_probe.patch
-rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
-rtc-rtc-coh90133-use-devm_rtc_device_register.patch
-rtc-rtc-da9052-use-devm_rtc_device_register.patch
-rtc-rtc-da9055-use-devm_rtc_device_register.patch
-rtc-rtc-davinci-use-devm_rtc_device_register.patch
-rtc-rtc-ds1511-use-devm_rtc_device_register.patch
-rtc-rtc-ds1553-use-devm_rtc_device_register.patch
-rtc-rtc-ds1742-use-devm_rtc_device_register.patch
-rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
-rtc-rtc-imxdi-use-devm_rtc_device_register.patch
-rtc-rtc-lp8788-use-devm_rtc_device_register.patch
-rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
-rtc-rtc-max77686-use-devm_rtc_device_register.patch
-rtc-rtc-max8907-use-devm_rtc_device_register.patch
-rtc-rtc-max8997-use-devm_rtc_device_register.patch
-rtc-rtc-mv-use-devm_rtc_device_register.patch
-rtc-rtc-mxc-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_rtc_device_register.patch
-rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
-rtc-rtc-s3c-use-devm_rtc_device_register.patch
-rtc-rtc-snvs-use-devm_rtc_device_register.patch
-rtc-rtc-spear-use-devm_rtc_device_register.patch
-rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
-rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
-rtc-rtc-tps65910-use-devm_rtc_device_register.patch
-rtc-rtc-tps80031-use-devm_rtc_device_register.patch
-rtc-rtc-tx4939-use-devm_rtc_device_register.patch
-rtc-rtc-vt8500-use-devm_rtc_device_register.patch
-rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+get_maintainer-use-filename-only-regex-match-for-tegra.patch
 rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
 rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
 rtc-tegra-set-irq-name-as-device-name.patch
 rtc-tegra-use-managed-rtc_device_register.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
