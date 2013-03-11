@@ -1,79 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch removed from -mm tree
-Date: Mon, 11 Mar 2013 13:16:42 -0700
-Message-ID: <20130311201642.864EA5A41E9@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] ksm-fix-m68k-build-only-numa-needs-pfn_to_nid.patch removed from -mm tree
+Date: Mon, 11 Mar 2013 13:16:48 -0700
+Message-ID: <20130311201648.7B36C31C18B@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:62887 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020Ab3CKUQn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:43 -0400
-Received: by mail-ye0-f202.google.com with SMTP id q5so423187yen.5
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:43 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:60655 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753913Ab3CKUQt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 16:16:49 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so351986qcr.2
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 13:16:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, paulmck@linux.vnet.ibm.com, peter.senna@gmail.com, rusty@rustcorp.com.au, sasha.levin@oracle.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: hughd@google.com, geert@linux-m68k.org, pholasek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert parts of "hlist: drop the node parameter from iterators"
+     Subject: ksm: fix m68k build: only NUMA needs pfn_to_nid
 has been removed from the -mm tree.  Its filename was
-     revert-parts-of-hlist-drop-the-node-parameter-from-iterators.patch
+     ksm-fix-m68k-build-only-numa-needs-pfn_to_nid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Revert parts of "hlist: drop the node parameter from iterators"
+From: Hugh Dickins <hughd@google.com>
+Subject: ksm: fix m68k build: only NUMA needs pfn_to_nid
 
-commit b67bfe0d42 "hlist: drop the node parameter from iterators" did a
-lot of nice changes but also contains two small hunks that seem to have
-slipped in accidentally and have no apparent connection to the intent of
-the patch.
+A CONFIG_DISCONTIGMEM=y m68k config gave
 
-This reverts the two extraneous changes.
+mm/ksm.c: In function `get_kpfn_nid':
+mm/ksm.c:492: error: implicit declaration of function `pfn_to_nid'
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+linux/mmzone.h declares it for CONFIG_SPARSEMEM and CONFIG_FLATMEM, but
+expects the arch's asm/mmzone.h to declare it for CONFIG_DISCONTIGMEM
+(see arch/mips/include/asm/mmzone.h for example).
+
+Or perhaps it is only expected when CONFIG_NUMA=y: too much of a maze,
+and m68k got away without it so far, so fix the build in mm/ksm.c.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Petr Holasek <pholasek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smpboot.c      |    2 +-
- net/9p/trans_virtio.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/ksm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/smpboot.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators kernel/smpboot.c
---- a/kernel/smpboot.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators
-+++ a/kernel/smpboot.c
-@@ -131,7 +131,7 @@ static int smpboot_thread_fn(void *data)
- 			continue;
- 		}
+diff -puN mm/ksm.c~ksm-fix-m68k-build-only-numa-needs-pfn_to_nid mm/ksm.c
+--- a/mm/ksm.c~ksm-fix-m68k-build-only-numa-needs-pfn_to_nid
++++ a/mm/ksm.c
+@@ -489,7 +489,7 @@ out:		page = NULL;
+  */
+ static inline int get_kpfn_nid(unsigned long kpfn)
+ {
+-	return ksm_merge_across_nodes ? 0 : pfn_to_nid(kpfn);
++	return ksm_merge_across_nodes ? 0 : NUMA(pfn_to_nid(kpfn));
+ }
  
--		//BUG_ON(td->cpu != smp_processor_id());
-+		BUG_ON(td->cpu != smp_processor_id());
- 
- 		/* Check for state change setup */
- 		switch (td->status) {
-diff -puN net/9p/trans_virtio.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~revert-parts-of-hlist-drop-the-node-parameter-from-iterators
-+++ a/net/9p/trans_virtio.c
-@@ -655,7 +655,7 @@ static struct p9_trans_module p9_virtio_
- 	.create = p9_virtio_create,
- 	.close = p9_virtio_close,
- 	.request = p9_virtio_request,
--	//.zc_request = p9_virtio_zc_request,
-+	.zc_request = p9_virtio_zc_request,
- 	.cancel = p9_virtio_cancel,
- 	/*
- 	 * We leave one entry for input and one entry for response
+ static void remove_node_from_stable_tree(struct stable_node *stable_node)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from hughd@google.com are
 
-linux-next.patch
-kconfig-consolidate-config_debug_strict_user_copy_checks.patch
+mm-trace-filemap-add-and-del.patch
+mm-trace-filemap-add-and-del-v2.patch
+mm-shmemc-remove-an-ifdef.patch
 
