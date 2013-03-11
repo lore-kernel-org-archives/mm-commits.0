@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch added to -mm tree
-Date: Mon, 11 Mar 2013 15:01:01 -0700
-Message-ID: <20130311220101.C47325A41EC@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-adp8870-add-missing-braces.patch added to -mm tree
+Date: Mon, 11 Mar 2013 15:02:05 -0700
+Message-ID: <20130311220205.6B77B5A41EC@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:46011 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132Ab3CKWBC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 18:01:02 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so237243qah.2
-        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 15:01:02 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:34320 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754667Ab3CKWCH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Mar 2013 18:02:07 -0400
+Received: by mail-gg0-f202.google.com with SMTP id l4so435720ggi.3
+        for <mm-commits@vger.kernel.org>; Mon, 11 Mar 2013 15:02:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/generic_bl.c: use dev_info() instead of pr_info()
+     Subject: drivers/video/backlight/adp8870_bl.c:  add missing braces
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
+     backlight-adp8870-add-missing-braces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/generic_bl.c: use dev_info() instead of pr_info()
+Subject: drivers/video/backlight/adp8870_bl.c:  add missing braces
 
-dev_info() is preferred to pr_info().
+Add missing braces to include error message.  The error message is related
+to the return value for sysfs_create_group().  However,
+sysfs_create_group() is called when pdata->en_ambl_sens is not zero. 
+Thus, the checking return value should be included in the if statement.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/generic_bl.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/backlight/adp8870_bl.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/generic_bl.c~drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info drivers/video/backlight/generic_bl.c
---- a/drivers/video/backlight/generic_bl.c~drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info
-+++ a/drivers/video/backlight/generic_bl.c
-@@ -9,8 +9,6 @@
-  *
-  */
+diff -puN drivers/video/backlight/adp8870_bl.c~backlight-adp8870-add-missing-braces drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~backlight-adp8870-add-missing-braces
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -895,13 +895,13 @@ static int adp8870_probe(struct i2c_clie
  
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 	data->bl = bl;
+ 
+-	if (pdata->en_ambl_sens)
++	if (pdata->en_ambl_sens) {
+ 		ret = sysfs_create_group(&bl->dev.kobj,
+ 			&adp8870_bl_attr_group);
 -
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
-@@ -108,7 +106,7 @@ static int genericbl_probe(struct platfo
+-	if (ret) {
+-		dev_err(&client->dev, "failed to register sysfs\n");
+-		goto out1;
++		if (ret) {
++			dev_err(&client->dev, "failed to register sysfs\n");
++			goto out1;
++		}
+ 	}
  
- 	generic_backlight_device = bd;
- 
--	pr_info("Generic Backlight Driver Initialized.\n");
-+	dev_info(&pdev->dev, "Generic Backlight Driver Initialized.\n");
- 	return 0;
- }
- 
-@@ -122,7 +120,7 @@ static int genericbl_remove(struct platf
- 
- 	backlight_device_unregister(bd);
- 
--	pr_info("Generic Backlight Driver Unloaded\n");
-+	dev_info(&pdev->dev, "Generic Backlight Driver Unloaded\n");
- 	return 0;
- }
- 
+ 	ret = adp8870_bl_setup(bl);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -90,6 +85,7 @@ drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
 drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
 drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
 drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
+backlight-adp8870-add-missing-braces.patch
 rtc-rtc-mv-add-__init-annotation.patch
 rtc-rtc-davinci-add-__exit-annotation.patch
 rtc-rtc-ds1302-add-__exit-annotation.patch
