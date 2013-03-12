@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cris-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:22:26 -0700
-Message-ID: <20130312212226.D3E885A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-c6x-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:22:24 -0700
+Message-ID: <20130312212224.CD0CE31C214@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:34121 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932583Ab3CLVW2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:28 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so30833vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:27 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:49195 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755744Ab3CLVW0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:26 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z6so38638yhz.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, jiang.liu@huawei.com, starvik@axis.com
+Cc: liuj97@gmail.com, a-jacquiot@ti.com, jiang.liu@huawei.com, msalter@redhat.com
 
 
 The patch titled
-     Subject: mm/cris: use common help functions to free reserved pages
+     Subject: mm/c6x: use common help functions to free reserved pages
 has been added to the -mm tree.  Its filename is
-     mm-cris-use-common-help-functions-to-free-reserved-pages.patch
+     mm-c6x-use-common-help-functions-to-free-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/cris: use common help functions to free reserved pages
+Subject: mm/c6x: use common help functions to free reserved pages
 
 Use common help functions to free reserved pages.
-Also include <asm/sections.h> to avoid local declaration.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/mm/init.c |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ arch/c6x/mm/init.c |   30 ++----------------------------
+ 1 file changed, 2 insertions(+), 28 deletions(-)
 
-diff -puN arch/cris/mm/init.c~mm-cris-use-common-help-functions-to-free-reserved-pages arch/cris/mm/init.c
---- a/arch/cris/mm/init.c~mm-cris-use-common-help-functions-to-free-reserved-pages
-+++ a/arch/cris/mm/init.c
-@@ -12,12 +12,10 @@
- #include <linux/init.h>
- #include <linux/bootmem.h>
- #include <asm/tlb.h>
-+#include <asm/sections.h>
- 
- unsigned long empty_zero_page;
- 
--extern char _stext, _edata, _etext; /* From linkerscript */
--extern char __init_begin, __init_end;
--
- void __init
- mem_init(void)
+diff -puN arch/c6x/mm/init.c~mm-c6x-use-common-help-functions-to-free-reserved-pages arch/c6x/mm/init.c
+--- a/arch/c6x/mm/init.c~mm-c6x-use-common-help-functions-to-free-reserved-pages
++++ a/arch/c6x/mm/init.c
+@@ -77,37 +77,11 @@ void __init mem_init(void)
+ #ifdef CONFIG_BLK_DEV_INITRD
+ void __init free_initrd_mem(unsigned long start, unsigned long end)
  {
-@@ -67,15 +65,5 @@ mem_init(void)
- void 
- free_initmem(void)
+-	int pages = 0;
+-	for (; start < end; start += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(start));
+-		init_page_count(virt_to_page(start));
+-		free_page(start);
+-		totalram_pages++;
+-		pages++;
+-	}
+-	printk(KERN_INFO "Freeing initrd memory: %luk freed\n",
+-	       (pages * PAGE_SIZE) >> 10);
++	free_reserved_area(start, end, 0, "initrd");
+ }
+ #endif
+ 
+ void __init free_initmem(void)
  {
--        unsigned long addr;
+-	unsigned long addr;
 -
--        addr = (unsigned long)(&__init_begin);
--        for (; addr < (unsigned long)(&__init_end); addr += PAGE_SIZE) {
--                ClearPageReserved(virt_to_page(addr));
--                init_page_count(virt_to_page(addr));
--                free_page(addr);
--                totalram_pages++;
--        }
--        printk (KERN_INFO "Freeing unused kernel memory: %luk freed\n",
--		(unsigned long)((&__init_end - &__init_begin) >> 10));
+-	/*
+-	 * The following code should be cool even if these sections
+-	 * are not page aligned.
+-	 */
+-	addr = PAGE_ALIGN((unsigned long)(__init_begin));
+-
+-	/* next to check that the page we free is not a partial page */
+-	for (; addr + PAGE_SIZE < (unsigned long)(__init_end);
+-	     addr += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(addr));
+-		init_page_count(virt_to_page(addr));
+-		free_page(addr);
+-		totalram_pages++;
+-	}
+-	printk(KERN_INFO "Freeing unused kernel memory: %dK freed\n",
+-	       (int) ((addr - PAGE_ALIGN((long) &__init_begin)) >> 10));
 +	free_initmem_default(0);
  }
 _
