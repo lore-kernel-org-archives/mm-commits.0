@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mmkexec-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:23:10 -0700
-Message-ID: <20130312212310.CA4EE5A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-x86-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:23:02 -0700
+Message-ID: <20130312212302.D39FE31C23C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:56663 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933606Ab3CLVXL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:23:11 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m12so38511yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:23:11 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:60585 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932583Ab3CLVXE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:23:04 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so38372vea.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:23:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, ebiederm@xmission.com, jiang.liu@huawei.com, zhangyanfei@cn.fujitsu.com
+Cc: liuj97@gmail.com, hpa@zytor.com, jiang.liu@huawei.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm,kexec: use common help functions to free reserved pages
+     Subject: mm/x86: use common help functions to free reserved pages
 has been added to the -mm tree.  Its filename is
-     mmkexec-use-common-help-functions-to-free-reserved-pages.patch
+     mm-x86-use-common-help-functions-to-free-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm,kexec: use common help functions to free reserved pages
+Subject: mm/x86: use common help functions to free reserved pages
 
 Use common help functions to free reserved pages.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/x86/mm/init.c    |    5 +----
+ arch/x86/mm/init_64.c |    5 ++---
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN kernel/kexec.c~mmkexec-use-common-help-functions-to-free-reserved-pages kernel/kexec.c
---- a/kernel/kexec.c~mmkexec-use-common-help-functions-to-free-reserved-pages
-+++ a/kernel/kexec.c
-@@ -1118,12 +1118,8 @@ void __weak crash_free_reserved_phys_ran
- {
- 	unsigned long addr;
+diff -puN arch/x86/mm/init.c~mm-x86-use-common-help-functions-to-free-reserved-pages arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~mm-x86-use-common-help-functions-to-free-reserved-pages
++++ a/arch/x86/mm/init.c
+@@ -515,11 +515,8 @@ void free_init_pages(char *what, unsigne
+ 	printk(KERN_INFO "Freeing %s: %luk freed\n", what, (end - begin) >> 10);
  
--	for (addr = begin; addr < end; addr += PAGE_SIZE) {
--		ClearPageReserved(pfn_to_page(addr >> PAGE_SHIFT));
--		init_page_count(pfn_to_page(addr >> PAGE_SHIFT));
--		free_page((unsigned long)__va(addr));
+ 	for (; addr < end; addr += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(addr));
+-		init_page_count(virt_to_page(addr));
+ 		memset((void *)addr, POISON_FREE_INITMEM, PAGE_SIZE);
+-		free_page(addr);
 -		totalram_pages++;
--	}
-+	for (addr = begin; addr < end; addr += PAGE_SIZE)
-+		free_reserved_page(pfn_to_page(addr >> PAGE_SHIFT));
++		free_reserved_page(virt_to_page(addr));
+ 	}
+ #endif
  }
+diff -puN arch/x86/mm/init_64.c~mm-x86-use-common-help-functions-to-free-reserved-pages arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~mm-x86-use-common-help-functions-to-free-reserved-pages
++++ a/arch/x86/mm/init_64.c
+@@ -1067,10 +1067,9 @@ void __init mem_init(void)
  
- int crash_shrink_memory(unsigned long new_size)
+ 	/* clear_bss() already clear the empty_zero_page */
+ 
+-	reservedpages = 0;
+-
+-	/* this will put all low memory onto the freelists */
+ 	register_page_bootmem_info();
++
++	/* this will put all memory onto the freelists */
+ 	totalram_pages = free_all_bootmem();
+ 
+ 	absent_pages = absent_pages_in_range(0, max_pfn);
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
