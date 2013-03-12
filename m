@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-ia64-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:22:32 -0700
-Message-ID: <20130312212232.C7A9F5A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-h8300-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:22:30 -0700
+Message-ID: <20130312212230.C690E31C214@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:39126 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932583Ab3CLVWd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:33 -0400
-Received: by mail-gg0-f202.google.com with SMTP id l4so38328ggi.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:33 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:59381 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932583Ab3CLVWb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:31 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so38526ghb.3
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, fenghua.yu@intel.com, jiang.liu@huawei.com, tony.luck@intel.com
+Cc: liuj97@gmail.com, jiang.liu@huawei.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm/IA64: use common help functions to free reserved pages
+     Subject: mm/h8300: use common help functions to free reserved pages
 has been added to the -mm tree.  Its filename is
-     mm-ia64-use-common-help-functions-to-free-reserved-pages.patch
+     mm-h8300-use-common-help-functions-to-free-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/IA64: use common help functions to free reserved pages
+Subject: mm/h8300: use common help functions to free reserved pages
 
 Use common help functions to free reserved pages.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |   23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
+ arch/h8300/mm/init.c |   30 +++---------------------------
+ 1 file changed, 3 insertions(+), 27 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~mm-ia64-use-common-help-functions-to-free-reserved-pages arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-ia64-use-common-help-functions-to-free-reserved-pages
-+++ a/arch/ia64/mm/init.c
-@@ -154,25 +154,14 @@ ia64_init_addr_space (void)
- void
- free_initmem (void)
+diff -puN arch/h8300/mm/init.c~mm-h8300-use-common-help-functions-to-free-reserved-pages arch/h8300/mm/init.c
+--- a/arch/h8300/mm/init.c~mm-h8300-use-common-help-functions-to-free-reserved-pages
++++ a/arch/h8300/mm/init.c
+@@ -139,7 +139,7 @@ void __init mem_init(void)
+ 	start_mem = PAGE_ALIGN(start_mem);
+ 	max_mapnr = num_physpages = MAP_NR(high_memory);
+ 
+-	/* this will put all memory onto the freelists */
++	/* this will put all low memory onto the freelists */
+ 	totalram_pages = free_all_bootmem();
+ 
+ 	codek = (_etext - _stext) >> 10;
+@@ -161,15 +161,7 @@ void __init mem_init(void)
+ #ifdef CONFIG_BLK_DEV_INITRD
+ void free_initrd_mem(unsigned long start, unsigned long end)
  {
--	unsigned long addr, eaddr;
--
--	addr = (unsigned long) ia64_imva(__init_begin);
--	eaddr = (unsigned long) ia64_imva(__init_end);
--	while (addr < eaddr) {
+-	int pages = 0;
+-	for (; start < end; start += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(start));
+-		init_page_count(virt_to_page(start));
+-		free_page(start);
+-		totalram_pages++;
+-		pages++;
+-	}
+-	printk ("Freeing initrd memory: %dk freed\n", pages);
++	free_reserved_area(start, end, 0, "initrd");
+ }
+ #endif
+ 
+@@ -177,23 +169,7 @@ void
+ free_initmem(void)
+ {
+ #ifdef CONFIG_RAMKERNEL
+-	unsigned long addr;
+-/*
+- *	the following code should be cool even if these sections
+- *	are not page aligned.
+- */
+-	addr = PAGE_ALIGN((unsigned long)(__init_begin));
+-	/* next to check that the page we free is not a partial page */
+-	for (; addr + PAGE_SIZE < (unsigned long)__init_end; addr +=PAGE_SIZE) {
 -		ClearPageReserved(virt_to_page(addr));
 -		init_page_count(virt_to_page(addr));
 -		free_page(addr);
--		++totalram_pages;
--		addr += PAGE_SIZE;
+-		totalram_pages++;
 -	}
--	printk(KERN_INFO "Freeing unused kernel memory: %ldkB freed\n",
--	       (__init_end - __init_begin) >> 10);
-+	free_reserved_area((unsigned long)ia64_imva(__init_begin),
-+			   (unsigned long)ia64_imva(__init_end),
-+			   0, "unused kernel");
- }
- 
- void __init
- free_initrd_mem (unsigned long start, unsigned long end)
- {
--	struct page *page;
- 	/*
- 	 * EFI uses 4KB pages while the kernel can use 4KB or bigger.
- 	 * Thus EFI and the kernel may have different page sizes. It is
-@@ -213,11 +202,7 @@ free_initrd_mem (unsigned long start, un
- 	for (; start < end; start += PAGE_SIZE) {
- 		if (!virt_addr_valid(start))
- 			continue;
--		page = virt_to_page(start);
--		ClearPageReserved(page);
--		init_page_count(page);
--		free_page(start);
--		++totalram_pages;
-+		free_reserved_page(virt_to_page(start));
- 	}
+-	printk(KERN_INFO "Freeing unused kernel memory: %ldk freed (0x%x - 0x%x)\n",
+-			(addr - PAGE_ALIGN((long) __init_begin)) >> 10,
+-			(int)(PAGE_ALIGN((unsigned long)__init_begin)),
+-			(int)(addr - PAGE_SIZE));
++	free_initmem_default(0);
+ #endif
  }
  
 _
