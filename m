@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:37 -0700
-Message-ID: <20130312201237.C02BC5A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:39 -0700
+Message-ID: <20130312201239.C071531C203@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:60516 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933475Ab3CLUMi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:38 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so29903qcr.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:38 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:53472 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933487Ab3CLUMk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:40 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so29804qen.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: ltv350qv: convert ltv350qv to dev_pm_ops
+     Subject: backlight: tdo24m: convert tdo24m to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
+     backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ltv350qv: convert ltv350qv to dev_pm_ops
+Subject: backlight: tdo24m: convert tdo24m to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,60 +43,59 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ltv350qv.c |   18 ++++++++----------
+ drivers/video/backlight/tdo24m.c |   18 ++++++++----------
  1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops drivers/video/backlight/ltv350qv.c
---- a/drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops
-+++ a/drivers/video/backlight/ltv350qv.c
-@@ -271,25 +271,24 @@ static int ltv350qv_remove(struct spi_de
+diff -puN drivers/video/backlight/tdo24m.c~backlight-tdo24m-convert-tdo24m-to-dev_pm_ops drivers/video/backlight/tdo24m.c
+--- a/drivers/video/backlight/tdo24m.c~backlight-tdo24m-convert-tdo24m-to-dev_pm_ops
++++ a/drivers/video/backlight/tdo24m.c
+@@ -412,25 +412,24 @@ static int tdo24m_remove(struct spi_devi
  	return 0;
  }
  
 -#ifdef CONFIG_PM
--static int ltv350qv_suspend(struct spi_device *spi, pm_message_t state)
+-static int tdo24m_suspend(struct spi_device *spi, pm_message_t state)
 +#ifdef CONFIG_PM_SLEEP
-+static int ltv350qv_suspend(struct device *dev)
++static int tdo24m_suspend(struct device *dev)
  {
--	struct ltv350qv *lcd = spi_get_drvdata(spi);
-+	struct ltv350qv *lcd = dev_get_drvdata(dev);
+-	struct tdo24m *lcd = spi_get_drvdata(spi);
++	struct tdo24m *lcd = dev_get_drvdata(dev);
  
- 	return ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
+ 	return tdo24m_power(lcd, FB_BLANK_POWERDOWN);
  }
  
--static int ltv350qv_resume(struct spi_device *spi)
-+static int ltv350qv_resume(struct device *dev)
+-static int tdo24m_resume(struct spi_device *spi)
++static int tdo24m_resume(struct device *dev)
  {
--	struct ltv350qv *lcd = spi_get_drvdata(spi);
-+	struct ltv350qv *lcd = dev_get_drvdata(dev);
+-	struct tdo24m *lcd = spi_get_drvdata(spi);
++	struct tdo24m *lcd = dev_get_drvdata(dev);
  
- 	return ltv350qv_power(lcd, FB_BLANK_UNBLANK);
+ 	return tdo24m_power(lcd, FB_BLANK_UNBLANK);
  }
 -#else
--#define ltv350qv_suspend	NULL
--#define ltv350qv_resume		NULL
+-#define tdo24m_suspend	NULL
+-#define tdo24m_resume	NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(ltv350qv_pm_ops, ltv350qv_suspend, ltv350qv_resume);
++static SIMPLE_DEV_PM_OPS(tdo24m_pm_ops, tdo24m_suspend, tdo24m_resume);
 +
  /* Power down all displays on reboot, poweroff or halt */
- static void ltv350qv_shutdown(struct spi_device *spi)
+ static void tdo24m_shutdown(struct spi_device *spi)
  {
-@@ -302,13 +301,12 @@ static struct spi_driver ltv350qv_driver
+@@ -443,12 +442,11 @@ static struct spi_driver tdo24m_driver =
  	.driver = {
- 		.name		= "ltv350qv",
+ 		.name		= "tdo24m",
  		.owner		= THIS_MODULE,
-+		.pm		= &ltv350qv_pm_ops,
++		.pm		= &tdo24m_pm_ops,
  	},
- 
- 	.probe		= ltv350qv_probe,
- 	.remove		= ltv350qv_remove,
- 	.shutdown	= ltv350qv_shutdown,
--	.suspend	= ltv350qv_suspend,
--	.resume		= ltv350qv_resume,
+ 	.probe		= tdo24m_probe,
+ 	.remove		= tdo24m_remove,
+ 	.shutdown	= tdo24m_shutdown,
+-	.suspend	= tdo24m_suspend,
+-	.resume		= tdo24m_resume,
  };
  
- module_spi_driver(ltv350qv_driver);
+ module_spi_driver(tdo24m_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
