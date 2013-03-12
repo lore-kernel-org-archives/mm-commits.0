@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:35 -0700
-Message-ID: <20130312201235.BBC905A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:37 -0700
+Message-ID: <20130312201237.C02BC5A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:48657 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933475Ab3CLUMg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:36 -0400
-Received: by mail-yh0-f73.google.com with SMTP id 28so30115yhr.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:36 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:60516 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933475Ab3CLUMi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:38 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so29903qcr.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: locomolcd: convert locomolcd to dev_pm_ops
+     Subject: backlight: ltv350qv: convert ltv350qv to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
+     backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: locomolcd: convert locomolcd to dev_pm_ops
+Subject: backlight: ltv350qv: convert ltv350qv to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,59 +43,60 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/locomolcd.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/video/backlight/ltv350qv.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/backlight/locomolcd.c~backlight-locomolcd-convert-locomolcd-to-dev_pm_ops drivers/video/backlight/locomolcd.c
---- a/drivers/video/backlight/locomolcd.c~backlight-locomolcd-convert-locomolcd-to-dev_pm_ops
-+++ a/drivers/video/backlight/locomolcd.c
-@@ -157,25 +157,24 @@ static const struct backlight_ops locomo
- 	.update_status  = locomolcd_set_intensity,
- };
+diff -puN drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops drivers/video/backlight/ltv350qv.c
+--- a/drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops
++++ a/drivers/video/backlight/ltv350qv.c
+@@ -271,25 +271,24 @@ static int ltv350qv_remove(struct spi_de
+ 	return 0;
+ }
  
 -#ifdef CONFIG_PM
--static int locomolcd_suspend(struct locomo_dev *dev, pm_message_t state)
+-static int ltv350qv_suspend(struct spi_device *spi, pm_message_t state)
 +#ifdef CONFIG_PM_SLEEP
-+static int locomolcd_suspend(struct device *dev)
++static int ltv350qv_suspend(struct device *dev)
  {
- 	locomolcd_flags |= LOCOMOLCD_SUSPENDED;
- 	locomolcd_set_intensity(locomolcd_bl_device);
- 	return 0;
+-	struct ltv350qv *lcd = spi_get_drvdata(spi);
++	struct ltv350qv *lcd = dev_get_drvdata(dev);
+ 
+ 	return ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
  }
  
--static int locomolcd_resume(struct locomo_dev *dev)
-+static int locomolcd_resume(struct device *dev)
+-static int ltv350qv_resume(struct spi_device *spi)
++static int ltv350qv_resume(struct device *dev)
  {
- 	locomolcd_flags &= ~LOCOMOLCD_SUSPENDED;
- 	locomolcd_set_intensity(locomolcd_bl_device);
- 	return 0;
+-	struct ltv350qv *lcd = spi_get_drvdata(spi);
++	struct ltv350qv *lcd = dev_get_drvdata(dev);
+ 
+ 	return ltv350qv_power(lcd, FB_BLANK_UNBLANK);
  }
 -#else
--#define locomolcd_suspend	NULL
--#define locomolcd_resume	NULL
+-#define ltv350qv_suspend	NULL
+-#define ltv350qv_resume		NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(locomolcd_pm_ops, locomolcd_suspend, locomolcd_resume);
++static SIMPLE_DEV_PM_OPS(ltv350qv_pm_ops, ltv350qv_suspend, ltv350qv_resume);
 +
- static int locomolcd_probe(struct locomo_dev *ldev)
+ /* Power down all displays on reboot, poweroff or halt */
+ static void ltv350qv_shutdown(struct spi_device *spi)
  {
- 	struct backlight_properties props;
-@@ -230,13 +229,12 @@ static int locomolcd_remove(struct locom
- 
- static struct locomo_driver poodle_lcd_driver = {
- 	.drv = {
--		.name = "locomo-backlight",
-+		.name	= "locomo-backlight",
-+		.pm	= &locomolcd_pm_ops,
+@@ -302,13 +301,12 @@ static struct spi_driver ltv350qv_driver
+ 	.driver = {
+ 		.name		= "ltv350qv",
+ 		.owner		= THIS_MODULE,
++		.pm		= &ltv350qv_pm_ops,
  	},
- 	.devid	= LOCOMO_DEVID_BACKLIGHT,
- 	.probe	= locomolcd_probe,
- 	.remove	= locomolcd_remove,
--	.suspend = locomolcd_suspend,
--	.resume = locomolcd_resume,
+ 
+ 	.probe		= ltv350qv_probe,
+ 	.remove		= ltv350qv_remove,
+ 	.shutdown	= ltv350qv_shutdown,
+-	.suspend	= ltv350qv_suspend,
+-	.resume		= ltv350qv_resume,
  };
  
- static int __init locomolcd_init(void)
+ module_spi_driver(ltv350qv_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
