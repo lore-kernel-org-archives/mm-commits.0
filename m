@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + split-remaining-calls-to-call_usermodehelper_fns.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:32:40 -0700
-Message-ID: <20130312203240.DBA7F5A42C2@corp2gmr1-2.hot.corp.google.com>
+Subject: + kmod-remove-call_usermodehelper_fns.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:32:42 -0700
+Message-ID: <20130312203242.DA8505A4305@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:62019 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932514Ab3CLUcm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:32:42 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so32022vea.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:32:41 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:44431 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932514Ab3CLUco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:32:44 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so47402qah.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:32:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: lucas.demarchi@profusion.mobi, dhowells@redhat.com, james.l.morris@oracle.co
 
 
 The patch titled
-     Subject: usermodehelper: split remaining calls to call_usermodehelper_fns()
+     Subject: kmod: remove call_usermodehelper_fns()
 has been added to the -mm tree.  Its filename is
-     split-remaining-calls-to-call_usermodehelper_fns.patch
+     kmod-remove-call_usermodehelper_fns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Subject: usermodehelper: split remaining calls to call_usermodehelper_fns()
+Subject: kmod: remove call_usermodehelper_fns()
 
-These are the only users of call_usermodehelper_fns().  This function
-suffers from not being able to determine if the cleanup is called.  Even
-if in this places the cleanup pointer is NULL, convert them to use the
-separate call_usermodehelper_setup() + call_usermodehelper_exec()
-functions so we can remove the _fns variant.
+This function suffers from not being able to determine if the cleanup is
+called in case it returns -ENOMEM.  Nobody is using it anymore, so let's
+remove it.
 
 Signed-off-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -52,73 +50,82 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c           |   12 +++++++++---
- init/do_mounts_initrd.c |    8 ++++++--
- 2 files changed, 15 insertions(+), 5 deletions(-)
+ include/linux/kmod.h |   11 +----------
+ kernel/kmod.c        |   31 +++++++++++++++++--------------
+ 2 files changed, 18 insertions(+), 24 deletions(-)
 
-diff -puN fs/coredump.c~split-remaining-calls-to-call_usermodehelper_fns fs/coredump.c
---- a/fs/coredump.c~split-remaining-calls-to-call_usermodehelper_fns
-+++ a/fs/coredump.c
-@@ -525,6 +525,7 @@ void do_coredump(siginfo_t *siginfo)
- 	if (ispipe) {
- 		int dump_count;
- 		char **helper_argv;
-+		struct subprocess_info *sub_info;
+diff -puN include/linux/kmod.h~kmod-remove-call_usermodehelper_fns include/linux/kmod.h
+--- a/include/linux/kmod.h~kmod-remove-call_usermodehelper_fns
++++ a/include/linux/kmod.h
+@@ -67,9 +67,7 @@ struct subprocess_info {
+ };
  
- 		if (ispipe < 0) {
- 			printk(KERN_WARNING "format_corename failed\n");
-@@ -571,9 +572,14 @@ void do_coredump(siginfo_t *siginfo)
- 			goto fail_dropcount;
- 		}
+ extern int
+-call_usermodehelper_fns(char *path, char **argv, char **envp, int wait,
+-			int (*init)(struct subprocess_info *info, struct cred *new),
+-			void (*cleanup)(struct subprocess_info *), void *data);
++call_usermodehelper(char *path, char **argv, char **envp, int wait);
  
--		retval = call_usermodehelper_fns(helper_argv[0], helper_argv,
--					NULL, UMH_WAIT_EXEC, umh_pipe_setup,
--					NULL, &cprm);
-+		retval = -ENOMEM;
-+		sub_info = call_usermodehelper_setup(helper_argv[0],
-+						helper_argv, NULL, GFP_KERNEL,
-+						umh_pipe_setup, NULL, &cprm);
-+		if (sub_info)
-+			retval = call_usermodehelper_exec(sub_info,
-+							  UMH_WAIT_EXEC);
-+
- 		argv_free(helper_argv);
- 		if (retval) {
- 			printk(KERN_INFO "Core dump to %s pipe failed\n",
-diff -puN init/do_mounts_initrd.c~split-remaining-calls-to-call_usermodehelper_fns init/do_mounts_initrd.c
---- a/init/do_mounts_initrd.c~split-remaining-calls-to-call_usermodehelper_fns
-+++ a/init/do_mounts_initrd.c
-@@ -50,6 +50,7 @@ static int init_linuxrc(struct subproces
+ extern struct subprocess_info *
+ call_usermodehelper_setup(char *path, char **argv, char **envp, gfp_t gfp_mask,
+@@ -79,13 +77,6 @@ call_usermodehelper_setup(char *path, ch
+ extern int
+ call_usermodehelper_exec(struct subprocess_info *info, int wait);
  
- static void __init handle_initrd(void)
+-static inline int
+-call_usermodehelper(char *path, char **argv, char **envp, int wait)
+-{
+-	return call_usermodehelper_fns(path, argv, envp, wait,
+-				       NULL, NULL, NULL);
+-}
+-
+ extern struct ctl_table usermodehelper_table[];
+ 
+ enum umh_disable_depth {
+diff -puN kernel/kmod.c~kmod-remove-call_usermodehelper_fns kernel/kmod.c
+--- a/kernel/kmod.c~kmod-remove-call_usermodehelper_fns
++++ a/kernel/kmod.c
+@@ -554,8 +554,8 @@ struct subprocess_info *call_usermodehel
+  * call_usermodehelper_exec - start a usermode application
+  * @sub_info: information about the subprocessa
+  * @wait: wait for the application to finish and return status.
+- *        when -1 don't wait at all, but you get no useful error back when
+- *        the program couldn't be exec'ed. This makes it safe to call
++ *        when UMH_NO_WAIT don't wait at all, but you get no useful error back
++ *        when the program couldn't be exec'ed. This makes it safe to call
+  *        from interrupt context.
+  *
+  * Runs a user-space application.  The application is started
+@@ -615,29 +615,32 @@ unlock:
+ }
+ EXPORT_SYMBOL(call_usermodehelper_exec);
+ 
+-/*
+- * call_usermodehelper_fns() will not run the caller-provided cleanup function
+- * if a memory allocation failure is experienced.  So the caller might need to
+- * check the call_usermodehelper_fns() return value: if it is -ENOMEM, perform
+- * the necessaary cleanup within the caller.
++/**
++ * call_usermodehelper() - prepare and start a usermode application
++ * @path: path to usermode executable
++ * @argv: arg vector for process
++ * @envp: environment for process
++ * @wait: wait for the application to finish and return status.
++ *        when UMH_NO_WAIT don't wait at all, but you get no useful error back
++ *        when the program couldn't be exec'ed. This makes it safe to call
++ *        from interrupt context.
++ *
++ * This function is the equivalent to use call_usermodehelper_setup() and
++ * call_usermodehelper_exec().
+  */
+-int call_usermodehelper_fns(
+-	char *path, char **argv, char **envp, int wait,
+-	int (*init)(struct subprocess_info *info, struct cred *new),
+-	void (*cleanup)(struct subprocess_info *), void *data)
++int call_usermodehelper(char *path, char **argv, char **envp, int wait)
  {
-+	struct subprocess_info *info;
- 	static char *argv[] = { "linuxrc", NULL, };
- 	extern char *envp_init[];
- 	int error;
-@@ -70,8 +71,11 @@ static void __init handle_initrd(void)
- 	 */
- 	current->flags |= PF_FREEZER_SKIP;
+ 	struct subprocess_info *info;
+ 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
  
--	call_usermodehelper_fns("/linuxrc", argv, envp_init, UMH_WAIT_PROC,
--			init_linuxrc, NULL, NULL);
-+	info = call_usermodehelper_setup("/linuxrc", argv, envp_init,
-+					 GFP_KERNEL, init_linuxrc, NULL, NULL);
-+	if (!info)
-+		return;
-+	call_usermodehelper_exec(info, UMH_WAIT_PROC);
- 
- 	current->flags &= ~PF_FREEZER_SKIP;
- 
-_
-
-Patches currently in -mm which might be from lucas.demarchi@profusion.mobi are
-
-kernel-sysc-use-the-simpler-call_usermodehelper.patch
-usermodehelper-export-_exec-and-_setup-functions.patch
-kmod-split-call-to-call_usermodehelper_fns.patch
-keys-split-call-to-call_usermodehelper_fns.patch
-coredump-remove-trailling-whitespaces.patch
-split-remaining-calls-to-call_usermodehelper_fns.patch
-kmod-remove-call_usermodehelper_fns.patch
-
+ 	info = call_usermodehelper_setup(path, argv, envp, gfp_mask,
+-					 init, cleanup, data);
