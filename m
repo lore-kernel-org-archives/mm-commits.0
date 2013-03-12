@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-h8300-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:22:30 -0700
-Message-ID: <20130312212230.C690E31C214@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-m32r-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:22:34 -0700
+Message-ID: <20130312212234.C64E55A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:59381 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932583Ab3CLVWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:31 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so38526ghb.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:31 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:42442 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932583Ab3CLVWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:36 -0400
+Received: by mail-vc0-f201.google.com with SMTP id n11so38307vch.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, jiang.liu@huawei.com, ysato@users.sourceforge.jp
+Cc: liuj97@gmail.com, jiang.liu@huawei.com, takata@linux-m32r.org
 
 
 The patch titled
-     Subject: mm/h8300: use common help functions to free reserved pages
+     Subject: mm/m32r: use common help functions to free reserved pages
 has been added to the -mm tree.  Its filename is
-     mm-h8300-use-common-help-functions-to-free-reserved-pages.patch
+     mm-m32r-use-common-help-functions-to-free-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/h8300: use common help functions to free reserved pages
+Subject: mm/m32r: use common help functions to free reserved pages
 
 Use common help functions to free reserved pages.
+Also include <asm/sections.h> to avoid local declarations.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/mm/init.c |   30 +++---------------------------
- 1 file changed, 3 insertions(+), 27 deletions(-)
+ arch/m32r/mm/init.c |   26 +++-----------------------
+ 1 file changed, 3 insertions(+), 23 deletions(-)
 
-diff -puN arch/h8300/mm/init.c~mm-h8300-use-common-help-functions-to-free-reserved-pages arch/h8300/mm/init.c
---- a/arch/h8300/mm/init.c~mm-h8300-use-common-help-functions-to-free-reserved-pages
-+++ a/arch/h8300/mm/init.c
-@@ -139,7 +139,7 @@ void __init mem_init(void)
- 	start_mem = PAGE_ALIGN(start_mem);
- 	max_mapnr = num_physpages = MAP_NR(high_memory);
+diff -puN arch/m32r/mm/init.c~mm-m32r-use-common-help-functions-to-free-reserved-pages arch/m32r/mm/init.c
+--- a/arch/m32r/mm/init.c~mm-m32r-use-common-help-functions-to-free-reserved-pages
++++ a/arch/m32r/mm/init.c
+@@ -28,10 +28,7 @@
+ #include <asm/mmu_context.h>
+ #include <asm/setup.h>
+ #include <asm/tlb.h>
+-
+-/* References to section boundaries */
+-extern char _text, _etext, _edata;
+-extern char __init_begin, __init_end;
++#include <asm/sections.h>
  
--	/* this will put all memory onto the freelists */
-+	/* this will put all low memory onto the freelists */
- 	totalram_pages = free_all_bootmem();
+ pgd_t swapper_pg_dir[1024];
  
- 	codek = (_etext - _stext) >> 10;
-@@ -161,15 +161,7 @@ void __init mem_init(void)
- #ifdef CONFIG_BLK_DEV_INITRD
- void free_initrd_mem(unsigned long start, unsigned long end)
+@@ -184,17 +181,7 @@ void __init mem_init(void)
+  *======================================================================*/
+ void free_initmem(void)
  {
--	int pages = 0;
--	for (; start < end; start += PAGE_SIZE) {
--		ClearPageReserved(virt_to_page(start));
--		init_page_count(virt_to_page(start));
--		free_page(start);
--		totalram_pages++;
--		pages++;
--	}
--	printk ("Freeing initrd memory: %dk freed\n", pages);
-+	free_reserved_area(start, end, 0, "initrd");
- }
- #endif
- 
-@@ -177,23 +169,7 @@ void
- free_initmem(void)
- {
- #ifdef CONFIG_RAMKERNEL
 -	unsigned long addr;
--/*
-- *	the following code should be cool even if these sections
-- *	are not page aligned.
-- */
--	addr = PAGE_ALIGN((unsigned long)(__init_begin));
--	/* next to check that the page we free is not a partial page */
--	for (; addr + PAGE_SIZE < (unsigned long)__init_end; addr +=PAGE_SIZE) {
+-
+-	addr = (unsigned long)(&__init_begin);
+-	for (; addr < (unsigned long)(&__init_end); addr += PAGE_SIZE) {
 -		ClearPageReserved(virt_to_page(addr));
 -		init_page_count(virt_to_page(addr));
 -		free_page(addr);
 -		totalram_pages++;
 -	}
--	printk(KERN_INFO "Freeing unused kernel memory: %ldk freed (0x%x - 0x%x)\n",
--			(addr - PAGE_ALIGN((long) __init_begin)) >> 10,
--			(int)(PAGE_ALIGN((unsigned long)__init_begin)),
--			(int)(addr - PAGE_SIZE));
+-	printk (KERN_INFO "Freeing unused kernel memory: %dk freed\n", \
+-	  (int)(&__init_end - &__init_begin) >> 10);
 +	free_initmem_default(0);
- #endif
  }
  
+ #ifdef CONFIG_BLK_DEV_INITRD
+@@ -204,13 +191,6 @@ void free_initmem(void)
+  *======================================================================*/
+ void free_initrd_mem(unsigned long start, unsigned long end)
+ {
+-	unsigned long p;
+-	for (p = start; p < end; p += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(p));
+-		init_page_count(virt_to_page(p));
+-		free_page(p);
+-		totalram_pages++;
+-	}
+-	printk (KERN_INFO "Freeing initrd memory: %ldk freed\n", (end - start) >> 10);
++	free_reserved_area(start, end, 0, "initrd");
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
