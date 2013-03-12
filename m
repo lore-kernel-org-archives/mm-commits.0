@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:15 -0700
-Message-ID: <20130312201215.C393A5A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:13 -0700
+Message-ID: <20130312201213.BA7F15A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:57342 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932541Ab3CLUMQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:16 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so29855ghb.2
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:16 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:34922 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932541Ab3CLUMO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:14 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z6so29753yhz.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: lms501kf03: convert lms501kf03 to dev_pm_ops
+     Subject: backlight: ld9040: convert ld9040 to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
+     backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lms501kf03: convert lms501kf03 to dev_pm_ops
+Subject: backlight: ld9040: convert ld9040 to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,69 +43,67 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lms501kf03.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/video/backlight/ld9040.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops drivers/video/backlight/lms501kf03.c
---- a/drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops
-+++ a/drivers/video/backlight/lms501kf03.c
-@@ -387,13 +387,12 @@ static int lms501kf03_remove(struct spi_
+diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040-convert-ld9040-to-dev_pm_ops drivers/video/backlight/ld9040.c
+--- a/drivers/video/backlight/ld9040.c~backlight-ld9040-convert-ld9040-to-dev_pm_ops
++++ a/drivers/video/backlight/ld9040.c
+@@ -775,12 +775,12 @@ static int ld9040_remove(struct spi_devi
  	return 0;
  }
  
 -#if defined(CONFIG_PM)
--
--static int lms501kf03_suspend(struct spi_device *spi, pm_message_t mesg)
+-static int ld9040_suspend(struct spi_device *spi, pm_message_t mesg)
 +#ifdef CONFIG_PM_SLEEP
-+static int lms501kf03_suspend(struct device *dev)
++static int ld9040_suspend(struct device *dev)
  {
--	struct lms501kf03 *lcd = spi_get_drvdata(spi);
-+	struct lms501kf03 *lcd = dev_get_drvdata(dev);
+-	struct ld9040 *lcd = spi_get_drvdata(spi);
++	struct ld9040 *lcd = dev_get_drvdata(dev);
  
 -	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
 +	dev_dbg(dev, "lcd->power = %d\n", lcd->power);
  
  	/*
  	 * when lcd panel is suspend, lcd panel becomes off
-@@ -402,19 +401,19 @@ static int lms501kf03_suspend(struct spi
- 	return lms501kf03_power(lcd, FB_BLANK_POWERDOWN);
+@@ -789,19 +789,18 @@ static int ld9040_suspend(struct spi_dev
+ 	return ld9040_power(lcd, FB_BLANK_POWERDOWN);
  }
  
--static int lms501kf03_resume(struct spi_device *spi)
-+static int lms501kf03_resume(struct device *dev)
+-static int ld9040_resume(struct spi_device *spi)
++static int ld9040_resume(struct device *dev)
  {
--	struct lms501kf03 *lcd = spi_get_drvdata(spi);
-+	struct lms501kf03 *lcd = dev_get_drvdata(dev);
+-	struct ld9040 *lcd = spi_get_drvdata(spi);
++	struct ld9040 *lcd = dev_get_drvdata(dev);
  
  	lcd->power = FB_BLANK_POWERDOWN;
  
- 	return lms501kf03_power(lcd, FB_BLANK_UNBLANK);
+ 	return ld9040_power(lcd, FB_BLANK_UNBLANK);
  }
 -#else
--#define lms501kf03_suspend	NULL
--#define lms501kf03_resume	NULL
+-#define ld9040_suspend		NULL
+-#define ld9040_resume		NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(lms501kf03_pm_ops, lms501kf03_suspend,
-+			lms501kf03_resume);
++static SIMPLE_DEV_PM_OPS(ld9040_pm_ops, ld9040_suspend, ld9040_resume);
 +
- static void lms501kf03_shutdown(struct spi_device *spi)
+ /* Power down all displays on reboot, poweroff or halt. */
+ static void ld9040_shutdown(struct spi_device *spi)
  {
- 	struct lms501kf03 *lcd = spi_get_drvdata(spi);
-@@ -426,12 +425,11 @@ static struct spi_driver lms501kf03_driv
+@@ -814,12 +813,11 @@ static struct spi_driver ld9040_driver =
  	.driver = {
- 		.name	= "lms501kf03",
+ 		.name	= "ld9040",
  		.owner	= THIS_MODULE,
-+		.pm	= &lms501kf03_pm_ops,
++		.pm	= &ld9040_pm_ops,
  	},
- 	.probe		= lms501kf03_probe,
- 	.remove		= lms501kf03_remove,
- 	.shutdown	= lms501kf03_shutdown,
--	.suspend	= lms501kf03_suspend,
--	.resume		= lms501kf03_resume,
+ 	.probe		= ld9040_probe,
+ 	.remove		= ld9040_remove,
+ 	.shutdown	= ld9040_shutdown,
+-	.suspend	= ld9040_suspend,
+-	.resume		= ld9040_resume,
  };
  
- module_spi_driver(lms501kf03_driver);
+ module_spi_driver(ld9040_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
