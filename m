@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:27 -0700
-Message-ID: <20130312201227.C0A135A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:29 -0700
+Message-ID: <20130312201229.BE6775A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:58465 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933476Ab3CLUM2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:28 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so45155qah.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:28 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:41200 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933475Ab3CLUMa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:30 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so29893qcr.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: ep93xx: convert ep93xx to dev_pm_ops
+     Subject: backlight: hp680_bl: convert hp680bl to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
+     backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ep93xx: convert ep93xx to dev_pm_ops
+Subject: backlight: hp680_bl: convert hp680bl to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,56 +43,61 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ep93xx_bl.c |   18 ++++++++----------
+ drivers/video/backlight/hp680_bl.c |   18 ++++++++----------
  1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-convert-ep93xx-to-dev_pm_ops drivers/video/backlight/ep93xx_bl.c
---- a/drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-convert-ep93xx-to-dev_pm_ops
-+++ a/drivers/video/backlight/ep93xx_bl.c
-@@ -115,35 +115,33 @@ static int ep93xxbl_remove(struct platfo
+diff -puN drivers/video/backlight/hp680_bl.c~backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops drivers/video/backlight/hp680_bl.c
+--- a/drivers/video/backlight/hp680_bl.c~backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops
++++ a/drivers/video/backlight/hp680_bl.c
+@@ -64,29 +64,28 @@ static void hp680bl_send_intensity(struc
+ }
+ 
+ 
+-#ifdef CONFIG_PM
+-static int hp680bl_suspend(struct platform_device *pdev, pm_message_t state)
++#ifdef CONFIG_PM_SLEEP
++static int hp680bl_suspend(struct device *dev)
+ {
+-	struct backlight_device *bd = platform_get_drvdata(pdev);
++	struct backlight_device *bd = dev_get_drvdata(dev);
+ 
+ 	hp680bl_suspended = 1;
+ 	hp680bl_send_intensity(bd);
  	return 0;
  }
  
--#ifdef CONFIG_PM
--static int ep93xxbl_suspend(struct platform_device *dev, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int ep93xxbl_suspend(struct device *dev)
+-static int hp680bl_resume(struct platform_device *pdev)
++static int hp680bl_resume(struct device *dev)
  {
--	struct backlight_device *bl = platform_get_drvdata(dev);
-+	struct backlight_device *bl = dev_get_drvdata(dev);
+-	struct backlight_device *bd = platform_get_drvdata(pdev);
++	struct backlight_device *bd = dev_get_drvdata(dev);
  
- 	return ep93xxbl_set(bl, 0);
- }
- 
--static int ep93xxbl_resume(struct platform_device *dev)
-+static int ep93xxbl_resume(struct device *dev)
- {
--	struct backlight_device *bl = platform_get_drvdata(dev);
-+	struct backlight_device *bl = dev_get_drvdata(dev);
- 
- 	backlight_update_status(bl);
+ 	hp680bl_suspended = 0;
+ 	hp680bl_send_intensity(bd);
  	return 0;
  }
 -#else
--#define ep93xxbl_suspend	NULL
--#define ep93xxbl_resume		NULL
+-#define hp680bl_suspend	NULL
+-#define hp680bl_resume	NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(ep93xxbl_pm_ops, ep93xxbl_suspend, ep93xxbl_resume);
++static SIMPLE_DEV_PM_OPS(hp680bl_pm_ops, hp680bl_suspend, hp680bl_resume);
 +
- static struct platform_driver ep93xxbl_driver = {
+ static int hp680bl_set_intensity(struct backlight_device *bd)
+ {
+ 	hp680bl_send_intensity(bd);
+@@ -140,10 +139,9 @@ static int hp680bl_remove(struct platfor
+ static struct platform_driver hp680bl_driver = {
+ 	.probe		= hp680bl_probe,
+ 	.remove		= hp680bl_remove,
+-	.suspend	= hp680bl_suspend,
+-	.resume		= hp680bl_resume,
  	.driver		= {
- 		.name	= "ep93xx-bl",
- 		.owner	= THIS_MODULE,
-+		.pm	= &ep93xxbl_pm_ops,
+ 		.name	= "hp680-bl",
++		.pm	= &hp680bl_pm_ops,
  	},
- 	.probe		= ep93xxbl_probe,
- 	.remove		= ep93xxbl_remove,
--	.suspend	= ep93xxbl_suspend,
--	.resume		= ep93xxbl_resume,
  };
  
- module_platform_driver(ep93xxbl_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
