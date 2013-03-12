@@ -1,85 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:21:45 -0700
-Message-ID: <20130312202145.836D631C280@corp2gmr1-1.hot.corp.google.com>
+Subject: [to-be-updated] atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive.patch removed from -mm tree
+Date: Tue, 12 Mar 2013 13:22:11 -0700
+Message-ID: <20130312202212.4443931C297@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41573 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755508Ab3CLUVr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:21:47 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so31071qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:21:46 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:63325 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755508Ab3CLUWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:22:13 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so23544vbb.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:22:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: wujianguo@huawei.com, hpa@zytor.com, jiang.liu@huawei.com, mingo@elte.hu, qiuxishi@huawei.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, wency@cn.fujitsu.com
+To: tom.leiming@gmail.com, shli@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/mm/init_64.c: fix build warning when CONFIG_MEMORY_HOTREMOVE=n
-has been added to the -mm tree.  Its filename is
-     arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n.patch
+     Subject: atomic: improve atomic_inc_unless_negative/atomic_dec_unless_positive
+has been removed from the -mm tree.  Its filename was
+     atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: arch/x86/mm/init_64.c: fix build warning when CONFIG_MEMORY_HOTREMOVE=n
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: atomic: improve atomic_inc_unless_negative/atomic_dec_unless_positive
 
-There is a warning while building kernel with
-CONFIG_MEMORY_HOTPLUG=y && CONFIG_MEMORY_HOTREMOVE=n:
-arch/x86/mm/init_64.c:1024: warning:kernel_physical_mapping_remove defined but not used
+Generally, both atomic_inc_unless_negative() and
+atomic_dec_unless_positive() need at least two atomic_cmpxchg() to
+complete the atomic operation.  In fact, the 1st atomic_cmpxchg() is just
+used to read current value of the atomic variable at most times.
 
-So move kernel_physical_mapping_remove() into "#ifdef
-CONFIG_MEMORY_HOTREMOVE" block
+Considered memory barrier, bus lock, cache walking, etc.  things may be
+involved in atomic_cmpxchg(), it is much expensive than atomic_read(),
+which is just the simple below:
 
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Liujiang <jiang.liu@huawei.com>
-Cc: qiuxishi <qiuxishi@huawei.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+	(*(volatile int *)&(v)->counter)
+
+so this patch can save one extra atomic_cmpxchg() for the two helpers
+under general situation, and should improve them a bit.
+
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/atomic.h |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n
-+++ a/arch/x86/mm/init_64.c
-@@ -1019,6 +1019,7 @@ void __ref vmemmap_free(struct page *mem
- 	remove_pagetable(start, end, false);
- }
- 
-+#ifdef CONFIG_MEMORY_HOTREMOVE
- static void __meminit
- kernel_physical_mapping_remove(unsigned long start, unsigned long end)
+diff -puN include/linux/atomic.h~atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive include/linux/atomic.h
+--- a/include/linux/atomic.h~atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive
++++ a/include/linux/atomic.h
+@@ -63,26 +63,34 @@ static inline int atomic_inc_not_zero_hi
+ #ifndef atomic_inc_unless_negative
+ static inline int atomic_inc_unless_negative(atomic_t *p)
  {
-@@ -1028,7 +1029,6 @@ kernel_physical_mapping_remove(unsigned
- 	remove_pagetable(start, end, true);
+-	int v, v1;
+-	for (v = 0; v >= 0; v = v1) {
+-		v1 = atomic_cmpxchg(p, v, v + 1);
+-		if (likely(v1 == v))
++	int v, t;
++
++	v = atomic_read(p);
++	while (1) {
++		if (unlikely(v < 0))
++			return 0;
++		t = atomic_cmpxchg(p, v, v + 1);
++		if (likely(t == v))
+ 			return 1;
++		v = t;
+ 	}
+-	return 0;
  }
+ #endif
  
--#ifdef CONFIG_MEMORY_HOTREMOVE
- int __ref arch_remove_memory(u64 start, u64 size)
+ #ifndef atomic_dec_unless_positive
+ static inline int atomic_dec_unless_positive(atomic_t *p)
  {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
+-	int v, v1;
+-	for (v = 0; v <= 0; v = v1) {
+-		v1 = atomic_cmpxchg(p, v, v - 1);
+-		if (likely(v1 == v))
++	int v, t;
++
++	v = atomic_read(p);
++	while (1) {
++		if (unlikely(v > 0))
++			return 0;
++		t = atomic_cmpxchg(p, v, v - 1);
++		if (likely(t == v))
+ 			return 1;
++		v = t;
+ 	}
+-	return 0;
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from wujianguo@huawei.com are
+Patches currently in -mm which might be from tom.leiming@gmail.com are
 
-mm-remove_memory-fix-end_pfn-setting.patch
-arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n.patch
 
