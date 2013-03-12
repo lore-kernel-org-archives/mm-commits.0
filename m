@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-score-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:22:52 -0700
-Message-ID: <20130312212252.BB5975A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-s390-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:22:50 -0700
+Message-ID: <20130312212250.CBE1E31C23C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:44947 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932583Ab3CLVWx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:53 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so38552ghb.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:53 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:48023 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933595Ab3CLVWw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:52 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so53812qah.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, jiang.liu@huawei.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com
+Cc: liuj97@gmail.com, heiko.carstens@de.ibm.com, jiang.liu@huawei.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Subject: mm/score: use common help functions to free reserved pages
+     Subject: mm/s390: use common help functions to free reserved pages
 has been added to the -mm tree.  Its filename is
-     mm-score-use-common-help-functions-to-free-reserved-pages.patch
+     mm-s390-use-common-help-functions-to-free-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,98 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/score: use common help functions to free reserved pages
+Subject: mm/s390: use common help functions to free reserved pages
 
 Use common help functions to free reserved pages.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Chen Liqin <liqin.chen@sunplusct.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/mm/init.c |   33 +++++----------------------------
- 1 file changed, 5 insertions(+), 28 deletions(-)
+ arch/s390/mm/init.c |   35 ++++++-----------------------------
+ 1 file changed, 6 insertions(+), 29 deletions(-)
 
-diff -puN arch/score/mm/init.c~mm-score-use-common-help-functions-to-free-reserved-pages arch/score/mm/init.c
---- a/arch/score/mm/init.c~mm-score-use-common-help-functions-to-free-reserved-pages
-+++ a/arch/score/mm/init.c
-@@ -43,7 +43,7 @@ EXPORT_SYMBOL_GPL(empty_zero_page);
+diff -puN arch/s390/mm/init.c~mm-s390-use-common-help-functions-to-free-reserved-pages arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~mm-s390-use-common-help-functions-to-free-reserved-pages
++++ a/arch/s390/mm/init.c
+@@ -42,11 +42,10 @@ pgd_t swapper_pg_dir[PTRS_PER_PGD] __att
+ unsigned long empty_zero_page, zero_page_mask;
+ EXPORT_SYMBOL(empty_zero_page);
  
- static struct kcore_list kcore_mem, kcore_vmalloc;
- 
--static unsigned long setup_zero_page(void)
-+static void setup_zero_page(void)
+-static unsigned long __init setup_zero_pages(void)
++static void __init setup_zero_pages(void)
  {
+ 	struct cpuid cpu_id;
+ 	unsigned int order;
+-	unsigned long size;
  	struct page *page;
+ 	int i;
  
-@@ -52,9 +52,7 @@ static unsigned long setup_zero_page(voi
- 		panic("Oh boy, that early out of memory?");
- 
+@@ -83,14 +82,11 @@ static unsigned long __init setup_zero_p
  	page = virt_to_page((void *) empty_zero_page);
--	SetPageReserved(page);
+ 	split_page(page, order);
+ 	for (i = 1 << order; i > 0; i--) {
+-		SetPageReserved(page);
++		mark_page_reserved(page);
+ 		page++;
+ 	}
+ 
+-	size = PAGE_SIZE << order;
+-	zero_page_mask = (size - 1) & PAGE_MASK;
 -
--	return 1UL;
-+	mark_page_reserved(page);
+-	return 1UL << order;
++	zero_page_mask = ((PAGE_SIZE << order) - 1) & PAGE_MASK;
  }
  
- #ifndef CONFIG_NEED_MULTIPLE_NODES
-@@ -84,7 +82,7 @@ void __init mem_init(void)
+ /*
+@@ -147,7 +143,7 @@ void __init mem_init(void)
  
- 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+ 	/* this will put all low memory onto the freelists */
  	totalram_pages += free_all_bootmem();
--	totalram_pages -= setup_zero_page();	/* Setup zeroed pages. */
-+	setup_zero_page();	/* Setup zeroed pages. */
+-	totalram_pages -= setup_zero_pages();	/* Setup zeroed pages. */
++	setup_zero_pages();	/* Setup zeroed pages. */
+ 
  	reservedpages = 0;
  
- 	for (tmp = 0; tmp < max_low_pfn; tmp++)
-@@ -109,37 +107,16 @@ void __init mem_init(void)
+@@ -166,34 +162,15 @@ void __init mem_init(void)
+ 	       PFN_ALIGN((unsigned long)&_eshared) - 1);
  }
- #endif /* !CONFIG_NEED_MULTIPLE_NODES */
  
--static void free_init_pages(const char *what, unsigned long begin, unsigned long end)
+-void free_init_pages(char *what, unsigned long begin, unsigned long end)
 -{
--	unsigned long pfn;
+-	unsigned long addr = begin;
 -
--	for (pfn = PFN_UP(begin); pfn < PFN_DOWN(end); pfn++) {
--		struct page *page = pfn_to_page(pfn);
--		void *addr = phys_to_virt(PFN_PHYS(pfn));
--
--		ClearPageReserved(page);
--		init_page_count(page);
--		memset(addr, POISON_FREE_INITMEM, PAGE_SIZE);
--		__free_page(page);
+-	if (begin >= end)
+-		return;
+-	for (; addr < end; addr += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(addr));
+-		init_page_count(virt_to_page(addr));
+-		memset((void *)(addr & PAGE_MASK), POISON_FREE_INITMEM,
+-		       PAGE_SIZE);
+-		free_page(addr);
 -		totalram_pages++;
 -	}
--	printk(KERN_INFO "Freeing %s: %ldk freed\n", what, (end - begin) >> 10);
+-	printk(KERN_INFO "Freeing %s: %luk freed\n", what, (end - begin) >> 10);
 -}
 -
- #ifdef CONFIG_BLK_DEV_INITRD
- void free_initrd_mem(unsigned long start, unsigned long end)
+ void free_initmem(void)
  {
--	free_init_pages("initrd memory",
--		virt_to_phys((void *) start),
--		virt_to_phys((void *) end));
+-	free_init_pages("unused kernel memory",
+-			(unsigned long)&__init_begin,
+-			(unsigned long)&__init_end);
++	free_initmem_default(0);
+ }
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+ void __init free_initrd_mem(unsigned long start, unsigned long end)
+ {
+-	free_init_pages("initrd memory", start, end);
 +	free_reserved_area(start, end, POISON_FREE_INITMEM, "initrd");
  }
  #endif
  
- void __init_refok free_initmem(void)
- {
--	free_init_pages("unused kernel memory",
--	__pa(&__init_begin),
--	__pa(&__init_end));
-+	free_initmem_default(POISON_FREE_INITMEM);
- }
- 
- unsigned long pgd_current;
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
