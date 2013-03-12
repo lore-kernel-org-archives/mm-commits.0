@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:17 -0700
-Message-ID: <20130312201217.C445331C203@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:19 -0700
+Message-ID: <20130312201219.BDCD35A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:47904 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932541Ab3CLUMS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:18 -0400
-Received: by mail-vc0-f201.google.com with SMTP id n11so29834vch.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:18 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:34186 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932541Ab3CLUMU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:20 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so45097qah.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: s6e63m0: convert s6e63m0 to dev_pm_ops
+     Subject: backlight: adp5520: convert adp5520_bl to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
+     backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: s6e63m0: convert s6e63m0 to dev_pm_ops
+Subject: backlight: adp5520: convert adp5520_bl to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,67 +43,58 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/video/backlight/adp5520_bl.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -817,12 +817,12 @@ static int s6e63m0_remove(struct spi_dev
+diff -puN drivers/video/backlight/adp5520_bl.c~backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops drivers/video/backlight/adp5520_bl.c
+--- a/drivers/video/backlight/adp5520_bl.c~backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops
++++ a/drivers/video/backlight/adp5520_bl.c
+@@ -349,35 +349,34 @@ static int adp5520_bl_remove(struct plat
  	return 0;
  }
  
--#if defined(CONFIG_PM)
--static int s6e63m0_suspend(struct spi_device *spi, pm_message_t mesg)
+-#ifdef CONFIG_PM
+-static int adp5520_bl_suspend(struct platform_device *pdev,
+-				 pm_message_t state)
 +#ifdef CONFIG_PM_SLEEP
-+static int s6e63m0_suspend(struct device *dev)
++static int adp5520_bl_suspend(struct device *dev)
  {
--	struct s6e63m0 *lcd = spi_get_drvdata(spi);
-+	struct s6e63m0 *lcd = dev_get_drvdata(dev);
- 
--	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
-+	dev_dbg(dev, "lcd->power = %d\n", lcd->power);
- 
- 	/*
- 	 * when lcd panel is suspend, lcd panel becomes off
-@@ -831,19 +831,18 @@ static int s6e63m0_suspend(struct spi_de
- 	return s6e63m0_power(lcd, FB_BLANK_POWERDOWN);
+-	struct backlight_device *bl = platform_get_drvdata(pdev);
++	struct backlight_device *bl = dev_get_drvdata(dev);
++
+ 	return adp5520_bl_set(bl, 0);
  }
  
--static int s6e63m0_resume(struct spi_device *spi)
-+static int s6e63m0_resume(struct device *dev)
+-static int adp5520_bl_resume(struct platform_device *pdev)
++static int adp5520_bl_resume(struct device *dev)
  {
--	struct s6e63m0 *lcd = spi_get_drvdata(spi);
-+	struct s6e63m0 *lcd = dev_get_drvdata(dev);
+-	struct backlight_device *bl = platform_get_drvdata(pdev);
++	struct backlight_device *bl = dev_get_drvdata(dev);
  
- 	lcd->power = FB_BLANK_POWERDOWN;
- 
- 	return s6e63m0_power(lcd, FB_BLANK_UNBLANK);
+ 	backlight_update_status(bl);
+ 	return 0;
  }
 -#else
--#define s6e63m0_suspend		NULL
--#define s6e63m0_resume		NULL
+-#define adp5520_bl_suspend	NULL
+-#define adp5520_bl_resume	NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(s6e63m0_pm_ops, s6e63m0_suspend, s6e63m0_resume);
++static SIMPLE_DEV_PM_OPS(adp5520_bl_pm_ops, adp5520_bl_suspend,
++			adp5520_bl_resume);
 +
- /* Power down all displays on reboot, poweroff or halt. */
- static void s6e63m0_shutdown(struct spi_device *spi)
- {
-@@ -856,12 +855,11 @@ static struct spi_driver s6e63m0_driver
- 	.driver = {
- 		.name	= "s6e63m0",
+ static struct platform_driver adp5520_bl_driver = {
+ 	.driver		= {
+ 		.name	= "adp5520-backlight",
  		.owner	= THIS_MODULE,
-+		.pm	= &s6e63m0_pm_ops,
++		.pm	= &adp5520_bl_pm_ops,
  	},
- 	.probe		= s6e63m0_probe,
- 	.remove		= s6e63m0_remove,
- 	.shutdown	= s6e63m0_shutdown,
--	.suspend	= s6e63m0_suspend,
--	.resume		= s6e63m0_resume,
+ 	.probe		= adp5520_bl_probe,
+ 	.remove		= adp5520_bl_remove,
+-	.suspend	= adp5520_bl_suspend,
+-	.resume		= adp5520_bl_resume,
  };
  
- module_spi_driver(s6e63m0_driver);
+ module_platform_driver(adp5520_bl_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
