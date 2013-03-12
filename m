@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:33 -0700
-Message-ID: <20130312201233.C503B31C203@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:35 -0700
+Message-ID: <20130312201235.BBC905A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:53561 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933475Ab3CLUMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:34 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m12so29695yen.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:34 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:48657 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933475Ab3CLUMg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:36 -0400
+Received: by mail-yh0-f73.google.com with SMTP id 28so30115yhr.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: lm3533_bl: convert lm3533_bl to dev_pm_ops
+     Subject: backlight: locomolcd: convert locomolcd to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
+     backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lm3533_bl: convert lm3533_bl to dev_pm_ops
+Subject: backlight: locomolcd: convert locomolcd to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,65 +43,59 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3533_bl.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/video/backlight/locomolcd.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/backlight/lm3533_bl.c~backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops drivers/video/backlight/lm3533_bl.c
---- a/drivers/video/backlight/lm3533_bl.c~backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops
-+++ a/drivers/video/backlight/lm3533_bl.c
-@@ -368,29 +368,28 @@ static int lm3533_bl_remove(struct platf
+diff -puN drivers/video/backlight/locomolcd.c~backlight-locomolcd-convert-locomolcd-to-dev_pm_ops drivers/video/backlight/locomolcd.c
+--- a/drivers/video/backlight/locomolcd.c~backlight-locomolcd-convert-locomolcd-to-dev_pm_ops
++++ a/drivers/video/backlight/locomolcd.c
+@@ -157,25 +157,24 @@ static const struct backlight_ops locomo
+ 	.update_status  = locomolcd_set_intensity,
+ };
+ 
+-#ifdef CONFIG_PM
+-static int locomolcd_suspend(struct locomo_dev *dev, pm_message_t state)
++#ifdef CONFIG_PM_SLEEP
++static int locomolcd_suspend(struct device *dev)
+ {
+ 	locomolcd_flags |= LOCOMOLCD_SUSPENDED;
+ 	locomolcd_set_intensity(locomolcd_bl_device);
  	return 0;
  }
  
--#ifdef CONFIG_PM
--static int lm3533_bl_suspend(struct platform_device *pdev, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int lm3533_bl_suspend(struct device *dev)
+-static int locomolcd_resume(struct locomo_dev *dev)
++static int locomolcd_resume(struct device *dev)
  {
--	struct lm3533_bl *bl = platform_get_drvdata(pdev);
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
- 
--	dev_dbg(&pdev->dev, "%s\n", __func__);
-+	dev_dbg(dev, "%s\n", __func__);
- 
- 	return lm3533_ctrlbank_disable(&bl->cb);
- }
- 
--static int lm3533_bl_resume(struct platform_device *pdev)
-+static int lm3533_bl_resume(struct device *dev)
- {
--	struct lm3533_bl *bl = platform_get_drvdata(pdev);
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
- 
--	dev_dbg(&pdev->dev, "%s\n", __func__);
-+	dev_dbg(dev, "%s\n", __func__);
- 
- 	return lm3533_ctrlbank_enable(&bl->cb);
+ 	locomolcd_flags &= ~LOCOMOLCD_SUSPENDED;
+ 	locomolcd_set_intensity(locomolcd_bl_device);
+ 	return 0;
  }
 -#else
--#define lm3533_bl_suspend	NULL
--#define lm3533_bl_resume	NULL
+-#define locomolcd_suspend	NULL
+-#define locomolcd_resume	NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(lm3533_bl_pm_ops, lm3533_bl_suspend, lm3533_bl_resume);
++static SIMPLE_DEV_PM_OPS(locomolcd_pm_ops, locomolcd_suspend, locomolcd_resume);
 +
- static void lm3533_bl_shutdown(struct platform_device *pdev)
+ static int locomolcd_probe(struct locomo_dev *ldev)
  {
- 	struct lm3533_bl *bl = platform_get_drvdata(pdev);
-@@ -404,12 +403,11 @@ static struct platform_driver lm3533_bl_
- 	.driver = {
- 		.name	= "lm3533-backlight",
- 		.owner	= THIS_MODULE,
-+		.pm	= &lm3533_bl_pm_ops,
- 	},
- 	.probe		= lm3533_bl_probe,
- 	.remove		= lm3533_bl_remove,
- 	.shutdown	= lm3533_bl_shutdown,
--	.suspend	= lm3533_bl_suspend,
--	.resume		= lm3533_bl_resume,
- };
- module_platform_driver(lm3533_bl_driver);
+ 	struct backlight_properties props;
+@@ -230,13 +229,12 @@ static int locomolcd_remove(struct locom
  
+ static struct locomo_driver poodle_lcd_driver = {
+ 	.drv = {
+-		.name = "locomo-backlight",
++		.name	= "locomo-backlight",
++		.pm	= &locomolcd_pm_ops,
+ 	},
+ 	.devid	= LOCOMO_DEVID_BACKLIGHT,
+ 	.probe	= locomolcd_probe,
+ 	.remove	= locomolcd_remove,
+-	.suspend = locomolcd_suspend,
+-	.resume = locomolcd_resume,
+ };
+ 
+ static int __init locomolcd_init(void)
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
