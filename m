@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-microblaze-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:43:40 -0700
-Message-ID: <20130312214340.C742C31C230@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-sparc-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:43:46 -0700
+Message-ID: <20130312214346.C969C31C230@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:35625 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933551Ab3CLVnm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:43:42 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 9so40571qea.1
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:43:41 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:38249 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933619Ab3CLVnr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:43:47 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so40277ggn.4
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:43:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, jiang.liu@huawei.com, monstr@monstr.eu
+Cc: liuj97@gmail.com, davem@davemloft.net, jiang.liu@huawei.com, sam@ravnborg.org
 
 
 The patch titled
-     Subject: mm/microblaze: use free_highmem_page() to free highmem pages into buddy system
+     Subject: mm/SPARC: use free_highmem_page() to free highmem pages into buddy system
 has been added to the -mm tree.  Its filename is
-     mm-microblaze-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+     mm-sparc-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/microblaze: use free_highmem_page() to free highmem pages into buddy system
+Subject: mm/SPARC: use free_highmem_page() to free highmem pages into buddy system
 
 Use helper function free_highmem_page() to free highmem pages into
 the buddy system.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/mm/init.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/sparc/mm/init_32.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/microblaze/mm/init.c~mm-microblaze-use-free_highmem_page-to-free-highmem-pages-into-buddy-system arch/microblaze/mm/init.c
---- a/arch/microblaze/mm/init.c~mm-microblaze-use-free_highmem_page-to-free-highmem-pages-into-buddy-system
-+++ a/arch/microblaze/mm/init.c
-@@ -82,13 +82,9 @@ static unsigned long highmem_setup(void)
- 		/* FIXME not sure about */
- 		if (memblock_is_reserved(pfn << PAGE_SHIFT))
- 			continue;
+diff -puN arch/sparc/mm/init_32.c~mm-sparc-use-free_highmem_page-to-free-highmem-pages-into-buddy-system arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~mm-sparc-use-free_highmem_page-to-free-highmem-pages-into-buddy-system
++++ a/arch/sparc/mm/init_32.c
+@@ -282,14 +282,8 @@ static void map_high_region(unsigned lon
+ 	printk("mapping high region %08lx - %08lx\n", start_pfn, end_pfn);
+ #endif
+ 
+-	for (tmp = start_pfn; tmp < end_pfn; tmp++) {
+-		struct page *page = pfn_to_page(tmp);
+-
 -		ClearPageReserved(page);
 -		init_page_count(page);
 -		__free_page(page);
 -		totalhigh_pages++;
-+		free_highmem_page(page);
- 		reservedpages++;
- 	}
--	totalram_pages += totalhigh_pages;
- 	pr_info("High memory: %luk\n",
- 					totalhigh_pages << (PAGE_SHIFT-10));
+-	}
++	for (tmp = start_pfn; tmp < end_pfn; tmp++)
++		free_highmem_page(pfn_to_page(tmp));
+ }
  
+ void __init mem_init(void)
+@@ -347,8 +341,6 @@ void __init mem_init(void)
+ 		map_high_region(start_pfn, end_pfn);
+ 	}
+ 	
+-	totalram_pages += totalhigh_pages;
+-
+ 	codepages = (((unsigned long) &_etext) - ((unsigned long)&_start));
+ 	codepages = PAGE_ALIGN(codepages) >> PAGE_SHIFT;
+ 	datapages = (((unsigned long) &_edata) - ((unsigned long)&_etext));
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
