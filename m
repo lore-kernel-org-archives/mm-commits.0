@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:50:07 -0700
-Message-ID: <20130312205007.610D031C214@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-video-mxsfbc-convert-to-devm_ioremap_resource.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:53:31 -0700
+Message-ID: <20130312205331.7161731C214@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:46322 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932675Ab3CLUuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:50:10 -0400
-Received: by mail-gg0-f202.google.com with SMTP id l4so34464ggi.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:50:09 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:62124 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755642Ab3CLUxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:53:32 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z6so35218yhz.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:53:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: fabio.estevam@freescale.com, FlorianSchandinat@gmx.de, shawn.guo@linaro.org
 
 
 The patch titled
-     Subject: drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix
+     Subject: drivers/video/mxsfb.c: convert to devm_ioremap_resource()
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
+     drivers-video-mxsfbc-convert-to-devm_ioremap_resource.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,140 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix
+From: Fabio Estevam <fabio.estevam@freescale.com>
+Subject: drivers/video/mxsfb.c: convert to devm_ioremap_resource()
 
-- Added regulator_disable() for IO regulator before returning
+Converting to devm_ioremap_resource() can make the code cleaner and smaller.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/l4f00242t03.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/mxsfb.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix drivers/video/backlight/l4f00242t03.c
---- a/drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix
-+++ a/drivers/video/backlight/l4f00242t03.c
-@@ -69,11 +69,13 @@ static void l4f00242t03_lcd_init(struct
- 	ret = regulator_set_voltage(priv->core_reg, 2800000, 2800000);
- 	if (ret) {
- 		dev_err(&spi->dev, "failed to set the core regulator voltage.\n");
-+		regulator_disable(priv->io_reg);
- 		return;
+diff -puN drivers/video/mxsfb.c~drivers-video-mxsfbc-convert-to-devm_ioremap_resource drivers/video/mxsfb.c
+--- a/drivers/video/mxsfb.c~drivers-video-mxsfbc-convert-to-devm_ioremap_resource
++++ a/drivers/video/mxsfb.c
+@@ -801,22 +801,17 @@ static int mxsfb_probe(struct platform_d
+ 		return -ENODEV;
  	}
- 	ret = regulator_enable(priv->core_reg);
- 	if (ret) {
- 		dev_err(&spi->dev, "failed to enable the core regulator.\n");
-+		regulator_disable(priv->io_reg);
- 		return;
+ 
+-	if (!request_mem_region(res->start, resource_size(res), pdev->name))
+-		return -EBUSY;
+-
+ 	fb_info = framebuffer_alloc(sizeof(struct mxsfb_info), &pdev->dev);
+ 	if (!fb_info) {
+ 		dev_err(&pdev->dev, "Failed to allocate fbdev\n");
+-		ret = -ENOMEM;
+-		goto error_alloc_info;
++		return -ENOMEM;
  	}
+ 
+ 	host = to_imxfb_host(fb_info);
+ 
+-	host->base = ioremap(res->start, resource_size(res));
+-	if (!host->base) {
+-		dev_err(&pdev->dev, "ioremap failed\n");
+-		ret = -ENOMEM;
++	host->base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(host->base)) {
++		return PTR_ERR(host->base);
+ 		goto error_ioremap;
+ 	}
+ 
+@@ -904,11 +899,8 @@ error_panel_enable:
+ 	clk_put(host->clk);
+ error_getclock:
+ error_getpin:
+-	iounmap(host->base);
+ error_ioremap:
+ 	framebuffer_release(fb_info);
+-error_alloc_info:
+-	release_mem_region(res->start, resource_size(res));
+ 
+ 	return ret;
+ }
+@@ -917,7 +909,6 @@ static int mxsfb_remove(struct platform_
+ {
+ 	struct fb_info *fb_info = platform_get_drvdata(pdev);
+ 	struct mxsfb_info *host = to_imxfb_host(fb_info);
+-	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 
+ 	if (host->enabled)
+ 		mxsfb_disable_controller(fb_info);
+@@ -925,11 +916,9 @@ static int mxsfb_remove(struct platform_
+ 	unregister_framebuffer(fb_info);
+ 	kfree(fb_info->pseudo_palette);
+ 	mxsfb_free_videomem(host);
+-	iounmap(host->base);
+ 	clk_put(host->clk);
+ 
+ 	framebuffer_release(fb_info);
+-	release_mem_region(res->start, resource_size(res));
+ 
+ 	platform_set_drvdata(pdev, NULL);
  
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from fabio.estevam@freescale.com are
 
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
-drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
-drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
-drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
-drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
-drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
-drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
-backlight-adp8870-add-missing-braces.patch
-drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
-drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
-backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
-backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
-backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
-backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
-backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
-backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
-backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
-backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
-backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
-backlight-kb3886_bl-convert-kb3886bl-to-dev_pm_ops.patch
-backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
-backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
-backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
-backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-max77686-use-module_platform_driver.patch
-rtc-max77686-add-missing-module-author-name.patch
-rtc-max77686-use-devm_kzalloc.patch
-rtc-max77686-fix-indentation-of-bit-definitions.patch
-rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
-rtc-rtc-ab3100-use-module_platform_driver_probe.patch
-rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
-rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
-rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
-rtc-rtc-coh901331-use-module_platform_driver_probe.patch
-rtc-rtc-davinci-use-module_platform_driver_probe.patch
-rtc-rtc-ds1302-use-module_platform_driver_probe.patch
-rtc-rtc-efi-use-module_platform_driver_probe.patch
-rtc-rtc-generic-use-module_platform_driver_probe.patch
-rtc-rtc-imxdi-use-module_platform_driver_probe.patch
-rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
-rtc-rtc-msm6242-use-module_platform_driver_probe.patch
-rtc-rtc-mv-use-module_platform_driver_probe.patch
-rtc-rtc-nuc900-use-module_platform_driver_probe.patch
-rtc-rtc-omap-use-module_platform_driver_probe.patch
-rtc-rtc-pcap-use-module_platform_driver_probe.patch
-rtc-rtc-ps3-use-module_platform_driver_probe.patch
-rtc-rtc-pxa-use-module_platform_driver_probe.patch
-rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
-rtc-rtc-sh-use-module_platform_driver_probe.patch
-rtc-rtc-starfire-use-module_platform_driver_probe.patch
-rtc-rtc-sun4v-use-module_platform_driver_probe.patch
-rtc-rtc-tegra-use-module_platform_driver_probe.patch
-rtc-rtc-tx4939-use-module_platform_driver_probe.patch
-rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
-rtc-rtc-coh90133-use-devm_rtc_device_register.patch
-rtc-rtc-da9052-use-devm_rtc_device_register.patch
-rtc-rtc-da9055-use-devm_rtc_device_register.patch
-rtc-rtc-davinci-use-devm_rtc_device_register.patch
-rtc-rtc-ds1511-use-devm_rtc_device_register.patch
-rtc-rtc-ds1553-use-devm_rtc_device_register.patch
-rtc-rtc-ds1742-use-devm_rtc_device_register.patch
-rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
-rtc-rtc-imxdi-use-devm_rtc_device_register.patch
-rtc-rtc-lp8788-use-devm_rtc_device_register.patch
-rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
-rtc-rtc-max77686-use-devm_rtc_device_register.patch
-rtc-rtc-max8907-use-devm_rtc_device_register.patch
-rtc-rtc-max8997-use-devm_rtc_device_register.patch
-rtc-rtc-mv-use-devm_rtc_device_register.patch
-rtc-rtc-mxc-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_rtc_device_register.patch
-rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
-rtc-rtc-s3c-use-devm_rtc_device_register.patch
-rtc-rtc-snvs-use-devm_rtc_device_register.patch
-rtc-rtc-spear-use-devm_rtc_device_register.patch
-rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
-rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
-rtc-rtc-tps65910-use-devm_rtc_device_register.patch
-rtc-rtc-tps80031-use-devm_rtc_device_register.patch
-rtc-rtc-tx4939-use-devm_rtc_device_register.patch
-rtc-rtc-vt8500-use-devm_rtc_device_register.patch
-rtc-rtc-wm831x-use-devm_rtc_device_register.patch
-rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
-rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
-rtc-tegra-set-irq-name-as-device-name.patch
-rtc-tegra-use-managed-rtc_device_register.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
-rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
-drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-video-mxsfbc-convert-to-devm_ioremap_resource.patch
 
