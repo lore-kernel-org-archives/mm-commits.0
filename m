@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sh-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:22:54 -0700
-Message-ID: <20130312212254.A32A05A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-um-use-common-help-functions-to-free-reserved-pages.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:22:58 -0700
+Message-ID: <20130312212258.C897F5A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:36694 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932583Ab3CLVW4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:22:56 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so30765vbi.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:55 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:45267 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932583Ab3CLVXA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:23:00 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q5so38473yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:22:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, jiang.liu@huawei.com, lethal@linux-sh.org
+Cc: liuj97@gmail.com, jdike@addtoit.com, jiang.liu@huawei.com
 
 
 The patch titled
-     Subject: mm/SH: use common help functions to free reserved pages
+     Subject: mm/um: use common help functions to free reserved pages
 has been added to the -mm tree.  Its filename is
-     mm-sh-use-common-help-functions-to-free-reserved-pages.patch
+     mm-um-use-common-help-functions-to-free-reserved-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/SH: use common help functions to free reserved pages
+Subject: mm/um: use common help functions to free reserved pages
 
 Use common help functions to free reserved pages.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c |   26 +++-----------------------
- 1 file changed, 3 insertions(+), 23 deletions(-)
+ arch/um/kernel/mem.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN arch/sh/mm/init.c~mm-sh-use-common-help-functions-to-free-reserved-pages arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~mm-sh-use-common-help-functions-to-free-reserved-pages
-+++ a/arch/sh/mm/init.c
-@@ -417,15 +417,13 @@ void __init mem_init(void)
- 
- 	for_each_online_node(nid) {
- 		pg_data_t *pgdat = NODE_DATA(nid);
--		unsigned long node_pages = 0;
- 		void *node_high_memory;
- 
- 		num_physpages += pgdat->node_present_pages;
- 
- 		if (pgdat->node_spanned_pages)
--			node_pages = free_all_bootmem_node(pgdat);
-+			totalram_pages += free_all_bootmem_node(pgdat);
- 
--		totalram_pages += node_pages;
- 
- 		node_high_memory = (void *)__va((pgdat->node_start_pfn +
- 						 pgdat->node_spanned_pages) <<
-@@ -501,31 +499,13 @@ void __init mem_init(void)
- 
- void free_initmem(void)
- {
--	unsigned long addr;
--
--	addr = (unsigned long)(&__init_begin);
--	for (; addr < (unsigned long)(&__init_end); addr += PAGE_SIZE) {
--		ClearPageReserved(virt_to_page(addr));
--		init_page_count(virt_to_page(addr));
--		free_page(addr);
--		totalram_pages++;
--	}
--	printk("Freeing unused kernel memory: %ldk freed\n",
--	       ((unsigned long)&__init_end -
--	        (unsigned long)&__init_begin) >> 10);
-+	free_initmem_default(0);
- }
- 
+diff -puN arch/um/kernel/mem.c~mm-um-use-common-help-functions-to-free-reserved-pages arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~mm-um-use-common-help-functions-to-free-reserved-pages
++++ a/arch/um/kernel/mem.c
+@@ -254,15 +254,7 @@ void free_initmem(void)
  #ifdef CONFIG_BLK_DEV_INITRD
  void free_initrd_mem(unsigned long start, unsigned long end)
  {
--	unsigned long p;
--	for (p = start; p < end; p += PAGE_SIZE) {
--		ClearPageReserved(virt_to_page(p));
--		init_page_count(virt_to_page(p));
--		free_page(p);
+-	if (start < end)
+-		printk(KERN_INFO "Freeing initrd memory: %ldk freed\n",
+-		       (end - start) >> 10);
+-	for (; start < end; start += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(start));
+-		init_page_count(virt_to_page(start));
+-		free_page(start);
 -		totalram_pages++;
 -	}
--	printk("Freeing initrd memory: %ldk freed\n", (end - start) >> 10);
 +	free_reserved_area(start, end, 0, "initrd");
  }
  #endif
