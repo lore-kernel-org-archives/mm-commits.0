@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded.patch added to -mm tree
-Date: Tue, 12 Mar 2013 14:28:04 -0700
-Message-ID: <20130312212804.76E7931C214@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch added to -mm tree
+Date: Tue, 12 Mar 2013 14:43:34 -0700
+Message-ID: <20130312214334.D269F5A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:48216 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932723Ab3CLV2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:28:05 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so39072qcr.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:28:04 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:52512 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932732Ab3CLVng (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 17:43:36 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so55707qah.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 14:43:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, teigland@redhat.com
+Cc: liuj97@gmail.com, jiang.liu@huawei.com, linus.walleij@linaro.org, linux@arm.linux.org.uk, m.szyprowski@samsung.com, sboyd@codeaurora.org
 
 
 The patch titled
-     Subject: idr: idr_alloc() shouldn't trigger lowmem warning when preloaded
+     Subject: mm/ARM: use free_highmem_page() to free highmem pages into buddy system
 has been added to the -mm tree.  Its filename is
-     idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded.patch
+     mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,121 +33,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: idr: idr_alloc() shouldn't trigger lowmem warning when preloaded
+From: Jiang Liu <liuj97@gmail.com>
+Subject: mm/ARM: use free_highmem_page() to free highmem pages into buddy system
 
-GFP_NOIO is often used for idr_alloc() inside preloaded section as the
-allocation mask doesn't really matter.  If the idr tree needs to be
-expanded, idr_alloc() first tries to allocate using the specified
-allocation mask and if it fails falls back to the preloaded buffer.  This
-order prevent non-preloading idr_alloc() users from taking advantage of
-preloading ones by using preload buffer without filling it shifting the
-burden of allocation to the preload users.
+Use helper function free_highmem_page() to free highmem pages into
+the buddy system.
 
-Unfortunately, this allowed/expected-to-fail kmem_cache allocation ends up
-generating spurious slab lowmem warning before succeeding the request from
-the preload buffer.
-
-This patch makes idr_layer_alloc() add __GFP_NOWARN to the first
-kmem_cache attempt and try kmem_cache again w/o __GFP_NOWARN after
-allocation from preload_buffer fails so that lowmem warning is generated
-if not suppressed by the original @gfp_mask.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: David Teigland <teigland@redhat.com>
-Tested-by: David Teigland <teigland@redhat.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ arch/arm/mm/init.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN lib/idr.c~idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded lib/idr.c
---- a/lib/idr.c~idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded
-+++ a/lib/idr.c
-@@ -106,8 +106,14 @@ static struct idr_layer *idr_layer_alloc
- 	if (layer_idr)
- 		return get_from_free_list(layer_idr);
+diff -puN arch/arm/mm/init.c~mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system
++++ a/arch/arm/mm/init.c
+@@ -522,10 +522,8 @@ static void __init free_unused_memmap(st
+ #ifdef CONFIG_HIGHMEM
+ static inline void free_area_high(unsigned long pfn, unsigned long end)
+ {
+-	for (; pfn < end; pfn++) {
+-		__free_reserved_page(pfn_to_page(pfn));
+-		totalhigh_pages++;
+-	}
++	for (; pfn < end; pfn++)
++		free_highmem_page(pfn_to_page(pfn));
+ }
+ #endif
  
--	/* try to allocate directly from kmem_cache */
--	new = kmem_cache_zalloc(idr_layer_cache, gfp_mask);
-+	/*
-+	 * Try to allocate directly from kmem_cache.  We want to try this
-+	 * before preload buffer; otherwise, non-preloading idr_alloc()
-+	 * users will end up taking advantage of preloading ones.  As the
-+	 * following is allowed to fail for preloaded cases, suppress
-+	 * warning this time.
-+	 */
-+	new = kmem_cache_zalloc(idr_layer_cache, gfp_mask | __GFP_NOWARN);
- 	if (new)
- 		return new;
- 
-@@ -115,18 +121,24 @@ static struct idr_layer *idr_layer_alloc
- 	 * Try to fetch one from the per-cpu preload buffer if in process
- 	 * context.  See idr_preload() for details.
- 	 */
--	if (in_interrupt())
--		return NULL;
--
--	preempt_disable();
--	new = __this_cpu_read(idr_preload_head);
--	if (new) {
--		__this_cpu_write(idr_preload_head, new->ary[0]);
--		__this_cpu_dec(idr_preload_cnt);
--		new->ary[0] = NULL;
-+	if (!in_interrupt()) {
-+		preempt_disable();
-+		new = __this_cpu_read(idr_preload_head);
-+		if (new) {
-+			__this_cpu_write(idr_preload_head, new->ary[0]);
-+			__this_cpu_dec(idr_preload_cnt);
-+			new->ary[0] = NULL;
-+		}
-+		preempt_enable();
-+		if (new)
-+			return new;
+@@ -574,7 +572,6 @@ static void __init free_highpages(void)
+ 		if (start < end)
+ 			free_area_high(start, end);
  	}
--	preempt_enable();
--	return new;
-+
-+	/*
-+	 * Both failed.  Try kmem_cache again w/o adding __GFP_NOWARN so
-+	 * that memory allocation failure warning is printed as intended.
-+	 */
-+	return kmem_cache_zalloc(idr_layer_cache, gfp_mask);
+-	totalram_pages += totalhigh_pages;
+ #endif
  }
  
- static void idr_layer_rcu_free(struct rcu_head *head)
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from liuj97@gmail.com are
 
-linux-next.patch
-include-linux-res_counterh-needs-errnoh.patch
-nfsd-remove-unused-get_new_stid.patch
-nfsd-convert-to-idr_alloc.patch
-workqueue-convert-to-idr_alloc.patch
-mlx4-remove-leftover-idr_pre_get-call.patch
-zcache-convert-to-idr_alloc.patch
-tidspbridge-convert-to-idr_alloc.patch
-idr-deprecate-idr_pre_get-and-idr_get_new.patch
-idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded.patch
-thinkpad-acpi-kill-hotkey_thread_mutex.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-memblock-add-assertion-for-zero-allocation-alignment.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
-kernel-sysc-use-the-simpler-call_usermodehelper.patch
-usermodehelper-export-_exec-and-_setup-functions.patch
-kmod-split-call-to-call_usermodehelper_fns.patch
-keys-split-call-to-call_usermodehelper_fns.patch
-coredump-remove-trailling-whitespaces.patch
-split-remaining-calls-to-call_usermodehelper_fns.patch
-kmod-remove-call_usermodehelper_fns.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-introduce-dump_interrupted.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
+mm-introduce-common-help-functions-to-deal-with-reserved-managed-pages.patch
+mm-alpha-use-common-help-functions-to-free-reserved-pages.patch
+mm-arm-use-common-help-functions-to-free-reserved-pages.patch
+mm-avr32-use-common-help-functions-to-free-reserved-pages.patch
+mm-blackfin-use-common-help-functions-to-free-reserved-pages.patch
+mm-c6x-use-common-help-functions-to-free-reserved-pages.patch
+mm-cris-use-common-help-functions-to-free-reserved-pages.patch
+mm-frv-use-common-help-functions-to-free-reserved-pages.patch
+mm-h8300-use-common-help-functions-to-free-reserved-pages.patch
+mm-ia64-use-common-help-functions-to-free-reserved-pages.patch
+mm-m32r-use-common-help-functions-to-free-reserved-pages.patch
+mm-m68k-use-common-help-functions-to-free-reserved-pages.patch
+mm-microblaze-use-common-help-functions-to-free-reserved-pages.patch
+mm-mips-use-common-help-functions-to-free-reserved-pages.patch
+mm-mn10300-use-common-help-functions-to-free-reserved-pages.patch
+mm-openrisc-use-common-help-functions-to-free-reserved-pages.patch
+mm-parisc-use-common-help-functions-to-free-reserved-pages.patch
+mm-ppc-use-common-help-functions-to-free-reserved-pages.patch
+mm-s390-use-common-help-functions-to-free-reserved-pages.patch
+mm-score-use-common-help-functions-to-free-reserved-pages.patch
+mm-sh-use-common-help-functions-to-free-reserved-pages.patch
+mm-sparc-use-common-help-functions-to-free-reserved-pages.patch
+mm-um-use-common-help-functions-to-free-reserved-pages.patch
+mm-unicore32-use-common-help-functions-to-free-reserved-pages.patch
+mm-x86-use-common-help-functions-to-free-reserved-pages.patch
+mm-xtensa-use-common-help-functions-to-free-reserved-pages.patch
+mm-arc-use-common-help-functions-to-free-reserved-pages.patch
+mm-metag-use-common-help-functions-to-free-reserved-pages.patch
+mmkexec-use-common-help-functions-to-free-reserved-pages.patch
+mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
+mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-metag-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-microblaze-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-mips-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-ppc-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-sparc-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-um-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+mm-x86-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
 
