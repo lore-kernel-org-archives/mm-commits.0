@@ -1,104 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] keys-fix-race-with-concurrent-install_user_keyrings.patch removed from -mm tree
-Date: Tue, 12 Mar 2013 12:09:52 -0700
-Message-ID: <20130312190952.AC26431C214@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-usb-dwc3-ep0c-fix-sparc64-build.patch removed from -mm tree
+Date: Tue, 12 Mar 2013 12:09:58 -0700
+Message-ID: <20130312190958.739DF5A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:58176 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932680Ab3CLTJy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 15:09:54 -0400
-Received: by mail-gg0-f202.google.com with SMTP id l4so22221ggi.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 12:09:53 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:50905 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932680Ab3CLTJ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 15:09:59 -0400
+Received: by mail-vc0-f202.google.com with SMTP id m8so22421vcd.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 12:09:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, james.l.morris@oracle.com, mguzik@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbi@ti.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: keys: fix race with concurrent install_user_keyrings()
+     Subject: drivers/usb/dwc3/ep0.c: fix sparc64 build
 has been removed from the -mm tree.  Its filename was
-     keys-fix-race-with-concurrent-install_user_keyrings.patch
+     drivers-usb-dwc3-ep0c-fix-sparc64-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: keys: fix race with concurrent install_user_keyrings()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/usb/dwc3/ep0.c: fix sparc64 build
 
-This fixes CVE-2013-1792.
+drivers/usb/dwc3/ep0.c: In function `__dwc3_ep0_do_control_data':
+drivers/usb/dwc3/ep0.c:905: error: `typeof' applied to a bit-field
 
-There is a race in install_user_keyrings() that can cause a NULL pointer
-dereference when called concurrently for the same user if the uid and
-uid-session keyrings are not yet created.  It might be possible for an
-unprivileged user to trigger this by calling keyctl() from userspace in
-parallel immediately after logging in.
+Looks like a gcc-3.4.5/sparc64 bug.
 
-Assume that we have two threads both executing lookup_user_key(), both
-looking for KEY_SPEC_USER_SESSION_KEYRING.
-
-	THREAD A			THREAD B
-	===============================	===============================
-					==>call install_user_keyrings();
-	if (!cred->user->session_keyring)
-	==>call install_user_keyrings()
-					...
-					user->uid_keyring = uid_keyring;
-	if (user->uid_keyring)
-		return 0;
-	<==
-	key = cred->user->session_keyring [== NULL]
-					user->session_keyring = session_keyring;
-	atomic_inc(&key->usage); [oops]
-
-At the point thread A dereferences cred->user->session_keyring, thread B
-hasn't updated user->session_keyring yet, but thread A assumes it is
-populated because install_user_keyrings() returned ok.
-
-The race window is really small but can be exploited if, for example,
-thread B is interrupted or preempted after initializing uid_keyring, but
-before doing setting session_keyring.
-
-This couldn't be reproduced on a stock kernel.  However, after placing
-systemtap probe on 'user->session_keyring = session_keyring;' that
-introduced some delay, the kernel could be crashed reliably.
-
-Fix this by checking both pointers before deciding whether to return. 
-Alternatively, the test could be done away with entirely as it is checked
-inside the mutex - but since the mutex is global, that may not be the best
-way.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Reported-by: Mateusz Guzik <mguzik@redhat.com>
-Acked-by: James Morris <james.l.morris@oracle.com>
-Cc: <stable@kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/process_keys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/dwc3/ep0.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN security/keys/process_keys.c~keys-fix-race-with-concurrent-install_user_keyrings security/keys/process_keys.c
---- a/security/keys/process_keys.c~keys-fix-race-with-concurrent-install_user_keyrings
-+++ a/security/keys/process_keys.c
-@@ -57,7 +57,7 @@ int install_user_keyrings(void)
+diff -puN drivers/usb/dwc3/ep0.c~drivers-usb-dwc3-ep0c-fix-sparc64-build drivers/usb/dwc3/ep0.c
+--- a/drivers/usb/dwc3/ep0.c~drivers-usb-dwc3-ep0c-fix-sparc64-build
++++ a/drivers/usb/dwc3/ep0.c
+@@ -891,7 +891,8 @@ static void __dwc3_ep0_do_control_data(s
+ 				DWC3_TRBCTL_CONTROL_DATA);
+ 	} else if (!IS_ALIGNED(req->request.length, dep->endpoint.maxpacket)
+ 			&& (dep->number == 0)) {
+-		u32		transfer_size;
++		u32	transfer_size;
++		u32	maxpacket;
  
- 	kenter("%p{%u}", user, uid);
+ 		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
+ 				dep->number);
+@@ -902,8 +903,8 @@ static void __dwc3_ep0_do_control_data(s
  
--	if (user->uid_keyring) {
-+	if (user->uid_keyring && user->session_keyring) {
- 		kleave(" = 0 [exist]");
- 		return 0;
- 	}
+ 		WARN_ON(req->request.length > DWC3_EP0_BOUNCE_SIZE);
+ 
+-		transfer_size = roundup(req->request.length,
+-				(u32) dep->endpoint.maxpacket);
++		maxpacket = dep->endpoint.maxpacket;
++		transfer_size = roundup(req->request.length, maxpacket);
+ 
+ 		dwc->ep0_bounced = true;
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-debug_locksh-make-warning-more-verbose.patch
-mm-remove-free_area_cache.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+include-linux-res_counterh-needs-errnoh.patch
+signal-always-clear-sa_restorer-on-execve-fix.patch
+kernel-signalc-use-__arch_has_sa_restorer-instead-of-sa_restorer.patch
+mm-fremapc-fix-oops-on-error-path.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
