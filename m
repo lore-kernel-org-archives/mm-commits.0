@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-use-the-simpler-call_usermodehelper.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:32:30 -0700
-Message-ID: <20130312203230.DF1F35A4260@corp2gmr1-2.hot.corp.google.com>
+Subject: + kmod-split-call-to-call_usermodehelper_fns.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:32:34 -0700
+Message-ID: <20130312203234.D94575A42C2@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44241 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755326Ab3CLUcc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:32:32 -0400
-Received: by mail-qa0-f74.google.com with SMTP id o13so47426qaj.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:32:31 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:64941 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755642Ab3CLUcg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:32:36 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 9so32202qea.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:32:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: lucas.demarchi@profusion.mobi, dhowells@redhat.com, james.l.morris@oracle.co
 
 
 The patch titled
-     Subject: kernel/sys.c: use the simpler call_usermodehelper()
+     Subject: kmod: split call to call_usermodehelper_fns()
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-use-the-simpler-call_usermodehelper.patch
+     kmod-split-call-to-call_usermodehelper_fns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Subject: kernel/sys.c: use the simpler call_usermodehelper()
+Subject: kmod: split call to call_usermodehelper_fns()
 
-Commit 7ff6764 ("usermodehelper: cleanup/fix __orderly_poweroff() &&
-argv_free()") simplified __orderly_poweroff() removing the need to use
-call_usermodehelper_fns().
-
-Since we are not passing any callback, it's simpler to use
-call_usermodehelper().
+Use call_usermodehelper_setup() + call_usermodehelper_exec() instead of
+calling call_usermodehelper_fns().  In case the latter returns -ENOMEM the
+cleanup function may had not been called - in this case we would not free
+argv and module_name.
 
 Signed-off-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -53,22 +51,38 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/kmod.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-use-the-simpler-call_usermodehelper kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-use-the-simpler-call_usermodehelper
-+++ a/kernel/sys.c
-@@ -2217,8 +2217,7 @@ static int __orderly_poweroff(void)
- 		return -ENOMEM;
- 	}
+diff -puN kernel/kmod.c~kmod-split-call-to-call_usermodehelper_fns kernel/kmod.c
+--- a/kernel/kmod.c~kmod-split-call-to-call_usermodehelper_fns
++++ a/kernel/kmod.c
+@@ -77,6 +77,7 @@ static void free_modprobe_argv(struct su
  
--	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_WAIT_EXEC,
--				      NULL, NULL, NULL);
-+	ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
- 	argv_free(argv);
+ static int call_modprobe(char *module_name, int wait)
+ {
++	struct subprocess_info *info;
+ 	static char *envp[] = {
+ 		"HOME=/",
+ 		"TERM=linux",
+@@ -98,8 +99,15 @@ static int call_modprobe(char *module_na
+ 	argv[3] = module_name;	/* check free_modprobe_argv() */
+ 	argv[4] = NULL;
  
- 	return ret;
+-	return call_usermodehelper_fns(modprobe_path, argv, envp,
+-		wait | UMH_KILLABLE, NULL, free_modprobe_argv, NULL);
++	info = call_usermodehelper_setup(modprobe_path, argv, envp, GFP_KERNEL,
++					 NULL, free_modprobe_argv, NULL);
++	if (!info)
++		goto free_module_name;
++
++	return call_usermodehelper_exec(info, wait | UMH_KILLABLE);
++
++free_module_name:
++	kfree(module_name);
+ free_argv:
+ 	kfree(argv);
+ out:
 _
 
 Patches currently in -mm which might be from lucas.demarchi@profusion.mobi are
