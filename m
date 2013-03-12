@@ -1,104 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive.patch removed from -mm tree
-Date: Tue, 12 Mar 2013 13:22:11 -0700
-Message-ID: <20130312202212.4443931C297@corp2gmr1-1.hot.corp.google.com>
+Subject: + usermodehelper-export-_exec-and-_setup-functions.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:32:32 -0700
+Message-ID: <20130312203232.DD11D5A4305@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:63325 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755508Ab3CLUWN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:22:13 -0400
-Received: by mail-vb0-f73.google.com with SMTP id fj18so23544vbb.0
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:22:12 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:33481 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755640Ab3CLUce (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:32:34 -0400
+Received: by mail-qa0-f74.google.com with SMTP id o13so47352qaj.5
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:32:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tom.leiming@gmail.com, shli@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lucas.demarchi@profusion.mobi, dhowells@redhat.com, james.l.morris@oracle.com, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: atomic: improve atomic_inc_unless_negative/atomic_dec_unless_positive
-has been removed from the -mm tree.  Its filename was
-     atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive.patch
+     Subject: usermodehelper: export call_usermodehelper_exec() and call_usermodehelper_setup()
+has been added to the -mm tree.  Its filename is
+     usermodehelper-export-_exec-and-_setup-functions.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: atomic: improve atomic_inc_unless_negative/atomic_dec_unless_positive
+From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Subject: usermodehelper: export call_usermodehelper_exec() and call_usermodehelper_setup()
 
-Generally, both atomic_inc_unless_negative() and
-atomic_dec_unless_positive() need at least two atomic_cmpxchg() to
-complete the atomic operation.  In fact, the 1st atomic_cmpxchg() is just
-used to read current value of the atomic variable at most times.
+call_usermodehelper_setup() + call_usermodehelper_exec() need to be called
+instead of call_usermodehelper_fns() when the cleanup function needs to be
+called even when an ENOMEM error occurs.  In this case using
+call_usermodehelper_fns() the user can't distinguish if the cleanup
+function was called or not.
 
-Considered memory barrier, bus lock, cache walking, etc.  things may be
-involved in atomic_cmpxchg(), it is much expensive than atomic_read(),
-which is just the simple below:
-
-	(*(volatile int *)&(v)->counter)
-
-so this patch can save one extra atomic_cmpxchg() for the two helpers
-under general situation, and should improve them a bit.
-
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-Cc: Shaohua Li <shli@kernel.org>
+Signed-off-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/atomic.h |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ include/linux/kmod.h |    8 +++++
+ kernel/kmod.c        |   56 ++++++++++++++++-------------------------
+ 2 files changed, 31 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/atomic.h~atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive include/linux/atomic.h
---- a/include/linux/atomic.h~atomic-improve-atomic_inc_unless_negative-atomic_dec_unless_positive
-+++ a/include/linux/atomic.h
-@@ -63,26 +63,34 @@ static inline int atomic_inc_not_zero_hi
- #ifndef atomic_inc_unless_negative
- static inline int atomic_inc_unless_negative(atomic_t *p)
- {
--	int v, v1;
--	for (v = 0; v >= 0; v = v1) {
--		v1 = atomic_cmpxchg(p, v, v + 1);
--		if (likely(v1 == v))
-+	int v, t;
-+
-+	v = atomic_read(p);
-+	while (1) {
-+		if (unlikely(v < 0))
-+			return 0;
-+		t = atomic_cmpxchg(p, v, v + 1);
-+		if (likely(t == v))
- 			return 1;
-+		v = t;
- 	}
--	return 0;
- }
- #endif
+diff -puN include/linux/kmod.h~usermodehelper-export-_exec-and-_setup-functions include/linux/kmod.h
+--- a/include/linux/kmod.h~usermodehelper-export-_exec-and-_setup-functions
++++ a/include/linux/kmod.h
+@@ -71,6 +71,14 @@ call_usermodehelper_fns(char *path, char
+ 			int (*init)(struct subprocess_info *info, struct cred *new),
+ 			void (*cleanup)(struct subprocess_info *), void *data);
  
- #ifndef atomic_dec_unless_positive
- static inline int atomic_dec_unless_positive(atomic_t *p)
- {
--	int v, v1;
--	for (v = 0; v <= 0; v = v1) {
--		v1 = atomic_cmpxchg(p, v, v - 1);
--		if (likely(v1 == v))
-+	int v, t;
++extern struct subprocess_info *
++call_usermodehelper_setup(char *path, char **argv, char **envp, gfp_t gfp_mask,
++			  int (*init)(struct subprocess_info *info, struct cred *new),
++			  void (*cleanup)(struct subprocess_info *), void *data);
 +
-+	v = atomic_read(p);
-+	while (1) {
-+		if (unlikely(v > 0))
-+			return 0;
-+		t = atomic_cmpxchg(p, v, v - 1);
-+		if (likely(t == v))
- 			return 1;
-+		v = t;
- 	}
--	return 0;
++extern int
++call_usermodehelper_exec(struct subprocess_info *info, int wait);
++
+ static inline int
+ call_usermodehelper(char *path, char **argv, char **envp, int wait)
+ {
+diff -puN kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions
++++ a/kernel/kmod.c
+@@ -502,14 +502,28 @@ static void helper_unlock(void)
+  * @argv: arg vector for process
+  * @envp: environment for process
+  * @gfp_mask: gfp mask for memory allocation
++ * @cleanup: a cleanup function
++ * @init: an init function
++ * @data: arbitrary context sensitive data
+  *
+  * Returns either %NULL on allocation failure, or a subprocess_info
+  * structure.  This should be passed to call_usermodehelper_exec to
+  * exec the process and free the structure.
++ *
++ * The init function is used to customize the helper process prior to
++ * exec.  A non-zero return code causes the process to error out, exit,
++ * and return the failure to the calling process
++ *
++ * The cleanup function is just before ethe subprocess_info is about to
++ * be freed.  This can be used for freeing the argv and envp.  The
++ * Function must be runnable in either a process context or the
++ * context in which call_usermodehelper_exec is called.
+  */
+-static
+ struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
+-						  char **envp, gfp_t gfp_mask)
++		char **envp, gfp_t gfp_mask,
++		int (*init)(struct subprocess_info *info, struct cred *new),
++		void (*cleanup)(struct subprocess_info *info),
++		void *data)
+ {
+ 	struct subprocess_info *sub_info;
+ 	sub_info = kzalloc(sizeof(struct subprocess_info), gfp_mask);
+@@ -520,38 +534,15 @@ struct subprocess_info *call_usermodehel
+ 	sub_info->path = path;
+ 	sub_info->argv = argv;
+ 	sub_info->envp = envp;
++
++	sub_info->cleanup = cleanup;
++	sub_info->init = init;
++	sub_info->data = data;
+   out:
+ 	return sub_info;
  }
- #endif
  
-_
-
-Patches currently in -mm which might be from tom.leiming@gmail.com are
-
-
+ /**
+- * call_usermodehelper_setfns - set a cleanup/init function
+- * @info: a subprocess_info returned by call_usermodehelper_setup
+- * @cleanup: a cleanup function
+- * @init: an init function
+- * @data: arbitrary context sensitive data
+- *
+- * The init function is used to customize the helper process prior to
+- * exec.  A non-zero return code causes the process to error out, exit,
+- * and return the failure to the calling process
+- *
+- * The cleanup function is just before ethe subprocess_info is about to
+- * be freed.  This can be used for freeing the argv and envp.  The
+- * Function must be runnable in either a process context or the
+- * context in which call_usermodehelper_exec is called.
+- */
+-static
+-void call_usermodehelper_setfns(struct subprocess_info *info,
+-		    int (*init)(struct subprocess_info *info, struct cred *new),
+-		    void (*cleanup)(struct subprocess_info *info),
+-		    void *data)
+-{
+-	info->cleanup = cleanup;
+-	info->init = init;
+-	info->data = data;
+-}
+-
+-/**
+  * call_usermodehelper_exec - start a usermode application
+  * @sub_info: information about the subprocessa
+  * @wait: wait for the application to finish and return status.
+@@ -563,7 +554,6 @@ void call_usermodehelper_setfns(struct s
+  * asynchronously if wait is not set, and runs as a child of keventd.
+  * (ie. it runs with full root capabilities).
+  */
+-static
+ int call_usermodehelper_exec(struct subprocess_info *sub_info, int wait)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(done);
+@@ -615,6 +605,7 @@ unlock:
+ 	helper_unlock();
+ 	return retval;
+ }
++EXPORT_SYMBOL(call_usermodehelper_exec);
+ 
+ /*
+  * call_usermodehelper_fns() will not run the caller-provided cleanup function
+@@ -630,13 +621,12 @@ int call_usermodehelper_fns(
+ 	struct subprocess_info *info;
+ 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
+ 
+-	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
++	info = call_usermodehelper_setup(path, argv, envp, gfp_mask,
++					 init, cleanup, data);
+ 
+ 	if (info == NULL)
+ 		return -ENOMEM;
+ 
+-	call_usermodehelper_setfns(info, init, cleanup, data);
