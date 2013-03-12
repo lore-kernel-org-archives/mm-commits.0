@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:25 -0700
-Message-ID: <20130312201225.C0D4C31C203@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:27 -0700
+Message-ID: <20130312201227.C0A135A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:53537 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932541Ab3CLUM0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:26 -0400
-Received: by mail-gg0-f202.google.com with SMTP id l4so29636ggi.5
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:26 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:58465 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933476Ab3CLUM2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:28 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so45155qah.0
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: corgi_lcd: convert corgi_lcd to dev_pm_ops
+     Subject: backlight: ep93xx: convert ep93xx to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
+     backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: corgi_lcd: convert corgi_lcd to dev_pm_ops
+Subject: backlight: ep93xx: convert ep93xx to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,64 +43,56 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/corgi_lcd.c |   18 ++++++++----------
+ drivers/video/backlight/ep93xx_bl.c |   18 ++++++++----------
  1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops
-+++ a/drivers/video/backlight/corgi_lcd.c
-@@ -457,10 +457,10 @@ static const struct backlight_ops corgi_
- 	.update_status  = corgi_bl_update_status,
- };
- 
--#ifdef CONFIG_PM
--static int corgi_lcd_suspend(struct spi_device *spi, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int corgi_lcd_suspend(struct device *dev)
- {
--	struct corgi_lcd *lcd = spi_get_drvdata(spi);
-+	struct corgi_lcd *lcd = dev_get_drvdata(dev);
- 
- 	corgibl_flags |= CORGIBL_SUSPENDED;
- 	corgi_bl_set_intensity(lcd, 0);
-@@ -468,20 +468,19 @@ static int corgi_lcd_suspend(struct spi_
+diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-convert-ep93xx-to-dev_pm_ops drivers/video/backlight/ep93xx_bl.c
+--- a/drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-convert-ep93xx-to-dev_pm_ops
++++ a/drivers/video/backlight/ep93xx_bl.c
+@@ -115,35 +115,33 @@ static int ep93xxbl_remove(struct platfo
  	return 0;
  }
  
--static int corgi_lcd_resume(struct spi_device *spi)
-+static int corgi_lcd_resume(struct device *dev)
+-#ifdef CONFIG_PM
+-static int ep93xxbl_suspend(struct platform_device *dev, pm_message_t state)
++#ifdef CONFIG_PM_SLEEP
++static int ep93xxbl_suspend(struct device *dev)
  {
--	struct corgi_lcd *lcd = spi_get_drvdata(spi);
-+	struct corgi_lcd *lcd = dev_get_drvdata(dev);
+-	struct backlight_device *bl = platform_get_drvdata(dev);
++	struct backlight_device *bl = dev_get_drvdata(dev);
  
- 	corgibl_flags &= ~CORGIBL_SUSPENDED;
- 	corgi_lcd_set_power(lcd->lcd_dev, FB_BLANK_UNBLANK);
- 	backlight_update_status(lcd->bl_dev);
+ 	return ep93xxbl_set(bl, 0);
+ }
+ 
+-static int ep93xxbl_resume(struct platform_device *dev)
++static int ep93xxbl_resume(struct device *dev)
+ {
+-	struct backlight_device *bl = platform_get_drvdata(dev);
++	struct backlight_device *bl = dev_get_drvdata(dev);
+ 
+ 	backlight_update_status(bl);
  	return 0;
  }
 -#else
--#define corgi_lcd_suspend	NULL
--#define corgi_lcd_resume	NULL
+-#define ep93xxbl_suspend	NULL
+-#define ep93xxbl_resume		NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(corgi_lcd_pm_ops, corgi_lcd_suspend, corgi_lcd_resume);
++static SIMPLE_DEV_PM_OPS(ep93xxbl_pm_ops, ep93xxbl_suspend, ep93xxbl_resume);
 +
- static int setup_gpio_backlight(struct corgi_lcd *lcd,
- 				struct corgi_lcd_platform_data *pdata)
- {
-@@ -611,11 +610,10 @@ static struct spi_driver corgi_lcd_drive
+ static struct platform_driver ep93xxbl_driver = {
  	.driver		= {
- 		.name	= "corgi-lcd",
+ 		.name	= "ep93xx-bl",
  		.owner	= THIS_MODULE,
-+		.pm	= &corgi_lcd_pm_ops,
++		.pm	= &ep93xxbl_pm_ops,
  	},
- 	.probe		= corgi_lcd_probe,
- 	.remove		= corgi_lcd_remove,
--	.suspend	= corgi_lcd_suspend,
--	.resume		= corgi_lcd_resume,
+ 	.probe		= ep93xxbl_probe,
+ 	.remove		= ep93xxbl_remove,
+-	.suspend	= ep93xxbl_suspend,
+-	.resume		= ep93xxbl_resume,
  };
  
- module_spi_driver(corgi_lcd_driver);
+ module_platform_driver(ep93xxbl_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
