@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:12:19 -0700
-Message-ID: <20130312201219.BDCD35A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:12:21 -0700
+Message-ID: <20130312201221.C05855A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:34186 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932541Ab3CLUMU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:20 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so45097qah.2
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:20 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:63512 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932541Ab3CLUMW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:12:22 -0400
+Received: by mail-gg0-f202.google.com with SMTP id l4so29758ggi.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:12:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: adp5520: convert adp5520_bl to dev_pm_ops
+     Subject: backlight: adp8860: convert adp8860 to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
+     backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: adp5520: convert adp5520_bl to dev_pm_ops
+Subject: backlight: adp8860: convert adp8860 to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,58 +43,63 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp5520_bl.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/video/backlight/adp8860_bl.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/backlight/adp5520_bl.c~backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops drivers/video/backlight/adp5520_bl.c
---- a/drivers/video/backlight/adp5520_bl.c~backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops
-+++ a/drivers/video/backlight/adp5520_bl.c
-@@ -349,35 +349,34 @@ static int adp5520_bl_remove(struct plat
+diff -puN drivers/video/backlight/adp8860_bl.c~backlight-adp8860-convert-adp8860-to-dev_pm_ops drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~backlight-adp8860-convert-adp8860-to-dev_pm_ops
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -773,25 +773,29 @@ static int adp8860_remove(struct i2c_cli
  	return 0;
  }
  
 -#ifdef CONFIG_PM
--static int adp5520_bl_suspend(struct platform_device *pdev,
--				 pm_message_t state)
+-static int adp8860_i2c_suspend(struct i2c_client *client, pm_message_t message)
 +#ifdef CONFIG_PM_SLEEP
-+static int adp5520_bl_suspend(struct device *dev)
++static int adp8860_i2c_suspend(struct device *dev)
  {
--	struct backlight_device *bl = platform_get_drvdata(pdev);
-+	struct backlight_device *bl = dev_get_drvdata(dev);
++	struct i2c_client *client = to_i2c_client(dev);
 +
- 	return adp5520_bl_set(bl, 0);
+ 	adp8860_clr_bits(client, ADP8860_MDCR, NSTBY);
+ 
+ 	return 0;
  }
  
--static int adp5520_bl_resume(struct platform_device *pdev)
-+static int adp5520_bl_resume(struct device *dev)
+-static int adp8860_i2c_resume(struct i2c_client *client)
++static int adp8860_i2c_resume(struct device *dev)
  {
--	struct backlight_device *bl = platform_get_drvdata(pdev);
-+	struct backlight_device *bl = dev_get_drvdata(dev);
++	struct i2c_client *client = to_i2c_client(dev);
++
+ 	adp8860_set_bits(client, ADP8860_MDCR, NSTBY | BLEN);
  
- 	backlight_update_status(bl);
  	return 0;
  }
 -#else
--#define adp5520_bl_suspend	NULL
--#define adp5520_bl_resume	NULL
+-#define adp8860_i2c_suspend NULL
+-#define adp8860_i2c_resume NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(adp5520_bl_pm_ops, adp5520_bl_suspend,
-+			adp5520_bl_resume);
++static SIMPLE_DEV_PM_OPS(adp8860_i2c_pm_ops, adp8860_i2c_suspend,
++			adp8860_i2c_resume);
 +
- static struct platform_driver adp5520_bl_driver = {
- 	.driver		= {
- 		.name	= "adp5520-backlight",
- 		.owner	= THIS_MODULE,
-+		.pm	= &adp5520_bl_pm_ops,
+ static const struct i2c_device_id adp8860_id[] = {
+ 	{ "adp8860", adp8860 },
+ 	{ "adp8861", adp8861 },
+@@ -802,12 +806,11 @@ MODULE_DEVICE_TABLE(i2c, adp8860_id);
+ 
+ static struct i2c_driver adp8860_driver = {
+ 	.driver = {
+-		.name = KBUILD_MODNAME,
++		.name	= KBUILD_MODNAME,
++		.pm	= &adp8860_i2c_pm_ops,
  	},
- 	.probe		= adp5520_bl_probe,
- 	.remove		= adp5520_bl_remove,
--	.suspend	= adp5520_bl_suspend,
--	.resume		= adp5520_bl_resume,
+ 	.probe    = adp8860_probe,
+ 	.remove   = adp8860_remove,
+-	.suspend = adp8860_i2c_suspend,
+-	.resume  = adp8860_i2c_resume,
+ 	.id_table = adp8860_id,
  };
  
- module_platform_driver(adp5520_bl_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
