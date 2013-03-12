@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + uapi-fix-endianness-conditionals-in-linux-raid-md_ph.patch added to -mm tree
-Date: Tue, 12 Mar 2013 13:03:04 -0700
-Message-ID: <20130312200304.CB80F31C203@corp2gmr1-1.hot.corp.google.com>
+Subject: + xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch added to -mm tree
+Date: Tue, 12 Mar 2013 13:09:58 -0700
+Message-ID: <20130312200958.D2E395A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:53307 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755533Ab3CLUDG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:03:06 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so44083qah.4
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:03:05 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:45869 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933452Ab3CLUKB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 16:10:01 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so29644ves.1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 13:09:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, neilb@suse.de
+Cc: akpm@linux-foundation.org, andor.daam@googlemail.com, dan.magenheimer@oracle.com, fschmaus@gmail.com, ilendir@googlemail.com, konrad.wilk@oracle.com, liwanp@linux.vnet.ibm.com, lliubbo@gmail.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: UAPI: fix endianness conditionals in linux/raid/md_p.h
+     Subject: xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix
 has been added to the -mm tree.  Its filename is
-     uapi-fix-endianness-conditionals-in-linux-raid-md_ph.patch
+     xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: UAPI: fix endianness conditionals in linux/raid/md_p.h
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix
 
-In the UAPI header files, __BIG_ENDIAN and __LITTLE_ENDIAN must be
-compared against __BYTE_ORDER in preprocessor conditionals where these are
-exposed to userspace (that is they're not inside __KERNEL__ conditionals).
+fix build (disable_frontswap_selfshrinking undeclared)
 
-However, in the main kernel the norm is to check for
-"defined(__XXX_ENDIAN)" rather than comparing against __BYTE_ORDER and
-this has incorrectly leaked into the userspace headers.
-
-The definition of struct mdp_superblock_s in linux/raid/md_p.h is wrong in
-this way.  Note that userspace will likely interpret the ordering of the
-fields incorrectly as the big-endian variant on a little-endian machines -
-depending on header inclusion order.
-
-[!!!] NOTE [!!!]  This patch may adversely change the userspace API.  It might
-be better to fix the ordering of events_hi, events_lo, cp_events_hi and
-cp_events_lo in struct mdp_superblock_s / typedef mdp_super_t.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Andor Daam <andor.daam@googlemail.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Florian Schmaus <fschmaus@gmail.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Stefan Hengelein <ilendir@googlemail.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/raid/md_p.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/xen/tmem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/uapi/linux/raid/md_p.h~uapi-fix-endianness-conditionals-in-linux-raid-md_ph include/uapi/linux/raid/md_p.h
---- a/include/uapi/linux/raid/md_p.h~uapi-fix-endianness-conditionals-in-linux-raid-md_ph
-+++ a/include/uapi/linux/raid/md_p.h
-@@ -145,16 +145,18 @@ typedef struct mdp_superblock_s {
- 	__u32 failed_disks;	/*  4 Number of failed disks		      */
- 	__u32 spare_disks;	/*  5 Number of spare disks		      */
- 	__u32 sb_csum;		/*  6 checksum of the whole superblock        */
--#ifdef __BIG_ENDIAN
-+#if defined(__BYTE_ORDER) ? __BYTE_ORDER == __BIG_ENDIAN : defined(__BIG_ENDIAN)
- 	__u32 events_hi;	/*  7 high-order of superblock update count   */
- 	__u32 events_lo;	/*  8 low-order of superblock update count    */
- 	__u32 cp_events_hi;	/*  9 high-order of checkpoint update count   */
- 	__u32 cp_events_lo;	/* 10 low-order of checkpoint update count    */
--#else
-+#elif defined(__BYTE_ORDER) ? __BYTE_ORDER == __LITTLE_ENDIAN : defined(__LITTLE_ENDIAN)
- 	__u32 events_lo;	/*  7 low-order of superblock update count    */
- 	__u32 events_hi;	/*  8 high-order of superblock update count   */
- 	__u32 cp_events_lo;	/*  9 low-order of checkpoint update count    */
- 	__u32 cp_events_hi;	/* 10 high-order of checkpoint update count   */
-+#else
-+#error unspecified endianness
+diff -puN drivers/xen/tmem.c~xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix drivers/xen/tmem.c
+--- a/drivers/xen/tmem.c~xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix
++++ a/drivers/xen/tmem.c
+@@ -382,6 +382,8 @@ static struct frontswap_ops tmem_frontsw
+ 	.invalidate_area = tmem_frontswap_flush_area,
+ 	.init = tmem_frontswap_init
+ };
++#else	/* CONFIG_FRONTSWAP */
++#define disable_frontswap_selfshrinking 1
  #endif
- 	__u32 recovery_cp;	/* 11 recovery checkpoint sector count	      */
- 	/* There are only valid for minor_version > 90 */
+ 
+ static int xen_tmem_init(void)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-uapi-fix-endianness-conditionals-in-linux-aio_abih.patch
-uapi-fix-endianness-conditionals-in-linux-accth.patch
-uapi-fix-endianness-conditionals-in-linux-raid-md_ph.patch
-uapi-fix-endianness-conditionals-in-m32rs-asm-stath.patch
-debug_locksh-make-warning-more-verbose.patch
-mm-remove-free_area_cache.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+include-linux-res_counterh-needs-errnoh.patch
+signal-always-clear-sa_restorer-on-execve-fix.patch
+kernel-signalc-use-__arch_has_sa_restorer-instead-of-sa_restorer.patch
+mm-fremapc-fix-oops-on-error-path.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
