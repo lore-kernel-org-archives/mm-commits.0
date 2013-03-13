@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-further-simplify-mem_cgroup_iter.patch added to -mm tree
-Date: Wed, 13 Mar 2013 15:21:31 -0700
-Message-ID: <20130313222131.7E0075A432D@corp2gmr1-2.hot.corp.google.com>
+Subject: + cgroup-remove-css_get_next.patch added to -mm tree
+Date: Wed, 13 Mar 2013 15:21:33 -0700
+Message-ID: <20130313222133.DB3AA5A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:57907 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933282Ab3CMWVd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 18:21:33 -0400
-Received: by mail-qa0-f74.google.com with SMTP id o13so176210qaj.5
-        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 15:21:32 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:51584 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933282Ab3CMWVf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 18:21:35 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z6so161185yhz.3
+        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 15:21:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mhocko@suse.cz, glommer@parallels.com, hannes@cmpxchg.org, htejun@gmail.com,
 
 
 The patch titled
-     Subject: memcg: further simplify mem_cgroup_iter
+     Subject: cgroup: remove css_get_next
 has been added to the -mm tree.  Its filename is
-     memcg-further-simplify-mem_cgroup_iter.patch
+     cgroup-remove-css_get_next.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,94 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: further simplify mem_cgroup_iter
+Subject: cgroup: remove css_get_next
 
-mem_cgroup_iter basically does two things currently.  It takes care of the
-house keeping (reference counting, raclaim cookie) and it iterates through
-a hierarchy tree (by using cgroup generic tree walk).  The code would be
-much more easier to follow if we move the iteration outside of the
-function (to __mem_cgrou_iter_next) so the distinction is more clear. 
-This patch doesn't introduce any functional changes.
+Now that we have generic and well ordered cgroup tree walkers there is
+no need to keep css_get_next in the place.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Li Zefan <lizefan@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Li Zefan <lizefan@huawei.com>
 Cc: Ying Han <yinghan@google.com>
 Cc: Tejun Heo <htejun@gmail.com>
 Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   79 ++++++++++++++++++++++++++--------------------
- 1 file changed, 46 insertions(+), 33 deletions(-)
+ include/linux/cgroup.h |    7 -----
+ kernel/cgroup.c        |   49 ---------------------------------------
+ 2 files changed, 56 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-further-simplify-mem_cgroup_iter mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-further-simplify-mem_cgroup_iter
-+++ a/mm/memcontrol.c
-@@ -1073,6 +1073,51 @@ struct mem_cgroup *try_get_mem_cgroup_fr
- 	return memcg;
+diff -puN include/linux/cgroup.h~cgroup-remove-css_get_next include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-remove-css_get_next
++++ a/include/linux/cgroup.h
+@@ -717,13 +717,6 @@ void free_css_id(struct cgroup_subsys *s
+ 
+ struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id);
+ 
+-/*
+- * Get a cgroup whose id is greater than or equal to id under tree of root.
+- * Returning a cgroup_subsys_state or NULL.
+- */
+-struct cgroup_subsys_state *css_get_next(struct cgroup_subsys *ss, int id,
+-		struct cgroup_subsys_state *root, int *foundid);
+-
+ /* Returns true if root is ancestor of cg */
+ bool css_is_ancestor(struct cgroup_subsys_state *cg,
+ 		     const struct cgroup_subsys_state *root);
+diff -puN kernel/cgroup.c~cgroup-remove-css_get_next kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-remove-css_get_next
++++ a/kernel/cgroup.c
+@@ -5335,55 +5335,6 @@ struct cgroup_subsys_state *css_lookup(s
  }
+ EXPORT_SYMBOL_GPL(css_lookup);
  
-+/*
-+ * Returns a next (in a pre-order walk) alive memcg (with elevated css
-+ * ref. count) or NULL if the whole root's subtree has been visited.
-+ *
-+ * helper function to be used by mem_cgroup_iter
-+ */
-+static struct mem_cgroup *__mem_cgroup_iter_next(struct mem_cgroup *root,
-+		struct mem_cgroup *last_visited)
-+{
-+	struct cgroup *prev_cgroup, *next_cgroup;
-+
-+	/*
-+	 * Root is not visited by cgroup iterators so it needs an
-+	 * explicit visit.
-+	 */
-+	if (!last_visited)
-+		return root;
-+
-+	prev_cgroup = (last_visited == root) ? NULL
-+		: last_visited->css.cgroup;
-+skip_node:
-+	next_cgroup = cgroup_next_descendant_pre(
-+			prev_cgroup, root->css.cgroup);
-+
-+	/*
-+	 * Even if we found a group we have to make sure it is
-+	 * alive. css && !memcg means that the groups should be
-+	 * skipped and we should continue the tree walk.
-+	 * last_visited css is safe to use because it is
-+	 * protected by css_get and the tree walk is rcu safe.
-+	 */
-+	if (next_cgroup) {
-+		struct mem_cgroup *mem = mem_cgroup_from_cont(
-+				next_cgroup);
-+		if (css_tryget(&mem->css))
-+			return mem;
-+		else {
-+			prev_cgroup = next_cgroup;
-+			goto skip_node;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
- /**
-  * mem_cgroup_iter - iterate over memory cgroup hierarchy
-  * @root: hierarchy root
-@@ -1153,39 +1198,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 			}
- 		}
- 
+-/**
+- * css_get_next - lookup next cgroup under specified hierarchy.
+- * @ss: pointer to subsystem
+- * @id: current position of iteration.
+- * @root: pointer to css. search tree under this.
+- * @foundid: position of found object.
+- *
+- * Search next css under the specified hierarchy of rootid. Calling under
+- * rcu_read_lock() is necessary. Returns NULL if it reaches the end.
+- */
+-struct cgroup_subsys_state *
+-css_get_next(struct cgroup_subsys *ss, int id,
+-	     struct cgroup_subsys_state *root, int *foundid)
+-{
+-	struct cgroup_subsys_state *ret = NULL;
+-	struct css_id *tmp;
+-	int tmpid;
+-	int rootid = css_id(root);
+-	int depth = css_depth(root);
+-
+-	if (!rootid)
+-		return NULL;
+-
+-	BUG_ON(!ss->use_id);
+-	WARN_ON_ONCE(!rcu_read_lock_held());
+-
+-	/* fill start point for scan */
+-	tmpid = id;
+-	while (1) {
 -		/*
--		 * Root is not visited by cgroup iterators so it needs an
--		 * explicit visit.
+-		 * scan next entry from bitmap(tree), tmpid is updated after
+-		 * idr_get_next().
 -		 */
--		if (!last_visited) {
--			memcg = root;
--		} else {
--			struct cgroup *prev_cgroup, *next_cgroup;
--
--			prev_cgroup = (last_visited == root) ? NULL
--				: last_visited->css.cgroup;
--skip_node:
--			next_cgroup = cgroup_next_descendant_pre(
--					prev_cgroup, root->css.cgroup);
--
--			/*
--			 * Even if we found a group we have to make sure it is
--			 * alive. css && !memcg means that the groups should be
--			 * skipped and we should continue the tree walk.
--			 * last_visited css is safe to use because it is
--			 * protected by css_get and the tree walk is rcu safe.
--			 */
--			if (next_cgroup) {
--				struct mem_cgroup *mem = mem_cgroup_from_cont(
--						next_cgroup);
--				if (css_tryget(&mem->css))
--					memcg = mem;
--				else {
--					prev_cgroup = next_cgroup;
--					goto skip_node;
--				}
+-		tmp = idr_get_next(&ss->idr, &tmpid);
+-		if (!tmp)
+-			break;
+-		if (tmp->depth >= depth && tmp->stack[depth] == rootid) {
+-			ret = rcu_dereference(tmp->css);
+-			if (ret) {
+-				*foundid = tmpid;
+-				break;
 -			}
 -		}
-+		memcg = __mem_cgroup_iter_next(root, last_visited);
- 
- 		if (reclaim) {
- 			if (last_visited)
-_
-
-Patches currently in -mm which might be from mhocko@suse.cz are
-
-mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
-rmap-recompute-pgoff-for-unmapping-huge-page.patch
-memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter.patch
-memcg-rework-mem_cgroup_iter-to-use-cgroup-iterators.patch
-memcg-relax-memcg-iter-caching.patch
-memcg-simplify-mem_cgroup_iter.patch
-memcg-further-simplify-mem_cgroup_iter.patch
-cgroup-remove-css_get_next.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
-
+-		/* continue to scan from next id */
+-		tmpid = tmpid + 1;
+-	}
+-	return ret;
+-}
