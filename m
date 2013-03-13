@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-remove-css_get_next.patch added to -mm tree
-Date: Wed, 13 Mar 2013 15:21:33 -0700
-Message-ID: <20130313222133.DB3AA5A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + memcg-relax-memcg-iter-caching-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 13 Mar 2013 15:22:32 -0700
+Message-ID: <20130313222233.261215A41D7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:51584 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933282Ab3CMWVf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 18:21:35 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z6so161185yhz.3
-        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 15:21:34 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:40839 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933282Ab3CMWWe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 18:22:34 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so160792ves.5
+        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 15:22:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, glommer@parallels.com, hannes@cmpxchg.org, htejun@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, yinghan@google.com
+Cc: akpm@linux-foundation.org, mhocko@suse.cz
 
 
 The patch titled
-     Subject: cgroup: remove css_get_next
+     Subject: memcg-relax-memcg-iter-caching-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     cgroup-remove-css_get_next.patch
+     memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,154 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: cgroup: remove css_get_next
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-relax-memcg-iter-caching-checkpatch-fixes
 
-Now that we have generic and well ordered cgroup tree walkers there is
-no need to keep css_get_next in the place.
+ERROR: code indent should use tabs where possible
+#135: FILE: mm/memcontrol.c:1135:
++                         * If the dead_count mismatches, a destruction$
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Li Zefan <lizefan@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Ying Han <yinghan@google.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Glauber Costa <glommer@parallels.com>
+ERROR: code indent should use tabs where possible
+#136: FILE: mm/memcontrol.c:1136:
++                         * has happened or is happening concurrently.$
+
+ERROR: code indent should use tabs where possible
+#137: FILE: mm/memcontrol.c:1137:
++                         * If the dead_count matches, a destruction$
+
+ERROR: code indent should use tabs where possible
+#138: FILE: mm/memcontrol.c:1138:
++                         * might still happen concurrently, but since$
+
+ERROR: code indent should use tabs where possible
+#139: FILE: mm/memcontrol.c:1139:
++                         * we checked under RCU, that destruction$
+
+ERROR: code indent should use tabs where possible
+#140: FILE: mm/memcontrol.c:1140:
++                         * won't free the object until we release the$
+
+ERROR: code indent should use tabs where possible
+#141: FILE: mm/memcontrol.c:1141:
++                         * RCU reader lock.  Thus, the dead_count$
+
+ERROR: code indent should use tabs where possible
+#142: FILE: mm/memcontrol.c:1142:
++                         * check verifies the pointer is still valid,$
+
+ERROR: code indent should use tabs where possible
+#143: FILE: mm/memcontrol.c:1143:
++                         * css_tryget() verifies the cgroup pointed to$
+
+ERROR: code indent should use tabs where possible
+#144: FILE: mm/memcontrol.c:1144:
++                         * is alive.$
+
+total: 10 errors, 0 warnings, 130 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/memcg-relax-memcg-iter-caching.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    7 -----
- kernel/cgroup.c        |   49 ---------------------------------------
- 2 files changed, 56 deletions(-)
+ mm/memcontrol.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-remove-css_get_next include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-remove-css_get_next
-+++ a/include/linux/cgroup.h
-@@ -717,13 +717,6 @@ void free_css_id(struct cgroup_subsys *s
+diff -puN mm/memcontrol.c~memcg-relax-memcg-iter-caching-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-relax-memcg-iter-caching-checkpatch-fixes
++++ a/mm/memcontrol.c
+@@ -1132,16 +1132,16 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 			}
  
- struct cgroup_subsys_state *css_lookup(struct cgroup_subsys *ss, int id);
- 
--/*
-- * Get a cgroup whose id is greater than or equal to id under tree of root.
-- * Returning a cgroup_subsys_state or NULL.
-- */
--struct cgroup_subsys_state *css_get_next(struct cgroup_subsys *ss, int id,
--		struct cgroup_subsys_state *root, int *foundid);
--
- /* Returns true if root is ancestor of cg */
- bool css_is_ancestor(struct cgroup_subsys_state *cg,
- 		     const struct cgroup_subsys_state *root);
-diff -puN kernel/cgroup.c~cgroup-remove-css_get_next kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-remove-css_get_next
-+++ a/kernel/cgroup.c
-@@ -5335,55 +5335,6 @@ struct cgroup_subsys_state *css_lookup(s
- }
- EXPORT_SYMBOL_GPL(css_lookup);
- 
--/**
-- * css_get_next - lookup next cgroup under specified hierarchy.
-- * @ss: pointer to subsystem
-- * @id: current position of iteration.
-- * @root: pointer to css. search tree under this.
-- * @foundid: position of found object.
-- *
-- * Search next css under the specified hierarchy of rootid. Calling under
-- * rcu_read_lock() is necessary. Returns NULL if it reaches the end.
-- */
--struct cgroup_subsys_state *
--css_get_next(struct cgroup_subsys *ss, int id,
--	     struct cgroup_subsys_state *root, int *foundid)
--{
--	struct cgroup_subsys_state *ret = NULL;
--	struct css_id *tmp;
--	int tmpid;
--	int rootid = css_id(root);
--	int depth = css_depth(root);
--
--	if (!rootid)
--		return NULL;
--
--	BUG_ON(!ss->use_id);
--	WARN_ON_ONCE(!rcu_read_lock_held());
--
--	/* fill start point for scan */
--	tmpid = id;
--	while (1) {
--		/*
--		 * scan next entry from bitmap(tree), tmpid is updated after
--		 * idr_get_next().
--		 */
--		tmp = idr_get_next(&ss->idr, &tmpid);
--		if (!tmp)
--			break;
--		if (tmp->depth >= depth && tmp->stack[depth] == rootid) {
--			ret = rcu_dereference(tmp->css);
--			if (ret) {
--				*foundid = tmpid;
--				break;
--			}
--		}
--		/* continue to scan from next id */
--		tmpid = tmpid + 1;
--	}
--	return ret;
--}
+ 			/*
+-                         * If the dead_count mismatches, a destruction
+-                         * has happened or is happening concurrently.
+-                         * If the dead_count matches, a destruction
+-                         * might still happen concurrently, but since
+-                         * we checked under RCU, that destruction
+-                         * won't free the object until we release the
+-                         * RCU reader lock.  Thus, the dead_count
+-                         * check verifies the pointer is still valid,
+-                         * css_tryget() verifies the cgroup pointed to
+-                         * is alive.
++			 * If the dead_count mismatches, a destruction
++			 * has happened or is happening concurrently.
++			 * If the dead_count matches, a destruction
++			 * might still happen concurrently, but since
++			 * we checked under RCU, that destruction
++			 * won't free the object until we release the
++			 * RCU reader lock.  Thus, the dead_count
++			 * check verifies the pointer is still valid,
++			 * css_tryget() verifies the cgroup pointed to
++			 * is alive.
+ 			 */
+ 			dead_count = atomic_read(&root->dead_count);
+ 			smp_rmb();
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+include-linux-res_counterh-needs-errnoh.patch
+signal-always-clear-sa_restorer-on-execve.patch
+kernel-signalc-use-__arch_has_sa_restorer-instead-of-sa_restorer.patch
+mm-fremapc-fix-oops-on-error-path.patch
+linux-next.patch
+linux-next-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
