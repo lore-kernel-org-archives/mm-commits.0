@@ -1,94 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + sound-convert-snd_info_register-to-use-proc_create_data.patch added to -mm tree
-Date: Wed, 13 Mar 2013 14:14:48 -0700
-Message-ID: <20130313211448.7257F5A43CB@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] signal-always-clear-sa_restorer-on-execve-fix.patch removed from -mm tree
+Date: Wed, 13 Mar 2013 14:56:21 -0700
+Message-ID: <20130313215622.1405231C27E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:55799 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932931Ab3CMVOt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 17:14:49 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so151913ves.3
-        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 14:14:49 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:44964 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932701Ab3CMV4X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 17:56:23 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so172622qah.2
+        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 14:56:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: nzimmer@sgi.com, perex@perex.cz, tiwai@suse.de
+To: akpm@linux-foundation.org, ebiederm@xmission.com, jln@google.com, keescook@chromium.org, oleg@redhat.com, pageexec@freemail.hu, re.emese@gmail.com, serge.hallyn@canonical.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sound: convert snd_info_register() to use proc_create_data()
-has been added to the -mm tree.  Its filename is
-     sound-convert-snd_info_register-to-use-proc_create_data.patch
+     Subject: signal-always-clear-sa_restorer-on-execve-fix
+has been removed from the -mm tree.  Its filename was
+     signal-always-clear-sa_restorer-on-execve-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into signal-always-clear-sa_restorer-on-execve.patch
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: sound: convert snd_info_register() to use proc_create_data()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: signal-always-clear-sa_restorer-on-execve-fix
 
-Convert snd_info_register to use proc_create_data instead of
-create_proc_entry.  This corrects a sparse warning introduced by "procfs:
-Improve Scaling in proc" It is also a bit cleaner to let proc_create_data
-set the ->data and ->proc_fops.
+Use SA_RESTORER for backportability.
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Emese Revfy <re.emese@gmail.com>
+Cc: Julien Tinnes <jln@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: PaX Team <pageexec@freemail.hu>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/info.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/core/info.c~sound-convert-snd_info_register-to-use-proc_create_data sound/core/info.c
---- a/sound/core/info.c~sound-convert-snd_info_register-to-use-proc_create_data
-+++ a/sound/core/info.c
-@@ -954,20 +954,20 @@ EXPORT_SYMBOL(snd_info_free_entry);
- int snd_info_register(struct snd_info_entry * entry)
- {
- 	struct proc_dir_entry *root, *p = NULL;
-+	const struct file_operations *fops = NULL;
- 
- 	if (snd_BUG_ON(!entry))
- 		return -ENXIO;
- 	root = entry->parent == NULL ? snd_proc_root : entry->parent->p;
- 	mutex_lock(&info_mutex);
--	p = create_proc_entry(entry->name, entry->mode, root);
-+	if (!S_ISDIR(entry->mode))
-+		fops = &snd_info_entry_operations;
-+	p = proc_create_data(entry->name, entry->mode, root, fops, entry);
- 	if (!p) {
- 		mutex_unlock(&info_mutex);
- 		return -ENOMEM;
- 	}
--	if (!S_ISDIR(entry->mode))
--		p->proc_fops = &snd_info_entry_operations;
- 	p->size = entry->size;
--	p->data = entry;
- 	entry->p = p;
- 	if (entry->parent)
- 		list_add_tail(&entry->list, &entry->parent->children);
+diff -puN kernel/signal.c~signal-always-clear-sa_restorer-on-execve-fix kernel/signal.c
+--- a/kernel/signal.c~signal-always-clear-sa_restorer-on-execve-fix
++++ a/kernel/signal.c
+@@ -485,7 +485,7 @@ flush_signal_handlers(struct task_struct
+ 		if (force_default || ka->sa.sa_handler != SIG_IGN)
+ 			ka->sa.sa_handler = SIG_DFL;
+ 		ka->sa.sa_flags = 0;
+-#ifdef __ARCH_HAS_SA_RESTORER
++#ifdef SA_RESTORER
+ 		ka->sa.sa_restorer = NULL;
+ #endif
+ 		sigemptyset(&ka->sa.sa_mask);
 _
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+include-linux-res_counterh-needs-errnoh.patch
+signal-always-clear-sa_restorer-on-execve.patch
+kernel-signalc-use-__arch_has_sa_restorer-instead-of-sa_restorer.patch
+mm-fremapc-fix-oops-on-error-path.patch
 linux-next.patch
-sound-convert-snd_info_register-to-use-proc_create_data.patch
-timer_list-split-timer_list_show_tickdevices.patch
-timer_list-split-timer_list_show_tickdevices-v4.patch
+linux-next-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-procfs-improve-scaling-in-proc.patch
-procfs-improve-scaling-in-proc-v5.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
