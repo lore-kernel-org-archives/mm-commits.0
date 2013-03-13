@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + usermodehelper-export-_exec-and-_setup-functions-fix.patch added to -mm tree
-Date: Tue, 12 Mar 2013 15:00:07 -0700
-Message-ID: <20130312220007.D35E55A42B6@corp2gmr1-2.hot.corp.google.com>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Wed, 13 Mar 2013 12:46:13 -0700
+Message-ID: <20130313194613.6483C31C1E1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:51733 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754103Ab3CLWAJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Mar 2013 18:00:09 -0400
-Received: by mail-qa0-f74.google.com with SMTP id o13so57979qaj.3
-        for <mm-commits@vger.kernel.org>; Tue, 12 Mar 2013 15:00:08 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:63370 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933226Ab3CMTqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 15:46:14 -0400
+Received: by mail-gg0-f202.google.com with SMTP id l4so140410ggi.3
+        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 12:46:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, james.l.morris@oracle.com, lucas.demarchi@profusion.mobi, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: usermodehelper-export-_exec-and-_setup-functions-fix
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     usermodehelper-export-_exec-and-_setup-functions-fix.patch
+     linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: usermodehelper-export-_exec-and-_setup-functions-fix
+Subject: linux-next-rejects
 
-export call_usermodehelper_setup() to modules
-
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/res_counter.h |    2 +-
+ kernel/workqueue.c          |   14 ++++++++------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions-fix kernel/kmod.c
---- a/kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions-fix
-+++ a/kernel/kmod.c
-@@ -541,6 +541,7 @@ struct subprocess_info *call_usermodehel
-   out:
- 	return sub_info;
- }
-+EXPORT_SYMBOL(call_usermodehelper_setup);
+diff -puN include/linux/res_counter.h~linux-next-rejects include/linux/res_counter.h
+--- a/include/linux/res_counter.h~linux-next-rejects
++++ a/include/linux/res_counter.h
+@@ -13,7 +13,7 @@
+  * info about what this counter is.
+  */
  
- /**
-  * call_usermodehelper_exec - start a usermode application
+-#include <linux/cgroup.h>
++#include <linux/spinlock.h>
+ #include <linux/errno.h>
+ 
+ /*
+diff -puN kernel/workqueue.c~linux-next-rejects kernel/workqueue.c
+--- a/kernel/workqueue.c~linux-next-rejects
++++ a/kernel/workqueue.c
+@@ -461,16 +461,18 @@ static int std_worker_pool_pri(struct wo
+ 	return pool - std_worker_pools(pool->cpu);
+ }
+ 
+-/* allocate ID and assign it to @pool */
+ static int worker_pool_assign_id(struct worker_pool *pool)
+ {
+ 	int ret;
+ 
+-	mutex_lock(&worker_pool_idr_mutex);
+-	ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_KERNEL);
+-	if (ret >= 0)
+-		pool->id = ret;
+-	mutex_unlock(&worker_pool_idr_mutex);
++	do {
++		idr_preload(GFP_KERNEL);
++		spin_lock_irq(&workqueue_lock);
++		ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_NOWAIT);
++		if (ret >= 0)
++			pool->id = ret;
++		spin_unlock_irq(&workqueue_lock);
++	} while (ret == -EAGAIN);
+ 
+ 	return ret < 0 ? ret : 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
 include-linux-res_counterh-needs-errnoh.patch
 signal-always-clear-sa_restorer-on-execve-fix.patch
 kernel-signalc-use-__arch_has_sa_restorer-instead-of-sa_restorer.patch
 mm-fremapc-fix-oops-on-error-path.patch
+linux-next.patch
+linux-next-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
 mm.patch
