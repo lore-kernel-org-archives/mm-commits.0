@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter.patch added to -mm tree
-Date: Wed, 13 Mar 2013 15:21:21 -0700
-Message-ID: <20130313222121.BE83231C27E@corp2gmr1-1.hot.corp.google.com>
+Subject: + memcg-relax-memcg-iter-caching.patch added to -mm tree
+Date: Wed, 13 Mar 2013 15:21:26 -0700
+Message-ID: <20130313222127.021685A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:61967 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756375Ab3CMWVZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 18:21:25 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so153095vbi.3
-        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 15:21:22 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:48858 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933282Ab3CMWV2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 18:21:28 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so160807ghb.3
+        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 15:21:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mhocko@suse.cz, glommer@parallels.com, hannes@cmpxchg.org, htejun@gmail.com,
 
 
 The patch titled
-     Subject: memcg: keep prev's css alive for the whole mem_cgroup_iter
+     Subject: memcg: relax memcg iter caching
 has been added to the -mm tree.  Its filename is
-     memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter.patch
+     memcg-relax-memcg-iter-caching.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,224 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: keep prev's css alive for the whole mem_cgroup_iter
+Subject: memcg: relax memcg iter caching
 
-The patchset tries to make mem_cgroup_iter saner in the way how it walks
-hierarchies.  css->id based traversal is far from being ideal as it is not
-deterministic because it depends on the creation ordering.  Additional to
-that css_id is considered a burden for cgroup maintainers because it is
-quite some code and memcg is the last user of it.  After this series only
-the swap accounting uses css_id but that one will follow up later.
+Now that per-node-zone-priority iterator caches memory cgroups rather than
+their css ids we have to be careful and remove them from the iterator when
+they are on the way out otherwise they might live for unbounded amount of
+time even though their group is already gone (until the global/targeted
+reclaim triggers the zone under priority to find out the group is dead and
+let it to find the final rest).
 
-Diffstat (if we exclude removed/added comments) looks quite
-promissing. We got rid of some code:
-$ git diff mmotm... | grep -v "^[+-][[:space:]]*[/ ]\*" | diffstat
- b/include/linux/cgroup.h |    3 ---
- kernel/cgroup.c          |   33 ---------------------------------
- mm/memcontrol.c          |    4 +++-
- 3 files changed, 3 insertions(+), 37 deletions(-)
+We can fix this issue by relaxing rules for the last_visited memcg. 
+Instead of taking a reference to the css before it is stored into
+iter->last_visited we can just store its pointer and track the number of
+removed groups from each memcg's subhierarchy.
 
-The first patch is just preparatory and it changes when we release css of
-the previously returned memcg.  Nothing controlversial.
+This number would be stored into iterator everytime when a memcg is
+cached.  If the iter count doesn't match the curent walker root's one we
+will start from the root again.  The group counter is incremented upwards
+the hierarchy every time a group is removed.
 
-The second patch is the core of the patchset and it replaces css_get_next
-based on css_id by the generic cgroup pre-order.  This brings some
-chalanges for the last visited group caching during the reclaim
-(mem_cgroup_per_zone::reclaim_iter).  We have to use memcg pointers
-directly now which means that we have to keep a reference to those groups'
-css to keep them alive.
+The iter_lock can be dropped because racing iterators cannot leak the
+reference anymore as the reference count is not elevated for last_visited
+when it is cached.
 
-I also folded iter_lock introduced by https://lkml.org/lkml/2013/1/3/295
-in the previous version into this patch.  Johannes felt the race I was
-describing should be mostly harmless and I haven't been able to trigger it
-so the lock doesn't deserve its own patch.  It is still needed
-temporarily, though, because the reference counting on iter->last_visited
-depends on it.  It will go away with the next patch.
+Locking rules got a bit complicated by this change though.  The iterator
+primarily relies on rcu read lock which makes sure that once we see a
+valid last_visited pointer then it will be valid for the whole RCU walk. 
+smp_rmb makes sure that dead_count is read before last_visited and
+last_dead_count while smp_wmb makes sure that last_visited is updated
+before last_dead_count so the up-to-date last_dead_count cannot point to
+an outdated last_visited.  css_tryget then makes sure that the
+last_visited is still alive in case the iteration races with the cached
+group removal (css is invalidated before mem_cgroup_css_offline increments
+dead_count).
 
-The next patch fixups an unbounded cgroup removal holdoff caused by the
-elevated css refcount.  The issue has been observed by Ying Han.  Johannes
-wasn't impressed by the previous version of the fix
-(https://lkml.org/lkml/2013/2/8/379) which cleaned up pending references
-during mem_cgroup_css_offline when a group is removed.  He has suggested a
-different way when the iterator checks whether a cached memcg is still
-valid or no.  More on that in the patch but the basic idea is that every
-memcg tracks the number removed subgroups and iterator records this number
-when a group is cached.  These numbers are checked before
-iter->last_visited is about to be used and the iteration is restarted if
-it is invalid.
+In short:
+mem_cgroup_iter
+ rcu_read_lock()
+ dead_count = atomic_read(parent->dead_count)
+ smp_rmb()
+ if (dead_count != iter->last_dead_count)
+ 	last_visited POSSIBLY INVALID -> last_visited = NULL
+ if (!css_tryget(iter->last_visited))
+ 	last_visited DEAD -> last_visited = NULL
+ next = find_next(last_visited)
+ css_tryget(next)
+ css_put(last_visited) 	// css would be invalidated and parent->dead_count
+ 			// incremented if this was the last reference
+ iter->last_visited = next
+ smp_wmb()
+ iter->last_dead_count = dead_count
+ rcu_read_unlock()
 
-The fourth and fifth patches are an attempt for simplification of the
-mem_cgroup_iter.  css juggling is removed and the iteration logic is moved
-to a helper so that the reference counting and iteration are separated.
+cgroup_rmdir
+ cgroup_destroy_locked
+  atomic_add(CSS_DEACT_BIAS, &css->refcnt) // subsequent css_tryget fail
+   mem_cgroup_css_offline
+    mem_cgroup_invalidate_reclaim_iterators
+     while(parent = parent_mem_cgroup)
+     	atomic_inc(parent->dead_count)
+  css_put(css) // last reference held by cgroup core
 
-The last patch just removes css_get_next as there is no user for it any
-longer.
+Spotted by Ying Han.
 
-My testing looked as follows:
-        A (use_hierarchy=1, limit_in_bytes=150M)
-       /|\
-      1 2 3
-
-Children groups were created so that the number is never higher than 3 and
-their limits were random between 50-100M.  Each group hosts a kernel build
-(starting with tar -xf so the tree is not shared and make -jNUM_CPUs/3)
-and terminated after random time - up to 5 minutes) and then it is
-removed.
-
-This should exercise both leaf and hierarchical reclaim as well as races
-with cgroup removals and debugging messages I added on top proved that. 
-100 groups were created during the test.
-
-
-
-This patch:
-
-css reference counting keeps the cgroup alive even though it has been
-already removed.  mem_cgroup_iter relies on this fact and takes a
-reference to the returned group.  The reference is then released on the
-next iteration or mem_cgroup_iter_break.  mem_cgroup_iter currently
-releases the reference right after it gets the last css_id.
-
-This is correct because neither prev's memcg nor cgroup are accessed after
-then.  This will change in the next patch so we need to hold the group
-alive a bit longer so let's move the css_put at the end of the function.
+Original idea from Johannes Weiner.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Li Zefan <lizefan@huawei.com>
 Cc: Ying Han <yinghan@google.com>
+Cc: Li Zefan <lizefan@huawei.com>
 Cc: Tejun Heo <htejun@gmail.com>
 Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   69 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 52 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter
+diff -puN mm/memcontrol.c~memcg-relax-memcg-iter-caching mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-relax-memcg-iter-caching
 +++ a/mm/memcontrol.c
-@@ -1100,12 +1100,9 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	if (prev && !reclaim)
- 		id = css_id(&prev->css);
+@@ -152,12 +152,15 @@ struct mem_cgroup_stat_cpu {
+ };
  
--	if (prev && prev != root)
--		css_put(&prev->css);
--
- 	if (!root->use_hierarchy && root != root_mem_cgroup) {
- 		if (prev)
--			return NULL;
-+			goto out_css_put;
- 		return root;
- 	}
+ struct mem_cgroup_reclaim_iter {
+-	/* last scanned hierarchy member with elevated css ref count */
++	/*
++	 * last scanned hierarchy member. Valid only if last_dead_count
++	 * matches memcg->dead_count of the hierarchy root group.
++	 */
+ 	struct mem_cgroup *last_visited;
++	unsigned long last_dead_count;
++
+ 	/* scan generation, increased every round-trip */
+ 	unsigned int generation;
+-	/* lock to protect the position and generation */
+-	spinlock_t iter_lock;
+ };
  
-@@ -1121,7 +1118,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ /*
+@@ -337,6 +340,7 @@ struct mem_cgroup {
+ 	struct mem_cgroup_stat_cpu nocpu_base;
+ 	spinlock_t pcp_counter_lock;
+ 
++	atomic_t	dead_count;
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_INET)
+ 	struct tcp_memcontrol tcp_mem;
+ #endif
+@@ -1092,6 +1096,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ {
+ 	struct mem_cgroup *memcg = NULL;
+ 	struct mem_cgroup *last_visited = NULL;
++	unsigned long uninitialized_var(dead_count);
+ 
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+@@ -1120,16 +1125,33 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 
  			mz = mem_cgroup_zoneinfo(root, nid, zid);
  			iter = &mz->reclaim_iter[reclaim->priority];
- 			if (prev && reclaim->generation != iter->generation)
--				return NULL;
-+				goto out_css_put;
- 			id = iter->position;
- 		}
- 
-@@ -1143,8 +1140,12 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		}
- 
- 		if (prev && !css)
--			return NULL;
-+			goto out_css_put;
- 	}
-+out_css_put:
-+	if (prev && prev != root)
-+		css_put(&prev->css);
+-			spin_lock(&iter->iter_lock);
+ 			last_visited = iter->last_visited;
+ 			if (prev && reclaim->generation != iter->generation) {
+-				if (last_visited) {
+-					css_put(&last_visited->css);
+-					iter->last_visited = NULL;
+-				}
+-				spin_unlock(&iter->iter_lock);
++				iter->last_visited = NULL;
+ 				goto out_unlock;
+ 			}
 +
- 	return memcg;
++			/*
++                         * If the dead_count mismatches, a destruction
++                         * has happened or is happening concurrently.
++                         * If the dead_count matches, a destruction
++                         * might still happen concurrently, but since
++                         * we checked under RCU, that destruction
++                         * won't free the object until we release the
++                         * RCU reader lock.  Thus, the dead_count
++                         * check verifies the pointer is still valid,
++                         * css_tryget() verifies the cgroup pointed to
++                         * is alive.
++			 */
++			dead_count = atomic_read(&root->dead_count);
++			smp_rmb();
++			last_visited = iter->last_visited;
++			if (last_visited) {
++				if ((dead_count != iter->last_dead_count) ||
++					!css_tryget(&last_visited->css)) {
++					last_visited = NULL;
++				}
++			}
+ 		}
+ 
+ 		/*
+@@ -1169,16 +1191,14 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 			if (css && !memcg)
+ 				curr = mem_cgroup_from_css(css);
+ 
+-			/* make sure that the cached memcg is not removed */
+-			if (curr)
+-				css_get(&curr->css);
+ 			iter->last_visited = curr;
++			smp_wmb();
++			iter->last_dead_count = dead_count;
+ 
+ 			if (!css)
+ 				iter->generation++;
+ 			else if (!prev && memcg)
+ 				reclaim->generation = iter->generation;
+-			spin_unlock(&iter->iter_lock);
+ 		} else if (css && !memcg) {
+ 			last_visited = mem_cgroup_from_css(css);
+ 		}
+@@ -5975,12 +5995,8 @@ static int alloc_mem_cgroup_per_zone_inf
+ 		return 1;
+ 
+ 	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
+-		int prio;
+-
+ 		mz = &pn->zoneinfo[zone];
+ 		lruvec_init(&mz->lruvec);
+-		for (prio = 0; prio < DEF_PRIORITY + 1; prio++)
+-			spin_lock_init(&mz->reclaim_iter[prio].iter_lock);
+ 		mz->usage_in_excess = 0;
+ 		mz->on_tree = false;
+ 		mz->memcg = memcg;
+@@ -6235,10 +6251,29 @@ mem_cgroup_css_online(struct cgroup *con
+ 	return error;
  }
  
++/*
++ * Announce all parents that a group from their hierarchy is gone.
++ */
++static void mem_cgroup_invalidate_reclaim_iterators(struct mem_cgroup *memcg)
++{
++	struct mem_cgroup *parent = memcg;
++
++	while ((parent = parent_mem_cgroup(parent)))
++		atomic_inc(&parent->dead_count);
++
++	/*
++	 * if the root memcg is not hierarchical we have to check it
++	 * explicitely.
++	 */
++	if (!root_mem_cgroup->use_hierarchy)
++		atomic_inc(&root_mem_cgroup->dead_count);
++}
++
+ static void mem_cgroup_css_offline(struct cgroup *cont)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 
++	mem_cgroup_invalidate_reclaim_iterators(memcg);
+ 	mem_cgroup_reparent_charges(memcg);
+ 	mem_cgroup_destroy_all_caches(memcg);
+ }
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
