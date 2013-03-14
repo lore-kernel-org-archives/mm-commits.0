@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-x1205-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:15:31 -0700
-Message-ID: <20130314211536.BBE6331C123@corp2gmr1-1.hot.corp.google.com>
+Subject: + kconfig-consolidate-config_debug_strict_user_copy_checks-fix.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:20:29 -0700
+Message-ID: <20130314212029.6B74931C0AC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:40913 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958Ab3CNVPh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:37 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so274910ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:37 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:34427 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752941Ab3CNVUa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:20:30 -0400
+Received: by mail-vb0-f74.google.com with SMTP id r6so267478vbi.3
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:20:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: sboyd@codeaurora.org, arnd@arndb.de, rdunlap@infradead.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: rtc: rtc-x1205: use devm_rtc_device_register()
+     Subject: kconfig-consolidate-config_debug_strict_user_copy_checks-fix
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-x1205-use-devm_rtc_device_register.patch
+     kconfig-consolidate-config_debug_strict_user_copy_checks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,196 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-x1205: use devm_rtc_device_register()
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: kconfig-consolidate-config_debug_strict_user_copy_checks-fix
 
-devm_rtc_device_register() is device managed and makes cleanup paths
-simpler.
+>   CC [M]  fs/binfmt_misc.o
+> In file included from arch/x86/include/asm/uaccess.h:537:0,
+>                  from include/linux/uaccess.h:5,
+>                  from include/linux/highmem.h:8,
+>                  from include/linux/pagemap.h:10,
+>                  from fs/binfmt_misc.c:27:
+> arch/x86/include/asm/uaccess_32.h: In function 'parse_command.part.1':
+> arch/x86/include/asm/uaccess_32.h:211:26: warning: call to 'copy_from_user_overflow' declared with attribute warning: copy_from_user() buffer size is not provably correct [enabled by default]
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Hm.. That's because it's part of lib and not obj, right?
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-x1205.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ lib/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-x1205.c~rtc-rtc-x1205-use-devm_rtc_device_register drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtc-rtc-x1205-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -630,8 +630,8 @@ static int x1205_probe(struct i2c_client
+diff -puN lib/Makefile~kconfig-consolidate-config_debug_strict_user_copy_checks-fix lib/Makefile
+--- a/lib/Makefile~kconfig-consolidate-config_debug_strict_user_copy_checks-fix
++++ a/lib/Makefile
+@@ -15,7 +15,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
+ 	 earlycpio.o percpu-refcount.o
  
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
+-lib-$(CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS) += usercopy.o
++obj-$(CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS) += usercopy.o
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
  
--	rtc = rtc_device_register(x1205_driver.driver.name, &client->dev,
--				&x1205_rtc_ops, THIS_MODULE);
-+	rtc = devm_rtc_device_register(&client->dev, x1205_driver.driver.name,
-+					&x1205_rtc_ops, THIS_MODULE);
- 
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
-@@ -653,21 +653,13 @@ static int x1205_probe(struct i2c_client
- 
- 	err = x1205_sysfs_register(&client->dev);
- 	if (err)
--		goto exit_devreg;
-+		return err;
- 
- 	return 0;
--
--exit_devreg:
--	rtc_device_unregister(rtc);
--
--	return err;
- }
- 
- static int x1205_remove(struct i2c_client *client)
- {
--	struct rtc_device *rtc = i2c_get_clientdata(client);
--
--	rtc_device_unregister(rtc);
- 	x1205_sysfs_unregister(&client->dev);
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
 linux-next.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
-drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
-drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
-drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
-drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
-drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
-drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
-backlight-adp8870-add-missing-braces.patch
-drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
-drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
-backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
-backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
-backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
-backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
-backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
-backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
-backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
-backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
-backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
-backlight-kb3886_bl-convert-kb3886bl-to-dev_pm_ops.patch
-backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
-backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
-backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
-backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
-drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
-drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch
-video-backlight-add-ili922x-lcd-driver.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-max77686-use-module_platform_driver.patch
-rtc-max77686-add-missing-module-author-name.patch
-rtc-max77686-use-devm_kzalloc.patch
-rtc-max77686-fix-indentation-of-bit-definitions.patch
-rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
-rtc-rtc-ab3100-use-module_platform_driver_probe.patch
-rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
-rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
-rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
-rtc-rtc-coh901331-use-module_platform_driver_probe.patch
-rtc-rtc-davinci-use-module_platform_driver_probe.patch
-rtc-rtc-ds1302-use-module_platform_driver_probe.patch
-rtc-rtc-efi-use-module_platform_driver_probe.patch
-rtc-rtc-generic-use-module_platform_driver_probe.patch
-rtc-rtc-imxdi-use-module_platform_driver_probe.patch
-rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
-rtc-rtc-msm6242-use-module_platform_driver_probe.patch
-rtc-rtc-mv-use-module_platform_driver_probe.patch
-rtc-rtc-nuc900-use-module_platform_driver_probe.patch
-rtc-rtc-omap-use-module_platform_driver_probe.patch
-rtc-rtc-pcap-use-module_platform_driver_probe.patch
-rtc-rtc-ps3-use-module_platform_driver_probe.patch
-rtc-rtc-pxa-use-module_platform_driver_probe.patch
-rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
-rtc-rtc-sh-use-module_platform_driver_probe.patch
-rtc-rtc-starfire-use-module_platform_driver_probe.patch
-rtc-rtc-sun4v-use-module_platform_driver_probe.patch
-rtc-rtc-tegra-use-module_platform_driver_probe.patch
-rtc-rtc-tx4939-use-module_platform_driver_probe.patch
-rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
-rtc-rtc-coh90133-use-devm_rtc_device_register.patch
-rtc-rtc-da9052-use-devm_rtc_device_register.patch
-rtc-rtc-da9055-use-devm_rtc_device_register.patch
-rtc-rtc-davinci-use-devm_rtc_device_register.patch
-rtc-rtc-ds1511-use-devm_rtc_device_register.patch
-rtc-rtc-ds1553-use-devm_rtc_device_register.patch
-rtc-rtc-ds1742-use-devm_rtc_device_register.patch
-rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
-rtc-rtc-imxdi-use-devm_rtc_device_register.patch
-rtc-rtc-lp8788-use-devm_rtc_device_register.patch
-rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
-rtc-rtc-max77686-use-devm_rtc_device_register.patch
-rtc-rtc-max8907-use-devm_rtc_device_register.patch
-rtc-rtc-max8997-use-devm_rtc_device_register.patch
-rtc-rtc-mv-use-devm_rtc_device_register.patch
-rtc-rtc-mxc-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_rtc_device_register.patch
-rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
-rtc-rtc-s3c-use-devm_rtc_device_register.patch
-rtc-rtc-snvs-use-devm_rtc_device_register.patch
-rtc-rtc-spear-use-devm_rtc_device_register.patch
-rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
-rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
-rtc-rtc-tps65910-use-devm_rtc_device_register.patch
-rtc-rtc-tps80031-use-devm_rtc_device_register.patch
-rtc-rtc-tx4939-use-devm_rtc_device_register.patch
-rtc-rtc-vt8500-use-devm_rtc_device_register.patch
-rtc-rtc-wm831x-use-devm_rtc_device_register.patch
-rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
-rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
-rtc-tegra-set-irq-name-as-device-name.patch
-rtc-tegra-use-managed-rtc_device_register.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
-rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
-rtc-rtc-ds1307-use-dev_dbg-instead-of-pr_debug.patch
-rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
-rtc-rtc-ab3100-use-devm_rtc_device_register.patch
-rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
-rtc-rtc-bq32k-use-devm_rtc_device_register.patch
-rtc-rtc-dm355evm-use-devm_rtc_device_register.patch
-rtc-rtc-ds1302-use-devm_rtc_device_register.patch
-rtc-rtc-ds1672-use-devm_rtc_device_register.patch
-rtc-rtc-ds3234-use-devm_rtc_device_register.patch
-rtc-rtc-efi-use-devm_rtc_device_register.patch
-rtc-rtc-em3027-use-devm_rtc_device_register.patch
-rtc-rtc-generic-use-devm_rtc_device_register.patch
-rtc-hid-sensor-time-use-devm_rtc_device_register.patch
-rtc-rtc-ls1x-use-devm_rtc_device_register.patch
-rtc-rtc-m41t93-use-devm_rtc_device_register.patch
-rtc-rtc-m41t94-use-devm_rtc_device_register.patch
-rtc-rtc-m48t86-use-devm_rtc_device_register.patch
-rtc-rtc-max6900-use-devm_rtc_device_register.patch
-rtc-rtc-max6902-use-devm_rtc_device_register.patch
-rtc-rtc-ps3-use-devm_rtc_device_register.patch
-rtc-rtc-r9701-use-devm_rtc_device_register.patch
-rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
-rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
-rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
-rtc-rtc-rx4581-use-devm_rtc_device_register.patch
-rtc-rtc-rx8581-use-devm_rtc_device_register.patch
-rtc-rtc-starfire-use-devm_rtc_device_register.patch
-rtc-rtc-sun4v-use-devm_rtc_device_register.patch
-rtc-rtc-test-use-devm_rtc_device_register.patch
-rtc-rtc-tile-use-devm_rtc_device_register.patch
-rtc-rtc-wm8350-use-devm_rtc_device_register.patch
-rtc-rtc-x1205-use-devm_rtc_device_register.patch
-drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions.patch
+timer_list-split-timer_list_show_tickdevices-v4.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
+mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+kconfig-consolidate-config_debug_strict_user_copy_checks.patch
+kconfig-consolidate-config_debug_strict_user_copy_checks-fix.patch
 
