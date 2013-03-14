@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:53:25 -0700
-Message-ID: <20130314215325.C12AD31C1E1@corp2gmr1-1.hot.corp.google.com>
+Subject: + include-linux-printkh-include-stdargh.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:53:36 -0700
+Message-ID: <20130314215336.676A031C1E1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:43664 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292Ab3CNVx1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:53:27 -0400
-Received: by mail-ye0-f202.google.com with SMTP id q5so278755yen.5
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:53:26 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:53795 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752654Ab3CNVxh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:53:37 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so279450qcs.3
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:53:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, paul.gortmaker@windriver.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: early_printk-consolidate-random-copies-of-identical-code-v3-fix
+     Subject: include/linux/printk.h: include stdarg.h
 has been added to the -mm tree.  Its filename is
-     early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+     include-linux-printkh-include-stdargh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: early_printk-consolidate-random-copies-of-identical-code-v3-fix
+Subject: include/linux/printk.h: include stdarg.h
 
-arch/mips/kernel/early_printk.c needs kernel.h for va_list
+printk.h uses va_list but doesn't include stdarg.h.  Hence printk.h is
+unusable unless its includer has already included kernel.h (which includes
+stdarg.h).
 
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Remove the dependency by including stdarg.h in printk.h
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/early_printk.c |    1 +
+ include/linux/printk.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/mips/kernel/early_printk.c~early_printk-consolidate-random-copies-of-identical-code-v3-fix arch/mips/kernel/early_printk.c
---- a/arch/mips/kernel/early_printk.c~early_printk-consolidate-random-copies-of-identical-code-v3-fix
-+++ a/arch/mips/kernel/early_printk.c
-@@ -7,6 +7,7 @@
-  * Copyright (C) 2007 MIPS Technologies, Inc.
-  *   written by Ralf Baechle (ralf@linux-mips.org)
-  */
-+#include <linux/kernel.h>
- #include <linux/console.h>
- #include <linux/printk.h>
+diff -puN include/linux/printk.h~include-linux-printkh-include-stdargh include/linux/printk.h
+--- a/include/linux/printk.h~include-linux-printkh-include-stdargh
++++ a/include/linux/printk.h
+@@ -1,6 +1,7 @@
+ #ifndef __KERNEL_PRINTK__
+ #define __KERNEL_PRINTK__
+ 
++#include <stdarg.h>
  #include <linux/init.h>
+ #include <linux/kern_levels.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
