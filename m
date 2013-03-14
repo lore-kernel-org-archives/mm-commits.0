@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1672-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:23 -0700
-Message-ID: <20130314211423.BD3F05A40E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-ds1302-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:21 -0700
+Message-ID: <20130314211421.B429131C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:56368 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab3CNVOY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:24 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so96569vcb.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:24 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:33361 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab3CNVOW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:22 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so274602ghb.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ds1672: use devm_rtc_device_register()
+     Subject: rtc: rtc-ds1302: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1672-use-devm_rtc_device_register.patch
+     rtc-rtc-ds1302-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1672: use devm_rtc_device_register()
+Subject: rtc: rtc-ds1302: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,41 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1672.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/rtc/rtc-ds1302.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1672.c~rtc-rtc-ds1672-use-devm_rtc_device_register drivers/rtc/rtc-ds1672.c
---- a/drivers/rtc/rtc-ds1672.c~rtc-rtc-ds1672-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-ds1672.c
-@@ -155,11 +155,6 @@ static const struct rtc_class_ops ds1672
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-use-devm_rtc_device_register drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -224,7 +224,7 @@ static int __init ds1302_rtc_probe(struc
+ 		return -ENODEV;
+ 	}
  
- static int ds1672_remove(struct i2c_client *client)
- {
--	struct rtc_device *rtc = i2c_get_clientdata(client);
--
--	if (rtc)
--		rtc_device_unregister(rtc);
--
- 	return 0;
- }
- 
-@@ -177,7 +172,7 @@ static int ds1672_probe(struct i2c_clien
- 
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
- 
--	rtc = rtc_device_register(ds1672_driver.driver.name, &client->dev,
-+	rtc = devm_rtc_device_register(&client->dev, ds1672_driver.driver.name,
- 				  &ds1672_rtc_ops, THIS_MODULE);
- 
+-	rtc = rtc_device_register("ds1302", &pdev->dev,
++	rtc = devm_rtc_device_register(&pdev->dev, "ds1302",
+ 					   &ds1302_rtc_ops, THIS_MODULE);
  	if (IS_ERR(rtc))
-@@ -202,7 +197,6 @@ static int ds1672_probe(struct i2c_clien
- 	return 0;
+ 		return PTR_ERR(rtc);
+@@ -236,9 +236,6 @@ static int __init ds1302_rtc_probe(struc
  
-  exit_devreg:
+ static int __exit ds1302_rtc_remove(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc = platform_get_drvdata(pdev);
+-
 -	rtc_device_unregister(rtc);
- 	return err;
- }
+ 	platform_set_drvdata(pdev, NULL);
  
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
