@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch added to -mm tree
-Date: Thu, 14 Mar 2013 13:44:08 -0700
-Message-ID: <20130314204408.B85DC31C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: + crypto-add-lz4-cryptographic-api.patch added to -mm tree
+Date: Thu, 14 Mar 2013 13:59:16 -0700
+Message-ID: <20130314205916.DF06D5A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:40797 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750989Ab3CNUoK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 16:44:10 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so270525ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 13:44:09 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34319 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752088Ab3CNU7S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 16:59:18 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so95151vcb.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 13:59:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, liwanp@linux.vnet.ibm.com
+Cc: chanho.min@lge.com, djwong@us.ibm.com, herbert@gondor.hengli.com.au, kyungsik.lee@lge.com, richard@nod.at, rpearson@systemfabricworks.com, yann.collet.73@gmail.com
 
 
 The patch titled
-     Subject: mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
+     Subject: crypto: add lz4 Cryptographic API
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+     crypto-add-lz4-cryptographic-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,288 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
+From: Chanho Min <chanho.min@lge.com>
+Subject: crypto: add lz4 Cryptographic API
 
-coding-style tweak
+Add support for lz4 and lz4hc compression algorithm using the lib/lz4/*
+codebase.
 
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>
+Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ crypto/Kconfig  |   16 +++++++
+ crypto/Makefile |    2 
+ crypto/lz4.c    |  105 ++++++++++++++++++++++++++++++++++++++++++++++
+ crypto/lz4hc.c  |  105 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 228 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
-+++ a/mm/hugetlb.c
-@@ -2126,6 +2126,7 @@ unsigned long hugetlb_total_pages(void)
- {
- 	struct hstate *h;
- 	unsigned long nr_total_pages = 0;
+diff -puN crypto/Kconfig~crypto-add-lz4-cryptographic-api crypto/Kconfig
+--- a/crypto/Kconfig~crypto-add-lz4-cryptographic-api
++++ a/crypto/Kconfig
+@@ -1236,6 +1236,22 @@ config CRYPTO_842
+ 	help
+ 	  This is the 842 algorithm.
+ 
++config CRYPTO_LZ4
++	tristate "LZ4 compression algorithm"
++	select CRYPTO_ALGAPI
++	select LZ4_COMPRESS
++	select LZ4_DECOMPRESS
++	help
++	  This is the LZ4 algorithm.
 +
- 	for_each_hstate(h)
- 		nr_total_pages += h->nr_huge_pages * pages_per_huge_page(h);
- 	return nr_total_pages;
++config CRYPTO_LZ4HC
++	tristate "LZ4HC compression algorithm"
++	select CRYPTO_ALGAPI
++	select LZ4HC_COMPRESS
++	select LZ4_DECOMPRESS
++	help
++	  This is the LZ4 high compression mode algorithm.
++
+ comment "Random Number Generation"
+ 
+ config CRYPTO_ANSI_CPRNG
+diff -puN crypto/Makefile~crypto-add-lz4-cryptographic-api crypto/Makefile
+--- a/crypto/Makefile~crypto-add-lz4-cryptographic-api
++++ a/crypto/Makefile
+@@ -84,6 +84,8 @@ obj-$(CONFIG_CRYPTO_CRC32C) += crc32c.o
+ obj-$(CONFIG_CRYPTO_CRC32) += crc32.o
+ obj-$(CONFIG_CRYPTO_AUTHENC) += authenc.o authencesn.o
+ obj-$(CONFIG_CRYPTO_LZO) += lzo.o
++obj-$(CONFIG_CRYPTO_LZ4) += lz4.o
++obj-$(CONFIG_CRYPTO_LZ4HC) += lz4hc.o
+ obj-$(CONFIG_CRYPTO_842) += 842.o
+ obj-$(CONFIG_CRYPTO_RNG2) += rng.o
+ obj-$(CONFIG_CRYPTO_RNG2) += krng.o
+diff -puN /dev/null crypto/lz4.c
+--- /dev/null
++++ a/crypto/lz4.c
+@@ -0,0 +1,105 @@
++/*
++ * Cryptographic API.
++ *
++ * Copyright (c) 2013 Chanho Min <chanho.min@lge.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc., 51
++ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
++ *
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/crypto.h>
++#include <linux/vmalloc.h>
++#include <linux/lz4.h>
++
++struct lz4_ctx {
++	void *lz4_comp_mem;
++};
++
++static int lz4_init(struct crypto_tfm *tfm)
++{
++	struct lz4_ctx *ctx = crypto_tfm_ctx(tfm);
++
++	ctx->lz4_comp_mem = vmalloc(LZ4_MEM_COMPRESS);
++	if (!ctx->lz4_comp_mem)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void lz4_exit(struct crypto_tfm *tfm)
++{
++	struct lz4_ctx *ctx = crypto_tfm_ctx(tfm);
++	vfree(ctx->lz4_comp_mem);
++}
++
++static int lz4_compress_crypto(struct crypto_tfm *tfm, const u8 *src,
++			    unsigned int slen, u8 *dst, unsigned int *dlen)
++{
++	struct lz4_ctx *ctx = crypto_tfm_ctx(tfm);
++	size_t tmp_len = *dlen;
++	int err;
++
++	err = lz4_compress(src, slen, dst, &tmp_len, ctx->lz4_comp_mem);
++
++	if (err < 0)
++		return -EINVAL;
++
++	*dlen = tmp_len;
++	return 0;
++}
++
++static int lz4_decompress_crypto(struct crypto_tfm *tfm, const u8 *src,
++			      unsigned int slen, u8 *dst, unsigned int *dlen)
++{
++	int err;
++	size_t tmp_len = *dlen;
++
++	err = lz4_decompress(src, &slen, dst, tmp_len);
++	if (err < 0)
++		return -EINVAL;
++
++	*dlen = tmp_len;
++	return err;
++}
++
++static struct crypto_alg alg_lz4 = {
++	.cra_name		= "lz4",
++	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
++	.cra_ctxsize		= sizeof(struct lz4_ctx),
++	.cra_module		= THIS_MODULE,
++	.cra_list		= LIST_HEAD_INIT(alg_lz4.cra_list),
++	.cra_init		= lz4_init,
++	.cra_exit		= lz4_exit,
++	.cra_u			= { .compress = {
++	.coa_compress		= lz4_compress_crypto,
++	.coa_decompress		= lz4_decompress_crypto } }
++};
++
++static int __init lz4_mod_init(void)
++{
++	return crypto_register_alg(&alg_lz4);
++}
++
++static void __exit lz4_mod_fini(void)
++{
++	crypto_unregister_alg(&alg_lz4);
++}
++
++module_init(lz4_mod_init);
++module_exit(lz4_mod_fini);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("LZ4 Compression Algorithm");
+diff -puN /dev/null crypto/lz4hc.c
+--- /dev/null
++++ a/crypto/lz4hc.c
+@@ -0,0 +1,105 @@
++/*
++ * Cryptographic API.
++ *
++ * Copyright (c) 2013 Chanho Min <chanho.min@lge.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc., 51
++ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
++ *
++ */
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/crypto.h>
++#include <linux/vmalloc.h>
++#include <linux/lz4.h>
++
++struct lz4hc_ctx {
++	void *lz4hc_comp_mem;
++};
++
++static int lz4hc_init(struct crypto_tfm *tfm)
++{
++	struct lz4hc_ctx *ctx = crypto_tfm_ctx(tfm);
++
++	ctx->lz4hc_comp_mem = vmalloc(LZ4HC_MEM_COMPRESS);
++	if (!ctx->lz4hc_comp_mem)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void lz4hc_exit(struct crypto_tfm *tfm)
++{
++	struct lz4hc_ctx *ctx = crypto_tfm_ctx(tfm);
++
++	vfree(ctx->lz4hc_comp_mem);
++}
++
++static int lz4hc_compress_crypto(struct crypto_tfm *tfm, const u8 *src,
++			    unsigned int slen, u8 *dst, unsigned int *dlen)
++{
++	struct lz4hc_ctx *ctx = crypto_tfm_ctx(tfm);
++	size_t tmp_len = *dlen;
++	int err;
++
++	err = lz4hc_compress(src, slen, dst, &tmp_len, ctx->lz4hc_comp_mem);
++
++	if (err < 0)
++		return -EINVAL;
++
++	*dlen = tmp_len;
++	return 0;
++}
++
++static int lz4hc_decompress_crypto(struct crypto_tfm *tfm, const u8 *src,
++			      unsigned int slen, u8 *dst, unsigned int *dlen)
++{
++	int err;
++	size_t tmp_len = *dlen;
++
++	err = lz4_decompress(src, &slen, dst, tmp_len);
++	if (err < 0)
++		return -EINVAL;
++
++	*dlen = tmp_len;
++	return err;
++}
++
++static struct crypto_alg alg_lz4hc = {
++	.cra_name		= "lz4hc",
++	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
++	.cra_ctxsize		= sizeof(struct lz4hc_ctx),
++	.cra_module		= THIS_MODULE,
++	.cra_list		= LIST_HEAD_INIT(alg_lz4hc.cra_list),
++	.cra_init		= lz4hc_init,
++	.cra_exit		= lz4hc_exit,
++	.cra_u			= { .compress = {
++	.coa_compress		= lz4hc_compress_crypto,
++	.coa_decompress		= lz4hc_decompress_crypto } }
++};
++
++static int __init lz4hc_mod_init(void)
++{
++	return crypto_register_alg(&alg_lz4hc);
++}
++
++static void __exit lz4hc_mod_fini(void)
++{
++	crypto_unregister_alg(&alg_lz4hc);
++}
++
++module_init(lz4hc_mod_init);
++module_exit(lz4hc_mod_fini);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("LZ4HC Compression Algorithm");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chanho.min@lge.com are
 
-origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+lib-add-lz4-compressor-module.patch
+crypto-add-lz4-cryptographic-api.patch
 
