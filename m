@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-sun4v-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:15:13 -0700
-Message-ID: <20130314211513.BDFF131C123@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-wm8350-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:15:29 -0700
+Message-ID: <20130314211529.BED555A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:36483 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752947Ab3CNVPO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:14 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so274834ghb.0
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:14 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:49999 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948Ab3CNVPa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:30 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so275332qcr.2
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-sun4v: use devm_rtc_device_register()
+     Subject: rtc: rtc-wm8350: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-sun4v-use-devm_rtc_device_register.patch
+     rtc-rtc-wm8350-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-sun4v: use devm_rtc_device_register()
+Subject: rtc: rtc-wm8350: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,32 +43,34 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sun4v.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-wm8350.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-devm_rtc_device_register drivers/rtc/rtc-sun4v.c
---- a/drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-sun4v.c
-@@ -81,8 +81,10 @@ static const struct rtc_class_ops sun4v_
+diff -puN drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-use-devm_rtc_device_register drivers/rtc/rtc-wm8350.c
+--- a/drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-wm8350.c
+@@ -439,8 +439,8 @@ static int wm8350_rtc_probe(struct platf
  
- static int __init sun4v_rtc_probe(struct platform_device *pdev)
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+-	wm_rtc->rtc = rtc_device_register("wm8350", &pdev->dev,
+-					  &wm8350_rtc_ops, THIS_MODULE);
++	wm_rtc->rtc = devm_rtc_device_register(&pdev->dev, "wm8350",
++					&wm8350_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(wm_rtc->rtc)) {
+ 		ret = PTR_ERR(wm_rtc->rtc);
+ 		dev_err(&pdev->dev, "failed to register RTC: %d\n", ret);
+@@ -462,13 +462,10 @@ static int wm8350_rtc_probe(struct platf
+ static int wm8350_rtc_remove(struct platform_device *pdev)
  {
--	struct rtc_device *rtc = rtc_device_register("sun4v", &pdev->dev,
--				     &sun4v_rtc_ops, THIS_MODULE);
-+	struct rtc_device *rtc;
-+
-+	rtc = devm_rtc_device_register(&pdev->dev, "sun4v",
-+				&sun4v_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
+ 	struct wm8350 *wm8350 = platform_get_drvdata(pdev);
+-	struct wm8350_rtc *wm_rtc = &wm8350->rtc;
  
-@@ -92,9 +94,6 @@ static int __init sun4v_rtc_probe(struct
+ 	wm8350_free_irq(wm8350, WM8350_IRQ_RTC_SEC, wm8350);
+ 	wm8350_free_irq(wm8350, WM8350_IRQ_RTC_ALM, wm8350);
  
- static int __exit sun4v_rtc_remove(struct platform_device *pdev)
- {
--	struct rtc_device *rtc = platform_get_drvdata(pdev);
+-	rtc_device_unregister(wm_rtc->rtc);
 -
--	rtc_device_unregister(rtc);
  	return 0;
  }
  
