@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fat-exportfs-rebuild-inode-if-ilookup-fails.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:36:42 -0700
-Message-ID: <20130314213642.D27435A4213@corp2gmr1-2.hot.corp.google.com>
+Subject: + fat-move-fat_i_pos_read-to-fath.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:36:36 -0700
+Message-ID: <20130314213636.CF2555A4213@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:44265 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752373Ab3CNVgo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:44 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so98717vcb.5
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:43 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:42463 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437Ab3CNVgi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:38 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hf12so98688vcb.2
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Subject: fat (exportfs): rebuild inode if ilookup() fails
+     Subject: fat: move fat_i_pos_read to fat.h
 has been added to the -mm tree.  Its filename is
-     fat-exportfs-rebuild-inode-if-ilookup-fails.patch
+     fat-move-fat_i_pos_read-to-fath.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat (exportfs): rebuild inode if ilookup() fails
+Subject: fat: move fat_i_pos_read to fat.h
 
-If the cache lookups fail,use the i_pos value to find the directory entry
-of the inode and rebuild the inode.Since this involves accessing the FAT
-media, do this only if the nostale_ro nfs mount option is specified.
+Move fat_i_pos_read to fat.h so that it can be called from nfs.c in the
+subsequent patches to encode the file handle.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
@@ -47,136 +46,51 @@ Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fat.h   |    1 +
- fs/fat/inode.c |   15 +++++++++++++++
- fs/fat/nfs.c   |   41 ++++++++++++++++++++++++++++++++++++-----
- 3 files changed, 52 insertions(+), 5 deletions(-)
+ fs/fat/fat.h   |   14 ++++++++++++++
+ fs/fat/inode.c |   14 --------------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/fat/fat.h~fat-exportfs-rebuild-inode-if-ilookup-fails fs/fat/fat.h
---- a/fs/fat/fat.h~fat-exportfs-rebuild-inode-if-ilookup-fails
+diff -puN fs/fat/fat.h~fat-move-fat_i_pos_read-to-fath fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-move-fat_i_pos_read-to-fath
 +++ a/fs/fat/fat.h
-@@ -75,6 +75,7 @@ struct msdos_sb_info {
- 	unsigned long root_cluster;   /* first cluster of the root directory */
- 	unsigned long fsinfo_sector;  /* sector number of FAT32 fsinfo */
- 	struct mutex fat_lock;
-+	struct mutex nfs_build_inode_lock;
- 	struct mutex s_lock;
- 	unsigned int prev_free;      /* previously allocated cluster number */
- 	unsigned int free_clusters;  /* -1 if undefined */
-diff -puN fs/fat/inode.c~fat-exportfs-rebuild-inode-if-ilookup-fails fs/fat/inode.c
---- a/fs/fat/inode.c~fat-exportfs-rebuild-inode-if-ilookup-fails
+@@ -218,6 +218,20 @@ static inline sector_t fat_clus_to_blknr
+ 		+ sbi->data_start;
+ }
+ 
++static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
++					struct inode *inode)
++{
++	loff_t i_pos;
++#if BITS_PER_LONG == 32
++	spin_lock(&sbi->inode_hash_lock);
++#endif
++	i_pos = MSDOS_I(inode)->i_pos;
++#if BITS_PER_LONG == 32
++	spin_unlock(&sbi->inode_hash_lock);
++#endif
++	return i_pos;
++}
++
+ static inline void fat16_towchar(wchar_t *dst, const __u8 *src, size_t len)
+ {
+ #ifdef __BIG_ENDIAN
+diff -puN fs/fat/inode.c~fat-move-fat_i_pos_read-to-fath fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-move-fat_i_pos_read-to-fath
 +++ a/fs/fat/inode.c
-@@ -443,12 +443,25 @@ static int fat_fill_inode(struct inode *
+@@ -655,20 +655,6 @@ static int fat_statfs(struct dentry *den
  	return 0;
  }
  
-+static inline void fat_lock_build_inode(struct msdos_sb_info *sbi)
-+{
-+	if (sbi->options.nfs == FAT_NFS_NOSTALE_RO)
-+		mutex_lock(&sbi->nfs_build_inode_lock);
-+}
-+
-+static inline void fat_unlock_build_inode(struct msdos_sb_info *sbi)
-+{
-+	if (sbi->options.nfs == FAT_NFS_NOSTALE_RO)
-+		mutex_unlock(&sbi->nfs_build_inode_lock);
-+}
-+
- struct inode *fat_build_inode(struct super_block *sb,
- 			struct msdos_dir_entry *de, loff_t i_pos)
- {
- 	struct inode *inode;
- 	int err;
- 
-+	fat_lock_build_inode(MSDOS_SB(sb));
- 	inode = fat_iget(sb, i_pos);
- 	if (inode)
- 		goto out;
-@@ -468,6 +481,7 @@ struct inode *fat_build_inode(struct sup
- 	fat_attach(inode, i_pos);
- 	insert_inode_hash(inode);
- out:
-+	fat_unlock_build_inode(MSDOS_SB(sb));
- 	return inode;
- }
- 
-@@ -1247,6 +1261,7 @@ int fat_fill_super(struct super_block *s
- 	sb->s_magic = MSDOS_SUPER_MAGIC;
- 	sb->s_op = &fat_sops;
- 	sb->s_export_op = &fat_export_ops;
-+	mutex_init(&sbi->nfs_build_inode_lock);
- 	ratelimit_state_init(&sbi->ratelimit, DEFAULT_RATELIMIT_INTERVAL,
- 			     DEFAULT_RATELIMIT_BURST);
- 
-diff -puN fs/fat/nfs.c~fat-exportfs-rebuild-inode-if-ilookup-fails fs/fat/nfs.c
---- a/fs/fat/nfs.c~fat-exportfs-rebuild-inode-if-ilookup-fails
-+++ a/fs/fat/nfs.c
-@@ -50,19 +50,50 @@ static struct inode *fat_dget(struct sup
- 	return inode;
- }
- 
-+static struct inode *fat_ilookup(struct super_block *sb, u64 ino, loff_t i_pos)
-+{
-+	if (MSDOS_SB(sb)->options.nfs == FAT_NFS_NOSTALE_RO)
-+		return fat_iget(sb, i_pos);
-+
-+	else {
-+		if ((ino < MSDOS_ROOT_INO) || (ino == MSDOS_FSINFO_INO))
-+			return NULL;
-+		return ilookup(sb, ino);
-+	}
-+}
-+
- static struct inode *__fat_nfs_get_inode(struct super_block *sb,
- 				       u64 ino, u32 generation, loff_t i_pos)
- {
--	struct inode *inode;
--
--	if ((ino < MSDOS_ROOT_INO) || (ino == MSDOS_FSINFO_INO))
--		return NULL;
-+	struct inode *inode = fat_ilookup(sb, ino, i_pos);
- 
--	inode = ilookup(sb, ino);
- 	if (inode && generation && (inode->i_generation != generation)) {
- 		iput(inode);
- 		inode = NULL;
- 	}
-+	if (inode == NULL && MSDOS_SB(sb)->options.nfs == FAT_NFS_NOSTALE_RO) {
-+		struct buffer_head *bh = NULL;
-+		struct msdos_dir_entry *de ;
-+		sector_t blocknr;
-+		int offset;
-+		fat_get_blknr_offset(MSDOS_SB(sb), i_pos, &blocknr, &offset);
-+		bh = sb_bread(sb, blocknr);
-+		if (!bh) {
-+			fat_msg(sb, KERN_ERR,
-+				"unable to read block(%llu) for building NFS inode",
-+				(llu)blocknr);
-+			return inode;
-+		}
-+		de = (struct msdos_dir_entry *)bh->b_data;
-+		/* If a file is deleted on server and client is not updated
-+		 * yet, we must not build the inode upon a lookup call.
-+		 */
-+		if (IS_FREE(de[offset].name))
-+			inode = NULL;
-+		else
-+			inode = fat_build_inode(sb, &de[offset], i_pos);
-+		brelse(bh);
-+	}
- 
- 	return inode;
- }
-_
-
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
-
-linux-next.patch
-fat-introduce-2-new-values-for-the-o-nfs-mount-option.patch
-fat-move-fat_i_pos_read-to-fath.patch
-fat-introduce-a-helper-fat_get_blknr_offset.patch
-fat-restructure-export_operations.patch
-fat-exportfs-rebuild-inode-if-ilookup-fails.patch
-fat-exportfs-rebuild-directory-inode-if-fat_dget.patch
-documentation-update-nfs-option-in-filesystem-vfattxt.patch
-
+-static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
+-				    struct inode *inode)
+-{
+-	loff_t i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_lock(&sbi->inode_hash_lock);
+-#endif
+-	i_pos = MSDOS_I(inode)->i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_unlock(&sbi->inode_hash_lock);
+-#endif
+-	return i_pos;
+-}
