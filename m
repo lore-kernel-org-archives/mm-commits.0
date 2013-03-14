@@ -1,111 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-res_counterh-needs-errnoh.patch removed from -mm tree
-Date: Thu, 14 Mar 2013 11:52:04 -0700
-Message-ID: <20130314185205.26DB331C174@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-remove_memory-fix-end_pfn-setting.patch removed from -mm tree
+Date: Thu, 14 Mar 2013 11:52:07 -0700
+Message-ID: <20130314185207.8FA095A41B0@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:62984 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864Ab3CNSwH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 14:52:07 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 9so258546qea.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 11:52:05 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:37670 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864Ab3CNSwK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 14:52:10 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so258644ggn.2
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 11:52:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fweisbec@redhat.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: toshi.kani@hp.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/res_counter.h needs errno.h
+     Subject: mm: remove_memory(): fix end_pfn setting
 has been removed from the -mm tree.  Its filename was
-     include-linux-res_counterh-needs-errnoh.patch
+     mm-remove_memory-fix-end_pfn-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/res_counter.h needs errno.h
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: mm: remove_memory(): fix end_pfn setting
 
-alpha allmodconfig:
+remove_memory() calls walk_memory_range() with [start_pfn, end_pfn), where
+end_pfn is exclusive in this range.  Therefore, end_pfn needs to be set to
+the next page of the end address.
 
-In file included from mm/memcontrol.c:28:
-include/linux/res_counter.h: In function 'res_counter_set_limit':
-include/linux/res_counter.h:203: error: 'EBUSY' undeclared (first use in this function)
-include/linux/res_counter.h:203: error: (Each undeclared identifier is reported only once
-include/linux/res_counter.h:203: error: for each function it appears in.)
-
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Frederic Weisbecker <fweisbec@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Wu Jianguo <wujianguo@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/res_counter.h~include-linux-res_counterh-needs-errnoh include/linux/res_counter.h
---- a/include/linux/res_counter.h~include-linux-res_counterh-needs-errnoh
-+++ a/include/linux/res_counter.h
-@@ -14,6 +14,7 @@
-  */
+diff -puN mm/memory_hotplug.c~mm-remove_memory-fix-end_pfn-setting mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-remove_memory-fix-end_pfn-setting
++++ a/mm/memory_hotplug.c
+@@ -1801,7 +1801,7 @@ int __ref remove_memory(int nid, u64 sta
+ 	int retry = 1;
  
- #include <linux/cgroup.h>
-+#include <linux/errno.h>
+ 	start_pfn = PFN_DOWN(start);
+-	end_pfn = start_pfn + PFN_DOWN(size);
++	end_pfn = PFN_UP(start + size - 1);
  
- /*
-  * The core object. the cgroup that wishes to account for some
+ 	/*
+ 	 * When CONFIG_MEMCG is on, one memory block may be used by other
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
 origin.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-walk_memory_range-fix-typo-in-comment.patch
 
