@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-max6900-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:43 -0700
-Message-ID: <20130314211443.BD7255A40E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-hid-sensor-time-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:33 -0700
+Message-ID: <20130314211433.C056C5A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:40837 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab3CNVOo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:44 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so275318qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:44 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:41754 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab3CNVOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:34 -0400
+Received: by mail-qa0-f74.google.com with SMTP id o13so289955qaj.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-max6900: use devm_rtc_device_register()
+     Subject: rtc: hid-sensor-time: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-max6900-use-devm_rtc_device_register.patch
+     rtc-hid-sensor-time-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-max6900: use devm_rtc_device_register()
+Subject: rtc: hid-sensor-time: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,35 +43,34 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6900.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-hid-sensor-time.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-max6900.c~rtc-rtc-max6900-use-devm_rtc_device_register drivers/rtc/rtc-max6900.c
---- a/drivers/rtc/rtc-max6900.c~rtc-rtc-max6900-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-max6900.c
-@@ -214,11 +214,6 @@ static int max6900_rtc_set_time(struct d
+diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-hid-sensor-time-use-devm_rtc_device_register drivers/rtc/rtc-hid-sensor-time.c
+--- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-hid-sensor-time-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-hid-sensor-time.c
+@@ -255,8 +255,9 @@ static int hid_time_probe(struct platfor
+ 		return ret;
+ 	}
  
- static int max6900_remove(struct i2c_client *client)
+-	time_state->rtc = rtc_device_register("hid-sensor-time",
+-				&pdev->dev, &hid_time_rtc_ops, THIS_MODULE);
++	time_state->rtc = devm_rtc_device_register(&pdev->dev,
++					"hid-sensor-time", &hid_time_rtc_ops,
++					THIS_MODULE);
+ 
+ 	if (IS_ERR(time_state->rtc)) {
+ 		dev_err(&pdev->dev, "rtc device register failed!\n");
+@@ -269,9 +270,7 @@ static int hid_time_probe(struct platfor
+ static int hid_time_remove(struct platform_device *pdev)
  {
--	struct rtc_device *rtc = i2c_get_clientdata(client);
--
--	if (rtc)
--		rtc_device_unregister(rtc);
--
+ 	struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
+-	struct hid_time_state *time_state = platform_get_drvdata(pdev);
+ 
+-	rtc_device_unregister(time_state->rtc);
+ 	sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
+ 
  	return 0;
- }
- 
-@@ -237,8 +232,8 @@ max6900_probe(struct i2c_client *client,
- 
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
- 
--	rtc = rtc_device_register(max6900_driver.driver.name,
--				  &client->dev, &max6900_rtc_ops, THIS_MODULE);
-+	rtc = devm_rtc_device_register(&client->dev, max6900_driver.driver.name,
-+					&max6900_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
