@@ -1,85 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uapi-fix-endianness-conditionals-in-m32rs-asm-stath.patch removed from -mm tree
-Date: Thu, 14 Mar 2013 11:52:51 -0700
-Message-ID: <20130314185251.7C5FA5A41B0@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded.patch removed from -mm tree
+Date: Thu, 14 Mar 2013 11:52:54 -0700
+Message-ID: <20130314185254.7DED531C174@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:62363 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426Ab3CNSww (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 14:52:52 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so250794vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 11:52:52 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:56867 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752426Ab3CNSwz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 14:52:55 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so250881vbb.0
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 11:52:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, teigland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: UAPI: fix endianness conditionals in M32R's asm/stat.h
+     Subject: idr: idr_alloc() shouldn't trigger lowmem warning when preloaded
 has been removed from the -mm tree.  Its filename was
-     uapi-fix-endianness-conditionals-in-m32rs-asm-stath.patch
+     idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: UAPI: fix endianness conditionals in M32R's asm/stat.h
+From: Tejun Heo <tj@kernel.org>
+Subject: idr: idr_alloc() shouldn't trigger lowmem warning when preloaded
 
-In the UAPI header files, __BIG_ENDIAN and __LITTLE_ENDIAN must be
-compared against __BYTE_ORDER in preprocessor conditionals where these are
-exposed to userspace (that is they're not inside __KERNEL__ conditionals).
+GFP_NOIO is often used for idr_alloc() inside preloaded section as the
+allocation mask doesn't really matter.  If the idr tree needs to be
+expanded, idr_alloc() first tries to allocate using the specified
+allocation mask and if it fails falls back to the preloaded buffer.  This
+order prevent non-preloading idr_alloc() users from taking advantage of
+preloading ones by using preload buffer without filling it shifting the
+burden of allocation to the preload users.
 
-However, in the main kernel the norm is to check for
-"defined(__XXX_ENDIAN)" rather than comparing against __BYTE_ORDER and
-this has incorrectly leaked into the userspace headers.
+Unfortunately, this allowed/expected-to-fail kmem_cache allocation ends up
+generating spurious slab lowmem warning before succeeding the request from
+the preload buffer.
 
-The definition of struct stat64 in M32R's asm/stat.h is wrong in this way.
- Note that userspace will likely interpret the field order incorrectly as
-the big-endian variant on little-endian machines - depending on header
-inclusion order.
+This patch makes idr_layer_alloc() add __GFP_NOWARN to the first
+kmem_cache attempt and try kmem_cache again w/o __GFP_NOWARN after
+allocation from preload_buffer fails so that lowmem warning is generated
+if not suppressed by the original @gfp_mask.
 
-[!!!] NOTE [!!!]  This patch may adversely change the userspace API.  It might
-be better to fix the ordering of st_blocks and __pad4 in struct stat64.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: David Teigland <teigland@redhat.com>
+Tested-by: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/uapi/asm/stat.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/idr.c |   38 +++++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-diff -puN arch/m32r/include/uapi/asm/stat.h~uapi-fix-endianness-conditionals-in-m32rs-asm-stath arch/m32r/include/uapi/asm/stat.h
---- a/arch/m32r/include/uapi/asm/stat.h~uapi-fix-endianness-conditionals-in-m32rs-asm-stath
-+++ a/arch/m32r/include/uapi/asm/stat.h
-@@ -63,10 +63,10 @@ struct stat64 {
- 	long long	st_size;
- 	unsigned long	st_blksize;
+diff -puN lib/idr.c~idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded lib/idr.c
+--- a/lib/idr.c~idr-idr_alloc-shouldnt-trigger-lowmem-warning-when-preloaded
++++ a/lib/idr.c
+@@ -106,8 +106,14 @@ static struct idr_layer *idr_layer_alloc
+ 	if (layer_idr)
+ 		return get_from_free_list(layer_idr);
  
--#if defined(__BIG_ENDIAN)
-+#if defined(__BYTE_ORDER) ? __BYTE_ORDER == __BIG_ENDIAN : defined(__BIG_ENDIAN)
- 	unsigned long	__pad4;		/* future possible st_blocks high bits */
- 	unsigned long	st_blocks;	/* Number 512-byte blocks allocated. */
--#elif defined(__LITTLE_ENDIAN)
-+#elif defined(__BYTE_ORDER) ? __BYTE_ORDER == __LITTLE_ENDIAN : defined(__LITTLE_ENDIAN)
- 	unsigned long	st_blocks;	/* Number 512-byte blocks allocated. */
- 	unsigned long	__pad4;		/* future possible st_blocks high bits */
- #else
+-	/* try to allocate directly from kmem_cache */
+-	new = kmem_cache_zalloc(idr_layer_cache, gfp_mask);
++	/*
++	 * Try to allocate directly from kmem_cache.  We want to try this
++	 * before preload buffer; otherwise, non-preloading idr_alloc()
++	 * users will end up taking advantage of preloading ones.  As the
++	 * following is allowed to fail for preloaded cases, suppress
++	 * warning this time.
++	 */
++	new = kmem_cache_zalloc(idr_layer_cache, gfp_mask | __GFP_NOWARN);
+ 	if (new)
+ 		return new;
+ 
+@@ -115,18 +121,24 @@ static struct idr_layer *idr_layer_alloc
+ 	 * Try to fetch one from the per-cpu preload buffer if in process
+ 	 * context.  See idr_preload() for details.
+ 	 */
+-	if (in_interrupt())
+-		return NULL;
+-
+-	preempt_disable();
+-	new = __this_cpu_read(idr_preload_head);
+-	if (new) {
+-		__this_cpu_write(idr_preload_head, new->ary[0]);
+-		__this_cpu_dec(idr_preload_cnt);
+-		new->ary[0] = NULL;
++	if (!in_interrupt()) {
++		preempt_disable();
++		new = __this_cpu_read(idr_preload_head);
++		if (new) {
++			__this_cpu_write(idr_preload_head, new->ary[0]);
++			__this_cpu_dec(idr_preload_cnt);
++			new->ary[0] = NULL;
++		}
++		preempt_enable();
++		if (new)
++			return new;
+ 	}
+-	preempt_enable();
+-	return new;
++
++	/*
++	 * Both failed.  Try kmem_cache again w/o adding __GFP_NOWARN so
++	 * that memory allocation failure warning is printed as intended.
++	 */
++	return kmem_cache_zalloc(idr_layer_cache, gfp_mask);
+ }
+ 
+ static void idr_layer_rcu_free(struct rcu_head *head)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
-debug_locksh-make-warning-more-verbose.patch
-mm-introduce-common-help-functions-to-deal-with-reserved-managed-pages.patch
-mm-frv-use-common-help-functions-to-free-reserved-pages.patch
-mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
-mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
-mm-remove-free_area_cache.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+thinkpad-acpi-kill-hotkey_thread_mutex.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+memblock-add-assertion-for-zero-allocation-alignment.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
 kernel-sysc-use-the-simpler-call_usermodehelper.patch
 usermodehelper-export-_exec-and-_setup-functions.patch
 usermodehelper-export-_exec-and-_setup-functions-fix.patch
@@ -88,5 +127,10 @@ keys-split-call-to-call_usermodehelper_fns.patch
 coredump-remove-trailling-whitespaces.patch
 split-remaining-calls-to-call_usermodehelper_fns.patch
 kmod-remove-call_usermodehelper_fns.patch
-mutex-subsystem-synchro-test-module.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-introduce-dump_interrupted.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
 
