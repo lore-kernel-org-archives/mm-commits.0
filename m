@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-nfs-option-in-filesystem-vfattxt.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:36:46 -0700
-Message-ID: <20130314213646.D3D195A421B@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipc-refactor-msg-list-search-into-separate-function-fix.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:40:11 -0700
+Message-ID: <20130314214011.729255A41B0@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:60974 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752991Ab3CNVgs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:48 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z6so276915yhz.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:47 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:50158 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752292Ab3CNVkN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:40:13 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so277027vea.2
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:40:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com, rob@landley.net
+Cc: fengguang.wu@intel.com, hannes@cmpxchg.org, peter@hurleysoftware.com
 
 
 The patch titled
-     Subject: Documentation: update nfs option in filesystem/vfat.txt
+     Subject: ipc: find_msg can be static
 has been added to the -mm tree.  Its filename is
-     documentation-update-nfs-option-in-filesystem-vfattxt.patch
+     ipc-refactor-msg-list-search-into-separate-function-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: Documentation: update nfs option in filesystem/vfat.txt
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: ipc: find_msg can be static
 
-Add descriptions about 'stale_rw' and 'nostale_ro' nfs options in
-filesystem/vfat.txt
+Fixes sparse warning identified by Fengguang's test robot:
+   ipc/msg.c:810:16: sparse: symbol 'find_msg' was not declared. Should it be static?
 
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Acked-by: Rob Landley <rob@landley.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ ipc/msg.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/vfat.txt~documentation-update-nfs-option-in-filesystem-vfattxt Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~documentation-update-nfs-option-in-filesystem-vfattxt
-+++ a/Documentation/filesystems/vfat.txt
-@@ -150,12 +150,28 @@ discard       -- If set, issues discard/
- 		 device when blocks are freed. This is useful for SSD devices
- 		 and sparse/thinly-provisoned LUNs.
+diff -puN ipc/msg.c~ipc-refactor-msg-list-search-into-separate-function-fix ipc/msg.c
+--- a/ipc/msg.c~ipc-refactor-msg-list-search-into-separate-function-fix
++++ a/ipc/msg.c
+@@ -807,7 +807,7 @@ static inline void free_copy(struct msg_
+ }
+ #endif
  
--nfs           -- This option maintains an index (cache) of directory
--		 inodes by i_logstart which is used by the nfs-related code to
--		 improve look-ups.
-+nfs=stale_rw|nostale_ro
-+		Enable this only if you want to export the FAT filesystem
-+		over NFS.
-+
-+		stale_rw: This option maintains an index (cache) of directory
-+		inodes by i_logstart which is used by the nfs-related code to
-+		improve look-ups. Full file operations (read/write) over NFS is
-+		supported but with cache eviction at NFS server, this could
-+		result in ESTALE issues.
-+
-+		nostale_ro: This option bases the inode number and filehandle
-+		on the on-disk location of a file in the MS-DOS directory entry.
-+		This ensures that ESTALE will not be returned after a file is
-+		evicted from the inode cache. However, it means that operations
-+		such as rename, create and unlink could cause filehandles that
-+		previously pointed at one file to point at a different file,
-+		potentially causing data corruption. For this reason, this
-+		option also mounts the filesystem readonly.
-+
-+		To maintain backward compatibility, '-o nfs' is also accepted,
-+		defaulting to stale_rw
- 
--		 Enable this only if you want to export the FAT filesystem
--		 over NFS
- 
- <bool>: 0,1,yes,no,true,false
- 
+-struct msg_msg *find_msg(struct msg_queue *msq, long *msgtyp, int mode)
++static struct msg_msg *find_msg(struct msg_queue *msq, long *msgtyp, int mode)
+ {
+ 	struct msg_msg *msg;
+ 	long count = 0;
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
+origin.patch
 linux-next.patch
-fat-introduce-2-new-values-for-the-o-nfs-mount-option.patch
-fat-move-fat_i_pos_read-to-fath.patch
-fat-introduce-a-helper-fat_get_blknr_offset.patch
-fat-restructure-export_operations.patch
-fat-exportfs-rebuild-inode-if-ilookup-fails.patch
-fat-exportfs-rebuild-directory-inode-if-fat_dget.patch
-documentation-update-nfs-option-in-filesystem-vfattxt.patch
+hwpoison-check-dirty-flag-to-match-against-clean-page.patch
+smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
+ipc-refactor-msg-list-search-into-separate-function-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
 
