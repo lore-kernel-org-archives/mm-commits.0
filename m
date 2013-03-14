@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fat-introduce-a-helper-fat_get_blknr_offset.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:36:38 -0700
-Message-ID: <20130314213638.CECDF5A4213@corp2gmr1-2.hot.corp.google.com>
+Subject: + fat-exportfs-rebuild-inode-if-ilookup-fails.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:36:42 -0700
+Message-ID: <20130314213642.D27435A4213@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:44069 "EHLO
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:44265 "EHLO
 	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437Ab3CNVgk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:40 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so98713vcb.5
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:39 -0700 (PDT)
+	with ESMTP id S1752373Ab3CNVgo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:44 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so98717vcb.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Subject: fat: introduce a helper fat_get_blknr_offset()
+     Subject: fat (exportfs): rebuild inode if ilookup() fails
 has been added to the -mm tree.  Its filename is
-     fat-introduce-a-helper-fat_get_blknr_offset.patch
+     fat-exportfs-rebuild-inode-if-ilookup-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: introduce a helper fat_get_blknr_offset()
+Subject: fat (exportfs): rebuild inode if ilookup() fails
 
-Introduce helper function to get the block number and offset for a given
-i_pos value.  Use it in __fat_write_inode() now and later on in nfs.c
+If the cache lookups fail,use the i_pos value to find the directory entry
+of the inode and rebuild the inode.Since this involves accessing the FAT
+media, do this only if the nostale_ro nfs mount option is specified.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
@@ -46,60 +47,126 @@ Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fat.h   |    7 +++++++
- fs/fat/inode.c |    9 +++++----
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ fs/fat/fat.h   |    1 +
+ fs/fat/inode.c |   15 +++++++++++++++
+ fs/fat/nfs.c   |   41 ++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 52 insertions(+), 5 deletions(-)
 
-diff -puN fs/fat/fat.h~fat-introduce-a-helper-fat_get_blknr_offset fs/fat/fat.h
---- a/fs/fat/fat.h~fat-introduce-a-helper-fat_get_blknr_offset
+diff -puN fs/fat/fat.h~fat-exportfs-rebuild-inode-if-ilookup-fails fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-exportfs-rebuild-inode-if-ilookup-fails
 +++ a/fs/fat/fat.h
-@@ -218,6 +218,13 @@ static inline sector_t fat_clus_to_blknr
- 		+ sbi->data_start;
+@@ -75,6 +75,7 @@ struct msdos_sb_info {
+ 	unsigned long root_cluster;   /* first cluster of the root directory */
+ 	unsigned long fsinfo_sector;  /* sector number of FAT32 fsinfo */
+ 	struct mutex fat_lock;
++	struct mutex nfs_build_inode_lock;
+ 	struct mutex s_lock;
+ 	unsigned int prev_free;      /* previously allocated cluster number */
+ 	unsigned int free_clusters;  /* -1 if undefined */
+diff -puN fs/fat/inode.c~fat-exportfs-rebuild-inode-if-ilookup-fails fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-exportfs-rebuild-inode-if-ilookup-fails
++++ a/fs/fat/inode.c
+@@ -443,12 +443,25 @@ static int fat_fill_inode(struct inode *
+ 	return 0;
  }
  
-+static inline void fat_get_blknr_offset(struct msdos_sb_info *sbi,
-+				loff_t i_pos, sector_t *blknr, int *offset)
++static inline void fat_lock_build_inode(struct msdos_sb_info *sbi)
 +{
-+	*blknr = i_pos >> sbi->dir_per_block_bits;
-+	*offset = i_pos & (sbi->dir_per_block - 1);
++	if (sbi->options.nfs == FAT_NFS_NOSTALE_RO)
++		mutex_lock(&sbi->nfs_build_inode_lock);
 +}
 +
- static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
- 					struct inode *inode)
++static inline void fat_unlock_build_inode(struct msdos_sb_info *sbi)
++{
++	if (sbi->options.nfs == FAT_NFS_NOSTALE_RO)
++		mutex_unlock(&sbi->nfs_build_inode_lock);
++}
++
+ struct inode *fat_build_inode(struct super_block *sb,
+ 			struct msdos_dir_entry *de, loff_t i_pos)
  {
-diff -puN fs/fat/inode.c~fat-introduce-a-helper-fat_get_blknr_offset fs/fat/inode.c
---- a/fs/fat/inode.c~fat-introduce-a-helper-fat_get_blknr_offset
-+++ a/fs/fat/inode.c
-@@ -662,7 +662,8 @@ static int __fat_write_inode(struct inod
- 	struct buffer_head *bh;
- 	struct msdos_dir_entry *raw_entry;
- 	loff_t i_pos;
--	int err;
-+	sector_t blocknr;
-+	int err, offset;
+ 	struct inode *inode;
+ 	int err;
  
- 	if (inode->i_ino == MSDOS_ROOT_INO)
- 		return 0;
-@@ -672,7 +673,8 @@ retry:
- 	if (!i_pos)
- 		return 0;
++	fat_lock_build_inode(MSDOS_SB(sb));
+ 	inode = fat_iget(sb, i_pos);
+ 	if (inode)
+ 		goto out;
+@@ -468,6 +481,7 @@ struct inode *fat_build_inode(struct sup
+ 	fat_attach(inode, i_pos);
+ 	insert_inode_hash(inode);
+ out:
++	fat_unlock_build_inode(MSDOS_SB(sb));
+ 	return inode;
+ }
  
--	bh = sb_bread(sb, i_pos >> sbi->dir_per_block_bits);
-+	fat_get_blknr_offset(sbi, i_pos, &blocknr, &offset);
-+	bh = sb_bread(sb, blocknr);
- 	if (!bh) {
- 		fat_msg(sb, KERN_ERR, "unable to read inode block "
- 		       "for updating (i_pos %lld)", i_pos);
-@@ -685,8 +687,7 @@ retry:
- 		goto retry;
+@@ -1247,6 +1261,7 @@ int fat_fill_super(struct super_block *s
+ 	sb->s_magic = MSDOS_SUPER_MAGIC;
+ 	sb->s_op = &fat_sops;
+ 	sb->s_export_op = &fat_export_ops;
++	mutex_init(&sbi->nfs_build_inode_lock);
+ 	ratelimit_state_init(&sbi->ratelimit, DEFAULT_RATELIMIT_INTERVAL,
+ 			     DEFAULT_RATELIMIT_BURST);
+ 
+diff -puN fs/fat/nfs.c~fat-exportfs-rebuild-inode-if-ilookup-fails fs/fat/nfs.c
+--- a/fs/fat/nfs.c~fat-exportfs-rebuild-inode-if-ilookup-fails
++++ a/fs/fat/nfs.c
+@@ -50,19 +50,50 @@ static struct inode *fat_dget(struct sup
+ 	return inode;
+ }
+ 
++static struct inode *fat_ilookup(struct super_block *sb, u64 ino, loff_t i_pos)
++{
++	if (MSDOS_SB(sb)->options.nfs == FAT_NFS_NOSTALE_RO)
++		return fat_iget(sb, i_pos);
++
++	else {
++		if ((ino < MSDOS_ROOT_INO) || (ino == MSDOS_FSINFO_INO))
++			return NULL;
++		return ilookup(sb, ino);
++	}
++}
++
+ static struct inode *__fat_nfs_get_inode(struct super_block *sb,
+ 				       u64 ino, u32 generation, loff_t i_pos)
+ {
+-	struct inode *inode;
+-
+-	if ((ino < MSDOS_ROOT_INO) || (ino == MSDOS_FSINFO_INO))
+-		return NULL;
++	struct inode *inode = fat_ilookup(sb, ino, i_pos);
+ 
+-	inode = ilookup(sb, ino);
+ 	if (inode && generation && (inode->i_generation != generation)) {
+ 		iput(inode);
+ 		inode = NULL;
  	}
++	if (inode == NULL && MSDOS_SB(sb)->options.nfs == FAT_NFS_NOSTALE_RO) {
++		struct buffer_head *bh = NULL;
++		struct msdos_dir_entry *de ;
++		sector_t blocknr;
++		int offset;
++		fat_get_blknr_offset(MSDOS_SB(sb), i_pos, &blocknr, &offset);
++		bh = sb_bread(sb, blocknr);
++		if (!bh) {
++			fat_msg(sb, KERN_ERR,
++				"unable to read block(%llu) for building NFS inode",
++				(llu)blocknr);
++			return inode;
++		}
++		de = (struct msdos_dir_entry *)bh->b_data;
++		/* If a file is deleted on server and client is not updated
++		 * yet, we must not build the inode upon a lookup call.
++		 */
++		if (IS_FREE(de[offset].name))
++			inode = NULL;
++		else
++			inode = fat_build_inode(sb, &de[offset], i_pos);
++		brelse(bh);
++	}
  
--	raw_entry = &((struct msdos_dir_entry *) (bh->b_data))
--	    [i_pos & (sbi->dir_per_block - 1)];
-+	raw_entry = &((struct msdos_dir_entry *) (bh->b_data))[offset];
- 	if (S_ISDIR(inode->i_mode))
- 		raw_entry->size = 0;
- 	else
+ 	return inode;
+ }
 _
 
 Patches currently in -mm which might be from namjae.jeon@samsung.com are
