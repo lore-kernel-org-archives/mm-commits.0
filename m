@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fat-restructure-export_operations.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:36:40 -0700
-Message-ID: <20130314213640.D878A31C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: + fat-introduce-a-helper-fat_get_blknr_offset.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:36:38 -0700
+Message-ID: <20130314213638.CECDF5A4213@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:54429 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752373Ab3CNVgl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:41 -0400
-Received: by mail-gg0-f201.google.com with SMTP id l2so276804ggn.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:41 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:44069 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437Ab3CNVgk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:40 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so98713vcb.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Subject: fat: restructure export_operations
+     Subject: fat: introduce a helper fat_get_blknr_offset()
 has been added to the -mm tree.  Its filename is
-     fat-restructure-export_operations.patch
+     fat-introduce-a-helper-fat_get_blknr_offset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: restructure export_operations
+Subject: fat: introduce a helper fat_get_blknr_offset()
 
-Define two nfs export_operation structures,one for 'stale_rw' mounts and
-the other for 'nostale_ro'.  The latter uses i_pos as a basis for encoding
-and decoding file handles.
-
-Also, assign i_pos to kstat->ino.  The logic for rebuilding the inode is
-added in the subsequent patches.
+Introduce helper function to get the block number and offset for a given
+i_pos value.  Use it in __fat_write_inode() now and later on in nfs.c
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
@@ -50,296 +46,60 @@ Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fat.h             |    8 --
- fs/fat/file.c            |    5 +
- fs/fat/inode.c           |   13 +--
- fs/fat/nfs.c             |  130 +++++++++++++++++++++++++++++++++++--
- include/linux/exportfs.h |   11 +++
- 5 files changed, 147 insertions(+), 20 deletions(-)
+ fs/fat/fat.h   |    7 +++++++
+ fs/fat/inode.c |    9 +++++----
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN fs/fat/fat.h~fat-restructure-export_operations fs/fat/fat.h
---- a/fs/fat/fat.h~fat-restructure-export_operations
+diff -puN fs/fat/fat.h~fat-introduce-a-helper-fat_get_blknr_offset fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-introduce-a-helper-fat_get_blknr_offset
 +++ a/fs/fat/fat.h
-@@ -406,12 +406,8 @@ int fat_cache_init(void);
- void fat_cache_destroy(void);
- 
- /* fat/nfs.c */
--struct fid;
--extern struct dentry *fat_fh_to_dentry(struct super_block *sb, struct fid *fid,
--				       int fh_len, int fh_type);
--extern struct dentry *fat_fh_to_parent(struct super_block *sb, struct fid *fid,
--				       int fh_len, int fh_type);
--extern struct dentry *fat_get_parent(struct dentry *child_dir);
-+extern const struct export_operations fat_export_ops;
-+extern const struct export_operations fat_export_ops_nostale;
- 
- /* helper for printk */
- typedef unsigned long long	llu;
-diff -puN fs/fat/file.c~fat-restructure-export_operations fs/fat/file.c
---- a/fs/fat/file.c~fat-restructure-export_operations
-+++ a/fs/fat/file.c
-@@ -306,6 +306,11 @@ int fat_getattr(struct vfsmount *mnt, st
- 	struct inode *inode = dentry->d_inode;
- 	generic_fillattr(inode, stat);
- 	stat->blksize = MSDOS_SB(inode->i_sb)->cluster_size;
-+
-+	if (MSDOS_SB(inode->i_sb)->options.nfs == FAT_NFS_NOSTALE_RO) {
-+		/* Use i_pos for ino. This is used as fileid of nfs. */
-+		stat->ino = fat_i_pos_read(MSDOS_SB(inode->i_sb), inode);
-+	}
- 	return 0;
+@@ -218,6 +218,13 @@ static inline sector_t fat_clus_to_blknr
+ 		+ sbi->data_start;
  }
- EXPORT_SYMBOL_GPL(fat_getattr);
-diff -puN fs/fat/inode.c~fat-restructure-export_operations fs/fat/inode.c
---- a/fs/fat/inode.c~fat-restructure-export_operations
+ 
++static inline void fat_get_blknr_offset(struct msdos_sb_info *sbi,
++				loff_t i_pos, sector_t *blknr, int *offset)
++{
++	*blknr = i_pos >> sbi->dir_per_block_bits;
++	*offset = i_pos & (sbi->dir_per_block - 1);
++}
++
+ static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
+ 					struct inode *inode)
+ {
+diff -puN fs/fat/inode.c~fat-introduce-a-helper-fat_get_blknr_offset fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-introduce-a-helper-fat_get_blknr_offset
 +++ a/fs/fat/inode.c
-@@ -18,7 +18,6 @@
- #include <linux/pagemap.h>
- #include <linux/mpage.h>
- #include <linux/buffer_head.h>
--#include <linux/exportfs.h>
- #include <linux/mount.h>
- #include <linux/vfs.h>
- #include <linux/parser.h>
-@@ -748,12 +747,6 @@ static const struct super_operations fat
- 	.show_options	= fat_show_options,
- };
+@@ -662,7 +662,8 @@ static int __fat_write_inode(struct inod
+ 	struct buffer_head *bh;
+ 	struct msdos_dir_entry *raw_entry;
+ 	loff_t i_pos;
+-	int err;
++	sector_t blocknr;
++	int err, offset;
  
--static const struct export_operations fat_export_ops = {
--	.fh_to_dentry	= fat_fh_to_dentry,
--	.fh_to_parent	= fat_fh_to_parent,
--	.get_parent	= fat_get_parent,
--};
--
- static int fat_show_options(struct seq_file *m, struct dentry *root)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(root->d_sb);
-@@ -1177,8 +1170,10 @@ out:
- 		opts->allow_utime = ~opts->fs_dmask & (S_IWGRP | S_IWOTH);
- 	if (opts->unicode_xlate)
- 		opts->utf8 = 0;
--	if (opts->nfs == FAT_NFS_NOSTALE_RO)
-+	if (opts->nfs == FAT_NFS_NOSTALE_RO) {
- 		sb->s_flags |= MS_RDONLY;
-+		sb->s_export_op = &fat_export_ops_nostale;
-+	}
+ 	if (inode->i_ino == MSDOS_ROOT_INO)
+ 		return 0;
+@@ -672,7 +673,8 @@ retry:
+ 	if (!i_pos)
+ 		return 0;
  
- 	return 0;
- }
-@@ -1189,7 +1184,7 @@ static int fat_read_root(struct inode *i
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 	int error;
+-	bh = sb_bread(sb, i_pos >> sbi->dir_per_block_bits);
++	fat_get_blknr_offset(sbi, i_pos, &blocknr, &offset);
++	bh = sb_bread(sb, blocknr);
+ 	if (!bh) {
+ 		fat_msg(sb, KERN_ERR, "unable to read inode block "
+ 		       "for updating (i_pos %lld)", i_pos);
+@@ -685,8 +687,7 @@ retry:
+ 		goto retry;
+ 	}
  
--	MSDOS_I(inode)->i_pos = 0;
-+	MSDOS_I(inode)->i_pos = MSDOS_ROOT_INO;
- 	inode->i_uid = sbi->options.fs_uid;
- 	inode->i_gid = sbi->options.fs_gid;
- 	inode->i_version++;
-diff -puN fs/fat/nfs.c~fat-restructure-export_operations fs/fat/nfs.c
---- a/fs/fat/nfs.c~fat-restructure-export_operations
-+++ a/fs/fat/nfs.c
-@@ -14,6 +14,18 @@
- #include <linux/exportfs.h>
- #include "fat.h"
- 
-+struct fat_fid {
-+	u32 i_gen;
-+	u32 i_pos_low;
-+	u16 i_pos_hi;
-+	u16 parent_i_pos_hi;
-+	u32 parent_i_pos_low;
-+	u32 parent_i_gen;
-+};
-+
-+#define FAT_FID_SIZE_WITHOUT_PARENT 3
-+#define FAT_FID_SIZE_WITH_PARENT (sizeof(struct fat_fid)/sizeof(u32))
-+
- /**
-  * Look up a directory inode given its starting cluster.
-  */
-@@ -38,8 +50,8 @@ static struct inode *fat_dget(struct sup
- 	return inode;
- }
- 
--static struct inode *fat_nfs_get_inode(struct super_block *sb,
--				       u64 ino, u32 generation)
-+static struct inode *__fat_nfs_get_inode(struct super_block *sb,
-+				       u64 ino, u32 generation, loff_t i_pos)
- {
- 	struct inode *inode;
- 
-@@ -55,35 +67,130 @@ static struct inode *fat_nfs_get_inode(s
- 	return inode;
- }
- 
-+static struct inode *fat_nfs_get_inode(struct super_block *sb,
-+				       u64 ino, u32 generation)
-+{
-+
-+	return __fat_nfs_get_inode(sb, ino, generation, 0);
-+}
-+
-+static int
-+fat_encode_fh_nostale(struct inode *inode, __u32 *fh, int *lenp,
-+		      struct inode *parent)
-+{
-+	int len = *lenp;
-+	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
-+	struct fat_fid *fid = (struct fat_fid *) fh;
-+	loff_t i_pos;
-+	int type = FILEID_FAT_WITHOUT_PARENT;
-+
-+	if (parent) {
-+		if (len < FAT_FID_SIZE_WITH_PARENT) {
-+			*lenp = FAT_FID_SIZE_WITH_PARENT;
-+			return FILEID_INVALID;
-+		}
-+	} else {
-+		if (len < FAT_FID_SIZE_WITHOUT_PARENT) {
-+			*lenp = FAT_FID_SIZE_WITHOUT_PARENT;
-+			return FILEID_INVALID;
-+		}
-+	}
-+
-+	i_pos = fat_i_pos_read(sbi, inode);
-+	*lenp = FAT_FID_SIZE_WITHOUT_PARENT;
-+	fid->i_gen = inode->i_generation;
-+	fid->i_pos_low = i_pos & 0xFFFFFFFF;
-+	fid->i_pos_hi = (i_pos >> 32) & 0xFFFF;
-+	if (parent) {
-+		i_pos = fat_i_pos_read(sbi, parent);
-+		fid->parent_i_pos_hi = (i_pos >> 32) & 0xFFFF;
-+		fid->parent_i_pos_low = i_pos & 0xFFFFFFFF;
-+		fid->parent_i_gen = parent->i_generation;
-+		type = FILEID_FAT_WITH_PARENT;
-+		*lenp = FAT_FID_SIZE_WITH_PARENT;
-+	}
-+
-+	return type;
-+}
-+
- /**
-  * Map a NFS file handle to a corresponding dentry.
-  * The dentry may or may not be connected to the filesystem root.
-  */
--struct dentry *fat_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+static struct dentry *fat_fh_to_dentry(struct super_block *sb, struct fid *fid,
- 				int fh_len, int fh_type)
- {
- 	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
- 				    fat_nfs_get_inode);
- }
- 
-+static struct dentry *fat_fh_to_dentry_nostale(struct super_block *sb,
-+					       struct fid *fh, int fh_len,
-+					       int fh_type)
-+{
-+	struct inode *inode = NULL;
-+	struct fat_fid *fid = (struct fat_fid *)fh;
-+	loff_t i_pos;
-+
-+	switch (fh_type) {
-+	case FILEID_FAT_WITHOUT_PARENT:
-+		if (fh_len < FAT_FID_SIZE_WITHOUT_PARENT)
-+			return NULL;
-+		break;
-+	case FILEID_FAT_WITH_PARENT:
-+		if (fh_len < FAT_FID_SIZE_WITH_PARENT)
-+			return NULL;
-+		break;
-+	default:
-+		return NULL;
-+	}
-+	i_pos = fid->i_pos_hi;
-+	i_pos = (i_pos << 32) | (fid->i_pos_low);
-+	inode = __fat_nfs_get_inode(sb, 0, fid->i_gen, i_pos);
-+
-+	return d_obtain_alias(inode);
-+}
-+
- /*
-  * Find the parent for a file specified by NFS handle.
-  * This requires that the handle contain the i_ino of the parent.
-  */
--struct dentry *fat_fh_to_parent(struct super_block *sb, struct fid *fid,
-+static struct dentry *fat_fh_to_parent(struct super_block *sb, struct fid *fid,
- 				int fh_len, int fh_type)
- {
- 	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
- 				    fat_nfs_get_inode);
- }
- 
-+static struct dentry *fat_fh_to_parent_nostale(struct super_block *sb,
-+					       struct fid *fh, int fh_len,
-+					       int fh_type)
-+{
-+	struct inode *inode = NULL;
-+	struct fat_fid *fid = (struct fat_fid *)fh;
-+	loff_t i_pos;
-+
-+	if (fh_len < FAT_FID_SIZE_WITH_PARENT)
-+		return NULL;
-+
-+	switch (fh_type) {
-+	case FILEID_FAT_WITH_PARENT:
-+		i_pos = fid->parent_i_pos_hi;
-+		i_pos = (i_pos << 32) | (fid->parent_i_pos_low);
-+		inode = __fat_nfs_get_inode(sb, 0, fid->parent_i_gen, i_pos);
-+		break;
-+	}
-+
-+	return d_obtain_alias(inode);
-+}
-+
- /*
-  * Find the parent for a directory that is not currently connected to
-  * the filesystem root.
-  *
-  * On entry, the caller holds child_dir->d_inode->i_mutex.
-  */
--struct dentry *fat_get_parent(struct dentry *child_dir)
-+static struct dentry *fat_get_parent(struct dentry *child_dir)
- {
- 	struct super_block *sb = child_dir->d_sb;
- 	struct buffer_head *bh = NULL;
-@@ -98,3 +205,16 @@ struct dentry *fat_get_parent(struct den
- 
- 	return d_obtain_alias(parent_inode);
- }
-+
-+const struct export_operations fat_export_ops = {
-+	.fh_to_dentry   = fat_fh_to_dentry,
-+	.fh_to_parent   = fat_fh_to_parent,
-+	.get_parent     = fat_get_parent,
-+};
-+
-+const struct export_operations fat_export_ops_nostale = {
-+	.encode_fh      = fat_encode_fh_nostale,
-+	.fh_to_dentry   = fat_fh_to_dentry_nostale,
-+	.fh_to_parent   = fat_fh_to_parent_nostale,
-+	.get_parent     = fat_get_parent,
-+};
-diff -puN include/linux/exportfs.h~fat-restructure-export_operations include/linux/exportfs.h
---- a/include/linux/exportfs.h~fat-restructure-export_operations
-+++ a/include/linux/exportfs.h
-@@ -85,6 +85,17 @@ enum fid_type {
- 	FILEID_NILFS_WITH_PARENT = 0x62,
- 
- 	/*
-+	 * 32 bit generation number, 40 bit i_pos.
-+	 */
-+	FILEID_FAT_WITHOUT_PARENT = 0x71,
-+
-+	/*
-+	 * 32 bit generation number, 40 bit i_pos,
-+	 * 32 bit parent generation number, 40 bit parent i_pos
-+	 */
-+	FILEID_FAT_WITH_PARENT = 0x72,
-+
-+	/*
- 	 * Filesystems must not use 0xff file ID.
- 	 */
- 	FILEID_INVALID = 0xff,
+-	raw_entry = &((struct msdos_dir_entry *) (bh->b_data))
+-	    [i_pos & (sbi->dir_per_block - 1)];
++	raw_entry = &((struct msdos_dir_entry *) (bh->b_data))[offset];
+ 	if (S_ISDIR(inode->i_mode))
+ 		raw_entry->size = 0;
+ 	else
 _
 
 Patches currently in -mm which might be from namjae.jeon@samsung.com are
