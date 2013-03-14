@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-em3027-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:29 -0700
-Message-ID: <20130314211429.BDC655A40E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-m48t86-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:41 -0700
+Message-ID: <20130314211441.C5DB831C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:36497 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab3CNVOa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:30 -0400
-Received: by mail-vb0-f73.google.com with SMTP id fj18so266666vbb.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:30 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:55922 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab3CNVOm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:42 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so274514vea.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-em3027: use devm_rtc_device_register()
+     Subject: rtc: rtc-m48t86: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-em3027-use-devm_rtc_device_register.patch
+     rtc-rtc-m48t86-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-em3027: use devm_rtc_device_register()
+Subject: rtc: rtc-m48t86: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,33 +43,37 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-em3027.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/rtc/rtc-m48t86.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-em3027.c~rtc-rtc-em3027-use-devm_rtc_device_register drivers/rtc/rtc-em3027.c
---- a/drivers/rtc/rtc-em3027.c~rtc-rtc-em3027-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-em3027.c
-@@ -121,7 +121,7 @@ static int em3027_probe(struct i2c_clien
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
- 		return -ENODEV;
+diff -puN drivers/rtc/rtc-m48t86.c~rtc-rtc-m48t86-use-devm_rtc_device_register drivers/rtc/rtc-m48t86.c
+--- a/drivers/rtc/rtc-m48t86.c~rtc-rtc-m48t86-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-m48t86.c
+@@ -148,8 +148,10 @@ static int m48t86_rtc_probe(struct platf
+ {
+ 	unsigned char reg;
+ 	struct m48t86_ops *ops = dev->dev.platform_data;
+-	struct rtc_device *rtc = rtc_device_register("m48t86",
+-				&dev->dev, &m48t86_rtc_ops, THIS_MODULE);
++	struct rtc_device *rtc;
++
++	rtc = devm_rtc_device_register(&dev->dev, "m48t86",
++				&m48t86_rtc_ops, THIS_MODULE);
  
--	rtc = rtc_device_register(em3027_driver.driver.name, &client->dev,
-+	rtc = devm_rtc_device_register(&client->dev, em3027_driver.driver.name,
- 				  &em3027_rtc_ops, THIS_MODULE);
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
-@@ -133,11 +133,6 @@ static int em3027_probe(struct i2c_clien
+@@ -166,11 +168,6 @@ static int m48t86_rtc_probe(struct platf
  
- static int em3027_remove(struct i2c_client *client)
+ static int m48t86_rtc_remove(struct platform_device *dev)
  {
--	struct rtc_device *rtc = i2c_get_clientdata(client);
+-	struct rtc_device *rtc = platform_get_drvdata(dev);
 -
--	if (rtc)
+- 	if (rtc)
 -		rtc_device_unregister(rtc);
 -
- 	return 0;
- }
+ 	platform_set_drvdata(dev, NULL);
  
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
