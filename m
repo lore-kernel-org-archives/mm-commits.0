@@ -1,103 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dont-compile-in-drop_cachesc-when-config_sysctl=n.patch added to -mm tree
-Date: Wed, 13 Mar 2013 16:17:33 -0700
-Message-ID: <20130313231733.6ACC45A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Thu, 14 Mar 2013 11:50:29 -0700
+Message-ID: <20130314185029.E2FE831C174@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41275 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932166Ab3CMXRe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Mar 2013 19:17:34 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so168273qcs.3
-        for <mm-commits@vger.kernel.org>; Wed, 13 Mar 2013 16:17:33 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36773 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046Ab3CNSub (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 14:50:31 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so80355vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 11:50:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: josh@joshtriplett.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: don't compile in drop_caches.c when CONFIG_SYSCTL=n
-has been added to the -mm tree.  Its filename is
-     fs-dont-compile-in-drop_cachesc-when-config_sysctl=n.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: fs: don't compile in drop_caches.c when CONFIG_SYSCTL=n
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-drop_caches.c provides code only invokable via sysctl, so don't compile it
-in when CONFIG_SYSCTL=n.
-
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Makefile        |    3 ++-
- include/linux/mm.h |    4 ++++
- kernel/sysctl.c    |    1 -
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ include/linux/res_counter.h |    2 +-
+ kernel/workqueue.c          |   15 +++++++++------
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/Makefile~fs-dont-compile-in-drop_cachesc-when-config_sysctl=n fs/Makefile
---- a/fs/Makefile~fs-dont-compile-in-drop_cachesc-when-config_sysctl=n
-+++ a/fs/Makefile
-@@ -10,7 +10,7 @@ obj-y :=	open.o read_write.o file_table.
- 		ioctl.o readdir.o select.o fifo.o dcache.o inode.o \
- 		attr.o bad_inode.o file.o filesystems.o namespace.o \
- 		seq_file.o xattr.o libfs.o fs-writeback.o \
--		pnode.o drop_caches.o splice.o sync.o utimes.o \
-+		pnode.o splice.o sync.o utimes.o \
- 		stack.o fs_struct.o statfs.o
+diff -puN include/linux/res_counter.h~linux-next-rejects include/linux/res_counter.h
+--- a/include/linux/res_counter.h~linux-next-rejects
++++ a/include/linux/res_counter.h
+@@ -13,7 +13,7 @@
+  * info about what this counter is.
+  */
  
- ifeq ($(CONFIG_BLOCK),y)
-@@ -49,6 +49,7 @@ obj-$(CONFIG_FS_POSIX_ACL)	+= posix_acl.
- obj-$(CONFIG_NFS_COMMON)	+= nfs_common/
- obj-$(CONFIG_GENERIC_ACL)	+= generic_acl.o
- obj-$(CONFIG_COREDUMP)		+= coredump.o
-+obj-$(CONFIG_SYSCTL)		+= drop_caches.o
+-#include <linux/cgroup.h>
++#include <linux/spinlock.h>
+ #include <linux/errno.h>
  
- obj-$(CONFIG_FHANDLE)		+= fhandle.o
+ /*
+diff -puN kernel/workqueue.c~linux-next-rejects kernel/workqueue.c
+--- a/kernel/workqueue.c~linux-next-rejects
++++ a/kernel/workqueue.c
+@@ -461,16 +461,19 @@ static int std_worker_pool_pri(struct wo
+ 	return pool - std_worker_pools(pool->cpu);
+ }
  
-diff -puN include/linux/mm.h~fs-dont-compile-in-drop_cachesc-when-config_sysctl=n include/linux/mm.h
---- a/include/linux/mm.h~fs-dont-compile-in-drop_cachesc-when-config_sysctl=n
-+++ a/include/linux/mm.h
-@@ -1727,8 +1727,12 @@ int in_gate_area_no_mm(unsigned long add
- #define in_gate_area(mm, addr) ({(void)mm; in_gate_area_no_mm(addr);})
- #endif	/* __HAVE_ARCH_GATE_AREA */
+-/* allocate ID and assign it to @pool */
+ static int worker_pool_assign_id(struct worker_pool *pool)
+ {
+ 	int ret;
  
-+#ifdef CONFIG_SYSCTL
-+extern int sysctl_drop_caches;
- int drop_caches_sysctl_handler(struct ctl_table *, int,
- 					void __user *, size_t *, loff_t *);
-+#endif
-+
- unsigned long shrink_slab(struct shrink_control *shrink,
- 			  unsigned long nr_pages_scanned,
- 			  unsigned long lru_pages);
-diff -puN kernel/sysctl.c~fs-dont-compile-in-drop_cachesc-when-config_sysctl=n kernel/sysctl.c
---- a/kernel/sysctl.c~fs-dont-compile-in-drop_cachesc-when-config_sysctl=n
-+++ a/kernel/sysctl.c
-@@ -106,7 +106,6 @@ extern unsigned int core_pipe_limit;
- #endif
- extern int pid_max;
- extern int pid_max_min, pid_max_max;
--extern int sysctl_drop_caches;
- extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int latencytop_enabled;
+-	mutex_lock(&worker_pool_idr_mutex);
+-	ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_KERNEL);
+-	if (ret >= 0)
+-		pool->id = ret;
+-	mutex_unlock(&worker_pool_idr_mutex);
++	do {
++		idr_preload(GFP_KERNEL);
++		spin_lock_irq(&workqueue_lock);
++		ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_NOWAIT);
++		if (ret >= 0)
++			pool->id = ret;
++		spin_unlock_irq(&workqueue_lock);
++		idr_preload_end();
++	} while (ret == -EAGAIN);
+ 
+ 	return ret < 0 ? ret : 0;
+ }
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-dont-compile-in-drop_cachesc-when-config_sysctl=n.patch
+origin.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
