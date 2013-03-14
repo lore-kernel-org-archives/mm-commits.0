@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-starfire-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:15:11 -0700
-Message-ID: <20130314211511.BDEC931C123@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-sun4v-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:15:13 -0700
+Message-ID: <20130314211513.BDFF131C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:36975 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752938Ab3CNVPM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:12 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so275347qcr.0
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:12 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:36483 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752947Ab3CNVPO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:14 -0400
+Received: by mail-gh0-f201.google.com with SMTP id z19so274834ghb.0
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-starfire: use devm_rtc_device_register()
+     Subject: rtc: rtc-sun4v: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-starfire-use-devm_rtc_device_register.patch
+     rtc-rtc-sun4v-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-starfire: use devm_rtc_device_register()
+Subject: rtc: rtc-sun4v: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,33 +43,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-starfire.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-sun4v.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-devm_rtc_device_register drivers/rtc/rtc-starfire.c
---- a/drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-starfire.c
-@@ -39,8 +39,10 @@ static const struct rtc_class_ops starfi
+diff -puN drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-devm_rtc_device_register drivers/rtc/rtc-sun4v.c
+--- a/drivers/rtc/rtc-sun4v.c~rtc-rtc-sun4v-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-sun4v.c
+@@ -81,8 +81,10 @@ static const struct rtc_class_ops sun4v_
  
- static int __init starfire_rtc_probe(struct platform_device *pdev)
+ static int __init sun4v_rtc_probe(struct platform_device *pdev)
  {
--	struct rtc_device *rtc = rtc_device_register("starfire", &pdev->dev,
--				     &starfire_rtc_ops, THIS_MODULE);
+-	struct rtc_device *rtc = rtc_device_register("sun4v", &pdev->dev,
+-				     &sun4v_rtc_ops, THIS_MODULE);
 +	struct rtc_device *rtc;
 +
-+	rtc = devm_rtc_device_register(&pdev->dev, "starfire",
-+				&starfire_rtc_ops, THIS_MODULE);
++	rtc = devm_rtc_device_register(&pdev->dev, "sun4v",
++				&sun4v_rtc_ops, THIS_MODULE);
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
  
-@@ -51,10 +53,6 @@ static int __init starfire_rtc_probe(str
+@@ -92,9 +94,6 @@ static int __init sun4v_rtc_probe(struct
  
- static int __exit starfire_rtc_remove(struct platform_device *pdev)
+ static int __exit sun4v_rtc_remove(struct platform_device *pdev)
  {
 -	struct rtc_device *rtc = platform_get_drvdata(pdev);
 -
 -	rtc_device_unregister(rtc);
--
  	return 0;
  }
  
