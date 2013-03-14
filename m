@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:11:53 -0700
-Message-ID: <20130314211153.C2A625A41C6@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-ab3100-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:13 -0700
+Message-ID: <20130314211413.BFF7731C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:35787 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729Ab3CNVLz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:11:55 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so274342ves.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:11:54 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:65129 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab3CNVOP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:15 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so274694qen.2
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-fm3130: use dev_dbg() instead of pr_debug()
+     Subject: rtc: rtc-ab3100: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
+     rtc-rtc-ab3100-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-fm3130: use dev_dbg() instead of pr_debug()
+Subject: rtc: rtc-ab3100: use devm_rtc_device_register()
 
-dev_dbg() is preferred to pr_debug().
+devm_rtc_device_register() is device managed and makes cleanup paths
+simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-fm3130.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-ab3100.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-fm3130.c~rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug drivers/rtc/rtc-fm3130.c
---- a/drivers/rtc/rtc-fm3130.c~rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug
-+++ a/drivers/rtc/rtc-fm3130.c
-@@ -395,7 +395,7 @@ static int fm3130_probe(struct i2c_clien
- 
- 	tmp = i2c_transfer(adapter, fm3130->msg, 4);
- 	if (tmp != 4) {
--		pr_debug("read error %d\n", tmp);
-+		dev_dbg(&client->dev, "read error %d\n", tmp);
- 		err = -EIO;
- 		goto exit_free;
+diff -puN drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-use-devm_rtc_device_register drivers/rtc/rtc-ab3100.c
+--- a/drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ab3100.c
+@@ -229,8 +229,8 @@ static int __init ab3100_rtc_probe(struc
+ 		/* Ignore any error on this write */
  	}
+ 
+-	rtc = rtc_device_register("ab3100-rtc", &pdev->dev, &ab3100_rtc_ops,
+-				  THIS_MODULE);
++	rtc = devm_rtc_device_register(&pdev->dev, "ab3100-rtc",
++					&ab3100_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+ 		err = PTR_ERR(rtc);
+ 		return err;
+@@ -242,9 +242,6 @@ static int __init ab3100_rtc_probe(struc
+ 
+ static int __exit ab3100_rtc_remove(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc = platform_get_drvdata(pdev);
+-
+-	rtc_device_unregister(rtc);
+ 	platform_set_drvdata(pdev, NULL);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -168,5 +181,35 @@ rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
 rtc-rtc-ds1307-use-dev_dbg-instead-of-pr_debug.patch
 rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-ab3100-use-devm_rtc_device_register.patch
+rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
+rtc-rtc-bq32k-use-devm_rtc_device_register.patch
+rtc-rtc-dm355evm-use-devm_rtc_device_register.patch
+rtc-rtc-ds1302-use-devm_rtc_device_register.patch
+rtc-rtc-ds1672-use-devm_rtc_device_register.patch
+rtc-rtc-ds3234-use-devm_rtc_device_register.patch
+rtc-rtc-efi-use-devm_rtc_device_register.patch
+rtc-rtc-em3027-use-devm_rtc_device_register.patch
+rtc-rtc-generic-use-devm_rtc_device_register.patch
+rtc-hid-sensor-time-use-devm_rtc_device_register.patch
+rtc-rtc-ls1x-use-devm_rtc_device_register.patch
+rtc-rtc-m41t93-use-devm_rtc_device_register.patch
+rtc-rtc-m41t94-use-devm_rtc_device_register.patch
+rtc-rtc-m48t86-use-devm_rtc_device_register.patch
+rtc-rtc-max6900-use-devm_rtc_device_register.patch
+rtc-rtc-max6902-use-devm_rtc_device_register.patch
+rtc-rtc-ps3-use-devm_rtc_device_register.patch
+rtc-rtc-r9701-use-devm_rtc_device_register.patch
+rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
+rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
+rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
+rtc-rtc-rx4581-use-devm_rtc_device_register.patch
+rtc-rtc-rx8581-use-devm_rtc_device_register.patch
+rtc-rtc-starfire-use-devm_rtc_device_register.patch
+rtc-rtc-sun4v-use-devm_rtc_device_register.patch
+rtc-rtc-test-use-devm_rtc_device_register.patch
+rtc-rtc-tile-use-devm_rtc_device_register.patch
+rtc-rtc-wm8350-use-devm_rtc_device_register.patch
+rtc-rtc-x1205-use-devm_rtc_device_register.patch
 drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions.patch
 
