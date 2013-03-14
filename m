@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix.patch added to -mm tree
-Date: Thu, 14 Mar 2013 15:34:00 -0700
-Message-ID: <20130314223400.D16B75A41C6@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-da903x_bl-use-bl_core_suspendresume-option.patch added to -mm tree
+Date: Thu, 14 Mar 2013 15:34:51 -0700
+Message-ID: <20130314223451.6B9855A41C6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:40020 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293Ab3CNWeC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 18:34:02 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so274484vbi.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 15:34:01 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:43998 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753233Ab3CNWew (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 18:34:52 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so274480vbb.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 15:34:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: artem.savkov@gmail.com, ben@decadent.org.uk, zhenzhong.duan@oracle.com
+Cc: jg1.han@samsung.com, lars@metafoo.de
 
 
 The patch titled
-     Subject: dmi_scan: proper buf type in dmi_present()
+     Subject: backlight: da903x_bl: use BL_CORE_SUSPENDRESUME option
 has been added to the -mm tree.  Its filename is
-     dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix.patch
+     backlight-da903x_bl-use-bl_core_suspendresume-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,222 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Artem Savkov <artem.savkov@gmail.com>
-Subject: dmi_scan: proper buf type in dmi_present()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: da903x_bl: use BL_CORE_SUSPENDRESUME option
 
-buf needs to be unsigned in dmi_present(), otherwise dmi_base calculation
-doesn't work properly leading to a wraparound during dmi_ioremap:
+Use BL_CORE_SUSPENDRESUME option to support suspend/resume.
+It reduces code size.
 
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] WARNING: at arch/x86/mm/ioremap.c:524 __early_ioremap+0x85/0x18a()
-[    0.000000] Modules linked in:
-[    0.000000] Pid: 0, comm: swapper Not tainted 3.9.0-rc2-next-20130312 #283
-[    0.000000] Call Trace:
-[    0.000000]  [<c1036992>] warn_slowpath_common+0x72/0xa0
-[    0.000000]  [<c19cc176>] ? __early_ioremap+0x85/0x18a
-[    0.000000]  [<c19cc176>] ? __early_ioremap+0x85/0x18a
-[    0.000000]  [<c10369e2>] warn_slowpath_null+0x22/0x30
-[    0.000000]  [<c19cc176>] __early_ioremap+0x85/0x18a
-[    0.000000]  [<c19cc1ed>] ? __early_ioremap+0xfc/0x18a
-[    0.000000]  [<c19cc412>] early_ioremap+0xd/0xf
-[    0.000000]  [<c19fbba9>] dmi_present+0xf5/0x22a
-[    0.000000]  [<c19fbd9d>] dmi_scan_machine+0xbf/0x11c
-[    0.000000]  [<c19bd781>] setup_arch+0x4db/0xca0
-[    0.000000]  [<c168105c>] ? printk+0x3d/0x3f
-[    0.000000]  [<c19ba763>] start_kernel+0x7b/0x329
-[    0.000000]  [<c19ba361>] i386_start_kernel+0x137/0x13a
-[    0.000000] ---[ end trace 4eaa2a86a8e2da22 ]---
-[    0.000000] DMI not present or invalid.
-
-Introduced in "dmi_scan: refactor dmi_scan_machine(), {smbios,dmi}_present()"
-
-Signed-off-by: Artem Savkov <artem.savkov@gmail.com>
-Acked-by: Ben Hutchings <ben@decadent.org.uk>
-Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/da903x_bl.c |   30 ++++----------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix
-+++ a/drivers/firmware/dmi_scan.c
-@@ -410,7 +410,7 @@ static void __init dmi_dump_ids(void)
- 	printk(KERN_CONT "\n");
+diff -puN drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-bl_core_suspendresume-option drivers/video/backlight/da903x_bl.c
+--- a/drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-bl_core_suspendresume-option
++++ a/drivers/video/backlight/da903x_bl.c
+@@ -88,16 +88,21 @@ static int da903x_backlight_update_statu
+ 	if (bl->props.fb_blank != FB_BLANK_UNBLANK)
+ 		brightness = 0;
+ 
++	if (bl->props.state & BL_CORE_SUSPENDED)
++		brightness = 0;
++
+ 	return da903x_backlight_set(bl, brightness);
  }
  
--static int __init dmi_present(const char *buf)
-+static int __init dmi_present(const u8 *buf)
+ static int da903x_backlight_get_brightness(struct backlight_device *bl)
  {
- 	int smbios_ver;
+ 	struct da903x_backlight_data *data = bl_get_data(bl);
++
+ 	return data->current_brightness;
+ }
  
+ static const struct backlight_ops da903x_backlight_ops = {
++	.options	= BL_CORE_SUSPENDRESUME,
+ 	.update_status	= da903x_backlight_update_status,
+ 	.get_brightness	= da903x_backlight_get_brightness,
+ };
+@@ -161,35 +166,10 @@ static int da903x_backlight_remove(struc
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+-static int da903x_backlight_suspend(struct device *dev)
+-{
+-	struct backlight_device *bl = dev_get_drvdata(dev);
+-
+-	return da903x_backlight_set(bl, 0);
+-}
+-
+-static int da903x_backlight_resume(struct device *dev)
+-{
+-	struct backlight_device *bl = dev_get_drvdata(dev);
+-
+-	backlight_update_status(bl);
+-	return 0;
+-}
+-
+-static const struct dev_pm_ops da903x_backlight_pm_ops = {
+-	.suspend	= da903x_backlight_suspend,
+-	.resume		= da903x_backlight_resume,
+-};
+-#endif
+-
+ static struct platform_driver da903x_backlight_driver = {
+ 	.driver		= {
+ 		.name	= "da903x-backlight",
+ 		.owner	= THIS_MODULE,
+-#ifdef CONFIG_PM
+-		.pm	= &da903x_backlight_pm_ops,
+-#endif
+ 	},
+ 	.probe		= da903x_backlight_probe,
+ 	.remove		= da903x_backlight_remove,
 _
 
-Patches currently in -mm which might be from artem.savkov@gmail.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-thinkpad-acpi-kill-hotkey_thread_mutex.patch
-dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix.patch
+linux-next.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
+drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
+drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
+drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
+drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
+drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
+backlight-adp8870-add-missing-braces.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
+backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
+backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
+backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
+backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
+backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
+backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
+backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
+backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
+backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
+backlight-kb3886_bl-convert-kb3886bl-to-dev_pm_ops.patch
+backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
+backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
+backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
+backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
+drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
+drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch
+video-backlight-add-ili922x-lcd-driver.patch
+backlight-da903x_bl-use-bl_core_suspendresume-option.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+rtc-rtc-ab3100-use-module_platform_driver_probe.patch
+rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
+rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
+rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
+rtc-rtc-coh901331-use-module_platform_driver_probe.patch
+rtc-rtc-davinci-use-module_platform_driver_probe.patch
+rtc-rtc-ds1302-use-module_platform_driver_probe.patch
+rtc-rtc-efi-use-module_platform_driver_probe.patch
+rtc-rtc-generic-use-module_platform_driver_probe.patch
+rtc-rtc-imxdi-use-module_platform_driver_probe.patch
+rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
+rtc-rtc-msm6242-use-module_platform_driver_probe.patch
+rtc-rtc-mv-use-module_platform_driver_probe.patch
+rtc-rtc-nuc900-use-module_platform_driver_probe.patch
+rtc-rtc-omap-use-module_platform_driver_probe.patch
+rtc-rtc-pcap-use-module_platform_driver_probe.patch
+rtc-rtc-ps3-use-module_platform_driver_probe.patch
+rtc-rtc-pxa-use-module_platform_driver_probe.patch
+rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
+rtc-rtc-sh-use-module_platform_driver_probe.patch
+rtc-rtc-starfire-use-module_platform_driver_probe.patch
+rtc-rtc-sun4v-use-module_platform_driver_probe.patch
+rtc-rtc-tegra-use-module_platform_driver_probe.patch
+rtc-rtc-tx4939-use-module_platform_driver_probe.patch
+rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+rtc-rtc-coh90133-use-devm_rtc_device_register.patch
+rtc-rtc-da9052-use-devm_rtc_device_register.patch
+rtc-rtc-da9055-use-devm_rtc_device_register.patch
+rtc-rtc-davinci-use-devm_rtc_device_register.patch
+rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+rtc-rtc-lp8788-use-devm_rtc_device_register.patch
+rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+rtc-rtc-max77686-use-devm_rtc_device_register.patch
+rtc-rtc-max8907-use-devm_rtc_device_register.patch
+rtc-rtc-max8997-use-devm_rtc_device_register.patch
+rtc-rtc-mv-use-devm_rtc_device_register.patch
+rtc-rtc-mxc-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_rtc_device_register.patch
+rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
+rtc-rtc-s3c-use-devm_rtc_device_register.patch
+rtc-rtc-snvs-use-devm_rtc_device_register.patch
+rtc-rtc-spear-use-devm_rtc_device_register.patch
+rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
+rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+rtc-rtc-tps65910-use-devm_rtc_device_register.patch
+rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
+rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
+rtc-tegra-set-irq-name-as-device-name.patch
+rtc-tegra-use-managed-rtc_device_register.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
+rtc-rtc-ds1307-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-ab3100-use-devm_rtc_device_register.patch
+rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
+rtc-rtc-bq32k-use-devm_rtc_device_register.patch
+rtc-rtc-dm355evm-use-devm_rtc_device_register.patch
+rtc-rtc-ds1302-use-devm_rtc_device_register.patch
+rtc-rtc-ds1672-use-devm_rtc_device_register.patch
+rtc-rtc-ds3234-use-devm_rtc_device_register.patch
+rtc-rtc-efi-use-devm_rtc_device_register.patch
+rtc-rtc-em3027-use-devm_rtc_device_register.patch
+rtc-rtc-generic-use-devm_rtc_device_register.patch
+rtc-hid-sensor-time-use-devm_rtc_device_register.patch
+rtc-rtc-ls1x-use-devm_rtc_device_register.patch
+rtc-rtc-m41t93-use-devm_rtc_device_register.patch
+rtc-rtc-m41t94-use-devm_rtc_device_register.patch
+rtc-rtc-m48t86-use-devm_rtc_device_register.patch
+rtc-rtc-max6900-use-devm_rtc_device_register.patch
+rtc-rtc-max6902-use-devm_rtc_device_register.patch
+rtc-rtc-ps3-use-devm_rtc_device_register.patch
+rtc-rtc-r9701-use-devm_rtc_device_register.patch
+rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
+rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
+rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
+rtc-rtc-rx4581-use-devm_rtc_device_register.patch
+rtc-rtc-rx8581-use-devm_rtc_device_register.patch
+rtc-rtc-starfire-use-devm_rtc_device_register.patch
+rtc-rtc-sun4v-use-devm_rtc_device_register.patch
+rtc-rtc-test-use-devm_rtc_device_register.patch
+rtc-rtc-tile-use-devm_rtc_device_register.patch
+rtc-rtc-wm8350-use-devm_rtc_device_register.patch
+rtc-rtc-x1205-use-devm_rtc_device_register.patch
+drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions.patch
 
