@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-test-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:15:15 -0700
-Message-ID: <20130314211525.CDEA231C243@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-tile-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:15:27 -0700
+Message-ID: <20130314211527.BCD4631C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:44751 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752956Ab3CNVP0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:26 -0400
-Received: by mail-gg0-f202.google.com with SMTP id l4so274795ggi.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:26 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:52858 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752957Ab3CNVP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:28 -0400
+Received: by mail-yh0-f73.google.com with SMTP id 28so274870yhr.2
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-test: use devm_rtc_device_register()
+     Subject: rtc: rtc-tile: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-test-use-devm_rtc_device_register.patch
+     rtc-rtc-tile-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-test: use devm_rtc_device_register()
+Subject: rtc: rtc-tile: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,39 +43,33 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-test.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-tile.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-test.c~rtc-rtc-test-use-devm_rtc_device_register drivers/rtc/rtc-test.c
---- a/drivers/rtc/rtc-test.c~rtc-rtc-test-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-test.c
-@@ -99,8 +99,10 @@ static DEVICE_ATTR(irq, S_IRUGO | S_IWUS
- static int test_probe(struct platform_device *plat_dev)
+diff -puN drivers/rtc/rtc-tile.c~rtc-rtc-tile-use-devm_rtc_device_register drivers/rtc/rtc-tile.c
+--- a/drivers/rtc/rtc-tile.c~rtc-rtc-tile-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-tile.c
+@@ -80,8 +80,8 @@ static int tile_rtc_probe(struct platfor
  {
- 	int err;
--	struct rtc_device *rtc = rtc_device_register("test", &plat_dev->dev,
--						&test_rtc_ops, THIS_MODULE);
-+	struct rtc_device *rtc;
-+
-+	rtc = devm_rtc_device_register(&plat_dev->dev, "test",
-+				&test_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		err = PTR_ERR(rtc);
- 		return err;
-@@ -115,15 +117,11 @@ static int test_probe(struct platform_de
- 	return 0;
+ 	struct rtc_device *rtc;
  
- err:
--	rtc_device_unregister(rtc);
- 	return err;
- }
+-	rtc = rtc_device_register("tile",
+-				  &dev->dev, &tile_rtc_ops, THIS_MODULE);
++	rtc = devm_rtc_device_register(&dev->dev, "tile",
++				&tile_rtc_ops, THIS_MODULE);
  
- static int test_remove(struct platform_device *plat_dev)
+ 	if (IS_ERR(rtc))
+ 		return PTR_ERR(rtc);
+@@ -96,11 +96,6 @@ static int tile_rtc_probe(struct platfor
+  */
+ static int tile_rtc_remove(struct platform_device *dev)
  {
--	struct rtc_device *rtc = platform_get_drvdata(plat_dev);
+-	struct rtc_device *rtc = platform_get_drvdata(dev);
 -
--	rtc_device_unregister(rtc);
- 	device_remove_file(&plat_dev->dev, &dev_attr_irq);
+-	if (rtc)
+-		rtc_device_unregister(rtc);
+-
+ 	platform_set_drvdata(dev, NULL);
  
  	return 0;
 _
