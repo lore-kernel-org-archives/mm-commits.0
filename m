@@ -1,130 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Thu, 14 Mar 2013 11:50:29 -0700
-Message-ID: <20130314185029.E2FE831C174@corp2gmr1-1.hot.corp.google.com>
+Subject: [alternative-merged] linux-linkageh-fix-symbol-prefix-handling.patch removed from -mm tree
+Date: Thu, 14 Mar 2013 11:50:44 -0700
+Message-ID: <20130314185044.BB7035A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:36773 "EHLO
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:35389 "EHLO
 	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046Ab3CNSub (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 14:50:31 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so80355vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 11:50:30 -0700 (PDT)
+	with ESMTP id S1751046Ab3CNSuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 14:50:46 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so80400vcb.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 11:50:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: james.hogan@imgtec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: linux/linkage.h: fix symbol prefix handling
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     linux-linkageh-fix-symbol-prefix-handling.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: James Hogan <james.hogan@imgtec.com>
+Subject: linux/linkage.h: fix symbol prefix handling
 
+e1b5bb6d1236d4a ("consolidate cond_syscall and SYSCALL_ALIAS
+declarations") broke the build on blackfin and metag due to the following
+code:
+
+  #ifndef SYMBOL_NAME
+  #ifdef CONFIG_SYMBOL_PREFIX
+  #define SYMBOL_NAME(x) CONFIG_SYMBOL_PREFIX ## x
+  #else
+  #define SYMBOL_NAME(x) x
+  #endif
+  #endif
+  #define __SYMBOL_NAME(x) __stringify(SYMBOL_NAME(x))
+
+__stringify literally stringifies CONFIG_SYMBOL_PREFIX ##x, so you get
+lines like this in the assembly output:
+
+  .weak CONFIG_SYMBOL_PREFIXsys_quotactl
+  .set
+  CONFIG_SYMBOL_PREFIXsys_quotactl,CONFIG_SYMBOL_PREFIXsys_ni_syscall
+
+This is fixed by defining SYMBOL_PREFIX from the command line for c files
+in addition to assembly for architectures that set CONFIG_SYMBOL_PREFIX
+(scripts/Makefile.lib), and defining __SYMBOL_NAME as:
+
+  #define __SYMBOL_NAME(x) __stringify(SYMBOL_PREFIX) #x
+
+We first have to ensure SYMBOL_PREFIX is defined (which avoids polluting
+the command lines for architectures that don't use symbol prefixes).  Also
+the definition of SYMBOL_PREFIX in <linux/kernel.h> is removed as it
+conflicts, isn't used anywhere, and is defined as a string so differs from
+the assembly definition.
+
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    2 +-
- kernel/workqueue.c          |   15 +++++++++------
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ include/linux/kernel.h  |    7 -------
+ include/linux/linkage.h |   12 +++++-------
+ scripts/Makefile.lib    |    1 +
+ 3 files changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/res_counter.h~linux-next-rejects include/linux/res_counter.h
---- a/include/linux/res_counter.h~linux-next-rejects
-+++ a/include/linux/res_counter.h
-@@ -13,7 +13,7 @@
-  * info about what this counter is.
-  */
+diff -puN include/linux/kernel.h~linux-linkageh-fix-symbol-prefix-handling include/linux/kernel.h
+--- a/include/linux/kernel.h~linux-linkageh-fix-symbol-prefix-handling
++++ a/include/linux/kernel.h
+@@ -723,13 +723,6 @@ static inline void ftrace_dump(enum ftra
+ /* Trap pasters of __FUNCTION__ at compile-time */
+ #define __FUNCTION__ (__func__)
  
--#include <linux/cgroup.h>
-+#include <linux/spinlock.h>
- #include <linux/errno.h>
+-/* This helps us to avoid #ifdef CONFIG_SYMBOL_PREFIX */
+-#ifdef CONFIG_SYMBOL_PREFIX
+-#define SYMBOL_PREFIX CONFIG_SYMBOL_PREFIX
+-#else
+-#define SYMBOL_PREFIX ""
+-#endif
+-
+ /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
+ #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+ # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
+diff -puN include/linux/linkage.h~linux-linkageh-fix-symbol-prefix-handling include/linux/linkage.h
+--- a/include/linux/linkage.h~linux-linkageh-fix-symbol-prefix-handling
++++ a/include/linux/linkage.h
+@@ -15,14 +15,12 @@
+ #define asmlinkage CPP_ASMLINKAGE
+ #endif
  
- /*
-diff -puN kernel/workqueue.c~linux-next-rejects kernel/workqueue.c
---- a/kernel/workqueue.c~linux-next-rejects
-+++ a/kernel/workqueue.c
-@@ -461,16 +461,19 @@ static int std_worker_pool_pri(struct wo
- 	return pool - std_worker_pools(pool->cpu);
- }
+-#ifndef SYMBOL_NAME
+-#ifdef CONFIG_SYMBOL_PREFIX
+-#define SYMBOL_NAME(x) CONFIG_SYMBOL_PREFIX ## x
+-#else
+-#define SYMBOL_NAME(x) x
++/* This helps us to avoid #ifdef SYMBOL_PREFIX */
++#ifndef SYMBOL_PREFIX
++#define SYMBOL_PREFIX
+ #endif
+-#endif
+-#define __SYMBOL_NAME(x) __stringify(SYMBOL_NAME(x))
++
++#define __SYMBOL_NAME(x) __stringify(SYMBOL_PREFIX) #x
  
--/* allocate ID and assign it to @pool */
- static int worker_pool_assign_id(struct worker_pool *pool)
- {
- 	int ret;
+ #ifndef cond_syscall
+ #define cond_syscall(x) asm(".weak\t" __SYMBOL_NAME(x) \
+diff -puN scripts/Makefile.lib~linux-linkageh-fix-symbol-prefix-handling scripts/Makefile.lib
+--- a/scripts/Makefile.lib~linux-linkageh-fix-symbol-prefix-handling
++++ a/scripts/Makefile.lib
+@@ -123,6 +123,7 @@ ifdef CONFIG_SYMBOL_PREFIX
+ _sym_flags = -DSYMBOL_PREFIX=$(patsubst "%",%,$(CONFIG_SYMBOL_PREFIX))
+ _cpp_flags += $(_sym_flags)
+ _a_flags += $(_sym_flags)
++_c_flags += $(_sym_flags)
+ endif
  
--	mutex_lock(&worker_pool_idr_mutex);
--	ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_KERNEL);
--	if (ret >= 0)
--		pool->id = ret;
--	mutex_unlock(&worker_pool_idr_mutex);
-+	do {
-+		idr_preload(GFP_KERNEL);
-+		spin_lock_irq(&workqueue_lock);
-+		ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_NOWAIT);
-+		if (ret >= 0)
-+			pool->id = ret;
-+		spin_unlock_irq(&workqueue_lock);
-+		idr_preload_end();
-+	} while (ret == -EAGAIN);
  
- 	return ret < 0 ? ret : 0;
- }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from james.hogan@imgtec.com are
 
-origin.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+debug_locksh-make-warning-more-verbose.patch
+mm-introduce-common-help-functions-to-deal-with-reserved-managed-pages.patch
+mm-metag-use-common-help-functions-to-free-reserved-pages.patch
+mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
+mm-metag-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
 
