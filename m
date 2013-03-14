@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-r9701-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:49 -0700
-Message-ID: <20130314211449.BFCC85A40E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-rs5c313-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:58 -0700
+Message-ID: <20130314211458.BF6FB31C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:43529 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752266Ab3CNVOu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:50 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so274792ghb.0
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:50 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:40419 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920Ab3CNVO7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:59 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 9so274740qea.3
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-r9701: use devm_rtc_device_register()
+     Subject: rtc: rtc-rs5c313: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-r9701-use-devm_rtc_device_register.patch
+     rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-r9701: use devm_rtc_device_register()
+Subject: rtc: rtc-rs5c313: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,30 +43,29 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-r9701.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-rs5c313.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-r9701.c~rtc-rtc-r9701-use-devm_rtc_device_register drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~rtc-rtc-r9701-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -154,8 +154,8 @@ static int r9701_probe(struct spi_device
- 		}
- 	}
+diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-devm_rtc_device_register drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-rs5c313.c
+@@ -367,7 +367,7 @@ static const struct rtc_class_ops rs5c31
  
--	rtc = rtc_device_register("r9701",
--				&spi->dev, &r9701_rtc_ops, THIS_MODULE);
-+	rtc = devm_rtc_device_register(&spi->dev, "r9701",
-+				&r9701_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
- 
-@@ -166,9 +166,6 @@ static int r9701_probe(struct spi_device
- 
- static int r9701_remove(struct spi_device *spi)
+ static int rs5c313_rtc_probe(struct platform_device *pdev)
  {
--	struct rtc_device *rtc = dev_get_drvdata(&spi->dev);
+-	struct rtc_device *rtc = rtc_device_register("rs5c313", &pdev->dev,
++	struct rtc_device *rtc = devm_rtc_device_register(&pdev->dev, "rs5c313",
+ 				&rs5c313_rtc_ops, THIS_MODULE);
+ 
+ 	if (IS_ERR(rtc))
+@@ -380,10 +380,6 @@ static int rs5c313_rtc_probe(struct plat
+ 
+ static int rs5c313_rtc_remove(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc = platform_get_drvdata( pdev );
 -
 -	rtc_device_unregister(rtc);
+-
  	return 0;
  }
  
