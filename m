@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rx4581-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:15:07 -0700
-Message-ID: <20130314211507.BF8D031C123@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-starfire-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:15:11 -0700
+Message-ID: <20130314211511.BDEC931C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:50010 "EHLO
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:36975 "EHLO
 	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937Ab3CNVPI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:08 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so275158qcr.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:08 -0700 (PDT)
+	with ESMTP id S1752938Ab3CNVPM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:12 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so275347qcr.0
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-rx4581: use devm_rtc_device_register()
+     Subject: rtc: rtc-starfire: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rx4581-use-devm_rtc_device_register.patch
+     rtc-rtc-starfire-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rx4581: use devm_rtc_device_register()
+Subject: rtc: rtc-starfire: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,30 +43,33 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx4581.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-starfire.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-rx4581.c~rtc-rtc-rx4581-use-devm_rtc_device_register drivers/rtc/rtc-rx4581.c
---- a/drivers/rtc/rtc-rx4581.c~rtc-rtc-rx4581-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-rx4581.c
-@@ -273,8 +273,8 @@ static int rx4581_probe(struct spi_devic
- 	if (res != 0)
- 		return res;
+diff -puN drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-devm_rtc_device_register drivers/rtc/rtc-starfire.c
+--- a/drivers/rtc/rtc-starfire.c~rtc-rtc-starfire-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-starfire.c
+@@ -39,8 +39,10 @@ static const struct rtc_class_ops starfi
  
--	rtc = rtc_device_register("rx4581",
--				&spi->dev, &rx4581_rtc_ops, THIS_MODULE);
-+	rtc = devm_rtc_device_register(&spi->dev, "rx4581",
-+				&rx4581_rtc_ops, THIS_MODULE);
+ static int __init starfire_rtc_probe(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc = rtc_device_register("starfire", &pdev->dev,
+-				     &starfire_rtc_ops, THIS_MODULE);
++	struct rtc_device *rtc;
++
++	rtc = devm_rtc_device_register(&pdev->dev, "starfire",
++				&starfire_rtc_ops, THIS_MODULE);
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
  
-@@ -284,9 +284,6 @@ static int rx4581_probe(struct spi_devic
+@@ -51,10 +53,6 @@ static int __init starfire_rtc_probe(str
  
- static int rx4581_remove(struct spi_device *spi)
+ static int __exit starfire_rtc_remove(struct platform_device *pdev)
  {
--	struct rtc_device *rtc = dev_get_drvdata(&spi->dev);
+-	struct rtc_device *rtc = platform_get_drvdata(pdev);
 -
 -	rtc_device_unregister(rtc);
+-
  	return 0;
  }
  
