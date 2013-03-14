@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 14 Mar 2013 15:07:34 -0700
-Message-ID: <20130314220734.DCB5F5A41D7@corp2gmr1-2.hot.corp.google.com>
+Subject: + poweroff-change-orderly_poweroff-to-use-schedule_work.patch added to -mm tree
+Date: Thu, 14 Mar 2013 15:28:41 -0700
+Message-ID: <20130314222841.9963831C15E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:44793 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752982Ab3CNWHf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 18:07:35 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z6so280544yhz.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 15:07:35 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:35060 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753566Ab3CNW2n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 18:28:43 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so282663qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 15:28:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk, psusi@ubuntu.com
+Cc: oleg@redhat.com, benh@kernel.crashing.org, david@gibson.dropbear.id.au, ebiederm@xmission.com, hongfeng@marvell.com, keescook@chromium.org, lucas.demarchi@profusion.mobi, rjw@sisk.pl, serge.hallyn@canonical.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     Subject: loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes
+     Subject: poweroff: change orderly_poweroff() to use schedule_work()
 has been added to the -mm tree.  Its filename is
-     loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+     poweroff-change-orderly_poweroff-to-use-schedule_work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,169 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: poweroff: change orderly_poweroff() to use schedule_work()
 
-ERROR: that open brace { should be on the previous line
-#32: FILE: drivers/block/loop.c:1051:
-+	if (bdev)
-+	{
+David said:
 
-WARNING: line over 80 characters
-#39: FILE: drivers/block/loop.c:1058:
-+		disk_part_iter_init(&piter, bdev->bd_disk, DISK_PITER_INCL_EMPTY);
+    Commit 6c0c0d4d108 ("poweroff: fix bug in orderly_poweroff()")
+    apparently fixes one bug in orderly_poweroff(), but introduces
+    another.  The comments on orderly_poweroff() claim it can be called
+    from any context - and indeed we call it from interrupt context in
+    arch/powerpc/platforms/pseries/ras.c for example.  But since that
+    commit this is no longer safe, since call_usermodehelper_fns() is not
+    safe in interrupt context without the UMH_NO_WAIT option.
 
-total: 1 errors, 1 warnings, 26 lines checked
 
-./patches/loop-cleanup-partitions-when-detaching-loop-device.patch has style problems, please review.
+orderly_poweroff() can be used from any context but UMH_WAIT_EXEC is
+sleepable.  Move the "force" logic into __orderly_poweroff() and change
+orderly_poweroff() to use the global poweroff_work which simply calls
+__orderly_poweroff().
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
+While at it, remove the unneeded "int argc" and change argv_split() to use
+GFP_KERNEL.
 
-Please run checkpatch prior to sending patches
+We use the global "bool poweroff_force" to pass the argument, this can
+obviously affect the previous request if it is pending/running.  So we
+only allow the "false => true" transition assuming that the pending "true"
+should succeed anyway.  If schedule_work() fails after that we know that
+work->func() was not called yet, it must see the new value.
 
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Phillip Susi <psusi@ubuntu.com>
+This means that orderly_poweroff() becomes async even if we do not run the
+command and always succeeds, schedule_work() can only fail if the work is
+already pending.  We can export __orderly_poweroff() and change the
+non-atomic callers which want the old semantics.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reported-by: David Gibson <david@gibson.dropbear.id.au>
+Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Feng Hong <hongfeng@marvell.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/sys.c |   57 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 32 insertions(+), 25 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes drivers/block/loop.c
---- a/drivers/block/loop.c~loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes
-+++ a/drivers/block/loop.c
-@@ -1048,8 +1048,7 @@ static int loop_clr_fd(struct loop_devic
- 	if (!part_shift)
- 		lo->lo_disk->flags |= GENHD_FL_NO_PART_SCAN;
- 	mutex_unlock(&lo->lo_ctl_mutex);
--	if (bdev)
--	{
-+	if (bdev) {
- 		struct disk_part_iter piter;
- 		struct hd_struct *part;
+diff -puN kernel/sys.c~poweroff-change-orderly_poweroff-to-use-schedule_work kernel/sys.c
+--- a/kernel/sys.c~poweroff-change-orderly_poweroff-to-use-schedule_work
++++ a/kernel/sys.c
+@@ -2199,9 +2199,8 @@ SYSCALL_DEFINE3(getcpu, unsigned __user
  
+ char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
+ 
+-static int __orderly_poweroff(void)
++static int __orderly_poweroff(bool force)
+ {
+-	int argc;
+ 	char **argv;
+ 	static char *envp[] = {
+ 		"HOME=/",
+@@ -2210,20 +2209,40 @@ static int __orderly_poweroff(void)
+ 	};
+ 	int ret;
+ 
+-	argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
+-	if (argv == NULL) {
++	argv = argv_split(GFP_KERNEL, poweroff_cmd, NULL);
++	if (argv) {
++		ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
++		argv_free(argv);
++	} else {
+ 		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
+-		       __func__, poweroff_cmd);
+-		return -ENOMEM;
++					 __func__, poweroff_cmd);
++		ret = -ENOMEM;
+ 	}
+ 
+-	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_WAIT_EXEC,
+-				      NULL, NULL, NULL);
+-	argv_free(argv);
++	if (ret && force) {
++		printk(KERN_WARNING "Failed to start orderly shutdown: "
++					"forcing the issue\n");
++		/*
++		 * I guess this should try to kick off some daemon to sync and
++		 * poweroff asap.  Or not even bother syncing if we're doing an
++		 * emergency shutdown?
++		 */
++		emergency_sync();
++		kernel_power_off();
++	}
+ 
+ 	return ret;
+ }
+ 
++static bool poweroff_force;
++
++static void poweroff_work_func(struct work_struct *work)
++{
++	__orderly_poweroff(poweroff_force);
++}
++
++static DECLARE_WORK(poweroff_work, poweroff_work_func);
++
+ /**
+  * orderly_poweroff - Trigger an orderly system poweroff
+  * @force: force poweroff if command execution fails
+@@ -2233,21 +2252,9 @@ static int __orderly_poweroff(void)
+  */
+ int orderly_poweroff(bool force)
+ {
+-	int ret = __orderly_poweroff();
+-
+-	if (ret && force) {
+-		printk(KERN_WARNING "Failed to start orderly shutdown: "
+-		       "forcing the issue\n");
+-
+-		/*
+-		 * I guess this should try to kick off some daemon to sync and
+-		 * poweroff asap.  Or not even bother syncing if we're doing an
+-		 * emergency shutdown?
+-		 */
+-		emergency_sync();
+-		kernel_power_off();
+-	}
+-
+-	return ret;
++	if (force) /* do not override the pending "true" */
++		poweroff_force = true;
++	schedule_work(&poweroff_work);
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(orderly_poweroff);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+poweroff-change-orderly_poweroff-to-use-schedule_work.patch
+thinkpad-acpi-kill-hotkey_thread_mutex.patch
+kthread-introduce-to_live_kthread.patch
+kthread-kill-task_get_live_kthread.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+epoll-use-rcu-to-protect-wakeup_source-in-epitem.patch
+ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
+selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+kernel-sysc-use-the-simpler-call_usermodehelper.patch
+usermodehelper-export-_exec-and-_setup-functions.patch
 usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kmod-split-call-to-call_usermodehelper_fns.patch
+keys-split-call-to-call_usermodehelper_fns.patch
+coredump-remove-trailling-whitespaces.patch
+split-remaining-calls-to-call_usermodehelper_fns.patch
+kmod-remove-call_usermodehelper_fns.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-introduce-dump_interrupted.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
 
