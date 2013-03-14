@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ab3100-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:13 -0700
-Message-ID: <20130314211413.BFF7731C123@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-au1xxx-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:15 -0700
+Message-ID: <20130314211415.BFACF5A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:65129 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab3CNVOP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:15 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so274694qen.2
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:14 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64530 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab3CNVOQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:16 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so275046qcs.5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ab3100: use devm_rtc_device_register()
+     Subject: rtc: rtc-au1xxx: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ab3100-use-devm_rtc_device_register.patch
+     rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ab3100: use devm_rtc_device_register()
+Subject: rtc: rtc-au1xxx: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,33 +43,31 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab3100.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-au1xxx.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-use-devm_rtc_device_register drivers/rtc/rtc-ab3100.c
---- a/drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-ab3100.c
-@@ -229,8 +229,8 @@ static int __init ab3100_rtc_probe(struc
- 		/* Ignore any error on this write */
- 	}
+diff -puN drivers/rtc/rtc-au1xxx.c~rtc-rtc-au1xxx-use-devm_rtc_device_register drivers/rtc/rtc-au1xxx.c
+--- a/drivers/rtc/rtc-au1xxx.c~rtc-rtc-au1xxx-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-au1xxx.c
+@@ -101,7 +101,7 @@ static int au1xtoy_rtc_probe(struct plat
+ 	while (au_readl(SYS_COUNTER_CNTRL) & SYS_CNTRL_C0S)
+ 		msleep(1);
  
--	rtc = rtc_device_register("ab3100-rtc", &pdev->dev, &ab3100_rtc_ops,
--				  THIS_MODULE);
-+	rtc = devm_rtc_device_register(&pdev->dev, "ab3100-rtc",
-+					&ab3100_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		err = PTR_ERR(rtc);
- 		return err;
-@@ -242,9 +242,6 @@ static int __init ab3100_rtc_probe(struc
+-	rtcdev = rtc_device_register("rtc-au1xxx", &pdev->dev,
++	rtcdev = devm_rtc_device_register(&pdev->dev, "rtc-au1xxx",
+ 				     &au1xtoy_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtcdev)) {
+ 		ret = PTR_ERR(rtcdev);
+@@ -118,9 +118,6 @@ out_err:
  
- static int __exit ab3100_rtc_remove(struct platform_device *pdev)
+ static int au1xtoy_rtc_remove(struct platform_device *pdev)
  {
--	struct rtc_device *rtc = platform_get_drvdata(pdev);
+-	struct rtc_device *rtcdev = platform_get_drvdata(pdev);
 -
--	rtc_device_unregister(rtc);
+-	rtc_device_unregister(rtcdev);
  	platform_set_drvdata(pdev, NULL);
+ 
  	return 0;
- }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
