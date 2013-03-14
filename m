@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-generic-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:31 -0700
-Message-ID: <20130314211431.BFF7231C243@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ps3-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:47 -0700
+Message-ID: <20130314211447.BE2AE31C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:52757 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab3CNVOc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:32 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so289977qah.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:32 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:48641 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752266Ab3CNVOs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:48 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so274532yen.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-generic: use devm_rtc_device_register()
+     Subject: rtc: rtc-ps3: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-generic-use-devm_rtc_device_register.patch
+     rtc-rtc-ps3-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-generic: use devm_rtc_device_register()
+Subject: rtc: rtc-ps3: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,31 +43,26 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-generic.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-ps3.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-generic.c~rtc-rtc-generic-use-devm_rtc_device_register drivers/rtc/rtc-generic.c
---- a/drivers/rtc/rtc-generic.c~rtc-rtc-generic-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-generic.c
-@@ -38,8 +38,8 @@ static int __init generic_rtc_probe(stru
+diff -puN drivers/rtc/rtc-ps3.c~rtc-rtc-ps3-use-devm_rtc_device_register drivers/rtc/rtc-ps3.c
+--- a/drivers/rtc/rtc-ps3.c~rtc-rtc-ps3-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ps3.c
+@@ -62,7 +62,7 @@ static int __init ps3_rtc_probe(struct p
  {
  	struct rtc_device *rtc;
  
--	rtc = rtc_device_register("rtc-generic", &dev->dev, &generic_rtc_ops,
--				  THIS_MODULE);
-+	rtc = devm_rtc_device_register(&dev->dev, "rtc-generic",
-+					&generic_rtc_ops, THIS_MODULE);
+-	rtc = rtc_device_register("rtc-ps3", &dev->dev, &ps3_rtc_ops,
++	rtc = devm_rtc_device_register(&dev->dev, "rtc-ps3", &ps3_rtc_ops,
+ 				  THIS_MODULE);
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
+@@ -73,7 +73,6 @@ static int __init ps3_rtc_probe(struct p
  
-@@ -50,10 +50,6 @@ static int __init generic_rtc_probe(stru
- 
- static int __exit generic_rtc_remove(struct platform_device *dev)
+ static int __exit ps3_rtc_remove(struct platform_device *dev)
  {
--	struct rtc_device *rtc = platform_get_drvdata(dev);
--
--	rtc_device_unregister(rtc);
--
+-	rtc_device_unregister(platform_get_drvdata(dev));
  	return 0;
  }
  
