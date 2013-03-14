@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:15:00 -0700
-Message-ID: <20130314211505.CAA8731C243@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-rx4581-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:15:07 -0700
+Message-ID: <20130314211507.BF8D031C123@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:52705 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879Ab3CNVPH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:07 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so96678vcb.4
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:06 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:50010 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752937Ab3CNVPI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:15:08 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so275158qcr.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:15:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-rv3029c2: use devm_rtc_device_register()
+     Subject: rtc: rtc-rx4581: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
+     rtc-rtc-rx4581-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rv3029c2: use devm_rtc_device_register()
+Subject: rtc: rtc-rx4581: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,46 +43,30 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rv3029c2.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ drivers/rtc/rtc-rx4581.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-rv3029c2.c~rtc-rtc-rv3029c2-use-devm_rtc_device_register drivers/rtc/rtc-rv3029c2.c
---- a/drivers/rtc/rtc-rv3029c2.c~rtc-rtc-rv3029c2-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-rv3029c2.c
-@@ -395,9 +395,8 @@ static int rv3029c2_probe(struct i2c_cli
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_EMUL))
- 		return -ENODEV;
+diff -puN drivers/rtc/rtc-rx4581.c~rtc-rtc-rx4581-use-devm_rtc_device_register drivers/rtc/rtc-rx4581.c
+--- a/drivers/rtc/rtc-rx4581.c~rtc-rtc-rx4581-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-rx4581.c
+@@ -273,8 +273,8 @@ static int rx4581_probe(struct spi_devic
+ 	if (res != 0)
+ 		return res;
  
--	rtc = rtc_device_register(client->name,
--				&client->dev, &rv3029c2_rtc_ops,
--				THIS_MODULE);
-+	rtc = devm_rtc_device_register(&client->dev, client->name,
-+					&rv3029c2_rtc_ops, THIS_MODULE);
- 
+-	rtc = rtc_device_register("rx4581",
+-				&spi->dev, &rx4581_rtc_ops, THIS_MODULE);
++	rtc = devm_rtc_device_register(&spi->dev, "rx4581",
++				&rx4581_rtc_ops, THIS_MODULE);
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
-@@ -407,23 +406,14 @@ static int rv3029c2_probe(struct i2c_cli
- 	rc = rv3029c2_i2c_get_sr(client, buf);
- 	if (rc < 0) {
- 		dev_err(&client->dev, "reading status failed\n");
--		goto exit_unregister;
-+		return rc;
- 	}
  
- 	return 0;
--
--exit_unregister:
--	rtc_device_unregister(rtc);
--
--	return rc;
- }
+@@ -284,9 +284,6 @@ static int rx4581_probe(struct spi_devic
  
- static int rv3029c2_remove(struct i2c_client *client)
+ static int rx4581_remove(struct spi_device *spi)
  {
--	struct rtc_device *rtc = i2c_get_clientdata(client);
+-	struct rtc_device *rtc = dev_get_drvdata(&spi->dev);
 -
 -	rtc_device_unregister(rtc);
--
  	return 0;
  }
  
