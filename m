@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fat-exportfs-rebuild-directory-inode-if-fat_dget.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:36:44 -0700
-Message-ID: <20130314213644.DCBB431C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: + documentation-update-nfs-option-in-filesystem-vfattxt.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:36:46 -0700
+Message-ID: <20130314213646.D3D195A421B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:36832 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582Ab3CNVgp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:45 -0400
-Received: by mail-ye0-f202.google.com with SMTP id q5so276717yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:45 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:60974 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752991Ab3CNVgs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:36:48 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z6so276915yhz.3
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:36:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com
+Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com, rob@landley.net
 
 
 The patch titled
-     Subject: fat (exportfs): rebuild directory-inode if fat_dget()
+     Subject: Documentation: update nfs option in filesystem/vfat.txt
 has been added to the -mm tree.  Its filename is
-     fat-exportfs-rebuild-directory-inode-if-fat_dget.patch
+     documentation-update-nfs-option-in-filesystem-vfattxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,170 +34,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat (exportfs): rebuild directory-inode if fat_dget()
+Subject: Documentation: update nfs option in filesystem/vfat.txt
 
-This patch enables rebuilding of directory inodes which are not present in
-the cache.This is done by traversing the disk clusters to find the
-directory entry of the parent directory and using its i_pos to build the
-inode.
-
-The traversal is done by fat_scan_logstart() which is similar to
-fat_scan() but matches i_pos values instead of names.fat_scan_logstart()
-needs an inode parameter to work, for which a dummy inode is created by
-it's caller fat_rebuild_parent().  This dummy inode is destroyed after the
-traversal completes.
-
-All this is done  only if the nostale_ro nfs mount option is specified.
+Add descriptions about 'stale_rw' and 'nostale_ro' nfs options in
+filesystem/vfat.txt
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
 Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Acked-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c   |   23 ++++++++++++++++++++
- fs/fat/fat.h   |    3 ++
- fs/fat/inode.c |    2 -
- fs/fat/nfs.c   |   52 ++++++++++++++++++++++++++++++++++++++++++++++-
- 4 files changed, 78 insertions(+), 2 deletions(-)
+ Documentation/filesystems/vfat.txt |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-exportfs-rebuild-directory-inode-if-fat_dget fs/fat/dir.c
---- a/fs/fat/dir.c~fat-exportfs-rebuild-directory-inode-if-fat_dget
-+++ a/fs/fat/dir.c
-@@ -964,6 +964,29 @@ int fat_scan(struct inode *dir, const un
- }
- EXPORT_SYMBOL_GPL(fat_scan);
+diff -puN Documentation/filesystems/vfat.txt~documentation-update-nfs-option-in-filesystem-vfattxt Documentation/filesystems/vfat.txt
+--- a/Documentation/filesystems/vfat.txt~documentation-update-nfs-option-in-filesystem-vfattxt
++++ a/Documentation/filesystems/vfat.txt
+@@ -150,12 +150,28 @@ discard       -- If set, issues discard/
+ 		 device when blocks are freed. This is useful for SSD devices
+ 		 and sparse/thinly-provisoned LUNs.
  
-+/*
-+ * Scans a directory for a given logstart.
-+ * Returns an error code or zero.
-+ */
-+int fat_scan_logstart(struct inode *dir, int i_logstart,
-+		      struct fat_slot_info *sinfo)
-+{
-+	struct super_block *sb = dir->i_sb;
+-nfs           -- This option maintains an index (cache) of directory
+-		 inodes by i_logstart which is used by the nfs-related code to
+-		 improve look-ups.
++nfs=stale_rw|nostale_ro
++		Enable this only if you want to export the FAT filesystem
++		over NFS.
 +
-+	sinfo->slot_off = 0;
-+	sinfo->bh = NULL;
-+	while (fat_get_short_entry(dir, &sinfo->slot_off, &sinfo->bh,
-+				   &sinfo->de) >= 0) {
-+		if (fat_get_start(MSDOS_SB(sb), sinfo->de) == i_logstart) {
-+			sinfo->slot_off -= sizeof(*sinfo->de);
-+			sinfo->nr_slots = 1;
-+			sinfo->i_pos = fat_make_i_pos(sb, sinfo->bh, sinfo->de);
-+			return 0;
-+		}
-+	}
-+	return -ENOENT;
-+}
++		stale_rw: This option maintains an index (cache) of directory
++		inodes by i_logstart which is used by the nfs-related code to
++		improve look-ups. Full file operations (read/write) over NFS is
++		supported but with cache eviction at NFS server, this could
++		result in ESTALE issues.
 +
- static int __fat_remove_entries(struct inode *dir, loff_t pos, int nr_slots)
- {
- 	struct super_block *sb = dir->i_sb;
-diff -puN fs/fat/fat.h~fat-exportfs-rebuild-directory-inode-if-fat_dget fs/fat/fat.h
---- a/fs/fat/fat.h~fat-exportfs-rebuild-directory-inode-if-fat_dget
-+++ a/fs/fat/fat.h
-@@ -296,6 +296,8 @@ extern int fat_dir_empty(struct inode *d
- extern int fat_subdirs(struct inode *dir);
- extern int fat_scan(struct inode *dir, const unsigned char *name,
- 		    struct fat_slot_info *sinfo);
-+extern int fat_scan_logstart(struct inode *dir, int i_logstart,
-+			     struct fat_slot_info *sinfo);
- extern int fat_get_dotdot_entry(struct inode *dir, struct buffer_head **bh,
- 				struct msdos_dir_entry **de);
- extern int fat_alloc_new_dir(struct inode *dir, struct timespec *ts);
-@@ -373,6 +375,7 @@ extern struct inode *fat_build_inode(str
- extern int fat_sync_inode(struct inode *inode);
- extern int fat_fill_super(struct super_block *sb, void *data, int silent,
- 			  int isvfat, void (*setup)(struct super_block *));
-+extern int fat_fill_inode(struct inode *inode, struct msdos_dir_entry *de);
++		nostale_ro: This option bases the inode number and filehandle
++		on the on-disk location of a file in the MS-DOS directory entry.
++		This ensures that ESTALE will not be returned after a file is
++		evicted from the inode cache. However, it means that operations
++		such as rename, create and unlink could cause filehandles that
++		previously pointed at one file to point at a different file,
++		potentially causing data corruption. For this reason, this
++		option also mounts the filesystem readonly.
++
++		To maintain backward compatibility, '-o nfs' is also accepted,
++		defaulting to stale_rw
  
- extern int fat_flush_inodes(struct super_block *sb, struct inode *i1,
- 			    struct inode *i2);
-diff -puN fs/fat/inode.c~fat-exportfs-rebuild-directory-inode-if-fat_dget fs/fat/inode.c
---- a/fs/fat/inode.c~fat-exportfs-rebuild-directory-inode-if-fat_dget
-+++ a/fs/fat/inode.c
-@@ -384,7 +384,7 @@ static int fat_calc_dir_size(struct inod
- }
+-		 Enable this only if you want to export the FAT filesystem
+-		 over NFS
  
- /* doesn't deal with root inode */
--static int fat_fill_inode(struct inode *inode, struct msdos_dir_entry *de)
-+int fat_fill_inode(struct inode *inode, struct msdos_dir_entry *de)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
- 	int error;
-diff -puN fs/fat/nfs.c~fat-exportfs-rebuild-directory-inode-if-fat_dget fs/fat/nfs.c
---- a/fs/fat/nfs.c~fat-exportfs-rebuild-directory-inode-if-fat_dget
-+++ a/fs/fat/nfs.c
-@@ -216,6 +216,53 @@ static struct dentry *fat_fh_to_parent_n
- }
- 
- /*
-+ * Rebuild the parent for a directory that is not connected
-+ *  to the filesystem root
-+ */
-+static
-+struct inode *fat_rebuild_parent(struct super_block *sb, int parent_logstart)
-+{
-+	int search_clus, clus_to_match;
-+	struct msdos_dir_entry *de;
-+	struct inode *parent = NULL;
-+	struct inode *dummy_grand_parent = NULL;
-+	struct fat_slot_info sinfo;
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	sector_t blknr = fat_clus_to_blknr(sbi, parent_logstart);
-+	struct buffer_head *parent_bh = sb_bread(sb, blknr);
-+	if (!parent_bh) {
-+		fat_msg(sb, KERN_ERR,
-+			"unable to read cluster of parent directory");
-+		return NULL;
-+	}
-+
-+	de = (struct msdos_dir_entry *) parent_bh->b_data;
-+	clus_to_match = fat_get_start(sbi, &de[0]);
-+	search_clus = fat_get_start(sbi, &de[1]);
-+
-+	dummy_grand_parent = fat_dget(sb, search_clus);
-+	if (!dummy_grand_parent) {
-+		dummy_grand_parent = new_inode(sb);
-+		if (!dummy_grand_parent) {
-+			brelse(parent_bh);
-+			return parent;
-+		}
-+
-+		dummy_grand_parent->i_ino = iunique(sb, MSDOS_ROOT_INO);
-+		fat_fill_inode(dummy_grand_parent, &de[1]);
-+		MSDOS_I(dummy_grand_parent)->i_pos = -1;
-+	}
-+
-+	if (!fat_scan_logstart(dummy_grand_parent, clus_to_match, &sinfo))
-+		parent = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
-+
-+	brelse(parent_bh);
-+	iput(dummy_grand_parent);
-+
-+	return parent;
-+}
-+
-+/*
-  * Find the parent for a directory that is not currently connected to
-  * the filesystem root.
-  *
-@@ -227,10 +274,13 @@ static struct dentry *fat_get_parent(str
- 	struct buffer_head *bh = NULL;
- 	struct msdos_dir_entry *de;
- 	struct inode *parent_inode = NULL;
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 
- 	if (!fat_get_dotdot_entry(child_dir->d_inode, &bh, &de)) {
--		int parent_logstart = fat_get_start(MSDOS_SB(sb), de);
-+		int parent_logstart = fat_get_start(sbi, de);
- 		parent_inode = fat_dget(sb, parent_logstart);
-+		if (!parent_inode && sbi->options.nfs == FAT_NFS_NOSTALE_RO)
-+			parent_inode = fat_rebuild_parent(sb, parent_logstart);
- 	}
- 	brelse(bh);
+ <bool>: 0,1,yes,no,true,false
  
 _
 
