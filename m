@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rs5c313-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:58 -0700
-Message-ID: <20130314211458.BF6FB31C123@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-rc5t583-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:51 -0700
+Message-ID: <20130314211456.C8C1B5A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:40419 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752920Ab3CNVO7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:59 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 9so274740qea.3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:59 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:37755 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab3CNVO5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:57 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q5so274628yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-rs5c313: use devm_rtc_device_register()
+     Subject: rtc: rtc-rc5t583: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
+     rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rs5c313: use devm_rtc_device_register()
+Subject: rtc: rtc-rc5t583: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,29 +43,27 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c313.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/rtc/rtc-rc5t583.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-devm_rtc_device_register drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-rtc-rs5c313-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -367,7 +367,7 @@ static const struct rtc_class_ops rs5c31
+diff -puN drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-use-devm_rtc_device_register drivers/rtc/rtc-rc5t583.c
+--- a/drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-rc5t583.c
+@@ -256,7 +256,7 @@ static int rc5t583_rtc_probe(struct plat
+ 	}
+ 	device_init_wakeup(&pdev->dev, 1);
  
- static int rs5c313_rtc_probe(struct platform_device *pdev)
- {
--	struct rtc_device *rtc = rtc_device_register("rs5c313", &pdev->dev,
-+	struct rtc_device *rtc = devm_rtc_device_register(&pdev->dev, "rs5c313",
- 				&rs5c313_rtc_ops, THIS_MODULE);
+-	ricoh_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
++	ricoh_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 		&rc5t583_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(ricoh_rtc->rtc)) {
+ 		ret = PTR_ERR(ricoh_rtc->rtc);
+@@ -276,8 +276,6 @@ static int rc5t583_rtc_remove(struct pla
+ 	struct rc5t583_rtc *rc5t583_rtc = dev_get_drvdata(&pdev->dev);
  
- 	if (IS_ERR(rtc))
-@@ -380,10 +380,6 @@ static int rs5c313_rtc_probe(struct plat
- 
- static int rs5c313_rtc_remove(struct platform_device *pdev)
- {
--	struct rtc_device *rtc = platform_get_drvdata( pdev );
+ 	rc5t583_rtc_alarm_irq_enable(&rc5t583_rtc->rtc->dev, 0);
 -
--	rtc_device_unregister(rtc);
--
+-	rtc_device_unregister(rc5t583_rtc->rtc);
  	return 0;
  }
  
