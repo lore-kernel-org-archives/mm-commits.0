@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds3234-use-devm_rtc_device_register.patch added to -mm tree
-Date: Thu, 14 Mar 2013 14:14:25 -0700
-Message-ID: <20130314211425.AF89331C123@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-em3027-use-devm_rtc_device_register.patch added to -mm tree
+Date: Thu, 14 Mar 2013 14:14:29 -0700
+Message-ID: <20130314211429.BDC655A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:59702 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab3CNVO0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:26 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z6so274913yhz.1
-        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:26 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:36497 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab3CNVOa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Mar 2013 17:14:30 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so266666vbb.4
+        for <mm-commits@vger.kernel.org>; Thu, 14 Mar 2013 14:14:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ds3234: use devm_rtc_device_register()
+     Subject: rtc: rtc-em3027: use devm_rtc_device_register()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds3234-use-devm_rtc_device_register.patch
+     rtc-rtc-em3027-use-devm_rtc_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds3234: use devm_rtc_device_register()
+Subject: rtc: rtc-em3027: use devm_rtc_device_register()
 
 devm_rtc_device_register() is device managed and makes cleanup paths
 simpler.
@@ -43,30 +43,30 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3234.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-em3027.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds3234.c~rtc-rtc-ds3234-use-devm_rtc_device_register drivers/rtc/rtc-ds3234.c
---- a/drivers/rtc/rtc-ds3234.c~rtc-rtc-ds3234-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-ds3234.c
-@@ -146,8 +146,8 @@ static int ds3234_probe(struct spi_devic
- 	ds3234_get_reg(&spi->dev, DS3234_REG_CONT_STAT, &tmp);
- 	dev_info(&spi->dev, "Ctrl/Stat Reg: 0x%02x\n", tmp);
+diff -puN drivers/rtc/rtc-em3027.c~rtc-rtc-em3027-use-devm_rtc_device_register drivers/rtc/rtc-em3027.c
+--- a/drivers/rtc/rtc-em3027.c~rtc-rtc-em3027-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-em3027.c
+@@ -121,7 +121,7 @@ static int em3027_probe(struct i2c_clien
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 		return -ENODEV;
  
--	rtc = rtc_device_register("ds3234",
--				&spi->dev, &ds3234_rtc_ops, THIS_MODULE);
-+	rtc = devm_rtc_device_register(&spi->dev, "ds3234",
-+				&ds3234_rtc_ops, THIS_MODULE);
+-	rtc = rtc_device_register(em3027_driver.driver.name, &client->dev,
++	rtc = devm_rtc_device_register(&client->dev, em3027_driver.driver.name,
+ 				  &em3027_rtc_ops, THIS_MODULE);
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
+@@ -133,11 +133,6 @@ static int em3027_probe(struct i2c_clien
  
-@@ -158,9 +158,6 @@ static int ds3234_probe(struct spi_devic
- 
- static int ds3234_remove(struct spi_device *spi)
+ static int em3027_remove(struct i2c_client *client)
  {
--	struct rtc_device *rtc = spi_get_drvdata(spi);
+-	struct rtc_device *rtc = i2c_get_clientdata(client);
 -
--	rtc_device_unregister(rtc);
+-	if (rtc)
+-		rtc_device_unregister(rtc);
+-
  	return 0;
  }
  
