@@ -1,53 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] block-aio-batch-completion-for-bios-kiocbs-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:36:13 -0700
-Message-ID: <20130318203614.0A1015A4638@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:36:16 -0700
+Message-ID: <20130318203616.A2B2631C25D@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:54893 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886Ab3CRUgP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:36:15 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so331801qah.4
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:36:14 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:39030 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330Ab3CRUgU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:36:20 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so618798qcs.5
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:36:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix
+     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix
 has been removed from the -mm tree.  Its filename was
-     block-aio-batch-completion-for-bios-kiocbs-fix.patch
+     block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 
 This patch was dropped because it was folded into block-aio-batch-completion-for-bios-kiocbs.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix
+Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix
 
-fs/aio.c: In function 'kioctx_ring_put':
-fs/aio.c:636: warning: cast from pointer to integer of different size
+fs/aio.c needs bio.h, move bio_endio_batch() declaration somewhere rational
 
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c            |    1 +
+ include/linux/bio.h |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix fs/aio.c
---- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix
+diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix fs/aio.c
+--- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix
 +++ a/fs/aio.c
-@@ -646,7 +646,7 @@ static inline unsigned kioctx_ring_put(s
- 	ev_page = kmap_atomic(ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
- 	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
+@@ -25,6 +25,7 @@
+ #include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
++#include <linux/bio.h>
+ #include <linux/mmu_context.h>
+ #include <linux/percpu.h>
+ #include <linux/slab.h>
+diff -puN include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix include/linux/bio.h
+--- a/include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix
++++ a/include/linux/bio.h
+@@ -241,8 +241,6 @@ static inline struct bio *bio_clone_kmal
  
--	event->obj	= (u64) req->ki_obj.user;
-+	event->obj	= (u64)(unsigned long)req->ki_obj.user;
- 	event->data	= req->ki_user_data;
- 	event->res	= req->ki_res;
- 	event->res2	= req->ki_res2;
+ }
+ 
+-void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
+-
+ /**
+  * bio_endio - end I/O on a bio
+  * @bio:	bio
+@@ -552,6 +550,8 @@ struct batch_complete {
+ 	struct rb_root		kiocb;
+ };
+ 
++void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
++
+ static inline void batch_complete_init(struct batch_complete *batch)
+ {
+ 	bio_list_init(&batch->bio);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +113,6 @@ generic-dynamic-per-cpu-refcounting.patch
 aio-dont-include-aioh-in-schedh.patch
 aio-kill-ki_retry.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
