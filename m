@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-sh-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
-Date: Mon, 18 Mar 2013 12:38:17 -0700
-Message-ID: <20130318193817.C0A425A4320@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
+Date: Mon, 18 Mar 2013 12:38:19 -0700
+Message-ID: <20130318193819.C12C331C2F2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:48801 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754700Ab3CRTiS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:18 -0400
-Received: by mail-ob0-f201.google.com with SMTP id un3so1314446obb.4
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:18 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:48629 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754700Ab3CRTiU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:20 -0400
+Received: by mail-ie0-f202.google.com with SMTP id k14so1315050iea.3
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-sh: switch to using SIMPLE_DEV_PM_OPS
+     Subject: rtc: rtc-wm8350: switch to using SIMPLE_DEV_PM_OPS
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-sh-switch-to-using-simple_dev_pm_ops.patch
+     rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-sh: switch to using SIMPLE_DEV_PM_OPS
+Subject: rtc: rtc-wm8350: switch to using SIMPLE_DEV_PM_OPS
 
 Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
-pm_ops.  It reduces code size.  Also, CONFIG_PM_SLEEP is added to prevent
-build warning when CONFIG_PM_SLEEP is not selected.
+pm_ops.  It reduces code size.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sh.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-wm8350.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-sh.c~rtc-rtc-sh-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-rtc-sh-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-sh.c
-@@ -790,6 +790,7 @@ static void sh_rtc_set_irq_wake(struct d
- 	}
- }
+diff -puN drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-wm8350.c
+--- a/drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-wm8350.c
+@@ -339,7 +339,7 @@ static const struct rtc_class_ops wm8350
+ 	.alarm_irq_enable = wm8350_rtc_alarm_irq_enable,
+ };
  
+-#ifdef CONFIG_PM
 +#ifdef CONFIG_PM_SLEEP
- static int sh_rtc_suspend(struct device *dev)
+ static int wm8350_rtc_suspend(struct device *dev)
  {
- 	if (device_may_wakeup(dev))
-@@ -805,17 +806,15 @@ static int sh_rtc_resume(struct device *
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -375,10 +375,6 @@ static int wm8350_rtc_resume(struct devi
  
  	return 0;
  }
-+#endif
+-
+-#else
+-#define wm8350_rtc_suspend NULL
+-#define wm8350_rtc_resume NULL
+ #endif
  
--static const struct dev_pm_ops sh_rtc_dev_pm_ops = {
--	.suspend = sh_rtc_suspend,
--	.resume = sh_rtc_resume,
+ static int wm8350_rtc_probe(struct platform_device *pdev)
+@@ -469,10 +465,8 @@ static int wm8350_rtc_remove(struct plat
+ 	return 0;
+ }
+ 
+-static struct dev_pm_ops wm8350_rtc_pm_ops = {
+-	.suspend = wm8350_rtc_suspend,
+-	.resume = wm8350_rtc_resume,
 -};
-+static SIMPLE_DEV_PM_OPS(sh_rtc_pm_ops, sh_rtc_suspend, sh_rtc_resume);
++static SIMPLE_DEV_PM_OPS(wm8350_rtc_pm_ops, wm8350_rtc_suspend,
++			wm8350_rtc_resume);
  
- static struct platform_driver sh_rtc_platform_driver = {
- 	.driver		= {
- 		.name	= DRV_NAME,
- 		.owner	= THIS_MODULE,
--		.pm	= &sh_rtc_dev_pm_ops,
-+		.pm	= &sh_rtc_pm_ops,
- 	},
- 	.remove		= __exit_p(sh_rtc_remove),
- };
+ static struct platform_driver wm8350_rtc_driver = {
+ 	.probe = wm8350_rtc_probe,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
