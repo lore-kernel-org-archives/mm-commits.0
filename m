@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch added to -mm tree
-Date: Mon, 18 Mar 2013 12:58:47 -0700
-Message-ID: <20130318195847.7088B31C399@corp2gmr1-1.hot.corp.google.com>
+Subject: + relay-remove-unused-function-argument-actor.patch added to -mm tree
+Date: Mon, 18 Mar 2013 13:19:47 -0700
+Message-ID: <20130318201947.CC7B05A44F4@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:34870 "EHLO
-	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752567Ab3CRT6s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:58:48 -0400
-Received: by mail-ia0-f201.google.com with SMTP id t4so1321048iag.2
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:58:48 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:45774 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754840Ab3CRUTt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:19:49 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q5so613111yen.3
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:19:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Milo.Kim@ti.com, jg1.han@samsung.com, milo.kim@ti.com
+Cc: jovi.zhangwei@huawei.com, axboe@kernel.dk, edumazet@google.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: drivers/video/backlight/lp855x_bl.c: use PAGE_SIZE for the sysfs read operation
+     Subject: kernel/relay.c: remove unused function argument actor
 has been added to the -mm tree.  Its filename is
-     backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch
+     relay-remove-unused-function-argument-actor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: drivers/video/backlight/lp855x_bl.c: use PAGE_SIZE for the sysfs read operation
+From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
+Subject: kernel/relay.c: remove unused function argument actor
 
-sysfs allocates PAGE_SIZE.  It is used by each R/W operation method.  Use
-it instead of another buffer size.
+Currently argument `actor' is never used in the relay reading path, so
+remove it.
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/relay.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-use-page_size-for-the-sysfs-read-operation drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-use-page_size-for-the-sysfs-read-operation
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -35,7 +35,6 @@
- #define LP8557_EPROM_START		0x10
- #define LP8557_EPROM_END		0x1E
- 
--#define BUF_SIZE		20
- #define DEFAULT_BL_NAME		"lcd-backlight"
- #define MAX_BRIGHTNESS		255
- 
-@@ -304,7 +303,7 @@ static ssize_t lp855x_get_chip_id(struct
- 				struct device_attribute *attr, char *buf)
+diff -puN kernel/relay.c~relay-remove-unused-function-argument-actor kernel/relay.c
+--- a/kernel/relay.c~relay-remove-unused-function-argument-actor
++++ a/kernel/relay.c
+@@ -1099,8 +1099,7 @@ static size_t relay_file_read_end_pos(st
+ static int subbuf_read_actor(size_t read_start,
+ 			     struct rchan_buf *buf,
+ 			     size_t avail,
+-			     read_descriptor_t *desc,
+-			     read_actor_t actor)
++			     read_descriptor_t *desc)
  {
- 	struct lp855x *lp = dev_get_drvdata(dev);
--	return scnprintf(buf, BUF_SIZE, "%s\n", lp->chipname);
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", lp->chipname);
+ 	void *from;
+ 	int ret = 0;
+@@ -1121,15 +1120,13 @@ static int subbuf_read_actor(size_t read
+ typedef int (*subbuf_actor_t) (size_t read_start,
+ 			       struct rchan_buf *buf,
+ 			       size_t avail,
+-			       read_descriptor_t *desc,
+-			       read_actor_t actor);
++			       read_descriptor_t *desc);
+ 
+ /*
+  *	relay_file_read_subbufs - read count bytes, bridging subbuf boundaries
+  */
+ static ssize_t relay_file_read_subbufs(struct file *filp, loff_t *ppos,
+ 					subbuf_actor_t subbuf_actor,
+-					read_actor_t actor,
+ 					read_descriptor_t *desc)
+ {
+ 	struct rchan_buf *buf = filp->private_data;
+@@ -1150,7 +1147,7 @@ static ssize_t relay_file_read_subbufs(s
+ 			break;
+ 
+ 		avail = min(desc->count, avail);
+-		ret = subbuf_actor(read_start, buf, avail, desc, actor);
++		ret = subbuf_actor(read_start, buf, avail, desc);
+ 		if (desc->error < 0)
+ 			break;
+ 
+@@ -1174,8 +1171,7 @@ static ssize_t relay_file_read(struct fi
+ 	desc.count = count;
+ 	desc.arg.buf = buffer;
+ 	desc.error = 0;
+-	return relay_file_read_subbufs(filp, ppos, subbuf_read_actor,
+-				       NULL, &desc);
++	return relay_file_read_subbufs(filp, ppos, subbuf_read_actor, &desc);
  }
  
- static ssize_t lp855x_get_bl_ctl_mode(struct device *dev,
-@@ -319,7 +318,7 @@ static ssize_t lp855x_get_bl_ctl_mode(st
- 	else if (mode == REGISTER_BASED)
- 		strmode = "register based";
- 
--	return scnprintf(buf, BUF_SIZE, "%s\n", strmode);
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", strmode);
- }
- 
- static DEVICE_ATTR(chip_id, S_IRUGO, lp855x_get_chip_id, NULL);
+ static void relay_consume_bytes(struct rchan_buf *rbuf, int bytes_consumed)
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from jovi.zhangwei@huawei.com are
 
 linux-next.patch
-backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch
+printk-tracing-rework-console-tracing.patch
+relay-remove-unused-function-argument-actor.patch
+relay-move-fix_size-macro-into-relayc.patch
 
