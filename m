@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + argv_split-teach-it-to-handle-mutable-strings-fix.patch added to -mm tree
-Date: Mon, 18 Mar 2013 14:53:45 -0700
-Message-ID: <20130318215345.C17D231C233@corp2gmr1-1.hot.corp.google.com>
+Subject: + kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch added to -mm tree
+Date: Mon, 18 Mar 2013 15:14:56 -0700
+Message-ID: <20130318221456.C34B55A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:49677 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757209Ab3CRVxr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 17:53:47 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so628300qcs.3
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 14:53:46 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:57176 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752947Ab3CRWO7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 18:14:59 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so628540qen.2
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 15:14:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, oleg@redhat.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, kumagai-atsushi@mxc.nes.nec.co.jp
 
 
 The patch titled
-     Subject: argv_split-teach-it-to-handle-mutable-strings-fix
+     Subject: kexec-vmalloc-export-additional-vmalloc-layer-information-fix
 has been added to the -mm tree.  Its filename is
-     argv_split-teach-it-to-handle-mutable-strings-fix.patch
+     kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: argv_split-teach-it-to-handle-mutable-strings-fix
+Subject: kexec-vmalloc-export-additional-vmalloc-layer-information-fix
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+vmalloc.h should include list.h for list_head
+
+Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/argv_split.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/vmalloc.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings-fix lib/argv_split.c
---- a/lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings-fix
-+++ a/lib/argv_split.c
-@@ -51,6 +51,10 @@ EXPORT_SYMBOL(argv_free);
-  * considered to be a single argument separator.  The returned array
-  * is always NULL-terminated.  Returns NULL on memory allocation
-  * failure.
-+ *
-+ * The source string at `str' may be undergoing concurrent alteration via
-+ * userspace sysctl activity (at least).  The argv_split() implementation
-+ * attempts to handle this gracefully by taking a local copy to work on.
-  */
- char **argv_split(gfp_t gfp, const char *str, int *argcp)
- {
+diff -puN include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information-fix include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information-fix
++++ a/include/linux/vmalloc.h
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/spinlock.h>
+ #include <linux/init.h>
++#include <linux/list.h>
+ #include <asm/page.h>		/* pgprot_t */
+ #include <linux/rbtree.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +77,7 @@ xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
 memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
