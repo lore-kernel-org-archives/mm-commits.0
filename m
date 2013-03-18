@@ -1,55 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-kiocb_cancel-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:31:17 -0700
-Message-ID: <20130318203117.E3D3D5A46AA@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] wait-add-wait_event_hrtimeout-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:31:44 -0700
+Message-ID: <20130318203144.9348D5A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:38755 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753461Ab3CRUbT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:31:19 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so614144ghb.4
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:31:18 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:45134 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753318Ab3CRUbq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:31:46 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so608972vbb.4
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:31:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-kiocb_cancel-fix
+     Subject: wait-add-wait_event_hrtimeout-fix
 has been removed from the -mm tree.  Its filename was
-     aio-kiocb_cancel-fix.patch
+     wait-add-wait_event_hrtimeout-fix.patch
 
-This patch was dropped because it was folded into aio-kiocb_cancel.patch
+This patch was dropped because it was folded into wait-add-wait_event_hrtimeout.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-kiocb_cancel-fix
+Subject: wait-add-wait_event_hrtimeout-fix
 
-i386:
-
-fs/aio.c: In function 'kiocb_cancel':
-fs/aio.c:233: warning: cast from pointer to integer of different size
+fix description of `timeout' arg
 
 Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Zach Brown <zab@redhat.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Selvan Mani <smani@micron.com>
+Cc: Sam Bradshaw <sbradshaw@micron.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/wait.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/aio.c~aio-kiocb_cancel-fix fs/aio.c
---- a/fs/aio.c~aio-kiocb_cancel-fix
-+++ a/fs/aio.c
-@@ -233,7 +233,7 @@ static int kiocb_cancel(struct kioctx *c
- 		spin_unlock_irq(&ctx->ctx_lock);
- 
- 		memset(res, 0, sizeof(*res));
--		res->obj = (u64) kiocb->ki_obj.user;
-+		res->obj = (u64)(unsigned long)kiocb->ki_obj.user;
- 		res->data = kiocb->ki_user_data;
- 		ret = cancel(kiocb, res);
- 
+diff -puN include/linux/wait.h~wait-add-wait_event_hrtimeout-fix include/linux/wait.h
+--- a/include/linux/wait.h~wait-add-wait_event_hrtimeout-fix
++++ a/include/linux/wait.h
+@@ -370,7 +370,7 @@ do {									\
+  * wait_event_hrtimeout - sleep until a condition gets true or a timeout elapses
+  * @wq: the waitqueue to wait on
+  * @condition: a C expression for the event to wait for
+- * @timeout: timeout, in jiffies
++ * @timeout: timeout, as a ktime_t
+  *
+  * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
+  * @condition evaluates to true or a signal is received.
+@@ -395,7 +395,7 @@ do {									\
+  * wait_event_interruptible_hrtimeout - sleep until a condition gets true or a timeout elapses
+  * @wq: the waitqueue to wait on
+  * @condition: a C expression for the event to wait for
+- * @timeout: timeout, in jiffies
++ * @timeout: timeout, as a ktime_t
+  *
+  * The process is put to sleep (TASK_INTERRUPTIBLE) until the
+  * @condition evaluates to true or a signal is received.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +107,7 @@ kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
 pid_namespacec-h-simplify-defines-fix.patch
 drivers-net-rename-random32-to-prandom_u32-fix.patch
 aio-kiocb_cancel.patch
-wait-add-wait_event_hrtimeout-fix.patch
+wait-add-wait_event_hrtimeout.patch
 aio-use-cancellation-list-lazily-fix-fix.patch
 aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
 generic-dynamic-per-cpu-refcounting-fix.patch
