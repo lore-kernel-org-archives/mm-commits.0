@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 18 Mar 2013 12:26:46 -0700
-Message-ID: <20130318192646.B5E475A4225@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
+Date: Mon, 18 Mar 2013 12:38:07 -0700
+Message-ID: <20130318193807.C0EFA31C2F2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:63888 "EHLO
-	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846Ab3CRT0r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:26:47 -0400
-Received: by mail-ia0-f201.google.com with SMTP id t4so1311271iag.0
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:26:47 -0700 (PDT)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:58637 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753258Ab3CRTiI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:08 -0400
+Received: by mail-ob0-f201.google.com with SMTP id un3so1314635obb.2
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: rtc: rtc-at91rm9200: switch to using SIMPLE_DEV_PM_OPS
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,295 +33,210 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-at91rm9200: switch to using SIMPLE_DEV_PM_OPS
 
+Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
+pm_ops.  It reduces code size.
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/exynos4.dtsi    |    9 -----
- arch/arm/boot/dts/exynos5440.dtsi |    6 ---
- drivers/mtd/nand/nand_ids.c       |   48 ----------------------------
- drivers/video/atmel_lcdfb.c       |   15 --------
- include/linux/mtd/nand.h          |   15 --------
- include/video/atmel_lcdc.h        |    4 --
- 6 files changed, 97 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm/boot/dts/exynos4.dtsi~linux-next-git-rejects arch/arm/boot/dts/exynos4.dtsi
---- a/arch/arm/boot/dts/exynos4.dtsi~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/exynos4.dtsi
-@@ -327,11 +327,8 @@
- 			compatible = "arm,pl330", "arm,primecell";
- 			reg = <0x12680000 0x1000>;
- 			interrupts = <0 35 0>;
--<<<<<<< HEAD
--=======
- 			clocks = <&clock 292>;
- 			clock-names = "apb_pclk";
-->>>>>>> linux-next/akpm-base
- 			#dma-cells = <1>;
- 			#dma-channels = <8>;
- 			#dma-requests = <32>;
-@@ -341,11 +338,8 @@
- 			compatible = "arm,pl330", "arm,primecell";
- 			reg = <0x12690000 0x1000>;
- 			interrupts = <0 36 0>;
--<<<<<<< HEAD
--=======
- 			clocks = <&clock 293>;
- 			clock-names = "apb_pclk";
-->>>>>>> linux-next/akpm-base
- 			#dma-cells = <1>;
- 			#dma-channels = <8>;
- 			#dma-requests = <32>;
-@@ -355,11 +349,8 @@
- 			compatible = "arm,pl330", "arm,primecell";
- 			reg = <0x12850000 0x1000>;
- 			interrupts = <0 34 0>;
--<<<<<<< HEAD
--=======
- 			clocks = <&clock 279>;
- 			clock-names = "apb_pclk";
-->>>>>>> linux-next/akpm-base
- 			#dma-cells = <1>;
- 			#dma-channels = <8>;
- 			#dma-requests = <1>;
-diff -puN arch/arm/boot/dts/exynos5440.dtsi~linux-next-git-rejects arch/arm/boot/dts/exynos5440.dtsi
---- a/arch/arm/boot/dts/exynos5440.dtsi~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/exynos5440.dtsi
-@@ -152,11 +152,8 @@
- 			compatible = "arm,pl330", "arm,primecell";
- 			reg = <0x120000 0x1000>;
- 			interrupts = <0 34 0>;
--<<<<<<< HEAD
--=======
- 			clocks = <&clock 21>;
- 			clock-names = "apb_pclk";
-->>>>>>> linux-next/akpm-base
- 			#dma-cells = <1>;
- 			#dma-channels = <8>;
- 			#dma-requests = <32>;
-@@ -166,11 +163,8 @@
- 			compatible = "arm,pl330", "arm,primecell";
- 			reg = <0x121000 0x1000>;
- 			interrupts = <0 35 0>;
--<<<<<<< HEAD
--=======
- 			clocks = <&clock 21>;
- 			clock-names = "apb_pclk";
-->>>>>>> linux-next/akpm-base
- 			#dma-cells = <1>;
- 			#dma-channels = <8>;
- 			#dma-requests = <32>;
-diff -puN drivers/mtd/nand/nand_ids.c~linux-next-git-rejects drivers/mtd/nand/nand_ids.c
---- a/drivers/mtd/nand/nand_ids.c~linux-next-git-rejects
-+++ a/drivers/mtd/nand/nand_ids.c
-@@ -25,53 +25,6 @@
-  * extended chip ID.
-  */
- struct nand_flash_dev nand_flash_ids[] = {
--<<<<<<< HEAD
--#define SP_OPTIONS NAND_NEED_READRDY
--#define SP_OPTIONS16 (SP_OPTIONS | NAND_BUSWIDTH_16)
--
--#ifdef CONFIG_MTD_NAND_MUSEUM_IDS
--	{"NAND 1MiB 5V 8-bit",		0x6e, 256, 1, 0x1000, SP_OPTIONS},
--	{"NAND 2MiB 5V 8-bit",		0x64, 256, 2, 0x1000, SP_OPTIONS},
--	{"NAND 4MiB 5V 8-bit",		0x6b, 512, 4, 0x2000, SP_OPTIONS},
--	{"NAND 1MiB 3,3V 8-bit",	0xe8, 256, 1, 0x1000, SP_OPTIONS},
--	{"NAND 1MiB 3,3V 8-bit",	0xec, 256, 1, 0x1000, SP_OPTIONS},
--	{"NAND 2MiB 3,3V 8-bit",	0xea, 256, 2, 0x1000, SP_OPTIONS},
--	{"NAND 4MiB 3,3V 8-bit",	0xd5, 512, 4, 0x2000, SP_OPTIONS},
--	{"NAND 4MiB 3,3V 8-bit",	0xe3, 512, 4, 0x2000, SP_OPTIONS},
--	{"NAND 4MiB 3,3V 8-bit",	0xe5, 512, 4, 0x2000, SP_OPTIONS},
--	{"NAND 8MiB 3,3V 8-bit",	0xd6, 512, 8, 0x2000, SP_OPTIONS},
--
--	{"NAND 8MiB 1,8V 8-bit",	0x39, 512, 8, 0x2000, SP_OPTIONS},
--	{"NAND 8MiB 3,3V 8-bit",	0xe6, 512, 8, 0x2000, SP_OPTIONS},
--	{"NAND 8MiB 1,8V 16-bit",	0x49, 512, 8, 0x2000, SP_OPTIONS16},
--	{"NAND 8MiB 3,3V 16-bit",	0x59, 512, 8, 0x2000, SP_OPTIONS16},
--#endif
--
--	{"NAND 16MiB 1,8V 8-bit",	0x33, 512, 16, 0x4000, SP_OPTIONS},
--	{"NAND 16MiB 3,3V 8-bit",	0x73, 512, 16, 0x4000, SP_OPTIONS},
--	{"NAND 16MiB 1,8V 16-bit",	0x43, 512, 16, 0x4000, SP_OPTIONS16},
--	{"NAND 16MiB 3,3V 16-bit",	0x53, 512, 16, 0x4000, SP_OPTIONS16},
--
--	{"NAND 32MiB 1,8V 8-bit",	0x35, 512, 32, 0x4000, SP_OPTIONS},
--	{"NAND 32MiB 3,3V 8-bit",	0x75, 512, 32, 0x4000, SP_OPTIONS},
--	{"NAND 32MiB 1,8V 16-bit",	0x45, 512, 32, 0x4000, SP_OPTIONS16},
--	{"NAND 32MiB 3,3V 16-bit",	0x55, 512, 32, 0x4000, SP_OPTIONS16},
--
--	{"NAND 64MiB 1,8V 8-bit",	0x36, 512, 64, 0x4000, SP_OPTIONS},
--	{"NAND 64MiB 3,3V 8-bit",	0x76, 512, 64, 0x4000, SP_OPTIONS},
--	{"NAND 64MiB 1,8V 16-bit",	0x46, 512, 64, 0x4000, SP_OPTIONS16},
--	{"NAND 64MiB 3,3V 16-bit",	0x56, 512, 64, 0x4000, SP_OPTIONS16},
--
--	{"NAND 128MiB 1,8V 8-bit",	0x78, 512, 128, 0x4000, SP_OPTIONS},
--	{"NAND 128MiB 1,8V 8-bit",	0x39, 512, 128, 0x4000, SP_OPTIONS},
--	{"NAND 128MiB 3,3V 8-bit",	0x79, 512, 128, 0x4000, SP_OPTIONS},
--	{"NAND 128MiB 1,8V 16-bit",	0x72, 512, 128, 0x4000, SP_OPTIONS16},
--	{"NAND 128MiB 1,8V 16-bit",	0x49, 512, 128, 0x4000, SP_OPTIONS16},
--	{"NAND 128MiB 3,3V 16-bit",	0x74, 512, 128, 0x4000, SP_OPTIONS16},
--	{"NAND 128MiB 3,3V 16-bit",	0x59, 512, 128, 0x4000, SP_OPTIONS16},
--
--	{"NAND 256MiB 3,3V 8-bit",	0x71, 512, 256, 0x4000, SP_OPTIONS},
--=======
- 	LEGACY_ID_NAND("NAND 4MiB 5V 8-bit",   0x6B, 512, 4, 0x2000, SP_OPTIONS),
- 	LEGACY_ID_NAND("NAND 4MiB 3,3V 8-bit", 0xE3, 512, 4, 0x2000, SP_OPTIONS),
- 	LEGACY_ID_NAND("NAND 4MiB 3,3V 8-bit", 0xE5, 512, 4, 0x2000, SP_OPTIONS),
-@@ -102,7 +55,6 @@ struct nand_flash_dev nand_flash_ids[] =
- 	LEGACY_ID_NAND("NAND 128MiB 3,3V 16-bit", 0x59, 512, 128, 0x4000, SP_OPTIONS16),
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -337,7 +337,7 @@ static int __exit at91_rtc_remove(struct
+ 	return 0;
+ }
  
- 	LEGACY_ID_NAND("NAND 256MiB 3,3V 8-bit", 0x71, 512, 256, 0x4000, SP_OPTIONS),
-->>>>>>> linux-next/akpm-base
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
  
- 	/*
- 	 * These are the new chips with large page size. Their page size and
-diff -puN drivers/video/atmel_lcdfb.c~linux-next-git-rejects drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~linux-next-git-rejects
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -496,11 +496,7 @@ static int atmel_lcdfb_check_var(struct
- 		break;
- 	case 16:
- 		/* Older SOCs use IBGR:555 rather than BGR:565. */
--<<<<<<< HEAD
--		if (sinfo->have_intensity_bit)
--=======
- 		if (sinfo->config->have_intensity_bit)
-->>>>>>> linux-next/akpm-base
- 			var->green.length = 5;
- 		else
- 			var->green.length = 6;
-@@ -760,11 +756,7 @@ static int atmel_lcdfb_setcolreg(unsigne
+ /* AT91RM9200 RTC Power management control */
  
- 	case FB_VISUAL_PSEUDOCOLOR:
- 		if (regno < 256) {
--<<<<<<< HEAD
--			if (sinfo->have_intensity_bit) {
--=======
- 			if (sinfo->config->have_intensity_bit) {
-->>>>>>> linux-next/akpm-base
- 				/* old style I+BGR:555 */
- 				val  = ((red   >> 11) & 0x001f);
- 				val |= ((green >>  6) & 0x03e0);
-@@ -952,16 +944,9 @@ static int __init atmel_lcdfb_probe(stru
+@@ -369,24 +369,16 @@ static int at91_rtc_resume(struct device
  	}
- 	sinfo->info = info;
- 	sinfo->pdev = pdev;
--<<<<<<< HEAD
--	if (cpu_is_at91sam9261() || cpu_is_at91sam9263() ||
--							cpu_is_at91sam9rl()) {
--		sinfo->have_intensity_bit = true;
--	}
--=======
- 	sinfo->config = atmel_lcdfb_get_config(pdev);
- 	if (!sinfo->config)
- 		goto free_info;
-->>>>>>> linux-next/akpm-base
- 
- 	strcpy(info->fix.id, sinfo->pdev->name);
- 	info->flags = ATMEL_LCDFB_FBINFO_DEFAULT;
-diff -puN include/linux/mtd/nand.h~linux-next-git-rejects include/linux/mtd/nand.h
---- a/include/linux/mtd/nand.h~linux-next-git-rejects
-+++ a/include/linux/mtd/nand.h
-@@ -152,21 +152,6 @@ typedef enum {
-  * True only for small page devices; large page devices do not support
-  * autoincrement.
-  */
--<<<<<<< HEAD
--#define NAND_4PAGE_ARRAY	0x00000040
--/*
-- * Chip requires that BBT is periodically rewritten to prevent
-- * bits from adjacent blocks from 'leaking' in altering data.
-- * This happens with the Renesas AG-AND chips, possibly others.
-- */
--#define BBT_AUTO_REFRESH	0x00000080
--/*
-- * Chip requires ready check on read (for auto-incremented sequential read).
-- * True only for small page devices; large page devices do not support
-- * autoincrement.
-- */
--=======
-->>>>>>> linux-next/akpm-base
- #define NAND_NEED_READRDY	0x00000100
- 
- /* Chip does not allow subpage writes */
-diff -puN include/video/atmel_lcdc.h~linux-next-git-rejects include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~linux-next-git-rejects
-+++ a/include/video/atmel_lcdc.h
-@@ -62,12 +62,8 @@ struct atmel_lcdfb_info {
- 	void (*atmel_lcdfb_power_control)(int on);
- 	struct fb_monspecs	*default_monspecs;
- 	u32			pseudo_palette[16];
--<<<<<<< HEAD
- 	bool			have_intensity_bit;
--=======
+ 	return 0;
+ }
 -
- 	struct atmel_lcdfb_config *config;
-->>>>>>> linux-next/akpm-base
+-static const struct dev_pm_ops at91_rtc_pm = {
+-	.suspend =	at91_rtc_suspend,
+-	.resume =	at91_rtc_resume,
+-};
+-
+-#define at91_rtc_pm_ptr	&at91_rtc_pm
+-
+-#else
+-#define at91_rtc_pm_ptr	NULL
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops, at91_rtc_suspend, at91_rtc_resume);
++
+ static struct platform_driver at91_rtc_driver = {
+ 	.remove		= __exit_p(at91_rtc_remove),
+ 	.driver		= {
+ 		.name	= "at91_rtc",
+ 		.owner	= THIS_MODULE,
+-		.pm	= at91_rtc_pm_ptr,
++		.pm	= &at91_rtc_pm_ops,
+ 	},
  };
  
- #define ATMEL_LCDC_DMABADDR1	0x00
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-mips-define-kvm_user_mem_slots.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
+drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
+drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
+drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
+drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
+drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
+backlight-adp8870-add-missing-braces.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
+backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
+backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
+backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
+backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
+backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
+backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
+backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
+backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
+backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
+backlight-kb3886_bl-convert-kb3886bl-to-dev_pm_ops.patch
+backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
+backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
+backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
+backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
+drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
+drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch
+video-backlight-add-ili922x-lcd-driver.patch
+backlight-da903x_bl-use-bl_core_suspendresume-option.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+rtc-rtc-ab3100-use-module_platform_driver_probe.patch
+rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
+rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
+rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
+rtc-rtc-coh901331-use-module_platform_driver_probe.patch
+rtc-rtc-davinci-use-module_platform_driver_probe.patch
+rtc-rtc-ds1302-use-module_platform_driver_probe.patch
+rtc-rtc-efi-use-module_platform_driver_probe.patch
+rtc-rtc-generic-use-module_platform_driver_probe.patch
+rtc-rtc-imxdi-use-module_platform_driver_probe.patch
+rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
+rtc-rtc-msm6242-use-module_platform_driver_probe.patch
+rtc-rtc-mv-use-module_platform_driver_probe.patch
+rtc-rtc-nuc900-use-module_platform_driver_probe.patch
+rtc-rtc-omap-use-module_platform_driver_probe.patch
+rtc-rtc-pcap-use-module_platform_driver_probe.patch
+rtc-rtc-ps3-use-module_platform_driver_probe.patch
+rtc-rtc-pxa-use-module_platform_driver_probe.patch
+rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
+rtc-rtc-sh-use-module_platform_driver_probe.patch
+rtc-rtc-starfire-use-module_platform_driver_probe.patch
+rtc-rtc-sun4v-use-module_platform_driver_probe.patch
+rtc-rtc-tegra-use-module_platform_driver_probe.patch
+rtc-rtc-tx4939-use-module_platform_driver_probe.patch
+rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+rtc-rtc-coh90133-use-devm_rtc_device_register.patch
+rtc-rtc-da9052-use-devm_rtc_device_register.patch
+rtc-rtc-da9055-use-devm_rtc_device_register.patch
+rtc-rtc-davinci-use-devm_rtc_device_register.patch
+rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+rtc-rtc-lp8788-use-devm_rtc_device_register.patch
+rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+rtc-rtc-max77686-use-devm_rtc_device_register.patch
+rtc-rtc-max8907-use-devm_rtc_device_register.patch
+rtc-rtc-max8997-use-devm_rtc_device_register.patch
+rtc-rtc-mv-use-devm_rtc_device_register.patch
+rtc-rtc-mxc-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_rtc_device_register.patch
+rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
+rtc-rtc-s3c-use-devm_rtc_device_register.patch
+rtc-rtc-snvs-use-devm_rtc_device_register.patch
+rtc-rtc-spear-use-devm_rtc_device_register.patch
+rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
+rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+rtc-rtc-tps65910-use-devm_rtc_device_register.patch
+rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
+rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
+rtc-tegra-set-irq-name-as-device-name.patch
+rtc-tegra-use-managed-rtc_device_register.patch
+rtc-rtc-palmas-use-devm_request_threaded_irq.patch
+rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
+rtc-rtc-ds1307-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-ab3100-use-devm_rtc_device_register.patch
+rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
+rtc-rtc-bq32k-use-devm_rtc_device_register.patch
+rtc-rtc-dm355evm-use-devm_rtc_device_register.patch
+rtc-rtc-ds1302-use-devm_rtc_device_register.patch
+rtc-rtc-ds1672-use-devm_rtc_device_register.patch
+rtc-rtc-ds3234-use-devm_rtc_device_register.patch
+rtc-rtc-efi-use-devm_rtc_device_register.patch
+rtc-rtc-em3027-use-devm_rtc_device_register.patch
+rtc-rtc-generic-use-devm_rtc_device_register.patch
+rtc-hid-sensor-time-use-devm_rtc_device_register.patch
+rtc-rtc-ls1x-use-devm_rtc_device_register.patch
+rtc-rtc-m41t93-use-devm_rtc_device_register.patch
+rtc-rtc-m41t94-use-devm_rtc_device_register.patch
+rtc-rtc-m48t86-use-devm_rtc_device_register.patch
+rtc-rtc-max6900-use-devm_rtc_device_register.patch
+rtc-rtc-max6902-use-devm_rtc_device_register.patch
+rtc-rtc-ps3-use-devm_rtc_device_register.patch
+rtc-rtc-r9701-use-devm_rtc_device_register.patch
+rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
+rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
+rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
+rtc-rtc-rx4581-use-devm_rtc_device_register.patch
+rtc-rtc-rx8581-use-devm_rtc_device_register.patch
+rtc-rtc-starfire-use-devm_rtc_device_register.patch
+rtc-rtc-sun4v-use-devm_rtc_device_register.patch
+rtc-rtc-test-use-devm_rtc_device_register.patch
+rtc-rtc-tile-use-devm_rtc_device_register.patch
+rtc-rtc-wm8350-use-devm_rtc_device_register.patch
+rtc-rtc-x1205-use-devm_rtc_device_register.patch
+rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-sh-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch
+drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions.patch
 
