@@ -1,69 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] generic-dynamic-per-cpu-refcounting-doc-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:33:41 -0700
-Message-ID: <20130318203341.9D2705A44D1@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] aio-dont-include-aioh-in-schedh-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:34:38 -0700
+Message-ID: <20130318203439.4D4685A44D1@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:50251 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752356Ab3CRUdm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:33:42 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so614371ghb.4
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:33:42 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:52555 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753150Ab3CRUel (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:34:41 -0400
+Received: by mail-vb0-f74.google.com with SMTP id r6so609263vbi.5
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:34:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: generic-dynamic-per-cpu-refcounting-doc-fix
+     Subject: aio-dont-include-aioh-in-schedh-fix
 has been removed from the -mm tree.  Its filename was
-     generic-dynamic-per-cpu-refcounting-doc-fix.patch
+     aio-dont-include-aioh-in-schedh-fix.patch
 
-This patch was dropped because it was folded into generic-dynamic-per-cpu-refcounting.patch
+This patch was dropped because it was folded into aio-dont-include-aioh-in-schedh.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: generic-dynamic-per-cpu-refcounting-doc-fix
+Subject: aio-dont-include-aioh-in-schedh-fix
 
-a little tidy
-
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org> 
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Bradshaw <sbradshaw@micron.com>
+Cc: Selvan Mani <smani@micron.com>
+Cc: Zach Brown <zab@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-refcount.h |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ fs/f2fs/data.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-doc-fix include/linux/percpu-refcount.h
---- a/include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-doc-fix
-+++ a/include/linux/percpu-refcount.h
-@@ -21,19 +21,18 @@
-  * BACKGROUND:
-  *
-  * Percpu refcounts are quite useful for performance, but if we blindly
-- * converted all refcounts to percpu counters we'd waste quite a bit of memory
-- * think about all the refcounts embedded in kobjects, files, etc. most of which
-- * aren't used much.
-+ * converted all refcounts to percpu counters we'd waste quite a bit of memory.
-  *
-- * These start out as simple atomic counters - a little bigger than a bare
-- * atomic_t, 16 bytes instead of 4 - but if we exceed some arbitrary number of
-- * gets in one second, we then switch to percpu counters.
-+ * Think about all the refcounts embedded in kobjects, files, etc. most of which
-+ * aren't used much. These start out as simple atomic counters - a little bigger
-+ * than a bare atomic_t, 16 bytes instead of 4 - but if we exceed some arbitrary
-+ * number of gets in one second, we then switch to percpu counters.
-  *
-  * This heuristic isn't perfect because it'll fire if the refcount was only
-  * being used on one cpu; ideally we'd be able to count the number of cache
-  * misses on percpu_ref_get() or something similar, but that'd make the non
-  * percpu path significantly heavier/more complex. We can count the number of
-- * gets() without any extra atomic instructions, on arches that support
-+ * gets() without any extra atomic instructions on arches that support
-  * atomic64_t - simply by changing the atomic_inc() to atomic_add_return().
-  *
-  * USAGE:
+diff -puN fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix fs/f2fs/data.c
+--- a/fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix
++++ a/fs/f2fs/data.c
+@@ -12,6 +12,7 @@
+ #include <linux/f2fs_fs.h>
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
++#include <linux/aio.h>
+ #include <linux/writeback.h>
+ #include <linux/backing-dev.h>
+ #include <linux/blkdev.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +100,7 @@ wait-add-wait_event_hrtimeout.patch
 aio-use-cancellation-list-lazily.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting.patch
-aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh.patch
 aio-dont-include-aioh-in-schedh-fix-fix.patch
 aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-dont-include-aioh-in-schedh-fix-3-fix.patch
