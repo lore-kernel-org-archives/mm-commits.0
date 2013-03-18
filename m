@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + posix_cpu_timers-consolidate-expired-timers-check.patch added to -mm tree
-Date: Mon, 18 Mar 2013 14:25:08 -0700
-Message-ID: <20130318212508.D374F5A435D@corp2gmr1-2.hot.corp.google.com>
+Subject: + posix_cpu_timers-consolidate-timer-list-cleanups.patch added to -mm tree
+Date: Mon, 18 Mar 2013 14:25:06 -0700
+Message-ID: <20130318212506.D86015A4358@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:41985 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933126Ab3CRVZK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 17:25:10 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so445339vcb.3
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 14:25:09 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:56312 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933124Ab3CRVZI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 17:25:08 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q5so621020yen.5
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 14:25:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: fweisbec@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, 
 
 
 The patch titled
-     Subject: posix_cpu_timers: consolidate expired timers check
+     Subject: posix_cpu_timers: consolidate timer list cleanups
 has been added to the -mm tree.  Its filename is
-     posix_cpu_timers-consolidate-expired-timers-check.patch
+     posix_cpu_timers-consolidate-timer-list-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: posix_cpu_timers: consolidate expired timers check
+Subject: posix_cpu_timers: consolidate timer list cleanups
 
-Consolidate the common code amongst per thread and per process timers list
-on tick time.
+Cleaning up the posix cpu timers on task exit shares some common code
+among timer list types, most notably the list traversal and expiry time
+update.
 
-List traversal, expiry check and subsequent updates can be shared in a
-common helper.
+Unify this in a common helper.
 
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Stanislaw Gruszka <sgruszka@redhat.com>
@@ -51,165 +51,76 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |  118 ++++++++++--------------------------
- 1 file changed, 33 insertions(+), 85 deletions(-)
+ kernel/posix-cpu-timers.c |   48 ++++++++++++++----------------------
+ 1 file changed, 19 insertions(+), 29 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~posix_cpu_timers-consolidate-expired-timers-check kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~posix_cpu_timers-consolidate-expired-timers-check
+diff -puN kernel/posix-cpu-timers.c~posix_cpu_timers-consolidate-timer-list-cleanups kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix_cpu_timers-consolidate-timer-list-cleanups
 +++ a/kernel/posix-cpu-timers.c
-@@ -812,6 +812,28 @@ static void posix_cpu_timer_get(struct k
- 	}
+@@ -382,6 +382,21 @@ static int posix_cpu_timer_del(struct k_
+ 	return ret;
  }
  
-+static unsigned long long
-+check_timers_list(struct list_head *timers,
-+		  struct list_head *firing,
-+		  unsigned long long curr)
++static void cleanup_timers_list(struct list_head *head,
++				unsigned long long curr)
 +{
-+	int maxfire = 20;
++	struct cpu_timer_list *timer, *next;
 +
-+	while (!list_empty(timers)) {
-+		struct cpu_timer_list *t;
-+
-+		t = list_first_entry(timers, struct cpu_timer_list, entry);
-+
-+		if (!--maxfire || curr < t->expires)
-+			return t->expires;
-+
-+		t->firing = 1;
-+		list_move_tail(&t->entry, firing);
++	list_for_each_entry_safe(timer, next, head, entry) {
++		list_del_init(&timer->entry);
++		if (timer->expires < curr) {
++			timer->expires = 0;
++		} else {
++			timer->expires -= curr;
++		}
 +	}
-+
-+	return 0;
 +}
 +
  /*
-  * Check for any per-thread CPU timers that have fired and move them off
-  * the tsk->cpu_timers[N] list onto the firing list.  Here we update the
-@@ -820,54 +842,20 @@ static void posix_cpu_timer_get(struct k
- static void check_thread_timers(struct task_struct *tsk,
- 				struct list_head *firing)
+  * Clean out CPU timers still ticking when a thread exited.  The task
+  * pointer is cleared, and the expiry time is replaced with the residual
+@@ -392,37 +407,12 @@ static void cleanup_timers(struct list_h
+ 			   cputime_t utime, cputime_t stime,
+ 			   unsigned long long sum_exec_runtime)
  {
--	int maxfire;
- 	struct list_head *timers = tsk->cpu_timers;
- 	struct signal_struct *const sig = tsk->signal;
-+	struct task_cputime *tsk_expires = &tsk->cputime_expires;
-+	unsigned long long expires;
- 	unsigned long soft;
+-	struct cpu_timer_list *timer, *next;
+-	cputime_t ptime = utime + stime;
  
--	maxfire = 20;
--	tsk->cputime_expires.prof_exp = 0;
--	while (!list_empty(timers)) {
--		struct cpu_timer_list *t = list_first_entry(timers,
--						      struct cpu_timer_list,
--						      entry);
--		if (!--maxfire || prof_ticks(tsk) < t->expires) {
--			tsk->cputime_expires.prof_exp = expires_to_cputime(t->expires);
--			break;
+-	list_for_each_entry_safe(timer, next, head, entry) {
+-		list_del_init(&timer->entry);
+-		if (timer->expires < cputime_to_expires(ptime)) {
+-			timer->expires = 0;
+-		} else {
+-			timer->expires -= cputime_to_expires(ptime);
 -		}
--		t->firing = 1;
--		list_move_tail(&t->entry, firing);
--	}
-+	expires = check_timers_list(timers, firing, prof_ticks(tsk));
-+	tsk_expires->prof_exp = expires_to_cputime(expires);
- 
--	++timers;
--	maxfire = 20;
--	tsk->cputime_expires.virt_exp = 0;
--	while (!list_empty(timers)) {
--		struct cpu_timer_list *t = list_first_entry(timers,
--						      struct cpu_timer_list,
--						      entry);
--		if (!--maxfire || virt_ticks(tsk) < t->expires) {
--			tsk->cputime_expires.virt_exp = expires_to_cputime(t->expires);
--			break;
--		}
--		t->firing = 1;
--		list_move_tail(&t->entry, firing);
--	}
-+	expires = check_timers_list(++timers, firing, virt_ticks(tsk));
-+	tsk_expires->virt_exp = expires_to_cputime(expires);
- 
--	++timers;
--	maxfire = 20;
--	tsk->cputime_expires.sched_exp = 0;
--	while (!list_empty(timers)) {
--		struct cpu_timer_list *t = list_first_entry(timers,
--						      struct cpu_timer_list,
--						      entry);
--		if (!--maxfire || tsk->se.sum_exec_runtime < t->expires) {
--			tsk->cputime_expires.sched_exp = t->expires;
--			break;
--		}
--		t->firing = 1;
--		list_move_tail(&t->entry, firing);
--	}
-+	tsk_expires->sched_exp = check_timers_list(++timers, firing,
-+						   tsk->se.sum_exec_runtime);
- 
- 	/*
- 	 * Check for the special case thread timers.
-@@ -967,7 +955,6 @@ static inline int task_cputime_zero(cons
- static void check_process_timers(struct task_struct *tsk,
- 				 struct list_head *firing)
- {
--	int maxfire;
- 	struct signal_struct *const sig = tsk->signal;
- 	unsigned long long utime, ptime, virt_expires, prof_expires;
- 	unsigned long long sum_sched_runtime, sched_expires;
-@@ -982,49 +969,10 @@ static void check_process_timers(struct
- 	utime = cputime_to_expires(cputime.utime);
- 	ptime = utime + cputime_to_expires(cputime.stime);
- 	sum_sched_runtime = cputime.sum_exec_runtime;
--	maxfire = 20;
--	prof_expires = 0;
--	while (!list_empty(timers)) {
--		struct cpu_timer_list *tl = list_first_entry(timers,
--						      struct cpu_timer_list,
--						      entry);
--		if (!--maxfire || ptime < tl->expires) {
--			prof_expires = tl->expires;
--			break;
--		}
--		tl->firing = 1;
--		list_move_tail(&tl->entry, firing);
--	}
- 
--	++timers;
--	maxfire = 20;
--	virt_expires = 0;
--	while (!list_empty(timers)) {
--		struct cpu_timer_list *tl = list_first_entry(timers,
--						      struct cpu_timer_list,
--						      entry);
--		if (!--maxfire || utime < tl->expires) {
--			virt_expires = tl->expires;
--			break;
--		}
--		tl->firing = 1;
--		list_move_tail(&tl->entry, firing);
 -	}
 -
--	++timers;
--	maxfire = 20;
--	sched_expires = 0;
--	while (!list_empty(timers)) {
--		struct cpu_timer_list *tl = list_first_entry(timers,
--						      struct cpu_timer_list,
--						      entry);
--		if (!--maxfire || sum_sched_runtime < tl->expires) {
--			sched_expires = tl->expires;
--			break;
+-	++head;
+-	list_for_each_entry_safe(timer, next, head, entry) {
+-		list_del_init(&timer->entry);
+-		if (timer->expires < cputime_to_expires(utime)) {
+-			timer->expires = 0;
+-		} else {
+-			timer->expires -= cputime_to_expires(utime);
 -		}
--		tl->firing = 1;
--		list_move_tail(&tl->entry, firing);
 -	}
-+	prof_expires = check_timers_list(timers, firing, ptime);
-+	virt_expires = check_timers_list(++timers, firing, utime);
-+	sched_expires = check_timers_list(++timers, firing, sum_sched_runtime);
++	cputime_t ptime = utime + stime;
  
- 	/*
- 	 * Check for the special case process timers.
+-	++head;
+-	list_for_each_entry_safe(timer, next, head, entry) {
+-		list_del_init(&timer->entry);
+-		if (timer->expires < sum_exec_runtime) {
+-			timer->expires = 0;
+-		} else {
+-			timer->expires -= sum_exec_runtime;
+-		}
+-	}
++	cleanup_timers_list(head, cputime_to_expires(ptime));
++	cleanup_timers_list(++head, cputime_to_expires(utime));
++	cleanup_timers_list(++head, sum_exec_runtime);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from fweisbec@gmail.com are
