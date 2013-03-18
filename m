@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
-Date: Mon, 18 Mar 2013 12:38:19 -0700
-Message-ID: <20130318193819.C12C331C2F2@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
+Date: Mon, 18 Mar 2013 12:38:21 -0700
+Message-ID: <20130318193821.C36045A4320@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:48629 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754700Ab3CRTiU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:20 -0400
-Received: by mail-ie0-f202.google.com with SMTP id k14so1315050iea.3
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:20 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:35665 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754700Ab3CRTiW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:22 -0400
+Received: by mail-oa0-f73.google.com with SMTP id o6so1315117oag.2
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-wm8350: switch to using SIMPLE_DEV_PM_OPS
+     Subject: rtc: rtc-tps6586x: switch to using SIMPLE_DEV_PM_OPS
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch
+     rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-wm8350: switch to using SIMPLE_DEV_PM_OPS
+Subject: rtc: rtc-tps6586x: switch to using SIMPLE_DEV_PM_OPS
 
 Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
 pm_ops.  It reduces code size.
@@ -43,45 +43,24 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-wm8350.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/rtc/rtc-tps6586x.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-wm8350.c
---- a/drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-wm8350.c
-@@ -339,7 +339,7 @@ static const struct rtc_class_ops wm8350
- 	.alarm_irq_enable = wm8350_rtc_alarm_irq_enable,
- };
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int wm8350_rtc_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
-@@ -375,10 +375,6 @@ static int wm8350_rtc_resume(struct devi
- 
- 	return 0;
+diff -puN drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-tps6586x.c
+--- a/drivers/rtc/rtc-tps6586x.c~rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-tps6586x.c
+@@ -333,9 +333,8 @@ static int tps6586x_rtc_resume(struct de
  }
--
--#else
--#define wm8350_rtc_suspend NULL
--#define wm8350_rtc_resume NULL
  #endif
  
- static int wm8350_rtc_probe(struct platform_device *pdev)
-@@ -469,10 +465,8 @@ static int wm8350_rtc_remove(struct plat
- 	return 0;
- }
- 
--static struct dev_pm_ops wm8350_rtc_pm_ops = {
--	.suspend = wm8350_rtc_suspend,
--	.resume = wm8350_rtc_resume,
+-static const struct dev_pm_ops tps6586x_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(tps6586x_rtc_suspend, tps6586x_rtc_resume)
 -};
-+static SIMPLE_DEV_PM_OPS(wm8350_rtc_pm_ops, wm8350_rtc_suspend,
-+			wm8350_rtc_resume);
++static SIMPLE_DEV_PM_OPS(tps6586x_pm_ops, tps6586x_rtc_suspend,
++			tps6586x_rtc_resume);
  
- static struct platform_driver wm8350_rtc_driver = {
- 	.probe = wm8350_rtc_probe,
+ static struct platform_driver tps6586x_rtc_driver = {
+ 	.driver	= {
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
