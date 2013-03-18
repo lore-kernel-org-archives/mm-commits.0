@@ -1,53 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:33:35 -0700
-Message-ID: <20130318203335.9BFA731C5BF@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] generic-dynamic-per-cpu-refcounting-doc-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:33:41 -0700
+Message-ID: <20130318203341.9D2705A44D1@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:42905 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753150Ab3CRUdg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:33:36 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so616606vea.4
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:33:36 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:50251 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752356Ab3CRUdm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:33:42 -0400
+Received: by mail-gh0-f201.google.com with SMTP id z19so614371ghb.4
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:33:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: generic-dynamic-per-cpu-refcounting-sparse-fixes-fix
+     Subject: generic-dynamic-per-cpu-refcounting-doc-fix
 has been removed from the -mm tree.  Its filename was
-     generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+     generic-dynamic-per-cpu-refcounting-doc-fix.patch
 
 This patch was dropped because it was folded into generic-dynamic-per-cpu-refcounting.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: generic-dynamic-per-cpu-refcounting-sparse-fixes-fix
+Subject: generic-dynamic-per-cpu-refcounting-doc-fix
 
-coding-style tweak
+a little tidy
 
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu-refcount.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/percpu-refcount.h |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-sparse-fixes-fix lib/percpu-refcount.c
---- a/lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-sparse-fixes-fix
-+++ a/lib/percpu-refcount.c
-@@ -52,7 +52,8 @@ static void percpu_ref_alloc(struct perc
- 		else
- 			pr_debug("created");
- 	} else {
--update_time:	new = now;
-+update_time:
-+		new = now;
- 		cmpxchg(&ref->pcpu_count, pcpu_count, new);
- 	}
- }
+diff -puN include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-doc-fix include/linux/percpu-refcount.h
+--- a/include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-doc-fix
++++ a/include/linux/percpu-refcount.h
+@@ -21,19 +21,18 @@
+  * BACKGROUND:
+  *
+  * Percpu refcounts are quite useful for performance, but if we blindly
+- * converted all refcounts to percpu counters we'd waste quite a bit of memory
+- * think about all the refcounts embedded in kobjects, files, etc. most of which
+- * aren't used much.
++ * converted all refcounts to percpu counters we'd waste quite a bit of memory.
+  *
+- * These start out as simple atomic counters - a little bigger than a bare
+- * atomic_t, 16 bytes instead of 4 - but if we exceed some arbitrary number of
+- * gets in one second, we then switch to percpu counters.
++ * Think about all the refcounts embedded in kobjects, files, etc. most of which
++ * aren't used much. These start out as simple atomic counters - a little bigger
++ * than a bare atomic_t, 16 bytes instead of 4 - but if we exceed some arbitrary
++ * number of gets in one second, we then switch to percpu counters.
+  *
+  * This heuristic isn't perfect because it'll fire if the refcount was only
+  * being used on one cpu; ideally we'd be able to count the number of cache
+  * misses on percpu_ref_get() or something similar, but that'd make the non
+  * percpu path significantly heavier/more complex. We can count the number of
+- * gets() without any extra atomic instructions, on arches that support
++ * gets() without any extra atomic instructions on arches that support
+  * atomic64_t - simply by changing the atomic_inc() to atomic_add_return().
+  *
+  * USAGE:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +106,6 @@ wait-add-wait_event_hrtimeout.patch
 aio-use-cancellation-list-lazily.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
 aio-dont-include-aioh-in-schedh-fix.patch
 aio-dont-include-aioh-in-schedh-fix-fix.patch
 aio-dont-include-aioh-in-schedh-fix-3.patch
