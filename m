@@ -1,63 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-dont-include-aioh-in-schedh-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:34:38 -0700
-Message-ID: <20130318203439.4D4685A44D1@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] aio-dont-include-aioh-in-schedh-fix-3.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:34:45 -0700
+Message-ID: <20130318203445.9C1F931C652@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:52555 "EHLO
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:52359 "EHLO
 	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753150Ab3CRUel (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:34:41 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so609263vbi.5
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:34:40 -0700 (PDT)
+	with ESMTP id S1753150Ab3CRUeq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:34:46 -0400
+Received: by mail-vb0-f74.google.com with SMTP id r6so609321vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:34:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix
+     Subject: aio-dont-include-aioh-in-schedh-fix-3
 has been removed from the -mm tree.  Its filename was
-     aio-dont-include-aioh-in-schedh-fix.patch
+     aio-dont-include-aioh-in-schedh-fix-3.patch
 
 This patch was dropped because it was folded into aio-dont-include-aioh-in-schedh.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix
+Subject: aio-dont-include-aioh-in-schedh-fix-3
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Asai Thambi S P <asamymuthupa@micron.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org> 
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Sam Bradshaw <sbradshaw@micron.com>
-Cc: Selvan Mani <smani@micron.com>
-Cc: Zach Brown <zab@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c |    1 +
+ drivers/scsi/sg.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix fs/f2fs/data.c
---- a/fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix
-+++ a/fs/f2fs/data.c
-@@ -12,6 +12,7 @@
- #include <linux/f2fs_fs.h>
- #include <linux/buffer_head.h>
- #include <linux/mpage.h>
+diff -puN drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3 drivers/scsi/sg.c
+--- a/drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3
++++ a/drivers/scsi/sg.c
+@@ -35,6 +35,7 @@ static int sg_version_num = 30534;	/* 2
+ #include <linux/sched.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
 +#include <linux/aio.h>
- #include <linux/writeback.h>
- #include <linux/backing-dev.h>
- #include <linux/blkdev.h>
+ #include <linux/errno.h>
+ #include <linux/mtio.h>
+ #include <linux/ioctl.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,8 +87,6 @@ aio-use-cancellation-list-lazily.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting.patch
 aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-dont-include-aioh-in-schedh-fix-3-fix.patch
 aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
 aio-kill-ki_retry-fix.patch
