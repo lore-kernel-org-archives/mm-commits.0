@@ -1,106 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:36:19 -0700
-Message-ID: <20130318203619.9BED65A4638@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:36:22 -0700
+Message-ID: <20130318203622.9E5F55A46AA@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:38211 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754595Ab3CRUgV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:36:21 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so439084vcb.4
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:36:20 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:57689 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754639Ab3CRUgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:36:23 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so615425yen.4
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:36:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
+To: koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
+     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix.patch
 
 This patch was dropped because it was folded into block-aio-batch-completion-for-bios-kiocbs.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
+From: Kent Overstreet <koverstreet@google.com>
+Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
 
-fix warnings
+Fix broken build when CONFIG_BLOCK=n by pulling common stuff out into a
+new header.
 
-Cc: Kent Overstreet <koverstreet@google.com>
+Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/aio.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/aio.h            |    2 +-
+ include/linux/batch_complete.h |   23 +++++++++++++++++++++++
+ include/linux/bio.h            |   10 +---------
+ 3 files changed, 25 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix include/linux/aio.h
---- a/include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
+diff -puN include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix include/linux/aio.h
+--- a/include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
 +++ a/include/linux/aio.h
-@@ -105,7 +105,10 @@ static inline void aio_put_req(struct ki
+@@ -7,7 +7,7 @@
+ #include <linux/uio.h>
+ #include <linux/rcupdate.h>
+ #include <linux/atomic.h>
+-#include <linux/rbtree.h>
++#include <linux/batch_complete.h>
  
- static inline void batch_complete_aio(struct batch_complete *batch) { }
- static inline void aio_complete_batch(struct kiocb *iocb, long res, long res2,
--				      struct batch_complete *batch) { return 0; }
-+				      struct batch_complete *batch)
-+{
-+	return;
-+}
- struct mm_struct;
- static inline void exit_aio(struct mm_struct *mm) { }
- static inline long do_io_submit(aio_context_t ctx_id, long nr,
+ struct kioctx;
+ struct kiocb;
+diff -puN /dev/null include/linux/batch_complete.h
+--- /dev/null
++++ a/include/linux/batch_complete.h
+@@ -0,0 +1,23 @@
++#ifndef _LINUX_BATCH_COMPLETE_H
++#define _LINUX_BATCH_COMPLETE_H
++
++#include <linux/rbtree.h>
++
++/*
++ * Common stuff to the aio and block code for batch completion. Everything
++ * important is elsewhere:
++ */
++
++struct bio;
++
++struct bio_list {
++	struct bio *head;
++	struct bio *tail;
++};
++
++struct batch_complete {
++	struct bio_list		bio;
++	struct rb_root		kiocb;
++};
++
++#endif
+diff -puN include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix include/linux/bio.h
+--- a/include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
++++ a/include/linux/bio.h
+@@ -24,6 +24,7 @@
+ #include <linux/mempool.h>
+ #include <linux/ioprio.h>
+ #include <linux/bug.h>
++#include <linux/batch_complete.h>
+ 
+ #ifdef CONFIG_BLOCK
+ 
+@@ -438,10 +439,6 @@ static inline bool bio_mergeable(struct
+  * member of the bio.  The bio_list also caches the last list member to allow
+  * fast access to the tail.
+  */
+-struct bio_list {
+-	struct bio *head;
+-	struct bio *tail;
+-};
+ 
+ static inline int bio_list_empty(const struct bio_list *bl)
+ {
+@@ -545,11 +542,6 @@ static inline struct bio *bio_list_get(s
+ 	return bio;
+ }
+ 
+-struct batch_complete {
+-	struct bio_list		bio;
+-	struct rb_root		kiocb;
+-};
+-
+ void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
+ 
+ static inline void batch_complete_init(struct batch_complete *batch)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from koverstreet@google.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-mips-define-kvm_user_mem_slots.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
+mm-remove-old-aio-use_mm-comment.patch
+aio-remove-dead-code-from-aioh.patch
+gadget-remove-only-user-of-aio-retry.patch
+aio-remove-retry-based-aio.patch
+char-add-aio_readwrite-to-dev-nullzero.patch
+aio-kill-return-value-of-aio_complete.patch
 aio-kiocb_cancel.patch
+aio-move-private-stuff-out-of-aioh.patch
+aio-dprintk-pr_debug.patch
+aio-do-fget-after-aio_get_req.patch
+aio-make-aio_put_req-lockless.patch
+aio-refcounting-cleanup.patch
 wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
+aio-use-flush_dcache_page.patch
 aio-use-cancellation-list-lazily.patch
+aio-change-reqs_active-to-include-unreaped-completions.patch
+aio-kill-batch-allocation.patch
+aio-kill-struct-aio_ring_info.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
+aio-reqs_active-reqs_available.patch
+aio-percpu-reqs_available.patch
 generic-dynamic-per-cpu-refcounting.patch
+aio-percpu-ioctx-refcount.patch
+aio-use-xchg-instead-of-completion_lock.patch
 aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_key.patch
 aio-kill-ki_retry.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch
+virtio-blk-convert-to-batch-completion.patch
+mtip32xx-convert-to-batch-completion.patch
+mtip32xx-convert-to-batch-completion-fix.patch
+aio-fix-aio_read_events_ring-types.patch
+aio-document-clarify-aio_read_events-and-shadow_tail.patch
+aio-correct-calculation-of-available-events.patch
+aio-v2-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
+aio-v3-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 
