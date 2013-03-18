@@ -1,49 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-dont-include-aioh-in-schedh-fix-3.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:34:45 -0700
-Message-ID: <20130318203445.9C1F931C652@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] aio-dont-include-aioh-in-schedh-fix-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:34:42 -0700
+Message-ID: <20130318203442.9BCD65A44D1@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:52359 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753150Ab3CRUeq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:34:46 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so609321vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:34:46 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:57798 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753150Ab3CRUen (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:34:43 -0400
+Received: by mail-qa0-f74.google.com with SMTP id o13so331651qaj.3
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:34:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix-3
+     Subject: aio-dont-include-aioh-in-schedh-fix-fix
 has been removed from the -mm tree.  Its filename was
-     aio-dont-include-aioh-in-schedh-fix-3.patch
+     aio-dont-include-aioh-in-schedh-fix-fix.patch
 
 This patch was dropped because it was folded into aio-dont-include-aioh-in-schedh.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix-3
+Subject: aio-dont-include-aioh-in-schedh-fix-fix
 
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sg.c |    1 +
+ fs/fuse/cuse.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3 drivers/scsi/sg.c
---- a/drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3
-+++ a/drivers/scsi/sg.c
-@@ -35,6 +35,7 @@ static int sg_version_num = 30534;	/* 2
- #include <linux/sched.h>
- #include <linux/string.h>
- #include <linux/mm.h>
+diff -puN fs/fuse/cuse.c~aio-dont-include-aioh-in-schedh-fix-fix fs/fuse/cuse.c
+--- a/fs/fuse/cuse.c~aio-dont-include-aioh-in-schedh-fix-fix
++++ a/fs/fuse/cuse.c
+@@ -38,6 +38,7 @@
+ #include <linux/device.h>
+ #include <linux/file.h>
+ #include <linux/fs.h>
 +#include <linux/aio.h>
- #include <linux/errno.h>
- #include <linux/mtio.h>
- #include <linux/ioctl.h>
+ #include <linux/kdev_t.h>
+ #include <linux/kthread.h>
+ #include <linux/list.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +87,7 @@ aio-use-cancellation-list-lazily.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting.patch
 aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-dont-include-aioh-in-schedh-fix-3-fix.patch
 aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
 aio-kill-ki_retry-fix.patch
