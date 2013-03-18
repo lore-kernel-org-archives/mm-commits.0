@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + argv_split-teach-it-to-handle-mutable-strings.patch added to -mm tree
-Date: Mon, 18 Mar 2013 14:53:43 -0700
-Message-ID: <20130318215343.C870531C233@corp2gmr1-1.hot.corp.google.com>
+Subject: + argv_split-teach-it-to-handle-mutable-strings-fix.patch added to -mm tree
+Date: Mon, 18 Mar 2013 14:53:45 -0700
+Message-ID: <20130318215345.C17D231C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:43204 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756269Ab3CRVxp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 17:53:45 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so626580qen.2
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 14:53:44 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:49677 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757209Ab3CRVxr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 17:53:47 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so628300qcs.3
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 14:53:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, andi@firstfloor.org
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, oleg@redhat.com
 
 
 The patch titled
-     Subject: argv_split(): teach it to handle mutable strings
+     Subject: argv_split-teach-it-to-handle-mutable-strings-fix
 has been added to the -mm tree.  Its filename is
-     argv_split-teach-it-to-handle-mutable-strings.patch
+     argv_split-teach-it-to-handle-mutable-strings-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,181 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: argv_split(): teach it to handle mutable strings
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: argv_split-teach-it-to-handle-mutable-strings-fix
 
-argv_split() allocates argv[count_argc(str)] array and assumes that it
-will find the same number of arguments later.  This is obviously wrong if
-this string can be changed, say, by sysctl.
-
-With this patch argv_split() kstrndup's the whole string and does not
-split it, we simply replace the spaces with zeroes and keep the allocated
-memory in argv[-1] for argv_free(arg).
-
-We do not use argv[0] because:
-
-	- str can be all-spaces or empty. In fact this case is fine,
-	  we could kfree() it before return, but:
-
-	- str can have a space at the start, and we can not rely on
-	  kstrndup(skip_spaces(str)) because it can equally race if
-	  this string is mutable.
-
-Also, simplify count_argc() and kill the no longer used skip_arg().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/argv_split.c |   83 +++++++++++++++++++--------------------------
- 1 file changed, 36 insertions(+), 47 deletions(-)
+ lib/argv_split.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings lib/argv_split.c
---- a/lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings
+diff -puN lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings-fix lib/argv_split.c
+--- a/lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings-fix
 +++ a/lib/argv_split.c
-@@ -8,23 +8,17 @@
- #include <linux/slab.h>
- #include <linux/export.h>
- 
--static const char *skip_arg(const char *cp)
--{
--	while (*cp && !isspace(*cp))
--		cp++;
--
--	return cp;
--}
--
- static int count_argc(const char *str)
- {
- 	int count = 0;
-+	bool was_space;
- 
--	while (*str) {
--		str = skip_spaces(str);
--		if (*str) {
-+	for (was_space = true; *str; str++) {
-+		if (isspace(*str)) {
-+			was_space = true;
-+		} else if (was_space) {
-+			was_space = false;
- 			count++;
--			str = skip_arg(str);
- 		}
- 	}
- 
-@@ -39,10 +33,8 @@ static int count_argc(const char *str)
-  */
- void argv_free(char **argv)
- {
--	char **p;
--	for (p = argv; *p; p++)
--		kfree(*p);
--
-+	argv--;
-+	kfree(argv[0]);
- 	kfree(argv);
- }
- EXPORT_SYMBOL(argv_free);
-@@ -62,40 +54,37 @@ EXPORT_SYMBOL(argv_free);
+@@ -51,6 +51,10 @@ EXPORT_SYMBOL(argv_free);
+  * considered to be a single argument separator.  The returned array
+  * is always NULL-terminated.  Returns NULL on memory allocation
+  * failure.
++ *
++ * The source string at `str' may be undergoing concurrent alteration via
++ * userspace sysctl activity (at least).  The argv_split() implementation
++ * attempts to handle this gracefully by taking a local copy to work on.
   */
  char **argv_split(gfp_t gfp, const char *str, int *argcp)
  {
--	int argc = count_argc(str);
--	char **argv = kzalloc(sizeof(*argv) * (argc+1), gfp);
--	char **argvp;
--
--	if (argv == NULL)
--		goto out;
--
--	if (argcp)
--		*argcp = argc;
--
--	argvp = argv;
--
--	while (*str) {
--		str = skip_spaces(str);
--
--		if (*str) {
--			const char *p = str;
--			char *t;
--
--			str = skip_arg(str);
-+	char *argv_str;
-+	bool was_space;
-+	char **argv, **argv_ret;
-+	int argc;
-+
-+	argv_str = kstrndup(str, KMALLOC_MAX_SIZE, gfp);
-+	if (!argv_str)
-+		return NULL;
-+
-+	argc = count_argc(argv_str);
-+	argv = kmalloc(sizeof(*argv) * (argc + 2), gfp);
-+	if (!argv) {
-+		kfree(argv_str);
-+		return NULL;
-+	}
- 
--			t = kstrndup(p, str-p, gfp);
--			if (t == NULL)
--				goto fail;
--			*argvp++ = t;
-+	*argv = argv_str;
-+	argv_ret = ++argv;
-+	for (was_space = true; *argv_str; argv_str++) {
-+		if (isspace(*argv_str)) {
-+			was_space = true;
-+			*argv_str = 0;
-+		} else if (was_space) {
-+			was_space = false;
-+			*argv++ = argv_str;
- 		}
- 	}
--	*argvp = NULL;
--
--  out:
--	return argv;
-+	*argv = NULL;
- 
--  fail:
--	argv_free(argv);
--	return NULL;
-+	if (argcp)
-+		*argcp = argc;
-+	return argv_ret;
- }
- EXPORT_SYMBOL(argv_split);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-poweroff-change-orderly_poweroff-to-use-schedule_work.patch
-thinkpad-acpi-kill-hotkey_thread_mutex.patch
-kthread-introduce-to_live_kthread.patch
-kthread-kill-task_get_live_kthread.patch
-posix_cpu_timer-consolidate-expiry-time-type.patch
-posix_cpu_timers-consolidate-timer-list-cleanups.patch
-posix_cpu_timers-consolidate-expired-timers-check.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-argv_split-teach-it-to-handle-mutable-strings.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+mips-define-kvm_user_mem_slots.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
 argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-use-rcu-to-protect-wakeup_source-in-epitem.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
-usermodehelper-export-_exec-and-_setup-functions.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
 usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kmod-split-call-to-call_usermodehelper_fns.patch
-keys-split-call-to-call_usermodehelper_fns.patch
-coredump-remove-trailling-whitespaces.patch
-split-remaining-calls-to-call_usermodehelper_fns.patch
-kmod-remove-call_usermodehelper_fns.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-introduce-dump_interrupted.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
-set_task_comm-kill-the-pointless-memset-wmb.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel.patch
+wait-add-wait_event_hrtimeout.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
