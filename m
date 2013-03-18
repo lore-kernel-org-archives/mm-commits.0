@@ -1,51 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-use-cancellation-list-lazily-fix-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:32:16 -0700
-Message-ID: <20130318203216.9D52331C022@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:33:01 -0700
+Message-ID: <20130318203301.D07F35A44D1@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:57547 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318Ab3CRUcS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:32:18 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so616834qen.2
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:32:17 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:62671 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755038Ab3CRUdE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:33:04 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so616796ves.1
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:33:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-use-cancellation-list-lazily-fix-fix
+     Subject: aio-give-shared-kioctx-fields-their-own-cachelines-fix
 has been removed from the -mm tree.  Its filename was
-     aio-use-cancellation-list-lazily-fix-fix.patch
+     aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
 
-This patch was dropped because it was folded into aio-use-cancellation-list-lazily.patch
+This patch was dropped because it was folded into aio-give-shared-kioctx-fields-their-own-cachelines.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-use-cancellation-list-lazily-fix-fix
+Subject: aio-give-shared-kioctx-fields-their-own-cachelines-fix
 
-Kent's on Krack
+make reqs_active __cacheline_aligned_in_smp
 
 Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Zach Brown <zab@redhat.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Selvan Mani <smani@micron.com>
+Cc: Sam Bradshaw <sbradshaw@micron.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/aio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-use-cancellation-list-lazily-fix-fix fs/aio.c
---- a/fs/aio.c~aio-use-cancellation-list-lazily-fix-fix
+diff -puN fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines-fix fs/aio.c
+--- a/fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines-fix
 +++ a/fs/aio.c
-@@ -254,7 +254,6 @@ static int kiocb_cancel(struct kioctx *c
- 		if (!cancel || cancel == KIOCB_CANCELLED)
- 			return ret;
+@@ -83,7 +83,7 @@ struct kioctx {
  
--		BUG();
- 		old = cancel;
- 		cancel = cmpxchg(&kiocb->ki_cancel, old, KIOCB_CANCELLED);
- 	} while (cancel != old);
+ 	struct {
+ 		atomic_t	reqs_active;
+-	} ____cacheline_aligned;
++	} ____cacheline_aligned_in_smp;
+ 
+ 	struct {
+ 		spinlock_t	ctx_lock;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,7 +100,7 @@ drivers-net-rename-random32-to-prandom_u32-fix.patch
 aio-kiocb_cancel.patch
 wait-add-wait_event_hrtimeout.patch
 aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting-fix.patch
 generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
 generic-dynamic-per-cpu-refcounting-doc-fix.patch
