@@ -1,65 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:33:01 -0700
-Message-ID: <20130318203301.D07F35A44D1@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] generic-dynamic-per-cpu-refcounting-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:33:29 -0700
+Message-ID: <20130318203329.7D62931C5BF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:62671 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038Ab3CRUdE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:33:04 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so616796ves.1
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:33:03 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:33310 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753566Ab3CRUda (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:33:30 -0400
+Received: by mail-gg0-f202.google.com with SMTP id l4so614262ggi.5
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:33:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-give-shared-kioctx-fields-their-own-cachelines-fix
+     Subject: generic-dynamic-per-cpu-refcounting-fix
 has been removed from the -mm tree.  Its filename was
-     aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+     generic-dynamic-per-cpu-refcounting-fix.patch
 
-This patch was dropped because it was folded into aio-give-shared-kioctx-fields-their-own-cachelines.patch
+This patch was dropped because it was folded into generic-dynamic-per-cpu-refcounting.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-give-shared-kioctx-fields-their-own-cachelines-fix
+Subject: generic-dynamic-per-cpu-refcounting-fix
 
-make reqs_active __cacheline_aligned_in_smp
+lib/percpu-refcount.c: In function 'percpu_ref_init':
+lib/percpu-refcount.c:22: error: 'jiffies' undeclared (first use in this function)
+lib/percpu-refcount.c:22: error: (Each undeclared identifier is reported only once
+lib/percpu-refcount.c:22: error: for each function it appears in.)
+lib/percpu-refcount.c: In function 'percpu_ref_alloc':
+lib/percpu-refcount.c:36: error: 'jiffies' undeclared (first use in this function)
+lib/percpu-refcount.c:41: error: 'HZ' undeclared (first use in this function)
 
 Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Zach Brown <zab@redhat.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Asai Thambi S P <asamymuthupa@micron.com>
-Cc: Selvan Mani <smani@micron.com>
-Cc: Sam Bradshaw <sbradshaw@micron.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/percpu-refcount.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines-fix fs/aio.c
---- a/fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines-fix
-+++ a/fs/aio.c
-@@ -83,7 +83,7 @@ struct kioctx {
+diff -puN lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-fix lib/percpu-refcount.c
+--- a/lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-fix
++++ a/lib/percpu-refcount.c
+@@ -1,6 +1,7 @@
+ #define pr_fmt(fmt) "%s: " fmt "\n", __func__
  
- 	struct {
- 		atomic_t	reqs_active;
--	} ____cacheline_aligned;
-+	} ____cacheline_aligned_in_smp;
+ #include <linux/kernel.h>
++#include <linux/jiffies.h>
+ #include <linux/percpu-refcount.h>
+ #include <linux/rcupdate.h>
  
- 	struct {
- 		spinlock_t	ctx_lock;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,7 +93,7 @@ aio-kiocb_cancel.patch
 wait-add-wait_event_hrtimeout.patch
 aio-use-cancellation-list-lazily.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting.patch
 generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
 generic-dynamic-per-cpu-refcounting-doc-fix.patch
 aio-dont-include-aioh-in-schedh-fix.patch
