@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
-Date: Mon, 18 Mar 2013 12:38:11 -0700
-Message-ID: <20130318193811.C1CFF5A4320@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
+Date: Mon, 18 Mar 2013 12:38:13 -0700
+Message-ID: <20130318193813.BDFE35A4320@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:37689 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754700Ab3CRTiM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:12 -0400
-Received: by mail-ie0-f202.google.com with SMTP id k14so1315375iea.1
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:12 -0700 (PDT)
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:34218 "EHLO
+	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754700Ab3CRTiO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:14 -0400
+Received: by mail-ia0-f201.google.com with SMTP id t4so1314152iag.0
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-pxa: switch to using SIMPLE_DEV_PM_OPS
+     Subject: rtc: rtc-rc5t583: switch to using SIMPLE_DEV_PM_OPS
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops.patch
+     rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pxa: switch to using SIMPLE_DEV_PM_OPS
+Subject: rtc: rtc-rc5t583: switch to using SIMPLE_DEV_PM_OPS
 
 Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
 pm_ops.  It reduces code size.
@@ -43,42 +43,46 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pxa.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-rc5t583.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-pxa.c~rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-pxa.c
---- a/drivers/rtc/rtc-pxa.c~rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-pxa.c
-@@ -466,7 +466,7 @@ static struct of_device_id pxa_rtc_dt_id
- MODULE_DEVICE_TABLE(of, pxa_rtc_dt_ids);
- #endif
+diff -puN drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-rc5t583.c
+--- a/drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-rc5t583.c
+@@ -280,7 +280,6 @@ static int rc5t583_rtc_remove(struct pla
+ }
  
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int pxa_rtc_suspend(struct device *dev)
+ #ifdef CONFIG_PM_SLEEP
+-
+ static int rc5t583_rtc_suspend(struct device *dev)
  {
- 	struct pxa_rtc *pxa_rtc = dev_get_drvdata(dev);
-@@ -484,21 +484,16 @@ static int pxa_rtc_resume(struct device
- 		disable_irq_wake(pxa_rtc->irq_Alrm);
- 	return 0;
+ 	struct rc5t583 *rc5t583 = dev_get_drvdata(dev->parent);
+@@ -302,24 +301,18 @@ static int rc5t583_rtc_resume(struct dev
+ 	return regmap_write(rc5t583->regmap, RC5T583_RTC_CTL1,
+ 		rc5t583_rtc->irqen);
  }
 -
--static const struct dev_pm_ops pxa_rtc_pm_ops = {
--	.suspend	= pxa_rtc_suspend,
--	.resume		= pxa_rtc_resume,
+-static const struct dev_pm_ops rc5t583_rtc_pm_ops = {
+-	.suspend	= rc5t583_rtc_suspend,
+-	.resume		= rc5t583_rtc_resume,
 -};
+-
+-#define DEV_PM_OPS     (&rc5t583_rtc_pm_ops)
+-#else
+-#define DEV_PM_OPS     NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(pxa_rtc_pm_ops, pxa_rtc_suspend, pxa_rtc_resume);
++static SIMPLE_DEV_PM_OPS(rc5t583_rtc_pm_ops, rc5t583_rtc_suspend,
++			rc5t583_rtc_resume);
 +
- static struct platform_driver pxa_rtc_driver = {
- 	.remove		= __exit_p(pxa_rtc_remove),
+ static struct platform_driver rc5t583_rtc_driver = {
+ 	.probe		= rc5t583_rtc_probe,
+ 	.remove		= rc5t583_rtc_remove,
  	.driver		= {
- 		.name	= "pxa-rtc",
- 		.of_match_table = of_match_ptr(pxa_rtc_dt_ids),
--#ifdef CONFIG_PM
- 		.pm	= &pxa_rtc_pm_ops,
--#endif
+ 		.owner	= THIS_MODULE,
+ 		.name	= "rtc-rc5t583",
+-		.pm	= DEV_PM_OPS,
++		.pm	= &rc5t583_rtc_pm_ops,
  	},
  };
  
