@@ -1,112 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:36:28 -0700
-Message-ID: <20130318203628.963235A4638@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:36:46 -0700
+Message-ID: <20130318203647.4F2AA31C25D@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:57876 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754639Ab3CRUga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:36:30 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so617082vea.2
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:36:29 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:52045 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754054Ab3CRUgs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:36:48 -0400
+Received: by mail-gg0-f202.google.com with SMTP id l4so614938ggi.1
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:36:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, koverstreet@google.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: koverstreet@google.com, Valdis.Kletnieks@vt.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
+     Subject: aio: Fix a null pointer deref in batch_complete_aio
 has been removed from the -mm tree.  Its filename was
-     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch
 
 This patch was dropped because it was folded into block-aio-batch-completion-for-bios-kiocbs.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
+From: Kent Overstreet <koverstreet@google.com>
+Subject: aio: Fix a null pointer deref in batch_complete_aio
 
-fix tracepoint in batch_complete()
+The batch completion code was trying to be a bit too clever, and skip
+checking ctx where it couldn't be NULL - but that broke if a kiocb had
+been cancelled. Move the check to kioctx_ring_unlock().
 
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Kent Overstreet <koverstreet@google.com>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/aio.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/bio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix fs/bio.c
---- a/fs/bio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
-+++ a/fs/bio.c
-@@ -1426,6 +1426,8 @@ void bio_endio_batch(struct bio *bio, in
- 	if (error)
- 		bio->bi_error = error;
+diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix fs/aio.c
+--- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix
++++ a/fs/aio.c
+@@ -680,6 +680,9 @@ static inline void kioctx_ring_unlock(st
+ {
+ 	struct aio_ring *ring;
  
-+	trace_block_bio_complete(bio, error);
++	if (!ctx)
++		return;
 +
- 	if (batch)
- 		bio_list_add(&batch->bio, bio);
- 	else
-@@ -1441,8 +1443,6 @@ void batch_complete(struct batch_complet
- 	while ((bio = bio_list_pop(&batch->bio)))
- 		__bio_endio(bio, batch);
+ 	smp_wmb();
+ 	/* make event visible before updating tail */
  
--	trace_block_bio_complete(bio, error);
--
- 	batch_complete_aio(batch);
- }
- EXPORT_SYMBOL(batch_complete);
+@@ -757,8 +760,7 @@ void batch_complete_aio(struct batch_com
+ 		}
+ 
+ 		if (unlikely(req->ki_ctx != ctx)) {
+-			if (ctx)
+-				kioctx_ring_unlock(ctx, tail);
++			kioctx_ring_unlock(ctx, tail);
+ 
+ 			ctx = req->ki_ctx;
+ 			tail = kioctx_ring_lock(ctx);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from koverstreet@google.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-mips-define-kvm_user_mem_slots.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
+mm-remove-old-aio-use_mm-comment.patch
+aio-remove-dead-code-from-aioh.patch
+gadget-remove-only-user-of-aio-retry.patch
+aio-remove-retry-based-aio.patch
+char-add-aio_readwrite-to-dev-nullzero.patch
+aio-kill-return-value-of-aio_complete.patch
 aio-kiocb_cancel.patch
+aio-move-private-stuff-out-of-aioh.patch
+aio-dprintk-pr_debug.patch
+aio-do-fget-after-aio_get_req.patch
+aio-make-aio_put_req-lockless.patch
+aio-refcounting-cleanup.patch
 wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
+aio-use-flush_dcache_page.patch
 aio-use-cancellation-list-lazily.patch
+aio-change-reqs_active-to-include-unreaped-completions.patch
+aio-kill-batch-allocation.patch
+aio-kill-struct-aio_ring_info.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
+aio-reqs_active-reqs_available.patch
+aio-percpu-reqs_available.patch
 generic-dynamic-per-cpu-refcounting.patch
+aio-percpu-ioctx-refcount.patch
+aio-use-xchg-instead-of-completion_lock.patch
 aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_key.patch
 aio-kill-ki_retry.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+virtio-blk-convert-to-batch-completion.patch
+mtip32xx-convert-to-batch-completion.patch
+mtip32xx-convert-to-batch-completion-fix.patch
+aio-fix-aio_read_events_ring-types.patch
+aio-document-clarify-aio_read_events-and-shadow_tail.patch
+aio-correct-calculation-of-available-events.patch
+aio-v2-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
+aio-v3-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 
