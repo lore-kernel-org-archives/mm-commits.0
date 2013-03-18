@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
-Date: Mon, 18 Mar 2013 12:38:07 -0700
-Message-ID: <20130318193807.C0EFA31C2F2@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
+Date: Mon, 18 Mar 2013 12:38:09 -0700
+Message-ID: <20130318193809.C0C4231C2F2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:58637 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753258Ab3CRTiI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:08 -0400
-Received: by mail-ob0-f201.google.com with SMTP id un3so1314635obb.2
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:08 -0700 (PDT)
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:50787 "EHLO
+	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754700Ab3CRTiL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:11 -0400
+Received: by mail-ia0-f201.google.com with SMTP id t4so1314129iag.0
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-at91rm9200: switch to using SIMPLE_DEV_PM_OPS
+     Subject: rtc: rtc-mxc: switch to using SIMPLE_DEV_PM_OPS
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch
+     rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-at91rm9200: switch to using SIMPLE_DEV_PM_OPS
+Subject: rtc: rtc-mxc: switch to using SIMPLE_DEV_PM_OPS
 
 Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
 pm_ops.  It reduces code size.
@@ -43,49 +43,43 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-mxc.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -337,7 +337,7 @@ static int __exit at91_rtc_remove(struct
+diff -puN drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-mxc.c
+@@ -470,7 +470,7 @@ static int mxc_rtc_remove(struct platfor
  	return 0;
  }
  
 -#ifdef CONFIG_PM
 +#ifdef CONFIG_PM_SLEEP
+ static int mxc_rtc_suspend(struct device *dev)
+ {
+ 	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
+@@ -490,19 +490,14 @@ static int mxc_rtc_resume(struct device
  
- /* AT91RM9200 RTC Power management control */
- 
-@@ -369,24 +369,16 @@ static int at91_rtc_resume(struct device
- 	}
  	return 0;
  }
 -
--static const struct dev_pm_ops at91_rtc_pm = {
--	.suspend =	at91_rtc_suspend,
--	.resume =	at91_rtc_resume,
+-static struct dev_pm_ops mxc_rtc_pm_ops = {
+-	.suspend	= mxc_rtc_suspend,
+-	.resume		= mxc_rtc_resume,
 -};
--
--#define at91_rtc_pm_ptr	&at91_rtc_pm
--
--#else
--#define at91_rtc_pm_ptr	NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops, at91_rtc_suspend, at91_rtc_resume);
++static SIMPLE_DEV_PM_OPS(mxc_rtc_pm_ops, mxc_rtc_suspend, mxc_rtc_resume);
 +
- static struct platform_driver at91_rtc_driver = {
- 	.remove		= __exit_p(at91_rtc_remove),
- 	.driver		= {
- 		.name	= "at91_rtc",
- 		.owner	= THIS_MODULE,
--		.pm	= at91_rtc_pm_ptr,
-+		.pm	= &at91_rtc_pm_ops,
+ static struct platform_driver mxc_rtc_driver = {
+ 	.driver = {
+ 		   .name	= "mxc_rtc",
+-#ifdef CONFIG_PM
+ 		   .pm		= &mxc_rtc_pm_ops,
+-#endif
+ 		   .owner	= THIS_MODULE,
  	},
- };
- 
+ 	.id_table = imx_rtc_devtype,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
