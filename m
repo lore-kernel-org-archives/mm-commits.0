@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + set_task_comm-kill-the-pointless-memset-wmb.patch added to -mm tree
-Date: Mon, 18 Mar 2013 14:36:21 -0700
-Message-ID: <20130318213621.79F8331C240@corp2gmr1-1.hot.corp.google.com>
+Subject: + argv_split-teach-it-to-handle-mutable-strings.patch added to -mm tree
+Date: Mon, 18 Mar 2013 14:53:43 -0700
+Message-ID: <20130318215343.C870531C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:60490 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754532Ab3CRVgW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 17:36:22 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so624138vea.4
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 14:36:22 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:43204 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756269Ab3CRVxp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 17:53:45 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so626580qen.2
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 14:53:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, andi@firstfloor.org, johnstul@us.ibm.com
+Cc: oleg@redhat.com, andi@firstfloor.org
 
 
 The patch titled
-     Subject: set_task_comm: kill the pointless memset() + wmb()
+     Subject: argv_split(): teach it to handle mutable strings
 has been added to the -mm tree.  Its filename is
-     set_task_comm-kill-the-pointless-memset-wmb.patch
+     argv_split-teach-it-to-handle-mutable-strings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,150 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: set_task_comm: kill the pointless memset() + wmb()
+Subject: argv_split(): teach it to handle mutable strings
 
-set_task_comm() does memset() + wmb() before strlcpy().  This buys nothing
-and to add to the confusion, the comment is wrong.
+argv_split() allocates argv[count_argc(str)] array and assumes that it
+will find the same number of arguments later.  This is obviously wrong if
+this string can be changed, say, by sysctl.
 
-- We do not need memset() to be "safe from non-terminating string
-  reads", the final char is always zero and we never change it.
+With this patch argv_split() kstrndup's the whole string and does not
+split it, we simply replace the spaces with zeroes and keep the allocated
+memory in argv[-1] for argv_free(arg).
 
-- wmb() is paired with nothing, it cannot prevent from printing
-  the mixture of the old/new data unless the reader takes the lock.
+We do not use argv[0] because:
+
+	- str can be all-spaces or empty. In fact this case is fine,
+	  we could kfree() it before return, but:
+
+	- str can have a space at the start, and we can not rely on
+	  kstrndup(skip_spaces(str)) because it can equally race if
+	  this string is mutable.
+
+Also, simplify count_argc() and kill the no longer used skip_arg().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: John Stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ lib/argv_split.c |   83 +++++++++++++++++++--------------------------
+ 1 file changed, 36 insertions(+), 47 deletions(-)
 
-diff -puN fs/exec.c~set_task_comm-kill-the-pointless-memset-wmb fs/exec.c
---- a/fs/exec.c~set_task_comm-kill-the-pointless-memset-wmb
-+++ a/fs/exec.c
-@@ -1027,17 +1027,7 @@ EXPORT_SYMBOL_GPL(get_task_comm);
- void set_task_comm(struct task_struct *tsk, char *buf)
+diff -puN lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings lib/argv_split.c
+--- a/lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings
++++ a/lib/argv_split.c
+@@ -8,23 +8,17 @@
+ #include <linux/slab.h>
+ #include <linux/export.h>
+ 
+-static const char *skip_arg(const char *cp)
+-{
+-	while (*cp && !isspace(*cp))
+-		cp++;
+-
+-	return cp;
+-}
+-
+ static int count_argc(const char *str)
  {
- 	task_lock(tsk);
+ 	int count = 0;
++	bool was_space;
+ 
+-	while (*str) {
+-		str = skip_spaces(str);
+-		if (*str) {
++	for (was_space = true; *str; str++) {
++		if (isspace(*str)) {
++			was_space = true;
++		} else if (was_space) {
++			was_space = false;
+ 			count++;
+-			str = skip_arg(str);
+ 		}
+ 	}
+ 
+@@ -39,10 +33,8 @@ static int count_argc(const char *str)
+  */
+ void argv_free(char **argv)
+ {
+-	char **p;
+-	for (p = argv; *p; p++)
+-		kfree(*p);
 -
- 	trace_task_rename(tsk, buf);
++	argv--;
++	kfree(argv[0]);
+ 	kfree(argv);
+ }
+ EXPORT_SYMBOL(argv_free);
+@@ -62,40 +54,37 @@ EXPORT_SYMBOL(argv_free);
+  */
+ char **argv_split(gfp_t gfp, const char *str, int *argcp)
+ {
+-	int argc = count_argc(str);
+-	char **argv = kzalloc(sizeof(*argv) * (argc+1), gfp);
+-	char **argvp;
 -
--	/*
--	 * Threads may access current->comm without holding
--	 * the task lock, so write the string carefully.
--	 * Readers without a lock may see incomplete new
--	 * names but are safe from non-terminating string reads.
--	 */
--	memset(tsk->comm, 0, TASK_COMM_LEN);
--	wmb();
- 	strlcpy(tsk->comm, buf, sizeof(tsk->comm));
- 	task_unlock(tsk);
- 	perf_event_comm(tsk);
+-	if (argv == NULL)
+-		goto out;
+-
+-	if (argcp)
+-		*argcp = argc;
+-
+-	argvp = argv;
+-
+-	while (*str) {
+-		str = skip_spaces(str);
+-
+-		if (*str) {
+-			const char *p = str;
+-			char *t;
+-
+-			str = skip_arg(str);
++	char *argv_str;
++	bool was_space;
++	char **argv, **argv_ret;
++	int argc;
++
++	argv_str = kstrndup(str, KMALLOC_MAX_SIZE, gfp);
++	if (!argv_str)
++		return NULL;
++
++	argc = count_argc(argv_str);
++	argv = kmalloc(sizeof(*argv) * (argc + 2), gfp);
++	if (!argv) {
++		kfree(argv_str);
++		return NULL;
++	}
+ 
+-			t = kstrndup(p, str-p, gfp);
+-			if (t == NULL)
+-				goto fail;
+-			*argvp++ = t;
++	*argv = argv_str;
++	argv_ret = ++argv;
++	for (was_space = true; *argv_str; argv_str++) {
++		if (isspace(*argv_str)) {
++			was_space = true;
++			*argv_str = 0;
++		} else if (was_space) {
++			was_space = false;
++			*argv++ = argv_str;
+ 		}
+ 	}
+-	*argvp = NULL;
+-
+-  out:
+-	return argv;
++	*argv = NULL;
+ 
+-  fail:
+-	argv_free(argv);
+-	return NULL;
++	if (argcp)
++		*argcp = argc;
++	return argv_ret;
+ }
+ EXPORT_SYMBOL(argv_split);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -88,7 +191,8 @@ posix_cpu_timers-consolidate-timer-list-cleanups.patch
 posix_cpu_timers-consolidate-expired-timers-check.patch
 lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
 lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-teach-argv_split-to-handle-the-mutable-strings.patch
+argv_split-teach-it-to-handle-mutable-strings.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
 epoll-use-rcu-to-protect-wakeup_source-in-epitem.patch
 ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
 selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
