@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch removed from -mm tree
-Date: Mon, 18 Mar 2013 13:34:51 -0700
-Message-ID: <20130318203451.A02EE5A44D1@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] aio-kill-ki_retry-fix.patch removed from -mm tree
+Date: Mon, 18 Mar 2013 13:35:40 -0700
+Message-ID: <20130318203540.CD69831C6A2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:34242 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755204Ab3CRUew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:34:52 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so614339ghb.0
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:34:52 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:46312 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755149Ab3CRUfm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 16:35:42 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so614292ggn.4
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 13:35:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, fengguang.wu@intel.com, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix-3-fix-fix
+     Subject: aio-kill-ki_retry-fix
 has been removed from the -mm tree.  Its filename was
-     aio-dont-include-aioh-in-schedh-fix-3-fix-fix.patch
+     aio-kill-ki_retry-fix.patch
 
-This patch was dropped because it was folded into aio-dont-include-aioh-in-schedh.patch
+This patch was dropped because it was folded into aio-kill-ki_retry.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix-3-fix-fix
+Subject: aio-kill-ki_retry-fix
 
-fix build
+use fmode_t in aio_run_iocb()
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Cc: Kent Overstreet <koverstreet@google.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/aio.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/writeback.h~aio-dont-include-aioh-in-schedh-fix-3-fix-fix include/linux/writeback.h
---- a/include/linux/writeback.h~aio-dont-include-aioh-in-schedh-fix-3-fix-fix
-+++ a/include/linux/writeback.h
-@@ -5,6 +5,7 @@
- #define WRITEBACK_H
+diff -puN fs/aio.c~aio-kill-ki_retry-fix fs/aio.c
+--- a/fs/aio.c~aio-kill-ki_retry-fix
++++ a/fs/aio.c
+@@ -1043,7 +1043,8 @@ static ssize_t aio_run_iocb(struct kiocb
+ {
+ 	struct file *file = req->ki_filp;
+ 	ssize_t ret;
+-	int rw, mode;
++	int rw;
++	fmode_t mode;
+ 	aio_rw_op *rw_op;
  
- #include <linux/sched.h>
-+#include <linux/workqueue.h>
- #include <linux/fs.h>
- 
- DECLARE_PER_CPU(int, dirty_throttle_leaks);
+ 	switch (req->ki_opcode) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +92,7 @@ aio-use-cancellation-list-lazily.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting.patch
 aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
