@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
-Date: Mon, 18 Mar 2013 12:38:25 -0700
-Message-ID: <20130318193825.BDAEA5A4320@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch added to -mm tree
+Date: Mon, 18 Mar 2013 12:38:23 -0700
+Message-ID: <20130318193823.B9FCF5A4321@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:58642 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754700Ab3CRTi0 (ORCPT
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:42257 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754793Ab3CRTi0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 15:38:26 -0400
-Received: by mail-ie0-f202.google.com with SMTP id k14so1314904iea.5
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:26 -0700 (PDT)
+Received: by mail-oa0-f74.google.com with SMTP id k14so1314519oag.5
+        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 12:38:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-tps80031: switch to using SIMPLE_DEV_PM_OPS
+     Subject: rtc: rtc-tps65910: switch to using SIMPLE_DEV_PM_OPS
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch
+     rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tps80031: switch to using SIMPLE_DEV_PM_OPS
+Subject: rtc: rtc-tps65910: switch to using SIMPLE_DEV_PM_OPS
 
 Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
 pm_ops.  It reduces code size.
@@ -43,24 +43,24 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps80031.c |    5 ++---
+ drivers/rtc/rtc-tps65910.c |    5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-tps80031.c
---- a/drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-tps80031.c
-@@ -323,9 +323,8 @@ static int tps80031_rtc_resume(struct de
- };
+diff -puN drivers/rtc/rtc-tps65910.c~rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-tps65910.c
+--- a/drivers/rtc/rtc-tps65910.c~rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-tps65910.c
+@@ -320,9 +320,8 @@ static int tps65910_rtc_resume(struct de
+ }
  #endif
  
--static const struct dev_pm_ops tps80031_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(tps80031_rtc_suspend, tps80031_rtc_resume)
+-static const struct dev_pm_ops tps65910_rtc_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(tps65910_rtc_suspend, tps65910_rtc_resume)
 -};
-+static SIMPLE_DEV_PM_OPS(tps80031_pm_ops, tps80031_rtc_suspend,
-+			tps80031_rtc_resume);
++static SIMPLE_DEV_PM_OPS(tps65910_rtc_pm_ops, tps65910_rtc_suspend,
++			tps65910_rtc_resume);
  
- static struct platform_driver tps80031_rtc_driver = {
- 	.driver	= {
+ static struct platform_driver tps65910_rtc_driver = {
+ 	.probe		= tps65910_rtc_probe,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
