@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-round-up-buffer-size-of-elf-headers-by-page_size.patch added to -mm tree
-Date: Tue, 19 Mar 2013 13:02:54 -0700
-Message-ID: <20130319200254.D193B5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + vmcore-procfs-introduce-a-flag-to-distinguish-objects-copied-in-2nd-kernel.patch added to -mm tree
+Date: Tue, 19 Mar 2013 13:02:56 -0700
+Message-ID: <20130319200256.D335431C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:58441 "EHLO
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:36639 "EHLO
 	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757183Ab3CSUC5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:02:57 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so84916ghb.2
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:02:55 -0700 (PDT)
+	with ESMTP id S1757183Ab3CSUC6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:02:58 -0400
+Received: by mail-gh0-f201.google.com with SMTP id z19so84833ghb.4
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:02:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangya
 
 
 The patch titled
-     Subject: vmcore: round up buffer size of ELF headers by PAGE_SIZE
+     Subject: vmcore, procfs: introduce a flag to distinguish objects copied in 2nd kernel
 has been added to the -mm tree.  Its filename is
-     vmcore-round-up-buffer-size-of-elf-headers-by-page_size.patch
+     vmcore-procfs-introduce-a-flag-to-distinguish-objects-copied-in-2nd-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: round up buffer size of ELF headers by PAGE_SIZE
+Subject: vmcore, procfs: introduce a flag to distinguish objects copied in 2nd kernel
 
-To satisfy mmap() page-size boundary requirement, round up buffer size of
-ELF headers by PAGE_SIZE.  The resulting value becomes offset of ELF note
-segments and it's assigned in unique PT_NOTE program header entry.
-
-Also, some part that assumes past ELF headers' size is replaced by this
-new rounded-up value.
+The part of dump target memory is copied into the 2nd kernel if it doesn't
+satisfy mmap()'s page-size boundary requirement.  To distinguish such
+copied object from usual old memory, a flag MEM_TYPE_CURRENT_KERNEL is
+introduced.  If this flag is set, the object is considered to have been
+copied into a buffer on the 2nd kernel.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -50,70 +49,31 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/proc_fs.h |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-round-up-buffer-size-of-elf-headers-by-page_size fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-round-up-buffer-size-of-elf-headers-by-page_size
-+++ a/fs/proc/vmcore.c
-@@ -339,7 +339,7 @@ static int __init merge_note_headers_elf
- 	phdr.p_flags   = 0;
- 	note_off = ehdr_ptr->e_phoff +
- 			(ehdr_ptr->e_phnum - nr_ptnote +1) * sizeof(Elf64_Phdr);
--	phdr.p_offset  = note_off;
-+	phdr.p_offset  = roundup(note_off, PAGE_SIZE);
- 	phdr.p_vaddr   = phdr.p_paddr = 0;
- 	phdr.p_filesz  = phdr.p_memsz = phdr_sz;
- 	phdr.p_align   = 0;
-@@ -352,6 +352,7 @@ static int __init merge_note_headers_elf
- 	/* Modify e_phnum to reflect merged headers. */
- 	ehdr_ptr->e_phnum = ehdr_ptr->e_phnum - nr_ptnote + 1;
+diff -puN include/linux/proc_fs.h~vmcore-procfs-introduce-a-flag-to-distinguish-objects-copied-in-2nd-kernel include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~vmcore-procfs-introduce-a-flag-to-distinguish-objects-copied-in-2nd-kernel
++++ a/include/linux/proc_fs.h
+@@ -97,11 +97,17 @@ struct kcore_list {
+ 	int type;
+ };
  
-+	*elfsz = roundup(*elfsz, PAGE_SIZE);
- out:
- 	return 0;
- }
-@@ -447,7 +448,7 @@ static int __init merge_note_headers_elf
- 	phdr.p_flags   = 0;
- 	note_off = ehdr_ptr->e_phoff +
- 			(ehdr_ptr->e_phnum - nr_ptnote +1) * sizeof(Elf32_Phdr);
--	phdr.p_offset  = note_off;
-+	phdr.p_offset  = roundup(note_off, PAGE_SIZE);
- 	phdr.p_vaddr   = phdr.p_paddr = 0;
- 	phdr.p_filesz  = phdr.p_memsz = phdr_sz;
- 	phdr.p_align   = 0;
-@@ -460,6 +461,7 @@ static int __init merge_note_headers_elf
- 	/* Modify e_phnum to reflect merged headers. */
- 	ehdr_ptr->e_phnum = ehdr_ptr->e_phnum - nr_ptnote + 1;
++#define MEM_TYPE_CURRENT_KERNEL 0x1
++
+ struct vmcore {
+ 	struct list_head list;
+-	unsigned long long paddr;
++	union {
++		unsigned long long paddr;
++		char *buf;
++	};
+ 	unsigned long long size;
+ 	loff_t offset;
++	unsigned int flag;
+ };
  
-+	*elfsz = roundup(*elfsz, PAGE_SIZE);
- out:
- 	return 0;
- }
-@@ -480,9 +482,8 @@ static int __init process_ptload_program
- 	phdr_ptr = (Elf64_Phdr*)(elfptr + ehdr_ptr->e_phoff); /* PT_NOTE hdr */
- 
- 	/* First program header is PT_NOTE header. */
--	vmcore_off = ehdr_ptr->e_phoff +
--			(ehdr_ptr->e_phnum) * sizeof(Elf64_Phdr) +
--			phdr_ptr->p_memsz; /* Note sections */
-+	vmcore_off = phdr_ptr->p_offset + roundup(phdr_ptr->p_memsz,
-+						  PAGE_SIZE);
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
- 		if (phdr_ptr->p_type != PT_LOAD)
-@@ -517,9 +518,8 @@ static int __init process_ptload_program
- 	phdr_ptr = (Elf32_Phdr*)(elfptr + ehdr_ptr->e_phoff); /* PT_NOTE hdr */
- 
- 	/* First program header is PT_NOTE header. */
--	vmcore_off = ehdr_ptr->e_phoff +
--			(ehdr_ptr->e_phnum) * sizeof(Elf32_Phdr) +
--			phdr_ptr->p_memsz; /* Note sections */
-+	vmcore_off = phdr_ptr->p_offset + roundup(phdr_ptr->p_memsz,
-+						 PAGE_SIZE);
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
- 		if (phdr_ptr->p_type != PT_LOAD)
+ #ifdef CONFIG_PROC_FS
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
