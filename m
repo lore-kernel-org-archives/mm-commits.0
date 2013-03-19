@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-read-buffers-for-vmcore-objects-copied-from-old-memory.patch added to -mm tree
-Date: Tue, 19 Mar 2013 13:03:04 -0700
-Message-ID: <20130319200304.D1C1A5A41D5@corp2gmr1-2.hot.corp.google.com>
+Subject: + vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch added to -mm tree
+Date: Tue, 19 Mar 2013 13:03:06 -0700
+Message-ID: <20130319200306.CF0D05A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:63408 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757183Ab3CSUDG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:03:06 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so84825ves.1
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:03:05 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:33380 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757183Ab3CSUDI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:03:08 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so93938qah.0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:03:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangya
 
 
 The patch titled
-     Subject: vmcore: read buffers for vmcore objects copied from old memory
+     Subject: vmcore: allocate per-cpu crash_notes objects on page-size boundary
 has been added to the -mm tree.  Its filename is
-     vmcore-read-buffers-for-vmcore-objects-copied-from-old-memory.patch
+     vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: read buffers for vmcore objects copied from old memory
+Subject: vmcore: allocate per-cpu crash_notes objects on page-size boundary
 
-If flag MEM_TYPE_CURRENT_KERNEL is set, the object is copied in the buffer
-on the 2nd kernel, then read_vmcore() reads the buffer.  If the flag is
-not set, read_vmcore() reads old memory as usual.
+To satisfy mmap()'s page-size boundary requirement, allocate per-cpu
+crash_notes objects on page-size boundary.
+
+/proc/vmcore on the 2nd kernel checks if each note objects is allocated on
+page-size boundary.  If there's some object not satisfying the page-size
+boundary requirement, /proc/vmcore doesn't provide mmap() interface.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -47,34 +50,22 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ kernel/kexec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-read-buffers-for-vmcore-objects-copied-from-old-memory fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-read-buffers-for-vmcore-objects-copied-from-old-memory
-+++ a/fs/proc/vmcore.c
-@@ -158,10 +158,17 @@ static ssize_t read_vmcore(struct file *
- 			tsz = m->offset + m->size - *fpos;
- 			if (buflen < tsz)
- 				tsz = buflen;
--			start = m->paddr + *fpos - m->offset;
--			tmp = read_from_oldmem(buffer, tsz, &start, 1);
--			if (tmp < 0)
--				return tmp;
-+			if (m->flag & MEM_TYPE_CURRENT_KERNEL) {
-+				if (copy_to_user(buffer,
-+						 m->buf + *fpos - m->offset,
-+						 tsz))
-+					return -EFAULT;
-+			} else {
-+				start = m->paddr + *fpos - m->offset;
-+				tmp = read_from_oldmem(buffer, tsz, &start, 1);
-+				if (tmp < 0)
-+					return tmp;
-+			}
- 			buflen -= tsz;
- 			*fpos += tsz;
- 			buffer += tsz;
+diff -puN kernel/kexec.c~vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary kernel/kexec.c
+--- a/kernel/kexec.c~vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary
++++ a/kernel/kexec.c
+@@ -1223,7 +1223,8 @@ void crash_save_cpu(struct pt_regs *regs
+ static int __init crash_notes_memory_init(void)
+ {
+ 	/* Allocate memory for saving cpu registers. */
+-	crash_notes = alloc_percpu(note_buf_t);
++	crash_notes = __alloc_percpu(roundup(sizeof(note_buf_t), PAGE_SIZE),
++				     PAGE_SIZE);
+ 	if (!crash_notes) {
+ 		printk("Kexec: Memory allocation for saving cpu register"
+ 		" states failed\n");
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
