@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-complain-about-executable-files.patch added to -mm tree
-Date: Tue, 19 Mar 2013 15:44:30 -0700
-Message-ID: <20130319224430.6EB515A400F@corp2gmr1-2.hot.corp.google.com>
+Subject: + loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch added to -mm tree
+Date: Tue, 19 Mar 2013 16:03:15 -0700
+Message-ID: <20130319230315.BFE4131C1D0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:65299 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289Ab3CSWob (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 18:44:31 -0400
-Received: by mail-vb0-f73.google.com with SMTP id fj18so101346vbb.4
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 15:44:31 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:59476 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757207Ab3CSXDR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 19:03:17 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so102767ghb.3
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 16:03:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, sboyd@codeaurora.org
+Cc: akpm@linux-foundation.org, axboe@kernel.dk, psusi@ubuntu.com
 
 
 The patch titled
-     From: Joe Perches <joe@perches.com>
+     Subject: loop-cleanup-partitions-when-detaching-loop-device-fix-fix
 has been added to the -mm tree.  Its filename is
-     checkpatch-complain-about-executable-files.patch
+     loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Complain about executable files
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: loop-cleanup-partitions-when-detaching-loop-device-fix-fix
 
-Complain about files with an executable bit set that are not in a scripts/
-directory and are not type .pl, .py, .awk, or .sh
+export delete_partition() to modules
 
-Based on an initial patch from Stephen.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Phillip Susi <psusi@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ block/partition-generic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-complain-about-executable-files scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-complain-about-executable-files
-+++ a/scripts/checkpatch.pl
-@@ -1583,7 +1583,8 @@ sub process {
- # Check for incorrect file permissions
- 		if ($line =~ /^new (file )?mode.*[7531]\d{0,2}$/) {
- 			my $permhere = $here . "FILE: $realfile\n";
--			if ($realfile =~ /(Makefile|Kconfig|\.c|\.h|\.S|\.tmpl)$/) {
-+			if ($realfile !~ m@scripts/@ &&
-+			    $realfile !~ /\.(py|pl|awk|sh)$/) {
- 				ERROR("EXECUTE_PERMISSIONS",
- 				      "do not set execute permissions for source files\n" . $permhere);
- 			}
+diff -puN block/partition-generic.c~loop-cleanup-partitions-when-detaching-loop-device-fix-fix block/partition-generic.c
+--- a/block/partition-generic.c~loop-cleanup-partitions-when-detaching-loop-device-fix-fix
++++ a/block/partition-generic.c
+@@ -257,6 +257,7 @@ void delete_partition(struct gendisk *di
+ 
+ 	hd_struct_put(part);
+ }
++EXPORT_SYMBOL(delete_partition);
+ 
+ static ssize_t whole_disk_show(struct device *dev,
+ 			       struct device_attribute *attr, char *buf)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-get_maintainer-use-filename-only-regex-match-for-tegra.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+dma-debug-fix-locking-bug-in-check_unmap-fix.patch
+mips-define-kvm_user_mem_slots.patch
+kernel-workqueuec-update-comment.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+kernel-sched-schedh-fix-warning.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
 get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-checkpatch-add-check-for-reuse-of-krealloc-arg.patch
-checkpatch-prefer-seq_puts-to-seq_printf.patch
-checkpatch-complain-about-executable-files.patch
-kexec-fix-wrong-types-of-some-local-variables.patch
-kexec-use-min_t-to-simplify-logic.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
 kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel.patch
+wait-add-wait_event_hrtimeout.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
