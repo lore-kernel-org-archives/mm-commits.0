@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-complain-about-more-executable-files.patch added to -mm tree
-Date: Tue, 19 Mar 2013 14:39:00 -0700
-Message-ID: <20130319213900.743F831C1D1@corp2gmr1-1.hot.corp.google.com>
+Subject: + loop-cleanup-partitions-when-detaching-loop-device-fix.patch added to -mm tree
+Date: Tue, 19 Mar 2013 14:57:08 -0700
+Message-ID: <20130319215708.C202A31C1D1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:36353 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933797Ab3CSVjC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 17:39:02 -0400
-Received: by mail-gh0-f201.google.com with SMTP id z19so95193ghb.2
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 14:39:01 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:46877 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933991Ab3CSV5K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 17:57:10 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so97158vea.4
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 14:57:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sboyd@codeaurora.org, apw@canonical.com, joe@perches.com
+Cc: akpm@linux-foundation.org, axboe@kernel.dk, psusi@ubuntu.com
 
 
 The patch titled
-     Subject: checkpatch: complain about more executable files
+     Subject: loop-cleanup-partitions-when-detaching-loop-device-fix
 has been added to the -mm tree.  Its filename is
-     checkpatch-complain-about-more-executable-files.patch
+     loop-cleanup-partitions-when-detaching-loop-device-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: checkpatch: complain about more executable files
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: loop-cleanup-partitions-when-detaching-loop-device-fix
 
-We don't want executable permissions set on files such as devicetree
-syntax files, text files, defconfig files, or binary hex files.
+add comment, per Phillip
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Phillip Susi <psusi@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/loop.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-complain-about-more-executable-files scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-complain-about-more-executable-files
-+++ a/scripts/checkpatch.pl
-@@ -1583,7 +1583,7 @@ sub process {
- # Check for incorrect file permissions
- 		if ($line =~ /^new (file )?mode.*[7531]\d{0,2}$/) {
- 			my $permhere = $here . "FILE: $realfile\n";
--			if ($realfile =~ /(Makefile|Kconfig|\.c|\.h|\.S|\.tmpl)$/) {
-+			if ($realfile =~ /(Makefile|Kconfig|\.c|\.h|\.S|\.tmpl|\.dts|\.dtsi|defconfig|\.txt|\.hex|\.HEX|\.ihex)$/) {
- 				ERROR("EXECUTE_PERMISSIONS",
- 				      "do not set execute permissions for source files\n" . $permhere);
- 			}
+diff -puN drivers/block/loop.c~loop-cleanup-partitions-when-detaching-loop-device-fix drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-cleanup-partitions-when-detaching-loop-device-fix
++++ a/drivers/block/loop.c
+@@ -1049,6 +1049,10 @@ static int loop_clr_fd(struct loop_devic
+ 		lo->lo_disk->flags |= GENHD_FL_NO_PART_SCAN;
+ 	mutex_unlock(&lo->lo_ctl_mutex);
+ 	if (bdev) {
++		/*
++		 * Remove all partitions, since BLKRRPART won't remove user
++		 * added partitions when max_part=0.
++		 */
+ 		struct disk_part_iter piter;
+ 		struct hd_struct *part;
+ 
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 linux-next.patch
-timer_list-split-timer_list_show_tickdevices-v4.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+dma-debug-fix-locking-bug-in-check_unmap-fix.patch
+mips-define-kvm_user_mem_slots.patch
+kernel-workqueuec-update-comment.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
-mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
-checkpatch-complain-about-more-executable-files.patch
-kconfig-consolidate-config_debug_strict_user_copy_checks.patch
-kconfig-consolidate-config_debug_strict_user_copy_checks-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel.patch
+wait-add-wait_event_hrtimeout.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
