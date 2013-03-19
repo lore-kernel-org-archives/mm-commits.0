@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-vmalloc-export-additional-vmalloc-layer-information.patch added to -mm tree
-Date: Mon, 18 Mar 2013 15:14:53 -0700
-Message-ID: <20130318221453.BFA6431C26C@corp2gmr1-1.hot.corp.google.com>
+Subject: + kernel-workqueuec-update-comment.patch added to -mm tree
+Date: Tue, 19 Mar 2013 11:59:26 -0700
+Message-ID: <20130319185926.664EA5A43B7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:55099 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752743Ab3CRWOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Mar 2013 18:14:55 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so343277qah.2
-        for <mm-commits@vger.kernel.org>; Mon, 18 Mar 2013 15:14:54 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:37019 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753080Ab3CSS72 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 14:59:28 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q5so77966yen.5
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 11:59:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kumagai-atsushi@mxc.nes.nec.co.jp, anderson@redhat.com, cmetcalf@tilera.com, ebiederm@xmission.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, iamjoonsoo.kim@lge.com, js1304@gmail.com, mingo@kernel.org, tglx@linutronix.de, vgoyal@redhat.com
+Cc: akpm@linux-foundation.org, tj@kernel.org
 
 
 The patch titled
-     Subject: kexec, vmalloc: export additional vmalloc layer information
+     Subject: kernel/workqueue.c: update comment
 has been added to the -mm tree.  Its filename is
-     kexec-vmalloc-export-additional-vmalloc-layer-information.patch
+     kernel-workqueuec-update-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Subject: kexec, vmalloc: export additional vmalloc layer information
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/workqueue.c: update comment
 
-Now, vmap_area_list is exported as VMCOREINFO for makedumpfile to get the
-start address of vmalloc region (vmalloc_start).  The address which
-contains vmalloc_start value is represented as below:
-
-  vmap_area_list.next - OFFSET(vmap_area.list) + OFFSET(vmap_area.va_start)
-
-However, both OFFSET(vmap_area.va_start) and OFFSET(vmap_area.list) aren't
-exported as VMCOREINFO.
-
-So this patch exports them externally with small cleanup.
-
-Signed-off-by: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Dave Anderson <anderson@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   12 ++++++++++++
- kernel/kexec.c          |    3 ++-
- mm/vmalloc.c            |   11 -----------
- 3 files changed, 14 insertions(+), 12 deletions(-)
+ kernel/workqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information
-+++ a/include/linux/vmalloc.h
-@@ -4,6 +4,7 @@
- #include <linux/spinlock.h>
- #include <linux/init.h>
- #include <asm/page.h>		/* pgprot_t */
-+#include <linux/rbtree.h>
- 
- struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
- 
-@@ -35,6 +36,17 @@ struct vm_struct {
- 	const void		*caller;
- };
- 
-+struct vmap_area {
-+	unsigned long va_start;
-+	unsigned long va_end;
-+	unsigned long flags;
-+	struct rb_node rb_node;         /* address sorted rbtree */
-+	struct list_head list;          /* address sorted list */
-+	struct list_head purge_list;    /* "lazy purge" list */
-+	struct vm_struct *vm;
-+	struct rcu_head rcu_head;
-+};
-+
- /*
-  *	Highlevel APIs for driver use
-  */
-diff -puN kernel/kexec.c~kexec-vmalloc-export-additional-vmalloc-layer-information kernel/kexec.c
---- a/kernel/kexec.c~kexec-vmalloc-export-additional-vmalloc-layer-information
-+++ a/kernel/kexec.c
-@@ -1523,7 +1523,8 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_OFFSET(free_area, free_list);
- 	VMCOREINFO_OFFSET(list_head, next);
- 	VMCOREINFO_OFFSET(list_head, prev);
--	VMCOREINFO_OFFSET(vm_struct, addr);
-+	VMCOREINFO_OFFSET(vmap_area, va_start);
-+	VMCOREINFO_OFFSET(vmap_area, list);
- 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
- 	log_buf_kexec_setup();
- 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
-diff -puN mm/vmalloc.c~kexec-vmalloc-export-additional-vmalloc-layer-information mm/vmalloc.c
---- a/mm/vmalloc.c~kexec-vmalloc-export-additional-vmalloc-layer-information
-+++ a/mm/vmalloc.c
-@@ -249,17 +249,6 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
- #define VM_LAZY_FREEING	0x02
- #define VM_VM_AREA	0x04
- 
--struct vmap_area {
--	unsigned long va_start;
--	unsigned long va_end;
--	unsigned long flags;
--	struct rb_node rb_node;		/* address sorted rbtree */
--	struct list_head list;		/* address sorted list */
--	struct list_head purge_list;	/* "lazy purge" list */
--	struct vm_struct *vm;
--	struct rcu_head rcu_head;
--};
+diff -puN kernel/workqueue.c~kernel-workqueuec-update-comment kernel/workqueue.c
+--- a/kernel/workqueue.c~kernel-workqueuec-update-comment
++++ a/kernel/workqueue.c
+@@ -2091,7 +2091,7 @@ static bool manage_workers(struct worker
+ 		mutex_lock(&pool->manager_mutex);
+ 		/*
+ 		 * CPU hotplug could have happened while we were waiting
+-		 * for assoc_mutex.  Hotplug itself can't handle us
++		 * for manager_mutex.  Hotplug itself can't handle us
+ 		 * because manager isn't either on idle or busy list, and
+ 		 * @pool's state and ours could have deviated.
+ 		 *
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+mips-define-kvm_user_mem_slots.patch
+kernel-workqueuec-update-comment.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel.patch
+wait-add-wait_event_hrtimeout.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
