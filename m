@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + argv_split-teach-it-to-handle-mutable-strings-fix-2.patch added to -mm tree
-Date: Tue, 19 Mar 2013 13:12:08 -0700
-Message-ID: <20130319201208.663FE5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + dma-debug-fix-locking-bug-in-check_unmap-fix.patch added to -mm tree
+Date: Tue, 19 Mar 2013 13:19:32 -0700
+Message-ID: <20130319201932.DAE115A4254@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:64382 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757371Ab3CSUMJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:12:09 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so86030vcb.4
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:12:09 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:56363 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755298Ab3CSUTf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:19:35 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so86765yen.0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:19:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, andi@firstfloor.org
+Cc: akpm@linux-foundation.org, alexander.h.duyck@intel.com, joro@8bytes.org, konrad.wilk@oracle.com, kubakici@wp.pl, shuah.khan@hp.com
 
 
 The patch titled
-     Subject: argv_split-teach-it-to-handle-mutable-strings-fix-2
+     Subject: dma-debug-fix-locking-bug-in-check_unmap-fix
 has been added to the -mm tree.  Its filename is
-     argv_split-teach-it-to-handle-mutable-strings-fix-2.patch
+     dma-debug-fix-locking-bug-in-check_unmap-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: argv_split-teach-it-to-handle-mutable-strings-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-debug-fix-locking-bug-in-check_unmap-fix
 
-Cc: Andi Kleen <andi@firstfloor.org>
+restore 80-col trickery to be consistent with the rest of the file
+
+Cc: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Jakub Kicinski <kubakici@wp.pl>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Shuah Khan <shuah.khan@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/argv_split.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/dma-debug.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings-fix-2 lib/argv_split.c
---- a/lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings-fix-2
-+++ a/lib/argv_split.c
-@@ -63,7 +63,7 @@ char **argv_split(gfp_t gfp, const char
- 	char **argv, **argv_ret;
- 	int argc;
+diff -puN lib/dma-debug.c~dma-debug-fix-locking-bug-in-check_unmap-fix lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-fix-locking-bug-in-check_unmap-fix
++++ a/lib/dma-debug.c
+@@ -867,10 +867,13 @@ static void check_unmap(struct dma_debug
  
--	argv_str = kstrndup(str, KMALLOC_MAX_SIZE, gfp);
-+	argv_str = kstrndup(str, KMALLOC_MAX_SIZE - 1, gfp);
- 	if (!argv_str)
- 		return NULL;
- 
+ 		if (dma_mapping_error(ref->dev, ref->dev_addr)) {
+ 			err_printk(ref->dev, NULL,
+-				   "DMA-API: device driver tries to free an invalid DMA memory address\n");
++				   "DMA-API: device driver tries to free an "
++				   "invalid DMA memory address\n");
+ 		} else {
+ 			err_printk(ref->dev, NULL,
+-				   "DMA-API: device driver tries to free DMA memory it has not allocated [device address=0x%016llx] [size=%llu bytes]\n",
++				   "DMA-API: device driver tries to free DMA "
++				   "memory it has not allocated [device "
++				   "address=0x%016llx] [size=%llu bytes]\n",
+ 				   ref->dev_addr, ref->size);
+ 		}
+ 		return;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-poweroff-change-orderly_poweroff-to-use-schedule_work.patch
-thinkpad-acpi-kill-hotkey_thread_mutex.patch
-kthread-introduce-to_live_kthread.patch
-kthread-kill-task_get_live_kthread.patch
-posix_cpu_timer-consolidate-expiry-time-type.patch
-posix_cpu_timers-consolidate-timer-list-cleanups.patch
-posix_cpu_timers-consolidate-expired-timers-check.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-argv_split-teach-it-to-handle-mutable-strings.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+dma-debug-fix-locking-bug-in-check_unmap-fix.patch
+mips-define-kvm_user_mem_slots.patch
+kernel-workqueuec-update-comment.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
 argv_split-teach-it-to-handle-mutable-strings-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix-2.patch
-epoll-use-rcu-to-protect-wakeup_source-in-epitem.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
-usermodehelper-export-_exec-and-_setup-functions.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
 usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kmod-split-call-to-call_usermodehelper_fns.patch
-keys-split-call-to-call_usermodehelper_fns.patch
-coredump-remove-trailling-whitespaces.patch
-split-remaining-calls-to-call_usermodehelper_fns.patch
-kmod-remove-call_usermodehelper_fns.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-introduce-dump_interrupted.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
-set_task_comm-kill-the-pointless-memset-wmb.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel.patch
+wait-add-wait_event_hrtimeout.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
