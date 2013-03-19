@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-clean-up-by-removing-unnecessary-variable.patch added to -mm tree
-Date: Tue, 19 Mar 2013 13:02:46 -0700
-Message-ID: <20130319200246.D0B7931C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size.patch added to -mm tree
+Date: Tue, 19 Mar 2013 13:02:50 -0700
+Message-ID: <20130319200250.D9C1B31C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:56411 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795Ab3CSUCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:02:48 -0400
-Received: by mail-qa0-f74.google.com with SMTP id o13so93683qaj.5
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:02:47 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:58300 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757421Ab3CSUCw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:02:52 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so85080yen.2
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:02:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangya
 
 
 The patch titled
-     Subject: vmcore: clean up by removing unnecessary variable
+     Subject: vmcore, sysfs: export ELF note segment size instead of vmcoreinfo data size
 has been added to the -mm tree.  Its filename is
-     vmcore-clean-up-by-removing-unnecessary-variable.patch
+     vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: clean up by removing unnecessary variable
+Subject: vmcore, sysfs: export ELF note segment size instead of vmcoreinfo data size
 
-The variable j has int type but it's compared with u64 type.
+Currently, vmcoreinfo exports data part only, but kexec-tool sets it in
+p_memsz member as a whole ELF note segment size.  Due to this, it would be
+no problem on the current ELF note segment size, but if it grows in the
+future, then read possibly doesn't reach ELF note header in larger p_memsz
+position, failing to read a whole ELF segment.
 
-Also, the purpose of the variable j is exactly what the variable real_sz
-is used for now.  Replace the variable j by the variable real_sz and
-remove the variable j.
+Note: kexec-tools assigns PAGE_SIZE to p_memsz for other ELF note types. 
+Due to the above reason, the same issue occurs if actual ELF note data
+exceeds (PAGE_SIZE - 2 * KEXEC_NOTE_HEAD_BYTES).
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -49,46 +53,21 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/ksysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-clean-up-by-removing-unnecessary-variable fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-clean-up-by-removing-unnecessary-variable
-+++ a/fs/proc/vmcore.c
-@@ -261,7 +261,6 @@ static int __init merge_note_headers_elf
- 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
- 	phdr_ptr = (Elf64_Phdr*)(elfptr + ehdr_ptr->e_phoff);
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
--		int j;
- 		void *notes_section;
- 		struct vmcore *new;
- 		u64 offset, max_sz, sz, real_sz = 0;
-@@ -279,7 +278,7 @@ static int __init merge_note_headers_elf
- 			return rc;
- 		}
- 		nhdr_ptr = notes_section;
--		for (j = 0; j < max_sz; j += sz) {
-+		while (real_sz < max_sz) {
- 			if (nhdr_ptr->n_namesz == 0)
- 				break;
- 			sz = sizeof(Elf64_Nhdr) +
-@@ -342,7 +341,6 @@ static int __init merge_note_headers_elf
- 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
- 	phdr_ptr = (Elf32_Phdr*)(elfptr + ehdr_ptr->e_phoff);
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
--		int j;
- 		void *notes_section;
- 		struct vmcore *new;
- 		u64 offset, max_sz, sz, real_sz = 0;
-@@ -360,7 +358,7 @@ static int __init merge_note_headers_elf
- 			return rc;
- 		}
- 		nhdr_ptr = notes_section;
--		for (j = 0; j < max_sz; j += sz) {
-+		while (real_sz < max_sz) {
- 			if (nhdr_ptr->n_namesz == 0)
- 				break;
- 			sz = sizeof(Elf32_Nhdr) +
+diff -puN kernel/ksysfs.c~vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size kernel/ksysfs.c
+--- a/kernel/ksysfs.c~vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size
++++ a/kernel/ksysfs.c
+@@ -126,7 +126,7 @@ static ssize_t vmcoreinfo_show(struct ko
+ {
+ 	return sprintf(buf, "%lx %x\n",
+ 		       paddr_vmcoreinfo_note(),
+-		       (unsigned int)vmcoreinfo_max_size);
++		       (unsigned int)sizeof(vmcoreinfo_note));
+ }
+ KERNEL_ATTR_RO(vmcoreinfo);
+ 
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
