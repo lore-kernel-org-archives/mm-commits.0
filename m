@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-introduce-mmap_vmcore.patch added to -mm tree
-Date: Tue, 19 Mar 2013 13:03:24 -0700
-Message-ID: <20130319200324.BC5EA31C2DD@corp2gmr1-1.hot.corp.google.com>
+Subject: + vmcore-round-up-offset-of-vmcore-object-in-page-size-boundary.patch added to -mm tree
+Date: Tue, 19 Mar 2013 13:03:20 -0700
+Message-ID: <20130319200320.D1D575A41D5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:60492 "EHLO
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:57086 "EHLO
 	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932361Ab3CSUD0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:03:26 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so93909qah.2
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:03:25 -0700 (PDT)
+	with ESMTP id S1757496Ab3CSUDW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:03:22 -0400
+Received: by mail-qa0-f73.google.com with SMTP id g10so93967qah.0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:03:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangya
 
 
 The patch titled
-     Subject: vmcore: introduce mmap_vmcore()
+     Subject: vmcore: round-up offset of vmcore object in page-size boundary
 has been added to the -mm tree.  Its filename is
-     vmcore-introduce-mmap_vmcore.patch
+     vmcore-round-up-offset-of-vmcore-object-in-page-size-boundary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: introduce mmap_vmcore()
+Subject: vmcore: round-up offset of vmcore object in page-size boundary
 
-This patch introduces mmap_vmcore().
-
-If flag MEM_TYPE_CURRENT_KERNEL is set, remapped is the buffer on the 2nd
-kernel.  If not set, remapped is some area in old memory.
-
-Neither writable nor executable mapping is permitted even with mprotect().
- Non-writable mapping is also requirement of remap_pfn_range() when
-mapping linear pages on non-consequtive physical pages; see
-is_cow_mapping().
-
-On x86-32 PAE kernels, mmap() supports at most 16TB memory only.  This
-limitation comes from the fact that the third argument of
-remap_pfn_range(), pfn, is of 32-bit length on x86-32: unsigned long.
+To satisfy mmap()'s page-size bounary requirement, round-up offset of each
+vmcore objects in page-size boundary; each offset is connected to
+user-space virtual address through mapping of mmap().
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -57,94 +47,75 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   72 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ fs/proc/vmcore.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-introduce-mmap_vmcore fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-introduce-mmap_vmcore
+diff -puN fs/proc/vmcore.c~vmcore-round-up-offset-of-vmcore-object-in-page-size-boundary fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-round-up-offset-of-vmcore-object-in-page-size-boundary
 +++ a/fs/proc/vmcore.c
-@@ -185,9 +185,81 @@ static ssize_t read_vmcore(struct file *
- 	return acc;
+@@ -698,7 +698,7 @@ static int __init process_ptload_program
  }
  
-+static int mmap_vmcore(struct file *file, struct vm_area_struct *vma)
-+{
-+	size_t size = vma->vm_end - vma->vm_start;
-+	u64 start, end, len, tsz;
-+	struct vmcore *m;
-+
-+	if (!support_mmap_vmcore)
-+		return -ENODEV;
-+
-+	start = (u64)vma->vm_pgoff << PAGE_SHIFT;
-+	end = start + size;
-+
-+	if (size > vmcore_size || end > vmcore_size)
-+		return -EINVAL;
-+
-+	if (vma->vm_flags & (VM_WRITE | VM_EXEC))
-+		return -EPERM;
-+
-+	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
-+
-+	len = 0;
-+
-+	if (start < elfcorebuf_sz) {
-+		u64 pfn;
-+
-+		tsz = elfcorebuf_sz - start;
-+		if (size < tsz)
-+			tsz = size;
-+		pfn = __pa(elfcorebuf + start) >> PAGE_SHIFT;
-+		if (remap_pfn_range(vma, vma->vm_start, pfn, tsz,
-+				    vma->vm_page_prot))
-+			return -EAGAIN;
-+		size -= tsz;
-+		start += tsz;
-+		len += tsz;
-+
-+		if (size == 0)
-+			return 0;
-+	}
-+
-+	list_for_each_entry(m, &vmcore_list, list) {
-+		if (start < m->offset + m->size) {
-+			u64 pfn = 0;
-+
-+			tsz = m->offset + m->size - start;
-+			if (size < tsz)
-+				tsz = size;
-+			if (m->flag & MEM_TYPE_CURRENT_KERNEL) {
-+				pfn = __pa(m->buf + start - m->offset)
-+					>> PAGE_SHIFT;
-+			} else {
-+				pfn = (m->paddr + (start - m->offset))
-+					>> PAGE_SHIFT;
-+			}
-+			if (remap_pfn_range(vma, vma->vm_start + len, pfn, tsz,
-+					    vma->vm_page_prot)) {
-+				do_munmap(vma->vm_mm, vma->vm_start, len);
-+				return -EAGAIN;
-+			}
-+			size -= tsz;
-+			start += tsz;
-+			len += tsz;
-+
-+			if (size == 0)
-+				return 0;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static const struct file_operations proc_vmcore_operations = {
- 	.read		= read_vmcore,
- 	.llseek		= default_llseek,
-+	.mmap		= mmap_vmcore,
- };
+ /* Sets offset fields of vmcore elements. */
+-static void __init set_vmcore_list_offsets_elf64(char *elfptr,
++static void __init set_vmcore_list_offsets_elf64(char *elfptr, size_t elfsz,
+ 						struct list_head *vc_list)
+ {
+ 	loff_t vmcore_off;
+@@ -708,17 +708,16 @@ static void __init set_vmcore_list_offse
+ 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
  
- static struct vmcore* __init get_new_element(void)
+ 	/* Skip Elf header and program headers. */
+-	vmcore_off = ehdr_ptr->e_phoff +
+-			(ehdr_ptr->e_phnum) * sizeof(Elf64_Phdr);
++	vmcore_off = elfsz;
+ 
+ 	list_for_each_entry(m, vc_list, list) {
+ 		m->offset = vmcore_off;
+-		vmcore_off += m->size;
++		vmcore_off += roundup(m->size, PAGE_SIZE);
+ 	}
+ }
+ 
+ /* Sets offset fields of vmcore elements. */
+-static void __init set_vmcore_list_offsets_elf32(char *elfptr,
++static void __init set_vmcore_list_offsets_elf32(char *elfptr, size_t elfsz,
+ 						struct list_head *vc_list)
+ {
+ 	loff_t vmcore_off;
+@@ -728,12 +727,11 @@ static void __init set_vmcore_list_offse
+ 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
+ 
+ 	/* Skip Elf header and program headers. */
+-	vmcore_off = ehdr_ptr->e_phoff +
+-			(ehdr_ptr->e_phnum) * sizeof(Elf32_Phdr);
++	vmcore_off = elfsz;
+ 
+ 	list_for_each_entry(m, vc_list, list) {
+ 		m->offset = vmcore_off;
+-		vmcore_off += m->size;
++		vmcore_off += roundup(m->size, PAGE_SIZE);
+ 	}
+ }
+ 
+@@ -801,7 +799,7 @@ static int __init parse_crash_elf64_head
+ 			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+-	set_vmcore_list_offsets_elf64(elfcorebuf, &vmcore_list);
++	set_vmcore_list_offsets_elf64(elfcorebuf, elfcorebuf_sz, &vmcore_list);
+ 	return 0;
+ }
+ 
+@@ -869,7 +867,7 @@ static int __init parse_crash_elf32_head
+ 			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+-	set_vmcore_list_offsets_elf32(elfcorebuf, &vmcore_list);
++	set_vmcore_list_offsets_elf32(elfcorebuf, elfcorebuf_sz, &vmcore_list);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
