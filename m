@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size.patch added to -mm tree
-Date: Tue, 19 Mar 2013 13:02:50 -0700
-Message-ID: <20130319200250.D9C1B31C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch added to -mm tree
+Date: Tue, 19 Mar 2013 13:02:52 -0700
+Message-ID: <20130319200252.D22835A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:58300 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757421Ab3CSUCw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:02:52 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m12so85080yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:02:51 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:55075 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757183Ab3CSUCy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:02:54 -0400
+Received: by mail-qa0-f74.google.com with SMTP id o13so93692qaj.5
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:02:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangya
 
 
 The patch titled
-     Subject: vmcore, sysfs: export ELF note segment size instead of vmcoreinfo data size
+     Subject: vmcore: allocate buffer for ELF headers on page-size alignment
 has been added to the -mm tree.  Its filename is
-     vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size.patch
+     vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,124 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore, sysfs: export ELF note segment size instead of vmcoreinfo data size
+Subject: vmcore: allocate buffer for ELF headers on page-size alignment
 
-Currently, vmcoreinfo exports data part only, but kexec-tool sets it in
-p_memsz member as a whole ELF note segment size.  Due to this, it would be
-no problem on the current ELF note segment size, but if it grows in the
-future, then read possibly doesn't reach ELF note header in larger p_memsz
-position, failing to read a whole ELF segment.
+Allocate buffer for ELF headers on page-size aligned boudary to satisfy
+mmap() requirement.  For this, __get_free_pages() is used instead of
+kmalloc().
 
-Note: kexec-tools assigns PAGE_SIZE to p_memsz for other ELF note types. 
-Due to the above reason, the same issue occurs if actual ELF note data
-exceeds (PAGE_SIZE - 2 * KEXEC_NOTE_HEAD_BYTES).
+Also, later patch will decrease actually used buffer size for ELF headers,
+so it's necessary to keep original buffer size and actually used buffer
+size separately.  elfcorebuf_sz_orig keeps the original one and
+elfcorebuf_sz the actually used one.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/vmcore.c |   30 +++++++++++++++++++++---------
+ 1 file changed, 21 insertions(+), 9 deletions(-)
 
-diff -puN kernel/ksysfs.c~vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size kernel/ksysfs.c
---- a/kernel/ksysfs.c~vmcore-sysfs-export-elf-note-segment-size-instead-of-vmcoreinfo-data-size
-+++ a/kernel/ksysfs.c
-@@ -126,7 +126,7 @@ static ssize_t vmcoreinfo_show(struct ko
- {
- 	return sprintf(buf, "%lx %x\n",
- 		       paddr_vmcoreinfo_note(),
--		       (unsigned int)vmcoreinfo_max_size);
-+		       (unsigned int)sizeof(vmcoreinfo_note));
- }
- KERNEL_ATTR_RO(vmcoreinfo);
+diff -puN fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment
++++ a/fs/proc/vmcore.c
+@@ -31,6 +31,7 @@ static LIST_HEAD(vmcore_list);
+ /* Stores the pointer to the buffer containing kernel elf core headers. */
+ static char *elfcorebuf;
+ static size_t elfcorebuf_sz;
++static size_t elfcorebuf_sz_orig;
  
+ /* Total size of vmcore file. */
+ static u64 vmcore_size;
+@@ -608,13 +609,16 @@ static int __init parse_crash_elf64_head
+ 
+ 	/* Read in all elf headers. */
+ 	elfcorebuf_sz = sizeof(Elf64_Ehdr) + ehdr.e_phnum * sizeof(Elf64_Phdr);
+-	elfcorebuf = kmalloc(elfcorebuf_sz, GFP_KERNEL);
++	elfcorebuf_sz_orig = elfcorebuf_sz;
++	elfcorebuf = (void *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
++					       get_order(elfcorebuf_sz_orig));
+ 	if (!elfcorebuf)
+ 		return -ENOMEM;
+ 	addr = elfcorehdr_addr;
+ 	rc = read_from_oldmem(elfcorebuf, sizeof(Elf64_Ehdr), &addr, 0);
+ 	if (rc < 0) {
+-		kfree(elfcorebuf);
++		free_pages((unsigned long)elfcorebuf,
++			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+ 	addr = elfcorehdr_addr + ehdr.e_phoff;
+@@ -629,13 +633,15 @@ static int __init parse_crash_elf64_head
+ 	/* Merge all PT_NOTE headers into one. */
+ 	rc = merge_note_headers_elf64(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
+ 	if (rc) {
+-		kfree(elfcorebuf);
++		free_pages((unsigned long)elfcorebuf,
++			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+ 	rc = process_ptload_program_headers_elf64(elfcorebuf, elfcorebuf_sz,
+ 							&vmcore_list);
+ 	if (rc) {
+-		kfree(elfcorebuf);
++		free_pages((unsigned long)elfcorebuf,
++			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+ 	set_vmcore_list_offsets_elf64(elfcorebuf, &vmcore_list);
+@@ -671,7 +677,9 @@ static int __init parse_crash_elf32_head
+ 
+ 	/* Read in all elf headers. */
+ 	elfcorebuf_sz = sizeof(Elf32_Ehdr) + ehdr.e_phnum * sizeof(Elf32_Phdr);
+-	elfcorebuf = kmalloc(elfcorebuf_sz, GFP_KERNEL);
++	elfcorebuf_sz_orig = elfcorebuf_sz;
++	elfcorebuf = (void *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
++					       get_order(elfcorebuf_sz_orig));
+ 	if (!elfcorebuf)
+ 		return -ENOMEM;
+ 	addr = elfcorehdr_addr;
+@@ -684,7 +692,8 @@ static int __init parse_crash_elf32_head
+ 	rc = read_from_oldmem(elfcorebuf + sizeof(Elf32_Ehdr),
+ 			      ehdr.e_phnum * sizeof(Elf32_Phdr), &addr, 0);
+ 	if (rc < 0) {
+-		kfree(elfcorebuf);
++		free_pages((unsigned long)elfcorebuf,
++			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+ 	((Elf32_Ehdr *)elfcorebuf)->e_phoff = sizeof(Elf32_Ehdr);
+@@ -692,13 +701,15 @@ static int __init parse_crash_elf32_head
+ 	/* Merge all PT_NOTE headers into one. */
+ 	rc = merge_note_headers_elf32(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
+ 	if (rc) {
+-		kfree(elfcorebuf);
++		free_pages((unsigned long)elfcorebuf,
++			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+ 	rc = process_ptload_program_headers_elf32(elfcorebuf, elfcorebuf_sz,
+ 								&vmcore_list);
+ 	if (rc) {
+-		kfree(elfcorebuf);
++		free_pages((unsigned long)elfcorebuf,
++			   get_order(elfcorebuf_sz_orig));
+ 		return rc;
+ 	}
+ 	set_vmcore_list_offsets_elf32(elfcorebuf, &vmcore_list);
+@@ -780,7 +791,8 @@ void vmcore_cleanup(void)
+ 		list_del(&m->list);
+ 		kfree(m);
+ 	}
+-	kfree(elfcorebuf);
++	free_pages((unsigned long)elfcorebuf,
++		   get_order(elfcorebuf_sz_orig));
+ 	elfcorebuf = NULL;
+ }
+ EXPORT_SYMBOL_GPL(vmcore_cleanup);
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
