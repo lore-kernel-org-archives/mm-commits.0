@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch added to -mm tree
-Date: Tue, 19 Mar 2013 13:03:06 -0700
-Message-ID: <20130319200306.CF0D05A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary.patch added to -mm tree
+Date: Tue, 19 Mar 2013 13:03:08 -0700
+Message-ID: <20130319200308.D40DA31C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:33380 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757183Ab3CSUDI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:03:08 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so93938qah.0
-        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:03:07 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:45283 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757183Ab3CSUDK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Mar 2013 16:03:10 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so84721ves.5
+        for <mm-commits@vger.kernel.org>; Tue, 19 Mar 2013 13:03:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangya
 
 
 The patch titled
-     Subject: vmcore: allocate per-cpu crash_notes objects on page-size boundary
+     Subject: kexec: allocate vmcoreinfo note buffer on page-size boundary
 has been added to the -mm tree.  Its filename is
-     vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch
+     kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: allocate per-cpu crash_notes objects on page-size boundary
+Subject: kexec: allocate vmcoreinfo note buffer on page-size boundary
 
-To satisfy mmap()'s page-size boundary requirement, allocate per-cpu
-crash_notes objects on page-size boundary.
-
-/proc/vmcore on the 2nd kernel checks if each note objects is allocated on
-page-size boundary.  If there's some object not satisfying the page-size
-boundary requirement, /proc/vmcore doesn't provide mmap() interface.
+To satisfy mmap()'s page-size boundary requirement, specify aligned
+attribute to vmcoreinfo_note objects to allocate it on page-size boundary.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -50,22 +46,38 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/kexec.h |    6 ++++--
+ kernel/kexec.c        |    2 +-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/kexec.c~vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary kernel/kexec.c
---- a/kernel/kexec.c~vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary
+diff -puN include/linux/kexec.h~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary
++++ a/include/linux/kexec.h
+@@ -185,8 +185,10 @@ extern struct kimage *kexec_crash_image;
+ #define VMCOREINFO_BYTES           (4096)
+ #define VMCOREINFO_NOTE_NAME       "VMCOREINFO"
+ #define VMCOREINFO_NOTE_NAME_BYTES ALIGN(sizeof(VMCOREINFO_NOTE_NAME), 4)
+-#define VMCOREINFO_NOTE_SIZE       (KEXEC_NOTE_HEAD_BYTES*2 + VMCOREINFO_BYTES \
+-				    + VMCOREINFO_NOTE_NAME_BYTES)
++#define VMCOREINFO_NOTE_SIZE       ALIGN(KEXEC_NOTE_HEAD_BYTES*2	\
++					 +VMCOREINFO_BYTES		\
++					 +VMCOREINFO_NOTE_NAME_BYTES,	\
++					 PAGE_SIZE)
+ 
+ /* Location of a reserved region to hold the crash kernel.
+  */
+diff -puN kernel/kexec.c~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary kernel/kexec.c
+--- a/kernel/kexec.c~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary
 +++ a/kernel/kexec.c
-@@ -1223,7 +1223,8 @@ void crash_save_cpu(struct pt_regs *regs
- static int __init crash_notes_memory_init(void)
- {
- 	/* Allocate memory for saving cpu registers. */
--	crash_notes = alloc_percpu(note_buf_t);
-+	crash_notes = __alloc_percpu(roundup(sizeof(note_buf_t), PAGE_SIZE),
-+				     PAGE_SIZE);
- 	if (!crash_notes) {
- 		printk("Kexec: Memory allocation for saving cpu register"
- 		" states failed\n");
+@@ -43,7 +43,7 @@ note_buf_t __percpu *crash_notes;
+ 
+ /* vmcoreinfo stuff */
+ static unsigned char vmcoreinfo_data[VMCOREINFO_BYTES];
+-u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
++u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4] __aligned(PAGE_SIZE);
+ size_t vmcoreinfo_size;
+ size_t vmcoreinfo_max_size = sizeof(vmcoreinfo_data);
+ 
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
