@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-include-hugepages-in-meminfo.patch added to -mm tree
-Date: Wed, 20 Mar 2013 16:03:48 -0700
-Message-ID: <20130320230348.74EB131C016@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 20 Mar 2013 16:04:20 -0700
+Message-ID: <20130320230420.DF01F31C016@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:43466 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632Ab3CTXDt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:03:49 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so209503ves.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:03:49 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:40579 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751696Ab3CTXEW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:04:22 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hf12so209945vcb.2
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:04:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, mhocko@suse.cz
+Cc: akpm@linux-foundation.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm, hugetlb: include hugepages in meminfo
+     Subject: mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-include-hugepages-in-meminfo.patch
+     mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,106 +33,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, hugetlb: include hugepages in meminfo
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
 
-Particularly in oom conditions, it's troublesome that hugetlb memory is
-not displayed.  All other meminfo that is emitted will not add up to what
-is expected, and there is no artifact left in the kernel log to show that
-a potentially significant amount of memory is actually allocated as
-hugepages which are not available to be reclaimed.
+ERROR: code indent should use tabs where possible
+#64: FILE: mm/hugetlb.c:2132:
++^I^I        ^Inid,$
 
-Booting with hugepages=8192 on the command line, this memory is now shown
-in oom conditions.  For example, with echo m > /proc/sysrq-trigger:
+WARNING: please, no space before tabs
+#64: FILE: mm/hugetlb.c:2132:
++^I^I        ^Inid,$
 
-Node 0 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
-Node 1 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
-Node 2 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
-Node 3 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
+total: 1 errors, 1 warnings, 52 lines checked
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-hugetlb-include-hugepages-in-meminfo.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++++
- mm/hugetlb.c            |   15 +++++++++++++++
- mm/page_alloc.c         |    3 +++
- 3 files changed, 22 insertions(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-include-hugepages-in-meminfo include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-include-hugepages-in-meminfo
-+++ a/include/linux/hugetlb.h
-@@ -58,6 +58,7 @@ void __unmap_hugepage_range(struct mmu_g
- int hugetlb_prefault(struct address_space *, struct vm_area_struct *);
- void hugetlb_report_meminfo(struct seq_file *);
- int hugetlb_report_node_meminfo(int, char *);
-+void hugetlb_show_meminfo(void);
- unsigned long hugetlb_total_pages(void);
- int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, unsigned int flags);
-@@ -114,6 +115,9 @@ static inline void hugetlb_report_meminf
- {
- }
- #define hugetlb_report_node_meminfo(n, buf)	0
-+static inline void hugetlb_show_meminfo(void)
-+{
-+}
- #define follow_huge_pmd(mm, addr, pmd, write)	NULL
- #define follow_huge_pud(mm, addr, pud, write)	NULL
- #define prepare_hugepage_range(file, addr, len)	(-EINVAL)
-diff -puN mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo
+diff -puN mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
 +++ a/mm/hugetlb.c
-@@ -2121,6 +2121,21 @@ int hugetlb_report_node_meminfo(int nid,
- 		nid, h->surplus_huge_pages_node[nid]);
- }
- 
-+void hugetlb_show_meminfo(void)
-+{
-+	struct hstate *h;
-+	int nid;
-+
-+	for_each_node_state(nid, N_MEMORY)
-+		for_each_hstate(h)
-+			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
-+		        	nid,
-+				h->nr_huge_pages_node[nid],
-+				h->free_huge_pages_node[nid],
-+				h->surplus_huge_pages_node[nid],
-+				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
-+}
-+
- /* Return the number pages of memory we physically have, in PAGE_SIZE units. */
- unsigned long hugetlb_total_pages(void)
- {
-diff -puN mm/page_alloc.c~mm-hugetlb-include-hugepages-in-meminfo mm/page_alloc.c
---- a/mm/page_alloc.c~mm-hugetlb-include-hugepages-in-meminfo
-+++ a/mm/page_alloc.c
-@@ -58,6 +58,7 @@
- #include <linux/prefetch.h>
- #include <linux/migrate.h>
- #include <linux/page-debug-flags.h>
-+#include <linux/hugetlb.h>
- #include <linux/sched/rt.h>
- 
- #include <asm/tlbflush.h>
-@@ -3112,6 +3113,8 @@ void show_free_areas(unsigned int filter
- 		printk("= %lukB\n", K(total));
- 	}
- 
-+	hugetlb_show_meminfo();
-+
- 	printk("%ld total pagecache pages\n", global_page_state(NR_FILE_PAGES));
- 
- 	show_swap_cache_info();
+@@ -2129,7 +2129,7 @@ void hugetlb_show_meminfo(void)
+ 	for_each_node_state(nid, N_MEMORY)
+ 		for_each_hstate(h)
+ 			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
+-		        	nid,
++				nid,
+ 				h->nr_huge_pages_node[nid],
+ 				h->free_huge_pages_node[nid],
+ 				h->surplus_huge_pages_node[nid],
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-hugetlb-include-hugepages-in-meminfo.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+dma-debug-fix-locking-bug-in-check_unmap-fix.patch
+mips-define-kvm_user_mem_slots.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+kernel-sched-schedh-fix-warning.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel.patch
+wait-add-wait_event_hrtimeout.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
