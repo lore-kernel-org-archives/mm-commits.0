@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 20 Mar 2013 16:04:20 -0700
-Message-ID: <20130320230420.DF01F31C016@corp2gmr1-1.hot.corp.google.com>
+Subject: + crypto-add-lz4-cryptographic-api-fix.patch added to -mm tree
+Date: Wed, 20 Mar 2013 16:31:39 -0700
+Message-ID: <20130320233139.D85755A400F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:40579 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696Ab3CTXEW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:04:22 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so209945vcb.2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:04:21 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:61034 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431Ab3CTXbl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:31:41 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so211839vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:31:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rientjes@google.com
+Cc: akpm@linux-foundation.org, chanho.min@lge.com, djwong@us.ibm.com, fengguang.wu@intel.com, herbert@gondor.hengli.com.au, kyungsik.lee@lge.com, richard@nod.at, rpearson@systemfabricworks.com, yann.collet.73@gmail.com
 
 
 The patch titled
-     Subject: mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
+     Subject: crypto-add-lz4-cryptographic-api-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+     crypto-add-lz4-cryptographic-api-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
+Subject: crypto-add-lz4-cryptographic-api-fix
 
-ERROR: code indent should use tabs where possible
-#64: FILE: mm/hugetlb.c:2132:
-+^I^I        ^Inid,$
+fix warnings
 
-WARNING: please, no space before tabs
-#64: FILE: mm/hugetlb.c:2132:
-+^I^I        ^Inid,$
-
-total: 1 errors, 1 warnings, 52 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-hugetlb-include-hugepages-in-meminfo.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Yann Collet <yann.collet.73@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crypto/lz4.c   |    3 ++-
+ crypto/lz4hc.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -2129,7 +2129,7 @@ void hugetlb_show_meminfo(void)
- 	for_each_node_state(nid, N_MEMORY)
- 		for_each_hstate(h)
- 			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
--		        	nid,
-+				nid,
- 				h->nr_huge_pages_node[nid],
- 				h->free_huge_pages_node[nid],
- 				h->surplus_huge_pages_node[nid],
+diff -puN crypto/lz4.c~crypto-add-lz4-cryptographic-api-fix crypto/lz4.c
+--- a/crypto/lz4.c~crypto-add-lz4-cryptographic-api-fix
++++ a/crypto/lz4.c
+@@ -66,8 +66,9 @@ static int lz4_decompress_crypto(struct
+ {
+ 	int err;
+ 	size_t tmp_len = *dlen;
++	size_t __slen = slen;
+ 
+-	err = lz4_decompress(src, &slen, dst, tmp_len);
++	err = lz4_decompress(src, &__slen, dst, tmp_len);
+ 	if (err < 0)
+ 		return -EINVAL;
+ 
+diff -puN crypto/lz4hc.c~crypto-add-lz4-cryptographic-api-fix crypto/lz4hc.c
+--- a/crypto/lz4hc.c~crypto-add-lz4-cryptographic-api-fix
++++ a/crypto/lz4hc.c
+@@ -66,8 +66,9 @@ static int lz4hc_decompress_crypto(struc
+ {
+ 	int err;
+ 	size_t tmp_len = *dlen;
++	size_t __slen = slen;
+ 
+-	err = lz4_decompress(src, &slen, dst, tmp_len);
++	err = lz4_decompress(src, &__slen, dst, tmp_len);
+ 	if (err < 0)
+ 		return -EINVAL;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,6 +132,7 @@ generic-dynamic-per-cpu-refcounting.patch
 aio-dont-include-aioh-in-schedh.patch
 aio-kill-ki_retry.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
+crypto-add-lz4-cryptographic-api-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 journal_add_journal_head-debug.patch
