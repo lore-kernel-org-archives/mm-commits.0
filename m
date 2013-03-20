@@ -1,57 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] vmcore-copy-non-page-size-aligned-head-and-tail-pages-in-2nd-kernel.patch removed from -mm tree
-Date: Wed, 20 Mar 2013 16:32:38 -0700
-Message-ID: <20130320233238.8C51031C1D3@corp2gmr1-1.hot.corp.google.com>
+Subject: [nacked] vmcore-clean-up-read_vmcore.patch removed from -mm tree
+Date: Wed, 20 Mar 2013 16:32:44 -0700
+Message-ID: <20130320233244.7BF3931C1D3@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:38520 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753948Ab3CTXck (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:32:40 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so211845vcb.2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:32:39 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:50496 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753948Ab3CTXcp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:32:45 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 9so211846qea.5
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:32:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmcore: copy non page-size aligned head and tail pages in 2nd kernel
+     Subject: vmcore: clean up read_vmcore()
 has been removed from the -mm tree.  Its filename was
-     vmcore-copy-non-page-size-aligned-head-and-tail-pages-in-2nd-kernel.patch
+     vmcore-clean-up-read_vmcore.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: copy non page-size aligned head and tail pages in 2nd kernel
+Subject: vmcore: clean up read_vmcore()
 
-Due to mmap() requirement, we need to copy pages not starting or ending
-with page-size aligned address in 2nd kernel and to map them to
-user-space.
+Clean up read_vmcore().  Part for objects in vmcore_list can be written
+uniformly to part for ELF headers.  By this change, duplicate and
+complicated codes are removed, so it's more clear to see what's done
+there.
 
-For example, see the map below:
-
-    00000000-00010000 : reserved
-    00010000-0009f800 : System RAM
-    0009f800-000a0000 : reserved
-
-where the System RAM ends with 0x9f800 that is not page-size aligned. 
-This map is divided into two parts:
-
-    00010000-0009f000
-    0009f000-0009f800
-
-and the first one is kept in old memory and the 2nd one is copied into
-buffer on 2nd kernel.
-
-This kind of non-page-size-aligned area can always occur since any part of
-System RAM can be converted into reserved area at runtime.
-
-If not doing copying like this and if remapping non page-size aligned
-pages on old memory directly, mmap() had to export memory which is not
-dump target to user-space.  In the above example this is reserved
-0x9f800-0xa0000.
+Also, by this change, map_offset_to_paddr() is no longer used.  Remove it.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -60,256 +40,107 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |  192 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 172 insertions(+), 20 deletions(-)
+ fs/proc/vmcore.c |   68 +++++++++++++--------------------------------
+ 1 file changed, 20 insertions(+), 48 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-copy-non-page-size-aligned-head-and-tail-pages-in-2nd-kernel fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-copy-non-page-size-aligned-head-and-tail-pages-in-2nd-kernel
+diff -puN fs/proc/vmcore.c~vmcore-clean-up-read_vmcore fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-clean-up-read_vmcore
 +++ a/fs/proc/vmcore.c
-@@ -472,11 +472,10 @@ static int __init process_ptload_program
- 						size_t elfsz,
- 						struct list_head *vc_list)
- {
--	int i;
-+	int i, rc;
- 	Elf64_Ehdr *ehdr_ptr;
- 	Elf64_Phdr *phdr_ptr;
- 	loff_t vmcore_off;
--	struct vmcore *new;
- 
- 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
- 	phdr_ptr = (Elf64_Phdr*)(elfptr + ehdr_ptr->e_phoff); /* PT_NOTE hdr */
-@@ -486,20 +485,97 @@ static int __init process_ptload_program
- 						  PAGE_SIZE);
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-+		u64 start, end, rest;
-+
- 		if (phdr_ptr->p_type != PT_LOAD)
- 			continue;
- 
--		/* Add this contiguous chunk of memory to vmcore list.*/
--		new = get_new_element();
--		if (!new)
--			return -ENOMEM;
--		new->paddr = phdr_ptr->p_offset;
--		new->size = phdr_ptr->p_memsz;
--		list_add_tail(&new->list, vc_list);
-+		start = phdr_ptr->p_offset;
-+		end = phdr_ptr->p_offset + phdr_ptr->p_memsz;
-+		rest = phdr_ptr->p_memsz;
-+
-+		if (start & ~PAGE_MASK) {
-+			u64 paddr, len;
-+			char *buf;
-+			struct vmcore *new;
-+
-+			paddr = start;
-+			len = min(roundup(start,PAGE_SIZE), end) - start;
-+
-+			buf = (char *)get_zeroed_page(GFP_KERNEL);
-+			if (!buf)
-+				return -ENOMEM;
-+			rc = read_from_oldmem(buf + (start & ~PAGE_MASK), len,
-+					      &paddr, 0);
-+			if (rc < 0) {
-+				free_pages((unsigned long)buf, 0);
-+				return rc;
-+			}
-+
-+			new = get_new_element();
-+			if (!new) {
-+				free_pages((unsigned long)buf, 0);
-+				return -ENOMEM;
-+			}
-+			new->flag |= MEM_TYPE_CURRENT_KERNEL;
-+			new->size = PAGE_SIZE;
-+			new->buf = buf;
-+			list_add_tail(&new->list, vc_list);
-+
-+			rest -= len;
-+		}
-+
-+		if (rest > 0 &&
-+		    roundup(start, PAGE_SIZE) < rounddown(end, PAGE_SIZE)) {
-+			u64 paddr, len;
-+			struct vmcore *new;
-+
-+			paddr = roundup(start, PAGE_SIZE);
-+			len =rounddown(end,PAGE_SIZE)-roundup(start,PAGE_SIZE);
-+
-+			new = get_new_element();
-+			if (!new)
-+				return -ENOMEM;
-+			new->paddr = paddr;
-+			new->size = len;
-+			list_add_tail(&new->list, vc_list);
-+
-+			rest -= len;
-+		}
-+
-+		if (rest > 0) {
-+			u64 paddr, len;
-+			char *buf;
-+			struct vmcore *new;
-+
-+			paddr = rounddown(end, PAGE_SIZE);
-+			len = end - rounddown(end, PAGE_SIZE);
-+
-+			buf = (char *)get_zeroed_page(GFP_KERNEL);
-+			if (!buf)
-+				return -ENOMEM;
-+			rc = read_from_oldmem(buf, len, &paddr, 0);
-+			if (rc < 0) {
-+				free_pages((unsigned long)buf, 0);
-+				return rc;
-+			}
-+
-+			new = get_new_element();
-+			if (!new) {
-+				free_pages((unsigned long)buf, 0);
-+				return -ENOMEM;
-+			}
-+			new->flag |= MEM_TYPE_CURRENT_KERNEL;
-+			new->size = PAGE_SIZE;
-+			new->buf = buf;
-+			list_add_tail(&new->list, vc_list);
-+
-+			rest -= len;
-+		}
- 
- 		/* Update the program header offset. */
- 		phdr_ptr->p_offset = vmcore_off;
--		vmcore_off = vmcore_off + phdr_ptr->p_memsz;
-+		vmcore_off +=roundup(end,PAGE_SIZE)-rounddown(start,PAGE_SIZE);
- 	}
- 	return 0;
+@@ -118,27 +118,6 @@ static ssize_t read_from_oldmem(char *bu
+ 	return read;
  }
-@@ -508,11 +584,10 @@ static int __init process_ptload_program
- 						size_t elfsz,
- 						struct list_head *vc_list)
+ 
+-/* Maps vmcore file offset to respective physical address in memroy. */
+-static u64 map_offset_to_paddr(loff_t offset, struct list_head *vc_list,
+-					struct vmcore **m_ptr)
+-{
+-	struct vmcore *m;
+-	u64 paddr;
+-
+-	list_for_each_entry(m, vc_list, list) {
+-		u64 start, end;
+-		start = m->offset;
+-		end = m->offset + m->size - 1;
+-		if (offset >= start && offset <= end) {
+-			paddr = m->paddr + offset - start;
+-			*m_ptr = m;
+-			return paddr;
+-		}
+-	}
+-	*m_ptr = NULL;
+-	return 0;
+-}
+-
+ /* Read from the ELF header and then the crash dump. On error, negative value is
+  * returned otherwise number of bytes read are returned.
+  */
+@@ -147,8 +126,8 @@ static ssize_t read_vmcore(struct file *
  {
--	int i;
-+	int i, rc;
- 	Elf32_Ehdr *ehdr_ptr;
- 	Elf32_Phdr *phdr_ptr;
- 	loff_t vmcore_off;
--	struct vmcore *new;
+ 	ssize_t acc = 0, tmp;
+ 	size_t tsz;
+-	u64 start, nr_bytes;
+-	struct vmcore *curr_m = NULL;
++	u64 start;
++	struct vmcore *m;
  
- 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
- 	phdr_ptr = (Elf32_Phdr*)(elfptr + ehdr_ptr->e_phoff); /* PT_NOTE hdr */
-@@ -522,20 +597,97 @@ static int __init process_ptload_program
- 						 PAGE_SIZE);
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-+		u64 start, end, rest;
-+
- 		if (phdr_ptr->p_type != PT_LOAD)
- 			continue;
- 
--		/* Add this contiguous chunk of memory to vmcore list.*/
--		new = get_new_element();
--		if (!new)
--			return -ENOMEM;
--		new->paddr = phdr_ptr->p_offset;
--		new->size = phdr_ptr->p_memsz;
--		list_add_tail(&new->list, vc_list);
-+		start = phdr_ptr->p_offset;
-+		end = phdr_ptr->p_offset + phdr_ptr->p_memsz;
-+		rest = phdr_ptr->p_memsz;
-+
-+		if (start & ~PAGE_MASK) {
-+			u64 paddr, len;
-+			char *buf;
-+			struct vmcore *new;
-+
-+			paddr = start;
-+			len = min(roundup(start,PAGE_SIZE), end) - start;
-+
-+			buf = (char *)get_zeroed_page(GFP_KERNEL);
-+			if (!buf)
-+				return -ENOMEM;
-+			rc = read_from_oldmem(buf + (start & ~PAGE_MASK), len,
-+					      &paddr, 0);
-+			if (rc < 0) {
-+				free_pages((unsigned long)buf, 0);
-+				return rc;
-+			}
-+
-+			new = get_new_element();
-+			if (!new) {
-+				free_pages((unsigned long)buf, 0);
-+				return -ENOMEM;
-+			}
-+			new->flag |= MEM_TYPE_CURRENT_KERNEL;
-+			new->size = PAGE_SIZE;
-+			new->buf = buf;
-+			list_add_tail(&new->list, vc_list);
-+
-+			rest -= len;
-+		}
-+
-+		if (rest > 0 &&
-+		    roundup(start, PAGE_SIZE) < rounddown(end, PAGE_SIZE)) {
-+			u64 paddr, len;
-+			struct vmcore *new;
-+
-+			paddr = roundup(start, PAGE_SIZE);
-+			len =rounddown(end,PAGE_SIZE)-roundup(start,PAGE_SIZE);
-+
-+			new = get_new_element();
-+			if (!new)
-+				return -ENOMEM;
-+			new->paddr = paddr;
-+			new->size = len;
-+			list_add_tail(&new->list, vc_list);
-+
-+			rest -= len;
-+		}
-+
-+		if (rest > 0) {
-+			u64 paddr, len;
-+			char *buf;
-+			struct vmcore *new;
-+
-+			paddr = rounddown(end, PAGE_SIZE);
-+			len = end - rounddown(end, PAGE_SIZE);
-+
-+			buf = (char *)get_zeroed_page(GFP_KERNEL);
-+			if (!buf)
-+				return -ENOMEM;
-+			rc = read_from_oldmem(buf, len, &paddr, 0);
-+			if (rc < 0) {
-+				free_pages((unsigned long)buf, 0);
-+				return rc;
-+			}
-+
-+			new = get_new_element();
-+			if (!new) {
-+				free_pages((unsigned long)buf, 0);
-+				return -ENOMEM;
-+			}
-+			new->flag |= MEM_TYPE_CURRENT_KERNEL;
-+			new->size = PAGE_SIZE;
-+			new->buf = buf;
-+			list_add_tail(&new->list, vc_list);
-+
-+			rest -= len;
-+		}
- 
- 		/* Update the program header offset */
- 		phdr_ptr->p_offset = vmcore_off;
--		vmcore_off = vmcore_off + phdr_ptr->p_memsz;
-+		vmcore_off +=roundup(end,PAGE_SIZE)-rounddown(start,PAGE_SIZE);
+ 	if (buflen == 0 || *fpos >= vmcore_size)
+ 		return 0;
+@@ -174,33 +153,26 @@ static ssize_t read_vmcore(struct file *
+ 			return acc;
  	}
- 	return 0;
+ 
+-	start = map_offset_to_paddr(*fpos, &vmcore_list, &curr_m);
+-	if (!curr_m)
+-        	return -EINVAL;
+-
+-	while (buflen) {
+-		tsz = min_t(size_t, buflen, PAGE_SIZE - (start & ~PAGE_MASK));
+-
+-		/* Calculate left bytes in current memory segment. */
+-		nr_bytes = (curr_m->size - (start - curr_m->paddr));
+-		if (tsz > nr_bytes)
+-			tsz = nr_bytes;
+-
+-		tmp = read_from_oldmem(buffer, tsz, &start, 1);
+-		if (tmp < 0)
+-			return tmp;
+-		buflen -= tsz;
+-		*fpos += tsz;
+-		buffer += tsz;
+-		acc += tsz;
+-		if (start >= (curr_m->paddr + curr_m->size)) {
+-			if (curr_m->list.next == &vmcore_list)
+-				return acc;	/*EOF*/
+-			curr_m = list_entry(curr_m->list.next,
+-						struct vmcore, list);
+-			start = curr_m->paddr;
++	list_for_each_entry(m, &vmcore_list, list) {
++		if (*fpos < m->offset + m->size) {
++			tsz = m->offset + m->size - *fpos;
++			if (buflen < tsz)
++				tsz = buflen;
++			start = m->paddr + *fpos - m->offset;
++			tmp = read_from_oldmem(buffer, tsz, &start, 1);
++			if (tmp < 0)
++				return tmp;
++			buflen -= tsz;
++			*fpos += tsz;
++			buffer += tsz;
++			acc += tsz;
++
++			/* leave now if filled buffer already */
++			if (buflen == 0)
++				return acc;
+ 		}
+ 	}
++
+ 	return acc;
  }
+ 
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
 
-vmcore-modify-vmcore-clean-up-function-to-free-buffer-on-2nd-kernel.patch
-vmcore-clean-up-read_vmcore.patch
 vmcore-read-buffers-for-vmcore-objects-copied-from-old-memory.patch
 vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch
 kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary.patch
