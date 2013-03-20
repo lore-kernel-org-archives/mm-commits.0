@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr.patch added to -mm tree
-Date: Wed, 20 Mar 2013 14:52:29 -0700
-Message-ID: <20130320215229.7C0245A41F0@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-merging-memory-blocks-resets-mempolicy.patch added to -mm tree
+Date: Wed, 20 Mar 2013 15:05:20 -0700
+Message-ID: <20130320220520.8FA4E31C0A5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36877 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751878Ab3CTVwa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 17:52:30 -0400
-Received: by mail-gg0-f202.google.com with SMTP id l4so203464ggi.3
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 14:52:30 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:40651 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753207Ab3CTWFW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:05:22 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hf12so205215vcb.2
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:05:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@atmel.com, dgilbert@interlog.com, ludovic.desroches@atmel.com, plagnioj@jcrosoft.com
+Cc: steven.t.hampson@intel.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-at91rm9200.c: use a variable for storing IMR
+     Subject: mm: merging memory blocks resets mempolicy
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr.patch
+     mm-merging-memory-blocks-resets-mempolicy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,193 +33,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: drivers/rtc/rtc-at91rm9200.c: use a variable for storing IMR
+From: "Hampson, Steven T" <steven.t.hampson@intel.com>
+Subject: mm: merging memory blocks resets mempolicy
 
-On some revisions of AT91 SoCs, the RTC IMR register is not working. 
-Instead of elaborating a workaround for that specific SoC or IP version,
-we simply use a software variable to store the Interrupt Mask Register and
-modify it for each enabling/disabling of an interrupt.  The overhead of
-this is negligible anyway.
+Using mbind to change the mempolicy to MPOL_BIND on several adjacent
+mmapped blocks may result in a reset of the mempolicy to MPOL_DEFAULT in
+vma_adjust.
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Reported-by: Douglas Gilbert <dgilbert@interlog.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
+Test code.  Correct result is three lines containing "OK".
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <numaif.h>
+#include <errno.h>
+
+/* gcc mbind_test.c -lnuma -o mbind_test -Wall */
+#define MAXNODE 4096
+
+void allocate()
+{
+	int ret;
+	int len;
+	int policy = -1;
+	unsigned char *p;
+	unsigned long mask[MAXNODE] = { 0 };
+	unsigned long retmask[MAXNODE] = { 0 };
+
+	len = getpagesize() * 0x2fc00;
+	p = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS,
+		 -1, 0);
+	if (p == MAP_FAILED)
+		printf("mbind err: %d\n", errno);
+
+	mask[0] = 1;
+	ret = mbind(p, len, MPOL_BIND, mask, MAXNODE, 0);
+	if (ret < 0)
+		printf("mbind err: %d %d\n", ret, errno);
+	ret = get_mempolicy(&policy, retmask, MAXNODE, p, MPOL_F_ADDR);
+	if (ret < 0)
+		printf("get_mempolicy err: %d %d\n", ret, errno);
+
+	if (policy == MPOL_BIND)
+		printf("OK\n");
+	else
+		printf("ERROR: policy is %d\n", policy);
+}
+
+int main()
+{
+	allocate();
+	allocate();
+	allocate();
+	return 0;
+}
+
+Signed-off-by: Steven T Hampson <steven.t.hampson@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   50 ++++++++++++++++++++-------------
- drivers/rtc/rtc-at91rm9200.h |    1 
- 2 files changed, 31 insertions(+), 20 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -44,6 +44,7 @@ static DECLARE_COMPLETION(at91_rtc_updat
- static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
- static void __iomem *at91_rtc_regs;
- static int irq;
-+static u32 at91_rtc_imr;
- 
- /*
-  * Decode time/date into rtc_time structure
-@@ -108,9 +109,11 @@ static int at91_rtc_settime(struct devic
- 	cr = at91_rtc_read(AT91_RTC_CR);
- 	at91_rtc_write(AT91_RTC_CR, cr | AT91_RTC_UPDCAL | AT91_RTC_UPDTIM);
- 
-+	at91_rtc_imr |= AT91_RTC_ACKUPD;
- 	at91_rtc_write(AT91_RTC_IER, AT91_RTC_ACKUPD);
- 	wait_for_completion(&at91_rtc_updated);	/* wait for ACKUPD interrupt */
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD);
-+	at91_rtc_imr &= ~AT91_RTC_ACKUPD;
- 
- 	at91_rtc_write(AT91_RTC_TIMR,
- 			  bin2bcd(tm->tm_sec) << 0
-@@ -142,7 +145,7 @@ static int at91_rtc_readalarm(struct dev
- 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
- 	tm->tm_year = at91_alarm_year - 1900;
- 
--	alrm->enabled = (at91_rtc_read(AT91_RTC_IMR) & AT91_RTC_ALARM)
-+	alrm->enabled = (at91_rtc_imr & AT91_RTC_ALARM)
- 			? 1 : 0;
- 
- 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
-@@ -168,6 +171,7 @@ static int at91_rtc_setalarm(struct devi
- 	tm.tm_sec = alrm->time.tm_sec;
- 
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
-+	at91_rtc_imr &= ~AT91_RTC_ALARM;
- 	at91_rtc_write(AT91_RTC_TIMALR,
- 		  bin2bcd(tm.tm_sec) << 0
- 		| bin2bcd(tm.tm_min) << 8
-@@ -180,6 +184,7 @@ static int at91_rtc_setalarm(struct devi
- 
- 	if (alrm->enabled) {
- 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
-+		at91_rtc_imr |= AT91_RTC_ALARM;
- 		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
- 	}
- 
-@@ -196,9 +201,12 @@ static int at91_rtc_alarm_irq_enable(str
- 
- 	if (enabled) {
- 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
-+		at91_rtc_imr |= AT91_RTC_ALARM;
- 		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
--	} else
-+	} else {
- 		at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
-+		at91_rtc_imr &= ~AT91_RTC_ALARM;
-+	}
- 
- 	return 0;
- }
-@@ -207,12 +215,10 @@ static int at91_rtc_alarm_irq_enable(str
-  */
- static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
- {
--	unsigned long imr = at91_rtc_read(AT91_RTC_IMR);
--
- 	seq_printf(seq, "update_IRQ\t: %s\n",
--			(imr & AT91_RTC_ACKUPD) ? "yes" : "no");
-+			(at91_rtc_imr & AT91_RTC_ACKUPD) ? "yes" : "no");
- 	seq_printf(seq, "periodic_IRQ\t: %s\n",
--			(imr & AT91_RTC_SECEV) ? "yes" : "no");
-+			(at91_rtc_imr & AT91_RTC_SECEV) ? "yes" : "no");
- 
- 	return 0;
- }
-@@ -227,7 +233,7 @@ static irqreturn_t at91_rtc_interrupt(in
- 	unsigned int rtsr;
- 	unsigned long events = 0;
- 
--	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_read(AT91_RTC_IMR);
-+	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_imr;
- 	if (rtsr) {		/* this interrupt is shared!  Is it ours? */
- 		if (rtsr & AT91_RTC_ALARM)
- 			events |= (RTC_AF | RTC_IRQF);
-@@ -291,6 +297,7 @@ static int __init at91_rtc_probe(struct
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
- 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
- 					AT91_RTC_CALEV);
-+	at91_rtc_imr = 0;
- 
- 	ret = request_irq(irq, at91_rtc_interrupt,
- 				IRQF_SHARED,
-@@ -329,6 +336,7 @@ static int __exit at91_rtc_remove(struct
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
- 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
- 					AT91_RTC_CALEV);
-+	at91_rtc_imr = 0;
- 	free_irq(irq, pdev);
- 
- 	rtc_device_unregister(rtc);
-@@ -341,31 +349,35 @@ static int __exit at91_rtc_remove(struct
- 
- /* AT91RM9200 RTC Power management control */
- 
--static u32 at91_rtc_imr;
-+static u32 at91_rtc_bkpimr;
-+
- 
- static int at91_rtc_suspend(struct device *dev)
- {
- 	/* this IRQ is shared with DBGU and other hardware which isn't
- 	 * necessarily doing PM like we are...
- 	 */
--	at91_rtc_imr = at91_rtc_read(AT91_RTC_IMR)
--			& (AT91_RTC_ALARM|AT91_RTC_SECEV);
--	if (at91_rtc_imr) {
--		if (device_may_wakeup(dev))
-+	at91_rtc_bkpimr = at91_rtc_imr & (AT91_RTC_ALARM|AT91_RTC_SECEV);
-+	if (at91_rtc_bkpimr) {
-+		if (device_may_wakeup(dev)) {
- 			enable_irq_wake(irq);
--		else
--			at91_rtc_write(AT91_RTC_IDR, at91_rtc_imr);
--	}
-+		} else {
-+			at91_rtc_write(AT91_RTC_IDR, at91_rtc_bkpimr);
-+			at91_rtc_imr &= ~at91_rtc_bkpimr;
-+		}
-+}
- 	return 0;
- }
- 
- static int at91_rtc_resume(struct device *dev)
- {
--	if (at91_rtc_imr) {
--		if (device_may_wakeup(dev))
-+	if (at91_rtc_bkpimr) {
-+		if (device_may_wakeup(dev)) {
- 			disable_irq_wake(irq);
--		else
--			at91_rtc_write(AT91_RTC_IER, at91_rtc_imr);
-+		} else {
-+			at91_rtc_imr |= at91_rtc_bkpimr;
-+			at91_rtc_write(AT91_RTC_IER, at91_rtc_bkpimr);
-+		}
- 	}
- 	return 0;
- }
-diff -puN drivers/rtc/rtc-at91rm9200.h~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr drivers/rtc/rtc-at91rm9200.h
---- a/drivers/rtc/rtc-at91rm9200.h~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr
-+++ a/drivers/rtc/rtc-at91rm9200.h
-@@ -64,7 +64,6 @@
- #define	AT91_RTC_SCCR		0x1c			/* Status Clear Command Register */
- #define	AT91_RTC_IER		0x20			/* Interrupt Enable Register */
- #define	AT91_RTC_IDR		0x24			/* Interrupt Disable Register */
--#define	AT91_RTC_IMR		0x28			/* Interrupt Mask Register */
- 
- #define	AT91_RTC_VER		0x2c			/* Valid Entry Register */
- #define		AT91_RTC_NVTIM		(1 <<  0)		/* Non valid Time */
+diff -puN mm/mmap.c~mm-merging-memory-blocks-resets-mempolicy mm/mmap.c
+--- a/mm/mmap.c~mm-merging-memory-blocks-resets-mempolicy
++++ a/mm/mmap.c
+@@ -829,7 +829,7 @@ again:			remove_next = 1 + (end > next->
+ 		if (next->anon_vma)
+ 			anon_vma_merge(vma, next);
+ 		mm->map_count--;
+-		mpol_put(vma_policy(next));
++		vma_set_policy(vma, vma_policy(next));
+ 		kmem_cache_free(vm_area_cachep, next);
+ 		/*
+ 		 * In mprotect's case 6 (see comments on vma_merge),
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from steven.t.hampson@intel.com are
 
-origin.patch
-linux-next.patch
-drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr.patch
-drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
+mm-merging-memory-blocks-resets-mempolicy.patch
 
