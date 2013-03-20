@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-randomc-fix-priming-of-last_data.patch added to -mm tree
-Date: Wed, 20 Mar 2013 15:52:43 -0700
-Message-ID: <20130320225243.F2F175A4078__14616.2827768878$1363820005$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-hugetlb-include-hugepages-in-meminfo.patch added to -mm tree
+Date: Wed, 20 Mar 2013 16:03:48 -0700
+Message-ID: <20130320230348.74EB131C016@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:44337 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257Ab3CTWwq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:52:46 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so209072qcr.2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:52:45 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:43466 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752632Ab3CTXDt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:03:49 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so209503ves.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:03:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarod@redhat.com, davem@davemloft.net, herbert@gondor.apana.org.au, jstancek@redhat.com, jstodola@redhat.com, mpm@selenic.com, nhorman@tuxdriver.com, stable@vger.kernel.org, tytso@mit.edu
+Cc: rientjes@google.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: drivers/char/random.c: fix priming of last_data
+     Subject: mm, hugetlb: include hugepages in meminfo
 has been added to the -mm tree.  Its filename is
-     drivers-char-randomc-fix-priming-of-last_data.patch
+     mm-hugetlb-include-hugepages-in-meminfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jarod Wilson <jarod@redhat.com>
-Subject: drivers/char/random.c: fix priming of last_data
+From: David Rientjes <rientjes@google.com>
+Subject: mm, hugetlb: include hugepages in meminfo
 
-Commit ec8f02da9e ("random: prime last_data value per fips requirements")
-added priming of last_data per fips requirements.  Unfortuantely, it did
-so in a way that can lead to multiple threads all incrementing nbytes, but
-only one actually doing anything with the extra data, which leads to some
-fun random corruption and panics.
+Particularly in oom conditions, it's troublesome that hugetlb memory is
+not displayed.  All other meminfo that is emitted will not add up to what
+is expected, and there is no artifact left in the kernel log to show that
+a potentially significant amount of memory is actually allocated as
+hugepages which are not available to be reclaimed.
 
-The fix is to simply do everything needed to prime last_data in a single
-shot, so there's no window for multiple cpus to increment nbytes -- in
-fact, we won't even increment or decrement nbytes anymore, we'll just
-extract the needed EXTRACT_SIZE one time per pool and then carry on with
-the normal routine.
+Booting with hugepages=8192 on the command line, this memory is now shown
+in oom conditions.  For example, with echo m > /proc/sysrq-trigger:
 
-All these changes have been tested across multiple hosts and architectures
-where panics were previously encoutered.  The code changes are are
-strictly limited to areas only touched when when booted in fips mode.
+Node 0 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
+Node 1 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
+Node 2 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
+Node 3 hugepages_total=2048 hugepages_free=2048 hugepages_surp=0 hugepages_size=2048kB
 
-This change should also go into 3.8-stable, to make the myriads of fips
-users on 3.8.x happy.
-
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
-Tested-by: Jan Stancek <jstancek@redhat.com>
-Tested-by: Jan Stodola <jstodola@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ include/linux/hugetlb.h |    4 ++++
+ mm/hugetlb.c            |   15 +++++++++++++++
+ mm/page_alloc.c         |    3 +++
+ 3 files changed, 22 insertions(+)
 
-diff -puN drivers/char/random.c~drivers-char-randomc-fix-priming-of-last_data drivers/char/random.c
---- a/drivers/char/random.c~drivers-char-randomc-fix-priming-of-last_data
-+++ a/drivers/char/random.c
-@@ -957,10 +957,23 @@ static ssize_t extract_entropy(struct en
+diff -puN include/linux/hugetlb.h~mm-hugetlb-include-hugepages-in-meminfo include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-include-hugepages-in-meminfo
++++ a/include/linux/hugetlb.h
+@@ -58,6 +58,7 @@ void __unmap_hugepage_range(struct mmu_g
+ int hugetlb_prefault(struct address_space *, struct vm_area_struct *);
+ void hugetlb_report_meminfo(struct seq_file *);
+ int hugetlb_report_node_meminfo(int, char *);
++void hugetlb_show_meminfo(void);
+ unsigned long hugetlb_total_pages(void);
+ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags);
+@@ -114,6 +115,9 @@ static inline void hugetlb_report_meminf
  {
- 	ssize_t ret = 0, i;
- 	__u8 tmp[EXTRACT_SIZE];
-+	unsigned long flags;
+ }
+ #define hugetlb_report_node_meminfo(n, buf)	0
++static inline void hugetlb_show_meminfo(void)
++{
++}
+ #define follow_huge_pmd(mm, addr, pmd, write)	NULL
+ #define follow_huge_pud(mm, addr, pud, write)	NULL
+ #define prepare_hugepage_range(file, addr, len)	(-EINVAL)
+diff -puN mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo
++++ a/mm/hugetlb.c
+@@ -2121,6 +2121,21 @@ int hugetlb_report_node_meminfo(int nid,
+ 		nid, h->surplus_huge_pages_node[nid]);
+ }
  
- 	/* if last_data isn't primed, we need EXTRACT_SIZE extra bytes */
--	if (fips_enabled && !r->last_data_init)
--		nbytes += EXTRACT_SIZE;
-+	if (fips_enabled) {
-+		spin_lock_irqsave(&r->lock, flags);
-+		if (!r->last_data_init) {
-+			r->last_data_init = true;
-+			spin_unlock_irqrestore(&r->lock, flags);
-+			trace_extract_entropy(r->name, EXTRACT_SIZE,
-+					      r->entropy_count, _RET_IP_);
-+			xfer_secondary_pool(r, EXTRACT_SIZE);
-+			extract_buf(r, tmp);
-+			spin_lock_irqsave(&r->lock, flags);
-+			memcpy(r->last_data, tmp, EXTRACT_SIZE);
-+		}
-+		spin_unlock_irqrestore(&r->lock, flags);
-+	}
++void hugetlb_show_meminfo(void)
++{
++	struct hstate *h;
++	int nid;
++
++	for_each_node_state(nid, N_MEMORY)
++		for_each_hstate(h)
++			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
++		        	nid,
++				h->nr_huge_pages_node[nid],
++				h->free_huge_pages_node[nid],
++				h->surplus_huge_pages_node[nid],
++				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
++}
++
+ /* Return the number pages of memory we physically have, in PAGE_SIZE units. */
+ unsigned long hugetlb_total_pages(void)
+ {
+diff -puN mm/page_alloc.c~mm-hugetlb-include-hugepages-in-meminfo mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-hugetlb-include-hugepages-in-meminfo
++++ a/mm/page_alloc.c
+@@ -58,6 +58,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/migrate.h>
+ #include <linux/page-debug-flags.h>
++#include <linux/hugetlb.h>
+ #include <linux/sched/rt.h>
  
- 	trace_extract_entropy(r->name, nbytes, r->entropy_count, _RET_IP_);
- 	xfer_secondary_pool(r, nbytes);
-@@ -970,19 +983,6 @@ static ssize_t extract_entropy(struct en
- 		extract_buf(r, tmp);
+ #include <asm/tlbflush.h>
+@@ -3112,6 +3113,8 @@ void show_free_areas(unsigned int filter
+ 		printk("= %lukB\n", K(total));
+ 	}
  
- 		if (fips_enabled) {
--			unsigned long flags;
--
--
--			/* prime last_data value if need be, per fips 140-2 */
--			if (!r->last_data_init) {
--				spin_lock_irqsave(&r->lock, flags);
--				memcpy(r->last_data, tmp, EXTRACT_SIZE);
--				r->last_data_init = true;
--				nbytes -= EXTRACT_SIZE;
--				spin_unlock_irqrestore(&r->lock, flags);
--				extract_buf(r, tmp);
--			}
++	hugetlb_show_meminfo();
++
+ 	printk("%ld total pagecache pages\n", global_page_state(NR_FILE_PAGES));
+ 
+ 	show_swap_cache_info();
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+linux-next.patch
+mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-hugetlb-include-hugepages-in-meminfo.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+
