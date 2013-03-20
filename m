@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-char-randomc-fix-priming-of-last_data.patch added to -mm tree
-Date: Wed, 20 Mar 2013 15:52:08 -0700
-Message-ID: <20130320225208.7CEF25A4078@corp2gmr1-2.hot.corp.google.com>
+Date: Wed, 20 Mar 2013 15:52:43 -0700
+Message-ID: <20130320225243.F2F175A4078__14616.2827768878$1363820005$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:64457 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478Ab3CTWwL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:52:11 -0400
-Received: by mail-vb0-f73.google.com with SMTP id fj18so209046vbb.4
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:52:09 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:44337 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752257Ab3CTWwq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:52:46 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so209072qcr.2
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:52:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -45,7 +45,7 @@ fun random corruption and panics.
 The fix is to simply do everything needed to prime last_data in a single
 shot, so there's no window for multiple cpus to increment nbytes -- in
 fact, we won't even increment or decrement nbytes anymore, we'll just
-extract the needed EXTRACT_BYTES one time per pool and then carry on with
+extract the needed EXTRACT_SIZE one time per pool and then carry on with
 the normal routine.
 
 All these changes have been tested across multiple hosts and architectures
@@ -59,7 +59,7 @@ Signed-off-by: Jarod Wilson <jarod@redhat.com>
 Tested-by: Jan Stancek <jstancek@redhat.com>
 Tested-by: Jan Stodola <jstodola@redhat.com>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Matt Mackall <mpm@selenic.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
