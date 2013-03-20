@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ktime_add_ns-may-overflow-on-32bit-architectures.patch added to -mm tree
-Date: Wed, 20 Mar 2013 15:46:09 -0700
-Message-ID: <20130320224609.7EB7E31C016@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-char-randomc-fix-priming-of-last_data.patch added to -mm tree
+Date: Wed, 20 Mar 2013 15:52:08 -0700
+Message-ID: <20130320225208.7CEF25A4078@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:52598 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275Ab3CTWqL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:46:11 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so208316vcb.4
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:46:10 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:64457 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478Ab3CTWwL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:52:11 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so209046vbb.4
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:52:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david.engraf@sysgo.com, eric.dumazet@gmail.com, john.stultz@linaro.org, tglx@linutronix.de
+Cc: jarod@redhat.com, davem@davemloft.net, herbert@gondor.apana.org.au, jstancek@redhat.com, jstodola@redhat.com, mpm@selenic.com, nhorman@tuxdriver.com, stable@vger.kernel.org, tytso@mit.edu
 
 
 The patch titled
-     Subject: ktime_add_ns() may overflow on 32bit architectures
+     Subject: drivers/char/random.c: fix priming of last_data
 has been added to the -mm tree.  Its filename is
-     ktime_add_ns-may-overflow-on-32bit-architectures.patch
+     drivers-char-randomc-fix-priming-of-last_data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Engraf <david.engraf@sysgo.com>
-Subject: ktime_add_ns() may overflow on 32bit architectures
+From: Jarod Wilson <jarod@redhat.com>
+Subject: drivers/char/random.c: fix priming of last_data
 
-I've triggered an overflow when using ktime_add_ns() on a 32bit
-architecture not supporting CONFIG_KTIME_SCALAR.
+Commit ec8f02da9e ("random: prime last_data value per fips requirements")
+added priming of last_data per fips requirements.  Unfortuantely, it did
+so in a way that can lead to multiple threads all incrementing nbytes, but
+only one actually doing anything with the extra data, which leads to some
+fun random corruption and panics.
 
-When passing a very high value for u64 nsec, e.g.  7881299347898368000 the
-do_div() function converts this value to seconds (7881299347) which is
-still to high to pass to the ktime_set() function as long.  The result in
-my case is a negative value.
+The fix is to simply do everything needed to prime last_data in a single
+shot, so there's no window for multiple cpus to increment nbytes -- in
+fact, we won't even increment or decrement nbytes anymore, we'll just
+extract the needed EXTRACT_BYTES one time per pool and then carry on with
+the normal routine.
 
-The problem on my system occurs in the tick-sched.c,
-tick_nohz_stop_sched_tick() when time_delta is set to
-timekeeping_max_deferment().  The check for time_delta < KTIME_MAX is
-valid, thus ktime_add_ns() is called with a too large value resulting in a
-negative expire value.  This leads to an endless loop in the ticker code:
+All these changes have been tested across multiple hosts and architectures
+where panics were previously encoutered.  The code changes are are
+strictly limited to areas only touched when when booted in fips mode.
 
-time_delta: 7881299347898368000
-expires = ktime_add_ns(last_update, time_delta)
-expires: negative value
+This change should also go into 3.8-stable, to make the myriads of fips
+users on 3.8.x happy.
 
-This error doesn't occurs on 64bit or architectures supporting
-CONFIG_KTIME_SCALAR (e.g.  ARM, x86-32).  64-bit arches doesn't run into
-this problem because ktime_add_ns() can directly calculate the result
-without calling do_div() and ktime_set().
-
-Signed-off-by: David Engraf <david.engraf@sysgo.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Tested-by: Jan Stancek <jstancek@redhat.com>
+Tested-by: Jan Stodola <jstodola@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/char/random.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN kernel/hrtimer.c~ktime_add_ns-may-overflow-on-32bit-architectures kernel/hrtimer.c
---- a/kernel/hrtimer.c~ktime_add_ns-may-overflow-on-32bit-architectures
-+++ a/kernel/hrtimer.c
-@@ -275,6 +275,10 @@ ktime_t ktime_add_ns(const ktime_t kt, u
- 	} else {
- 		unsigned long rem = do_div(nsec, NSEC_PER_SEC);
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-priming-of-last_data drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-priming-of-last_data
++++ a/drivers/char/random.c
+@@ -957,10 +957,23 @@ static ssize_t extract_entropy(struct en
+ {
+ 	ssize_t ret = 0, i;
+ 	__u8 tmp[EXTRACT_SIZE];
++	unsigned long flags;
  
-+		/* Make sure nsec fits into long */
-+		if (unlikely(nsec > KTIME_SEC_MAX))
-+			return (ktime_t){ .tv64 = KTIME_MAX };
-+
- 		tmp = ktime_set((long)nsec, rem);
- 	}
+ 	/* if last_data isn't primed, we need EXTRACT_SIZE extra bytes */
+-	if (fips_enabled && !r->last_data_init)
+-		nbytes += EXTRACT_SIZE;
++	if (fips_enabled) {
++		spin_lock_irqsave(&r->lock, flags);
++		if (!r->last_data_init) {
++			r->last_data_init = true;
++			spin_unlock_irqrestore(&r->lock, flags);
++			trace_extract_entropy(r->name, EXTRACT_SIZE,
++					      r->entropy_count, _RET_IP_);
++			xfer_secondary_pool(r, EXTRACT_SIZE);
++			extract_buf(r, tmp);
++			spin_lock_irqsave(&r->lock, flags);
++			memcpy(r->last_data, tmp, EXTRACT_SIZE);
++		}
++		spin_unlock_irqrestore(&r->lock, flags);
++	}
  
-_
-
-Patches currently in -mm which might be from david.engraf@sysgo.com are
-
-ktime_add_ns-may-overflow-on-32bit-architectures.patch
-
+ 	trace_extract_entropy(r->name, nbytes, r->entropy_count, _RET_IP_);
+ 	xfer_secondary_pool(r, nbytes);
+@@ -970,19 +983,6 @@ static ssize_t extract_entropy(struct en
+ 		extract_buf(r, tmp);
+ 
+ 		if (fips_enabled) {
+-			unsigned long flags;
+-
+-
+-			/* prime last_data value if need be, per fips 140-2 */
+-			if (!r->last_data_init) {
+-				spin_lock_irqsave(&r->lock, flags);
+-				memcpy(r->last_data, tmp, EXTRACT_SIZE);
+-				r->last_data_init = true;
+-				nbytes -= EXTRACT_SIZE;
+-				spin_unlock_irqrestore(&r->lock, flags);
+-				extract_buf(r, tmp);
+-			}
