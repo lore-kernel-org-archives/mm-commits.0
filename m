@@ -1,33 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] vmcore-modify-vmcore-clean-up-function-to-free-buffer-on-2nd-kernel.patch removed from -mm tree
-Date: Wed, 20 Mar 2013 16:32:41 -0700
-Message-ID: <20130320233241.8098D31C1D3@corp2gmr1-1.hot.corp.google.com>
+Subject: [nacked] vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch removed from -mm tree
+Date: Wed, 20 Mar 2013 16:32:50 -0700
+Message-ID: <20130320233250.806385A400F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:51344 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753948Ab3CTXcm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:32:42 -0400
-Received: by mail-qa0-f74.google.com with SMTP id o13so220349qaj.3
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:32:42 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:50230 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753948Ab3CTXcv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:32:51 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so211903vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:32:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmcore: modify vmcore clean-up function to free buffer on 2nd kernel
+     Subject: vmcore: allocate per-cpu crash_notes objects on page-size boundary
 has been removed from the -mm tree.  Its filename was
-     vmcore-modify-vmcore-clean-up-function-to-free-buffer-on-2nd-kernel.patch
+     vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: modify vmcore clean-up function to free buffer on 2nd kernel
+Subject: vmcore: allocate per-cpu crash_notes objects on page-size boundary
 
-If flag MEM_TYPE_CURRENT_KERNEL is set, the object is copied in some
-buffer on the 2nd kernel, so clean-up funciton needs to free it.
+To satisfy mmap()'s page-size boundary requirement, allocate per-cpu
+crash_notes objects on page-size boundary.
+
+/proc/vmcore on the 2nd kernel checks if each note objects is allocated on
+page-size boundary.  If there's some object not satisfying the page-size
+boundary requirement, /proc/vmcore doesn't provide mmap() interface.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -36,30 +40,26 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/kexec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-modify-vmcore-clean-up-function-to-free-buffer-on-2nd-kernel fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-modify-vmcore-clean-up-function-to-free-buffer-on-2nd-kernel
-+++ a/fs/proc/vmcore.c
-@@ -940,6 +940,10 @@ void vmcore_cleanup(void)
- 		struct vmcore *m;
- 
- 		m = list_entry(pos, struct vmcore, list);
-+
-+		if (m->flag & MEM_TYPE_CURRENT_KERNEL)
-+			free_pages((unsigned long)m->buf, get_order(m->size));
-+
- 		list_del(&m->list);
- 		kfree(m);
- 	}
+diff -puN kernel/kexec.c~vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary kernel/kexec.c
+--- a/kernel/kexec.c~vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary
++++ a/kernel/kexec.c
+@@ -1223,7 +1223,8 @@ void crash_save_cpu(struct pt_regs *regs
+ static int __init crash_notes_memory_init(void)
+ {
+ 	/* Allocate memory for saving cpu registers. */
+-	crash_notes = alloc_percpu(note_buf_t);
++	crash_notes = __alloc_percpu(roundup(sizeof(note_buf_t), PAGE_SIZE),
++				     PAGE_SIZE);
+ 	if (!crash_notes) {
+ 		printk("Kexec: Memory allocation for saving cpu register"
+ 		" states failed\n");
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
 
-vmcore-clean-up-read_vmcore.patch
-vmcore-read-buffers-for-vmcore-objects-copied-from-old-memory.patch
-vmcore-allocate-per-cpu-crash_notes-objects-on-page-size-boundary.patch
 kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary.patch
 kexec-elf-introduce-nt_vmcore_debuginfo-note-type.patch
 elf-introduce-nt_vmcore_pad-type.patch
