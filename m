@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-merging-memory-blocks-resets-mempolicy.patch added to -mm tree
-Date: Wed, 20 Mar 2013 15:05:20 -0700
-Message-ID: <20130320220520.8FA4E31C0A5@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-speedup-in-__early_pfn_to_nid.patch added to -mm tree
+Date: Wed, 20 Mar 2013 15:32:34 -0700
+Message-ID: <20130320223234.83DE15A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:40651 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753207Ab3CTWFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:05:22 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so205215vcb.2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:05:21 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:44856 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753612Ab3CTWcf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:32:35 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so206990ggn.4
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:32:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steven.t.hampson@intel.com, andi@firstfloor.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com
+Cc: rja@sgi.com, hpa@zytor.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     Subject: mm: merging memory blocks resets mempolicy
+     Subject: mm: speedup in __early_pfn_to_nid()
 has been added to the -mm tree.  Its filename is
-     mm-merging-memory-blocks-resets-mempolicy.patch
+     mm-speedup-in-__early_pfn_to_nid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,87 +33,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Hampson, Steven T" <steven.t.hampson@intel.com>
-Subject: mm: merging memory blocks resets mempolicy
+From: Russ Anderson <rja@sgi.com>
+Subject: mm: speedup in __early_pfn_to_nid()
 
-Using mbind to change the mempolicy to MPOL_BIND on several adjacent
-mmapped blocks may result in a reset of the mempolicy to MPOL_DEFAULT in
-vma_adjust.
+When booting on a large memory system, the kernel spends considerable time
+in memmap_init_zone() setting up memory zones.  Analysis shows significant
+time spent in __early_pfn_to_nid().
 
-Test code.  Correct result is three lines containing "OK".
+memmap_init_zone() checks each PFN to verify the nid is valid. 
+__early_pfn_to_nid() sequentially scans the list of pfn ranges to find the
+right range and returns the nid.  This does not scale well.  On a 4 TB
+(single rack) system there are 308 memory ranges to scan.  The higher the
+PFN the more time spent sequentially spinning through memory ranges.
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <numaif.h>
-#include <errno.h>
+Since memmap_init_zone() increments pfn, it will almost always be looking
+for the same range as the previous pfn, so check that range first.  If it
+is in the same range, return that nid.  If not, scan the list as before.
 
-/* gcc mbind_test.c -lnuma -o mbind_test -Wall */
-#define MAXNODE 4096
+A 4 TB (single rack) UV1 system takes 512 seconds to get through the zone
+code.  This performance optimization reduces the time by 189 seconds, a
+36% improvement.
 
-void allocate()
-{
-	int ret;
-	int len;
-	int policy = -1;
-	unsigned char *p;
-	unsigned long mask[MAXNODE] = { 0 };
-	unsigned long retmask[MAXNODE] = { 0 };
+A 2 TB (single rack) UV2 system goes from 212.7 seconds to 99.8 seconds, a
+112.9 second (53%) reduction.
 
-	len = getpagesize() * 0x2fc00;
-	p = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS,
-		 -1, 0);
-	if (p == MAP_FAILED)
-		printf("mbind err: %d\n", errno);
-
-	mask[0] = 1;
-	ret = mbind(p, len, MPOL_BIND, mask, MAXNODE, 0);
-	if (ret < 0)
-		printf("mbind err: %d %d\n", ret, errno);
-	ret = get_mempolicy(&policy, retmask, MAXNODE, p, MPOL_F_ADDR);
-	if (ret < 0)
-		printf("get_mempolicy err: %d %d\n", ret, errno);
-
-	if (policy == MPOL_BIND)
-		printf("OK\n");
-	else
-		printf("ERROR: policy is %d\n", policy);
-}
-
-int main()
-{
-	allocate();
-	allocate();
-	allocate();
-	return 0;
-}
-
-Signed-off-by: Steven T Hampson <steven.t.hampson@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Russ Anderson <rja@sgi.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-merging-memory-blocks-resets-mempolicy mm/mmap.c
---- a/mm/mmap.c~mm-merging-memory-blocks-resets-mempolicy
-+++ a/mm/mmap.c
-@@ -829,7 +829,7 @@ again:			remove_next = 1 + (end > next->
- 		if (next->anon_vma)
- 			anon_vma_merge(vma, next);
- 		mm->map_count--;
--		mpol_put(vma_policy(next));
-+		vma_set_policy(vma, vma_policy(next));
- 		kmem_cache_free(vm_area_cachep, next);
- 		/*
- 		 * In mprotect's case 6 (see comments on vma_merge),
+diff -puN mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid
++++ a/mm/page_alloc.c
+@@ -4168,10 +4168,19 @@ int __meminit __early_pfn_to_nid(unsigne
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 	int i, nid;
++	static unsigned long last_start_pfn, last_end_pfn;
++	static int last_nid;
++
++	if (last_start_pfn <= pfn && pfn < last_end_pfn)
++		return last_nid;
+ 
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
+-		if (start_pfn <= pfn && pfn < end_pfn)
++		if (start_pfn <= pfn && pfn < end_pfn) {
++			last_nid = nid;
++			last_start_pfn = start_pfn;
++			last_end_pfn = end_pfn;
+ 			return nid;
++		}
+ 	/* This is a memory hole */
+ 	return -1;
+ }
 _
 
-Patches currently in -mm which might be from steven.t.hampson@intel.com are
+Patches currently in -mm which might be from rja@sgi.com are
 
-mm-merging-memory-blocks-resets-mempolicy.patch
+mm-zone_end_pfn-is-too-small.patch
+mm-speedup-in-__early_pfn_to_nid.patch
 
