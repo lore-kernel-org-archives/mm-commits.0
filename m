@@ -1,33 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary.patch removed from -mm tree
-Date: Wed, 20 Mar 2013 16:32:53 -0700
-Message-ID: <20130320233253.7C11831C1D3@corp2gmr1-1.hot.corp.google.com>
+Subject: [nacked] kexec-elf-introduce-nt_vmcore_debuginfo-note-type.patch removed from -mm tree
+Date: Wed, 20 Mar 2013 16:32:56 -0700
+Message-ID: <20130320233256.7BC9D5A400F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:34135 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753948Ab3CTXcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:32:54 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so211957qcr.2
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:32:54 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:45789 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753948Ab3CTXc5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:32:57 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so211430ves.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:32:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: allocate vmcoreinfo note buffer on page-size boundary
+     Subject: kexec, elf: introduce NT_VMCORE_DEBUGINFO note type
 has been removed from the -mm tree.  Its filename was
-     kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary.patch
+     kexec-elf-introduce-nt_vmcore_debuginfo-note-type.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: kexec: allocate vmcoreinfo note buffer on page-size boundary
+Subject: kexec, elf: introduce NT_VMCORE_DEBUGINFO note type
 
-To satisfy mmap()'s page-size boundary requirement, specify aligned
-attribute to vmcoreinfo_note objects to allocate it on page-size boundary.
+This patch introduces NT_VMCORE_DEBUGINFO to a unique note type in
+VMCOREINFO name, which has had no name so far.  The name means that it's a
+kind of note type in vmcoreinfo that contains system kernel's debug
+information.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -36,43 +38,42 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    6 ++++--
- kernel/kexec.c        |    2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ include/uapi/linux/elf.h |    4 ++++
+ kernel/kexec.c           |    4 ++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary
-+++ a/include/linux/kexec.h
-@@ -185,8 +185,10 @@ extern struct kimage *kexec_crash_image;
- #define VMCOREINFO_BYTES           (4096)
- #define VMCOREINFO_NOTE_NAME       "VMCOREINFO"
- #define VMCOREINFO_NOTE_NAME_BYTES ALIGN(sizeof(VMCOREINFO_NOTE_NAME), 4)
--#define VMCOREINFO_NOTE_SIZE       (KEXEC_NOTE_HEAD_BYTES*2 + VMCOREINFO_BYTES \
--				    + VMCOREINFO_NOTE_NAME_BYTES)
-+#define VMCOREINFO_NOTE_SIZE       ALIGN(KEXEC_NOTE_HEAD_BYTES*2	\
-+					 +VMCOREINFO_BYTES		\
-+					 +VMCOREINFO_NOTE_NAME_BYTES,	\
-+					 PAGE_SIZE)
+diff -puN include/uapi/linux/elf.h~kexec-elf-introduce-nt_vmcore_debuginfo-note-type include/uapi/linux/elf.h
+--- a/include/uapi/linux/elf.h~kexec-elf-introduce-nt_vmcore_debuginfo-note-type
++++ a/include/uapi/linux/elf.h
+@@ -398,6 +398,10 @@ typedef struct elf64_shdr {
+ #define NT_METAG_CBUF	0x500		/* Metag catch buffer registers */
+ #define NT_METAG_RPIPE	0x501		/* Metag read pipeline state */
  
- /* Location of a reserved region to hold the crash kernel.
-  */
-diff -puN kernel/kexec.c~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary kernel/kexec.c
---- a/kernel/kexec.c~kexec-allocate-vmcoreinfo-note-buffer-on-page-size-boundary
++/*
++ * Notes exported from /proc/vmcore, belonging to "VMCOREINFO" name.
++ */
++#define NT_VMCORE_DEBUGINFO	0	/* vmcore system kernel's debuginfo */
+ 
+ /* Note header in a PT_NOTE section */
+ typedef struct elf32_note {
+diff -puN kernel/kexec.c~kexec-elf-introduce-nt_vmcore_debuginfo-note-type kernel/kexec.c
+--- a/kernel/kexec.c~kexec-elf-introduce-nt_vmcore_debuginfo-note-type
 +++ a/kernel/kexec.c
-@@ -43,7 +43,7 @@ note_buf_t __percpu *crash_notes;
+@@ -1427,8 +1427,8 @@ static void update_vmcoreinfo_note(void)
  
- /* vmcoreinfo stuff */
- static unsigned char vmcoreinfo_data[VMCOREINFO_BYTES];
--u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
-+u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4] __aligned(PAGE_SIZE);
- size_t vmcoreinfo_size;
- size_t vmcoreinfo_max_size = sizeof(vmcoreinfo_data);
+ 	if (!vmcoreinfo_size)
+ 		return;
+-	buf = append_elf_note(buf, VMCOREINFO_NOTE_NAME, 0, vmcoreinfo_data,
+-			      vmcoreinfo_size);
++	buf = append_elf_note(buf, VMCOREINFO_NOTE_NAME, NT_VMCORE_DEBUGINFO,
++			      vmcoreinfo_data, vmcoreinfo_size);
+ 	final_note(buf);
+ }
  
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
 
-kexec-elf-introduce-nt_vmcore_debuginfo-note-type.patch
 elf-introduce-nt_vmcore_pad-type.patch
 kexec-fill-note-buffers-by-nt_vmcore_pad-notes-in-page-size-boundary.patch
 vmcore-check-nt_vmcore_pad-as-a-mark-indicating-the-end-of-elf-note-buffer.patch
