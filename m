@@ -1,52 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 20 Mar 2013 11:42:48 -0700
-Message-ID: <20130320184249.0CA745A4322@corp2gmr1-2.hot.corp.google.com>
+Subject: [obsolete] kernel-workqueuec-update-comment.patch removed from -mm tree
+Date: Wed, 20 Mar 2013 11:43:01 -0700
+Message-ID: <20130320184301.908E45A42CB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:50700 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932285Ab3CTSmv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 14:42:51 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so183349qcs.5
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 11:42:50 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:49812 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932285Ab3CTSnD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 14:43:03 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so182716ves.3
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 11:43:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: kernel/workqueue.c: update comment
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     kernel-workqueuec-update-comment.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: kernel/workqueue.c: update comment
 
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    4 ----
- 1 file changed, 4 deletions(-)
+ kernel/workqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/workqueue.c~linux-next-git-rejects kernel/workqueue.c
---- a/kernel/workqueue.c~linux-next-git-rejects
+diff -puN kernel/workqueue.c~kernel-workqueuec-update-comment kernel/workqueue.c
+--- a/kernel/workqueue.c~kernel-workqueuec-update-comment
 +++ a/kernel/workqueue.c
-@@ -4136,11 +4136,7 @@ static void wq_unbind_fn(struct work_str
- 		pool->flags |= POOL_DISASSOCIATED;
- 
- 		spin_unlock_irq(&pool->lock);
--<<<<<<< HEAD
--		mutex_unlock(&pool->assoc_mutex);
--=======
- 		mutex_unlock(&pool->manager_mutex);
-->>>>>>> linux-next/akpm-base
- 
+@@ -2091,7 +2091,7 @@ static bool manage_workers(struct worker
+ 		mutex_lock(&pool->manager_mutex);
  		/*
- 		 * Call schedule() so that we cross rq->lock and thus can
+ 		 * CPU hotplug could have happened while we were waiting
+-		 * for assoc_mutex.  Hotplug itself can't handle us
++		 * for manager_mutex.  Hotplug itself can't handle us
+ 		 * because manager isn't either on idle or busy list, and
+ 		 * @pool's state and ours could have deviated.
+ 		 *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +56,6 @@ printk-provide-a-wake_up_klogd-off-case-fix.patch
 mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
 dma-debug-fix-locking-bug-in-check_unmap-fix.patch
 mips-define-kvm_user_mem_slots.patch
-kernel-workqueuec-update-comment.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
 kernel-sched-schedh-fix-warning.patch
