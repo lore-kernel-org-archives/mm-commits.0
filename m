@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-ep93xx-fbc-include-linux-ioh-for-devm_ioremap.patch added to -mm tree
-Date: Wed, 20 Mar 2013 14:22:16 -0700
-Message-ID: <20130320212216.7E17C5A409A@corp2gmr1-2.hot.corp.google.com>
+Subject: + video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver.patch added to -mm tree
+Date: Wed, 20 Mar 2013 14:42:44 -0700
+Message-ID: <20130320214244.7517B5A409A@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:56943 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750758Ab3CTVWR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 17:22:17 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so200987vcb.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 14:22:17 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:57286 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751483Ab3CTVmq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 17:42:46 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so202144ves.3
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 14:42:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, FlorianSchandinat@gmx.de, damien.cassou@lifl.fr, hsweeten@visionengravers.com, rmallon@gmail.com, stable@vger.kernel.org
+Cc: hartleys@visionengravers.com, FlorianSchandinat@gmx.de, hsweeten@visionengravers.com, rmallon@gmail.com
 
 
 The patch titled
-     Subject: drivers/video/ep93xx-fb.c: include <linux/io.h> for devm_ioremap()
+     Subject: drivers/video/ep93xx-fb.c: fix section mismatch and use module_platform_driver
 has been added to the -mm tree.  Its filename is
-     drivers-video-ep93xx-fbc-include-linux-ioh-for-devm_ioremap.patch
+     video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: H Hartley Sweeten <hartleys@visionengravers.com>
-Subject: drivers/video/ep93xx-fb.c: include <linux/io.h> for devm_ioremap()
+Subject: drivers/video/ep93xx-fb.c: fix section mismatch and use module_platform_driver
 
-Commit be867814 ("drivers/video/ep93xx-fb.c: use devm_ functions")
-introduced a build error:
+Remove the __init tags from the ep93xxfb_calc_fbsize() and
+ep93xxfb_alloc_videomem() functions to fix the section mismatch warnings.
 
-drivers/video/ep93xx-fb.c: In function 'ep93xxfb_probe':
-drivers/video/ep93xx-fb.c:532: error: implicit declaration of function 'devm_ioremap'
-drivers/video/ep93xx-fb.c:533: warning: assignment makes pointer from integer without a cast
-
-Include <linux/io.h> to pickup the declaration of 'devm_ioremap'.
+Use module_platform_driver() to remove the init/exit boilerplate.
 
 Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Ryan Mallon <rmallon@gmail.com>
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Acked-by: Ryan Mallon <rmallon@gmail.com>
-Cc: Damien Cassou <damien.cassou@lifl.fr>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ep93xx-fb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/ep93xx-fb.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/ep93xx-fb.c~drivers-video-ep93xx-fbc-include-linux-ioh-for-devm_ioremap drivers/video/ep93xx-fb.c
---- a/drivers/video/ep93xx-fb.c~drivers-video-ep93xx-fbc-include-linux-ioh-for-devm_ioremap
+diff -puN drivers/video/ep93xx-fb.c~video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver drivers/video/ep93xx-fb.c
+--- a/drivers/video/ep93xx-fb.c~video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver
 +++ a/drivers/video/ep93xx-fb.c
-@@ -23,6 +23,7 @@
- #include <linux/slab.h>
- #include <linux/clk.h>
- #include <linux/fb.h>
-+#include <linux/io.h>
+@@ -419,7 +419,7 @@ static struct fb_ops ep93xxfb_ops = {
+ 	.fb_mmap	= ep93xxfb_mmap,
+ };
  
- #include <linux/platform_data/video-ep93xx.h>
+-static int __init ep93xxfb_calc_fbsize(struct ep93xxfb_mach_info *mach_info)
++static int ep93xxfb_calc_fbsize(struct ep93xxfb_mach_info *mach_info)
+ {
+ 	int i, fb_size = 0;
  
-_
-
-Patches currently in -mm which might be from hartleys@visionengravers.com are
-
-linux-next.patch
-drivers-video-ep93xx-fbc-include-linux-ioh-for-devm_ioremap.patch
-
+@@ -441,7 +441,7 @@ static int __init ep93xxfb_calc_fbsize(s
+ 	return fb_size;
+ }
+ 
+-static int __init ep93xxfb_alloc_videomem(struct fb_info *info)
++static int ep93xxfb_alloc_videomem(struct fb_info *info)
+ {
+ 	struct ep93xx_fbi *fbi = info->par;
+ 	char __iomem *virt_addr;
+@@ -627,19 +627,7 @@ static struct platform_driver ep93xxfb_d
+ 		.owner	= THIS_MODULE,
+ 	},
+ };
+-
+-static int ep93xxfb_init(void)
+-{
+-	return platform_driver_register(&ep93xxfb_driver);
+-}
+-
+-static void __exit ep93xxfb_exit(void)
+-{
+-	platform_driver_unregister(&ep93xxfb_driver);
+-}
