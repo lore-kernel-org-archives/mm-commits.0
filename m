@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-replace-kmalloc-and-then-memcpy-with-kmemdup.patch added to -mm tree
-Date: Wed, 20 Mar 2013 14:17:18 -0700
-Message-ID: <20130320211718.707A631C2B0@corp2gmr1-1.hot.corp.google.com>
+Subject: + parport-use-kmemdup-instead-of-kmalloc-memcpy.patch added to -mm tree
+Date: Wed, 20 Mar 2013 14:18:17 -0700
+Message-ID: <20130320211817.6B7A931C0A5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:50931 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308Ab3CTVRT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 17:17:19 -0400
-Received: by mail-gg0-f201.google.com with SMTP id l2so199876ggn.4
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 14:17:19 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:65169 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149Ab3CTVSS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 17:18:18 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so200480vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 14:18:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mihneadb@gmail.com, ecashin@coraid.com
+Cc: silviupopescu1990@gmail.com
 
 
 The patch titled
-     Subject: aoe: replace kmalloc and then memcpy with kmemdup
+     Subject: parport: use kmemdup instead of kmalloc + memcpy
 has been added to the -mm tree.  Its filename is
-     aoe-replace-kmalloc-and-then-memcpy-with-kmemdup.patch
+     parport-use-kmemdup-instead-of-kmalloc-memcpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mihnea Dobrescu-Balaur <mihneadb@gmail.com>
-Subject: aoe: replace kmalloc and then memcpy with kmemdup
+From: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+Subject: parport: use kmemdup instead of kmalloc + memcpy
 
-Signed-off-by: Mihnea Dobrescu-Balaur <mihneadb@gmail.com>
-Cc: Ed Cashin <ecashin@coraid.com>
+This replaces calls to kmalloc followed by memcpy with a single call to
+kmemdup.  This was found via make coccicheck.
+
+Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoechr.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/parport/parport_gsc.c    |    4 ++--
+ drivers/parport/parport_sunbpp.c |    5 ++---
+ drivers/parport/procfs.c         |    6 ++----
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN drivers/block/aoe/aoechr.c~aoe-replace-kmalloc-and-then-memcpy-with-kmemdup drivers/block/aoe/aoechr.c
---- a/drivers/block/aoe/aoechr.c~aoe-replace-kmalloc-and-then-memcpy-with-kmemdup
-+++ a/drivers/block/aoe/aoechr.c
-@@ -139,13 +139,12 @@ bail:		spin_unlock_irqrestore(&emsgs_loc
- 		return;
+diff -puN drivers/parport/parport_gsc.c~parport-use-kmemdup-instead-of-kmalloc-memcpy drivers/parport/parport_gsc.c
+--- a/drivers/parport/parport_gsc.c~parport-use-kmemdup-instead-of-kmalloc-memcpy
++++ a/drivers/parport/parport_gsc.c
+@@ -246,14 +246,14 @@ struct parport *parport_gsc_probe_port(u
+ 		printk (KERN_DEBUG "parport (0x%lx): no memory!\n", base);
+ 		return NULL;
  	}
- 
--	mp = kmalloc(n, GFP_ATOMIC);
-+	mp = kmemdup(msg, n, GFP_ATOMIC);
- 	if (mp == NULL) {
- 		printk(KERN_ERR "aoe: allocation failure, len=%ld\n", n);
- 		goto bail;
+-	ops = kmalloc (sizeof (struct parport_operations), GFP_KERNEL);
++	ops = kmemdup(&parport_gsc_ops, sizeof(struct parport_operations),
++		      GFP_KERNEL);
+ 	if (!ops) {
+ 		printk (KERN_DEBUG "parport (0x%lx): no memory for ops!\n",
+ 			base);
+ 		kfree (priv);
+ 		return NULL;
  	}
+-	memcpy (ops, &parport_gsc_ops, sizeof (struct parport_operations));
+ 	priv->ctr = 0xc;
+ 	priv->ctr_writable = 0xff;
+ 	priv->dma_buf = 0;
+diff -puN drivers/parport/parport_sunbpp.c~parport-use-kmemdup-instead-of-kmalloc-memcpy drivers/parport/parport_sunbpp.c
+--- a/drivers/parport/parport_sunbpp.c~parport-use-kmemdup-instead-of-kmalloc-memcpy
++++ a/drivers/parport/parport_sunbpp.c
+@@ -284,12 +284,11 @@ static int bpp_probe(struct platform_dev
+ 	size = resource_size(&op->resource[0]);
+ 	dma = PARPORT_DMA_NONE;
  
--	memcpy(mp, msg, n);
- 	em->msg = mp;
- 	em->flags |= EMFL_VALID;
- 	em->len = n;
+-	ops = kmalloc(sizeof(struct parport_operations), GFP_KERNEL);
++	ops = kmemdup(&parport_sunbpp_ops, sizeof(struct parport_operations),
++		      GFP_KERNEL);
+         if (!ops)
+ 		goto out_unmap;
+ 
+-        memcpy (ops, &parport_sunbpp_ops, sizeof(struct parport_operations));
+-
+ 	dprintk(("register_port\n"));
+ 	if (!(p = parport_register_port((unsigned long)base, irq, dma, ops)))
+ 		goto out_free_ops;
+diff -puN drivers/parport/procfs.c~parport-use-kmemdup-instead-of-kmalloc-memcpy drivers/parport/procfs.c
+--- a/drivers/parport/procfs.c~parport-use-kmemdup-instead-of-kmalloc-memcpy
++++ a/drivers/parport/procfs.c
+@@ -476,10 +476,9 @@ int parport_proc_register(struct parport
+ 	struct parport_sysctl_table *t;
+ 	int i;
+ 
+-	t = kmalloc(sizeof(*t), GFP_KERNEL);
++	t = kmemdup(&parport_sysctl_template, sizeof(*t), GFP_KERNEL);
+ 	if (t == NULL)
+ 		return -ENOMEM;
+-	memcpy(t, &parport_sysctl_template, sizeof(*t));
+ 
+ 	t->device_dir[0].extra1 = port;
+ 
+@@ -523,10 +522,9 @@ int parport_device_proc_register(struct
+ 	struct parport_device_sysctl_table *t;
+ 	struct parport * port = device->port;
+ 	
+-	t = kmalloc(sizeof(*t), GFP_KERNEL);
++	t = kmemdup(&parport_device_sysctl_template, sizeof(*t), GFP_KERNEL);
+ 	if (t == NULL)
+ 		return -ENOMEM;
+-	memcpy(t, &parport_device_sysctl_template, sizeof(*t));
+ 
+ 	t->dev_dir[0].child = t->parport_dir;
+ 	t->parport_dir[0].child = t->port_dir;
 _
 
-Patches currently in -mm which might be from mihneadb@gmail.com are
+Patches currently in -mm which might be from silviupopescu1990@gmail.com are
 
 linux-next.patch
-aoe-replace-kmalloc-and-then-memcpy-with-kmemdup.patch
+parport-use-kmemdup-instead-of-kmalloc-memcpy.patch
 
