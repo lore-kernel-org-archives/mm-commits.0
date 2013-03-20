@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-speedup-in-__early_pfn_to_nid.patch added to -mm tree
-Date: Wed, 20 Mar 2013 15:32:34 -0700
-Message-ID: <20130320223234.83DE15A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: + ktime_add_ns-may-overflow-on-32bit-architectures.patch added to -mm tree
+Date: Wed, 20 Mar 2013 15:46:09 -0700
+Message-ID: <20130320224609.7EB7E31C016@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:44856 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753612Ab3CTWcf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:32:35 -0400
-Received: by mail-gg0-f201.google.com with SMTP id l2so206990ggn.4
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:32:35 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:52598 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752275Ab3CTWqL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 18:46:11 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hf12so208316vcb.4
+        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 15:46:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rja@sgi.com, hpa@zytor.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, tony.luck@intel.com
+Cc: david.engraf@sysgo.com, eric.dumazet@gmail.com, john.stultz@linaro.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: speedup in __early_pfn_to_nid()
+     Subject: ktime_add_ns() may overflow on 32bit architectures
 has been added to the -mm tree.  Its filename is
-     mm-speedup-in-__early_pfn_to_nid.patch
+     ktime_add_ns-may-overflow-on-32bit-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Russ Anderson <rja@sgi.com>
-Subject: mm: speedup in __early_pfn_to_nid()
+From: David Engraf <david.engraf@sysgo.com>
+Subject: ktime_add_ns() may overflow on 32bit architectures
 
-When booting on a large memory system, the kernel spends considerable time
-in memmap_init_zone() setting up memory zones.  Analysis shows significant
-time spent in __early_pfn_to_nid().
+I've triggered an overflow when using ktime_add_ns() on a 32bit
+architecture not supporting CONFIG_KTIME_SCALAR.
 
-memmap_init_zone() checks each PFN to verify the nid is valid. 
-__early_pfn_to_nid() sequentially scans the list of pfn ranges to find the
-right range and returns the nid.  This does not scale well.  On a 4 TB
-(single rack) system there are 308 memory ranges to scan.  The higher the
-PFN the more time spent sequentially spinning through memory ranges.
+When passing a very high value for u64 nsec, e.g.  7881299347898368000 the
+do_div() function converts this value to seconds (7881299347) which is
+still to high to pass to the ktime_set() function as long.  The result in
+my case is a negative value.
 
-Since memmap_init_zone() increments pfn, it will almost always be looking
-for the same range as the previous pfn, so check that range first.  If it
-is in the same range, return that nid.  If not, scan the list as before.
+The problem on my system occurs in the tick-sched.c,
+tick_nohz_stop_sched_tick() when time_delta is set to
+timekeeping_max_deferment().  The check for time_delta < KTIME_MAX is
+valid, thus ktime_add_ns() is called with a too large value resulting in a
+negative expire value.  This leads to an endless loop in the ticker code:
 
-A 4 TB (single rack) UV1 system takes 512 seconds to get through the zone
-code.  This performance optimization reduces the time by 189 seconds, a
-36% improvement.
+time_delta: 7881299347898368000
+expires = ktime_add_ns(last_update, time_delta)
+expires: negative value
 
-A 2 TB (single rack) UV2 system goes from 212.7 seconds to 99.8 seconds, a
-112.9 second (53%) reduction.
+This error doesn't occurs on 64bit or architectures supporting
+CONFIG_KTIME_SCALAR (e.g.  ARM, x86-32).  64-bit arches doesn't run into
+this problem because ktime_add_ns() can directly calculate the result
+without calling do_div() and ktime_set().
 
-Signed-off-by: Russ Anderson <rja@sgi.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: David Engraf <david.engraf@sysgo.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ kernel/hrtimer.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid
-+++ a/mm/page_alloc.c
-@@ -4168,10 +4168,19 @@ int __meminit __early_pfn_to_nid(unsigne
- {
- 	unsigned long start_pfn, end_pfn;
- 	int i, nid;
-+	static unsigned long last_start_pfn, last_end_pfn;
-+	static int last_nid;
-+
-+	if (last_start_pfn <= pfn && pfn < last_end_pfn)
-+		return last_nid;
+diff -puN kernel/hrtimer.c~ktime_add_ns-may-overflow-on-32bit-architectures kernel/hrtimer.c
+--- a/kernel/hrtimer.c~ktime_add_ns-may-overflow-on-32bit-architectures
++++ a/kernel/hrtimer.c
+@@ -275,6 +275,10 @@ ktime_t ktime_add_ns(const ktime_t kt, u
+ 	} else {
+ 		unsigned long rem = do_div(nsec, NSEC_PER_SEC);
  
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
--		if (start_pfn <= pfn && pfn < end_pfn)
-+		if (start_pfn <= pfn && pfn < end_pfn) {
-+			last_nid = nid;
-+			last_start_pfn = start_pfn;
-+			last_end_pfn = end_pfn;
- 			return nid;
-+		}
- 	/* This is a memory hole */
- 	return -1;
- }
++		/* Make sure nsec fits into long */
++		if (unlikely(nsec > KTIME_SEC_MAX))
++			return (ktime_t){ .tv64 = KTIME_MAX };
++
+ 		tmp = ktime_set((long)nsec, rem);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from rja@sgi.com are
+Patches currently in -mm which might be from david.engraf@sysgo.com are
 
-mm-zone_end_pfn-is-too-small.patch
-mm-speedup-in-__early_pfn_to_nid.patch
+ktime_add_ns-may-overflow-on-32bit-architectures.patch
 
