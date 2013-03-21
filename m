@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-make-binfmt-support-for-scripts-modular-and-removable.patch added to -mm tree
-Date: Thu, 21 Mar 2013 12:40:51 -0700
-Message-ID: <20130321194051.724D15A4232@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-try-harder-to-allocate-vmemmap-blocks.patch added to -mm tree
+Date: Thu, 21 Mar 2013 12:58:55 -0700
+Message-ID: <20130321195855.EC50231C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:36665 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867Ab3CUTkw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 15:40:52 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so294702vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 12:40:52 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:48623 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752156Ab3CUT65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 15:58:57 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so297086yen.0
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 12:58:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: josh@joshtriplett.org, viro@zeniv.linux.org.uk
+Cc: ben@decadent.org.uk, Bernhard.Schmidt@lrz.de, benh@kernel.crashing.org, davem@davemloft.net, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     Subject: fs: make binfmt support for #! scripts modular and removable
+     Subject: mm: try harder to allocate vmemmap blocks
 has been added to the -mm tree.  Its filename is
-     fs-make-binfmt-support-for-scripts-modular-and-removable.patch
+     mm-try-harder-to-allocate-vmemmap-blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: fs: make binfmt support for #! scripts modular and removable
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: mm: try harder to allocate vmemmap blocks
 
-Add a new configuration option CONFIG_BINFMT_SCRIPT to configure support
-for interpreted scripts starting with "#!"; allow compiling out that
-support, or building it as a module.  Embedded systems running exclusively
-compiled binaries could leave this support out, and systems that don't
-need scripts before mounting the root filesystem can build this as a
-module.
+Hot-adding memory on x86_64 normally requires huge page allocation.  When
+this is done to a VM guest, it's usually because the system is already
+tight on memory, so the request tends to fail.  Try to avoid this by
+adding __GFP_REPEAT to the allocation flags.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Addresses http://bugs.debian.org/699913
+
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
+Tested-by: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig.binfmt |   14 ++++++++++++++
- fs/Makefile       |    5 +----
- 2 files changed, 15 insertions(+), 4 deletions(-)
+ mm/sparse-vmemmap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/Kconfig.binfmt~fs-make-binfmt-support-for-scripts-modular-and-removable fs/Kconfig.binfmt
---- a/fs/Kconfig.binfmt~fs-make-binfmt-support-for-scripts-modular-and-removable
-+++ a/fs/Kconfig.binfmt
-@@ -65,6 +65,20 @@ config CORE_DUMP_DEFAULT_ELF_HEADERS
- 	  This config option changes the default setting of coredump_filter
- 	  seen at boot time.  If unsure, say Y.
+diff -puN mm/sparse-vmemmap.c~mm-try-harder-to-allocate-vmemmap-blocks mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~mm-try-harder-to-allocate-vmemmap-blocks
++++ a/mm/sparse-vmemmap.c
+@@ -53,10 +53,12 @@ void * __meminit vmemmap_alloc_block(uns
+ 		struct page *page;
  
-+config BINFMT_SCRIPT
-+	tristate "Kernel support for scripts starting with #!"
-+	default y
-+	help
-+	  Say Y here if you want to execute interpreted scripts starting with
-+	  #! followed by the path to an interpreter.
-+
-+	  You can build this support as a module; however, until that module
-+	  gets loaded, you cannot run scripts.  Thus, if you want to load this
-+	  module from an initramfs, the portion of the initramfs before loading
-+	  this module must consist of compiled binaries only.
-+
-+	  Most systems will not boot if you say M or N here.  If unsure, say Y.
-+
- config BINFMT_FLAT
- 	bool "Kernel support for flat binaries"
- 	depends on !MMU && (!FRV || BROKEN)
-diff -puN fs/Makefile~fs-make-binfmt-support-for-scripts-modular-and-removable fs/Makefile
---- a/fs/Makefile~fs-make-binfmt-support-for-scripts-modular-and-removable
-+++ a/fs/Makefile
-@@ -34,10 +34,7 @@ obj-$(CONFIG_COMPAT)		+= compat.o compat
- obj-$(CONFIG_BINFMT_AOUT)	+= binfmt_aout.o
- obj-$(CONFIG_BINFMT_EM86)	+= binfmt_em86.o
- obj-$(CONFIG_BINFMT_MISC)	+= binfmt_misc.o
--
--# binfmt_script is always there
--obj-y				+= binfmt_script.o
+ 		if (node_state(node, N_HIGH_MEMORY))
+-			page = alloc_pages_node(node,
+-				GFP_KERNEL | __GFP_ZERO, get_order(size));
++			page = alloc_pages_node(
++				node, GFP_KERNEL | __GFP_ZERO | __GFP_REPEAT,
++				get_order(size));
+ 		else
+-			page = alloc_pages(GFP_KERNEL | __GFP_ZERO,
++			page = alloc_pages(
++				GFP_KERNEL | __GFP_ZERO | __GFP_REPEAT,
+ 				get_order(size));
+ 		if (page)
+ 			return page_address(page);
+_
+
+Patches currently in -mm which might be from ben@decadent.org.uk are
+
+linux-next.patch
+mm-try-harder-to-allocate-vmemmap-blocks.patch
+sparse-vmemmap-specify-vmemmap-population-range-in-bytes.patch
+x86-64-remove-dead-debugging-code-for-pse-setups.patch
+x86-64-use-vmemmap_populate_basepages-for-pse-setups.patch
+x86-64-fall-back-to-regular-page-vmemmap-on-allocation-failure.patch
+dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
+dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix.patch
+
