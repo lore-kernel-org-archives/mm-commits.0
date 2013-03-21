@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-percpu-ioctx-refcount.patch added to -mm tree
-Date: Thu, 21 Mar 2013 15:38:33 -0700
-Message-ID: <20130321223834.02EEE31C121@corp2gmr1-1.hot.corp.google.com>
+Subject: + aio-use-xchg-instead-of-completion_lock.patch added to -mm tree
+Date: Thu, 21 Mar 2013 15:38:36 -0700
+Message-ID: <20130321223837.0A60931C121@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:51798 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753411Ab3CUWig (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:36 -0400
-Received: by mail-qa0-f73.google.com with SMTP id g10so319888qah.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:35 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:46536 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753411Ab3CUWii (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:38 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so310798ghb.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: aio: percpu ioctx refcount
+     Subject: aio: use xchg() instead of completion_lock
 has been added to the -mm tree.  Its filename is
-     aio-percpu-ioctx-refcount.patch
+     aio-use-xchg-instead-of-completion_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: percpu ioctx refcount
+Subject: aio: use xchg() instead of completion_lock
 
-This just converts the ioctx refcount to the new generic dynamic percpu
-refcount code.
+So, for sticking kiocb completions on the kioctx ringbuffer, we need a
+lock - it unfortunately can't be lockless.
+
+When the kioctx is shared between threads on different cpus and the rate
+of completions is high, this lock sees quite a bit of contention - in
+terms of cacheline contention it's the hottest thing in the aio subsystem.
+
+That means, with a regular spinlock, we're going to take a cache miss to
+grab the lock, then another cache miss when we touch the data the lock
+protects - if it's on the same cacheline as the lock, other cpus spinning
+on the lock are going to be pulling it out from under us as we're using
+it.
+
+So, we use an old trick to get rid of this second forced cache miss - make
+the data the lock protects be the lock itself, so we grab them both at
+once.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -57,102 +71,152 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ fs/aio.c |   59 ++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 34 insertions(+), 25 deletions(-)
 
-diff -puN fs/aio.c~aio-percpu-ioctx-refcount fs/aio.c
---- a/fs/aio.c~aio-percpu-ioctx-refcount
+diff -puN fs/aio.c~aio-use-xchg-instead-of-completion_lock fs/aio.c
+--- a/fs/aio.c~aio-use-xchg-instead-of-completion_lock
 +++ a/fs/aio.c
-@@ -36,6 +36,7 @@
- #include <linux/eventfd.h>
- #include <linux/blkdev.h>
- #include <linux/compat.h>
-+#include <linux/percpu-refcount.h>
- 
- #include <asm/kmap_types.h>
- #include <asm/uaccess.h>
-@@ -65,8 +66,7 @@ struct kioctx_cpu {
- };
- 
- struct kioctx {
--	atomic_t		users;
--	atomic_t		dead;
-+	struct percpu_ref	users;
- 
- 	/* This needs improving */
- 	unsigned long		user_id;
-@@ -368,7 +368,7 @@ static void free_ioctx(struct kioctx *ct
- 
- static void put_ioctx(struct kioctx *ctx)
- {
--	if (unlikely(atomic_dec_and_test(&ctx->users)))
-+	if (percpu_ref_put(&ctx->users))
- 		free_ioctx(ctx);
- }
- 
-@@ -409,8 +409,11 @@ static struct kioctx *ioctx_alloc(unsign
- 
- 	ctx->max_reqs = nr_events;
- 
--	atomic_set(&ctx->users, 2);
--	atomic_set(&ctx->dead, 0);
-+	percpu_ref_init(&ctx->users);
-+	rcu_read_lock();
-+	percpu_ref_get(&ctx->users);
-+	rcu_read_unlock();
+@@ -120,11 +120,23 @@ struct kioctx {
+ 	struct {
+ 		struct mutex	ring_lock;
+ 		wait_queue_head_t wait;
 +
++		/*
++		 * Copy of the real tail - to reduce cacheline bouncing. Updated
++		 * by aio_complete() whenever it updates the real tail.
++		 */
++		unsigned	shadow_tail;
+ 	} ____cacheline_aligned_in_smp;
+ 
+ 	struct {
++		/*
++		 * This is the canonical copy of the tail pointer, updated by
++		 * aio_complete(). But aio_complete() also uses it as a lock, so
++		 * other code can't use it; aio_complete() keeps shadow_tail in
++		 * sync with the real value of the tail pointer for other code
++		 * to use.
++		 */
+ 		unsigned	tail;
+-		spinlock_t	completion_lock;
+ 	} ____cacheline_aligned_in_smp;
+ 
+ 	struct page		*internal_pages[AIO_RING_PAGES];
+@@ -336,9 +348,10 @@ static void free_ioctx(struct kioctx *ct
+ 	kunmap_atomic(ring);
+ 
+ 	while (atomic_read(&ctx->reqs_available) < ctx->nr_events - 1) {
+-		wait_event(ctx->wait, head != ctx->tail);
++		wait_event(ctx->wait, head != ctx->shadow_tail);
+ 
+-		avail = (head <= ctx->tail ? ctx->tail : ctx->nr_events) - head;
++		avail = (head <= ctx->shadow_tail
++			 ? ctx->shadow_tail : ctx->nr_events) - head;
+ 
+ 		atomic_add(avail, &ctx->reqs_available);
+ 		head += avail;
+@@ -415,7 +428,6 @@ static struct kioctx *ioctx_alloc(unsign
+ 	rcu_read_unlock();
+ 
  	spin_lock_init(&ctx->ctx_lock);
- 	spin_lock_init(&ctx->completion_lock);
+-	spin_lock_init(&ctx->completion_lock);
  	mutex_init(&ctx->ring_lock);
-@@ -482,7 +485,7 @@ static void kill_ioctx_rcu(struct rcu_he
-  */
- static void kill_ioctx(struct kioctx *ctx)
- {
--	if (!atomic_xchg(&ctx->dead, 1)) {
-+	if (percpu_ref_kill(&ctx->users)) {
- 		hlist_del_rcu(&ctx->list);
- 		/* Between hlist_del_rcu() and dropping the initial ref */
- 		synchronize_rcu();
-@@ -528,12 +531,6 @@ void exit_aio(struct mm_struct *mm)
- 	struct hlist_node *n;
+ 	init_waitqueue_head(&ctx->wait);
  
- 	hlist_for_each_entry_safe(ctx, n, &mm->ioctx_list, list) {
--		if (1 != atomic_read(&ctx->users))
--			printk(KERN_DEBUG
--				"exit_aio:ioctx still alive: %d %d %d\n",
--				atomic_read(&ctx->users),
--				atomic_read(&ctx->dead),
--				atomic_read(&ctx->reqs_available));
- 		/*
- 		 * We don't need to bother with munmap() here -
- 		 * exit_mmap(mm) is coming and it'll unmap everything.
-@@ -544,7 +541,7 @@ void exit_aio(struct mm_struct *mm)
+@@ -713,18 +725,19 @@ void aio_complete(struct kiocb *iocb, lo
+ 		 * free_ioctx()
  		 */
- 		ctx->mmap_size = 0;
+ 		atomic_inc(&ctx->reqs_available);
++		smp_mb__after_atomic_inc();
+ 		/* Still need the wake_up in case free_ioctx is waiting */
+ 		goto put_rq;
+ 	}
  
--		if (!atomic_xchg(&ctx->dead, 1)) {
-+		if (percpu_ref_kill(&ctx->users)) {
- 			hlist_del_rcu(&ctx->list);
- 			call_rcu(&ctx->rcu_head, kill_ioctx_rcu);
- 		}
-@@ -655,7 +652,7 @@ static struct kioctx *lookup_ioctx(unsig
+ 	/*
+-	 * Add a completion event to the ring buffer. Must be done holding
+-	 * ctx->ctx_lock to prevent other code from messing with the tail
+-	 * pointer since we might be called from irq context.
++	 * Add a completion event to the ring buffer; ctx->tail is both our lock
++	 * and the canonical version of the tail pointer.
+ 	 */
+-	spin_lock_irqsave(&ctx->completion_lock, flags);
++	local_irq_save(flags);
++	while ((tail = xchg(&ctx->tail, UINT_MAX)) == UINT_MAX)
++		cpu_relax();
  
- 	hlist_for_each_entry_rcu(ctx, &mm->ioctx_list, list) {
- 		if (ctx->user_id == ctx_id){
--			atomic_inc(&ctx->users);
-+			percpu_ref_get(&ctx->users);
- 			ret = ctx;
+-	tail = ctx->tail;
+ 	pos = tail + AIO_EVENTS_OFFSET;
+ 
+ 	if (++tail >= ctx->nr_events)
+@@ -750,14 +763,18 @@ void aio_complete(struct kiocb *iocb, lo
+ 	 */
+ 	smp_wmb();	/* make event visible before updating tail */
+ 
+-	ctx->tail = tail;
++	ctx->shadow_tail = tail;
+ 
+ 	ring = kmap_atomic(ctx->ring_pages[0]);
+ 	ring->tail = tail;
+ 	kunmap_atomic(ring);
+ 	flush_dcache_page(ctx->ring_pages[0]);
+ 
+-	spin_unlock_irqrestore(&ctx->completion_lock, flags);
++	/* unlock, make new tail visible before checking waitlist */
++	smp_mb();
++
++	ctx->tail = tail;
++	local_irq_restore(flags);
+ 
+ 	pr_debug("added to ring %p at [%u]\n", iocb, tail);
+ 
+@@ -773,14 +790,6 @@ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	aio_put_req(iocb);
+ 
+-	/*
+-	 * We have to order our ring_info tail store above and test
+-	 * of the wait list below outside the wait lock.  This is
+-	 * like in wake_up_bit() where clearing a bit has to be
+-	 * ordered with the unlocked test.
+-	 */
+-	smp_mb();
+-
+ 	if (waitqueue_active(&ctx->wait))
+ 		wake_up(&ctx->wait);
+ 
+@@ -806,18 +815,18 @@ static long aio_read_events_ring(struct
+ 	head = ring->head;
+ 	kunmap_atomic(ring);
+ 
+-	pr_debug("h%u t%u m%u\n", head, ctx->tail, ctx->nr_events);
++	pr_debug("h%u t%u m%u\n", head, ctx->shadow_tail, ctx->nr_events);
+ 
+-	if (head == ctx->tail)
++	if (head == ctx->shadow_tail)
+ 		goto out;
+ 
+ 	while (ret < nr) {
+-		long avail = (head <= ctx->tail
+-			      ? ctx->tail : ctx->nr_events) - head;
++		long avail = (head <= ctx->shadow_tail
++			      ? ctx->shadow_tail : ctx->nr_events) - head;
+ 		struct io_event *ev;
+ 		struct page *page;
+ 
+-		if (head == ctx->tail)
++		if (head == ctx->shadow_tail)
  			break;
- 		}
-@@ -867,7 +864,7 @@ static bool aio_read_events(struct kioct
- 	if (ret > 0)
- 		*i += ret;
  
--	if (unlikely(atomic_read(&ctx->dead)))
-+	if (unlikely(percpu_ref_dead(&ctx->users)))
- 		ret = -EINVAL;
+ 		avail = min(avail, nr - ret);
+@@ -847,7 +856,7 @@ static long aio_read_events_ring(struct
+ 	kunmap_atomic(ring);
+ 	flush_dcache_page(ctx->ring_pages[0]);
  
- 	if (!*i)
+-	pr_debug("%li  h%u t%u\n", ret, head, ctx->tail);
++	pr_debug("%li  h%u t%u\n", ret, head, ctx->shadow_tail);
+ 
+ 	put_reqs_available(ctx, ret);
+ out:
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
