@@ -1,40 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch removed from -mm tree
-Date: Thu, 21 Mar 2013 15:28:11 -0700
-Message-ID: <20130321222811.A988B31C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: [to-be-updated] aio-change-reqs_active-to-include-unreaped-completions.patch removed from -mm tree
+Date: Thu, 21 Mar 2013 15:28:23 -0700
+Message-ID: <20130321222823.AC52E31C299@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:54887 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753716Ab3CUW2N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:28:13 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so310676vcb.0
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:28:13 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:38243 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753753Ab3CUW2Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:28:25 -0400
+Received: by mail-yh0-f74.google.com with SMTP id i57so12327yha.3
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:28:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio: make aio_read_evt() more efficient, convert to hrtimers
+     Subject: aio: change reqs_active to include unreaped completions
 has been removed from the -mm tree.  Its filename was
-     aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
+     aio-change-reqs_active-to-include-unreaped-completions.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: make aio_read_evt() more efficient, convert to hrtimers
+Subject: aio: change reqs_active to include unreaped completions
 
-Previously, aio_read_event() pulled a single completion off the ringbuffer
-at a time, locking and unlocking each time.  Change it to pull off as many
-events as it can at a time, and copy them directly to userspace.
+The aio code tries really hard to avoid having to deal with the completion
+ringbuffer overflowing.  To do that, it has to keep track of the number of
+outstanding kiocbs, and the number of completions currently in the
+ringbuffer - and it's got to check that every time we allocate a kiocb. 
+Ouch.
 
-This also fixes a bug where if copying the event to userspace failed,
-we'd lose the event.
-
-Also convert it to wait_event_interruptible_hrtimeout(), which
-simplifies it quite a bit.
+But - we can improve this quite a bit if we just change reqs_active to
+mean "number of outstanding requests and unreaped completions" - that
+means kiocb allocation doesn't have to look at the ringbuffer, which is a
+fairly significant win.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -54,300 +55,121 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |  226 ++++++++++++++++++-----------------------------------
- 1 file changed, 77 insertions(+), 149 deletions(-)
+ fs/aio.c |   38 +++++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-diff -puN fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers fs/aio.c
---- a/fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers
+diff -puN fs/aio.c~aio-change-reqs_active-to-include-unreaped-completions fs/aio.c
+--- a/fs/aio.c~aio-change-reqs_active-to-include-unreaped-completions
 +++ a/fs/aio.c
-@@ -63,7 +63,7 @@ struct aio_ring_info {
- 	unsigned long		mmap_size;
+@@ -71,12 +71,6 @@ struct aio_ring_info {
+ 	struct page		*internal_pages[AIO_RING_PAGES];
+ };
  
- 	struct page		**ring_pages;
--	spinlock_t		ring_lock;
-+	struct mutex		ring_lock;
- 	long			nr_pages;
- 
- 	unsigned		nr, tail;
-@@ -344,7 +344,7 @@ static struct kioctx *ioctx_alloc(unsign
- 	atomic_set(&ctx->users, 2);
- 	atomic_set(&ctx->dead, 0);
- 	spin_lock_init(&ctx->ctx_lock);
--	spin_lock_init(&ctx->ring_info.ring_lock);
-+	mutex_init(&ctx->ring_info.ring_lock);
- 	init_waitqueue_head(&ctx->wait);
- 
- 	INIT_LIST_HEAD(&ctx->active_reqs);
-@@ -747,187 +747,115 @@ put_rq:
- }
- EXPORT_SYMBOL(aio_complete);
- 
--/* aio_read_evt
-- *	Pull an event off of the ioctx's event ring.  Returns the number of 
-- *	events fetched (0 or 1 ;-)
-- *	FIXME: make this use cmpxchg.
-- *	TODO: make the ringbuffer user mmap()able (requires FIXME).
-+/* aio_read_events
-+ *	Pull an event off of the ioctx's event ring.  Returns the number of
-+ *	events fetched
+-static inline unsigned aio_ring_avail(struct aio_ring_info *info,
+-					struct aio_ring *ring)
+-{
+-	return (ring->head + info->nr - 1 - ring->tail) % info->nr;
+-}
+-
+ struct kioctx {
+ 	atomic_t		users;
+ 	atomic_t		dead;
+@@ -284,8 +278,11 @@ static void free_ioctx_rcu(struct rcu_he
   */
--static int aio_read_evt(struct kioctx *ioctx, struct io_event *ent)
-+static int aio_read_events_ring(struct kioctx *ctx,
-+				struct io_event __user *event, long nr)
+ static void free_ioctx(struct kioctx *ctx)
  {
--	struct aio_ring_info *info = &ioctx->ring_info;
 +	struct aio_ring_info *info = &ctx->ring_info;
- 	struct aio_ring *ring;
--	unsigned long head;
--	int ret = 0;
-+	unsigned head, pos;
-+	int ret = 0, copy_ret;
-+
-+	if (!mutex_trylock(&info->ring_lock)) {
-+		__set_current_state(TASK_RUNNING);
-+		mutex_lock(&info->ring_lock);
-+	}
++	struct aio_ring *ring;
+ 	struct io_event res;
+ 	struct kiocb *req;
++	unsigned head, avail;
  
- 	ring = kmap_atomic(info->ring_pages[0]);
--	pr_debug("h%u t%u m%u\n", ring->head, ring->tail, ring->nr);
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 
+@@ -299,7 +296,21 @@ static void free_ioctx(struct kioctx *ct
+ 
+ 	spin_unlock_irq(&ctx->ctx_lock);
+ 
+-	wait_event(ctx->wait, !atomic_read(&ctx->reqs_active));
++	ring = kmap_atomic(info->ring_pages[0]);
 +	head = ring->head;
 +	kunmap_atomic(ring);
- 
--	if (ring->head == ring->tail)
-+	pr_debug("h%u t%u m%u\n", head, info->tail, info->nr);
 +
-+	if (head == info->tail)
++	while (atomic_read(&ctx->reqs_active) > 0) {
++		wait_event(ctx->wait, head != info->tail);
++
++		avail = (head < info->tail ? info->tail : info->nr) - head;
++
++		atomic_sub(avail, &ctx->reqs_active);
++		head += avail;
++		head %= info->nr;
++	}
++
++	WARN_ON(atomic_read(&ctx->reqs_active) < 0);
+ 
+ 	aio_free_ring(ctx);
+ 
+@@ -548,7 +559,6 @@ static int kiocb_batch_refill(struct kio
+ 	unsigned short allocated, to_alloc;
+ 	long avail;
+ 	struct kiocb *req, *n;
+-	struct aio_ring *ring;
+ 
+ 	to_alloc = min(batch->count, KIOCB_BATCH_SIZE);
+ 	for (allocated = 0; allocated < to_alloc; allocated++) {
+@@ -563,9 +573,8 @@ static int kiocb_batch_refill(struct kio
  		goto out;
  
--	spin_lock(&info->ring_lock);
-+	__set_current_state(TASK_RUNNING);
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
+ 
+-	avail = aio_ring_avail(&ctx->ring_info, ring) - atomic_read(&ctx->reqs_active);
++	avail = ctx->ring_info.nr - atomic_read(&ctx->reqs_active);
+ 	BUG_ON(avail < 0);
+ 	if (avail < allocated) {
+ 		/* Trim back the number of requests. */
+@@ -580,7 +589,6 @@ static int kiocb_batch_refill(struct kio
+ 	batch->count -= allocated;
+ 	atomic_add(allocated, &ctx->reqs_active);
+ 
+-	kunmap_atomic(ring);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+ 
+ out:
+@@ -687,8 +695,11 @@ void aio_complete(struct kiocb *iocb, lo
+ 	 * when the event got cancelled.
+ 	 */
+ 	if (unlikely(xchg(&iocb->ki_cancel,
+-			  KIOCB_CANCELLED) == KIOCB_CANCELLED))
++			  KIOCB_CANCELLED) == KIOCB_CANCELLED)) {
++		atomic_dec(&ctx->reqs_active);
++		/* Still need the wake_up in case free_ioctx is waiting */
+ 		goto put_rq;
++	}
+ 
+ 	/*
+ 	 * Add a completion event to the ring buffer. Must be done holding
+@@ -745,7 +756,6 @@ void aio_complete(struct kiocb *iocb, lo
+ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	aio_put_req(iocb);
+-	atomic_dec(&ctx->reqs_active);
+ 
+ 	/*
+ 	 * We have to order our ring_info tail store above and test
+@@ -826,6 +836,8 @@ static int aio_read_events_ring(struct k
+ 	flush_dcache_page(info->ring_pages[0]);
+ 
+ 	pr_debug("%d  h%u t%u\n", ret, head, info->tail);
 +
-+	while (ret < nr) {
-+		unsigned i = (head < info->tail ? info->tail : info->nr) - head;
-+		struct io_event *ev;
-+		struct page *page;
++	atomic_sub(ret, &ctx->reqs_active);
+ out:
+ 	mutex_unlock(&info->ring_lock);
  
--	head = ring->head % info->nr;
--	if (head != ring->tail) {
--		struct io_event *evp = aio_ring_event(info, head);
--		*ent = *evp;
--		head = (head + 1) % info->nr;
--		smp_mb(); /* finish reading the event before updatng the head */
--		ring->head = head;
--		ret = 1;
--		put_aio_ring_event(evp);
-+		if (head == info->tail)
-+			break;
-+
-+		i = min_t(int, i, nr - ret);
-+		i = min_t(int, i, AIO_EVENTS_PER_PAGE -
-+			  ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
-+
-+		pos = head + AIO_EVENTS_OFFSET;
-+		page = info->ring_pages[pos / AIO_EVENTS_PER_PAGE];
-+		pos %= AIO_EVENTS_PER_PAGE;
-+
-+		ev = kmap(page);
-+		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * i);
-+		kunmap(page);
-+
-+		if (unlikely(copy_ret)) {
-+			ret = -EFAULT;
-+			goto out;
-+		}
-+
-+		ret += i;
-+		head += i;
-+		head %= info->nr;
- 	}
--	spin_unlock(&info->ring_lock);
- 
--out:
-+	ring = kmap_atomic(info->ring_pages[0]);
-+	ring->head = head;
- 	kunmap_atomic(ring);
--	pr_debug("%d  h%u t%u\n", ret, ring->head, ring->tail);
-+
-+	pr_debug("%d  h%u t%u\n", ret, head, info->tail);
-+out:
-+	mutex_unlock(&info->ring_lock);
-+
- 	return ret;
- }
- 
--struct aio_timeout {
--	struct timer_list	timer;
--	int			timed_out;
--	struct task_struct	*p;
--};
--
--static void timeout_func(unsigned long data)
-+static bool aio_read_events(struct kioctx *ctx, long min_nr, long nr,
-+			    struct io_event __user *event, long *i)
- {
--	struct aio_timeout *to = (struct aio_timeout *)data;
-+	long ret = aio_read_events_ring(ctx, event + *i, nr - *i);
- 
--	to->timed_out = 1;
--	wake_up_process(to->p);
--}
-+	if (ret > 0)
-+		*i += ret;
- 
--static inline void init_timeout(struct aio_timeout *to)
--{
--	setup_timer_on_stack(&to->timer, timeout_func, (unsigned long) to);
--	to->timed_out = 0;
--	to->p = current;
--}
-+	if (unlikely(atomic_read(&ctx->dead)))
-+		ret = -EINVAL;
- 
--static inline void set_timeout(long start_jiffies, struct aio_timeout *to,
--			       const struct timespec *ts)
--{
--	to->timer.expires = start_jiffies + timespec_to_jiffies(ts);
--	if (time_after(to->timer.expires, jiffies))
--		add_timer(&to->timer);
--	else
--		to->timed_out = 1;
--}
-+	if (!*i)
-+		*i = ret;
- 
--static inline void clear_timeout(struct aio_timeout *to)
--{
--	del_singleshot_timer_sync(&to->timer);
-+	return ret < 0 || *i >= min_nr;
- }
- 
--static int read_events(struct kioctx *ctx,
--			long min_nr, long nr,
-+static long read_events(struct kioctx *ctx, long min_nr, long nr,
- 			struct io_event __user *event,
- 			struct timespec __user *timeout)
- {
--	long			start_jiffies = jiffies;
--	struct task_struct	*tsk = current;
--	DECLARE_WAITQUEUE(wait, tsk);
--	int			ret;
--	int			i = 0;
--	struct io_event		ent;
--	struct aio_timeout	to;
-+	ktime_t until = { .tv64 = KTIME_MAX };
-+	long ret = 0;
- 
--	/* needed to zero any padding within an entry (there shouldn't be 
--	 * any, but C is fun!
--	 */
--	memset(&ent, 0, sizeof(ent));
--	ret = 0;
--	while (likely(i < nr)) {
--		ret = aio_read_evt(ctx, &ent);
--		if (unlikely(ret <= 0))
--			break;
--
--		pr_debug("%Lx %Lx %Lx %Lx\n",
--			 ent.data, ent.obj, ent.res, ent.res2);
--
--		/* Could we split the check in two? */
--		ret = -EFAULT;
--		if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
--			pr_debug("lost an event due to EFAULT.\n");
--			break;
--		}
--		ret = 0;
--
--		/* Good, event copied to userland, update counts. */
--		event ++;
--		i ++;
--	}
--
--	if (min_nr <= i)
--		return i;
--	if (ret)
--		return ret;
--
--	/* End fast path */
--
--	init_timeout(&to);
- 	if (timeout) {
- 		struct timespec	ts;
--		ret = -EFAULT;
-+
- 		if (unlikely(copy_from_user(&ts, timeout, sizeof(ts))))
--			goto out;
-+			return -EFAULT;
- 
--		set_timeout(start_jiffies, &to, &ts);
-+		until = timespec_to_ktime(ts);
- 	}
- 
--	while (likely(i < nr)) {
--		add_wait_queue_exclusive(&ctx->wait, &wait);
--		do {
--			set_task_state(tsk, TASK_INTERRUPTIBLE);
--			ret = aio_read_evt(ctx, &ent);
--			if (ret)
--				break;
--			if (min_nr <= i)
--				break;
--			if (unlikely(atomic_read(&ctx->dead))) {
--				ret = -EINVAL;
--				break;
--			}
--			if (to.timed_out)	/* Only check after read evt */
--				break;
--			/* Try to only show up in io wait if there are ops
--			 *  in flight */
--			if (atomic_read(&ctx->reqs_active))
--				io_schedule();
--			else
--				schedule();
--			if (signal_pending(tsk)) {
--				ret = -EINTR;
--				break;
--			}
--			/*ret = aio_read_evt(ctx, &ent);*/
--		} while (1) ;
--
--		set_task_state(tsk, TASK_RUNNING);
--		remove_wait_queue(&ctx->wait, &wait);
-+	wait_event_interruptible_hrtimeout(ctx->wait,
-+			aio_read_events(ctx, min_nr, nr, event, &ret), until);
- 
--		if (unlikely(ret <= 0))
--			break;
-+	if (!ret && signal_pending(current))
-+		ret = -EINTR;
- 
--		ret = -EFAULT;
--		if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
--			pr_debug("lost an event due to EFAULT.\n");
--			break;
--		}
--
--		/* Good, event copied to userland, update counts. */
--		event ++;
--		i ++;
--	}
--
--	if (timeout)
--		clear_timeout(&to);
--out:
--	destroy_timer_on_stack(&to.timer);
--	return i ? i : ret;
-+	return ret;
- }
- 
- /* sys_io_setup:
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
 
-aio-use-flush_dcache_page.patch
-aio-use-cancellation-list-lazily.patch
-aio-change-reqs_active-to-include-unreaped-completions.patch
 aio-kill-batch-allocation.patch
 aio-kill-struct-aio_ring_info.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
