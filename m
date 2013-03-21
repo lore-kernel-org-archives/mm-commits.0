@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-kill-return-value-of-aio_complete.patch added to -mm tree
-Date: Thu, 21 Mar 2013 15:37:39 -0700
-Message-ID: <20130321223740.060A831C121@corp2gmr1-1.hot.corp.google.com>
+Subject: + aio-add-kiocb_cancel.patch added to -mm tree
+Date: Thu, 21 Mar 2013 15:37:42 -0700
+Message-ID: <20130321223743.012B631C158@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:63510 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab3CUWhl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:37:41 -0400
-Received: by mail-gg0-f201.google.com with SMTP id l2so310377ggn.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:37:41 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:57600 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694Ab3CUWho (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:37:44 -0400
+Received: by mail-gg0-f202.google.com with SMTP id l4so310379ggi.3
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:37:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: aio: kill return value of aio_complete()
+     Subject: aio: add kiocb_cancel()
 has been added to the -mm tree.  Its filename is
-     aio-kill-return-value-of-aio_complete.patch
+     aio-add-kiocb_cancel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: kill return value of aio_complete()
+Subject: aio: add kiocb_cancel()
 
-Nothing used the return value, and it probably wasn't possible to use it
-safely for the locked versions (aio_complete(), aio_put_req()).  Just kill
-it.
+Minor refactoring, to get rid of some duplicated code
 
+[akpm@linux-foundation.org: fix warning]
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Acked-by: Zach Brown <zab@redhat.com>
+Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -58,125 +57,129 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c            |   21 +++++++--------------
- include/linux/aio.h |    8 ++++----
- 2 files changed, 11 insertions(+), 18 deletions(-)
+ fs/aio.c |   79 ++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 43 insertions(+), 36 deletions(-)
 
-diff -puN fs/aio.c~aio-kill-return-value-of-aio_complete fs/aio.c
---- a/fs/aio.c~aio-kill-return-value-of-aio_complete
+diff -puN fs/aio.c~aio-add-kiocb_cancel fs/aio.c
+--- a/fs/aio.c~aio-add-kiocb_cancel
 +++ a/fs/aio.c
-@@ -531,7 +531,7 @@ static inline void really_put_req(struct
- /* __aio_put_req
-  *	Returns true if this put was the last user of the request.
-  */
--static int __aio_put_req(struct kioctx *ctx, struct kiocb *req)
-+static void __aio_put_req(struct kioctx *ctx, struct kiocb *req)
- {
- 	dprintk(KERN_DEBUG "aio_put(%p): f_count=%ld\n",
- 		req, atomic_long_read(&req->ki_filp->f_count));
-@@ -541,7 +541,7 @@ static int __aio_put_req(struct kioctx *
- 	req->ki_users--;
- 	BUG_ON(req->ki_users < 0);
- 	if (likely(req->ki_users))
--		return 0;
-+		return;
- 	list_del(&req->ki_list);		/* remove from active_reqs */
- 	req->ki_cancel = NULL;
- 	req->ki_retry = NULL;
-@@ -549,21 +549,18 @@ static int __aio_put_req(struct kioctx *
- 	fput(req->ki_filp);
- 	req->ki_filp = NULL;
- 	really_put_req(ctx, req);
--	return 1;
+@@ -220,6 +220,29 @@ static inline void put_ioctx(struct kioc
+ 		__put_ioctx(kioctx);
  }
  
- /* aio_put_req
-  *	Returns true if this put was the last user of the kiocb,
-  *	false if the request is still in use.
++static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
++			struct io_event *res)
++{
++	int (*cancel)(struct kiocb *, struct io_event *);
++	int ret = -EINVAL;
++
++	cancel = kiocb->ki_cancel;
++	kiocbSetCancelled(kiocb);
++	if (cancel) {
++		kiocb->ki_users++;
++		spin_unlock_irq(&ctx->ctx_lock);
++
++		memset(res, 0, sizeof(*res));
++		res->obj = (u64)(unsigned long)kiocb->ki_obj.user;
++		res->data = kiocb->ki_user_data;
++		ret = cancel(kiocb, res);
++
++		spin_lock_irq(&ctx->ctx_lock);
++	}
++
++	return ret;
++}
++
+ /* ioctx_alloc
+  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
   */
--int aio_put_req(struct kiocb *req)
-+void aio_put_req(struct kiocb *req)
+@@ -290,25 +313,19 @@ out_freectx:
+  */
+ static void kill_ctx(struct kioctx *ctx)
  {
- 	struct kioctx *ctx = req->ki_ctx;
--	int ret;
+-	int (*cancel)(struct kiocb *, struct io_event *);
+ 	struct task_struct *tsk = current;
+ 	DECLARE_WAITQUEUE(wait, tsk);
+ 	struct io_event res;
++	struct kiocb *req;
+ 
  	spin_lock_irq(&ctx->ctx_lock);
--	ret = __aio_put_req(ctx, req);
-+	__aio_put_req(ctx, req);
- 	spin_unlock_irq(&ctx->ctx_lock);
--	return ret;
- }
- EXPORT_SYMBOL(aio_put_req);
- 
-@@ -593,10 +590,8 @@ static struct kioctx *lookup_ioctx(unsig
- 
- /* aio_complete
-  *	Called when the io request on the given iocb is complete.
-- *	Returns true if this is the last user of the request.  The 
-- *	only other user of the request can be the cancellation code.
-  */
--int aio_complete(struct kiocb *iocb, long res, long res2)
-+void aio_complete(struct kiocb *iocb, long res, long res2)
- {
- 	struct kioctx	*ctx = iocb->ki_ctx;
- 	struct aio_ring_info	*info;
-@@ -604,7 +599,6 @@ int aio_complete(struct kiocb *iocb, lon
- 	struct io_event	*event;
- 	unsigned long	flags;
- 	unsigned long	tail;
--	int		ret;
- 
- 	/*
- 	 * Special case handling for sync iocbs:
-@@ -618,7 +612,7 @@ int aio_complete(struct kiocb *iocb, lon
- 		iocb->ki_user_data = res;
- 		iocb->ki_users = 0;
- 		wake_up_process(iocb->ki_obj.tsk);
--		return 1;
-+		return;
+ 	ctx->dead = 1;
+ 	while (!list_empty(&ctx->active_reqs)) {
+-		struct list_head *pos = ctx->active_reqs.next;
+-		struct kiocb *iocb = list_kiocb(pos);
+-		list_del_init(&iocb->ki_list);
+-		cancel = iocb->ki_cancel;
+-		kiocbSetCancelled(iocb);
+-		if (cancel) {
+-			iocb->ki_users++;
+-			spin_unlock_irq(&ctx->ctx_lock);
+-			cancel(iocb, &res);
+-			spin_lock_irq(&ctx->ctx_lock);
+-		}
++		req = list_first_entry(&ctx->active_reqs,
++					struct kiocb, ki_list);
++
++		list_del_init(&req->ki_list);
++		kiocb_cancel(ctx, req, &res);
  	}
  
- 	info = &ctx->ring_info;
-@@ -677,7 +671,7 @@ int aio_complete(struct kiocb *iocb, lon
+ 	if (!ctx->reqs_active)
+@@ -1411,7 +1428,7 @@ static struct kiocb *lookup_kiocb(struct
+ SYSCALL_DEFINE3(io_cancel, aio_context_t, ctx_id, struct iocb __user *, iocb,
+ 		struct io_event __user *, result)
+ {
+-	int (*cancel)(struct kiocb *iocb, struct io_event *res);
++	struct io_event res;
+ 	struct kioctx *ctx;
+ 	struct kiocb *kiocb;
+ 	u32 key;
+@@ -1426,32 +1443,22 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
+ 		return -EINVAL;
  
- put_rq:
- 	/* everything turned out well, dispose of the aiocb. */
--	ret = __aio_put_req(ctx, iocb);
-+	__aio_put_req(ctx, iocb);
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ret = -EAGAIN;
++
+ 	kiocb = lookup_kiocb(ctx, iocb, key);
+-	if (kiocb && kiocb->ki_cancel) {
+-		cancel = kiocb->ki_cancel;
+-		kiocb->ki_users ++;
+-		kiocbSetCancelled(kiocb);
+-	} else
+-		cancel = NULL;
++	if (kiocb)
++		ret = kiocb_cancel(ctx, kiocb, &res);
++	else
++		ret = -EINVAL;
++
+ 	spin_unlock_irq(&ctx->ctx_lock);
  
- 	/*
- 	 * We have to order our ring_info tail store above and test
-@@ -691,7 +685,6 @@ put_rq:
- 		wake_up(&ctx->wait);
+-	if (NULL != cancel) {
+-		struct io_event tmp;
+-		pr_debug("calling cancel\n");
+-		memset(&tmp, 0, sizeof(tmp));
+-		tmp.obj = (u64)(unsigned long)kiocb->ki_obj.user;
+-		tmp.data = kiocb->ki_user_data;
+-		ret = cancel(kiocb, &tmp);
+-		if (!ret) {
+-			/* Cancellation succeeded -- copy the result
+-			 * into the user's buffer.
+-			 */
+-			if (copy_to_user(result, &tmp, sizeof(tmp)))
+-				ret = -EFAULT;
+-		}
+-	} else
+-		ret = -EINVAL;
++	if (!ret) {
++		/* Cancellation succeeded -- copy the result
++		 * into the user's buffer.
++		 */
++		if (copy_to_user(result, &res, sizeof(res)))
++			ret = -EFAULT;
++	}
  
- 	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
--	return ret;
- }
- EXPORT_SYMBOL(aio_complete);
+ 	put_ioctx(ctx);
  
-diff -puN include/linux/aio.h~aio-kill-return-value-of-aio_complete include/linux/aio.h
---- a/include/linux/aio.h~aio-kill-return-value-of-aio_complete
-+++ a/include/linux/aio.h
-@@ -167,16 +167,16 @@ struct kioctx {
- /* prototypes */
- #ifdef CONFIG_AIO
- extern ssize_t wait_on_sync_kiocb(struct kiocb *iocb);
--extern int aio_put_req(struct kiocb *iocb);
--extern int aio_complete(struct kiocb *iocb, long res, long res2);
-+extern void aio_put_req(struct kiocb *iocb);
-+extern void aio_complete(struct kiocb *iocb, long res, long res2);
- struct mm_struct;
- extern void exit_aio(struct mm_struct *mm);
- extern long do_io_submit(aio_context_t ctx_id, long nr,
- 			 struct iocb __user *__user *iocbpp, bool compat);
- #else
- static inline ssize_t wait_on_sync_kiocb(struct kiocb *iocb) { return 0; }
--static inline int aio_put_req(struct kiocb *iocb) { return 0; }
--static inline int aio_complete(struct kiocb *iocb, long res, long res2) { return 0; }
-+static inline void aio_put_req(struct kiocb *iocb) { }
-+static inline void aio_complete(struct kiocb *iocb, long res, long res2) { }
- struct mm_struct;
- static inline void exit_aio(struct mm_struct *mm) { }
- static inline long do_io_submit(aio_context_t ctx_id, long nr,
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
