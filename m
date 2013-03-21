@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] char-add-aio_readwrite-to-dev-nullzero.patch removed from -mm tree
-Date: Thu, 21 Mar 2013 15:27:35 -0700
-Message-ID: <20130321222735.9E3E55A42C2@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] aio-kiocb_cancel.patch removed from -mm tree
+Date: Thu, 21 Mar 2013 15:27:43 -0700
+Message-ID: <20130321222743.98C8031C15E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:49630 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932084Ab3CUW1h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:27:37 -0400
-Received: by mail-yh0-f74.google.com with SMTP id i57so12273yha.3
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:27:36 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:62890 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932777Ab3CUW1p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:27:45 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so22452qcs.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:27:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: char: add aio_{read,write} to /dev/{null,zero}
+     Subject: aio: add kiocb_cancel()
 has been removed from the -mm tree.  Its filename was
-     char-add-aio_readwrite-to-dev-nullzero.patch
+     aio-kiocb_cancel.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Zach Brown <zab@redhat.com>
-Subject: char: add aio_{read,write} to /dev/{null,zero}
+From: Kent Overstreet <koverstreet@google.com>
+Subject: aio: add kiocb_cancel()
 
-These are handy for measuring the cost of the aio infrastructure with
-operations that do very little and complete immediately.
+Minor refactoring, to get rid of some duplicated code
 
-Signed-off-by: Zach Brown <zab@redhat.com>
+[akpm@linux-foundation.org: fix warning]
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
+Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -47,88 +47,133 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ fs/aio.c |   79 ++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 43 insertions(+), 36 deletions(-)
 
-diff -puN drivers/char/mem.c~char-add-aio_readwrite-to-dev-nullzero drivers/char/mem.c
---- a/drivers/char/mem.c~char-add-aio_readwrite-to-dev-nullzero
-+++ a/drivers/char/mem.c
-@@ -627,6 +627,18 @@ static ssize_t write_null(struct file *f
- 	return count;
+diff -puN fs/aio.c~aio-kiocb_cancel fs/aio.c
+--- a/fs/aio.c~aio-kiocb_cancel
++++ a/fs/aio.c
+@@ -220,6 +220,29 @@ static inline void put_ioctx(struct kioc
+ 		__put_ioctx(kioctx);
  }
  
-+static ssize_t aio_read_null(struct kiocb *iocb, const struct iovec *iov,
-+			     unsigned long nr_segs, loff_t pos)
++static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
++			struct io_event *res)
 +{
-+	return 0;
-+}
++	int (*cancel)(struct kiocb *, struct io_event *);
++	int ret = -EINVAL;
 +
-+static ssize_t aio_write_null(struct kiocb *iocb, const struct iovec *iov,
-+			      unsigned long nr_segs, loff_t pos)
-+{
-+	return iov_length(iov, nr_segs);
-+}
++	cancel = kiocb->ki_cancel;
++	kiocbSetCancelled(kiocb);
++	if (cancel) {
++		kiocb->ki_users++;
++		spin_unlock_irq(&ctx->ctx_lock);
 +
- static int pipe_to_null(struct pipe_inode_info *info, struct pipe_buffer *buf,
- 			struct splice_desc *sd)
- {
-@@ -670,6 +682,24 @@ static ssize_t read_zero(struct file *fi
- 	return written ? written : -EFAULT;
- }
- 
-+static ssize_t aio_read_zero(struct kiocb *iocb, const struct iovec *iov,
-+			     unsigned long nr_segs, loff_t pos)
-+{
-+	size_t written = 0;
-+	unsigned long i;
-+	ssize_t ret;
++		memset(res, 0, sizeof(*res));
++		res->obj = (u64)(unsigned long)kiocb->ki_obj.user;
++		res->data = kiocb->ki_user_data;
++		ret = cancel(kiocb, res);
 +
-+	for (i = 0; i < nr_segs; i++) {
-+		ret = read_zero(iocb->ki_filp, iov[i].iov_base, iov[i].iov_len,
-+				&pos);
-+		if (ret < 0)
-+			break;
-+		written += ret;
++		spin_lock_irq(&ctx->ctx_lock);
 +	}
 +
-+	return written ? written : -EFAULT;
++	return ret;
 +}
 +
- static int mmap_zero(struct file *file, struct vm_area_struct *vma)
+ /* ioctx_alloc
+  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
+  */
+@@ -290,25 +313,19 @@ out_freectx:
+  */
+ static void kill_ctx(struct kioctx *ctx)
  {
- #ifndef CONFIG_MMU
-@@ -738,6 +768,7 @@ static int open_port(struct inode *inode
- #define full_lseek      null_lseek
- #define write_zero	write_null
- #define read_full       read_zero
-+#define aio_write_zero	aio_write_null
- #define open_mem	open_port
- #define open_kmem	open_mem
- #define open_oldmem	open_mem
-@@ -766,6 +797,8 @@ static const struct file_operations null
- 	.llseek		= null_lseek,
- 	.read		= read_null,
- 	.write		= write_null,
-+	.aio_read	= aio_read_null,
-+	.aio_write	= aio_write_null,
- 	.splice_write	= splice_write_null,
- };
+-	int (*cancel)(struct kiocb *, struct io_event *);
+ 	struct task_struct *tsk = current;
+ 	DECLARE_WAITQUEUE(wait, tsk);
+ 	struct io_event res;
++	struct kiocb *req;
  
-@@ -782,6 +815,8 @@ static const struct file_operations zero
- 	.llseek		= zero_lseek,
- 	.read		= read_zero,
- 	.write		= write_zero,
-+	.aio_read	= aio_read_zero,
-+	.aio_write	= aio_write_zero,
- 	.mmap		= mmap_zero,
- };
+ 	spin_lock_irq(&ctx->ctx_lock);
+ 	ctx->dead = 1;
+ 	while (!list_empty(&ctx->active_reqs)) {
+-		struct list_head *pos = ctx->active_reqs.next;
+-		struct kiocb *iocb = list_kiocb(pos);
+-		list_del_init(&iocb->ki_list);
+-		cancel = iocb->ki_cancel;
+-		kiocbSetCancelled(iocb);
+-		if (cancel) {
+-			iocb->ki_users++;
+-			spin_unlock_irq(&ctx->ctx_lock);
+-			cancel(iocb, &res);
+-			spin_lock_irq(&ctx->ctx_lock);
+-		}
++		req = list_first_entry(&ctx->active_reqs,
++					struct kiocb, ki_list);
++
++		list_del_init(&req->ki_list);
++		kiocb_cancel(ctx, req, &res);
+ 	}
+ 
+ 	if (!ctx->reqs_active)
+@@ -1411,7 +1428,7 @@ static struct kiocb *lookup_kiocb(struct
+ SYSCALL_DEFINE3(io_cancel, aio_context_t, ctx_id, struct iocb __user *, iocb,
+ 		struct io_event __user *, result)
+ {
+-	int (*cancel)(struct kiocb *iocb, struct io_event *res);
++	struct io_event res;
+ 	struct kioctx *ctx;
+ 	struct kiocb *kiocb;
+ 	u32 key;
+@@ -1426,32 +1443,22 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
+ 		return -EINVAL;
+ 
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ret = -EAGAIN;
++
+ 	kiocb = lookup_kiocb(ctx, iocb, key);
+-	if (kiocb && kiocb->ki_cancel) {
+-		cancel = kiocb->ki_cancel;
+-		kiocb->ki_users ++;
+-		kiocbSetCancelled(kiocb);
+-	} else
+-		cancel = NULL;
++	if (kiocb)
++		ret = kiocb_cancel(ctx, kiocb, &res);
++	else
++		ret = -EINVAL;
++
+ 	spin_unlock_irq(&ctx->ctx_lock);
+ 
+-	if (NULL != cancel) {
+-		struct io_event tmp;
+-		pr_debug("calling cancel\n");
+-		memset(&tmp, 0, sizeof(tmp));
+-		tmp.obj = (u64)(unsigned long)kiocb->ki_obj.user;
+-		tmp.data = kiocb->ki_user_data;
+-		ret = cancel(kiocb, &tmp);
+-		if (!ret) {
+-			/* Cancellation succeeded -- copy the result
+-			 * into the user's buffer.
+-			 */
+-			if (copy_to_user(result, &tmp, sizeof(tmp)))
+-				ret = -EFAULT;
+-		}
+-	} else
+-		ret = -EINVAL;
++	if (!ret) {
++		/* Cancellation succeeded -- copy the result
++		 * into the user's buffer.
++		 */
++		if (copy_to_user(result, &res, sizeof(res)))
++			ret = -EFAULT;
++	}
+ 
+ 	put_ioctx(ctx);
  
 _
 
-Patches currently in -mm which might be from zab@redhat.com are
+Patches currently in -mm which might be from koverstreet@google.com are
 
-aio-kill-return-value-of-aio_complete.patch
-aio-kiocb_cancel.patch
 aio-move-private-stuff-out-of-aioh.patch
 aio-dprintk-pr_debug.patch
 aio-do-fget-after-aio_get_req.patch
@@ -153,6 +198,9 @@ aio-kill-ki_retry.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
 virtio-blk-convert-to-batch-completion.patch
 mtip32xx-convert-to-batch-completion.patch
+aio-fix-aio_read_events_ring-types.patch
+aio-document-clarify-aio_read_events-and-shadow_tail.patch
+aio-correct-calculation-of-available-events.patch
 aio-v2-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 aio-fix-ringbuffer-calculation-so-we-dont-wrap.patch
 
