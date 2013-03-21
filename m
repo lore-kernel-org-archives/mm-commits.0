@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 21 Mar 2013 16:00:38 -0700
-Message-ID: <20130321230038.D656031C1D1@corp2gmr1-1.hot.corp.google.com>
+Subject: + generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 21 Mar 2013 16:00:43 -0700
+Message-ID: <20130321230043.CD6C75A41F2@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:38516 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751765Ab3CUXAk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 19:00:40 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so312919vcb.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 16:00:39 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:34253 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751765Ab3CUXAo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 19:00:44 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so312095ggn.2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 16:00:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes
+     Subject: generic-dynamic-per-cpu-refcounting-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+     generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes
+Subject: generic-dynamic-per-cpu-refcounting-checkpatch-fixes
 
 WARNING: line over 80 characters
-#97: FILE: fs/aio.c:775:
-+		long avail = (head <= info->tail ? info->tail : info->nr) - head;
+#401: FILE: lib/percpu-refcount.c:215:
++			count += *per_cpu_ptr((unsigned __percpu *) pcpu_count, cpu);
 
-WARNING: line over 80 characters
-#106: FILE: fs/aio.c:784:
-+			      ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
+total: 0 errors, 1 warnings, 365 lines checked
 
-WARNING: line over 80 characters
-#113: FILE: fs/aio.c:791:
-+		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * avail);
-
-total: 0 errors, 3 warnings, 288 lines checked
-
-./patches/aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch has style problems, please review.
+./patches/generic-dynamic-per-cpu-refcounting.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -61,41 +53,22 @@ Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ lib/percpu-refcount.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes fs/aio.c
---- a/fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes
-+++ a/fs/aio.c
-@@ -773,23 +773,25 @@ static long aio_read_events_ring(struct
- 		goto out;
+diff -puN lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-checkpatch-fixes lib/percpu-refcount.c
+--- a/lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-checkpatch-fixes
++++ a/lib/percpu-refcount.c
+@@ -212,7 +212,8 @@ int percpu_ref_kill(struct percpu_ref *r
+ 		synchronize_rcu();
  
- 	while (ret < nr) {
--		long avail = (head <= info->tail ? info->tail : info->nr) - head;
-+		long avail;
- 		struct io_event *ev;
- 		struct page *page;
+ 		for_each_possible_cpu(cpu)
+-			count += *per_cpu_ptr((unsigned __percpu *) pcpu_count, cpu);
++			count += *per_cpu_ptr((unsigned __percpu *)pcpu_count,
++					      cpu);
  
-+		avail = (head <= info->tail ? info->tail : info->nr) - head;
- 		if (head == info->tail)
- 			break;
- 
- 		avail = min(avail, nr - ret);
- 		avail = min_t(long, avail, AIO_EVENTS_PER_PAGE -
--			      ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
-+			    ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
- 
- 		pos = head + AIO_EVENTS_OFFSET;
- 		page = info->ring_pages[pos / AIO_EVENTS_PER_PAGE];
- 		pos %= AIO_EVENTS_PER_PAGE;
- 
- 		ev = kmap(page);
--		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * avail);
-+		copy_ret = copy_to_user(event + ret, ev + pos,
-+					sizeof(*ev) * avail);
- 		kunmap(page);
- 
- 		if (unlikely(copy_ret)) {
+ 		pr_debug("global %lli pcpu %i",
+ 			 atomic64_read(&ref->count) & PCPU_COUNT_MASK,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
