@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + block-prep-work-for-batch-completion-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 21 Mar 2013 16:00:50 -0700
-Message-ID: <20130321230051.3416C5A4251@corp2gmr1-2.hot.corp.google.com>
+Subject: + block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 21 Mar 2013 16:00:53 -0700
+Message-ID: <20130321230053.E4DFC31C121@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:48004 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618Ab3CUXAw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 19:00:52 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so312882vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 16:00:51 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:63090 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753618Ab3CUXAz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 19:00:55 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so312463vea.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 16:00:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: block-prep-work-for-batch-completion-checkpatch-fixes
+     Subject: block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     block-prep-work-for-batch-completion-checkpatch-fixes.patch
+     block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prep-work-for-batch-completion-checkpatch-fixes
+Subject: block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
 
 WARNING: line over 80 characters
-#116: FILE: drivers/block/drbd/drbd_bitmap.c:940:
-+static void bm_async_io_complete(struct bio *bio, int error, struct batch_complete *batch)
+#155: FILE: block/blk-core.c:2527:
++				   unsigned int nr_bytes, unsigned int bidi_bytes,
 
 WARNING: line over 80 characters
-#128: FILE: drivers/block/drbd/drbd_worker.c:67:
-+void drbd_md_io_complete(struct bio *bio, int error, struct batch_complete *batch)
+#177: FILE: block/blk-core.c:2643:
++void blk_end_request_all_batch(struct request *rq, int error, struct batch_complete *batch)
 
 WARNING: line over 80 characters
-#137: FILE: drivers/block/drbd/drbd_worker.c:169:
-+void drbd_peer_request_endio(struct bio *bio, int error, struct batch_complete *batch)
+#186: FILE: block/blk-core.c:2651:
++	pending = __blk_end_bidi_request(rq, error, blk_rq_bytes(rq), bidi_bytes, batch);
 
 WARNING: line over 80 characters
-#146: FILE: drivers/block/drbd/drbd_worker.c:205:
-+void drbd_request_endio(struct bio *bio, int error, struct batch_complete *batch)
-
-ERROR: "foo * bar" should be "foo *bar"
-#562: FILE: drivers/md/raid5.c:1743:
-+static void raid5_end_read_request(struct bio * bi, int error,
+#633: FILE: fs/direct-io.c:233:
++static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret, bool is_async,
 
 WARNING: line over 80 characters
-#946: FILE: fs/btrfs/volumes.c:5021:
-+static void btrfs_end_bio(struct bio *bio, int err, struct batch_complete *batch)
+#652: FILE: fs/direct-io.c:278:
++static void dio_bio_end_aio(struct bio *bio, int error, struct batch_complete *batch)
 
-WARNING: Avoid CamelCase: <lbmIODone>
-#1087: FILE: fs/jfs/jfs_logmgr.c:2157:
-+		lbmIODone(bio, 0, NULL);
+total: 0 errors, 5 warnings, 740 lines checked
 
-total: 1 errors, 6 warnings, 1037 lines checked
-
-./patches/block-prep-work-for-batch-completion.patch has style problems, please review.
+./patches/block-aio-batch-completion-for-bios-kiocbs.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -77,83 +69,67 @@ Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_bitmap.c |    3 ++-
- drivers/block/drbd/drbd_worker.c |    9 ++++++---
- drivers/md/raid5.c               |    2 +-
- fs/btrfs/volumes.c               |    3 ++-
- 4 files changed, 11 insertions(+), 6 deletions(-)
+ block/blk-core.c |    9 ++++++---
+ fs/direct-io.c   |    7 ++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_bitmap.c~block-prep-work-for-batch-completion-checkpatch-fixes drivers/block/drbd/drbd_bitmap.c
---- a/drivers/block/drbd/drbd_bitmap.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/drivers/block/drbd/drbd_bitmap.c
-@@ -937,7 +937,8 @@ static void bm_aio_ctx_destroy(struct kr
- }
- 
- /* bv_page may be a copy, or may be the original */
--static void bm_async_io_complete(struct bio *bio, int error, struct batch_complete *batch)
-+static void bm_async_io_complete(struct bio *bio, int error,
-+				 struct batch_complete *batch)
- {
- 	struct bm_aio_ctx *ctx = bio->bi_private;
- 	struct drbd_conf *mdev = ctx->mdev;
-diff -puN drivers/block/drbd/drbd_worker.c~block-prep-work-for-batch-completion-checkpatch-fixes drivers/block/drbd/drbd_worker.c
---- a/drivers/block/drbd/drbd_worker.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/drivers/block/drbd/drbd_worker.c
-@@ -64,7 +64,8 @@ rwlock_t global_state_lock;
- /* used for synchronous meta data and bitmap IO
-  * submitted by drbd_md_sync_page_io()
-  */
--void drbd_md_io_complete(struct bio *bio, int error, struct batch_complete *batch)
-+void drbd_md_io_complete(struct bio *bio, int error,
-+			 struct batch_complete *batch)
- {
- 	struct drbd_md_io *md_io;
- 	struct drbd_conf *mdev;
-@@ -166,7 +167,8 @@ static void drbd_endio_write_sec_final(s
- /* writes on behalf of the partner, or resync writes,
-  * "submitted" by the receiver.
-  */
--void drbd_peer_request_endio(struct bio *bio, int error, struct batch_complete *batch)
-+void drbd_peer_request_endio(struct bio *bio, int error,
-+			     struct batch_complete *batch)
- {
- 	struct drbd_peer_request *peer_req = bio->bi_private;
- 	struct drbd_conf *mdev = peer_req->w.mdev;
-@@ -202,7 +204,8 @@ void drbd_peer_request_endio(struct bio
- 
- /* read, readA or write requests on R_PRIMARY coming from drbd_make_request
-  */
--void drbd_request_endio(struct bio *bio, int error, struct batch_complete *batch)
-+void drbd_request_endio(struct bio *bio, int error,
-+			struct batch_complete *batch)
- {
- 	unsigned long flags;
- 	struct drbd_request *req = bio->bi_private;
-diff -puN drivers/md/raid5.c~block-prep-work-for-batch-completion-checkpatch-fixes drivers/md/raid5.c
---- a/drivers/md/raid5.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/drivers/md/raid5.c
-@@ -1740,7 +1740,7 @@ static void shrink_stripes(struct r5conf
- 	conf->slab_cache = NULL;
- }
- 
--static void raid5_end_read_request(struct bio * bi, int error,
-+static void raid5_end_read_request(struct bio *bi, int error,
+diff -puN block/blk-core.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes block/blk-core.c
+--- a/block/blk-core.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
++++ a/block/blk-core.c
+@@ -2524,7 +2524,8 @@ static bool blk_end_bidi_request(struct
+  *     %true  - still buffers pending for this request
+  **/
+ bool __blk_end_bidi_request(struct request *rq, int error,
+-				   unsigned int nr_bytes, unsigned int bidi_bytes,
++				   unsigned int nr_bytes,
++				   unsigned int bidi_bytes,
  				   struct batch_complete *batch)
  {
- 	struct stripe_head *sh = bi->bi_private;
-diff -puN fs/btrfs/volumes.c~block-prep-work-for-batch-completion-checkpatch-fixes fs/btrfs/volumes.c
---- a/fs/btrfs/volumes.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/fs/btrfs/volumes.c
-@@ -5018,7 +5018,8 @@ static unsigned int extract_stripe_index
- 	return (unsigned int)((uintptr_t)bi_private) & 3;
- }
- 
--static void btrfs_end_bio(struct bio *bio, int err, struct batch_complete *batch)
-+static void btrfs_end_bio(struct bio *bio, int err,
-+			  struct batch_complete *batch)
+ 	if (blk_update_bidi_request(rq, error, nr_bytes, bidi_bytes, batch))
+@@ -2640,7 +2641,8 @@ EXPORT_SYMBOL(__blk_end_request);
+  * Description:
+  *     Completely finish @rq.  Must be called with queue lock held.
+  */
+-void blk_end_request_all_batch(struct request *rq, int error, struct batch_complete *batch)
++void blk_end_request_all_batch(struct request *rq, int error,
++			       struct batch_complete *batch)
  {
- 	struct btrfs_bio *bbio = extract_bbio_from_bio_private(bio->bi_private);
- 	int is_orig_bio = 0;
+ 	bool pending;
+ 	unsigned int bidi_bytes = 0;
+@@ -2648,7 +2650,8 @@ void blk_end_request_all_batch(struct re
+ 	if (unlikely(blk_bidi_rq(rq)))
+ 		bidi_bytes = blk_rq_bytes(rq->next_rq);
+ 
+-	pending = __blk_end_bidi_request(rq, error, blk_rq_bytes(rq), bidi_bytes, batch);
++	pending = __blk_end_bidi_request(rq, error, blk_rq_bytes(rq),
++					 bidi_bytes, batch);
+ 	BUG_ON(pending);
+ }
+ EXPORT_SYMBOL(blk_end_request_all_batch);
+diff -puN fs/direct-io.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes fs/direct-io.c
+--- a/fs/direct-io.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
++++ a/fs/direct-io.c
+@@ -230,8 +230,8 @@ static inline struct page *dio_get_page(
+  * filesystems can use it to hold additional state between get_block calls and
+  * dio_complete.
+  */
+-static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret, bool is_async,
+-			    struct batch_complete *batch)
++static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret,
++			    bool is_async, struct batch_complete *batch)
+ {
+ 	ssize_t transferred = 0;
+ 
+@@ -275,7 +275,8 @@ static int dio_bio_complete(struct dio *
+ /*
+  * Asynchronous IO callback. 
+  */
+-static void dio_bio_end_aio(struct bio *bio, int error, struct batch_complete *batch)
++static void dio_bio_end_aio(struct bio *bio, int error,
++			    struct batch_complete *batch)
+ {
+ 	struct dio *dio = bio->bi_private;
+ 	unsigned long remaining;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
