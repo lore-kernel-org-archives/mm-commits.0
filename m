@@ -1,142 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] vmcore-introduce-mmap_vmcore.patch removed from -mm tree
-Date: Wed, 20 Mar 2013 16:33:17 -0700
-Message-ID: <20130320233317.7E0D05A400F@corp2gmr1-2.hot.corp.google.com>
+Subject: + lib-add-lz4-compressor-module-fix.patch added to -mm tree
+Date: Thu, 21 Mar 2013 12:12:58 -0700
+Message-ID: <20130321191258.AC7B631C0AC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:48801 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754226Ab3CTXdT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Mar 2013 19:33:19 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so211413ves.5
-        for <mm-commits@vger.kernel.org>; Wed, 20 Mar 2013 16:33:18 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:34329 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916Ab3CUTNA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 15:13:00 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q11so158153yen.3
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 12:12:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, vgoyal@redhat.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, chanho.min@lge.com
 
 
 The patch titled
-     Subject: vmcore: introduce mmap_vmcore()
-has been removed from the -mm tree.  Its filename was
-     vmcore-introduce-mmap_vmcore.patch
+     Subject: lib-add-lz4-compressor-module-fix
+has been added to the -mm tree.  Its filename is
+     lib-add-lz4-compressor-module-fix.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: introduce mmap_vmcore()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-add-lz4-compressor-module-fix
 
-This patch introduces mmap_vmcore().
+make lz4_compresshcctx() static
 
-If flag MEM_TYPE_CURRENT_KERNEL is set, remapped is the buffer on the 2nd
-kernel.  If not set, remapped is some area in old memory.
-
-Neither writable nor executable mapping is permitted even with mprotect().
- Non-writable mapping is also requirement of remap_pfn_range() when
-mapping linear pages on non-consequtive physical pages; see
-is_cow_mapping().
-
-On x86-32 PAE kernels, mmap() supports at most 16TB memory only.  This
-limitation comes from the fact that the third argument of
-remap_pfn_range(), pfn, is of 32-bit length on x86-32: unsigned long.
-
-Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Chanho Min <chanho.min@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   72 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ lib/lz4/lz4hc_compress.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-introduce-mmap_vmcore fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-introduce-mmap_vmcore
-+++ a/fs/proc/vmcore.c
-@@ -185,9 +185,81 @@ static ssize_t read_vmcore(struct file *
- 	return acc;
+diff -puN lib/lz4/lz4hc_compress.c~lib-add-lz4-compressor-module-fix lib/lz4/lz4hc_compress.c
+--- a/lib/lz4/lz4hc_compress.c~lib-add-lz4-compressor-module-fix
++++ a/lib/lz4/lz4hc_compress.c
+@@ -314,7 +314,7 @@ static inline int lz4_encodesequence(con
+ 	return 0;
  }
  
-+static int mmap_vmcore(struct file *file, struct vm_area_struct *vma)
-+{
-+	size_t size = vma->vm_end - vma->vm_start;
-+	u64 start, end, len, tsz;
-+	struct vmcore *m;
-+
-+	if (!support_mmap_vmcore)
-+		return -ENODEV;
-+
-+	start = (u64)vma->vm_pgoff << PAGE_SHIFT;
-+	end = start + size;
-+
-+	if (size > vmcore_size || end > vmcore_size)
-+		return -EINVAL;
-+
-+	if (vma->vm_flags & (VM_WRITE | VM_EXEC))
-+		return -EPERM;
-+
-+	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
-+
-+	len = 0;
-+
-+	if (start < elfcorebuf_sz) {
-+		u64 pfn;
-+
-+		tsz = elfcorebuf_sz - start;
-+		if (size < tsz)
-+			tsz = size;
-+		pfn = __pa(elfcorebuf + start) >> PAGE_SHIFT;
-+		if (remap_pfn_range(vma, vma->vm_start, pfn, tsz,
-+				    vma->vm_page_prot))
-+			return -EAGAIN;
-+		size -= tsz;
-+		start += tsz;
-+		len += tsz;
-+
-+		if (size == 0)
-+			return 0;
-+	}
-+
-+	list_for_each_entry(m, &vmcore_list, list) {
-+		if (start < m->offset + m->size) {
-+			u64 pfn = 0;
-+
-+			tsz = m->offset + m->size - start;
-+			if (size < tsz)
-+				tsz = size;
-+			if (m->flag & MEM_TYPE_CURRENT_KERNEL) {
-+				pfn = __pa(m->buf + start - m->offset)
-+					>> PAGE_SHIFT;
-+			} else {
-+				pfn = (m->paddr + (start - m->offset))
-+					>> PAGE_SHIFT;
-+			}
-+			if (remap_pfn_range(vma, vma->vm_start + len, pfn, tsz,
-+					    vma->vm_page_prot)) {
-+				do_munmap(vma->vm_mm, vma->vm_start, len);
-+				return -EAGAIN;
-+			}
-+			size -= tsz;
-+			start += tsz;
-+			len += tsz;
-+
-+			if (size == 0)
-+				return 0;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static const struct file_operations proc_vmcore_operations = {
- 	.read		= read_vmcore,
- 	.llseek		= default_llseek,
-+	.mmap		= mmap_vmcore,
- };
- 
- static struct vmcore* __init get_new_element(void)
+-int lz4_compresshcctx(struct lz4hc_data *ctx,
++static int lz4_compresshcctx(struct lz4hc_data *ctx,
+ 		const char *source,
+ 		char *dest,
+ 		int isize)
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+dma-debug-fix-locking-bug-in-check_unmap-fix.patch
+mips-define-kvm_user_mem_slots.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+kernel-sched-schedh-fix-warning.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+aio-kiocb_cancel.patch
+wait-add-wait_event_hrtimeout.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
