@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-lz4-compressor-module-fix.patch added to -mm tree
-Date: Thu, 21 Mar 2013 12:12:58 -0700
-Message-ID: <20130321191258.AC7B631C0AC@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-tegra-use-managed-rtc_device_register-fix.patch added to -mm tree
+Date: Thu, 21 Mar 2013 12:14:12 -0700
+Message-ID: <20130321191412.683225A429F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:34329 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751916Ab3CUTNA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 15:13:00 -0400
-Received: by mail-ye0-f202.google.com with SMTP id q11so158153yen.3
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 12:12:59 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:52176 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100Ab3CUTON (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 15:14:13 -0400
+Received: by mail-gh0-f201.google.com with SMTP id z19so291773ghb.0
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 12:14:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chanho.min@lge.com
+Cc: ldewangan@nvidia.com
 
 
 The patch titled
-     Subject: lib-add-lz4-compressor-module-fix
+     Subject: drivers/rtc/rtc-tegra.c: fix build warning
 has been added to the -mm tree.  Its filename is
-     lib-add-lz4-compressor-module-fix.patch
+     rtc-tegra-use-managed-rtc_device_register-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-add-lz4-compressor-module-fix
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: drivers/rtc/rtc-tegra.c: fix build warning
 
-make lz4_compresshcctx() static
+Fix the below build warning:
 
-Cc: Chanho Min <chanho.min@lge.com>
+drivers/rtc/rtc-tegra.c: In function 'tegra_rtc_probe':
+drivers/rtc/rtc-tegra.c:353:33: warning: passing argument 1 of 'devm_rtc_device_register' from incompatible pointer type [enabled by default]
+include/linux/rtc.h:136:27: note: expected 'struct device *' but argument is of type 'const char *'
+drivers/rtc/rtc-tegra.c:353:33: warning: passing argument 2 of 'devm_rtc_device_register' from incompatible pointer type [enabled by default]
+include/linux/rtc.h:136:27: note: expected 'const char *' but argument is of type 'struct device *'
+
+This warning was introduced with patch
+	commit 8a96d445e921b0d881421767fb6f7c5b6fb91b3a
+	drivers/rtc/rtc-tegra.c: use managed rtc_device_register()
+
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lz4/lz4hc_compress.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-tegra.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN lib/lz4/lz4hc_compress.c~lib-add-lz4-compressor-module-fix lib/lz4/lz4hc_compress.c
---- a/lib/lz4/lz4hc_compress.c~lib-add-lz4-compressor-module-fix
-+++ a/lib/lz4/lz4hc_compress.c
-@@ -314,7 +314,7 @@ static inline int lz4_encodesequence(con
- 	return 0;
- }
+diff -puN drivers/rtc/rtc-tegra.c~rtc-tegra-use-managed-rtc_device_register-fix drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-tegra-use-managed-rtc_device_register-fix
++++ a/drivers/rtc/rtc-tegra.c
+@@ -349,8 +349,9 @@ static int __init tegra_rtc_probe(struct
  
--int lz4_compresshcctx(struct lz4hc_data *ctx,
-+static int lz4_compresshcctx(struct lz4hc_data *ctx,
- 		const char *source,
- 		char *dest,
- 		int isize)
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+-	info->rtc_dev = devm_rtc_device_register(dev_name(&pdev->dev),
+-				&pdev->dev, &tegra_rtc_ops, THIS_MODULE);
++	info->rtc_dev = devm_rtc_device_register(&pdev->dev,
++				dev_name(&pdev->dev), &tegra_rtc_ops,
++				THIS_MODULE);
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		ret = PTR_ERR(info->rtc_dev);
+ 		dev_err(&pdev->dev, "Unable to register device (err=%d).\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ldewangan@nvidia.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-dma-debug-fix-locking-bug-in-check_unmap-fix.patch
-mips-define-kvm_user_mem_slots.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-kernel-sched-schedh-fix-warning.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-aio-kiocb_cancel.patch
-wait-add-wait_event_hrtimeout.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_retry.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
+rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
+rtc-tegra-set-irq-name-as-device-name.patch
+rtc-tegra-use-managed-rtc_device_register.patch
+rtc-tegra-use-managed-rtc_device_register-fix.patch
 
