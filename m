@@ -1,30 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] aio-remove-dead-code-from-aioh.patch removed from -mm tree
-Date: Thu, 21 Mar 2013 15:27:23 -0700
-Message-ID: <20130321222723.A378A5A42C2@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] gadget-remove-only-user-of-aio-retry.patch removed from -mm tree
+Date: Thu, 21 Mar 2013 15:27:27 -0700
+Message-ID: <20130321222727.A0B8531C15E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:52260 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932084Ab3CUW1Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:27:25 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so310478vcb.5
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:27:25 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:56552 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932521Ab3CUW13 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:27:29 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so310068vea.4
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:27:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio: remove dead code from aio.h
+     Subject: gadget: remove only user of aio retry
 has been removed from the -mm tree.  Its filename was
-     aio-remove-dead-code-from-aioh.patch
+     gadget-remove-only-user-of-aio-retry.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Zach Brown <zab@redhat.com>
-Subject: aio: remove dead code from aio.h
+Subject: gadget: remove only user of aio retry
+
+This removes the only in-tree user of aio retry.  This will let us remove
+the retry code from the aio core.
+
+Removing retry is relatively easy as the USB gadget wasn't using it to
+retry IOs at all.  It always fully submitted the IO in the context of the
+initial io_submit() call.  It only used the AIO retry facility to get the
+submitter's mm context for copying the result of a read back to user
+space.  This is easy to implement with use_mm() and a work struct, much
+like kvm does with async_pf_execute() for get_user_pages().
 
 Signed-off-by: Zach Brown <zab@redhat.com>
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
@@ -44,71 +54,132 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/aio.h |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ drivers/usb/gadget/inode.c |   38 ++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/aio.h~aio-remove-dead-code-from-aioh include/linux/aio.h
---- a/include/linux/aio.h~aio-remove-dead-code-from-aioh
-+++ a/include/linux/aio.h
-@@ -9,44 +9,22 @@
+diff -puN drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry drivers/usb/gadget/inode.c
+--- a/drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry
++++ a/drivers/usb/gadget/inode.c
+@@ -24,6 +24,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/poll.h>
++#include <linux/mmu_context.h>
  
- #include <linux/atomic.h>
+ #include <linux/device.h>
+ #include <linux/moduleparam.h>
+@@ -513,6 +514,9 @@ static long ep_ioctl(struct file *fd, un
+ struct kiocb_priv {
+ 	struct usb_request	*req;
+ 	struct ep_data		*epdata;
++	struct kiocb 		*iocb;
++	struct mm_struct 	*mm;
++	struct work_struct	work;
+ 	void			*buf;
+ 	const struct iovec	*iv;
+ 	unsigned long		nr_segs;
+@@ -540,15 +544,12 @@ static int ep_aio_cancel(struct kiocb *i
+ 	return value;
+ }
  
--#define AIO_MAXSEGS		4
--#define AIO_KIOGRP_NR_ATOMIC	8
+-static ssize_t ep_aio_read_retry(struct kiocb *iocb)
++static ssize_t ep_copy_to_user(struct kiocb_priv *priv)
+ {
+-	struct kiocb_priv	*priv = iocb->private;
+ 	ssize_t			len, total;
+ 	void			*to_copy;
+ 	int			i;
+ 
+-	/* we "retry" to get the right mm context for this: */
 -
- struct kioctx;
+ 	/* copy stuff into user buffers */
+ 	total = priv->actual;
+ 	len = 0;
+@@ -568,9 +569,26 @@ static ssize_t ep_aio_read_retry(struct
+ 		if (total == 0)
+ 			break;
+ 	}
++
++	return len;
++}
++
++static void ep_user_copy_worker(struct work_struct *work)
++{
++	struct kiocb_priv *priv = container_of(work, struct kiocb_priv, work);
++	struct mm_struct *mm = priv->mm;
++	struct kiocb *iocb = priv->iocb;
++	size_t ret;
++
++	use_mm(mm);
++	ret = ep_copy_to_user(priv);
++	unuse_mm(mm);
++
++	/* completing the iocb can drop the ctx and mm, don't touch mm after */
++	aio_complete(iocb, ret, ret);
++
+ 	kfree(priv->buf);
+ 	kfree(priv);
+-	return len;
+ }
  
--/* Notes on cancelling a kiocb:
-- *	If a kiocb is cancelled, aio_complete may return 0 to indicate 
-- *	that cancel has not yet disposed of the kiocb.  All cancel 
-- *	operations *must* call aio_put_req to dispose of the kiocb 
-- *	to guard against races with the completion code.
-- */
--#define KIOCB_C_CANCELLED	0x01
--#define KIOCB_C_COMPLETE	0x02
--
- #define KIOCB_SYNC_KEY		(~0U)
+ static void ep_aio_complete(struct usb_ep *ep, struct usb_request *req)
+@@ -596,14 +614,14 @@ static void ep_aio_complete(struct usb_e
+ 		aio_complete(iocb, req->actual ? req->actual : req->status,
+ 				req->status);
+ 	} else {
+-		/* retry() won't report both; so we hide some faults */
++		/* ep_copy_to_user() won't report both; we hide some faults */
+ 		if (unlikely(0 != req->status))
+ 			DBG(epdata->dev, "%s fault %d len %d\n",
+ 				ep->name, req->status, req->actual);
  
- /* ki_flags bits */
--/*
-- * This may be used for cancel/retry serialization in the future, but
-- * for now it's unused and we probably don't want modules to even
-- * think they can use it.
-- */
--/* #define KIF_LOCKED		0 */
- #define KIF_KICKED		1
- #define KIF_CANCELLED		2
+ 		priv->buf = req->buf;
+ 		priv->actual = req->actual;
+-		kick_iocb(iocb);
++		schedule_work(&priv->work);
+ 	}
+ 	spin_unlock(&epdata->dev->lock);
  
--#define kiocbTryLock(iocb)	test_and_set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbTryKick(iocb)	test_and_set_bit(KIF_KICKED, &(iocb)->ki_flags)
+@@ -633,8 +651,10 @@ fail:
+ 		return value;
+ 	}
+ 	iocb->private = priv;
++	priv->iocb = iocb;
+ 	priv->iv = iv;
+ 	priv->nr_segs = nr_segs;
++	INIT_WORK(&priv->work, ep_user_copy_worker);
  
--#define kiocbSetLocked(iocb)	set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbSetKicked(iocb)	set_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 	value = get_ready_ep(iocb->ki_filp->f_flags, epdata);
+ 	if (unlikely(value < 0)) {
+@@ -646,6 +666,7 @@ fail:
+ 	get_ep(epdata);
+ 	priv->epdata = epdata;
+ 	priv->actual = 0;
++	priv->mm = current->mm; /* mm teardown waits for iocbs in exit_aio() */
  
--#define kiocbClearLocked(iocb)	clear_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbClearKicked(iocb)	clear_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 	/* each kiocb is coupled to one usb_request, but we can't
+ 	 * allocate or submit those if the host disconnected.
+@@ -674,7 +695,7 @@ fail:
+ 		kfree(priv);
+ 		put_ep(epdata);
+ 	} else
+-		value = (iv ? -EIOCBRETRY : -EIOCBQUEUED);
++		value = -EIOCBQUEUED;
+ 	return value;
+ }
  
--#define kiocbIsLocked(iocb)	test_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbIsKicked(iocb)	test_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+@@ -692,7 +713,6 @@ ep_aio_read(struct kiocb *iocb, const st
+ 	if (unlikely(!buf))
+ 		return -ENOMEM;
  
-@@ -207,8 +185,6 @@ struct kioctx {
- };
+-	iocb->ki_retry = ep_aio_read_retry;
+ 	return ep_aio_rwtail(iocb, buf, iocb->ki_left, epdata, iov, nr_segs);
+ }
  
- /* prototypes */
--extern unsigned aio_max_size;
--
- #ifdef CONFIG_AIO
- extern ssize_t wait_on_sync_kiocb(struct kiocb *iocb);
- extern int aio_put_req(struct kiocb *iocb);
 _
 
 Patches currently in -mm which might be from zab@redhat.com are
 
-gadget-remove-only-user-of-aio-retry.patch
 aio-remove-retry-based-aio.patch
 char-add-aio_readwrite-to-dev-nullzero.patch
 aio-kill-return-value-of-aio_complete.patch
