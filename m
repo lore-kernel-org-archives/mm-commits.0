@@ -1,33 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-remove-old-aio-use_mm-comment.patch removed from -mm tree
-Date: Thu, 21 Mar 2013 15:27:19 -0700
-Message-ID: <20130321222720.1F03B31C15E@corp2gmr1-1.hot.corp.google.com>
+Subject: [to-be-updated] aio-remove-dead-code-from-aioh.patch removed from -mm tree
+Date: Thu, 21 Mar 2013 15:27:23 -0700
+Message-ID: <20130321222723.A378A5A42C2@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:54943 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932084Ab3CUW1W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:27:22 -0400
-Received: by mail-yh0-f73.google.com with SMTP id 28so12250yhr.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:27:21 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:52260 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932084Ab3CUW1Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:27:25 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so310478vcb.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:27:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove old aio use_mm() comment
+     Subject: aio: remove dead code from aio.h
 has been removed from the -mm tree.  Its filename was
-     mm-remove-old-aio-use_mm-comment.patch
+     aio-remove-dead-code-from-aioh.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Zach Brown <zab@redhat.com>
-Subject: mm: remove old aio use_mm() comment
-
-use_mm() is used in more places than just aio.  There's no need to mention
-callers when describing the function.
+Subject: aio: remove dead code from aio.h
 
 Signed-off-by: Zach Brown <zab@redhat.com>
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
@@ -43,30 +40,74 @@ Cc: Sam Bradshaw <sbradshaw@micron.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_context.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/aio.h |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
-diff -puN mm/mmu_context.c~mm-remove-old-aio-use_mm-comment mm/mmu_context.c
---- a/mm/mmu_context.c~mm-remove-old-aio-use_mm-comment
-+++ a/mm/mmu_context.c
-@@ -14,9 +14,6 @@
-  * use_mm
-  *	Makes the calling kernel thread take on the specified
-  *	mm context.
-- *	Called by the retry thread execute retries within the
-- *	iocb issuer's mm context, so that copy_from/to_user
-- *	operations work seamlessly for aio.
-  *	(Note: this routine is intended to be called only
-  *	from a kernel thread context)
-  */
+diff -puN include/linux/aio.h~aio-remove-dead-code-from-aioh include/linux/aio.h
+--- a/include/linux/aio.h~aio-remove-dead-code-from-aioh
++++ a/include/linux/aio.h
+@@ -9,44 +9,22 @@
+ 
+ #include <linux/atomic.h>
+ 
+-#define AIO_MAXSEGS		4
+-#define AIO_KIOGRP_NR_ATOMIC	8
+-
+ struct kioctx;
+ 
+-/* Notes on cancelling a kiocb:
+- *	If a kiocb is cancelled, aio_complete may return 0 to indicate 
+- *	that cancel has not yet disposed of the kiocb.  All cancel 
+- *	operations *must* call aio_put_req to dispose of the kiocb 
+- *	to guard against races with the completion code.
+- */
+-#define KIOCB_C_CANCELLED	0x01
+-#define KIOCB_C_COMPLETE	0x02
+-
+ #define KIOCB_SYNC_KEY		(~0U)
+ 
+ /* ki_flags bits */
+-/*
+- * This may be used for cancel/retry serialization in the future, but
+- * for now it's unused and we probably don't want modules to even
+- * think they can use it.
+- */
+-/* #define KIF_LOCKED		0 */
+ #define KIF_KICKED		1
+ #define KIF_CANCELLED		2
+ 
+-#define kiocbTryLock(iocb)	test_and_set_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbTryKick(iocb)	test_and_set_bit(KIF_KICKED, &(iocb)->ki_flags)
+ 
+-#define kiocbSetLocked(iocb)	set_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbSetKicked(iocb)	set_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 
+-#define kiocbClearLocked(iocb)	clear_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbClearKicked(iocb)	clear_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 
+-#define kiocbIsLocked(iocb)	test_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbIsKicked(iocb)	test_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 
+@@ -207,8 +185,6 @@ struct kioctx {
+ };
+ 
+ /* prototypes */
+-extern unsigned aio_max_size;
+-
+ #ifdef CONFIG_AIO
+ extern ssize_t wait_on_sync_kiocb(struct kiocb *iocb);
+ extern int aio_put_req(struct kiocb *iocb);
 _
 
 Patches currently in -mm which might be from zab@redhat.com are
 
-aio-remove-dead-code-from-aioh.patch
 gadget-remove-only-user-of-aio-retry.patch
 aio-remove-retry-based-aio.patch
 char-add-aio_readwrite-to-dev-nullzero.patch
