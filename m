@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-use-flush_dcache_page.patch added to -mm tree
-Date: Thu, 21 Mar 2013 15:38:06 -0700
-Message-ID: <20130321223807.00F235A4286@corp2gmr1-2.hot.corp.google.com>
+Subject: + aio-change-reqs_active-to-include-unreaped-completions.patch added to -mm tree
+Date: Thu, 21 Mar 2013 15:38:12 -0700
+Message-ID: <20130321223813.0A74531C121@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:33080 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694Ab3CUWiJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:09 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so310784vea.2
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:08 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:54013 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694Ab3CUWiO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:14 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so311126yen.2
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: aio: use flush_dcache_page()
+     Subject: aio: change reqs_active to include unreaped completions
 has been added to the -mm tree.  Its filename is
-     aio-use-flush_dcache_page.patch
+     aio-change-reqs_active-to-include-unreaped-completions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: use flush_dcache_page()
+Subject: aio: change reqs_active to include unreaped completions
+
+The aio code tries really hard to avoid having to deal with the completion
+ringbuffer overflowing.  To do that, it has to keep track of the number of
+outstanding kiocbs, and the number of completions currently in the
+ringbuffer - and it's got to check that every time we allocate a kiocb.
+Ouch.
+
+But - we can improve this quite a bit if we just change reqs_active to
+mean "number of outstanding requests and unreaped completions" - that
+means kiocb allocation doesn't have to look at the ringbuffer, which is a
+fairly significant win.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -54,113 +65,132 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   45 +++++++++++++++++----------------------------
- 1 file changed, 17 insertions(+), 28 deletions(-)
+ fs/aio.c |   46 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 32 insertions(+), 14 deletions(-)
 
-diff -puN fs/aio.c~aio-use-flush_dcache_page fs/aio.c
---- a/fs/aio.c~aio-use-flush_dcache_page
+diff -puN fs/aio.c~aio-change-reqs_active-to-include-unreaped-completions fs/aio.c
+--- a/fs/aio.c~aio-change-reqs_active-to-include-unreaped-completions
 +++ a/fs/aio.c
-@@ -211,33 +211,15 @@ static int aio_setup_ring(struct kioctx
- 	ring->incompat_features = AIO_RING_INCOMPAT_FEATURES;
- 	ring->header_length = sizeof(struct aio_ring);
- 	kunmap_atomic(ring);
-+	flush_dcache_page(info->ring_pages[0]);
+@@ -71,12 +71,6 @@ struct aio_ring_info {
+ 	struct page		*internal_pages[AIO_RING_PAGES];
+ };
  
- 	return 0;
- }
+-static inline unsigned aio_ring_avail(struct aio_ring_info *info,
+-					struct aio_ring *ring)
+-{
+-	return (ring->head + info->nr - 1 - ring->tail) % info->nr;
+-}
+-
+ struct kioctx {
+ 	atomic_t		users;
+ 	atomic_t		dead;
+@@ -92,7 +86,13 @@ struct kioctx {
+ 	atomic_t		reqs_active;
+ 	struct list_head	active_reqs;	/* used for cancellation */
  
--
--/* aio_ring_event: returns a pointer to the event at the given index from
-- * kmap_atomic().  Release the pointer with put_aio_ring_event();
-- */
- #define AIO_EVENTS_PER_PAGE	(PAGE_SIZE / sizeof(struct io_event))
- #define AIO_EVENTS_FIRST_PAGE	((PAGE_SIZE - sizeof(struct aio_ring)) / sizeof(struct io_event))
- #define AIO_EVENTS_OFFSET	(AIO_EVENTS_PER_PAGE - AIO_EVENTS_FIRST_PAGE)
+-	/* sys_io_setup currently limits this to an unsigned int */
++	/*
++	 * This is what userspace passed to io_setup(), it's not used for
++	 * anything but counting against the global max_reqs quota.
++	 *
++	 * The real limit is ring->nr - 1, which will be larger (see
++	 * aio_setup_ring())
++	 */
+ 	unsigned		max_reqs;
  
--#define aio_ring_event(info, nr) ({					\
--	unsigned pos = (nr) + AIO_EVENTS_OFFSET;			\
--	struct io_event *__event;					\
--	__event = kmap_atomic(						\
--			(info)->ring_pages[pos / AIO_EVENTS_PER_PAGE]); \
--	__event += pos % AIO_EVENTS_PER_PAGE;				\
--	__event;							\
--})
--
--#define put_aio_ring_event(event) do {		\
--	struct io_event *__event = (event);	\
--	(void)__event;				\
--	kunmap_atomic((void *)((unsigned long)__event & PAGE_MASK)); \
--} while(0)
--
- static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
- 			struct io_event *res)
+ 	struct aio_ring_info	ring_info;
+@@ -284,8 +284,11 @@ static void free_ioctx_rcu(struct rcu_he
+  */
+ static void free_ioctx(struct kioctx *ctx)
  {
-@@ -648,9 +630,9 @@ void aio_complete(struct kiocb *iocb, lo
- 	struct kioctx	*ctx = iocb->ki_ctx;
- 	struct aio_ring_info	*info;
- 	struct aio_ring	*ring;
--	struct io_event	*event;
-+	struct io_event	*ev_page, *event;
- 	unsigned long	flags;
--	unsigned long	tail;
-+	unsigned tail, pos;
++	struct aio_ring_info *info = &ctx->ring_info;
++	struct aio_ring *ring;
+ 	struct io_event res;
+ 	struct kiocb *req;
++	unsigned head, avail;
  
- 	/*
- 	 * Special case handling for sync iocbs:
-@@ -689,19 +671,24 @@ void aio_complete(struct kiocb *iocb, lo
- 	if (kiocbIsCancelled(iocb))
- 		goto put_rq;
+ 	spin_lock_irq(&ctx->ctx_lock);
  
--	ring = kmap_atomic(info->ring_pages[0]);
--
- 	tail = info->tail;
--	event = aio_ring_event(info, tail);
-+	pos = tail + AIO_EVENTS_OFFSET;
-+
- 	if (++tail >= info->nr)
- 		tail = 0;
+@@ -299,7 +302,21 @@ static void free_ioctx(struct kioctx *ct
  
-+	ev_page = kmap_atomic(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
-+	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
-+
- 	event->obj = (u64)(unsigned long)iocb->ki_obj.user;
- 	event->data = iocb->ki_user_data;
- 	event->res = res;
- 	event->res2 = res2;
+ 	spin_unlock_irq(&ctx->ctx_lock);
  
--	pr_debug("%p[%lu]: %p: %p %Lx %lx %lx\n",
-+	kunmap_atomic(ev_page);
-+	flush_dcache_page(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
-+
-+	pr_debug("%p[%u]: %p: %p %Lx %lx %lx\n",
- 		 ctx, tail, iocb, iocb->ki_obj.user, iocb->ki_user_data,
- 		 res, res2);
- 
-@@ -711,12 +698,13 @@ void aio_complete(struct kiocb *iocb, lo
- 	smp_wmb();	/* make event visible before updating tail */
- 
- 	info->tail = tail;
--	ring->tail = tail;
- 
--	put_aio_ring_event(event);
+-	wait_event(ctx->wait, !atomic_read(&ctx->reqs_active));
 +	ring = kmap_atomic(info->ring_pages[0]);
-+	ring->tail = tail;
- 	kunmap_atomic(ring);
-+	flush_dcache_page(info->ring_pages[0]);
++	head = ring->head;
++	kunmap_atomic(ring);
++
++	while (atomic_read(&ctx->reqs_active) > 0) {
++		wait_event(ctx->wait, head != info->tail);
++
++		avail = (head <= info->tail ? info->tail : info->nr) - head;
++
++		atomic_sub(avail, &ctx->reqs_active);
++		head += avail;
++		head %= info->nr;
++	}
++
++	WARN_ON(atomic_read(&ctx->reqs_active) < 0);
  
--	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
-+	pr_debug("added to ring %p at [%u]\n", iocb, tail);
+ 	aio_free_ring(ctx);
+ 
+@@ -548,7 +565,6 @@ static int kiocb_batch_refill(struct kio
+ 	unsigned short allocated, to_alloc;
+ 	long avail;
+ 	struct kiocb *req, *n;
+-	struct aio_ring *ring;
+ 
+ 	to_alloc = min(batch->count, KIOCB_BATCH_SIZE);
+ 	for (allocated = 0; allocated < to_alloc; allocated++) {
+@@ -563,9 +579,8 @@ static int kiocb_batch_refill(struct kio
+ 		goto out;
+ 
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
+ 
+-	avail = aio_ring_avail(&ctx->ring_info, ring) - atomic_read(&ctx->reqs_active);
++	avail = ctx->ring_info.nr - atomic_read(&ctx->reqs_active) - 1;
+ 	BUG_ON(avail < 0);
+ 	if (avail < allocated) {
+ 		/* Trim back the number of requests. */
+@@ -580,7 +595,6 @@ static int kiocb_batch_refill(struct kio
+ 	batch->count -= allocated;
+ 	atomic_add(allocated, &ctx->reqs_active);
+ 
+-	kunmap_atomic(ring);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+ 
+ out:
+@@ -687,8 +701,11 @@ void aio_complete(struct kiocb *iocb, lo
+ 	 * when the event got cancelled.
+ 	 */
+ 	if (unlikely(xchg(&iocb->ki_cancel,
+-			  KIOCB_CANCELLED) == KIOCB_CANCELLED))
++			  KIOCB_CANCELLED) == KIOCB_CANCELLED)) {
++		atomic_dec(&ctx->reqs_active);
++		/* Still need the wake_up in case free_ioctx is waiting */
+ 		goto put_rq;
++	}
  
  	/*
- 	 * Check if the user asked us to deliver the result through an
-@@ -804,6 +792,7 @@ static long aio_read_events_ring(struct
- 	ring = kmap_atomic(info->ring_pages[0]);
- 	ring->head = head;
- 	kunmap_atomic(ring);
-+	flush_dcache_page(info->ring_pages[0]);
+ 	 * Add a completion event to the ring buffer. Must be done holding
+@@ -745,7 +762,6 @@ void aio_complete(struct kiocb *iocb, lo
+ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	aio_put_req(iocb);
+-	atomic_dec(&ctx->reqs_active);
+ 
+ 	/*
+ 	 * We have to order our ring_info tail store above and test
+@@ -822,6 +838,8 @@ static long aio_read_events_ring(struct
+ 	flush_dcache_page(info->ring_pages[0]);
  
  	pr_debug("%li  h%u t%u\n", ret, head, info->tail);
++
++	atomic_sub(ret, &ctx->reqs_active);
  out:
+ 	mutex_unlock(&info->ring_lock);
+ 
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
