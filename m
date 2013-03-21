@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-kill-struct-aio_ring_info.patch added to -mm tree
-Date: Thu, 21 Mar 2013 15:38:18 -0700
-Message-ID: <20130321223819.04CC65A4286@corp2gmr1-2.hot.corp.google.com>
+Subject: + aio-reqs_active-reqs_available.patch added to -mm tree
+Date: Thu, 21 Mar 2013 15:38:24 -0700
+Message-ID: <20130321223825.055A631C158@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:32785 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753206Ab3CUWiV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:21 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so23103qcs.5
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:20 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:42824 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753024Ab3CUWi1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:27 -0400
+Received: by mail-vb0-f74.google.com with SMTP id r6so311105vbi.3
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: aio: kill struct aio_ring_info
+     Subject: aio: reqs_active -> reqs_available
 has been added to the -mm tree.  Its filename is
-     aio-kill-struct-aio_ring_info.patch
+     aio-reqs_active-reqs_available.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: kill struct aio_ring_info
+Subject: aio: reqs_active -> reqs_available
 
-struct aio_ring_info was kind of odd, the only place it's used is where
-it's embedded in struct kioctx - there's no real need for it.
+The number of outstanding kiocbs is one of the few shared things left that
+has to be touched for every kiocb - it'd be nice to make it percpu.
 
-The next patch rearranges struct kioctx and puts various things on their
-own cachelines - getting rid of struct aio_ring_info now makes that
-reordering a bit clearer.
+We can make it per cpu by treating it like an allocation problem: we have
+a maximum number of kiocbs that can be outstanding (i.e.  slots) - then we
+just allocate and free slots, and we know how to write per cpu allocators.
+
+So as prep work for that, we convert reqs_active to reqs_available.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -61,374 +63,125 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |  156 +++++++++++++++++++++++++----------------------------
- 1 file changed, 75 insertions(+), 81 deletions(-)
+ fs/aio.c |   33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN fs/aio.c~aio-kill-struct-aio_ring_info fs/aio.c
---- a/fs/aio.c~aio-kill-struct-aio_ring_info
+diff -puN fs/aio.c~aio-reqs_active-reqs_available fs/aio.c
+--- a/fs/aio.c~aio-reqs_active-reqs_available
 +++ a/fs/aio.c
-@@ -58,18 +58,6 @@ struct aio_ring {
- }; /* 128 bytes + ring size */
- 
- #define AIO_RING_PAGES	8
--struct aio_ring_info {
--	unsigned long		mmap_base;
--	unsigned long		mmap_size;
--
--	struct page		**ring_pages;
--	struct mutex		ring_lock;
--	long			nr_pages;
--
--	unsigned		nr, tail;
--
--	struct page		*internal_pages[AIO_RING_PAGES];
--};
- 
- struct kioctx {
- 	atomic_t		users;
-@@ -90,14 +78,30 @@ struct kioctx {
- 	 * This is what userspace passed to io_setup(), it's not used for
- 	 * anything but counting against the global max_reqs quota.
- 	 *
--	 * The real limit is ring->nr - 1, which will be larger (see
-+	 * The real limit is nr_events - 1, which will be larger (see
- 	 * aio_setup_ring())
- 	 */
- 	unsigned		max_reqs;
- 
--	struct aio_ring_info	ring_info;
-+	/* Size of ringbuffer, in units of struct io_event */
-+	unsigned		nr_events;
-+
-+	unsigned long		mmap_base;
-+	unsigned long		mmap_size;
-+
-+	struct page		**ring_pages;
-+	long			nr_pages;
- 
--	spinlock_t		completion_lock;
-+	struct {
-+		struct mutex	ring_lock;
-+	} ____cacheline_aligned;
-+
-+	struct {
-+		unsigned	tail;
-+		spinlock_t	completion_lock;
-+	} ____cacheline_aligned;
-+
-+	struct page		*internal_pages[AIO_RING_PAGES];
- 
- 	struct rcu_head		rcu_head;
+@@ -89,7 +89,13 @@ struct kioctx {
  	struct work_struct	rcu_work;
-@@ -129,26 +133,21 @@ __initcall(aio_setup);
  
- static void aio_free_ring(struct kioctx *ctx)
- {
--	struct aio_ring_info *info = &ctx->ring_info;
- 	long i;
+ 	struct {
+-		atomic_t	reqs_active;
++		/*
++		 * This counts the number of available slots in the ringbuffer,
++		 * so we avoid overflowing it: it's decremented (if positive)
++		 * when allocating a kiocb and incremented when the resulting
++		 * io_event is pulled off the ringbuffer.
++		 */
++		atomic_t	reqs_available;
+ 	} ____cacheline_aligned_in_smp;
  
--	for (i=0; i<info->nr_pages; i++)
--		put_page(info->ring_pages[i]);
-+	for (i = 0; i < ctx->nr_pages; i++)
-+		put_page(ctx->ring_pages[i]);
- 
--	if (info->mmap_size) {
--		vm_munmap(info->mmap_base, info->mmap_size);
--	}
-+	if (ctx->mmap_size)
-+		vm_munmap(ctx->mmap_base, ctx->mmap_size);
- 
--	if (info->ring_pages && info->ring_pages != info->internal_pages)
--		kfree(info->ring_pages);
--	info->ring_pages = NULL;
--	info->nr = 0;
-+	if (ctx->ring_pages && ctx->ring_pages != ctx->internal_pages)
-+		kfree(ctx->ring_pages);
- }
- 
- static int aio_setup_ring(struct kioctx *ctx)
- {
- 	struct aio_ring *ring;
--	struct aio_ring_info *info = &ctx->ring_info;
- 	unsigned nr_events = ctx->max_reqs;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long size, populate;
-@@ -166,45 +165,44 @@ static int aio_setup_ring(struct kioctx
- 
- 	nr_events = (PAGE_SIZE * nr_pages - sizeof(struct aio_ring)) / sizeof(struct io_event);
- 
--	info->nr = 0;
--	info->ring_pages = info->internal_pages;
-+	ctx->nr_events = 0;
-+	ctx->ring_pages = ctx->internal_pages;
- 	if (nr_pages > AIO_RING_PAGES) {
--		info->ring_pages = kcalloc(nr_pages, sizeof(struct page *), GFP_KERNEL);
--		if (!info->ring_pages)
-+		ctx->ring_pages = kcalloc(nr_pages, sizeof(struct page *),
-+					  GFP_KERNEL);
-+		if (!ctx->ring_pages)
- 			return -ENOMEM;
- 	}
- 
--	info->mmap_size = nr_pages * PAGE_SIZE;
--	pr_debug("attempting mmap of %lu bytes\n", info->mmap_size);
-+	ctx->mmap_size = nr_pages * PAGE_SIZE;
-+	pr_debug("attempting mmap of %lu bytes\n", ctx->mmap_size);
- 	down_write(&mm->mmap_sem);
--	info->mmap_base = do_mmap_pgoff(NULL, 0, info->mmap_size, 
--					PROT_READ|PROT_WRITE,
--					MAP_ANONYMOUS|MAP_PRIVATE, 0,
--					&populate);
--	if (IS_ERR((void *)info->mmap_base)) {
-+	ctx->mmap_base = do_mmap_pgoff(NULL, 0, ctx->mmap_size,
-+				       PROT_READ|PROT_WRITE,
-+				       MAP_ANONYMOUS|MAP_PRIVATE, 0, &populate);
-+	if (IS_ERR((void *)ctx->mmap_base)) {
- 		up_write(&mm->mmap_sem);
--		info->mmap_size = 0;
-+		ctx->mmap_size = 0;
- 		aio_free_ring(ctx);
- 		return -EAGAIN;
- 	}
- 
--	pr_debug("mmap address: 0x%08lx\n", info->mmap_base);
--	info->nr_pages = get_user_pages(current, mm, info->mmap_base, nr_pages,
--					1, 0, info->ring_pages, NULL);
-+	pr_debug("mmap address: 0x%08lx\n", ctx->mmap_base);
-+	ctx->nr_pages = get_user_pages(current, mm, ctx->mmap_base, nr_pages,
-+				       1, 0, ctx->ring_pages, NULL);
- 	up_write(&mm->mmap_sem);
- 
--	if (unlikely(info->nr_pages != nr_pages)) {
-+	if (unlikely(ctx->nr_pages != nr_pages)) {
- 		aio_free_ring(ctx);
- 		return -EAGAIN;
- 	}
- 	if (populate)
--		mm_populate(info->mmap_base, populate);
-+		mm_populate(ctx->mmap_base, populate);
- 
--	ctx->user_id = info->mmap_base;
-+	ctx->user_id = ctx->mmap_base;
-+	ctx->nr_events = nr_events; /* trusted copy */
- 
--	info->nr = nr_events;		/* trusted copy */
--
--	ring = kmap_atomic(info->ring_pages[0]);
-+	ring = kmap_atomic(ctx->ring_pages[0]);
- 	ring->nr = nr_events;	/* user copy */
- 	ring->id = ctx->user_id;
- 	ring->head = ring->tail = 0;
-@@ -213,7 +211,7 @@ static int aio_setup_ring(struct kioctx
- 	ring->incompat_features = AIO_RING_INCOMPAT_FEATURES;
- 	ring->header_length = sizeof(struct aio_ring);
- 	kunmap_atomic(ring);
--	flush_dcache_page(info->ring_pages[0]);
-+	flush_dcache_page(ctx->ring_pages[0]);
- 
- 	return 0;
- }
-@@ -284,7 +282,6 @@ static void free_ioctx_rcu(struct rcu_he
-  */
- static void free_ioctx(struct kioctx *ctx)
- {
--	struct aio_ring_info *info = &ctx->ring_info;
- 	struct aio_ring *ring;
- 	struct io_event res;
- 	struct kiocb *req;
-@@ -302,18 +299,18 @@ static void free_ioctx(struct kioctx *ct
- 
- 	spin_unlock_irq(&ctx->ctx_lock);
- 
--	ring = kmap_atomic(info->ring_pages[0]);
-+	ring = kmap_atomic(ctx->ring_pages[0]);
+ 	struct {
+@@ -306,17 +312,17 @@ static void free_ioctx(struct kioctx *ct
  	head = ring->head;
  	kunmap_atomic(ring);
  
- 	while (atomic_read(&ctx->reqs_active) > 0) {
--		wait_event(ctx->wait, head != info->tail);
-+		wait_event(ctx->wait, head != ctx->tail);
+-	while (atomic_read(&ctx->reqs_active) > 0) {
++	while (atomic_read(&ctx->reqs_available) < ctx->nr_events - 1) {
+ 		wait_event(ctx->wait, head != ctx->tail);
  
--		avail = (head <= info->tail ? info->tail : info->nr) - head;
-+		avail = (head <= ctx->tail ? ctx->tail : ctx->nr_events) - head;
+ 		avail = (head <= ctx->tail ? ctx->tail : ctx->nr_events) - head;
  
- 		atomic_sub(avail, &ctx->reqs_active);
+-		atomic_sub(avail, &ctx->reqs_active);
++		atomic_add(avail, &ctx->reqs_available);
  		head += avail;
--		head %= info->nr;
-+		head %= ctx->nr_events;
+ 		head %= ctx->nr_events;
  	}
  
- 	WARN_ON(atomic_read(&ctx->reqs_active) < 0);
-@@ -372,7 +369,7 @@ static struct kioctx *ioctx_alloc(unsign
- 	atomic_set(&ctx->dead, 0);
- 	spin_lock_init(&ctx->ctx_lock);
- 	spin_lock_init(&ctx->completion_lock);
--	mutex_init(&ctx->ring_info.ring_lock);
-+	mutex_init(&ctx->ring_lock);
- 	init_waitqueue_head(&ctx->wait);
+-	WARN_ON(atomic_read(&ctx->reqs_active) < 0);
++	WARN_ON(atomic_read(&ctx->reqs_available) > ctx->nr_events - 1);
  
- 	INIT_LIST_HEAD(&ctx->active_reqs);
-@@ -396,7 +393,7 @@ static struct kioctx *ioctx_alloc(unsign
- 	spin_unlock(&mm->ioctx_lock);
+ 	aio_free_ring(ctx);
  
- 	pr_debug("allocated ioctx %p[%ld]: mm=%p mask=0x%x\n",
--		ctx, ctx->user_id, mm, ctx->ring_info.nr);
-+		 ctx, ctx->user_id, mm, ctx->nr_events);
- 	return ctx;
+@@ -380,6 +386,8 @@ static struct kioctx *ioctx_alloc(unsign
+ 	if (aio_setup_ring(ctx) < 0)
+ 		goto out_freectx;
  
- out_cleanup:
-@@ -491,7 +488,7 @@ void exit_aio(struct mm_struct *mm)
- 		 * just set it to 0; aio_free_ring() is the only
- 		 * place that uses ->mmap_size, so it's safe.
- 		 */
--		ctx->ring_info.mmap_size = 0;
-+		ctx->mmap_size = 0;
- 
- 		if (!atomic_xchg(&ctx->dead, 1)) {
- 			hlist_del_rcu(&ctx->list);
-@@ -514,10 +511,10 @@ static inline struct kiocb *aio_get_req(
++	atomic_set(&ctx->reqs_available, ctx->nr_events - 1);
++
+ 	/* limit the number of system wide aios */
+ 	spin_lock(&aio_nr_lock);
+ 	if (aio_nr + nr_events > aio_max_nr ||
+@@ -482,7 +490,7 @@ void exit_aio(struct mm_struct *mm)
+ 				"exit_aio:ioctx still alive: %d %d %d\n",
+ 				atomic_read(&ctx->users),
+ 				atomic_read(&ctx->dead),
+-				atomic_read(&ctx->reqs_active));
++				atomic_read(&ctx->reqs_available));
+ 		/*
+ 		 * We don't need to bother with munmap() here -
+ 		 * exit_mmap(mm) is coming and it'll unmap everything.
+@@ -514,12 +522,9 @@ static inline struct kiocb *aio_get_req(
  {
  	struct kiocb *req;
  
--	if (atomic_read(&ctx->reqs_active) >= ctx->ring_info.nr)
-+	if (atomic_read(&ctx->reqs_active) >= ctx->nr_events)
+-	if (atomic_read(&ctx->reqs_active) >= ctx->nr_events)
++	if (atomic_dec_if_positive(&ctx->reqs_available) <= 0)
  		return NULL;
  
--	if (atomic_inc_return(&ctx->reqs_active) > ctx->ring_info.nr - 1)
-+	if (atomic_inc_return(&ctx->reqs_active) > ctx->nr_events - 1)
- 		goto out_put;
- 
- 	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL|__GFP_ZERO);
-@@ -578,7 +575,6 @@ static struct kioctx *lookup_ioctx(unsig
- void aio_complete(struct kiocb *iocb, long res, long res2)
- {
- 	struct kioctx	*ctx = iocb->ki_ctx;
--	struct aio_ring_info	*info;
- 	struct aio_ring	*ring;
- 	struct io_event	*ev_page, *event;
- 	unsigned long	flags;
-@@ -599,8 +595,6 @@ void aio_complete(struct kiocb *iocb, lo
- 		return;
- 	}
- 
--	info = &ctx->ring_info;
+-	if (atomic_inc_return(&ctx->reqs_active) > ctx->nr_events - 1)
+-		goto out_put;
 -
+ 	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL|__GFP_ZERO);
+ 	if (unlikely(!req))
+ 		goto out_put;
+@@ -529,7 +534,7 @@ static inline struct kiocb *aio_get_req(
+ 
+ 	return req;
+ out_put:
+-	atomic_dec(&ctx->reqs_active);
++	atomic_inc(&ctx->reqs_available);
+ 	return NULL;
+ }
+ 
+@@ -600,7 +605,7 @@ void aio_complete(struct kiocb *iocb, lo
+ 
  	/*
  	 * Take rcu_read_lock() in case the kioctx is being destroyed, as we
- 	 * need to issue a wakeup after decrementing reqs_active.
-@@ -633,13 +627,13 @@ void aio_complete(struct kiocb *iocb, lo
+-	 * need to issue a wakeup after decrementing reqs_active.
++	 * need to issue a wakeup after incrementing reqs_available.
  	 */
- 	spin_lock_irqsave(&ctx->completion_lock, flags);
+ 	rcu_read_lock();
  
--	tail = info->tail;
-+	tail = ctx->tail;
- 	pos = tail + AIO_EVENTS_OFFSET;
- 
--	if (++tail >= info->nr)
-+	if (++tail >= ctx->nr_events)
- 		tail = 0;
- 
--	ev_page = kmap_atomic(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
-+	ev_page = kmap_atomic(ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
- 	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
- 
- 	event->obj = (u64)(unsigned long)iocb->ki_obj.user;
-@@ -648,7 +642,7 @@ void aio_complete(struct kiocb *iocb, lo
- 	event->res2 = res2;
- 
- 	kunmap_atomic(ev_page);
--	flush_dcache_page(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
-+	flush_dcache_page(ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
- 
- 	pr_debug("%p[%u]: %p: %p %Lx %lx %lx\n",
- 		 ctx, tail, iocb, iocb->ki_obj.user, iocb->ki_user_data,
-@@ -659,12 +653,12 @@ void aio_complete(struct kiocb *iocb, lo
+@@ -618,7 +623,7 @@ void aio_complete(struct kiocb *iocb, lo
  	 */
- 	smp_wmb();	/* make event visible before updating tail */
- 
--	info->tail = tail;
-+	ctx->tail = tail;
- 
--	ring = kmap_atomic(info->ring_pages[0]);
-+	ring = kmap_atomic(ctx->ring_pages[0]);
- 	ring->tail = tail;
- 	kunmap_atomic(ring);
--	flush_dcache_page(info->ring_pages[0]);
-+	flush_dcache_page(ctx->ring_pages[0]);
- 
- 	spin_unlock_irqrestore(&ctx->completion_lock, flags);
- 
-@@ -704,29 +698,29 @@ EXPORT_SYMBOL(aio_complete);
- static long aio_read_events_ring(struct kioctx *ctx,
- 				 struct io_event __user *event, long nr)
- {
--	struct aio_ring_info *info = &ctx->ring_info;
- 	struct aio_ring *ring;
- 	unsigned head, pos;
- 	long ret = 0;
- 	int copy_ret;
- 
--	mutex_lock(&info->ring_lock);
-+	mutex_lock(&ctx->ring_lock);
- 
--	ring = kmap_atomic(info->ring_pages[0]);
-+	ring = kmap_atomic(ctx->ring_pages[0]);
- 	head = ring->head;
- 	kunmap_atomic(ring);
- 
--	pr_debug("h%u t%u m%u\n", head, info->tail, info->nr);
-+	pr_debug("h%u t%u m%u\n", head, ctx->tail, ctx->nr_events);
- 
--	if (head == info->tail)
-+	if (head == ctx->tail)
- 		goto out;
- 
- 	while (ret < nr) {
--		long avail = (head <= info->tail ? info->tail : info->nr) - head;
-+		long avail = (head <= ctx->tail
-+			      ? ctx->tail : ctx->nr_events) - head;
- 		struct io_event *ev;
- 		struct page *page;
- 
--		if (head == info->tail)
-+		if (head == ctx->tail)
- 			break;
- 
- 		avail = min(avail, nr - ret);
-@@ -734,7 +728,7 @@ static long aio_read_events_ring(struct
- 			      ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
- 
- 		pos = head + AIO_EVENTS_OFFSET;
--		page = info->ring_pages[pos / AIO_EVENTS_PER_PAGE];
-+		page = ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE];
- 		pos %= AIO_EVENTS_PER_PAGE;
- 
- 		ev = kmap(page);
-@@ -748,19 +742,19 @@ static long aio_read_events_ring(struct
- 
- 		ret += avail;
- 		head += avail;
--		head %= info->nr;
-+		head %= ctx->nr_events;
+ 	if (unlikely(xchg(&iocb->ki_cancel,
+ 			  KIOCB_CANCELLED) == KIOCB_CANCELLED)) {
+-		atomic_dec(&ctx->reqs_active);
++		atomic_inc(&ctx->reqs_available);
+ 		/* Still need the wake_up in case free_ioctx is waiting */
+ 		goto put_rq;
  	}
+@@ -755,7 +760,7 @@ static long aio_read_events_ring(struct
  
--	ring = kmap_atomic(info->ring_pages[0]);
-+	ring = kmap_atomic(ctx->ring_pages[0]);
- 	ring->head = head;
- 	kunmap_atomic(ring);
--	flush_dcache_page(info->ring_pages[0]);
-+	flush_dcache_page(ctx->ring_pages[0]);
+ 	pr_debug("%li  h%u t%u\n", ret, head, ctx->tail);
  
--	pr_debug("%li  h%u t%u\n", ret, head, info->tail);
-+	pr_debug("%li  h%u t%u\n", ret, head, ctx->tail);
- 
- 	atomic_sub(ret, &ctx->reqs_active);
+-	atomic_sub(ret, &ctx->reqs_active);
++	atomic_add(ret, &ctx->reqs_available);
  out:
--	mutex_unlock(&info->ring_lock);
-+	mutex_unlock(&ctx->ring_lock);
+ 	mutex_unlock(&ctx->ring_lock);
  
+@@ -1188,7 +1193,7 @@ static int io_submit_one(struct kioctx *
+ 	return 0;
+ 
+ out_put_req:
+-	atomic_dec(&ctx->reqs_active);
++	atomic_inc(&ctx->reqs_available);
+ 	aio_put_req(req);	/* drop extra ref to req */
+ 	aio_put_req(req);	/* drop i/o ref to req */
  	return ret;
- }
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
