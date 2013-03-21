@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + wait-add-wait_event_hrtimeout.patch added to -mm tree
-Date: Thu, 21 Mar 2013 15:38:00 -0700
-Message-ID: <20130321223800.F29195A421E@corp2gmr1-2.hot.corp.google.com>
+Subject: + aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch added to -mm tree
+Date: Thu, 21 Mar 2013 15:38:03 -0700
+Message-ID: <20130321223804.0CA335A421E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:52581 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab3CUWiD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:03 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so311398qen.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:02 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53925 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694Ab3CUWiG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 18:38:06 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so311116vcb.5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 15:38:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, mingo@elte.hu, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com
+Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com
 
 
 The patch titled
-     Subject: wait: add wait_event_hrtimeout()
+     Subject: aio: make aio_read_evt() more efficient, convert to hrtimers
 has been added to the -mm tree.  Its filename is
-     wait-add-wait_event_hrtimeout.patch
+     aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: wait: add wait_event_hrtimeout()
+Subject: aio: make aio_read_evt() more efficient, convert to hrtimers
 
-Analagous to wait_event_timeout() and friends, this adds
-wait_event_hrtimeout() and wait_event_interruptible_hrtimeout().
+Previously, aio_read_event() pulled a single completion off the ringbuffer
+at a time, locking and unlocking each time.  Change it to pull off as many
+events as it can at a time, and copy them directly to userspace.
 
-Note that unlike the versions that use regular timers, these don't return
-the amount of time remaining when they return - instead, they return 0 or
--ETIME if they timed out.  because I was uncomfortable with the semantics
-of doing it the other way (that I could get it right, anyways).
+This also fixes a bug where if copying the event to userspace failed,
+we'd lose the event.
 
-If the timer expires, there's no real guarantee that expire_time -
-current_time would be <= 0 - due to timer slack certainly, and I'm not
-sure I want to know the implications of the different clock bases in
-hrtimers.
+Also convert it to wait_event_interruptible_hrtimeout(), which
+simplifies it quite a bit.
 
-If the timer does expire and the code calculates that the time remaining
-is nonnegative, that could be even worse if the calling code then reuses
-that timeout.  Probably safer to just return 0 then, but I could imagine
-weird bugs or at least unintended behaviour arising from that too.
-
-I came to the conclusion that if other users end up actually needing the
-amount of time remaining, the sanest thing to do would be to create a
-version that uses absolute timeouts instead of relative.
-
-[akpm@linux-foundation.org: fix description of `timeout' arg]
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -79,105 +64,303 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   86 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 86 insertions(+)
+ fs/aio.c |  236 +++++++++++++++++++----------------------------------
+ 1 file changed, 87 insertions(+), 149 deletions(-)
 
-diff -puN include/linux/wait.h~wait-add-wait_event_hrtimeout include/linux/wait.h
---- a/include/linux/wait.h~wait-add-wait_event_hrtimeout
-+++ a/include/linux/wait.h
-@@ -330,6 +330,92 @@ do {									\
- 	__ret;								\
- })
+diff -puN fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers fs/aio.c
+--- a/fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers
++++ a/fs/aio.c
+@@ -63,7 +63,7 @@ struct aio_ring_info {
+ 	unsigned long		mmap_size;
  
-+#define __wait_event_hrtimeout(wq, condition, timeout, state)		\
-+({									\
-+	int __ret = 0;							\
-+	DEFINE_WAIT(__wait);						\
-+	struct hrtimer_sleeper __t;					\
-+									\
-+	hrtimer_init_on_stack(&__t.timer, CLOCK_MONOTONIC,		\
-+			      HRTIMER_MODE_REL);			\
-+	hrtimer_init_sleeper(&__t, current);				\
-+	if ((timeout).tv64 != KTIME_MAX)				\
-+		hrtimer_start_range_ns(&__t.timer, timeout,		\
-+				       current->timer_slack_ns,		\
-+				       HRTIMER_MODE_REL);		\
-+									\
-+	for (;;) {							\
-+		prepare_to_wait(&wq, &__wait, state);			\
-+		if (condition)						\
-+			break;						\
-+		if (state == TASK_INTERRUPTIBLE &&			\
-+		    signal_pending(current)) {				\
-+			__ret = -ERESTARTSYS;				\
-+			break;						\
-+		}							\
-+		if (!__t.task) {					\
-+			__ret = -ETIME;					\
-+			break;						\
-+		}							\
-+		schedule();						\
-+	}								\
-+									\
-+	hrtimer_cancel(&__t.timer);					\
-+	destroy_hrtimer_on_stack(&__t.timer);				\
-+	finish_wait(&wq, &__wait);					\
-+	__ret;								\
-+})
+ 	struct page		**ring_pages;
+-	spinlock_t		ring_lock;
++	struct mutex		ring_lock;
+ 	long			nr_pages;
+ 
+ 	unsigned		nr, tail;
+@@ -344,7 +344,7 @@ static struct kioctx *ioctx_alloc(unsign
+ 	atomic_set(&ctx->users, 2);
+ 	atomic_set(&ctx->dead, 0);
+ 	spin_lock_init(&ctx->ctx_lock);
+-	spin_lock_init(&ctx->ring_info.ring_lock);
++	mutex_init(&ctx->ring_info.ring_lock);
+ 	init_waitqueue_head(&ctx->wait);
+ 
+ 	INIT_LIST_HEAD(&ctx->active_reqs);
+@@ -747,187 +747,125 @@ put_rq:
+ }
+ EXPORT_SYMBOL(aio_complete);
+ 
+-/* aio_read_evt
+- *	Pull an event off of the ioctx's event ring.  Returns the number of 
+- *	events fetched (0 or 1 ;-)
+- *	FIXME: make this use cmpxchg.
+- *	TODO: make the ringbuffer user mmap()able (requires FIXME).
++/* aio_read_events
++ *	Pull an event off of the ioctx's event ring.  Returns the number of
++ *	events fetched
+  */
+-static int aio_read_evt(struct kioctx *ioctx, struct io_event *ent)
++static long aio_read_events_ring(struct kioctx *ctx,
++				 struct io_event __user *event, long nr)
+ {
+-	struct aio_ring_info *info = &ioctx->ring_info;
++	struct aio_ring_info *info = &ctx->ring_info;
+ 	struct aio_ring *ring;
+-	unsigned long head;
+-	int ret = 0;
++	unsigned head, pos;
++	long ret = 0;
++	int copy_ret;
 +
-+/**
-+ * wait_event_hrtimeout - sleep until a condition gets true or a timeout elapses
-+ * @wq: the waitqueue to wait on
-+ * @condition: a C expression for the event to wait for
-+ * @timeout: timeout, as a ktime_t
-+ *
-+ * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
-+ * @condition evaluates to true or a signal is received.
-+ * The @condition is checked each time the waitqueue @wq is woken up.
-+ *
-+ * wake_up() has to be called after changing any variable that could
-+ * change the result of the wait condition.
-+ *
-+ * The function returns 0 if @condition became true, or -ETIME if the timeout
-+ * elapsed.
-+ */
-+#define wait_event_hrtimeout(wq, condition, timeout)			\
-+({									\
-+	int __ret = 0;							\
-+	if (!(condition))						\
-+		__ret = __wait_event_hrtimeout(wq, condition, timeout,	\
-+					       TASK_UNINTERRUPTIBLE);	\
-+	__ret;								\
-+})
++	mutex_lock(&info->ring_lock);
+ 
+ 	ring = kmap_atomic(info->ring_pages[0]);
+-	pr_debug("h%u t%u m%u\n", ring->head, ring->tail, ring->nr);
++	head = ring->head;
++	kunmap_atomic(ring);
 +
-+/**
-+ * wait_event_interruptible_hrtimeout - sleep until a condition gets true or a timeout elapses
-+ * @wq: the waitqueue to wait on
-+ * @condition: a C expression for the event to wait for
-+ * @timeout: timeout, as a ktime_t
-+ *
-+ * The process is put to sleep (TASK_INTERRUPTIBLE) until the
-+ * @condition evaluates to true or a signal is received.
-+ * The @condition is checked each time the waitqueue @wq is woken up.
-+ *
-+ * wake_up() has to be called after changing any variable that could
-+ * change the result of the wait condition.
-+ *
-+ * The function returns 0 if @condition became true, -ERESTARTSYS if it was
-+ * interrupted by a signal, or -ETIME if the timeout elapsed.
-+ */
-+#define wait_event_interruptible_hrtimeout(wq, condition, timeout)	\
-+({									\
-+	long __ret = 0;							\
-+	if (!(condition))						\
-+		__ret = __wait_event_hrtimeout(wq, condition, timeout,	\
-+					       TASK_INTERRUPTIBLE);	\
-+	__ret;								\
-+})
++	pr_debug("h%u t%u m%u\n", head, info->tail, info->nr);
+ 
+-	if (ring->head == ring->tail)
++	if (head == info->tail)
+ 		goto out;
+ 
+-	spin_lock(&info->ring_lock);
++	while (ret < nr) {
++		long avail = (head <= info->tail ? info->tail : info->nr) - head;
++		struct io_event *ev;
++		struct page *page;
 +
- #define __wait_event_interruptible_exclusive(wq, condition, ret)	\
- do {									\
- 	DEFINE_WAIT(__wait);						\
++		if (head == info->tail)
++			break;
++
++		avail = min(avail, nr - ret);
++		avail = min_t(long, avail, AIO_EVENTS_PER_PAGE -
++			      ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
++
++		pos = head + AIO_EVENTS_OFFSET;
++		page = info->ring_pages[pos / AIO_EVENTS_PER_PAGE];
++		pos %= AIO_EVENTS_PER_PAGE;
++
++		ev = kmap(page);
++		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * avail);
++		kunmap(page);
+ 
+-	head = ring->head % info->nr;
+-	if (head != ring->tail) {
+-		struct io_event *evp = aio_ring_event(info, head);
+-		*ent = *evp;
+-		head = (head + 1) % info->nr;
+-		smp_mb(); /* finish reading the event before updatng the head */
+-		ring->head = head;
+-		ret = 1;
+-		put_aio_ring_event(evp);
++		if (unlikely(copy_ret)) {
++			ret = -EFAULT;
++			goto out;
++		}
++
++		ret += avail;
++		head += avail;
++		head %= info->nr;
+ 	}
+-	spin_unlock(&info->ring_lock);
+ 
+-out:
++	ring = kmap_atomic(info->ring_pages[0]);
++	ring->head = head;
+ 	kunmap_atomic(ring);
+-	pr_debug("%d  h%u t%u\n", ret, ring->head, ring->tail);
++
++	pr_debug("%li  h%u t%u\n", ret, head, info->tail);
++out:
++	mutex_unlock(&info->ring_lock);
++
+ 	return ret;
+ }
+ 
+-struct aio_timeout {
+-	struct timer_list	timer;
+-	int			timed_out;
+-	struct task_struct	*p;
+-};
+-
+-static void timeout_func(unsigned long data)
++static bool aio_read_events(struct kioctx *ctx, long min_nr, long nr,
++			    struct io_event __user *event, long *i)
+ {
+-	struct aio_timeout *to = (struct aio_timeout *)data;
++	long ret = aio_read_events_ring(ctx, event + *i, nr - *i);
+ 
+-	to->timed_out = 1;
+-	wake_up_process(to->p);
+-}
++	if (ret > 0)
++		*i += ret;
+ 
+-static inline void init_timeout(struct aio_timeout *to)
+-{
+-	setup_timer_on_stack(&to->timer, timeout_func, (unsigned long) to);
+-	to->timed_out = 0;
+-	to->p = current;
+-}
++	if (unlikely(atomic_read(&ctx->dead)))
++		ret = -EINVAL;
+ 
+-static inline void set_timeout(long start_jiffies, struct aio_timeout *to,
+-			       const struct timespec *ts)
+-{
+-	to->timer.expires = start_jiffies + timespec_to_jiffies(ts);
+-	if (time_after(to->timer.expires, jiffies))
+-		add_timer(&to->timer);
+-	else
+-		to->timed_out = 1;
+-}
++	if (!*i)
++		*i = ret;
+ 
+-static inline void clear_timeout(struct aio_timeout *to)
+-{
+-	del_singleshot_timer_sync(&to->timer);
++	return ret < 0 || *i >= min_nr;
+ }
+ 
+-static int read_events(struct kioctx *ctx,
+-			long min_nr, long nr,
++static long read_events(struct kioctx *ctx, long min_nr, long nr,
+ 			struct io_event __user *event,
+ 			struct timespec __user *timeout)
+ {
+-	long			start_jiffies = jiffies;
+-	struct task_struct	*tsk = current;
+-	DECLARE_WAITQUEUE(wait, tsk);
+-	int			ret;
+-	int			i = 0;
+-	struct io_event		ent;
+-	struct aio_timeout	to;
+-
+-	/* needed to zero any padding within an entry (there shouldn't be 
+-	 * any, but C is fun!
+-	 */
+-	memset(&ent, 0, sizeof(ent));
+-	ret = 0;
+-	while (likely(i < nr)) {
+-		ret = aio_read_evt(ctx, &ent);
+-		if (unlikely(ret <= 0))
+-			break;
+-
+-		pr_debug("%Lx %Lx %Lx %Lx\n",
+-			 ent.data, ent.obj, ent.res, ent.res2);
++	ktime_t until = { .tv64 = KTIME_MAX };
++	long ret = 0;
+ 
+-		/* Could we split the check in two? */
+-		ret = -EFAULT;
+-		if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
+-			pr_debug("lost an event due to EFAULT.\n");
+-			break;
+-		}
+-		ret = 0;
+-
+-		/* Good, event copied to userland, update counts. */
+-		event ++;
+-		i ++;
+-	}
+-
+-	if (min_nr <= i)
+-		return i;
+-	if (ret)
+-		return ret;
+-
+-	/* End fast path */
+-
+-	init_timeout(&to);
+ 	if (timeout) {
+ 		struct timespec	ts;
+-		ret = -EFAULT;
++
+ 		if (unlikely(copy_from_user(&ts, timeout, sizeof(ts))))
+-			goto out;
++			return -EFAULT;
+ 
+-		set_timeout(start_jiffies, &to, &ts);
++		until = timespec_to_ktime(ts);
+ 	}
+ 
+-	while (likely(i < nr)) {
+-		add_wait_queue_exclusive(&ctx->wait, &wait);
+-		do {
+-			set_task_state(tsk, TASK_INTERRUPTIBLE);
+-			ret = aio_read_evt(ctx, &ent);
+-			if (ret)
+-				break;
+-			if (min_nr <= i)
+-				break;
+-			if (unlikely(atomic_read(&ctx->dead))) {
+-				ret = -EINVAL;
+-				break;
+-			}
+-			if (to.timed_out)	/* Only check after read evt */
+-				break;
+-			/* Try to only show up in io wait if there are ops
+-			 *  in flight */
+-			if (atomic_read(&ctx->reqs_active))
+-				io_schedule();
+-			else
+-				schedule();
+-			if (signal_pending(tsk)) {
+-				ret = -EINTR;
+-				break;
+-			}
+-			/*ret = aio_read_evt(ctx, &ent);*/
+-		} while (1) ;
+-
+-		set_task_state(tsk, TASK_RUNNING);
+-		remove_wait_queue(&ctx->wait, &wait);
+-
+-		if (unlikely(ret <= 0))
+-			break;
+-
+-		ret = -EFAULT;
+-		if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
+-			pr_debug("lost an event due to EFAULT.\n");
+-			break;
+-		}
++	/*
++	 * Note that aio_read_events() is being called as the conditional - i.e.
++	 * we're calling it after prepare_to_wait() has set task state to
++	 * TASK_INTERRUPTIBLE.
++	 *
++	 * But aio_read_events() can block, and if it blocks it's going to flip
++	 * the task state back to TASK_RUNNING.
++	 *
++	 * This should be ok, provided it doesn't flip the state back to
++	 * TASK_RUNNING and return 0 too much - that causes us to spin. That
++	 * will only happen if the mutex_lock() call blocks, and we then find
++	 * the ringbuffer empty. So in practice we should be ok, but it's
++	 * something to be aware of when touching this code.
++	 */
++	wait_event_interruptible_hrtimeout(ctx->wait,
++			aio_read_events(ctx, min_nr, nr, event, &ret), until);
+ 
+-		/* Good, event copied to userland, update counts. */
+-		event ++;
+-		i ++;
+-	}
++	if (!ret && signal_pending(current))
++		ret = -EINTR;
+ 
+-	if (timeout)
+-		clear_timeout(&to);
+-out:
+-	destroy_timer_on_stack(&to.timer);
+-	return i ? i : ret;
++	return ret;
+ }
+ 
+ /* sys_io_setup:
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
