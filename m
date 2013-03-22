@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rpmsg-fix-error-return-code-in-rpmsg_probe.patch added to -mm tree
-Date: Fri, 22 Mar 2013 12:40:18 -0700
-Message-ID: <20130322194018.742AB5A4CCA@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipc-remove-bogus-lock-comment-for-ipc_checkid.patch added to -mm tree
+Date: Fri, 22 Mar 2013 14:04:29 -0700
+Message-ID: <20130322210429.EFC6E31C398@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:59517 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755110Ab3CVTkT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 15:40:19 -0400
-Received: by mail-gg0-f201.google.com with SMTP id l2so411746ggn.2
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 12:40:19 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:38219 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423101Ab3CVVEb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:04:31 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m12so423027yen.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:04:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yongjun_wei@trendmicro.com.cn, ohad@wizery.com, rusty@rustcorp.com.au, sboyd@codeaurora.org, tj@kernel.org
+Cc: davidlohr.bueso@hp.com, benisty.e@gmail.com, chegu_vinod@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com
 
 
 The patch titled
-     Subject: drivers/rpmsg/virtio_rpmsg_bus.c: fix error return code in rpmsg_probe()
+     Subject: ipc: remove bogus lock comment for ipc_checkid
 has been added to the -mm tree.  Its filename is
-     rpmsg-fix-error-return-code-in-rpmsg_probe.patch
+     ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: drivers/rpmsg/virtio_rpmsg_bus.c: fix error return code in rpmsg_probe()
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: ipc: remove bogus lock comment for ipc_checkid
 
-Return a negative error code from the error handling case instead of 0, as
-returned elsewhere in this function.
+This series makes the sysv semaphore code more scalable, by reducing the
+time the semaphore lock is held, and making the locking more scalable for
+semaphore arrays with multiple semaphores.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+The first four patches were written by Davidlohr Buesso, and reduce the
+hold time of the semaphore lock.
+
+The last three patches change the sysv semaphore code locking to be more
+fine grained, providing a performance boost when multiple semaphores in a
+semaphore array are being manipulated simultaneously.
+
+On a 24 CPU system, performance numbers with the semop-multi
+test with N threads and N semaphores, look like this:
+
+	vanilla		Davidlohr's	Davidlohr's +	Davidlohr's +
+	threads			patches		rwlock patches	v3 patches
+	10	610652		726325		1783589		2142206
+	20	341570		365699		1520453		1977878
+	30	288102		307037		1498167		2037995
+	40	290714		305955		1612665		2256484
+	50	288620		312890		1733453		2650292
+	60	289987		306043		1649360		2388008
+	70	291298		306347		1723167		2717486
+	80	290948		305662		1729545		2763582
+	90	290996		306680		1736021		2757524
+	100	292243		306700		1773700		3059159
+
+
+
+This patch:
+
+There is no reason to be holding the ipc lock while reading ipcp->seq,
+hence remove misleading comment.
+
+Also simplify the return value for the function.
+
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Chegu Vinod <chegu_vinod@hp.com>
+Cc: Emmanuel Benisty <benisty.e@gmail.com>
+Cc: Jason Low <jason.low2@hp.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Peter Hurley <peter@hurleysoftware.com>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rpmsg/virtio_rpmsg_bus.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ ipc/util.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-fix-error-return-code-in-rpmsg_probe drivers/rpmsg/virtio_rpmsg_bus.c
---- a/drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-fix-error-return-code-in-rpmsg_probe
-+++ a/drivers/rpmsg/virtio_rpmsg_bus.c
-@@ -951,8 +951,10 @@ static int rpmsg_probe(struct virtio_dev
- 	bufs_va = dma_alloc_coherent(vdev->dev.parent->parent,
- 				RPMSG_TOTAL_BUF_SPACE,
- 				&vrp->bufs_dma, GFP_KERNEL);
--	if (!bufs_va)
-+	if (!bufs_va) {
-+		err = -ENOMEM;
- 		goto vqs_del;
-+	}
+diff -puN ipc/util.h~ipc-remove-bogus-lock-comment-for-ipc_checkid ipc/util.h
+--- a/ipc/util.h~ipc-remove-bogus-lock-comment-for-ipc_checkid
++++ a/ipc/util.h
+@@ -150,14 +150,9 @@ static inline int ipc_buildid(int id, in
+ 	return SEQ_MULTIPLIER * seq + id;
+ }
  
- 	dev_dbg(&vdev->dev, "buffers: va %p, dma 0x%llx\n", bufs_va,
- 					(unsigned long long)vrp->bufs_dma);
+-/*
+- * Must be called with ipcp locked
+- */
+ static inline int ipc_checkid(struct kern_ipc_perm *ipcp, int uid)
+ {
+-	if (uid / SEQ_MULTIPLIER != ipcp->seq)
+-		return 1;
+-	return 0;
++	return uid / SEQ_MULTIPLIER != ipcp->seq;
+ }
+ 
+ static inline void ipc_lock_by_ptr(struct kern_ipc_perm *perm)
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
-origin.patch
-linux-next.patch
-cciss-fix-invalid-use-of-sizeof-in-cciss_find_cfgtables.patch
-rpmsg-fix-error-return-code-in-rpmsg_probe.patch
+lib-int_sqrtc-optimize-square-root-algorithm.patch
+ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
+ipc-introduce-obtaining-a-lockless-ipc-object.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipc-introduce-lockless-pre_down-ipcctl.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
+ipcsem-open-code-and-rename-sem_lock.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipcsem-have-only-one-list-in-struct-sem_queue.patch
+ipcsem-fine-grained-locking-for-semtimedop.patch
 
