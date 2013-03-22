@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch added to -mm tree
-Date: Fri, 22 Mar 2013 12:22:04 -0700
-Message-ID: <20130322192204.C287C5A462B@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions.patch added to -mm tree
+Date: Fri, 22 Mar 2013 12:22:06 -0700
+Message-ID: <20130322192206.B99F55A464B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:37061 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755048Ab3CVTWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 15:22:05 -0400
-Received: by mail-qa0-f74.google.com with SMTP id k4so193644qaq.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 12:22:05 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:40736 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755048Ab3CVTWI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 15:22:08 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fj18so410458vbb.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 12:22:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1374.c: add CONFIG_PM_SLEEP to suspend/resume functions
+     Subject: drivers/rtc/rtc-88pm80x.c: add CONFIG_PM_SLEEP to suspend/resume functions
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch
+     drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-ds1374.c: add CONFIG_PM_SLEEP to suspend/resume functions
+Subject: drivers/rtc/rtc-88pm80x.c: add CONFIG_PM_SLEEP to suspend/resume functions
 
 Add CONFIG_PM_SLEEP to suspend/resume functions to fix the following build
 warning when CONFIG_PM_SLEEP is not selected.  This is because sleep PM
 callbacks defined by SIMPLE_DEV_PM_OPS are only used when the
 CONFIG_PM_SLEEP is enabled.
 
-drivers/rtc/rtc-ds1374.c:413:12: warning: 'ds1374_suspend' defined but not used [-Wunused-function]
-drivers/rtc/rtc-ds1374.c:422:12: warning: 'ds1374_resume' defined but not used [-Wunused-function]
+drivers/rtc/rtc-88pm80x.c:238:12: warning: 'pm80x_rtc_suspend' defined but not used [-Wunused-function]
+drivers/rtc/rtc-88pm80x.c:243:12: warning: 'pm80x_rtc_resume' defined but not used [-Wunused-function]
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-88pm80x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -409,7 +409,7 @@ static int ds1374_remove(struct i2c_clie
- 	return 0;
- }
+diff -puN drivers/rtc/rtc-88pm80x.c~drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions drivers/rtc/rtc-88pm80x.c
+--- a/drivers/rtc/rtc-88pm80x.c~drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions
++++ a/drivers/rtc/rtc-88pm80x.c
+@@ -234,7 +234,7 @@ static const struct rtc_class_ops pm80x_
+ 	.alarm_irq_enable = pm80x_rtc_alarm_irq_enable,
+ };
  
 -#ifdef CONFIG_PM
 +#ifdef CONFIG_PM_SLEEP
- static int ds1374_suspend(struct device *dev)
+ static int pm80x_rtc_suspend(struct device *dev)
  {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -427,19 +427,15 @@ static int ds1374_resume(struct device *
- 		disable_irq_wake(client->irq);
- 	return 0;
- }
-+#endif
- 
- static SIMPLE_DEV_PM_OPS(ds1374_pm, ds1374_suspend, ds1374_resume);
- 
--#define DS1374_PM (&ds1374_pm)
--#else
--#define DS1374_PM NULL
--#endif
--
- static struct i2c_driver ds1374_driver = {
- 	.driver = {
- 		.name = "rtc-ds1374",
- 		.owner = THIS_MODULE,
--		.pm = DS1374_PM,
-+		.pm = &ds1374_pm,
- 	},
- 	.probe = ds1374_probe,
- 	.remove = ds1374_remove,
+ 	return pm80x_dev_suspend(dev);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
