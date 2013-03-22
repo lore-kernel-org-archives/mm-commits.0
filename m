@@ -1,58 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch removed from -mm tree
-Date: Fri, 22 Mar 2013 14:59:10 -0700
-Message-ID: <20130322215910.8F7565A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] dma-debug-fix-locking-bug-in-check_unmap-fix.patch removed from -mm tree
+Date: Fri, 22 Mar 2013 14:59:33 -0700
+Message-ID: <20130322215934.3E2BB5A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:33396 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423324Ab3CVV7L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:59:11 -0400
-Received: by mail-qa0-f73.google.com with SMTP id hg5so87570qab.2
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:59:11 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:37980 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423324Ab3CVV7f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:59:35 -0400
+Received: by mail-ye0-f202.google.com with SMTP id q11so294061yen.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:59:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, liwanp@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alexander.h.duyck@intel.com, joro@8bytes.org, konrad.wilk@oracle.com, kubakici@wp.pl, shuah.khan@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
+     Subject: dma-debug-fix-locking-bug-in-check_unmap-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+     dma-debug-fix-locking-bug-in-check_unmap-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting.patch
+This patch was dropped because it was folded into dma-debug-fix-locking-bug-in-check_unmap.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
+Subject: dma-debug-fix-locking-bug-in-check_unmap-fix
 
-coding-style tweak
+restore 80-col trickery to be consistent with the rest of the file
 
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Jakub Kicinski <kubakici@wp.pl>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Shuah Khan <shuah.khan@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/dma-debug.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
-+++ a/mm/hugetlb.c
-@@ -2126,6 +2126,7 @@ unsigned long hugetlb_total_pages(void)
- {
- 	struct hstate *h;
- 	unsigned long nr_total_pages = 0;
-+
- 	for_each_hstate(h)
- 		nr_total_pages += h->nr_huge_pages * pages_per_huge_page(h);
- 	return nr_total_pages;
+diff -puN lib/dma-debug.c~dma-debug-fix-locking-bug-in-check_unmap-fix lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-fix-locking-bug-in-check_unmap-fix
++++ a/lib/dma-debug.c
+@@ -867,10 +867,13 @@ static void check_unmap(struct dma_debug
+ 
+ 		if (dma_mapping_error(ref->dev, ref->dev_addr)) {
+ 			err_printk(ref->dev, NULL,
+-				   "DMA-API: device driver tries to free an invalid DMA memory address\n");
++				   "DMA-API: device driver tries to free an "
++				   "invalid DMA memory address\n");
+ 		} else {
+ 			err_printk(ref->dev, NULL,
+-				   "DMA-API: device driver tries to free DMA memory it has not allocated [device address=0x%016llx] [size=%llu bytes]\n",
++				   "DMA-API: device driver tries to free DMA "
++				   "memory it has not allocated [device "
++				   "address=0x%016llx] [size=%llu bytes]\n",
+ 				   ref->dev_addr, ref->size);
+ 		}
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 printk-provide-a-wake_up_klogd-off-case.patch
 mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting.patch
-dma-debug-fix-locking-bug-in-check_unmap-fix.patch
+dma-debug-fix-locking-bug-in-check_unmap.patch
 linux-next.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
