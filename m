@@ -1,130 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-sched-schedh-fix-warning.patch removed from -mm tree
-Date: Fri, 22 Mar 2013 11:56:36 -0700
-Message-ID: <20130322185636.71C3031C382@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-ia64-fix-build-error-for-numa_clear_node-under-ia64.patch removed from -mm tree
+Date: Fri, 22 Mar 2013 11:56:33 -0700
+Message-ID: <20130322185633.8C4695A440C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:62679 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754781Ab3CVS4h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 14:56:37 -0400
-Received: by mail-qa0-f74.google.com with SMTP id k4so190225qaq.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 11:56:37 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53725 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754829Ab3CVS4l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 14:56:41 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so407121vcb.5
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 11:56:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: wangyijing@huawei.com, isimatu.yasuaki@jp.fujitsu.com, tangchen@cn.fujitsu.com, tony.luck@intel.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sched/sched.h: fix warning
+     Subject: mm/ia64: fix build error for numa_clear_node() under IA64
 has been removed from the -mm tree.  Its filename was
-     kernel-sched-schedh-fix-warning.patch
+     mm-ia64-fix-build-error-for-numa_clear_node-under-ia64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/sched/sched.h: fix warning
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: mm/ia64: fix build error for numa_clear_node() under IA64
 
-x86_64 allnoconfig:
+numa_clear_node() function is not implemented under IA64,
+it will be called in unmap_cpu_on_node() in mm/memory_hotplug.c.
+This cause build error under IA64, this patch add numa_clear_node()
+in IA64 to fix this problem.
 
-kernel/sched/sched.h:1043: warning: 'struct sched_domain' declared inside parameter list
-
-Move the declaration inside #ifdef CONFIG_CMP
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/sched.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/include/asm/numa.h |    5 ++---
+ arch/ia64/mm/numa.c          |    5 +++++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sched/sched.h~kernel-sched-schedh-fix-warning kernel/sched/sched.h
---- a/kernel/sched/sched.h~kernel-sched-schedh-fix-warning
-+++ a/kernel/sched/sched.h
-@@ -1028,6 +1028,7 @@ extern const struct sched_class idle_sch
+diff -puN arch/ia64/include/asm/numa.h~mm-ia64-fix-build-error-for-numa_clear_node-under-ia64 arch/ia64/include/asm/numa.h
+--- a/arch/ia64/include/asm/numa.h~mm-ia64-fix-build-error-for-numa_clear_node-under-ia64
++++ a/arch/ia64/include/asm/numa.h
+@@ -67,14 +67,13 @@ extern int paddr_to_nid(unsigned long pa
  
- extern void trigger_load_balance(struct rq *rq, int cpu);
- extern void idle_balance(int this_cpu, struct rq *this_rq);
-+extern void update_group_power(struct sched_domain *sd, int cpu);
+ extern void map_cpu_to_node(int cpu, int nid);
+ extern void unmap_cpu_from_node(int cpu, int nid);
+-
++extern void numa_clear_node(int cpu);
  
- #else	/* CONFIG_SMP */
+ #else /* !CONFIG_NUMA */
+ #define map_cpu_to_node(cpu, nid)	do{}while(0)
+ #define unmap_cpu_from_node(cpu, nid)	do{}while(0)
+-
+ #define paddr_to_nid(addr)	0
+-
++#define numa_clear_node(cpu)	do { } while (0)
+ #endif /* CONFIG_NUMA */
  
-@@ -1040,7 +1041,6 @@ static inline void idle_balance(int cpu,
- extern void sysrq_sched_debug_show(void);
- extern void sched_init_granularity(void);
- extern void update_max_interval(void);
--extern void update_group_power(struct sched_domain *sd, int cpu);
- extern int update_runtime(struct notifier_block *nfb, unsigned long action, void *hcpu);
- extern void init_sched_rt_class(void);
- extern void init_sched_fair_class(void);
+ #endif /* _ASM_IA64_NUMA_H */
+diff -puN arch/ia64/mm/numa.c~mm-ia64-fix-build-error-for-numa_clear_node-under-ia64 arch/ia64/mm/numa.c
+--- a/arch/ia64/mm/numa.c~mm-ia64-fix-build-error-for-numa_clear_node-under-ia64
++++ a/arch/ia64/mm/numa.c
+@@ -73,6 +73,11 @@ int __meminit __early_pfn_to_nid(unsigne
+ 	return -1;
+ }
+ 
++void numa_clear_node(int cpu)
++{
++	unmap_cpu_from_node(cpu, NUMA_NO_NODE);
++}
++
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+  *  SRAT information is stored in node_memblk[], then we can use SRAT
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangyijing@huawei.com are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-dma-debug-fix-locking-bug-in-check_unmap-fix.patch
-mips-define-kvm_user_mem_slots.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
