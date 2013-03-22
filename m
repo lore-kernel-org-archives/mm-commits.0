@@ -1,67 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] printk-provide-a-wake_up_klogd-off-case-fix.patch removed from -mm tree
-Date: Fri, 22 Mar 2013 14:58:47 -0700
-Message-ID: <20130322215847.BDAD25A402F@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch removed from -mm tree
+Date: Fri, 22 Mar 2013 14:59:10 -0700
+Message-ID: <20130322215910.8F7565A402F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:57663 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423048Ab3CVV6t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:58:49 -0400
-Received: by mail-yh0-f74.google.com with SMTP id i57so129141yha.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:58:48 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:33396 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423324Ab3CVV7L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:59:11 -0400
+Received: by mail-qa0-f73.google.com with SMTP id hg5so87570qab.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:59:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fweisbec@gmail.com, james.hogan@imgtec.com, mingo@kernel.org, peterz@infradead.org, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, liwanp@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk-provide-a-wake_up_klogd-off-case-fix
+     Subject: mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
 has been removed from the -mm tree.  Its filename was
-     printk-provide-a-wake_up_klogd-off-case-fix.patch
+     mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
 
-This patch was dropped because it was folded into printk-provide-a-wake_up_klogd-off-case.patch
+This patch was dropped because it was folded into mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk-provide-a-wake_up_klogd-off-case-fix
+Subject: mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
 
-include printk.h in bust_spinlocks.c.
+coding-style tweak
 
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bust_spinlocks.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/bust_spinlocks.c~printk-provide-a-wake_up_klogd-off-case-fix lib/bust_spinlocks.c
---- a/lib/bust_spinlocks.c~printk-provide-a-wake_up_klogd-off-case-fix
-+++ a/lib/bust_spinlocks.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <linux/kernel.h>
-+#include <linux/printk.h>
- #include <linux/spinlock.h>
- #include <linux/tty.h>
- #include <linux/wait.h>
-@@ -28,5 +29,3 @@ void __attribute__((weak)) bust_spinlock
- 			wake_up_klogd();
- 	}
- }
--
--
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix
++++ a/mm/hugetlb.c
+@@ -2126,6 +2126,7 @@ unsigned long hugetlb_total_pages(void)
+ {
+ 	struct hstate *h;
+ 	unsigned long nr_total_pages = 0;
++
+ 	for_each_hstate(h)
+ 		nr_total_pages += h->nr_huge_pages * pages_per_huge_page(h);
+ 	return nr_total_pages;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 printk-provide-a-wake_up_klogd-off-case.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting.patch
 dma-debug-fix-locking-bug-in-check_unmap-fix.patch
 linux-next.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
