@@ -1,139 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-fix.patch added to -mm tree
-Date: Fri, 22 Mar 2013 14:24:05 -0700
-Message-ID: <20130322212405.BDC625A42FD@corp2gmr1-2.hot.corp.google.com>
+Subject: [obsolete] kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch removed from -mm tree
+Date: Fri, 22 Mar 2013 14:54:54 -0700
+Message-ID: <20130322215454.70B4C31C15E__23824.4865010076$1363989337$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:48996 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423267Ab3CVVYH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:24:07 -0400
-Received: by mail-vb0-f73.google.com with SMTP id fj18so424602vbb.0
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:24:06 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:39664 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423344Ab3CVVyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:54:55 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so427043vea.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:54:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+To: jwboyer@redhat.com, eparis@redhat.com, jmorris@namei.org, lists@nerdbynature.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix
-has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-fix.patch
+     Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+has been removed from the -mm tree.  Its filename was
+     kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix
+From: Josh Boyer <jwboyer@redhat.com>
+Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
 
-Cc: Kent Overstreet <koverstreet@google.com>
+Originally, the addition of dmesg_restrict covered both the syslog
+method of accessing dmesg, as well as /dev/kmsg itself.  This was done
+indirectly by security_syslog calling cap_syslog before doing any LSM
+checks.
+
+However, commit 12b3052c3ee ("capabilities/syslog: open code cap_syslog
+logic to fix build failure") moved the code around and pushed the checks
+into the caller itself.  That seems to have inadvertently dropped the
+checks for dmesg_restrict on /dev/kmsg.  Most people haven't noticed
+because util-linux dmesg(1) defaults to using the syslog method for access
+in older versions.  With util-linux 2.22 and a kernel newer than 3.5,
+dmesg(1) defaults to reading directly from /dev/kmsg.
+
+Fix this by making an explicit check in the devkmsg_open function.
+
+This fixes https://bugzilla.redhat.com/show_bug.cgi?id=903192
+
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Reported-by: Christian Kujau <lists@nerdbynature.de>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/blockconsole.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/printk.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/block/blockconsole.c~block-aio-batch-completion-for-bios-kiocbs-fix drivers/block/blockconsole.c
---- a/drivers/block/blockconsole.c~block-aio-batch-completion-for-bios-kiocbs-fix
-+++ a/drivers/block/blockconsole.c
-@@ -164,7 +164,8 @@ static void bcon_advance_console_bytes(s
- 	} while (cmpxchg64(&bc->console_bytes, old, new) != old);
- }
+diff -puN kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg kernel/printk.c
+--- a/kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
++++ a/kernel/printk.c
+@@ -620,6 +620,9 @@ static int devkmsg_open(struct inode *in
+ 	struct devkmsg_user *user;
+ 	int err;
  
--static void request_complete(struct bio *bio, int err)
-+static void request_complete(struct bio *bio, int err,
-+			     struct batch_complete *batch)
- {
- 	complete((struct completion *)bio->bi_private);
- }
-@@ -289,7 +290,7 @@ static void bcon_unregister(struct work_
- }
- 
- #define BCON_MAX_ERRORS	10
--static void bcon_end_io(struct bio *bio, int err)
-+static void bcon_end_io(struct bio *bio, int err, struct batch_complete *batch)
- {
- 	struct bcon_bio *bcon_bio = container_of(bio, struct bcon_bio, bio);
- 	struct blockconsole *bc = bio->bi_private;
++	if (dmesg_restrict && !capable(CAP_SYSLOG))
++		return -EACCES;
++
+ 	/* write-only does not need any file context */
+ 	if ((file->f_flags & O_ACCMODE) == O_WRONLY)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jwboyer@redhat.com are
 
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-dma-debug-fix-locking-bug-in-check_unmap-fix.patch
-mips-define-kvm_user_mem_slots.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+origin.patch
+mkcapflagspl-convert-to-mkcapflagssh.patch
+headers_installpl-convert-to-headers_installsh.patch
+aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 
