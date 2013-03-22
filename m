@@ -1,141 +1,382 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 21 Mar 2013 16:00:53 -0700
-Message-ID: <20130321230053.E4DFC31C121@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Fri, 22 Mar 2013 11:54:58 -0700
+Message-ID: <20130322185458.7D7FD5A4FE2@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:63090 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618Ab3CUXAz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Mar 2013 19:00:55 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so312463vea.4
-        for <mm-commits@vger.kernel.org>; Thu, 21 Mar 2013 16:00:54 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:51404 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754781Ab3CVSy7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 14:54:59 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so61384ghb.3
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 11:54:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
+Subject: linux-next-git-rejects
 
-WARNING: line over 80 characters
-#155: FILE: block/blk-core.c:2527:
-+				   unsigned int nr_bytes, unsigned int bidi_bytes,
-
-WARNING: line over 80 characters
-#177: FILE: block/blk-core.c:2643:
-+void blk_end_request_all_batch(struct request *rq, int error, struct batch_complete *batch)
-
-WARNING: line over 80 characters
-#186: FILE: block/blk-core.c:2651:
-+	pending = __blk_end_bidi_request(rq, error, blk_rq_bytes(rq), bidi_bytes, batch);
-
-WARNING: line over 80 characters
-#633: FILE: fs/direct-io.c:233:
-+static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret, bool is_async,
-
-WARNING: line over 80 characters
-#652: FILE: fs/direct-io.c:278:
-+static void dio_bio_end_aio(struct bio *bio, int error, struct batch_complete *batch)
-
-total: 0 errors, 5 warnings, 740 lines checked
-
-./patches/block-aio-batch-completion-for-bios-kiocbs.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c |    9 ++++++---
- fs/direct-io.c   |    7 ++++---
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ kernel/trace/ftrace.c             |    5 --
+ kernel/trace/trace.c              |   50 ----------------------------
+ kernel/trace/trace.h              |    9 -----
+ kernel/trace/trace_irqsoff.c      |   25 --------------
+ kernel/trace/trace_sched_wakeup.c |   21 -----------
+ 5 files changed, 110 deletions(-)
 
-diff -puN block/blk-core.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes block/blk-core.c
---- a/block/blk-core.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
-+++ a/block/blk-core.c
-@@ -2524,7 +2524,8 @@ static bool blk_end_bidi_request(struct
-  *     %true  - still buffers pending for this request
-  **/
- bool __blk_end_bidi_request(struct request *rq, int error,
--				   unsigned int nr_bytes, unsigned int bidi_bytes,
-+				   unsigned int nr_bytes,
-+				   unsigned int bidi_bytes,
- 				   struct batch_complete *batch)
- {
- 	if (blk_update_bidi_request(rq, error, nr_bytes, bidi_bytes, batch))
-@@ -2640,7 +2641,8 @@ EXPORT_SYMBOL(__blk_end_request);
-  * Description:
-  *     Completely finish @rq.  Must be called with queue lock held.
-  */
--void blk_end_request_all_batch(struct request *rq, int error, struct batch_complete *batch)
-+void blk_end_request_all_batch(struct request *rq, int error,
-+			       struct batch_complete *batch)
- {
- 	bool pending;
- 	unsigned int bidi_bytes = 0;
-@@ -2648,7 +2650,8 @@ void blk_end_request_all_batch(struct re
- 	if (unlikely(blk_bidi_rq(rq)))
- 		bidi_bytes = blk_rq_bytes(rq->next_rq);
+diff -puN kernel/trace/ftrace.c~linux-next-git-rejects kernel/trace/ftrace.c
+--- a/kernel/trace/ftrace.c~linux-next-git-rejects
++++ a/kernel/trace/ftrace.c
+@@ -3137,10 +3137,6 @@ __unregister_ftrace_function_probe(char
+ 					continue;
+ 			}
  
--	pending = __blk_end_bidi_request(rq, error, blk_rq_bytes(rq), bidi_bytes, batch);
-+	pending = __blk_end_bidi_request(rq, error, blk_rq_bytes(rq),
-+					 bidi_bytes, batch);
- 	BUG_ON(pending);
- }
- EXPORT_SYMBOL(blk_end_request_all_batch);
-diff -puN fs/direct-io.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes fs/direct-io.c
---- a/fs/direct-io.c~block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes
-+++ a/fs/direct-io.c
-@@ -230,8 +230,8 @@ static inline struct page *dio_get_page(
-  * filesystems can use it to hold additional state between get_block calls and
-  * dio_complete.
-  */
--static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret, bool is_async,
--			    struct batch_complete *batch)
-+static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret,
-+			    bool is_async, struct batch_complete *batch)
- {
- 	ssize_t transferred = 0;
+-<<<<<<< HEAD
+-			hlist_del_rcu(&entry->node);
+-			call_rcu_sched(&entry->rcu, ftrace_free_entry_rcu);
+-=======
+ 			rec_entry = ftrace_lookup_ip(hash, entry->ip);
+ 			/* It is possible more than one entry had this ip */
+ 			if (rec_entry)
+@@ -3148,7 +3144,6 @@ __unregister_ftrace_function_probe(char
  
-@@ -275,7 +275,8 @@ static int dio_bio_complete(struct dio *
+ 			hlist_del_rcu(&entry->node);
+ 			list_add(&entry->free_list, &free_list);
+->>>>>>> linux-next/akpm-base
+ 		}
+ 	}
+ 	__disable_ftrace_function_probe();
+diff -puN kernel/trace/trace.h~linux-next-git-rejects kernel/trace/trace.h
+--- a/kernel/trace/trace.h~linux-next-git-rejects
++++ a/kernel/trace/trace.h
+@@ -371,12 +371,7 @@ struct tracer {
+ 	bool			enabled;
+ #ifdef CONFIG_TRACER_MAX_TRACE
+ 	bool			use_max_tr;
+-<<<<<<< HEAD
+-	bool			allocated_snapshot;
+-	bool			enabled;
+-=======
+ #endif
+->>>>>>> linux-next/akpm-base
+ };
+ 
+ 
+@@ -1042,9 +1037,6 @@ extern const char *__stop___trace_bprint
+ void trace_printk_init_buffers(void);
+ void trace_printk_start_comm(void);
+ int trace_keep_overwrite(struct tracer *tracer, u32 mask, int set);
+-<<<<<<< HEAD
+-int set_tracer_flag(unsigned int mask, int enabled);
+-=======
+ int set_tracer_flag(struct trace_array *tr, unsigned int mask, int enabled);
+ 
  /*
-  * Asynchronous IO callback. 
+@@ -1057,7 +1049,6 @@ int set_tracer_flag(struct trace_array *
+  * a purpose.
   */
--static void dio_bio_end_aio(struct bio *bio, int error, struct batch_complete *batch)
-+static void dio_bio_end_aio(struct bio *bio, int error,
-+			    struct batch_complete *batch)
+ #define internal_trace_puts(str) __trace_puts(_THIS_IP_, str, strlen(str))
+->>>>>>> linux-next/akpm-base
+ 
+ #undef FTRACE_ENTRY
+ #define FTRACE_ENTRY(call, struct_name, id, tstruct, print, filter)	\
+diff -puN kernel/trace/trace_irqsoff.c~linux-next-git-rejects kernel/trace/trace_irqsoff.c
+--- a/kernel/trace/trace_irqsoff.c~linux-next-git-rejects
++++ a/kernel/trace/trace_irqsoff.c
+@@ -33,10 +33,7 @@ enum {
+ static int trace_type __read_mostly;
+ 
+ static int save_flags;
+-<<<<<<< HEAD
+-=======
+ static bool function_enabled;
+->>>>>>> linux-next/akpm-base
+ 
+ static void stop_irqsoff_tracer(struct trace_array *tr, int graph);
+ static int start_irqsoff_tracer(struct trace_array *tr, int graph);
+@@ -607,13 +604,8 @@ static void __irqsoff_tracer_init(struct
+ 	save_flags = trace_flags;
+ 
+ 	/* non overwrite screws up the latency tracers */
+-<<<<<<< HEAD
+-	set_tracer_flag(TRACE_ITER_OVERWRITE, 1);
+-	set_tracer_flag(TRACE_ITER_LATENCY_FMT, 1);
+-=======
+ 	set_tracer_flag(tr, TRACE_ITER_OVERWRITE, 1);
+ 	set_tracer_flag(tr, TRACE_ITER_LATENCY_FMT, 1);
+->>>>>>> linux-next/akpm-base
+ 
+ 	tracing_max_latency = 0;
+ 	irqsoff_trace = tr;
+@@ -632,13 +624,8 @@ static void irqsoff_tracer_reset(struct
+ 
+ 	stop_irqsoff_tracer(tr, is_graph());
+ 
+-<<<<<<< HEAD
+-	set_tracer_flag(TRACE_ITER_LATENCY_FMT, lat_flag);
+-	set_tracer_flag(TRACE_ITER_OVERWRITE, overwrite_flag);
+-=======
+ 	set_tracer_flag(tr, TRACE_ITER_LATENCY_FMT, lat_flag);
+ 	set_tracer_flag(tr, TRACE_ITER_OVERWRITE, overwrite_flag);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static void irqsoff_tracer_start(struct trace_array *tr)
+@@ -671,11 +658,7 @@ static struct tracer irqsoff_tracer __re
+ 	.print_line     = irqsoff_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= irqsoff_set_flag,
+-<<<<<<< HEAD
+-	.flag_changed	= trace_keep_overwrite,
+-=======
+ 	.flag_changed	= irqsoff_flag_changed,
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_irqsoff,
+ #endif
+@@ -709,11 +692,7 @@ static struct tracer preemptoff_tracer _
+ 	.print_line     = irqsoff_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= irqsoff_set_flag,
+-<<<<<<< HEAD
+-	.flag_changed	= trace_keep_overwrite,
+-=======
+ 	.flag_changed	= irqsoff_flag_changed,
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_preemptoff,
+ #endif
+@@ -749,11 +728,7 @@ static struct tracer preemptirqsoff_trac
+ 	.print_line     = irqsoff_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= irqsoff_set_flag,
+-<<<<<<< HEAD
+-	.flag_changed	= trace_keep_overwrite,
+-=======
+ 	.flag_changed	= irqsoff_flag_changed,
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_preemptirqsoff,
+ #endif
+diff -puN kernel/trace/trace_sched_wakeup.c~linux-next-git-rejects kernel/trace/trace_sched_wakeup.c
+--- a/kernel/trace/trace_sched_wakeup.c~linux-next-git-rejects
++++ a/kernel/trace/trace_sched_wakeup.c
+@@ -37,10 +37,7 @@ static int wakeup_graph_entry(struct ftr
+ static void wakeup_graph_return(struct ftrace_graph_ret *trace);
+ 
+ static int save_flags;
+-<<<<<<< HEAD
+-=======
+ static bool function_enabled;
+->>>>>>> linux-next/akpm-base
+ 
+ #define TRACE_DISPLAY_GRAPH     1
+ 
+@@ -589,13 +586,8 @@ static int __wakeup_tracer_init(struct t
+ 	save_flags = trace_flags;
+ 
+ 	/* non overwrite screws up the latency tracers */
+-<<<<<<< HEAD
+-	set_tracer_flag(TRACE_ITER_OVERWRITE, 1);
+-	set_tracer_flag(TRACE_ITER_LATENCY_FMT, 1);
+-=======
+ 	set_tracer_flag(tr, TRACE_ITER_OVERWRITE, 1);
+ 	set_tracer_flag(tr, TRACE_ITER_LATENCY_FMT, 1);
+->>>>>>> linux-next/akpm-base
+ 
+ 	tracing_max_latency = 0;
+ 	wakeup_trace = tr;
+@@ -624,13 +616,8 @@ static void wakeup_tracer_reset(struct t
+ 	/* make sure we put back any tasks we are tracing */
+ 	wakeup_reset(tr);
+ 
+-<<<<<<< HEAD
+-	set_tracer_flag(TRACE_ITER_LATENCY_FMT, lat_flag);
+-	set_tracer_flag(TRACE_ITER_OVERWRITE, overwrite_flag);
+-=======
+ 	set_tracer_flag(tr, TRACE_ITER_LATENCY_FMT, lat_flag);
+ 	set_tracer_flag(tr, TRACE_ITER_OVERWRITE, overwrite_flag);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static void wakeup_tracer_start(struct trace_array *tr)
+@@ -656,11 +643,7 @@ static struct tracer wakeup_tracer __rea
+ 	.print_line	= wakeup_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= wakeup_set_flag,
+-<<<<<<< HEAD
+-	.flag_changed	= trace_keep_overwrite,
+-=======
+ 	.flag_changed	= wakeup_flag_changed,
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_wakeup,
+ #endif
+@@ -682,11 +665,7 @@ static struct tracer wakeup_rt_tracer __
+ 	.print_line	= wakeup_print_line,
+ 	.flags		= &tracer_flags,
+ 	.set_flag	= wakeup_set_flag,
+-<<<<<<< HEAD
+-	.flag_changed	= trace_keep_overwrite,
+-=======
+ 	.flag_changed	= wakeup_flag_changed,
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_FTRACE_SELFTEST
+ 	.selftest    = trace_selftest_startup_wakeup,
+ #endif
+diff -puN kernel/trace/trace.c~linux-next-git-rejects kernel/trace/trace.c
+--- a/kernel/trace/trace.c~linux-next-git-rejects
++++ a/kernel/trace/trace.c
+@@ -879,15 +879,9 @@ update_max_tr(struct trace_array *tr, st
+ 
+ 	arch_spin_lock(&ftrace_max_lock);
+ 
+-<<<<<<< HEAD
+-	buf = tr->buffer;
+-	tr->buffer = max_tr.buffer;
+-	max_tr.buffer = buf;
+-=======
+ 	buf = tr->trace_buffer.buffer;
+ 	tr->trace_buffer.buffer = tr->max_buffer.buffer;
+ 	tr->max_buffer.buffer = buf;
+->>>>>>> linux-next/akpm-base
+ 
+ 	__update_max_tr(tr, tsk, cpu);
+ 	arch_spin_unlock(&ftrace_max_lock);
+@@ -3198,24 +3192,15 @@ int trace_keep_overwrite(struct tracer *
+ 	return 0;
+ }
+ 
+-<<<<<<< HEAD
+-int set_tracer_flag(unsigned int mask, int enabled)
+-=======
+ int set_tracer_flag(struct trace_array *tr, unsigned int mask, int enabled)
+->>>>>>> linux-next/akpm-base
  {
- 	struct dio *dio = bio->bi_private;
- 	unsigned long remaining;
+ 	/* do nothing if flag is already set */
+ 	if (!!(trace_flags & mask) == !!enabled)
+ 		return 0;
+ 
+ 	/* Give the tracer a chance to approve the change */
+-<<<<<<< HEAD
+-	if (current_trace->flag_changed)
+-		if (current_trace->flag_changed(current_trace, mask, !!enabled))
+-=======
+ 	if (tr->current_trace->flag_changed)
+ 		if (tr->current_trace->flag_changed(tr->current_trace, mask, !!enabled))
+->>>>>>> linux-next/akpm-base
+ 			return -EINVAL;
+ 
+ 	if (enabled)
+@@ -3227,15 +3212,9 @@ int set_tracer_flag(struct trace_array *
+ 		trace_event_enable_cmd_record(enabled);
+ 
+ 	if (mask == TRACE_ITER_OVERWRITE) {
+-<<<<<<< HEAD
+-		ring_buffer_change_overwrite(global_trace.buffer, enabled);
+-#ifdef CONFIG_TRACER_MAX_TRACE
+-		ring_buffer_change_overwrite(max_tr.buffer, enabled);
+-=======
+ 		ring_buffer_change_overwrite(tr->trace_buffer.buffer, enabled);
+ #ifdef CONFIG_TRACER_MAX_TRACE
+ 		ring_buffer_change_overwrite(tr->max_buffer.buffer, enabled);
+->>>>>>> linux-next/akpm-base
+ #endif
+ 	}
+ 
+@@ -3263,22 +3242,14 @@ static int trace_set_options(struct trac
+ 
+ 	for (i = 0; trace_options[i]; i++) {
+ 		if (strcmp(cmp, trace_options[i]) == 0) {
+-<<<<<<< HEAD
+-			ret = set_tracer_flag(1 << i, !neg);
+-=======
+ 			ret = set_tracer_flag(tr, 1 << i, !neg);
+->>>>>>> linux-next/akpm-base
+ 			break;
+ 		}
+ 	}
+ 
+ 	/* If no option could be set, test the specific tracer options */
+ 	if (!trace_options[i])
+-<<<<<<< HEAD
+-		ret = set_tracer_option(current_trace, cmp, neg);
+-=======
+ 		ret = set_tracer_option(tr->current_trace, cmp, neg);
+->>>>>>> linux-next/akpm-base
+ 
+ 	mutex_unlock(&trace_types_lock);
+ 
+@@ -3302,11 +3273,7 @@ tracing_trace_options_write(struct file
+ 
+ 	buf[cnt] = 0;
+ 
+-<<<<<<< HEAD
+-	ret = trace_set_options(buf);
+-=======
+ 	ret = trace_set_options(tr, buf);
+->>>>>>> linux-next/akpm-base
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -3687,14 +3654,6 @@ static int tracing_set_tracer(const char
+ 		goto out;
+ 
+ 	trace_branch_disable();
+-<<<<<<< HEAD
+-
+-	current_trace->enabled = false;
+-
+-	if (current_trace->reset)
+-		current_trace->reset(tr);
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	tr->current_trace->enabled = false;
+ 
+@@ -3737,13 +3696,8 @@ static int tracing_set_tracer(const char
+ 			goto out;
+ 	}
+ 
+-<<<<<<< HEAD
+-	current_trace = t;
+-	current_trace->enabled = true;
+-=======
+ 	tr->current_trace = t;
+ 	tr->current_trace->enabled = true;
+->>>>>>> linux-next/akpm-base
+ 	trace_branch_enable(tr);
+  out:
+ 	mutex_unlock(&trace_types_lock);
+@@ -5491,11 +5445,7 @@ trace_options_core_write(struct file *fi
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&trace_types_lock);
+-<<<<<<< HEAD
+-	ret = set_tracer_flag(1 << index, val);
+-=======
+ 	ret = set_tracer_flag(tr, 1 << index, val);
+->>>>>>> linux-next/akpm-base
+ 	mutex_unlock(&trace_types_lock);
+ 
+ 	if (ret < 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 printk-provide-a-wake_up_klogd-off-case-fix.patch
