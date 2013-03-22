@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipcsem-open-code-and-rename-sem_lock-fix.patch added to -mm tree
-Date: Fri, 22 Mar 2013 14:04:47 -0700
-Message-ID: <20130322210447.DFDD95A43D2@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipc-introduce-lockless-pre_down-ipcctl.patch added to -mm tree
+Date: Fri, 22 Mar 2013 14:04:38 -0700
+Message-ID: <20130322210438.E643E5A43B8@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:58712 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423111Ab3CVVEt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:04:49 -0400
-Received: by mail-qa0-f74.google.com with SMTP id k4so206047qaq.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:04:49 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:45555 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423106Ab3CVVEk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:04:40 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so422764vea.0
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:04:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benisty.e@gmail.com, chegu_vinod@hp.com, davidlohr.bueso@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, riel@surriel.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com
+Cc: davidlohr.bueso@hp.com, benisty.e@gmail.com, chegu_vinod@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com
 
 
 The patch titled
-     Subject: ipcsem-open-code-and-rename-sem_lock-fix
+     Subject: ipc: introduce lockless pre_down ipcctl
 has been added to the -mm tree.  Its filename is
-     ipcsem-open-code-and-rename-sem_lock-fix.patch
+     ipc-introduce-lockless-pre_down-ipcctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcsem-open-code-and-rename-sem_lock-fix
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: ipc: introduce lockless pre_down ipcctl
 
-propagate the ipc_obtain_object() errno out of sem_obtain_lock()
+Various forms of ipc use ipcctl_pre_down() to retrieve an ipc object and
+check permissions, mostly for IPC_RMID and IPC_SET commands.
 
+Introduce ipcctl_pre_down_nolock(), a lockless version of this function. 
+The locking version is retained, yet modified to call the nolock version
+without affecting its semantics, thus transparent to all ipc callers.
+
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Chegu Vinod <chegu_vinod@hp.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Cc: Emmanuel Benisty <benisty.e@gmail.com>
 Cc: Jason Low <jason.low2@hp.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Michel Lespinasse <walken@google.com>
 Cc: Peter Hurley <peter@hurleysoftware.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ ipc/util.c |   31 ++++++++++++++++++++++++++-----
+ ipc/util.h |    3 +++
+ 2 files changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN ipc/sem.c~ipcsem-open-code-and-rename-sem_lock-fix ipc/sem.c
---- a/ipc/sem.c~ipcsem-open-code-and-rename-sem_lock-fix
-+++ a/ipc/sem.c
-@@ -197,26 +197,28 @@ void __init sem_init (void)
- static inline struct sem_array *sem_obtain_lock(struct ipc_namespace *ns, int id)
+diff -puN ipc/util.c~ipc-introduce-lockless-pre_down-ipcctl ipc/util.c
+--- a/ipc/util.c~ipc-introduce-lockless-pre_down-ipcctl
++++ a/ipc/util.c
+@@ -823,11 +823,28 @@ struct kern_ipc_perm *ipcctl_pre_down(st
+ 				      struct ipc64_perm *perm, int extra_perm)
  {
  	struct kern_ipc_perm *ipcp;
-+	struct sem_array *sma;
++
++	ipcp = ipcctl_pre_down_nolock(ns, ids, id, cmd, perm, extra_perm);
++	if (IS_ERR(ipcp))
++		goto out;
++
++	spin_lock(&ipcp->lock);
++out:
++	return ipcp;
++}
++
++struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
++					     struct ipc_ids *ids, int id, int cmd,
++					     struct ipc64_perm *perm, int extra_perm)
++{
+ 	kuid_t euid;
+-	int err;
++	int err = -EPERM;
++	struct kern_ipc_perm *ipcp;
  
- 	rcu_read_lock();
- 	ipcp = ipc_obtain_object(&sem_ids(ns), id);
--	if (IS_ERR(ipcp))
--		goto err1;
-+	if (IS_ERR(ipcp)) {
-+		sma = ERR_CAST(ipcp);
-+		goto err;
-+	}
+ 	down_write(&ids->rw_mutex);
+-	ipcp = ipc_lock_check(ids, id);
++	rcu_read_lock();
++
++	ipcp = ipc_obtain_object_check(ids, id);
+ 	if (IS_ERR(ipcp)) {
+ 		err = PTR_ERR(ipcp);
+ 		goto out_up;
+@@ -836,17 +853,21 @@ struct kern_ipc_perm *ipcctl_pre_down(st
+ 	audit_ipc_obj(ipcp);
+ 	if (cmd == IPC_SET)
+ 		audit_ipc_set_perm(extra_perm, perm->uid,
+-					 perm->gid, perm->mode);
++				   perm->gid, perm->mode);
  
- 	spin_lock(&ipcp->lock);
+ 	euid = current_euid();
+ 	if (uid_eq(euid, ipcp->cuid) || uid_eq(euid, ipcp->uid)  ||
+ 	    ns_capable(ns->user_ns, CAP_SYS_ADMIN))
+ 		return ipcp;
  
- 	/* ipc_rmid() may have already freed the ID while sem_lock
- 	 * was spinning: verify that the structure is still valid
- 	 */
--	if (ipcp->deleted)
--		goto err0;
-+	if (!ipcp->deleted)
-+		return container_of(ipcp, struct sem_array, sem_perm);
- 
--	return container_of(ipcp, struct sem_array, sem_perm);
--err0:
- 	spin_unlock(&ipcp->lock);
--err1:
-+	sma = ERR_PTR(-EINVAL);
-+err:
- 	rcu_read_unlock();
--	return ERR_PTR(-EINVAL);
-+	return sma;
+-	err = -EPERM;
+-	ipc_unlock(ipcp);
+ out_up:
++	/*
++	 * Unsuccessful lookup, unlock and return
++	 * the corresponding error.
++	 */
++	rcu_read_unlock();
+ 	up_write(&ids->rw_mutex);
++
+ 	return ERR_PTR(err);
  }
  
- static inline struct sem_array *sem_obtain_object(struct ipc_namespace *ns, int id)
+diff -puN ipc/util.h~ipc-introduce-lockless-pre_down-ipcctl ipc/util.h
+--- a/ipc/util.h~ipc-introduce-lockless-pre_down-ipcctl
++++ a/ipc/util.h
+@@ -128,6 +128,9 @@ struct kern_ipc_perm *ipc_obtain_object(
+ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ int ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
++struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
++					     struct ipc_ids *ids, int id, int cmd,
++					     struct ipc64_perm *perm, int extra_perm);
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_namespace *ns,
+ 				      struct ipc_ids *ids, int id, int cmd,
+ 				      struct ipc64_perm *perm, int extra_perm);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-printk-provide-a-wake_up_klogd-off-case-fix.patch
-mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
-dma-debug-fix-locking-bug-in-check_unmap-fix.patch
-mips-define-kvm_user_mem_slots.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix.patch
-loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
+lib-int_sqrtc-optimize-square-root-algorithm.patch
+ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
+ipc-introduce-obtaining-a-lockless-ipc-object.patch
 ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipc-introduce-lockless-pre_down-ipcctl.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
+ipcsem-open-code-and-rename-sem_lock.patch
 ipcsem-open-code-and-rename-sem_lock-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ipcsem-have-only-one-list-in-struct-sem_queue.patch
+ipcsem-fine-grained-locking-for-semtimedop.patch
 
