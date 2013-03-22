@@ -1,65 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions.patch removed from -mm tree
-Date: Fri, 22 Mar 2013 11:56:39 -0700
-Message-ID: <20130322185639.847315A4387@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch added to -mm tree
+Date: Fri, 22 Mar 2013 12:22:04 -0700
+Message-ID: <20130322192204.C287C5A462B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:34056 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754874Ab3CVS4m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 14:56:42 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so406704ves.3
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 11:56:41 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:37061 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755048Ab3CVTWF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 15:22:05 -0400
+Received: by mail-qa0-f74.google.com with SMTP id k4so193644qaq.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 12:22:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/char/hw_random/exynos-rng.c: add CONFIG_PM_SLEEP to suspend/resume functions
-has been removed from the -mm tree.  Its filename was
-     drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions.patch
+     Subject: drivers/rtc/rtc-ds1374.c: add CONFIG_PM_SLEEP to suspend/resume functions
+has been added to the -mm tree.  Its filename is
+     drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/char/hw_random/exynos-rng.c: add CONFIG_PM_SLEEP to suspend/resume functions
+Subject: drivers/rtc/rtc-ds1374.c: add CONFIG_PM_SLEEP to suspend/resume functions
 
 Add CONFIG_PM_SLEEP to suspend/resume functions to fix the following build
-warning when CONFIG_PM_SLEEP is not selected.
+warning when CONFIG_PM_SLEEP is not selected.  This is because sleep PM
+callbacks defined by SIMPLE_DEV_PM_OPS are only used when the
+CONFIG_PM_SLEEP is enabled.
 
-drivers/char/hw_random/exynos-rng.c:147:12: warning: 'exynos_rng_runtime_suspend' defined but not used [-Wunused-function]
-drivers/char/hw_random/exynos-rng.c:157:12: warning: 'exynos_rng_runtime_resume' defined but not used [-Wunused-function]
+drivers/rtc/rtc-ds1374.c:413:12: warning: 'ds1374_suspend' defined but not used [-Wunused-function]
+drivers/rtc/rtc-ds1374.c:422:12: warning: 'ds1374_resume' defined but not used [-Wunused-function]
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/exynos-rng.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-ds1374.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/hw_random/exynos-rng.c~drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions drivers/char/hw_random/exynos-rng.c
---- a/drivers/char/hw_random/exynos-rng.c~drivers-char-hw_random-exynos-rngc-add-config_pm_sleep-to-suspend-resume-functions
-+++ a/drivers/char/hw_random/exynos-rng.c
-@@ -144,6 +144,7 @@ static int exynos_rng_remove(struct plat
+diff -puN drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -409,7 +409,7 @@ static int ds1374_remove(struct i2c_clie
  	return 0;
  }
  
+-#ifdef CONFIG_PM
 +#ifdef CONFIG_PM_SLEEP
- static int exynos_rng_runtime_suspend(struct device *dev)
+ static int ds1374_suspend(struct device *dev)
  {
- 	struct platform_device *pdev = to_platform_device(dev);
-@@ -161,7 +162,7 @@ static int exynos_rng_runtime_resume(str
- 
- 	return clk_prepare_enable(exynos_rng->clk);
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -427,19 +427,15 @@ static int ds1374_resume(struct device *
+ 		disable_irq_wake(client->irq);
+ 	return 0;
  }
--
 +#endif
  
- static UNIVERSAL_DEV_PM_OPS(exynos_rng_pm_ops, exynos_rng_runtime_suspend,
- 					exynos_rng_runtime_resume, NULL);
+ static SIMPLE_DEV_PM_OPS(ds1374_pm, ds1374_suspend, ds1374_resume);
+ 
+-#define DS1374_PM (&ds1374_pm)
+-#else
+-#define DS1374_PM NULL
+-#endif
+-
+ static struct i2c_driver ds1374_driver = {
+ 	.driver = {
+ 		.name = "rtc-ds1374",
+ 		.owner = THIS_MODULE,
+-		.pm = DS1374_PM,
++		.pm = &ds1374_pm,
+ 	},
+ 	.probe = ds1374_probe,
+ 	.remove = ds1374_remove,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -214,5 +239,7 @@ rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops.patch
 rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch
 rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch
 rtc-omap-update-to-devm_-api.patch
+drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions.patch
 memstick-r592-make-r592_pm_ops-static.patch
 
