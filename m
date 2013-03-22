@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-introduce-obtaining-a-lockless-ipc-object.patch added to -mm tree
-Date: Fri, 22 Mar 2013 14:04:32 -0700
-Message-ID: <20130322210432.E772831C39E@corp2gmr1-1.hot.corp.google.com>
+Subject: + ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch added to -mm tree
+Date: Fri, 22 Mar 2013 14:04:35 -0700
+Message-ID: <20130322210435.DB6CB5A43BD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:38695 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423101Ab3CVVEe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:04:34 -0400
-Received: by mail-yh0-f73.google.com with SMTP id 28so124451yhr.2
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:04:33 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:51347 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423089Ab3CVVEh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 17:04:37 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so422659ves.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 14:04:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidlohr.bueso@hp.com, benisty.e@gmail.com, chegu_vinod@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com
+Cc: akpm@linux-foundation.org, benisty.e@gmail.com, chegu_vinod@hp.com, davidlohr.bueso@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com
 
 
 The patch titled
-     Subject: ipc: introduce obtaining a lockless ipc object
+     Subject: ipc-introduce-obtaining-a-lockless-ipc-object-fix
 has been added to the -mm tree.  Its filename is
-     ipc-introduce-obtaining-a-lockless-ipc-object.patch
+     ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,159 +33,128 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc: introduce obtaining a lockless ipc object
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-introduce-obtaining-a-lockless-ipc-object-fix
 
-Through ipc_lock() and therefore ipc_lock_check() we currently return the
-locked ipc object.  This is not necessary for all situations and can,
-therefore, cause unnecessary ipc lock contention.
+propagate the ipc_obtain_object() errno from ipc_lock()
 
-Introduce analogous ipc_obtain_object() and ipc_obtain_object_check()
-functions that only lookup and return the ipc object.
-
-Both these functions must be called within the RCU read critical section.
-
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Chegu Vinod <chegu_vinod@hp.com>
-Acked-by: Michel Lespinasse <walken@google.com>
+Cc: Chegu Vinod <chegu_vinod@hp.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Cc: Emmanuel Benisty <benisty.e@gmail.com>
 Cc: Jason Low <jason.low2@hp.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michel Lespinasse <walken@google.com>
 Cc: Peter Hurley <peter@hurleysoftware.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   69 ++++++++++++++++++++++++++++++++++++++++++---------
- ipc/util.h |    2 +
- 2 files changed, 59 insertions(+), 12 deletions(-)
+ ipc/util.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN ipc/util.c~ipc-introduce-obtaining-a-lockless-ipc-object ipc/util.c
---- a/ipc/util.c~ipc-introduce-obtaining-a-lockless-ipc-object
+diff -puN ipc/util.c~ipc-introduce-obtaining-a-lockless-ipc-object-fix ipc/util.c
+--- a/ipc/util.c~ipc-introduce-obtaining-a-lockless-ipc-object-fix
 +++ a/ipc/util.c
-@@ -668,6 +668,28 @@ void ipc64_perm_to_ipc_perm (struct ipc6
- }
- 
- /**
-+ * ipc_obtain_object
-+ * @ids: ipc identifier set
-+ * @id: ipc id to look for
-+ *
-+ * Look for an id in the ipc ids idr and return associated ipc object.
-+ *
-+ * Call inside the RCU critical section.
-+ * The ipc object is *not* locked on exit.
-+ */
-+struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id)
-+{
-+	struct kern_ipc_perm *out;
-+	int lid = ipcid_to_idx(id);
-+
-+	out = idr_find(&ids->ipcs_idr, lid);
-+	if (!out)
-+		return ERR_PTR(-EINVAL);
-+
-+	return out;
-+}
-+
-+/**
-  * ipc_lock - Lock an ipc structure without rw_mutex held
-  * @ids: IPC identifier set
-  * @id: ipc id to look for
-@@ -680,26 +702,49 @@ void ipc64_perm_to_ipc_perm (struct ipc6
+@@ -696,9 +696,8 @@ struct kern_ipc_perm *ipc_obtain_object(
+  *
+  * Look for an id in the ipc ids idr and lock the associated ipc object.
+  *
+- * The ipc object is locked on exit.
++ * The ipc object is locked on successful exit.
+  */
+-
  struct kern_ipc_perm *ipc_lock(struct ipc_ids *ids, int id)
  {
  	struct kern_ipc_perm *out;
--	int lid = ipcid_to_idx(id);
- 
- 	rcu_read_lock();
--	out = idr_find(&ids->ipcs_idr, lid);
--	if (out == NULL) {
--		rcu_read_unlock();
--		return ERR_PTR(-EINVAL);
--	}
-+	out = ipc_obtain_object(ids, id);
-+	if (IS_ERR(out))
-+		goto err1;
- 
- 	spin_lock(&out->lock);
--	
-+
+@@ -713,15 +712,14 @@ struct kern_ipc_perm *ipc_lock(struct ip
  	/* ipc_rmid() may have already freed the ID while ipc_lock
  	 * was spinning: here verify that the structure is still valid
  	 */
--	if (out->deleted) {
--		spin_unlock(&out->lock);
--		rcu_read_unlock();
--		return ERR_PTR(-EINVAL);
--	}
-+	if (out->deleted)
-+		goto err0;
-+
+-	if (out->deleted)
+-		goto err0;
++	if (!out->deleted)
++		return out;
+ 
+-	return out;
+-err0:
+ 	spin_unlock(&out->lock);
++	out = ERR_PTR(-EINVAL);
+ err1:
+ 	rcu_read_unlock();
+-	return ERR_PTR(-EINVAL);
 +	return out;
-+err0:
-+	spin_unlock(&out->lock);
-+err1:
-+	rcu_read_unlock();
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+/**
-+ * ipc_obtain_object_check
-+ * @ids: ipc identifier set
-+ * @id: ipc id to look for
-+ *
-+ * Similar to ipc_obtain_object() but also checks
-+ * the ipc object reference counter.
-+ *
-+ * Call inside the RCU critical section.
-+ * The ipc object is *not* locked on exit.
-+ */
-+struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id)
-+{
-+	struct kern_ipc_perm *out = ipc_obtain_object(ids, id);
-+
-+	if (IS_ERR(out))
-+		goto out;
- 
-+	if (ipc_checkid(out, id))
-+		return ERR_PTR(-EIDRM);
-+out:
- 	return out;
  }
  
-diff -puN ipc/util.h~ipc-introduce-obtaining-a-lockless-ipc-object ipc/util.h
---- a/ipc/util.h~ipc-introduce-obtaining-a-lockless-ipc-object
-+++ a/ipc/util.h
-@@ -123,6 +123,7 @@ void ipc_rcu_getref(void *ptr);
- void ipc_rcu_putref(void *ptr);
- 
- struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
-+struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id);
- 
- void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
- void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
-@@ -168,6 +169,7 @@ static inline void ipc_unlock(struct ker
- }
- 
- struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id);
-+struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id);
- int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
- 			struct ipc_ops *ops, struct ipc_params *params);
- void free_ipcs(struct ipc_namespace *ns, struct ipc_ids *ids,
+ /**
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-int_sqrtc-optimize-square-root-algorithm.patch
-ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
-ipc-introduce-obtaining-a-lockless-ipc-object.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+printk-provide-a-wake_up_klogd-off-case-fix.patch
+mm-hugetlb-fix-total-hugetlbfs-pages-count-when-memory-overcommit-accouting-fix.patch
+dma-debug-fix-locking-bug-in-check_unmap-fix.patch
+mips-define-kvm_user_mem_slots.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix.patch
+loop-cleanup-partitions-when-detaching-loop-device-fix-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
 ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipc-introduce-lockless-pre_down-ipcctl.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
-ipcsem-open-code-and-rename-sem_lock.patch
 ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-have-only-one-list-in-struct-sem_queue.patch
-ipcsem-fine-grained-locking-for-semtimedop.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
