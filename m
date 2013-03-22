@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc.patch added to -mm tree
-Date: Fri, 22 Mar 2013 12:37:16 -0700
-Message-ID: <20130322193716.7857131C4C0@corp2gmr1-1.hot.corp.google.com>
+Subject: + rpmsg-fix-error-return-code-in-rpmsg_probe.patch added to -mm tree
+Date: Fri, 22 Mar 2013 12:40:18 -0700
+Message-ID: <20130322194018.742AB5A4CCA@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:48382 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755268Ab3CVThR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 15:37:17 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so66717ghb.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 12:37:16 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:59517 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755110Ab3CVTkT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Mar 2013 15:40:19 -0400
+Received: by mail-gg0-f201.google.com with SMTP id l2so411746ggn.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Mar 2013 12:40:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wujianguo@huawei.com, jiang.liu@huawei.com, tangchen@cn.fujitsu.com
+Cc: yongjun_wei@trendmicro.com.cn, ohad@wizery.com, rusty@rustcorp.com.au, sboyd@codeaurora.org, tj@kernel.org
 
 
 The patch titled
-     Subject: mm/hotplug: only free wait_table if it's allocated by vmalloc
+     Subject: drivers/rpmsg/virtio_rpmsg_bus.c: fix error return code in rpmsg_probe()
 has been added to the -mm tree.  Its filename is
-     mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc.patch
+     rpmsg-fix-error-return-code-in-rpmsg_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm/hotplug: only free wait_table if it's allocated by vmalloc
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: drivers/rpmsg/virtio_rpmsg_bus.c: fix error return code in rpmsg_probe()
 
-zone->wait_table may be allocated from bootmem, it can not be freed.
+Return a negative error code from the error handling case instead of 0, as
+returned elsewhere in this function.
 
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/rpmsg/virtio_rpmsg_bus.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc
-+++ a/mm/memory_hotplug.c
-@@ -1779,7 +1779,11 @@ void try_offline_node(int nid)
- 	for (i = 0; i < MAX_NR_ZONES; i++) {
- 		struct zone *zone = pgdat->node_zones + i;
+diff -puN drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-fix-error-return-code-in-rpmsg_probe drivers/rpmsg/virtio_rpmsg_bus.c
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-fix-error-return-code-in-rpmsg_probe
++++ a/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -951,8 +951,10 @@ static int rpmsg_probe(struct virtio_dev
+ 	bufs_va = dma_alloc_coherent(vdev->dev.parent->parent,
+ 				RPMSG_TOTAL_BUF_SPACE,
+ 				&vrp->bufs_dma, GFP_KERNEL);
+-	if (!bufs_va)
++	if (!bufs_va) {
++		err = -ENOMEM;
+ 		goto vqs_del;
++	}
  
--		if (zone->wait_table)
-+		/*
-+		 * wait_table may be allocated from boot memory,
-+		 * here only free if it's allocated by vmalloc.
-+		 */
-+		if (is_vmalloc_addr(zone->wait_table))
- 			vfree(zone->wait_table);
- 	}
- 
+ 	dev_dbg(&vdev->dev, "buffers: va %p, dma 0x%llx\n", bufs_va,
+ 					(unsigned long long)vrp->bufs_dma);
 _
 
-Patches currently in -mm which might be from wujianguo@huawei.com are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
+origin.patch
 linux-next.patch
-mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc.patch
-arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n.patch
-mm-migrate-fix-comment-typo-syncronous-synchronous.patch
+cciss-fix-invalid-use-of-sizeof-in-cciss_find_cfgtables.patch
+rpmsg-fix-error-return-code-in-rpmsg_probe.patch
 
