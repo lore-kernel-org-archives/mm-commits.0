@@ -1,103 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loop-cleanup-partitions-when-detaching-loop-device.patch removed from -mm tree
-Date: Mon, 25 Mar 2013 12:45:34 -0700
-Message-ID: <20130325194534.B5C6831C1B3@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mqueue-sys_mq_open-do-not-call-mnt_drop_write-if-read-only.patch removed from -mm tree
+Date: Mon, 25 Mar 2013 12:45:28 -0700
+Message-ID: <20130325194528.87FE231C1B3__1864.16644505716$1364240765$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:35530 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932858Ab3CYTpf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 15:45:35 -0400
-Received: by mail-qa0-f74.google.com with SMTP id k4so436676qaq.5
-        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 12:45:35 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:51943 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932933Ab3CYTp3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 15:45:29 -0400
+Received: by mail-ve0-f201.google.com with SMTP id 14so653157vea.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 12:45:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: psusi@ubuntu.com, akpm@linux-foundation.org, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, dledford@redhat.com, ebiederm@xmission.com, kosaki.motohiro@jp.fujitsu.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loop: cleanup partitions when detaching loop device
+     Subject: mqueue: sys_mq_open: do not call mnt_drop_write() if read-only
 has been removed from the -mm tree.  Its filename was
-     loop-cleanup-partitions-when-detaching-loop-device.patch
+     mqueue-sys_mq_open-do-not-call-mnt_drop_write-if-read-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Phillip Susi <psusi@ubuntu.com>
-Subject: loop: cleanup partitions when detaching loop device
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: mqueue: sys_mq_open: do not call mnt_drop_write() if read-only
 
-Any partitions added by user space to the loop device were being left in
-place after detaching the loop device.  This was because the detach path
-issued a BLKRRPART to clean up partitions if LO_FLAGS_PARTSCAN was set,
-meaning that the partitions were auto scanned on attach.  Replace this
-BLKRRPART with code that unconditionally cleans up partitions on detach
-instead.
+mnt_drop_write() must be called only if mnt_want_write() succeeded,
+otherwise the mnt_writers counter will diverge.
 
-The user-visible effect of this bug is that the partition devnodes still
-show up after detaching the backing file, and I think the partitions
-remained in place after attaching a new file even though it had different
-or no partitions at all.
+mnt_writers counters are used to check if remounting FS as read-only is
+OK, so after an extra mnt_drop_write() call, it would be impossible to
+remount mqueue FS as read-only.  Besides, on umount a warning would be
+printed like this one:
 
-Signed-off-by: Phillip Susi <psusi@ubuntu.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: loop-cleanup-partitions-when-detaching-loop-device-checkpatch-fixes
+[  194.714880] =====================================
+[  194.719680] [ BUG: bad unlock balance detected! ]
+[  194.724488] 3.9.0-rc3 #5 Not tainted
+[  194.728159] -------------------------------------
+[  194.732958] a.out/12486 is trying to release lock (sb_writers) at:
+[  194.739355] [<ffffffff811b177f>] mnt_drop_write+0x1f/0x30
+[  194.744851] but there are no more locks to release!
 
-ERROR: that open brace { should be on the previous line
-#32: FILE: drivers/block/loop.c:1051:
-+	if (bdev)
-+	{
 
-WARNING: line over 80 characters
-#39: FILE: drivers/block/loop.c:1058:
-+		disk_part_iter_init(&piter, bdev->bd_disk, DISK_PITER_INCL_EMPTY);
-
-total: 1 errors, 1 warnings, 26 lines checked
-
-./patches/loop-cleanup-partitions-when-detaching-loop-device.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Phillip Susi <psusi@ubuntu.com>
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: loop-cleanup-partitions-when-detaching-loop-device-fix
-
-add comment, per Phillip
-
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Phillip Susi <psusi@ubuntu.com>
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: loop-cleanup-partitions-when-detaching-loop-device-fix-fix
-
-export delete_partition() to modules
-
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Phillip Susi <psusi@ubuntu.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partition-generic.c |    1 +
- 1 file changed, 1 insertion(+)
+ ipc/mqueue.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/loop.c~loop-cleanup-partitions-when-detaching-loop-device drivers/block/loop.c
-diff -puN block/partition-generic.c~loop-cleanup-partitions-when-detaching-loop-device block/partition-generic.c
---- a/block/partition-generic.c~loop-cleanup-partitions-when-detaching-loop-device
-+++ a/block/partition-generic.c
-@@ -236,6 +236,7 @@ void __delete_partition(struct hd_struct
- {
- 	call_rcu(&part->rcu_head, delete_partition_rcu_cb);
- }
-+EXPORT_SYMBOL(delete_partition);
- 
- void delete_partition(struct gendisk *disk, int partno)
- {
+diff -puN ipc/mqueue.c~mqueue-sys_mq_open-do-not-call-mnt_drop_write-if-read-only ipc/mqueue.c
+--- a/ipc/mqueue.c~mqueue-sys_mq_open-do-not-call-mnt_drop_write-if-read-only
++++ a/ipc/mqueue.c
+@@ -840,7 +840,8 @@ out_putfd:
+ 		fd = error;
+ 	}
+ 	mutex_unlock(&root->d_inode->i_mutex);
+-	mnt_drop_write(mnt);
++	if (!ro)
++		mnt_drop_write(mnt);
+ out_putname:
+ 	putname(name);
+ 	return fd;
 _
 
-Patches currently in -mm which might be from psusi@ubuntu.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-linux-next.patch
 
