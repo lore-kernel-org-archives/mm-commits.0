@@ -1,71 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [failures] ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch removed from -mm tree
-Date: Mon, 25 Mar 2013 14:58:57 -0700
-Message-ID: <20130325215858.31A9631C1DB@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch added to -mm tree
+Date: Mon, 25 Mar 2013 15:31:55 -0700
+Message-ID: <20130325223155.723535A419C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:49491 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758663Ab3CYV67 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 17:58:59 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so668430qen.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 14:58:58 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:57992 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758655Ab3CYWb4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 18:31:56 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so670967vcb.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 15:31:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@surriel.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: yongjun_wei@trendmicro.com.cn, jg1.han@samsung.com, michael.hennerich@analog.com
 
 
 The patch titled
-     Subject: ipc,sem: fix lockdep false positive
-has been removed from the -mm tree.  Its filename was
-     ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch
+     Subject: drivers/video/backlight/adp8860_bl.c: fix error return code in adp8860_led_probe()
+has been added to the -mm tree.  Its filename is
+     drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: ipc,sem: fix lockdep false positive
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: drivers/video/backlight/adp8860_bl.c: fix error return code in adp8860_led_probe()
 
-When locking all the semaphores inside a sem_array, the kernel ends up
-locking a large number of locks with identical lockdep status. This
-trips up lockdep.  Annotate the code to prevent such warnings.
+Fix to return a negative error code from the error handling
+case instead of 0, as returned elsewhere in this function.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/adp8860_bl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-fix-fix ipc/sem.c
---- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-fix-fix
-+++ a/ipc/sem.c
-@@ -227,7 +227,7 @@ static inline int sem_lock(struct sem_ar
- 		spin_lock(&sma->sem_perm.lock);
- 		for (i = 0; i < sma->sem_nsems; i++) {
- 			struct sem *sem = sma->sem_base + i;
--			spin_lock(&sem->lock);
-+			spin_lock_nested(&sem->lock, SINGLE_DEPTH_NESTING);
+diff -puN drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -249,12 +249,14 @@ static int adp8860_led_probe(struct i2c_
+ 		if (led_dat->id > 7 || led_dat->id < 1) {
+ 			dev_err(&client->dev, "Invalid LED ID %d\n",
+ 				led_dat->id);
++			ret = -EINVAL;
+ 			goto err;
  		}
- 		locknum = -1;
- 	}
-@@ -426,7 +426,7 @@ static int newary(struct ipc_namespace *
- 	for (i = 0; i < nsems; i++) {
- 		INIT_LIST_HEAD(&sma->sem_base[i].sem_pending);
- 		spin_lock_init(&sma->sem_base[i].lock);
--		spin_lock(&sma->sem_base[i].lock);
-+		spin_lock_nested(&sma->sem_base[i].lock, SINGLE_DEPTH_NESTING);
- 	}
  
- 	sma->complex_count = 0;
+ 		if (pdata->bl_led_assign & (1 << (led_dat->id - 1))) {
+ 			dev_err(&client->dev, "LED %d used by Backlight\n",
+ 				led_dat->id);
++			ret = -EBUSY;
+ 			goto err;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
-ipcsem-open-code-and-rename-sem_lock.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-have-only-one-list-in-struct-sem_queue.patch
-ipcsem-fine-grained-locking-for-semtimedop.patch
-ipcsem-fine-grained-locking-for-semtimedop-fix.patch
+origin.patch
+linux-next.patch
+rpmsg-fix-error-return-code-in-rpmsg_probe.patch
+drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch
 
