@@ -1,230 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr.patch removed from -mm tree
-Date: Mon, 25 Mar 2013 12:45:16 -0700
-Message-ID: <20130325194516.8E6AE5A4240__15301.7438519329$1364240750$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc.patch removed from -mm tree
+Date: Mon, 25 Mar 2013 12:45:25 -0700
+Message-ID: <20130325194525.7B3D35A419C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:61845 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932861Ab3CYTpS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 15:45:18 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so653294vea.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 12:45:17 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:46460 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932858Ab3CYTp0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 15:45:26 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m2so209015yen.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 12:45:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, dgilbert@interlog.com, ludovic.desroches@atmel.com, plagnioj@jcrosoft.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: wujianguo@huawei.com, jiang.liu@huawei.com, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-at91rm9200.c: use a variable for storing IMR
+     Subject: mm/hotplug: only free wait_table if it's allocated by vmalloc
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr.patch
+     mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: drivers/rtc/rtc-at91rm9200.c: use a variable for storing IMR
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/hotplug: only free wait_table if it's allocated by vmalloc
 
-On some revisions of AT91 SoCs, the RTC IMR register is not working. 
-Instead of elaborating a workaround for that specific SoC or IP version,
-we simply use a software variable to store the Interrupt Mask Register and
-modify it for each enabling/disabling of an interrupt.  The overhead of
-this is negligible anyway.
+zone->wait_table may be allocated from bootmem, it can not be freed.
 
-The interrupt mask register (IMR) for the RTC is broken on the AT91SAM9x5
-sub-family of SoCs (good overview of the members here:
-http://www.eewiki.net/display/linuxonarm/AT91SAM9x5 ).  The "user visible
-effect" is the RTC doesn't work.
-
-That sub-family is less than two years old and only has devicetree (DT)
-support and came online circa lk 3.7 .  The dust is yet to settle on the
-DT stuff at least for AT91 SoCs (translation: lots of stuff is still
-broken, so much that it is hard to know where to start).
-
-The fix in the patch is pretty simple: just shadow the silicon IMR
-register with a variable in the driver.  Some older SoCs (pre-DT) use the
-the rtc-at91rm9200 driver (e.g.  obviously the AT91RM9200) and they should
-not be impacted by the change.  There shouldn't be a large volume of
-interrupts associated with a RTC.
-
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Reported-by: Douglas Gilbert <dgilbert@interlog.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   50 ++++++++++++++++++++-------------
- drivers/rtc/rtc-at91rm9200.h |    1 
- 2 files changed, 31 insertions(+), 20 deletions(-)
+ mm/memory_hotplug.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -44,6 +44,7 @@ static DECLARE_COMPLETION(at91_rtc_updat
- static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
- static void __iomem *at91_rtc_regs;
- static int irq;
-+static u32 at91_rtc_imr;
+diff -puN mm/memory_hotplug.c~mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-only-free-wait_table-if-its-allocated-by-vmalloc
++++ a/mm/memory_hotplug.c
+@@ -1779,7 +1779,11 @@ void try_offline_node(int nid)
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		struct zone *zone = pgdat->node_zones + i;
  
- /*
-  * Decode time/date into rtc_time structure
-@@ -108,9 +109,11 @@ static int at91_rtc_settime(struct devic
- 	cr = at91_rtc_read(AT91_RTC_CR);
- 	at91_rtc_write(AT91_RTC_CR, cr | AT91_RTC_UPDCAL | AT91_RTC_UPDTIM);
- 
-+	at91_rtc_imr |= AT91_RTC_ACKUPD;
- 	at91_rtc_write(AT91_RTC_IER, AT91_RTC_ACKUPD);
- 	wait_for_completion(&at91_rtc_updated);	/* wait for ACKUPD interrupt */
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD);
-+	at91_rtc_imr &= ~AT91_RTC_ACKUPD;
- 
- 	at91_rtc_write(AT91_RTC_TIMR,
- 			  bin2bcd(tm->tm_sec) << 0
-@@ -142,7 +145,7 @@ static int at91_rtc_readalarm(struct dev
- 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
- 	tm->tm_year = at91_alarm_year - 1900;
- 
--	alrm->enabled = (at91_rtc_read(AT91_RTC_IMR) & AT91_RTC_ALARM)
-+	alrm->enabled = (at91_rtc_imr & AT91_RTC_ALARM)
- 			? 1 : 0;
- 
- 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
-@@ -168,6 +171,7 @@ static int at91_rtc_setalarm(struct devi
- 	tm.tm_sec = alrm->time.tm_sec;
- 
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
-+	at91_rtc_imr &= ~AT91_RTC_ALARM;
- 	at91_rtc_write(AT91_RTC_TIMALR,
- 		  bin2bcd(tm.tm_sec) << 0
- 		| bin2bcd(tm.tm_min) << 8
-@@ -180,6 +184,7 @@ static int at91_rtc_setalarm(struct devi
- 
- 	if (alrm->enabled) {
- 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
-+		at91_rtc_imr |= AT91_RTC_ALARM;
- 		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
+-		if (zone->wait_table)
++		/*
++		 * wait_table may be allocated from boot memory,
++		 * here only free if it's allocated by vmalloc.
++		 */
++		if (is_vmalloc_addr(zone->wait_table))
+ 			vfree(zone->wait_table);
  	}
  
-@@ -196,9 +201,12 @@ static int at91_rtc_alarm_irq_enable(str
- 
- 	if (enabled) {
- 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
-+		at91_rtc_imr |= AT91_RTC_ALARM;
- 		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
--	} else
-+	} else {
- 		at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
-+		at91_rtc_imr &= ~AT91_RTC_ALARM;
-+	}
- 
- 	return 0;
- }
-@@ -207,12 +215,10 @@ static int at91_rtc_alarm_irq_enable(str
-  */
- static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
- {
--	unsigned long imr = at91_rtc_read(AT91_RTC_IMR);
--
- 	seq_printf(seq, "update_IRQ\t: %s\n",
--			(imr & AT91_RTC_ACKUPD) ? "yes" : "no");
-+			(at91_rtc_imr & AT91_RTC_ACKUPD) ? "yes" : "no");
- 	seq_printf(seq, "periodic_IRQ\t: %s\n",
--			(imr & AT91_RTC_SECEV) ? "yes" : "no");
-+			(at91_rtc_imr & AT91_RTC_SECEV) ? "yes" : "no");
- 
- 	return 0;
- }
-@@ -227,7 +233,7 @@ static irqreturn_t at91_rtc_interrupt(in
- 	unsigned int rtsr;
- 	unsigned long events = 0;
- 
--	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_read(AT91_RTC_IMR);
-+	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_imr;
- 	if (rtsr) {		/* this interrupt is shared!  Is it ours? */
- 		if (rtsr & AT91_RTC_ALARM)
- 			events |= (RTC_AF | RTC_IRQF);
-@@ -291,6 +297,7 @@ static int __init at91_rtc_probe(struct
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
- 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
- 					AT91_RTC_CALEV);
-+	at91_rtc_imr = 0;
- 
- 	ret = request_irq(irq, at91_rtc_interrupt,
- 				IRQF_SHARED,
-@@ -329,6 +336,7 @@ static int __exit at91_rtc_remove(struct
- 	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
- 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
- 					AT91_RTC_CALEV);
-+	at91_rtc_imr = 0;
- 	free_irq(irq, pdev);
- 
- 	rtc_device_unregister(rtc);
-@@ -341,31 +349,35 @@ static int __exit at91_rtc_remove(struct
- 
- /* AT91RM9200 RTC Power management control */
- 
--static u32 at91_rtc_imr;
-+static u32 at91_rtc_bkpimr;
-+
- 
- static int at91_rtc_suspend(struct device *dev)
- {
- 	/* this IRQ is shared with DBGU and other hardware which isn't
- 	 * necessarily doing PM like we are...
- 	 */
--	at91_rtc_imr = at91_rtc_read(AT91_RTC_IMR)
--			& (AT91_RTC_ALARM|AT91_RTC_SECEV);
--	if (at91_rtc_imr) {
--		if (device_may_wakeup(dev))
-+	at91_rtc_bkpimr = at91_rtc_imr & (AT91_RTC_ALARM|AT91_RTC_SECEV);
-+	if (at91_rtc_bkpimr) {
-+		if (device_may_wakeup(dev)) {
- 			enable_irq_wake(irq);
--		else
--			at91_rtc_write(AT91_RTC_IDR, at91_rtc_imr);
--	}
-+		} else {
-+			at91_rtc_write(AT91_RTC_IDR, at91_rtc_bkpimr);
-+			at91_rtc_imr &= ~at91_rtc_bkpimr;
-+		}
-+}
- 	return 0;
- }
- 
- static int at91_rtc_resume(struct device *dev)
- {
--	if (at91_rtc_imr) {
--		if (device_may_wakeup(dev))
-+	if (at91_rtc_bkpimr) {
-+		if (device_may_wakeup(dev)) {
- 			disable_irq_wake(irq);
--		else
--			at91_rtc_write(AT91_RTC_IER, at91_rtc_imr);
-+		} else {
-+			at91_rtc_imr |= at91_rtc_bkpimr;
-+			at91_rtc_write(AT91_RTC_IER, at91_rtc_bkpimr);
-+		}
- 	}
- 	return 0;
- }
-diff -puN drivers/rtc/rtc-at91rm9200.h~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr drivers/rtc/rtc-at91rm9200.h
---- a/drivers/rtc/rtc-at91rm9200.h~drivers-rtc-rtc-at91rm9200c-use-a-variable-for-storing-imr
-+++ a/drivers/rtc/rtc-at91rm9200.h
-@@ -64,7 +64,6 @@
- #define	AT91_RTC_SCCR		0x1c			/* Status Clear Command Register */
- #define	AT91_RTC_IER		0x20			/* Interrupt Enable Register */
- #define	AT91_RTC_IDR		0x24			/* Interrupt Disable Register */
--#define	AT91_RTC_IMR		0x28			/* Interrupt Mask Register */
- 
- #define	AT91_RTC_VER		0x2c			/* Valid Entry Register */
- #define		AT91_RTC_NVTIM		(1 <<  0)		/* Non valid Time */
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
 linux-next.patch
-drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
+arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n.patch
+mm-migrate-fix-comment-typo-syncronous-synchronous.patch
 
