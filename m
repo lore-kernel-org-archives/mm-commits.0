@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-speedup-in-__early_pfn_to_nid-fix-fix-2.patch removed from -mm tree
-Date: Mon, 25 Mar 2013 14:56:40 -0700
-Message-ID: <20130325215640.CBB8B5A419C@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] mm-speedup-in-__early_pfn_to_nid-fix.patch removed from -mm tree
+Date: Mon, 25 Mar 2013 14:56:37 -0700
+Message-ID: <20130325215637.95EAD5A419C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:49399 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933353Ab3CYV4m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 17:56:42 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so667762vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 14:56:41 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:50240 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933353Ab3CYV4k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 17:56:40 -0400
+Received: by mail-yh0-f73.google.com with SMTP id 28so369243yhr.4
+        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 14:56:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hpa@zytor.com, kosaki.motohiro@gmail.com, linfeng@cn.fujitsu.com, mingo@elte.hu, rientjes@google.com, rja@sgi.com, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-speedup-in-__early_pfn_to_nid-fix-fix-2
+     Subject: mm-speedup-in-__early_pfn_to_nid-fix
 has been removed from the -mm tree.  Its filename was
-     mm-speedup-in-__early_pfn_to_nid-fix-fix-2.patch
+     mm-speedup-in-__early_pfn_to_nid-fix.patch
 
 This patch was dropped because it was folded into mm-speedup-in-__early_pfn_to_nid.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-speedup-in-__early_pfn_to_nid-fix-fix-2
+Subject: mm-speedup-in-__early_pfn_to_nid-fix
 
-fix comment formatting
+make the statics __meminitdata
 
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
@@ -40,40 +40,38 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/numa.c |    6 +++---
+ arch/ia64/mm/numa.c |    4 ++--
  mm/page_alloc.c     |    4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2 arch/ia64/mm/numa.c
---- a/arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2
+diff -puN arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix arch/ia64/mm/numa.c
+--- a/arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix
 +++ a/arch/ia64/mm/numa.c
-@@ -62,9 +62,9 @@ int __meminit __early_pfn_to_nid(unsigne
- {
- 	int i, section = pfn >> PFN_SECTION_SHIFT, ssec, esec;
- 	/*
--	   NOTE: The following SMP-unsafe globals are only used early
--	   in boot when the kernel is running single-threaded.
--	*/
-+	 * NOTE: The following SMP-unsafe globals are only used early in boot
-+	 * when the kernel is running single-threaded.
-+	 */
- 	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
- 	static int __meminitdata last_nid;
+@@ -65,8 +65,8 @@ int __meminit __early_pfn_to_nid(unsigne
+ 	   NOTE: The following SMP-unsafe globals are only used early
+ 	   in boot when the kernel is running single-threaded.
+ 	*/
+-	static unsigned long last_start_pfn, last_end_pfn;
+-	static int last_nid;
++	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
++	static int __meminitdata last_nid;
  
-diff -puN mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2
+ 	if (section >= last_ssec && section < last_esec)
+ 		return last_nid;
+diff -puN mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid-fix
 +++ a/mm/page_alloc.c
-@@ -4187,8 +4187,8 @@ int __meminit __early_pfn_to_nid(unsigne
- 	unsigned long start_pfn, end_pfn;
- 	int i, nid;
- 	/*
--	   NOTE: The following SMP-unsafe globals are only used early
--	   in boot when the kernel is running single-threaded.
-+	 * NOTE: The following SMP-unsafe globals are only used early in boot
-+	 * when the kernel is running single-threaded.
+@@ -4190,8 +4190,8 @@ int __meminit __early_pfn_to_nid(unsigne
+ 	   NOTE: The following SMP-unsafe globals are only used early
+ 	   in boot when the kernel is running single-threaded.
  	 */
- 	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
- 	static int __meminitdata last_nid;
+-	static unsigned long last_start_pfn, last_end_pfn;
+-	static int last_nid;
++	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
++	static int __meminitdata last_nid;
+ 
+ 	if (last_start_pfn <= pfn && pfn < last_end_pfn)
+ 		return last_nid;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +92,7 @@ mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
 kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
 mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix-fix-2.patch
 mm-speedup-in-__early_pfn_to_nid-fix-fix-2-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
