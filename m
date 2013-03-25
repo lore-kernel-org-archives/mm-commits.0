@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch added to -mm tree
-Date: Mon, 25 Mar 2013 14:03:41 -0700
-Message-ID: <20130325210341.709935A4016@corp2gmr1-2.hot.corp.google.com>
+Subject: + scripts-tagssh-add-magic-for-offset-and-define.patch added to -mm tree
+Date: Mon, 25 Mar 2013 14:16:00 -0700
+Message-ID: <20130325211600.7DF6C5A41C6@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:61170 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455Ab3CYVDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 17:03:42 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m2so217902yen.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 14:03:41 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:49867 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758603Ab3CYVQB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 17:16:01 -0400
+Received: by mail-yh0-f74.google.com with SMTP id i57so365040yha.1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 14:16:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@surriel.com, riel@redhat.com, sasha.levin@oracle.com
+Cc: tkhai@yandex.ru, mmarek@suse.cz
 
 
 The patch titled
-     Subject: ipc,sem: fix lockdep false positive
+     Subject: scripts/tags.sh: add magic for OFFSET and DEFINE
 has been added to the -mm tree.  Its filename is
-     ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch
+     scripts-tagssh-add-magic-for-offset-and-define.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: ipc,sem: fix lockdep false positive
+From: Kirill Tkhai <tkhai@yandex.ru>
+Subject: scripts/tags.sh: add magic for OFFSET and DEFINE
 
-When locking all the semaphores inside a sem_array, the kernel ends up
-locking a large number of locks with identical lockdep status. This
-trips up lockdep.  Annotate the code to prevent such warnings.
+Add rules for definitions which is generally used in asm-offsets files.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Kirill V Tkhai <tkhai@yandex.ru>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/tags.sh |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-fix-fix ipc/sem.c
---- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-fix-fix
-+++ a/ipc/sem.c
-@@ -227,7 +227,7 @@ static inline int sem_lock(struct sem_ar
- 		spin_lock(&sma->sem_perm.lock);
- 		for (i = 0; i < sma->sem_nsems; i++) {
- 			struct sem *sem = sma->sem_base + i;
--			spin_lock(&sem->lock);
-+			spin_lock_nested(&sem->lock, SINGLE_DEPTH_NESTING);
- 		}
- 		locknum = -1;
- 	}
-@@ -426,7 +426,7 @@ static int newary(struct ipc_namespace *
- 	for (i = 0; i < nsems; i++) {
- 		INIT_LIST_HEAD(&sma->sem_base[i].sem_pending);
- 		spin_lock_init(&sma->sem_base[i].lock);
--		spin_lock(&sma->sem_base[i].lock);
-+		spin_lock_nested(&sma->sem_base[i].lock, SINGLE_DEPTH_NESTING);
- 	}
+diff -puN scripts/tags.sh~scripts-tagssh-add-magic-for-offset-and-define scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tagssh-add-magic-for-offset-and-define
++++ a/scripts/tags.sh
+@@ -199,7 +199,9 @@ exuberant()
+ 	--regex-c='/DEFINE_PER_CPU_SHARED_ALIGNED\(([^,]*,\s*)(\w*).*\)/\2/v/' \
+ 	--regex-c='/DECLARE_WAIT_QUEUE_HEAD\((\w*)/\1/v/'		\
+ 	--regex-c='/DECLARE_(TASKLET|WORK|DELAYED_WORK)\((\w*)/\2/v/'	\
+-	--regex-c='/DEFINE_PCI_DEVICE_TABLE\((\w*)/\1/v/'
++	--regex-c='/DEFINE_PCI_DEVICE_TABLE\((\w*)/\1/v/'		\
++	--regex-c='/(^\s)OFFSET\((\w*)/\2/v/'				\
++	--regex-c='/(^\s)DEFINE\((\w*)/\2/v/'
  
- 	sma->complex_count = 0;
+ 	all_kconfigs | xargs $1 -a                              \
+ 	--langdef=kconfig --language-force=kconfig              \
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from tkhai@yandex.ru are
 
-ipcsem-open-code-and-rename-sem_lock.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-have-only-one-list-in-struct-sem_queue.patch
-ipcsem-fine-grained-locking-for-semtimedop.patch
-ipcsem-fine-grained-locking-for-semtimedop-fix.patch
-ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch
+linux-next.patch
+scripts-tagssh-add-magic-for-offset-and-define.patch
 
