@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-speedup-in-__early_pfn_to_nid.patch added to -mm tree
-Date: Mon, 25 Mar 2013 14:34:16 -0700
-Message-ID: <20130325213416.EC33E5A409A@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-speedup-in-__early_pfn_to_nid-fix-fix-2.patch added to -mm tree
+Date: Mon, 25 Mar 2013 14:34:22 -0700
+Message-ID: <20130325213422.D1CF15A409A@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:45394 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932903Ab3CYVeS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 17:34:18 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so665184vcb.2
-        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 14:34:17 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:40741 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932903Ab3CYVeY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 17:34:24 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so377306qcs.3
+        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 14:34:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rja@sgi.com, hpa@zytor.com, kosaki.motohiro@gmail.com, linfeng@cn.fujitsu.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org
+Cc: akpm@linux-foundation.org, hpa@zytor.com, kosaki.motohiro@gmail.com, linfeng@cn.fujitsu.com, mingo@elte.hu, rientjes@google.com, rja@sgi.com, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org
 
 
 The patch titled
-     Subject: mm: speedup in __early_pfn_to_nid
+     Subject: mm-speedup-in-__early_pfn_to_nid-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-speedup-in-__early_pfn_to_nid.patch
+     mm-speedup-in-__early_pfn_to_nid-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Russ Anderson <rja@sgi.com>
-Subject: mm: speedup in __early_pfn_to_nid
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-speedup-in-__early_pfn_to_nid-fix-fix-2
 
-When booting on a large memory system, the kernel spends considerable time
-in memmap_init_zone() setting up memory zones.  Analysis shows significant
-time spent in __early_pfn_to_nid().
+fix comment formatting
 
-The routine memmap_init_zone() checks each PFN to verify the nid is valid.
- __early_pfn_to_nid() sequentially scans the list of pfn ranges to find
-the right range and returns the nid.  This does not scale well.  On a 4 TB
-(single rack) system there are 308 memory ranges to scan.  The higher the
-PFN the more time spent sequentially spinning through memory ranges.
-
-Since memmap_init_zone() increments pfn, it will almost always be looking
-for the same range as the previous pfn, so check that range first.  If it
-is in the same range, return that nid.  If not, scan the list as before. 
-
-A 4 TB (single rack) UV1 system takes 512 seconds to get through the zone
-code.  This performance optimization reduces the time by 189 seconds, a
-36% improvement.
-
-A 2 TB (single rack) UV2 system goes from 212.7 seconds to 99.8 seconds, a
-112.9 second (53%) reduction.
-
-Signed-off-by: Russ Anderson <rja@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/numa.c |   15 ++++++++++++++-
- mm/page_alloc.c     |   15 ++++++++++++++-
- 2 files changed, 28 insertions(+), 2 deletions(-)
+ arch/ia64/mm/numa.c |    6 +++---
+ mm/page_alloc.c     |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid arch/ia64/mm/numa.c
---- a/arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid
+diff -puN arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2 arch/ia64/mm/numa.c
+--- a/arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2
 +++ a/arch/ia64/mm/numa.c
-@@ -61,13 +61,26 @@ paddr_to_nid(unsigned long paddr)
- int __meminit __early_pfn_to_nid(unsigned long pfn)
+@@ -62,9 +62,9 @@ int __meminit __early_pfn_to_nid(unsigne
  {
  	int i, section = pfn >> PFN_SECTION_SHIFT, ssec, esec;
-+	/*
-+	   NOTE: The following SMP-unsafe globals are only used early
-+	   in boot when the kernel is running single-threaded.
-+	*/
-+	static unsigned long last_start_pfn, last_end_pfn;
-+	static int last_nid;
-+
-+	if (section >= last_ssec && section < last_esec)
-+		return last_nid;
+ 	/*
+-	   NOTE: The following SMP-unsafe globals are only used early
+-	   in boot when the kernel is running single-threaded.
+-	*/
++	 * NOTE: The following SMP-unsafe globals are only used early in boot
++	 * when the kernel is running single-threaded.
++	 */
+ 	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
+ 	static int __meminitdata last_nid;
  
- 	for (i = 0; i < num_node_memblks; i++) {
- 		ssec = node_memblk[i].start_paddr >> PA_SECTION_SHIFT;
- 		esec = (node_memblk[i].start_paddr + node_memblk[i].size +
- 			((1L << PA_SECTION_SHIFT) - 1)) >> PA_SECTION_SHIFT;
--		if (section >= ssec && section < esec)
-+		if (section >= ssec && section < esec) {
-+			last_ssec = ssec;
-+			last_esec = esec;
-+			last_nid = node_memblk[i].nid
- 			return node_memblk[i].nid;
-+		}
- 	}
- 
- 	return -1;
-diff -puN mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid
+diff -puN mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid-fix-fix-2
 +++ a/mm/page_alloc.c
-@@ -4186,10 +4186,23 @@ int __meminit __early_pfn_to_nid(unsigne
- {
+@@ -4187,8 +4187,8 @@ int __meminit __early_pfn_to_nid(unsigne
  	unsigned long start_pfn, end_pfn;
  	int i, nid;
-+	/*
-+	   NOTE: The following SMP-unsafe globals are only used early
-+	   in boot when the kernel is running single-threaded.
-+	 */
-+	static unsigned long last_start_pfn, last_end_pfn;
-+	static int last_nid;
-+
-+	if (last_start_pfn <= pfn && pfn < last_end_pfn)
-+		return last_nid;
- 
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
--		if (start_pfn <= pfn && pfn < end_pfn)
-+		if (start_pfn <= pfn && pfn < end_pfn) {
-+			last_start_pfn = start_pfn;
-+			last_end_pfn = end_pfn;
-+			last_nid = nid;
- 			return nid;
-+		}
- 	/* This is a memory hole */
- 	return -1;
- }
+ 	/*
+-	   NOTE: The following SMP-unsafe globals are only used early
+-	   in boot when the kernel is running single-threaded.
++	 * NOTE: The following SMP-unsafe globals are only used early in boot
++	 * when the kernel is running single-threaded.
+ 	 */
+ 	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
+ 	static int __meminitdata last_nid;
 _
 
-Patches currently in -mm which might be from rja@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-speedup-in-__early_pfn_to_nid.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mips-define-kvm_user_mem_slots.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
 mm-speedup-in-__early_pfn_to_nid-fix.patch
 mm-speedup-in-__early_pfn_to_nid-fix-fix-2.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
