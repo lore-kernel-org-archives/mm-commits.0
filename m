@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dont-include-aioh-in-schedh-fix.patch added to -mm tree
-Date: Tue, 26 Mar 2013 13:58:31 -0700
-Message-ID: <20130326205831.E869831C06B@corp2gmr1-1.hot.corp.google.com>
+Subject: + block-prep-work-for-batch-completion-fix-2.patch added to -mm tree
+Date: Tue, 26 Mar 2013 14:01:21 -0700
+Message-ID: <20130326210121.AC91E5A4158@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:53587 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab3CZU6d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 16:58:33 -0400
-Received: by mail-qa0-f74.google.com with SMTP id k4so85507qaq.5
-        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 13:58:32 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:63575 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab3CZVBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 17:01:23 -0400
+Received: by mail-vb0-f73.google.com with SMTP id fq11so198056vbb.4
+        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 14:01:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix
+     Subject: block-prep-work-for-batch-completion-fix-2
 has been added to the -mm tree.  Its filename is
-     aio-dont-include-aioh-in-schedh-fix.patch
+     block-prep-work-for-batch-completion-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix
+Subject: block-prep-work-for-batch-completion-fix-2
 
-fs/bio.c: In function 'bio_alloc_bioset':
-fs/bio.c:394: error: 'UIO_MAXIOV' undeclared (first use in this function)
-fs/bio.c:394: error: (Each undeclared identifier is reported only once
-fs/bio.c:394: error: for each function it appears in.)
-fs/bio.c: In function 'bio_alloc_map_data':
-fs/bio.c:963: error: 'UIO_MAXIOV' undeclared (first use in this function)
-make[1]: *** [fs/bio.o] Error 1
-make: *** [fs/bio.o] Error 2
+fs/bio.c: In function 'submit_bio_wait':
+fs/bio.c:786: warning: assignment from incompatible pointer type
 
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/bio.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/bio.c~aio-dont-include-aioh-in-schedh-fix fs/bio.c
---- a/fs/bio.c~aio-dont-include-aioh-in-schedh-fix
+diff -puN fs/bio.c~block-prep-work-for-batch-completion-fix-2 fs/bio.c
+--- a/fs/bio.c~block-prep-work-for-batch-completion-fix-2
 +++ a/fs/bio.c
-@@ -19,6 +19,7 @@
- #include <linux/swap.h>
- #include <linux/bio.h>
- #include <linux/blkdev.h>
-+#include <linux/uio.h>
- #include <linux/iocontext.h>
- #include <linux/slab.h>
- #include <linux/init.h>
+@@ -760,7 +760,8 @@ struct submit_bio_ret {
+ 	int error;
+ };
+ 
+-static void submit_bio_wait_endio(struct bio *bio, int error)
++static void submit_bio_wait_endio(struct bio *bio, int error,
++				  struct batch_complete *batch)
+ {
+ 	struct submit_bio_ret *ret = bio->bi_private;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,6 +117,7 @@ aio-dont-include-aioh-in-schedh-fix.patch
 aio-kill-ki_retry.patch
 aio-kill-ki_retry-checkpatch-fixes.patch
 block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
 block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
