@@ -1,76 +1,300 @@
 From: akpm@linux-foundation.org
-Subject: + mm-speedup-in-__early_pfn_to_nid-fix.patch added to -mm tree
-Date: Mon, 25 Mar 2013 16:08:44 -0700
-Message-ID: <20130325230844.DB5A131C1E1@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 26 Mar 2013 11:04:51 -0700
+Message-ID: <20130326180451.8FE4331C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:62749 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933629Ab3CYXIq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Mar 2013 19:08:46 -0400
-Received: by mail-ve0-f201.google.com with SMTP id 14so673937vea.0
-        for <mm-commits@vger.kernel.org>; Mon, 25 Mar 2013 16:08:45 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:38664 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752039Ab3CZSEy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 14:04:54 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hf12so746806vcb.0
+        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 11:04:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, kosaki.motohiro@gmail.com, linfeng@cn.fujitsu.com, mingo@elte.hu, rientjes@google.com, rja@sgi.com, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-speedup-in-__early_pfn_to_nid-fix
-has been added to the -mm tree.  Its filename is
-     mm-speedup-in-__early_pfn_to_nid-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-speedup-in-__early_pfn_to_nid-fix
+Subject: linux-next-git-rejects
 
-add missing semicolon, per Tony
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: Russ Anderson <rja@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/numa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-mxs/mach-mxs.c |  177 ---------------------------------
+ drivers/video/mxsfb.c        |    9 -
+ 2 files changed, 186 deletions(-)
 
-diff -puN arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix arch/ia64/mm/numa.c
---- a/arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid-fix
-+++ a/arch/ia64/mm/numa.c
-@@ -78,7 +78,7 @@ int __meminit __early_pfn_to_nid(unsigne
- 		if (section >= ssec && section < esec) {
- 			last_ssec = ssec;
- 			last_esec = esec;
--			last_nid = node_memblk[i].nid
-+			last_nid = node_memblk[i].nid;
- 			return node_memblk[i].nid;
- 		}
+diff -puN arch/arm/mach-mxs/mach-mxs.c~linux-next-git-rejects arch/arm/mach-mxs/mach-mxs.c
+--- a/arch/arm/mach-mxs/mach-mxs.c~linux-next-git-rejects
++++ a/arch/arm/mach-mxs/mach-mxs.c
+@@ -27,109 +27,6 @@
+ #include <mach/digctl.h>
+ #include <mach/mxs.h>
+ 
+-<<<<<<< HEAD
+-static struct fb_videomode mx23evk_video_modes[] = {
+-	{
+-		.name		= "Samsung-LMS430HF02",
+-		.refresh	= 60,
+-		.xres		= 480,
+-		.yres		= 272,
+-		.pixclock	= 108096, /* picosecond (9.2 MHz) */
+-		.left_margin	= 15,
+-		.right_margin	= 8,
+-		.upper_margin	= 12,
+-		.lower_margin	= 4,
+-		.hsync_len	= 1,
+-		.vsync_len	= 1,
+-	},
+-};
+-
+-static struct fb_videomode mx28evk_video_modes[] = {
+-	{
+-		.name		= "Seiko-43WVF1G",
+-		.refresh	= 60,
+-		.xres		= 800,
+-		.yres		= 480,
+-		.pixclock	= 29851, /* picosecond (33.5 MHz) */
+-		.left_margin	= 89,
+-		.right_margin	= 164,
+-		.upper_margin	= 23,
+-		.lower_margin	= 10,
+-		.hsync_len	= 10,
+-		.vsync_len	= 10,
+-	},
+-};
+-
+-static struct fb_videomode m28evk_video_modes[] = {
+-	{
+-		.name		= "Ampire AM-800480R2TMQW-T01H",
+-		.refresh	= 60,
+-		.xres		= 800,
+-		.yres		= 480,
+-		.pixclock	= 30066, /* picosecond (33.26 MHz) */
+-		.left_margin	= 0,
+-		.right_margin	= 256,
+-		.upper_margin	= 0,
+-		.lower_margin	= 45,
+-		.hsync_len	= 1,
+-		.vsync_len	= 1,
+-	},
+-};
+-
+-static struct fb_videomode apx4devkit_video_modes[] = {
+-	{
+-		.name		= "HannStar PJ70112A",
+-		.refresh	= 60,
+-		.xres		= 800,
+-		.yres		= 480,
+-		.pixclock	= 33333, /* picosecond (30.00 MHz) */
+-		.left_margin	= 88,
+-		.right_margin	= 40,
+-		.upper_margin	= 32,
+-		.lower_margin	= 13,
+-		.hsync_len	= 48,
+-		.vsync_len	= 3,
+-		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+-	},
+-};
+-
+-static struct fb_videomode apf28dev_video_modes[] = {
+-	{
+-		.name = "LW700",
+-		.refresh = 60,
+-		.xres = 800,
+-		.yres = 480,
+-		.pixclock = 30303, /* picosecond */
+-		.left_margin = 96,
+-		.right_margin = 96, /* at least 3 & 1 */
+-		.upper_margin = 0x14,
+-		.lower_margin = 0x15,
+-		.hsync_len = 64,
+-		.vsync_len = 4,
+-		.sync = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+-	},
+-};
+-
+-static struct fb_videomode cfa10049_video_modes[] = {
+-	{
+-		.name		= "Himax HX8357-B",
+-		.refresh	= 60,
+-		.xres		= 320,
+-		.yres		= 480,
+-		.pixclock	= 108506, /* picosecond (9.216 MHz) */
+-		.left_margin	= 2,
+-		.right_margin	= 2,
+-		.upper_margin	= 2,
+-		.lower_margin	= 2,
+-		.hsync_len	= 15,
+-		.vsync_len	= 15,
+-	},
+-};
+-
+-static struct mxsfb_platform_data mxsfb_pdata __initdata;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ /*
+  * MX28EVK_FLEXCAN_SWITCH is shared between both flexcan controllers
+  */
+@@ -243,19 +140,6 @@ static void __init update_fec_mac_prop(e
  	}
+ }
+ 
+-<<<<<<< HEAD
+-static void __init imx23_evk_init(void)
+-{
+-	mxsfb_pdata.mode_list = mx23evk_video_modes;
+-	mxsfb_pdata.mode_count = ARRAY_SIZE(mx23evk_video_modes);
+-	mxsfb_pdata.default_bpp = 32;
+-	mxsfb_pdata.ld_intf_width = STMLCDIF_24BIT;
+-	mxsfb_pdata.sync = MXSFB_SYNC_DATA_ENABLE_HIGH_ACT |
+-				MXSFB_SYNC_DOTCLK_FAILING_ACT;
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ static inline void enable_clk_enet_out(void)
+ {
+ 	struct clk *clk = clk_get_sys("enet_out", NULL);
+@@ -268,16 +152,6 @@ static void __init imx28_evk_init(void)
+ {
+ 	update_fec_mac_prop(OUI_FSL);
+ 
+-<<<<<<< HEAD
+-	mxsfb_pdata.mode_list = mx28evk_video_modes;
+-	mxsfb_pdata.mode_count = ARRAY_SIZE(mx28evk_video_modes);
+-	mxsfb_pdata.default_bpp = 32;
+-	mxsfb_pdata.ld_intf_width = STMLCDIF_24BIT;
+-	mxsfb_pdata.sync = MXSFB_SYNC_DATA_ENABLE_HIGH_ACT |
+-				MXSFB_SYNC_DOTCLK_FAILING_ACT;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	mxs_saif_clkmux_select(MXS_DIGCTL_SAIF_CLKMUX_EXTMSTR0);
+ }
+ 
+@@ -290,23 +164,6 @@ static void __init imx28_evk_post_init(v
+ 	}
+ }
+ 
+-<<<<<<< HEAD
+-static void __init m28evk_init(void)
+-{
+-	mxsfb_pdata.mode_list = m28evk_video_modes;
+-	mxsfb_pdata.mode_count = ARRAY_SIZE(m28evk_video_modes);
+-	mxsfb_pdata.default_bpp = 16;
+-	mxsfb_pdata.ld_intf_width = STMLCDIF_18BIT;
+-	mxsfb_pdata.sync = MXSFB_SYNC_DATA_ENABLE_HIGH_ACT;
+-}
+-
+-static void __init sc_sps1_init(void)
+-{
+-	enable_clk_enet_out();
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ static int apx4devkit_phy_fixup(struct phy_device *phy)
+ {
+ 	phy->dev_flags |= MICREL_PHY_50MHZ_CLK;
+@@ -320,16 +177,6 @@ static void __init apx4devkit_init(void)
+ 	if (IS_BUILTIN(CONFIG_PHYLIB))
+ 		phy_register_fixup_for_uid(PHY_ID_KSZ8051, MICREL_PHY_ID_MASK,
+ 					   apx4devkit_phy_fixup);
+-<<<<<<< HEAD
+-
+-	mxsfb_pdata.mode_list = apx4devkit_video_modes;
+-	mxsfb_pdata.mode_count = ARRAY_SIZE(apx4devkit_video_modes);
+-	mxsfb_pdata.default_bpp = 32;
+-	mxsfb_pdata.ld_intf_width = STMLCDIF_24BIT;
+-	mxsfb_pdata.sync = MXSFB_SYNC_DATA_ENABLE_HIGH_ACT |
+-				MXSFB_SYNC_DOTCLK_FAILING_ACT;
+-=======
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ #define ENET0_MDC__GPIO_4_0	MXS_GPIO_NR(4, 0)
+@@ -409,15 +256,6 @@ static void __init tx28_post_init(void)
+ static void __init cfa10049_init(void)
+ {
+ 	update_fec_mac_prop(OUI_CRYSTALFONTZ);
+-<<<<<<< HEAD
+-
+-	mxsfb_pdata.mode_list = cfa10049_video_modes;
+-	mxsfb_pdata.mode_count = ARRAY_SIZE(cfa10049_video_modes);
+-	mxsfb_pdata.default_bpp = 32;
+-	mxsfb_pdata.ld_intf_width = STMLCDIF_18BIT;
+-	mxsfb_pdata.sync = MXSFB_SYNC_DATA_ENABLE_HIGH_ACT;
+-=======
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static void __init cfa10037_init(void)
+@@ -425,21 +263,6 @@ static void __init cfa10037_init(void)
+ 	update_fec_mac_prop(OUI_CRYSTALFONTZ);
+ }
+ 
+-<<<<<<< HEAD
+-static void __init apf28_init(void)
+-{
+-	enable_clk_enet_out();
+-
+-	mxsfb_pdata.mode_list = apf28dev_video_modes;
+-	mxsfb_pdata.mode_count = ARRAY_SIZE(apf28dev_video_modes);
+-	mxsfb_pdata.default_bpp = 16;
+-	mxsfb_pdata.ld_intf_width = STMLCDIF_16BIT;
+-	mxsfb_pdata.sync = MXSFB_SYNC_DATA_ENABLE_HIGH_ACT |
+-				MXSFB_SYNC_DOTCLK_FAILING_ACT;
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ static void __init mxs_machine_init(void)
+ {
+ 	if (of_machine_is_compatible("fsl,imx28-evk"))
+diff -puN drivers/video/mxsfb.c~linux-next-git-rejects drivers/video/mxsfb.c
+--- a/drivers/video/mxsfb.c~linux-next-git-rejects
++++ a/drivers/video/mxsfb.c
+@@ -178,10 +178,6 @@ struct mxsfb_info {
+ 	unsigned ld_intf_width;
+ 	unsigned dotclk_delay;
+ 	const struct mxsfb_devdata *devdata;
+-<<<<<<< HEAD
+-	int mapped;
+-=======
+->>>>>>> linux-next/akpm-base
+ 	u32 sync;
+ };
+ 
+@@ -472,13 +468,8 @@ static int mxsfb_set_par(struct fb_info
+ 		vdctrl0 |= VDCTRL0_VSYNC_ACT_HIGH;
+ 	if (host->sync & MXSFB_SYNC_DATA_ENABLE_HIGH_ACT)
+ 		vdctrl0 |= VDCTRL0_ENABLE_ACT_HIGH;
+-<<<<<<< HEAD
+-	if (host->sync & MXSFB_SYNC_DOTCLK_FAILING_ACT)
+-		vdctrl0 |= VDCTRL0_DOTCLK_ACT_FAILING;
+-=======
+ 	if (host->sync & MXSFB_SYNC_DOTCLK_FALLING_ACT)
+ 		vdctrl0 |= VDCTRL0_DOTCLK_ACT_FALLING;
+->>>>>>> linux-next/akpm-base
+ 
+ 	writel(vdctrl0, host->base + LCDC_VDCTRL0);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 mips-define-kvm_user_mem_slots.patch
