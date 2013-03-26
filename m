@@ -1,58 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] scripts-tagssh-add-magic-for-offset-and-define.patch removed from -mm tree
-Date: Tue, 26 Mar 2013 14:43:47 -0700
-Message-ID: <20130326214347.6BFC45A42CA@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-staging-zcache-zcache-mainc-fix-build.patch added to -mm tree
+Date: Tue, 26 Mar 2013 14:58:14 -0700
+Message-ID: <20130326215814.7662D31C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:48107 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475Ab3CZVns (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 17:43:48 -0400
-Received: by mail-vb0-f74.google.com with SMTP id r6so769970vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 14:43:48 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:40565 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751235Ab3CZV6P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 17:58:15 -0400
+Received: by mail-qa0-f73.google.com with SMTP id hg5so91389qab.0
+        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 14:58:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tkhai@yandex.ru, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dan.magenheimer@oracle.com, gregkh@linuxfoundation.org, konrad.wilk@oracle.com
 
 
 The patch titled
-     Subject: scripts/tags.sh: add magic for OFFSET and DEFINE
-has been removed from the -mm tree.  Its filename was
-     scripts-tagssh-add-magic-for-offset-and-define.patch
+     Subject: drivers/staging/zcache/zcache-main.c: fix build
+has been added to the -mm tree.  Its filename is
+     drivers-staging-zcache-zcache-mainc-fix-build.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kirill Tkhai <tkhai@yandex.ru>
-Subject: scripts/tags.sh: add magic for OFFSET and DEFINE
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/staging/zcache/zcache-main.c: fix build
 
-Add rules for definitions which is generally used in asm-offsets files.
+flush_dcache_page() takes a page*, not a void*.  It breaks ia64.
 
-Signed-off-by: Kirill V Tkhai <tkhai@yandex.ru>
-Cc: Michal Marek <mmarek@suse.cz>
+Remove this and another unused function.  Warnings remain:
+
+drivers/staging/zcache/zcache-main.c: In function '__check_disable_cleancache':
+drivers/staging/zcache/zcache-main.c:1837: warning: return from incompatible pointer type
+drivers/staging/zcache/zcache-main.c: In function '__check_disable_frontswap':
+drivers/staging/zcache/zcache-main.c:1838: warning: return from incompatible pointer type
+drivers/staging/zcache/zcache-main.c: In function '__check_disable_frontswap_ignore_nonactive':
+drivers/staging/zcache/zcache-main.c:1842: warning: return from incompatible pointer type
+
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/staging/zcache/zcache-main.c |   26 -------------------------
+ 1 file changed, 26 deletions(-)
 
-diff -puN scripts/tags.sh~scripts-tagssh-add-magic-for-offset-and-define scripts/tags.sh
---- a/scripts/tags.sh~scripts-tagssh-add-magic-for-offset-and-define
-+++ a/scripts/tags.sh
-@@ -199,7 +199,9 @@ exuberant()
- 	--regex-c='/DEFINE_PER_CPU_SHARED_ALIGNED\(([^,]*,\s*)(\w*).*\)/\2/v/' \
- 	--regex-c='/DECLARE_WAIT_QUEUE_HEAD\((\w*)/\1/v/'		\
- 	--regex-c='/DECLARE_(TASKLET|WORK|DELAYED_WORK)\((\w*)/\2/v/'	\
--	--regex-c='/DEFINE_PCI_DEVICE_TABLE\((\w*)/\1/v/'
-+	--regex-c='/DEFINE_PCI_DEVICE_TABLE\((\w*)/\1/v/'		\
-+	--regex-c='/(^\s)OFFSET\((\w*)/\2/v/'				\
-+	--regex-c='/(^\s)DEFINE\((\w*)/\2/v/'
+diff -puN drivers/staging/zcache/zcache-main.c~drivers-staging-zcache-zcache-mainc-fix-build drivers/staging/zcache/zcache-main.c
+--- a/drivers/staging/zcache/zcache-main.c~drivers-staging-zcache-zcache-mainc-fix-build
++++ a/drivers/staging/zcache/zcache-main.c
+@@ -283,32 +283,6 @@ static void zcache_obj_free(struct tmem_
+ 	kmem_cache_free(zcache_obj_cache, obj);
+ }
  
- 	all_kconfigs | xargs $1 -a                              \
- 	--langdef=kconfig --language-force=kconfig              \
+-static bool page_is_zero_filled(void *ptr)
+-{
+-	unsigned int pos;
+-	unsigned long *page;
+-
+-	page = (unsigned long *)ptr;
+-
+-	for (pos = 0; pos < PAGE_SIZE / sizeof(*page); pos++) {
+-		if (page[pos])
+-			return false;
+-	}
+-
+-	return true;
+-}
+-
+-static void handle_zero_filled_page(void *page)
+-{
+-	void *user_mem;
+-
+-	user_mem = kmap_atomic(page);
+-	memset(user_mem, 0, PAGE_SIZE);
+-	kunmap_atomic(user_mem);
+-
+-	flush_dcache_page(page);
+-}
+-
+ static struct tmem_hostops zcache_hostops = {
+ 	.obj_alloc = zcache_obj_alloc,
+ 	.obj_free = zcache_obj_free,
 _
 
-Patches currently in -mm which might be from tkhai@yandex.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mips-define-kvm_user_mem_slots.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+drivers-staging-zcache-zcache-mainc-fix-build.patch
 
