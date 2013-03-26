@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions.patch added to -mm tree
-Date: Tue, 26 Mar 2013 12:26:01 -0700
-Message-ID: <20130326192601.753955A409A@corp2gmr1-2.hot.corp.google.com>
+Subject: + revert-ipc-dont-allocate-a-copy-larger-than-max.patch added to -mm tree
+Date: Tue, 26 Mar 2013 12:43:15 -0700
+Message-ID: <20130326194315.763C95A41DD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:39287 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753897Ab3CZT0D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 15:26:03 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hf12so756176vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 12:26:02 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:55859 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932623Ab3CZTnR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 15:43:17 -0400
+Received: by mail-gg0-f201.google.com with SMTP id q6so213480ggc.4
+        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 12:43:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, axboe@kernel.dk, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, davej@redhat.com, peter@hurleysoftware.com, skinsbursky@parallels.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/block/mg_disk.c: add CONFIG_PM_SLEEP to suspend/resume functions
+     Subject: revert "ipc: don't allocate a copy larger than max"
 has been added to the -mm tree.  Its filename is
-     drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions.patch
+     revert-ipc-dont-allocate-a-copy-larger-than-max.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,209 +33,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/block/mg_disk.c: add CONFIG_PM_SLEEP to suspend/resume functions
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "ipc: don't allocate a copy larger than max"
 
-Add CONFIG_PM_SLEEP to suspend/resume functions to fix the following build
-warning when CONFIG_PM_SLEEP is not selected.  This is because sleep PM
-callbacks defined by SIMPLE_DEV_PM_OPS are only used when the
-CONFIG_PM_SLEEP is enabled.
+Revert 88b9e456b164.  Dave has confirmed that this was causing oopses
+during trinity testing.
 
-drivers/block/mg_disk.c:783:12: warning: 'mg_suspend' defined but not used [-Wunused-function]
-drivers/block/mg_disk.c:807:12: warning: 'mg_resume' defined but not used [-Wunused-function]
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Peter Hurley <peter@hurleysoftware.com>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/mg_disk.c |    2 ++
- 1 file changed, 2 insertions(+)
+ ipc/msg.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/mg_disk.c~drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions drivers/block/mg_disk.c
---- a/drivers/block/mg_disk.c~drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions
-+++ a/drivers/block/mg_disk.c
-@@ -780,6 +780,7 @@ static const struct block_device_operati
- 	.getgeo = mg_getgeo
- };
+diff -puN ipc/msg.c~revert-ipc-dont-allocate-a-copy-larger-than-max ipc/msg.c
+--- a/ipc/msg.c~revert-ipc-dont-allocate-a-copy-larger-than-max
++++ a/ipc/msg.c
+@@ -820,17 +820,15 @@ long do_msgrcv(int msqid, void __user *b
+ 	struct msg_msg *copy = NULL;
+ 	unsigned long copy_number = 0;
  
-+#ifdef CONFIG_PM_SLEEP
- static int mg_suspend(struct device *dev)
- {
- 	struct mg_drv_data *prv_data = dev->platform_data;
-@@ -824,6 +825,7 @@ static int mg_resume(struct device *dev)
+-	ns = current->nsproxy->ipc_ns;
+-
+ 	if (msqid < 0 || (long) bufsz < 0)
+ 		return -EINVAL;
+ 	if (msgflg & MSG_COPY) {
+-		copy = prepare_copy(buf, min_t(size_t, bufsz, ns->msg_ctlmax),
+-				    msgflg, &msgtyp, &copy_number);
++		copy = prepare_copy(buf, bufsz, msgflg, &msgtyp, &copy_number);
+ 		if (IS_ERR(copy))
+ 			return PTR_ERR(copy);
+ 	}
+ 	mode = convert_mode(&msgtyp, msgflg);
++	ns = current->nsproxy->ipc_ns;
  
- 	return 0;
- }
-+#endif
- 
- static SIMPLE_DEV_PM_OPS(mg_pm, mg_suspend, mg_resume);
- 
+ 	msq = msg_lock_check(ns, msqid);
+ 	if (IS_ERR(msq)) {
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
-drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
-backlight-platform_lcd-remove-unnecessary-ifdefs.patch
-backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
-drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
-drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
-drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
-drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
-drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
-drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
-backlight-adp8870-add-missing-braces.patch
-drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
-drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
-backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
-backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
-backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
-backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
-backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
-backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
-backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
-backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
-backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
-backlight-kb3886_bl-convert-kb3886bl-to-dev_pm_ops.patch
-backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
-backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
-backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
-backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
-drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
-drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch
-video-backlight-add-ili922x-lcd-driver.patch
-backlight-da903x_bl-use-bl_core_suspendresume-option.patch
-backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch
-drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch
-drivers-video-backlight-adp8870_blc-fix-error-return-code-in-adp8870_led_probe.patch
-drivers-video-backlight-as3711_blc-add-of-support.patch
-rtc-rtc-mv-add-__init-annotation.patch
-rtc-rtc-davinci-add-__exit-annotation.patch
-rtc-rtc-ds1302-add-__exit-annotation.patch
-rtc-rtc-imxdi-add-__init-__exit-annotation.patch
-rtc-rtc-nuc900-add-__init-__exit-annotation.patch
-rtc-rtc-pcap-add-__init-__exit-annotation.patch
-rtc-rtc-tegra-add-__init-__exit-annotation.patch
-rtc-add-devm_rtc_device_registerunregister.patch
-rtc-max77686-use-module_platform_driver.patch
-rtc-max77686-add-missing-module-author-name.patch
-rtc-max77686-use-devm_kzalloc.patch
-rtc-max77686-fix-indentation-of-bit-definitions.patch
-rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
-rtc-rtc-ab3100-use-module_platform_driver_probe.patch
-rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
-rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
-rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
-rtc-rtc-coh901331-use-module_platform_driver_probe.patch
-rtc-rtc-davinci-use-module_platform_driver_probe.patch
-rtc-rtc-ds1302-use-module_platform_driver_probe.patch
-rtc-rtc-efi-use-module_platform_driver_probe.patch
-rtc-rtc-generic-use-module_platform_driver_probe.patch
-rtc-rtc-imxdi-use-module_platform_driver_probe.patch
-rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
-rtc-rtc-msm6242-use-module_platform_driver_probe.patch
-rtc-rtc-mv-use-module_platform_driver_probe.patch
-rtc-rtc-nuc900-use-module_platform_driver_probe.patch
-rtc-rtc-omap-use-module_platform_driver_probe.patch
-rtc-rtc-pcap-use-module_platform_driver_probe.patch
-rtc-rtc-ps3-use-module_platform_driver_probe.patch
-rtc-rtc-pxa-use-module_platform_driver_probe.patch
-rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
-rtc-rtc-sh-use-module_platform_driver_probe.patch
-rtc-rtc-starfire-use-module_platform_driver_probe.patch
-rtc-rtc-sun4v-use-module_platform_driver_probe.patch
-rtc-rtc-tegra-use-module_platform_driver_probe.patch
-rtc-rtc-tx4939-use-module_platform_driver_probe.patch
-rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
-rtc-rtc-coh90133-use-devm_rtc_device_register.patch
-rtc-rtc-da9052-use-devm_rtc_device_register.patch
-rtc-rtc-da9055-use-devm_rtc_device_register.patch
-rtc-rtc-davinci-use-devm_rtc_device_register.patch
-rtc-rtc-ds1511-use-devm_rtc_device_register.patch
-rtc-rtc-ds1553-use-devm_rtc_device_register.patch
-rtc-rtc-ds1742-use-devm_rtc_device_register.patch
-rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
-rtc-rtc-imxdi-use-devm_rtc_device_register.patch
-rtc-rtc-lp8788-use-devm_rtc_device_register.patch
-rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
-rtc-rtc-max77686-use-devm_rtc_device_register.patch
-rtc-rtc-max8907-use-devm_rtc_device_register.patch
-rtc-rtc-max8997-use-devm_rtc_device_register.patch
-rtc-rtc-mv-use-devm_rtc_device_register.patch
-rtc-rtc-mxc-use-devm_rtc_device_register.patch
-rtc-rtc-palmas-use-devm_rtc_device_register.patch
-rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
-rtc-rtc-s3c-use-devm_rtc_device_register.patch
-rtc-rtc-snvs-use-devm_rtc_device_register.patch
-rtc-rtc-spear-use-devm_rtc_device_register.patch
-rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
-rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
-rtc-rtc-tps65910-use-devm_rtc_device_register.patch
-rtc-rtc-tps80031-use-devm_rtc_device_register.patch
-rtc-rtc-tx4939-use-devm_rtc_device_register.patch
-rtc-rtc-vt8500-use-devm_rtc_device_register.patch
-rtc-rtc-wm831x-use-devm_rtc_device_register.patch
-rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
-rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
-rtc-tegra-set-irq-name-as-device-name.patch
-rtc-tegra-use-managed-rtc_device_register.patch
-rtc-rtc-palmas-use-devm_request_threaded_irq.patch
-rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
-rtc-rtc-ds1307-use-dev_dbg-instead-of-pr_debug.patch
-rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
-rtc-rtc-ab3100-use-devm_rtc_device_register.patch
-rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
-rtc-rtc-bq32k-use-devm_rtc_device_register.patch
-rtc-rtc-dm355evm-use-devm_rtc_device_register.patch
-rtc-rtc-ds1302-use-devm_rtc_device_register.patch
-rtc-rtc-ds1672-use-devm_rtc_device_register.patch
-rtc-rtc-ds3234-use-devm_rtc_device_register.patch
-rtc-rtc-efi-use-devm_rtc_device_register.patch
-rtc-rtc-em3027-use-devm_rtc_device_register.patch
-rtc-rtc-generic-use-devm_rtc_device_register.patch
-rtc-hid-sensor-time-use-devm_rtc_device_register.patch
-rtc-rtc-ls1x-use-devm_rtc_device_register.patch
-rtc-rtc-m41t93-use-devm_rtc_device_register.patch
-rtc-rtc-m41t94-use-devm_rtc_device_register.patch
-rtc-rtc-m48t86-use-devm_rtc_device_register.patch
-rtc-rtc-max6900-use-devm_rtc_device_register.patch
-rtc-rtc-max6902-use-devm_rtc_device_register.patch
-rtc-rtc-ps3-use-devm_rtc_device_register.patch
-rtc-rtc-r9701-use-devm_rtc_device_register.patch
-rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
-rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
-rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
-rtc-rtc-rx4581-use-devm_rtc_device_register.patch
-rtc-rtc-rx8581-use-devm_rtc_device_register.patch
-rtc-rtc-starfire-use-devm_rtc_device_register.patch
-rtc-rtc-sun4v-use-devm_rtc_device_register.patch
-rtc-rtc-test-use-devm_rtc_device_register.patch
-rtc-rtc-tile-use-devm_rtc_device_register.patch
-rtc-rtc-wm8350-use-devm_rtc_device_register.patch
-rtc-rtc-x1205-use-devm_rtc_device_register.patch
-rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-sh-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch
-rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch
-rtc-omap-update-to-devm_-api.patch
-drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch
-drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions.patch
-drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
-drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max8997c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max77686c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max8907c-remove-redundant-code.patch
-memstick-r592-make-r592_pm_ops-static.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mips-define-kvm_user_mem_slots.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
