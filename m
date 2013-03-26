@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch added to -mm tree
-Date: Tue, 26 Mar 2013 12:22:31 -0700
-Message-ID: <20130326192231.B75DC5A409A@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch added to -mm tree
+Date: Tue, 26 Mar 2013 12:22:33 -0700
+Message-ID: <20130326192233.D9D3431C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:53629 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754754Ab3CZTWd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 15:22:33 -0400
-Received: by mail-ye0-f202.google.com with SMTP id l8so232514yen.5
-        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 12:22:32 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:63531 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656Ab3CZTWf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 15:22:35 -0400
+Received: by mail-qa0-f74.google.com with SMTP id k4so75530qaq.3
+        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 12:22:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, jonghwa3.lee@samsung.com, ldew
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tps6586x.c: remove incorrect use of rtc_device_unregister
+     Subject: drivers/rtc/rtc-tps65910.c: fix incorrect return value on error
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
+     drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-tps6586x.c: remove incorrect use of rtc_device_unregister
+Subject: drivers/rtc/rtc-tps65910.c: fix incorrect return value on error
 
-Device managed functions do not need explicit freeing/unregistering. 
-Moreover in this case it was done using non-device managed function which
-is incorrect.  Hence remove it.
+'ret' was not initialized to correct error value before returning.  Since
+'irq' is also being tested for 0, we cannot return irq itself as it means
+function is success even though we are returning before completing the
+probe.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Laxman dewangan <ldewangan@nvidia.com>
+Acked-by: Venu Byravarasu <vbyravarasu@nvidia.com>
 Cc: Chiwoong Byun <woong.byun@samsung.com>
 Cc: Jonghwa Lee <jonghwa3.lee@samsung.com>
-Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: Laxman dewangan <ldewangan@nvidia.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps6586x.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/rtc/rtc-tps65910.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-tps6586x.c~drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister drivers/rtc/rtc-tps6586x.c
---- a/drivers/rtc/rtc-tps6586x.c~drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister
-+++ a/drivers/rtc/rtc-tps6586x.c
-@@ -289,15 +289,12 @@ static int tps6586x_rtc_probe(struct pla
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "request IRQ(%d) failed with ret %d\n",
- 				rtc->irq, ret);
--		goto fail_req_irq;
-+		goto fail_rtc_register;
+diff -puN drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error drivers/rtc/rtc-tps65910.c
+--- a/drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error
++++ a/drivers/rtc/rtc-tps65910.c
+@@ -263,7 +263,7 @@ static int tps65910_rtc_probe(struct pla
+ 	if (irq <= 0) {
+ 		dev_warn(&pdev->dev, "Wake up is not possible as irq = %d\n",
+ 			irq);
+-		return ret;
++		return -ENXIO;
  	}
- 	disable_irq(rtc->irq);
- 	device_set_wakeup_capable(&pdev->dev, 1);
- 	return 0;
  
--fail_req_irq:
--	rtc_device_unregister(rtc->rtc);
+ 	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
+_
+
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
+
+origin.patch
+linux-next.patch
+drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
+drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
+drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8997c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max77686c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8907c-remove-redundant-code.patch
+
