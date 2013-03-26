@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + revert-ipc-dont-allocate-a-copy-larger-than-max.patch added to -mm tree
-Date: Tue, 26 Mar 2013 12:43:15 -0700
-Message-ID: <20130326194315.763C95A41DD@corp2gmr1-2.hot.corp.google.com>
+Subject: + page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code.patch added to -mm tree
+Date: Tue, 26 Mar 2013 13:14:31 -0700
+Message-ID: <20130326201431.CCC4931C228@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:55859 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932623Ab3CZTnR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 15:43:17 -0400
-Received: by mail-gg0-f201.google.com with SMTP id q6so213480ggc.4
-        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 12:43:16 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:42080 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753580Ab3CZUOc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 16:14:32 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so761019qcr.2
+        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 13:14:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, peter@hurleysoftware.com, skinsbursky@parallels.com, stable@vger.kernel.org
+Cc: cody@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: revert "ipc: don't allocate a copy larger than max"
+     Subject: page_alloc: make setup_nr_node_ids() usable for arch init code
 has been added to the -mm tree.  Its filename is
-     revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+     page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,112 +33,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "ipc: don't allocate a copy larger than max"
+From: Cody P Schafer <cody@linux.vnet.ibm.com>
+Subject: page_alloc: make setup_nr_node_ids() usable for arch init code
 
-Revert 88b9e456b164.  Dave has confirmed that this was causing oopses
-during trinity testing.
+powerpc and x86 were opencoding copies of setup_nr_node_ids(), which
+page_alloc provides but makes static. Make it avaliable to the archs in
+linux/mm.h.
 
-Cc: Peter Hurley <peter@hurleysoftware.com>
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
+---
+
+index 7acc9dc..3405405 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    6 ++++++
+ mm/page_alloc.c    |    6 +-----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN ipc/msg.c~revert-ipc-dont-allocate-a-copy-larger-than-max ipc/msg.c
---- a/ipc/msg.c~revert-ipc-dont-allocate-a-copy-larger-than-max
-+++ a/ipc/msg.c
-@@ -820,17 +820,15 @@ long do_msgrcv(int msqid, void __user *b
- 	struct msg_msg *copy = NULL;
- 	unsigned long copy_number = 0;
+diff -puN include/linux/mm.h~page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code include/linux/mm.h
+--- a/include/linux/mm.h~page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code
++++ a/include/linux/mm.h
+@@ -1812,5 +1812,11 @@ static inline unsigned int debug_guardpa
+ static inline bool page_is_guard(struct page *page) { return false; }
+ #endif /* CONFIG_DEBUG_PAGEALLOC */
  
--	ns = current->nsproxy->ipc_ns;
--
- 	if (msqid < 0 || (long) bufsz < 0)
- 		return -EINVAL;
- 	if (msgflg & MSG_COPY) {
--		copy = prepare_copy(buf, min_t(size_t, bufsz, ns->msg_ctlmax),
--				    msgflg, &msgtyp, &copy_number);
-+		copy = prepare_copy(buf, bufsz, msgflg, &msgtyp, &copy_number);
- 		if (IS_ERR(copy))
- 			return PTR_ERR(copy);
- 	}
- 	mode = convert_mode(&msgtyp, msgflg);
-+	ns = current->nsproxy->ipc_ns;
++#if MAX_NUMNODES > 1
++void __init setup_nr_node_ids(void);
++#else
++static inline void setup_nr_node_ids(void) {}
++#endif
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_MM_H */
+diff -puN mm/page_alloc.c~page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code
++++ a/mm/page_alloc.c
+@@ -4749,7 +4749,7 @@ void __paginginit free_area_init_node(in
+ /*
+  * Figure out the number of possible node ids.
+  */
+-static void __init setup_nr_node_ids(void)
++void __init setup_nr_node_ids(void)
+ {
+ 	unsigned int node;
+ 	unsigned int highest = 0;
+@@ -4758,10 +4758,6 @@ static void __init setup_nr_node_ids(voi
+ 		highest = node;
+ 	nr_node_ids = highest + 1;
+ }
+-#else
+-static inline void setup_nr_node_ids(void)
+-{
+-}
+ #endif
  
- 	msq = msg_lock_check(ns, msqid);
- 	if (IS_ERR(msq)) {
+ /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
 
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mips-define-kvm_user_mem_slots.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code.patch
+x86-mm-numa-use-setup_nr_node_ids-instead-of-opencoding.patch
+powerpc-mm-numa-use-setup_nr_node_ids-instead-of-opencoding.patch
 
