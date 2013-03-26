@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + uapi-remove-empty-kbuild-files.patch added to -mm tree
-Date: Tue, 26 Mar 2013 13:19:35 -0700
-Message-ID: <20130326201935.6CAC431C1C6@corp2gmr1-1.hot.corp.google.com>
+Subject: + aio-dont-include-aioh-in-schedh-fix.patch added to -mm tree
+Date: Tue, 26 Mar 2013 13:58:31 -0700
+Message-ID: <20130326205831.E869831C06B@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:62633 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab3CZUTh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 16:19:37 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r13so280131ghr.4
-        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 13:19:37 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:53587 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab3CZU6d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Mar 2013 16:58:33 -0400
+Received: by mail-qa0-f74.google.com with SMTP id k4so85507qaq.5
+        for <mm-commits@vger.kernel.org>; Tue, 26 Mar 2013 13:58:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     From: David Howells <dhowells@redhat.com>
+     Subject: aio-dont-include-aioh-in-schedh-fix
 has been added to the -mm tree.  Its filename is
-     uapi-remove-empty-kbuild-files.patch
+     aio-dont-include-aioh-in-schedh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: UAPI: Remove empty Kbuild files
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aio-dont-include-aioh-in-schedh-fix
 
-Remove empty Kbuild files as they cause problems with the patch program which
-removes files that become empty.
+fs/bio.c: In function 'bio_alloc_bioset':
+fs/bio.c:394: error: 'UIO_MAXIOV' undeclared (first use in this function)
+fs/bio.c:394: error: (Each undeclared identifier is reported only once
+fs/bio.c:394: error: for each function it appears in.)
+fs/bio.c: In function 'bio_alloc_map_data':
+fs/bio.c:963: error: 'UIO_MAXIOV' undeclared (first use in this function)
+make[1]: *** [fs/bio.o] Error 1
+make: *** [fs/bio.o] Error 2
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/Kbuild      |    3 ---
- include/scsi/Kbuild |    1 -
- 2 files changed, 4 deletions(-)
+ fs/bio.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/Kbuild~uapi-remove-empty-kbuild-files include/Kbuild
---- a/include/Kbuild~uapi-remove-empty-kbuild-files
-+++ a/include/Kbuild
-@@ -1,5 +1,2 @@
- # Top-level Makefile calls into asm-$(ARCH)
- # List only non-arch directories below
--
--header-y += video/
--header-y += scsi/
-diff -puN include/scsi/Kbuild~uapi-remove-empty-kbuild-files /dev/null
---- a/include/scsi/Kbuild
-+++ /dev/null
-@@ -1 +0,0 @@
--header-y += fc/
+diff -puN fs/bio.c~aio-dont-include-aioh-in-schedh-fix fs/bio.c
+--- a/fs/bio.c~aio-dont-include-aioh-in-schedh-fix
++++ a/fs/bio.c
+@@ -19,6 +19,7 @@
+ #include <linux/swap.h>
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
++#include <linux/uio.h>
+ #include <linux/iocontext.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-debug_locksh-make-warning-more-verbose.patch
-mm-introduce-common-help-functions-to-deal-with-reserved-managed-pages.patch
-mm-frv-use-common-help-functions-to-free-reserved-pages.patch
-mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
-mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
-mm-remove-free_area_cache.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
-usermodehelper-export-_exec-and-_setup-functions.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mips-define-kvm_user_mem_slots.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
 usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kmod-split-call-to-call_usermodehelper_fns.patch
-keys-split-call-to-call_usermodehelper_fns.patch
-coredump-remove-trailling-whitespaces.patch
-split-remaining-calls-to-call_usermodehelper_fns.patch
-kmod-remove-call_usermodehelper_fns.patch
-uapi-remove-empty-kbuild-files.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
