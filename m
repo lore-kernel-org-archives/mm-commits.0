@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-infiniband-hw-mlx4-convert-to-using-idr_alloc_cyclic.patch added to -mm tree
-Date: Wed, 27 Mar 2013 13:22:15 -0700
-Message-ID: <20130327202215.CC8345A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic.patch added to -mm tree
+Date: Wed, 27 Mar 2013 13:22:21 -0700
+Message-ID: <20130327202221.D68F731C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:38067 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754452Ab3C0UWR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 16:22:17 -0400
-Received: by mail-ye0-f202.google.com with SMTP id l8so345539yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 13:22:16 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:49782 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754413Ab3C0UWX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 16:22:23 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so326668ves.5
+        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 13:22:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, jackm@dev.mellanox.co.il, ogerlitz@mellanox.com, roland@purestorage.com, tj@kernel.org
+Cc: jlayton@redhat.com, davem@davemloft.net, nhorman@tuxdriver.com, sri@us.ibm.com, tj@kernel.org, vyasevich@gmail.com
 
 
 The patch titled
-     Subject: drivers/infiniband/hw/mlx4: convert to using idr_alloc_cyclic()
+     Subject: sctp: convert sctp_assoc_set_id() to use idr_alloc_cyclic()
 has been added to the -mm tree.  Its filename is
-     drivers-infiniband-hw-mlx4-convert-to-using-idr_alloc_cyclic.patch
+     sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jeff Layton <jlayton@redhat.com>
-Subject: drivers/infiniband/hw/mlx4: convert to using idr_alloc_cyclic()
+Subject: sctp: convert sctp_assoc_set_id() to use idr_alloc_cyclic()
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Vlad Yasevich <vyasevich@gmail.com>
+Cc: Sridhar Samudrala <sri@us.ibm.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/mlx4/cm.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ net/sctp/associola.c |   16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN drivers/infiniband/hw/mlx4/cm.c~drivers-infiniband-hw-mlx4-convert-to-using-idr_alloc_cyclic drivers/infiniband/hw/mlx4/cm.c
---- a/drivers/infiniband/hw/mlx4/cm.c~drivers-infiniband-hw-mlx4-convert-to-using-idr_alloc_cyclic
-+++ a/drivers/infiniband/hw/mlx4/cm.c
-@@ -204,7 +204,6 @@ static struct id_map_entry *
- id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
- {
- 	int ret;
--	static int next_id;
- 	struct id_map_entry *ent;
- 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
+diff -puN net/sctp/associola.c~sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic net/sctp/associola.c
+--- a/net/sctp/associola.c~sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic
++++ a/net/sctp/associola.c
+@@ -66,13 +66,6 @@ static void sctp_assoc_bh_rcv(struct wor
+ static void sctp_assoc_free_asconf_acks(struct sctp_association *asoc);
+ static void sctp_assoc_free_asconf_queue(struct sctp_association *asoc);
  
-@@ -223,9 +222,8 @@ id_map_alloc(struct ib_device *ibdev, in
- 	idr_preload(GFP_KERNEL);
- 	spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
+-/* Keep track of the new idr low so that we don't re-use association id
+- * numbers too fast.  It is protected by they idr spin lock is in the
+- * range of 1 - INT_MAX.
+- */
+-static u32 idr_low = 1;
+-
+-
+ /* 1st Level Abstractions. */
  
--	ret = idr_alloc(&sriov->pv_id_table, ent, next_id, 0, GFP_NOWAIT);
-+	ret = idr_alloc_cyclic(&sriov->pv_id_table, ent, 0, 0, GFP_NOWAIT);
- 	if (ret >= 0) {
--		next_id = max(ret + 1, 0);
- 		ent->pv_cm_id = (u32)ret;
- 		sl_id_map_add(ibdev, ent);
- 		list_add_tail(&ent->list, &sriov->cm_list);
+ /* Initialize a new association from provided memory. */
+@@ -1601,13 +1594,8 @@ int sctp_assoc_set_id(struct sctp_associ
+ 	if (preload)
+ 		idr_preload(gfp);
+ 	spin_lock_bh(&sctp_assocs_id_lock);
+-	/* 0 is not a valid id, idr_low is always >= 1 */
+-	ret = idr_alloc(&sctp_assocs_id, asoc, idr_low, 0, GFP_NOWAIT);
+-	if (ret >= 0) {
+-		idr_low = ret + 1;
+-		if (idr_low == INT_MAX)
+-			idr_low = 1;
+-	}
++	/* 0 is not a valid assoc_id, must be >= 1 */
++	ret = idr_alloc_cyclic(&sctp_assocs_id, asoc, 1, 0, GFP_NOWAIT);
+ 	spin_unlock_bh(&sctp_assocs_id_lock);
+ 	if (preload)
+ 		idr_preload_end();
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
