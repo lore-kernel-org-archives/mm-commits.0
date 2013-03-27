@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 27 Mar 2013 14:33:16 -0700
-Message-ID: <20130327213317.184185A4206@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 27 Mar 2013 14:35:21 -0700
+Message-ID: <20130327213521.E816831C254@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:48465 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754351Ab3C0VdS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 17:33:18 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so877517qcr.4
-        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 14:33:17 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:52791 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489Ab3C0VfX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 17:35:23 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r13so396383ghr.0
+        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 14:35:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, agshew@gmail.com
 
 
 The patch titled
-     Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
+     Subject: mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch
+     mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
+Subject: mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes
 
 WARNING: externs should be avoided in .c files
-#366: FILE: kernel/sysctl.c:100:
-+extern unsigned long sysctl_user_reserve_kbytes;
-
-ERROR: code indent should use tabs where possible
-#421: FILE: mm/mmap.c:189:
-+ ^I * Don't let a single process grow so big a user can't recover$
-
-WARNING: please, no space before tabs
-#421: FILE: mm/mmap.c:189:
-+ ^I * Don't let a single process grow so big a user can't recover$
-
-ERROR: code indent should use tabs where possible
-#422: FILE: mm/mmap.c:190:
-+         */$
+#341: FILE: kernel/sysctl.c:100:
++extern unsigned long sysctl_admin_reserve_kbytes;
 
 WARNING: line over 80 characters
-#439: FILE: mm/mmap.c:3107:
-+ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
-
-ERROR: code indent should use tabs where possible
-#492: FILE: mm/nommu.c:1953:
-+         */$
+#379: FILE: mm/mmap.c:172:
++			free -= sysctl_admin_reserve_kbytes  >> (PAGE_SHIFT - 10);
 
 WARNING: line over 80 characters
-#509: FILE: mm/nommu.c:2124:
-+ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
+#441: FILE: mm/nommu.c:1936:
++			free -= sysctl_admin_reserve_kbytes  >> (PAGE_SHIFT - 10);
 
-total: 3 errors, 4 warnings, 202 lines checked
+total: 0 errors, 3 warnings, 172 lines checked
 
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch has style problems, please review.
+./patches/mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -80,81 +61,58 @@ Cc: Andrew Shewmaker <agshew@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
+ include/linux/mm.h |    1 +
  kernel/sysctl.c    |    1 -
- mm/mmap.c          |    7 ++++---
- mm/nommu.c         |    5 +++--
- 4 files changed, 9 insertions(+), 6 deletions(-)
+ mm/mmap.c          |    2 +-
+ mm/nommu.c         |    2 +-
+ 4 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes include/linux/mm.h
---- a/include/linux/mm.h~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
+diff -puN include/linux/mm.h~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes include/linux/mm.h
+--- a/include/linux/mm.h~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes
 +++ a/include/linux/mm.h
-@@ -44,6 +44,8 @@ extern int sysctl_legacy_va_layout;
- #include <asm/pgtable.h>
+@@ -45,6 +45,7 @@ extern int sysctl_legacy_va_layout;
  #include <asm/processor.h>
  
-+extern unsigned long sysctl_user_reserve_kbytes;
-+
+ extern unsigned long sysctl_user_reserve_kbytes;
++extern unsigned long sysctl_admin_reserve_kbytes;
+ 
  #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
  
- /* to align the pointer to the (next) page boundary */
-diff -puN kernel/sysctl.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes kernel/sysctl.c
---- a/kernel/sysctl.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
+diff -puN kernel/sysctl.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes
 +++ a/kernel/sysctl.c
 @@ -97,7 +97,6 @@
  /* External variables not in a header file. */
  extern int sysctl_overcommit_memory;
  extern int sysctl_overcommit_ratio;
--extern unsigned long sysctl_user_reserve_kbytes;
+-extern unsigned long sysctl_admin_reserve_kbytes;
  extern int max_threads;
  extern int suid_dumpable;
  #ifdef CONFIG_COREDUMP
-diff -puN mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes mm/mmap.c
---- a/mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
+diff -puN mm/mmap.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes mm/mmap.c
+--- a/mm/mmap.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes
 +++ a/mm/mmap.c
-@@ -186,8 +186,8 @@ int __vm_enough_memory(struct mm_struct
- 	allowed += total_swap_pages;
+@@ -169,7 +169,7 @@ int __vm_enough_memory(struct mm_struct
+ 		 * Reserve some for root
+ 		 */
+ 		if (!cap_sys_admin)
+-			free -= sysctl_admin_reserve_kbytes  >> (PAGE_SHIFT - 10);
++			free -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
  
- 	/*
-- 	 * Don't let a single process grow so big a user can't recover
--         */
-+	 * Don't let a single process grow so big a user can't recover
-+	 */
- 	if (mm) {
- 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
- 		allowed -= min(mm->total_vm / 32, reserve);
-@@ -3104,7 +3104,8 @@ void __init mmap_init(void)
-  * Initialise sysctl_user_reserve_kbytes.
-  *
-  * This is intended to prevent a user from starting a single memory hogging
-- * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
-+ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER
-+ * mode.
-  *
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
-diff -puN mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes mm/nommu.c
---- a/mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
+ 		if (free > pages)
+ 			return 0;
+diff -puN mm/nommu.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes mm/nommu.c
+--- a/mm/nommu.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes
 +++ a/mm/nommu.c
-@@ -1950,7 +1950,7 @@ int __vm_enough_memory(struct mm_struct
+@@ -1933,7 +1933,7 @@ int __vm_enough_memory(struct mm_struct
+ 		 * Reserve some for root
+ 		 */
+ 		if (!cap_sys_admin)
+-			free -= sysctl_admin_reserve_kbytes  >> (PAGE_SHIFT - 10);
++			free -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
  
- 	/*
- 	 * Don't let a single process grow so big a user can't recover
--         */
-+	 */
- 	if (mm) {
- 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
- 		allowed -= min(mm->total_vm / 32, reserve);
-@@ -2121,7 +2121,8 @@ int nommu_shrink_inode_mappings(struct i
-  * Initialise sysctl_user_reserve_kbytes.
-  *
-  * This is intended to prevent a user from starting a single memory hogging
-- * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
-+ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER
-+ * mode.
-  *
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
+ 		if (free > pages)
+ 			return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,6 +136,7 @@ mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
 mm-speedup-in-__early_pfn_to_nid.patch
 mm-speedup-in-__early_pfn_to_nid-fix.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
