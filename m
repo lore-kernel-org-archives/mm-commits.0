@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix.patch added to -mm tree
-Date: Wed, 27 Mar 2013 13:14:58 -0700
-Message-ID: <20130327201458.6E2D331C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic.patch added to -mm tree
+Date: Wed, 27 Mar 2013 13:22:13 -0700
+Message-ID: <20130327202213.CF57B31C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:42638 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754339Ab3C0UO7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 16:14:59 -0400
-Received: by mail-ve0-f201.google.com with SMTP id ox1so187833veb.2
-        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 13:14:59 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:65006 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754398Ab3C0UWP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 16:22:15 -0400
+Received: by mail-ye0-f202.google.com with SMTP id l8so345531yen.3
+        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 13:22:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, dan.carpenter@oracle.com, mgorman@suse.de
+Cc: jlayton@redhat.com, swise@opengridcomputing.com, tj@kernel.org, tom@opengridcomputing.com
 
 
 The patch titled
-     Subject: mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix
+     Subject: drivers/infiniband/hw/amso1100: convert to using idr_alloc_cyclic
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix.patch
+     drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix
+From: Jeff Layton <jlayton@redhat.com>
+Subject: drivers/infiniband/hw/amso1100: convert to using idr_alloc_cyclic
 
-Dan Carpenter has reported that (alloc_flags & ALLOC_WMARK_MIN) test
-doesn't make much sense as the flag is 0 and it is in fact intended for
-wmark indexing rather than being used as a flag.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Tucker <tom@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/amso1100/c2.h    |    1 -
+ drivers/infiniband/hw/amso1100/c2_qp.c |    3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix
-+++ a/mm/page_alloc.c
-@@ -1955,7 +1955,7 @@ zonelist_scan:
- 				 * when the watermark is between the low and
- 				 * min watermarks.
- 				 */
--				if ((alloc_flags & ALLOC_WMARK_MIN) ||
-+				if (((alloc_flags & ALLOC_WMARK_MASK) == ALLOC_WMARK_MIN) ||
- 				    ret == ZONE_RECLAIM_SOME)
- 					goto this_zone_full;
+diff -puN drivers/infiniband/hw/amso1100/c2.h~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic drivers/infiniband/hw/amso1100/c2.h
+--- a/drivers/infiniband/hw/amso1100/c2.h~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic
++++ a/drivers/infiniband/hw/amso1100/c2.h
+@@ -265,7 +265,6 @@ struct c2_pd_table {
+ struct c2_qp_table {
+ 	struct idr idr;
+ 	spinlock_t lock;
+-	int last;
+ };
+ 
+ struct c2_element {
+diff -puN drivers/infiniband/hw/amso1100/c2_qp.c~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic drivers/infiniband/hw/amso1100/c2_qp.c
+--- a/drivers/infiniband/hw/amso1100/c2_qp.c~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic
++++ a/drivers/infiniband/hw/amso1100/c2_qp.c
+@@ -385,8 +385,7 @@ static int c2_alloc_qpn(struct c2_dev *c
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock_irq(&c2dev->qp_table.lock);
+ 
+-	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
+-			GFP_NOWAIT);
++	ret = idr_alloc_cyclic(&c2dev->qp_table.idr, qp, 0, 0, GFP_NOWAIT);
+ 	if (ret >= 0)
+ 		qp->qpn = ret;
  
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
+origin.patch
 linux-next.patch
-mm-export-split_page.patch
-mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
-rmap-recompute-pgoff-for-unmapping-huge-page.patch
-memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter.patch
-memcg-rework-mem_cgroup_iter-to-use-cgroup-iterators.patch
-memcg-relax-memcg-iter-caching.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-memcg-simplify-mem_cgroup_iter.patch
-memcg-further-simplify-mem_cgroup_iter.patch
-cgroup-remove-css_get_next.patch
-mm-hugetlb-add-more-arch-defined-huge_pte-functions.patch
-memcg-do-not-check-for-do_swap_account-in-mem_cgroup_readwritereset.patch
-mm-hugetlb-include-hugepages-in-meminfo.patch
-mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim.patch
-mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+idr-introduce-idr_alloc_cyclic.patch
+drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic.patch
+drivers-infiniband-hw-mlx4-convert-to-using-idr_alloc_cyclic.patch
+nfsd-convert-nfs4_alloc_stid-to-use-idr_alloc_cyclic.patch
+inotify-convert-inotify_add_to_idr-to-use-idr_alloc_cyclic.patch
+sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic.patch
 
