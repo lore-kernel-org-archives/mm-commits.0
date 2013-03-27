@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + misc-generic-on-chip-sram-allocation-driver-fix.patch added to -mm tree
-Date: Wed, 27 Mar 2013 15:29:57 -0700
-Message-ID: <20130327222957.C439C5A426E@corp2gmr1-2.hot.corp.google.com>
+Subject: + media-coda-use-genalloc-api.patch added to -mm tree
+Date: Wed, 27 Mar 2013 15:29:59 -0700
+Message-ID: <20130327222959.F22DC31C1C6@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:34279 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754429Ab3C0W36 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 18:29:58 -0400
-Received: by mail-qa0-f74.google.com with SMTP id k4so202851qaq.5
-        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 15:29:58 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:55464 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754835Ab3C0WaC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 18:30:02 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so883929qen.2
+        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 15:30:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, p.zabel@pengutronix.de
+Cc: p.zabel@pengutronix.de, dong.aisheng@linaro.org, fabio.estevam@freescale.com, grant.likely@secretlab.ca, gregkh@linuxfoundation.org, javier.martin@vista-silicon.com, monstr@monstr.eu, mporter@ti.com, paul.gortmaker@windriver.com, rob.herring@calxeda.com, shawn.guo@linaro.org, shijie8@gmail.com
 
 
 The patch titled
-     Subject: misc-generic-on-chip-sram-allocation-driver-fix
+     Subject: media: coda: use genalloc API
 has been added to the -mm tree.  Its filename is
-     misc-generic-on-chip-sram-allocation-driver-fix.patch
+     media-coda-use-genalloc-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,122 +33,213 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: misc-generic-on-chip-sram-allocation-driver-fix
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: media: coda: use genalloc API
 
-fix Kconfig text, make sram_init static
+This patch depends on "genalloc: add devres support, allow to find a
+managed pool by device", which provides the of_get_named_gen_pool and
+dev_get_gen_pool functions.
 
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Javier Martin <javier.martin@vista-silicon.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Dong Aisheng <dong.aisheng@linaro.org>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huang Shijie <shijie8@gmail.com>
+Cc: Matt Porter <mporter@ti.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    6 +++---
- drivers/misc/sram.c  |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/devicetree/bindings/media/coda.txt |   30 ++++++++
+ drivers/media/platform/Kconfig                   |    1 
+ drivers/media/platform/coda.c                    |   45 ++++++++-----
+ include/linux/platform_data/coda.h               |   18 +++++
+ 4 files changed, 79 insertions(+), 15 deletions(-)
 
-diff -puN drivers/misc/Kconfig~misc-generic-on-chip-sram-allocation-driver-fix drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~misc-generic-on-chip-sram-allocation-driver-fix
-+++ a/drivers/misc/Kconfig
-@@ -523,9 +523,9 @@ config SRAM
- 	depends on HAS_IOMEM
- 	select GENERIC_ALLOCATOR
- 	help
--	  This driver allows to declare a memory region to be managed
--	  by the genalloc API. It is supposed to be used for small
--	  on-chip SRAM areas found on many SoCs.
-+	  This driver allows you to declare a memory region to be managed by
-+	  the genalloc API. It is supposed to be used for small on-chip SRAM
-+	  areas found on many SoCs.
+diff -puN /dev/null Documentation/devicetree/bindings/media/coda.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/media/coda.txt
+@@ -0,0 +1,30 @@
++Chips&Media Coda multi-standard codec IP
++========================================
++
++Coda codec IPs are present in i.MX SoCs in various versions,
++called VPU (Video Processing Unit).
++
++Required properties:
++- compatible : should be "fsl,<chip>-src" for i.MX SoCs:
++  (a) "fsl,imx27-vpu" for CodaDx6 present in i.MX27
++  (b) "fsl,imx53-vpu" for CODA7541 present in i.MX53
++  (c) "fsl,imx6q-vpu" for CODA960 present in i.MX6q
++- reg: should be register base and length as documented in the
++  SoC reference manual
++- interrupts : Should contain the VPU interrupt. For CODA960,
++  a second interrupt is needed for the MJPEG unit.
++- clocks : Should contain the ahb and per clocks, in the order
++  determined by the clock-names property.
++- clock-names : Should be "ahb", "per"
++- iram : phandle pointing to the SRAM device node
++
++Example:
++
++vpu: vpu@63ff4000 {
++	compatible = "fsl,imx53-vpu";
++	reg = <0x63ff4000 0x1000>;
++	interrupts = <9>;
++	clocks = <&clks 63>, <&clks 63>;
++	clock-names = "ahb", "per";
++	iram = <&ocram>;
++};
+diff -puN drivers/media/platform/Kconfig~media-coda-use-genalloc-api drivers/media/platform/Kconfig
+--- a/drivers/media/platform/Kconfig~media-coda-use-genalloc-api
++++ a/drivers/media/platform/Kconfig
+@@ -145,7 +145,6 @@ config VIDEO_CODA
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+-	select IRAM_ALLOC if SOC_IMX53
+ 	---help---
+ 	   Coda is a range of video codec IPs that supports
+ 	   H.264, MPEG-4, and other video formats.
+diff -puN drivers/media/platform/coda.c~media-coda-use-genalloc-api drivers/media/platform/coda.c
+--- a/drivers/media/platform/coda.c~media-coda-use-genalloc-api
++++ a/drivers/media/platform/coda.c
+@@ -14,6 +14,7 @@
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
++#include <linux/genalloc.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/irq.h>
+@@ -23,7 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/of.h>
+-#include <linux/platform_data/imx-iram.h>
++#include <linux/platform_data/coda.h>
  
- source "drivers/misc/c2port/Kconfig"
- source "drivers/misc/eeprom/Kconfig"
-diff -puN drivers/misc/sram.c~misc-generic-on-chip-sram-allocation-driver-fix drivers/misc/sram.c
---- a/drivers/misc/sram.c~misc-generic-on-chip-sram-allocation-driver-fix
-+++ a/drivers/misc/sram.c
-@@ -113,7 +113,7 @@ static struct platform_driver sram_drive
- 	.remove = sram_remove,
- };
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+@@ -43,6 +44,7 @@
+ #define CODA7_WORK_BUF_SIZE	(512 * 1024 + CODA_FMO_BUF_SIZE * 8 * 1024)
+ #define CODA_PARA_BUF_SIZE	(10 * 1024)
+ #define CODA_ISRAM_SIZE	(2048 * 2)
++#define CODADX6_IRAM_SIZE	0xb000
+ #define CODA7_IRAM_SIZE		0x14000 /* 81920 bytes */
  
--int __init sram_init(void)
-+static int __init sram_init(void)
- {
- 	return platform_driver_register(&sram_driver);
- }
+ #define CODA_MAX_FRAMEBUFFERS	2
+@@ -128,7 +130,10 @@ struct coda_dev {
+ 
+ 	struct coda_aux_buf	codebuf;
+ 	struct coda_aux_buf	workbuf;
++	struct gen_pool		*iram_pool;
++	long unsigned int	iram_vaddr;
+ 	long unsigned int	iram_paddr;
++	unsigned long		iram_size;
+ 
+ 	spinlock_t		irqlock;
+ 	struct mutex		dev_mutex;
+@@ -1926,6 +1931,9 @@ static int coda_probe(struct platform_de
+ 	const struct of_device_id *of_id =
+ 			of_match_device(of_match_ptr(coda_dt_ids), &pdev->dev);
+ 	const struct platform_device_id *pdev_id;
++	struct coda_platform_data *pdata = pdev->dev.platform_data;
++	struct device_node *np = pdev->dev.of_node;
++	struct gen_pool *pool;
+ 	struct coda_dev *dev;
+ 	struct resource *res;
+ 	int ret, irq;
+@@ -1988,6 +1996,16 @@ static int coda_probe(struct platform_de
+ 		return -ENOENT;
+ 	}
+ 
++	/* Get IRAM pool from device tree or platform data */
++	pool = of_get_named_gen_pool(np, "iram", 0);
++	if (!pool && pdata)
++		pool = dev_get_gen_pool(pdata->iram_dev);
++	if (!pool) {
++		dev_err(&pdev->dev, "iram pool not available\n");
++		return -ENOMEM;
++	}
++	dev->iram_pool = pool;
++
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 	if (ret)
+ 		return ret;
+@@ -2022,18 +2040,17 @@ static int coda_probe(struct platform_de
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (dev->devtype->product == CODA_DX6) {
+-		dev->iram_paddr = 0xffff4c00;
+-	} else {
+-		void __iomem *iram_vaddr;
+-
+-		iram_vaddr = iram_alloc(CODA7_IRAM_SIZE,
+-					&dev->iram_paddr);
+-		if (!iram_vaddr) {
+-			dev_err(&pdev->dev, "unable to alloc iram\n");
+-			return -ENOMEM;
+-		}
++	if (dev->devtype->product == CODA_DX6)
++		dev->iram_size = CODADX6_IRAM_SIZE;
++	else
++		dev->iram_size = CODA7_IRAM_SIZE;
++	dev->iram_vaddr = gen_pool_alloc(dev->iram_pool, dev->iram_size);
++	if (!dev->iram_vaddr) {
++		dev_err(&pdev->dev, "unable to alloc iram\n");
++		return -ENOMEM;
+ 	}
++	dev->iram_paddr = gen_pool_virt_to_phys(dev->iram_pool,
++						dev->iram_vaddr);
+ 
+ 	platform_set_drvdata(pdev, dev);
+ 
+@@ -2050,8 +2067,8 @@ static int coda_remove(struct platform_d
+ 	if (dev->alloc_ctx)
+ 		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-	if (dev->iram_paddr)
+-		iram_free(dev->iram_paddr, CODA7_IRAM_SIZE);
++	if (dev->iram_vaddr)
++		gen_pool_free(dev->iram_pool, dev->iram_vaddr, dev->iram_size);
+ 	if (dev->codebuf.vaddr)
+ 		dma_free_coherent(&pdev->dev, dev->codebuf.size,
+ 				  &dev->codebuf.vaddr, dev->codebuf.paddr);
+diff -puN /dev/null include/linux/platform_data/coda.h
+--- /dev/null
++++ a/include/linux/platform_data/coda.h
+@@ -0,0 +1,18 @@
++/*
++ * Copyright (C) 2013 Philipp Zabel, Pengutronix
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#ifndef PLATFORM_CODA_H
++#define PLATFORM_CODA_H
++
++struct device;
++
++struct coda_platform_data {
++	struct device *iram_dev;
++};
++
++#endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from p.zabel@pengutronix.de are
 
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-mips-define-kvm_user_mem_slots.patch
-drivers-staging-zcache-zcache-mainc-fix-build.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device.patch
+misc-generic-on-chip-sram-allocation-driver.patch
 misc-generic-on-chip-sram-allocation-driver-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+media-coda-use-genalloc-api.patch
 
