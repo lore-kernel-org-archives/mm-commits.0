@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic.patch added to -mm tree
-Date: Wed, 27 Mar 2013 13:22:21 -0700
-Message-ID: <20130327202221.D68F731C102@corp2gmr1-1.hot.corp.google.com>
+Subject: + inotify-convert-inotify_add_to_idr-to-use-idr_alloc_cyclic.patch added to -mm tree
+Date: Wed, 27 Mar 2013 13:22:19 -0700
+Message-ID: <20130327202219.D501631C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:49782 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754413Ab3C0UWX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 16:22:23 -0400
-Received: by mail-ve0-f202.google.com with SMTP id m1so326668ves.5
-        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 13:22:22 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:46758 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754413Ab3C0UWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 16:22:21 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 7so576949qeb.5
+        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 13:22:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, davem@davemloft.net, nhorman@tuxdriver.com, sri@us.ibm.com, tj@kernel.org, vyasevich@gmail.com
+Cc: jlayton@redhat.com, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org, tj@kernel.org
 
 
 The patch titled
-     Subject: sctp: convert sctp_assoc_set_id() to use idr_alloc_cyclic()
+     Subject: inotify: convert inotify_add_to_idr() to use idr_alloc_cyclic()
 has been added to the -mm tree.  Its filename is
-     sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic.patch
+     inotify-convert-inotify_add_to_idr-to-use-idr_alloc_cyclic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jeff Layton <jlayton@redhat.com>
-Subject: sctp: convert sctp_assoc_set_id() to use idr_alloc_cyclic()
+Subject: inotify: convert inotify_add_to_idr() to use idr_alloc_cyclic()
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Sridhar Samudrala <sri@us.ibm.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/associola.c |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ fs/notify/inotify/inotify_user.c |    8 ++------
+ include/linux/fsnotify_backend.h |    1 -
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN net/sctp/associola.c~sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic net/sctp/associola.c
---- a/net/sctp/associola.c~sctp-convert-sctp_assoc_set_id-to-use-idr_alloc_cyclic
-+++ a/net/sctp/associola.c
-@@ -66,13 +66,6 @@ static void sctp_assoc_bh_rcv(struct wor
- static void sctp_assoc_free_asconf_acks(struct sctp_association *asoc);
- static void sctp_assoc_free_asconf_queue(struct sctp_association *asoc);
+diff -puN fs/notify/inotify/inotify_user.c~inotify-convert-inotify_add_to_idr-to-use-idr_alloc_cyclic fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~inotify-convert-inotify_add_to_idr-to-use-idr_alloc_cyclic
++++ a/fs/notify/inotify/inotify_user.c
+@@ -359,7 +359,6 @@ static int inotify_find_inode(const char
+ }
  
--/* Keep track of the new idr low so that we don't re-use association id
-- * numbers too fast.  It is protected by they idr spin lock is in the
-- * range of 1 - INT_MAX.
-- */
--static u32 idr_low = 1;
--
--
- /* 1st Level Abstractions. */
+ static int inotify_add_to_idr(struct idr *idr, spinlock_t *idr_lock,
+-			      int *last_wd,
+ 			      struct inotify_inode_mark *i_mark)
+ {
+ 	int ret;
+@@ -367,11 +366,10 @@ static int inotify_add_to_idr(struct idr
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock(idr_lock);
  
- /* Initialize a new association from provided memory. */
-@@ -1601,13 +1594,8 @@ int sctp_assoc_set_id(struct sctp_associ
- 	if (preload)
- 		idr_preload(gfp);
- 	spin_lock_bh(&sctp_assocs_id_lock);
--	/* 0 is not a valid id, idr_low is always >= 1 */
--	ret = idr_alloc(&sctp_assocs_id, asoc, idr_low, 0, GFP_NOWAIT);
--	if (ret >= 0) {
--		idr_low = ret + 1;
--		if (idr_low == INT_MAX)
--			idr_low = 1;
--	}
-+	/* 0 is not a valid assoc_id, must be >= 1 */
-+	ret = idr_alloc_cyclic(&sctp_assocs_id, asoc, 1, 0, GFP_NOWAIT);
- 	spin_unlock_bh(&sctp_assocs_id_lock);
- 	if (preload)
- 		idr_preload_end();
+-	ret = idr_alloc(idr, i_mark, *last_wd + 1, 0, GFP_NOWAIT);
++	ret = idr_alloc_cyclic(idr, i_mark, 1, 0, GFP_NOWAIT);
+ 	if (ret >= 0) {
+ 		/* we added the mark to the idr, take a reference */
+ 		i_mark->wd = ret;
+-		*last_wd = i_mark->wd;
+ 		fsnotify_get_mark(&i_mark->fsn_mark);
+ 	}
+ 
+@@ -638,8 +636,7 @@ static int inotify_new_watch(struct fsno
+ 	if (atomic_read(&group->inotify_data.user->inotify_watches) >= inotify_max_user_watches)
+ 		goto out_err;
+ 
+-	ret = inotify_add_to_idr(idr, idr_lock, &group->inotify_data.last_wd,
+-				 tmp_i_mark);
++	ret = inotify_add_to_idr(idr, idr_lock, tmp_i_mark);
+ 	if (ret)
+ 		goto out_err;
+ 
+@@ -697,7 +694,6 @@ static struct fsnotify_group *inotify_ne
+ 
+ 	spin_lock_init(&group->inotify_data.idr_lock);
+ 	idr_init(&group->inotify_data.idr);
+-	group->inotify_data.last_wd = 0;
+ 	group->inotify_data.user = get_current_user();
+ 
+ 	if (atomic_inc_return(&group->inotify_data.user->inotify_devs) >
+diff -puN include/linux/fsnotify_backend.h~inotify-convert-inotify_add_to_idr-to-use-idr_alloc_cyclic include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~inotify-convert-inotify_add_to_idr-to-use-idr_alloc_cyclic
++++ a/include/linux/fsnotify_backend.h
+@@ -157,7 +157,6 @@ struct fsnotify_group {
+ 		struct inotify_group_private_data {
+ 			spinlock_t	idr_lock;
+ 			struct idr      idr;
+-			u32             last_wd;
+ 			struct user_struct      *user;
+ 		} inotify_data;
+ #endif
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
