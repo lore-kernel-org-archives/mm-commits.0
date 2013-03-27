@@ -1,134 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 27 Mar 2013 11:55:53 -0700
-Message-ID: <20130327185553.6099B31C102@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] parport-use-kmemdup-instead-of-kmalloc-memcpy.patch removed from -mm tree
+Date: Wed, 27 Mar 2013 11:57:49 -0700
+Message-ID: <20130327185749.7732A5A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:60223 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753614Ab3C0Szy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 14:55:54 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so859660qcr.2
-        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 11:55:53 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:51917 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753342Ab3C0S5u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 14:57:50 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m2so415216yen.4
+        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 11:57:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: silviupopescu1990@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: parport: use kmemdup instead of kmalloc + memcpy
+has been removed from the -mm tree.  Its filename was
+     parport-use-kmemdup-instead-of-kmalloc-memcpy.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+Subject: parport: use kmemdup instead of kmalloc + memcpy
 
+This replaces calls to kmalloc followed by memcpy with a single call to
+kmemdup.  This was found via make coccicheck.
+
+Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/parport/parport_gsc.c    |    4 ++--
+ drivers/parport/parport_sunbpp.c |    5 ++---
+ drivers/parport/procfs.c         |    6 ++----
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN fs/splice.c~linux-next-git-rejects fs/splice.c
---- a/fs/splice.c~linux-next-git-rejects
-+++ a/fs/splice.c
-@@ -31,11 +31,8 @@
- #include <linux/security.h>
- #include <linux/gfp.h>
- #include <linux/socket.h>
--<<<<<<< HEAD
- #include "internal.h"
--=======
- #include <linux/compat.h>
-->>>>>>> linux-next/akpm-base
+diff -puN drivers/parport/parport_gsc.c~parport-use-kmemdup-instead-of-kmalloc-memcpy drivers/parport/parport_gsc.c
+--- a/drivers/parport/parport_gsc.c~parport-use-kmemdup-instead-of-kmalloc-memcpy
++++ a/drivers/parport/parport_gsc.c
+@@ -246,14 +246,14 @@ struct parport *parport_gsc_probe_port(u
+ 		printk (KERN_DEBUG "parport (0x%lx): no memory!\n", base);
+ 		return NULL;
+ 	}
+-	ops = kmalloc (sizeof (struct parport_operations), GFP_KERNEL);
++	ops = kmemdup(&parport_gsc_ops, sizeof(struct parport_operations),
++		      GFP_KERNEL);
+ 	if (!ops) {
+ 		printk (KERN_DEBUG "parport (0x%lx): no memory for ops!\n",
+ 			base);
+ 		kfree (priv);
+ 		return NULL;
+ 	}
+-	memcpy (ops, &parport_gsc_ops, sizeof (struct parport_operations));
+ 	priv->ctr = 0xc;
+ 	priv->ctr_writable = 0xff;
+ 	priv->dma_buf = 0;
+diff -puN drivers/parport/parport_sunbpp.c~parport-use-kmemdup-instead-of-kmalloc-memcpy drivers/parport/parport_sunbpp.c
+--- a/drivers/parport/parport_sunbpp.c~parport-use-kmemdup-instead-of-kmalloc-memcpy
++++ a/drivers/parport/parport_sunbpp.c
+@@ -284,12 +284,11 @@ static int bpp_probe(struct platform_dev
+ 	size = resource_size(&op->resource[0]);
+ 	dma = PARPORT_DMA_NONE;
  
- /*
-  * Attempt to steal a page from a pipe buffer. This should perhaps go into
+-	ops = kmalloc(sizeof(struct parport_operations), GFP_KERNEL);
++	ops = kmemdup(&parport_sunbpp_ops, sizeof(struct parport_operations),
++		      GFP_KERNEL);
+         if (!ops)
+ 		goto out_unmap;
+ 
+-        memcpy (ops, &parport_sunbpp_ops, sizeof(struct parport_operations));
+-
+ 	dprintk(("register_port\n"));
+ 	if (!(p = parport_register_port((unsigned long)base, irq, dma, ops)))
+ 		goto out_free_ops;
+diff -puN drivers/parport/procfs.c~parport-use-kmemdup-instead-of-kmalloc-memcpy drivers/parport/procfs.c
+--- a/drivers/parport/procfs.c~parport-use-kmemdup-instead-of-kmalloc-memcpy
++++ a/drivers/parport/procfs.c
+@@ -476,10 +476,9 @@ int parport_proc_register(struct parport
+ 	struct parport_sysctl_table *t;
+ 	int i;
+ 
+-	t = kmalloc(sizeof(*t), GFP_KERNEL);
++	t = kmemdup(&parport_sysctl_template, sizeof(*t), GFP_KERNEL);
+ 	if (t == NULL)
+ 		return -ENOMEM;
+-	memcpy(t, &parport_sysctl_template, sizeof(*t));
+ 
+ 	t->device_dir[0].extra1 = port;
+ 
+@@ -523,10 +522,9 @@ int parport_device_proc_register(struct
+ 	struct parport_device_sysctl_table *t;
+ 	struct parport * port = device->port;
+ 	
+-	t = kmalloc(sizeof(*t), GFP_KERNEL);
++	t = kmemdup(&parport_device_sysctl_template, sizeof(*t), GFP_KERNEL);
+ 	if (t == NULL)
+ 		return -ENOMEM;
+-	memcpy(t, &parport_device_sysctl_template, sizeof(*t));
+ 
+ 	t->dev_dir[0].child = t->parport_dir;
+ 	t->parport_dir[0].child = t->port_dir;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from silviupopescu1990@gmail.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-mips-define-kvm_user_mem_slots.patch
-drivers-staging-zcache-zcache-mainc-fix-build.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v3-fix.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
