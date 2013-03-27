@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + timer_list-convert-timer-list-to-be-a-proper-seq_file-v5.patch added to -mm tree
-Date: Wed, 27 Mar 2013 12:14:21 -0700
-Message-ID: <20130327191421.76F275A451B@corp2gmr1-2.hot.corp.google.com>
+Subject: + revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch added to -mm tree
+Date: Wed, 27 Mar 2013 12:15:53 -0700
+Message-ID: <20130327191553.803A531C559@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:35397 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753924Ab3C0TOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 15:14:22 -0400
-Received: by mail-qa0-f74.google.com with SMTP id k4so180872qaq.1
-        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 12:14:22 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:57965 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752966Ab3C0TP4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Mar 2013 15:15:56 -0400
+Received: by mail-gg0-f202.google.com with SMTP id q1so313571ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 27 Mar 2013 12:15:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nzimmer@sgi.com, davej@redhat.com, johnstul@us.ibm.com, sboyd@codeaurora.org, tglx@linutronix.de
+Cc: walken@google.com, hughd@google.com, luto@amacapital.net, riel@redhat.com
 
 
 The patch titled
-     Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v5
+     Subject: Revert "mm: introduce VM_POPULATE flag to better deal with racy userspace programs"
 has been added to the -mm tree.  Its filename is
-     timer_list-convert-timer-list-to-be-a-proper-seq_file-v5.patch
+     revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,217 +33,172 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v5
+From: Michel Lespinasse <walken@google.com>
+Subject: Revert "mm: introduce VM_POPULATE flag to better deal with racy userspace programs"
 
-v5: Use seq_open_private and supply a proper iterator rather then a big mess.
+This reverts commit 1869305009857 ("mm: introduce VM_POPULATE flag to
+better deal with racy userspace programs").
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+VM_POPULATE only has any effect when userspace plays racy games with vmas
+by trying to unmap and remap memory regions that mmap or mlock are
+operating on.
+
+Also, the only effect of VM_POPULATE when userspace plays such games is
+that it avoids populating new memory regions that get remapped into the
+address range that was being operated on by the original mmap or mlock
+calls.
+
+Let's remove VM_POPULATE as there isn't any strong argument to mandate a
+new vm_flag.
+
+Proposed by Hugh Dickins.
+
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timer_list.c |  130 +++++++++++++++++--------------------
- 1 file changed, 60 insertions(+), 70 deletions(-)
+ include/linux/mm.h   |    1 -
+ include/linux/mman.h |    4 +---
+ mm/fremap.c          |   12 ++----------
+ mm/mlock.c           |   11 +++++------
+ mm/mmap.c            |    4 +++-
+ 5 files changed, 11 insertions(+), 21 deletions(-)
 
-diff -puN kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v5 kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v5
-+++ a/kernel/time/timer_list.c
-@@ -20,6 +20,13 @@
+diff -puN include/linux/mm.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs include/linux/mm.h
+--- a/include/linux/mm.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/include/linux/mm.h
+@@ -87,7 +87,6 @@ extern unsigned int kobjsize(const void
+ #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
+ #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
  
- #include <asm/uaccess.h>
+-#define VM_POPULATE     0x00001000
+ #define VM_LOCKED	0x00002000
+ #define VM_IO           0x00004000	/* Memory mapped I/O or similar */
  
-+
-+struct timer_list_iter {
-+	int cpu;
-+	bool second_pass;
-+	u64 now;
-+};
-+
- typedef void (*print_fn_t)(struct seq_file *m, unsigned int *classes);
- 
- DECLARE_PER_CPU(struct hrtimer_cpu_base, hrtimer_bases);
-@@ -247,86 +254,80 @@ static void timer_list_show_tickdevices_
- }
- #endif
- 
-+static inline void timer_list_header(struct seq_file *m, u64 now)
-+{
-+	SEQ_printf(m, "Timer List Version: v0.7\n");
-+	SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n", HRTIMER_MAX_CLOCK_BASES);
-+	SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
-+	SEQ_printf(m, "\n");
-+}
-+
- static int timer_list_show(struct seq_file *m, void *v)
+diff -puN include/linux/mman.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs include/linux/mman.h
+--- a/include/linux/mman.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/include/linux/mman.h
+@@ -79,8 +79,6 @@ calc_vm_flag_bits(unsigned long flags)
  {
-+	struct timer_list_iter *iter = v;
- 	u64 now = ktime_to_ns(ktime_get());
--	int cpu;
+ 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
+ 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
+-	       ((flags & MAP_LOCKED) ? (VM_LOCKED | VM_POPULATE) : 0) |
+-	       (((flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE) ?
+-							VM_POPULATE : 0);
++	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
+ }
+ #endif /* _LINUX_MMAN_H */
+diff -puN mm/fremap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/fremap.c
+--- a/mm/fremap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/mm/fremap.c
+@@ -204,10 +204,8 @@ get_write_lock:
+ 			unsigned long addr;
+ 			struct file *file = get_file(vma->vm_file);
  
--	if (v == (void *)1) {
--		SEQ_printf(m, "Timer List Version: v0.7\n");
--		SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n",
--			   HRTIMER_MAX_CLOCK_BASES);
--		SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
--		SEQ_printf(m, "\n");
--	} else if (v < (void *)(unsigned long)(nr_cpu_ids + 2)) {
--		cpu = (unsigned long)(v - 2);
--		print_cpu(m, cpu, now);
+-			vm_flags = vma->vm_flags;
+-			if (!(flags & MAP_NONBLOCK))
+-				vm_flags |= VM_POPULATE;
+-			addr = mmap_region(file, start, size, vm_flags, pgoff);
++			addr = mmap_region(file, start, size,
++					vma->vm_flags, pgoff);
+ 			fput(file);
+ 			if (IS_ERR_VALUE(addr)) {
+ 				err = addr;
+@@ -226,12 +224,6 @@ get_write_lock:
+ 		mutex_unlock(&mapping->i_mmap_mutex);
+ 	}
+ 
+-	if (!(flags & MAP_NONBLOCK) && !(vma->vm_flags & VM_POPULATE)) {
+-		if (!has_write_lock)
+-			goto get_write_lock;
+-		vma->vm_flags |= VM_POPULATE;
 -	}
-+	if (iter->cpu == -1 && !iter->second_pass)
-+		timer_list_header(m, now);
-+	else if (!iter->second_pass)
-+		print_cpu(m, iter->cpu, iter->now);
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
--	else if (v == (void *)(unsigned long)nr_cpu_ids + 2) {
-+	else if (iter->cpu == -1 && iter->second_pass)
- 		timer_list_show_tickdevices_header(m);
--	} else {
--		cpu = (unsigned long)(v - 3 - nr_cpu_ids);
--		print_tickdevice(m, tick_get_device(cpu), cpu);
--	}
-+	else
-+		print_tickdevice(m, tick_get_device(iter->cpu), iter->cpu);
- #endif
- 	return 0;
- }
- 
--/*
-- * This iterator really needs some explanation since it is offset and has
-- * two passes, one of which is controlled by a config option.
-- * In hotpluggable systems some cpus, including cpu 0 and the last cpu, may
-- * be missing so we have to use cpumask_* to iterate over the cpus.
-- * For the first pass:
-- * It returns 1 for the header position.
-- * For cpu 0 it returns 2 and the final possible cpu would be nr_cpu_ids + 1.
-- * On the second pass:
-- * It returns nr_cpu_ids + 1 for the second header position.
-- * For cpu 0 it returns nr_cpu_ids + 2
-- * The final possible cpu would be nr_cpu_ids + nr_cpu_ids + 2.
-- * It is also important to remember that cpumask_next returns >= nr_cpu_ids if
-- * no further cpus set.
-- */
--static void *timer_list_start(struct seq_file *file, loff_t *offset)
-+void sysrq_timer_list_show(void)
- {
--	unsigned long n = *offset;
-+	u64 now = ktime_to_ns(ktime_get());
-+	int cpu;
- 
--	if (n == 0)
--		return (void *) 1;
-+	timer_list_header(NULL, now);
- 
--	if (n < nr_cpu_ids + 1) {
--		n = cpumask_next(n - 2, cpu_online_mask);
--		if (n >= nr_cpu_ids)
--			n = nr_cpu_ids;
--		*offset = n + 1;
--		return (void *)(unsigned long)(n + 2);
--	}
-+	for_each_online_cpu(cpu)
-+		print_cpu(NULL, cpu, now);
- 
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
--	if (n == nr_cpu_ids + 1)
--		return (void *)(unsigned long)(nr_cpu_ids + 2);
-+	timer_list_show_tickdevices_header(NULL);
-+	for_each_online_cpu(cpu)
-+		print_tickdevice(NULL, tick_get_device(cpu), cpu);
-+#endif
-+	return;
-+}
-+
-+static void *timer_list_start(struct seq_file *file, loff_t *offset)
-+{
-+	struct timer_list_iter *iter = file->private;
- 
--	if (n < nr_cpu_ids * 2 + 2) {
--		n -= (nr_cpu_ids + 2);
--		n = cpumask_next(n - 1, cpu_online_mask);
--		if (n >= nr_cpu_ids)
-+	if (!*offset) {
-+		iter->cpu = -1;
-+		iter->now = ktime_to_ns(ktime_get());
-+	} else if (iter->cpu >= nr_cpu_ids) {
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+		if (!iter->second_pass) {
-+			iter->cpu = -1;
-+			iter->second_pass = true;
-+		} else
- 			return NULL;
--		*offset = n + 2 + nr_cpu_ids;
--		return (void *)(unsigned long)(n + 3 + nr_cpu_ids);
--	}
-+#else
-+		return NULL;
- #endif
 -
--	return NULL;
-+	}
-+	return iter;
+ 	if (vma->vm_flags & VM_LOCKED) {
+ 		/*
+ 		 * drop PG_Mlocked flag for over-mapped range
+diff -puN mm/mlock.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/mlock.c
+--- a/mm/mlock.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/mm/mlock.c
+@@ -358,7 +358,7 @@ static int do_mlock(unsigned long start,
+ 
+ 		newflags = vma->vm_flags & ~VM_LOCKED;
+ 		if (on)
+-			newflags |= VM_LOCKED | VM_POPULATE;
++			newflags |= VM_LOCKED;
+ 
+ 		tmp = vma->vm_end;
+ 		if (tmp > end)
+@@ -418,8 +418,7 @@ int __mm_populate(unsigned long start, u
+ 		 * range with the first VMA. Also, skip undesirable VMA types.
+ 		 */
+ 		nend = min(end, vma->vm_end);
+-		if ((vma->vm_flags & (VM_IO | VM_PFNMAP | VM_POPULATE)) !=
+-		    VM_POPULATE)
++		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
+ 			continue;
+ 		if (nstart < vma->vm_start)
+ 			nstart = vma->vm_start;
+@@ -492,9 +491,9 @@ static int do_mlockall(int flags)
+ 	struct vm_area_struct * vma, * prev = NULL;
+ 
+ 	if (flags & MCL_FUTURE)
+-		current->mm->def_flags |= VM_LOCKED | VM_POPULATE;
++		current->mm->def_flags |= VM_LOCKED;
+ 	else
+-		current->mm->def_flags &= ~(VM_LOCKED | VM_POPULATE);
++		current->mm->def_flags &= ~VM_LOCKED;
+ 	if (flags == MCL_FUTURE)
+ 		goto out;
+ 
+@@ -503,7 +502,7 @@ static int do_mlockall(int flags)
+ 
+ 		newflags = vma->vm_flags & ~VM_LOCKED;
+ 		if (flags & MCL_CURRENT)
+-			newflags |= VM_LOCKED | VM_POPULATE;
++			newflags |= VM_LOCKED;
+ 
+ 		/* Ignore errors */
+ 		mlock_fixup(vma, &prev, vma->vm_start, vma->vm_end, newflags);
+diff -puN mm/mmap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/mmap.c
+--- a/mm/mmap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
++++ a/mm/mmap.c
+@@ -1306,7 +1306,9 @@ unsigned long do_mmap_pgoff(struct file
+ 	}
+ 
+ 	addr = mmap_region(file, addr, len, vm_flags, pgoff);
+-	if (!IS_ERR_VALUE(addr) && (vm_flags & VM_POPULATE))
++	if (!IS_ERR_VALUE(addr) &&
++	    ((vm_flags & VM_LOCKED) ||
++	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
+ 		*populate = len;
+ 	return addr;
  }
- 
--static void *timer_list_next(struct seq_file *file, void *data, loff_t *offset)
-+static void *timer_list_next(struct seq_file *file, void *v, loff_t *offset)
- {
--	(*offset)++;
-+	struct timer_list_iter *iter = file->private;
-+	iter->cpu = cpumask_next(iter->cpu, cpu_online_mask);
-+	++*offset;
- 	return timer_list_start(file, offset);
- }
- 
--static void timer_list_stop(struct seq_file *file, void *data)
-+static void timer_list_stop(struct seq_file *seq, void *v)
- {
- }
- 
-@@ -337,28 +338,17 @@ static const struct seq_operations timer
- 	.show = timer_list_show,
- };
- 
--void sysrq_timer_list_show(void)
--{
--	timer_list_show(NULL, NULL);
--}
--
--static int timer_list_release(struct inode *inode, struct file *filep)
--{
--	seq_release(inode, filep);
--
--	return 0;
--}
--
- static int timer_list_open(struct inode *inode, struct file *filp)
- {
--	return seq_open(filp, &timer_list_sops);
-+	return seq_open_private(filp, &timer_list_sops,
-+			sizeof(struct timer_list_iter));
- }
- 
- static const struct file_operations timer_list_fops = {
- 	.open		= timer_list_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= timer_list_release,
-+	.release	= seq_release_private,
- };
- 
- static int __init init_timer_list_procfs(void)
 _
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from walken@google.com are
 
 linux-next.patch
-sound-convert-snd_info_register-to-use-proc_create_data.patch
-timer_list-split-timer_list_show_tickdevices.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v5.patch
-procfs-improve-scaling-in-proc.patch
-procfs-improve-scaling-in-proc-v5.patch
+revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
+mm-remove-free_area_cache-use-in-powerpc-architecture.patch
+mm-use-vm_unmapped_area-on-powerpc-architecture.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+rmap-recompute-pgoff-for-unmapping-huge-page.patch
+mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
+mm-remove-free_area_cache.patch
+ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
+ipc-introduce-obtaining-a-lockless-ipc-object.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipc-introduce-lockless-pre_down-ipcctl.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
+ipcsem-open-code-and-rename-sem_lock.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipcsem-have-only-one-list-in-struct-sem_queue.patch
+ipcsem-fine-grained-locking-for-semtimedop.patch
+ipcsem-fine-grained-locking-for-semtimedop-fix.patch
+mutex-subsystem-synchro-test-module.patch
 
