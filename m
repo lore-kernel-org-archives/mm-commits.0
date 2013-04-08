@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pps-hide-more-configuration-symbols-behind-config_pps.patch added to -mm tree
-Date: Mon, 08 Apr 2013 16:49:40 -0700
-Message-ID: <20130408234940.8125431C349@corp2gmr1-1.hot.corp.google.com>
+Subject: + posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch added to -mm tree
+Date: Mon, 08 Apr 2013 16:54:12 -0700
+Message-ID: <20130408235413.022C85A432B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:37768 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760944Ab3DHXtm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:49:42 -0400
-Received: by mail-ia0-f202.google.com with SMTP id p22so1620655iad.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:49:41 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:46819 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760913Ab3DHXyO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:54:14 -0400
+Received: by mail-ie0-f202.google.com with SMTP id qd14so1623061ieb.3
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:54:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: florian@openwrt.org, giometti@enneenne.com
+Cc: fweisbec@gmail.com, a.p.zijlstra@chello.nl, akpm@linux-foundation.org, gang.chen@asianux.com, mingo@elte.hu, oleg@redhat.com, sgruszka@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: pps: hide more configuration symbols behind CONFIG_PPS
+     Subject: posix-timers: correctly get dying task time sample in posix_cpu_timer_schedule()
 has been added to the -mm tree.  Its filename is
-     pps-hide-more-configuration-symbols-behind-config_pps.patch
+     posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Florian Fainelli <florian@openwrt.org>
-Subject: pps: hide more configuration symbols behind CONFIG_PPS
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: posix-timers: correctly get dying task time sample in posix_cpu_timer_schedule()
 
-Make CONFIG_PPS_DEBUG and CONFIG_NTP_PPS be hidden if CONFIG_PPS is not
-selected, so that we are not prompted for these configuration options if
-CONFIG_PPS is not set.
+In order to arm the next timer to schedule, we take a sample of the
+current process or thread cputime.
 
-Signed-off-by: Florian Fainelli <florian@openwrt.org>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
+If the task is dying though, we don't arm anything but we cache the
+remaining timer expiration delta for further reads.
+
+Something similar is performed in posix_cpu_timer_get() but here we forget
+to take the process wide cputime sample before caching it.
+
+As a result we are storing random stack content, leading every further
+reads of that timer to return junk values.
+
+Fix this by taking the appropriate sample in the case of process wide
+timers.
+
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Chen Gang <gang.chen@asianux.com>
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Chen Gang <gang.chen@asianux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/Kconfig |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/posix-cpu-timers.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pps/Kconfig~pps-hide-more-configuration-symbols-behind-config_pps drivers/pps/Kconfig
---- a/drivers/pps/Kconfig~pps-hide-more-configuration-symbols-behind-config_pps
-+++ a/drivers/pps/Kconfig
-@@ -20,10 +20,10 @@ config PPS
- 
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called pps_core.ko.
-+if PPS
- 
- config PPS_DEBUG
- 	bool "PPS debugging messages"
--	depends on PPS
- 	help
- 	  Say Y here if you want the PPS support to produce a bunch of debug
- 	  messages to the system log.  Select this if you are having a
-@@ -31,13 +31,15 @@ config PPS_DEBUG
- 
- config NTP_PPS
- 	bool "PPS kernel consumer support"
--	depends on PPS && !NO_HZ
-+	depends on !NO_HZ
- 	help
- 	  This option adds support for direct in-kernel time
- 	  synchronization using an external PPS signal.
- 
- 	  It doesn't work on tickless systems at the moment.
- 
-+endif
-+
- source drivers/pps/clients/Kconfig
- 
- source drivers/pps/generators/Kconfig
+diff -puN kernel/posix-cpu-timers.c~posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule
++++ a/kernel/posix-cpu-timers.c
+@@ -1062,6 +1062,7 @@ void posix_cpu_timer_schedule(struct k_i
+ 			 * not yet reaped.  Take this opportunity to
+ 			 * drop our task ref.
+ 			 */
++			cpu_timer_sample_group(timer->it_clock, p, &now);
+ 			clear_dead_task(timer, now);
+ 			goto out_unlock;
+ 		}
 _
 
-Patches currently in -mm which might be from florian@openwrt.org are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
 linux-next.patch
-pps-hide-more-configuration-symbols-behind-config_pps.patch
-decompressor-add-lz4-decompressor-module.patch
-lib-add-support-for-lz4-compressed-kernel.patch
-arm-add-support-for-lz4-compressed-kernel.patch
-x86-add-support-for-lz4-compressed-kernel.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+selftests-add-basic-posix-timers-selftests.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+posix_timers-remove-dead-task-timer-expiry-caching.patch
+mm-trace-filemap-add-and-del.patch
+mm-trace-filemap-add-and-del-v2.patch
+printk-tracing-rework-console-tracing.patch
 
