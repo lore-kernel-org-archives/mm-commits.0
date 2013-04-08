@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-max6902-use-spi_set_drvdata.patch added to -mm tree
-Date: Mon, 08 Apr 2013 16:09:51 -0700
-Message-ID: <20130408230951.D24875A4347@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-ili9320-use-spi_set_drvdata.patch added to -mm tree
+Date: Mon, 08 Apr 2013 16:10:35 -0700
+Message-ID: <20130408231035.7CF6E5A4354@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:55210 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936460Ab3DHXJx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:09:53 -0400
-Received: by mail-ob0-f201.google.com with SMTP id uz6so1612848obc.2
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:09:52 -0700 (PDT)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:52127 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935512Ab3DHXKg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:10:36 -0400
+Received: by mail-ia0-f202.google.com with SMTP id p22so1611965iad.5
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:10:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-max6902: use spi_set_drvdata()
+     Subject: backlight: ili9320: use spi_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-max6902-use-spi_set_drvdata.patch
+     backlight-ili9320-use-spi_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-max6902: use spi_set_drvdata()
+Subject: backlight: ili9320: use spi_set_drvdata()
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -44,20 +44,20 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6902.c |    2 +-
+ drivers/video/backlight/ili9320.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-max6902.c~rtc-rtc-max6902-use-spi_set_drvdata drivers/rtc/rtc-max6902.c
---- a/drivers/rtc/rtc-max6902.c~rtc-rtc-max6902-use-spi_set_drvdata
-+++ a/drivers/rtc/rtc-max6902.c
-@@ -139,7 +139,7 @@ static int max6902_probe(struct spi_devi
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
+diff -puN drivers/video/backlight/ili9320.c~backlight-ili9320-use-spi_set_drvdata drivers/video/backlight/ili9320.c
+--- a/drivers/video/backlight/ili9320.c~backlight-ili9320-use-spi_set_drvdata
++++ a/drivers/video/backlight/ili9320.c
+@@ -231,7 +231,7 @@ int ili9320_probe_spi(struct spi_device
+ 	ili->power = FB_BLANK_POWERDOWN;
+ 	ili->platdata = cfg;
  
--	dev_set_drvdata(&spi->dev, rtc);
-+	spi_set_drvdata(spi, rtc);
- 	return 0;
- }
+-	dev_set_drvdata(&spi->dev, ili);
++	spi_set_drvdata(spi, ili);
+ 
+ 	ili9320_setup_spi(ili, spi);
  
 _
 
@@ -100,6 +100,8 @@ backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch
 drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch
 drivers-video-backlight-adp8870_blc-fix-error-return-code-in-adp8870_led_probe.patch
 drivers-video-backlight-as3711_blc-add-of-support.patch
+backlight-ili9320-use-spi_set_drvdata.patch
+backlight-ili922x-use-spi_set_drvdata.patch
 rtc-rtc-mv-add-__init-annotation.patch
 rtc-rtc-davinci-add-__exit-annotation.patch
 rtc-rtc-ds1302-add-__exit-annotation.patch
