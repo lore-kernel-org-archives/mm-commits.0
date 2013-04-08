@@ -1,193 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch removed from -mm tree
-Date: Mon, 08 Apr 2013 12:18:01 -0700
-Message-ID: <20130408191801.88D0631C24B@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-staging-zcache-zcache-mainc-fix-build.patch removed from -mm tree
+Date: Mon, 08 Apr 2013 12:18:04 -0700
+Message-ID: <20130408191804.8823331C2E8@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:60256 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934741Ab3DHTSF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 15:18:05 -0400
-Received: by mail-ia0-f202.google.com with SMTP id p22so1549451iad.3
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 12:18:02 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:44905 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935467Ab3DHTSG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 15:18:06 -0400
+Received: by mail-ob0-f202.google.com with SMTP id va7so418190obc.3
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 12:18:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, hughd@google.com, luto@amacapital.net, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.magenheimer@oracle.com, gregkh@linuxfoundation.org, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm: introduce VM_POPULATE flag to better deal with racy userspace programs"
+     Subject: drivers/staging/zcache/zcache-main.c: fix build
 has been removed from the -mm tree.  Its filename was
-     revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
+     drivers-staging-zcache-zcache-mainc-fix-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: Revert "mm: introduce VM_POPULATE flag to better deal with racy userspace programs"
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/staging/zcache/zcache-main.c: fix build
 
-This reverts commit 1869305009857 ("mm: introduce VM_POPULATE flag to
-better deal with racy userspace programs").
+flush_dcache_page() takes a page*, not a void*.  It breaks ia64.
 
-VM_POPULATE only has any effect when userspace plays racy games with vmas
-by trying to unmap and remap memory regions that mmap or mlock are
-operating on.
+Remove this and another unused function.  Warnings remain:
 
-Also, the only effect of VM_POPULATE when userspace plays such games is
-that it avoids populating new memory regions that get remapped into the
-address range that was being operated on by the original mmap or mlock
-calls.
+drivers/staging/zcache/zcache-main.c: In function '__check_disable_cleancache':
+drivers/staging/zcache/zcache-main.c:1837: warning: return from incompatible pointer type
+drivers/staging/zcache/zcache-main.c: In function '__check_disable_frontswap':
+drivers/staging/zcache/zcache-main.c:1838: warning: return from incompatible pointer type
+drivers/staging/zcache/zcache-main.c: In function '__check_disable_frontswap_ignore_nonactive':
+drivers/staging/zcache/zcache-main.c:1842: warning: return from incompatible pointer type
 
-Let's remove VM_POPULATE as there isn't any strong argument to mandate a
-new vm_flag.
-
-Proposed by Hugh Dickins.
-
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    1 -
- include/linux/mman.h |    4 +---
- mm/fremap.c          |   12 ++----------
- mm/mlock.c           |   11 +++++------
- mm/mmap.c            |    4 +++-
- 5 files changed, 11 insertions(+), 21 deletions(-)
+ drivers/staging/zcache/zcache-main.c |   26 -------------------------
+ 1 file changed, 26 deletions(-)
 
-diff -puN include/linux/mm.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs include/linux/mm.h
---- a/include/linux/mm.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
-+++ a/include/linux/mm.h
-@@ -87,7 +87,6 @@ extern unsigned int kobjsize(const void
- #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
- #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
- 
--#define VM_POPULATE     0x00001000
- #define VM_LOCKED	0x00002000
- #define VM_IO           0x00004000	/* Memory mapped I/O or similar */
- 
-diff -puN include/linux/mman.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs include/linux/mman.h
---- a/include/linux/mman.h~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
-+++ a/include/linux/mman.h
-@@ -79,8 +79,6 @@ calc_vm_flag_bits(unsigned long flags)
- {
- 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
- 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
--	       ((flags & MAP_LOCKED) ? (VM_LOCKED | VM_POPULATE) : 0) |
--	       (((flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE) ?
--							VM_POPULATE : 0);
-+	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
+diff -puN drivers/staging/zcache/zcache-main.c~drivers-staging-zcache-zcache-mainc-fix-build drivers/staging/zcache/zcache-main.c
+--- a/drivers/staging/zcache/zcache-main.c~drivers-staging-zcache-zcache-mainc-fix-build
++++ a/drivers/staging/zcache/zcache-main.c
+@@ -277,32 +277,6 @@ static void zcache_obj_free(struct tmem_
+ 	kmem_cache_free(zcache_obj_cache, obj);
  }
- #endif /* _LINUX_MMAN_H */
-diff -puN mm/fremap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/fremap.c
---- a/mm/fremap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
-+++ a/mm/fremap.c
-@@ -204,10 +204,8 @@ get_write_lock:
- 			unsigned long addr;
- 			struct file *file = get_file(vma->vm_file);
  
--			vm_flags = vma->vm_flags;
--			if (!(flags & MAP_NONBLOCK))
--				vm_flags |= VM_POPULATE;
--			addr = mmap_region(file, start, size, vm_flags, pgoff);
-+			addr = mmap_region(file, start, size,
-+					vma->vm_flags, pgoff);
- 			fput(file);
- 			if (IS_ERR_VALUE(addr)) {
- 				err = addr;
-@@ -226,12 +224,6 @@ get_write_lock:
- 		mutex_unlock(&mapping->i_mmap_mutex);
- 	}
- 
--	if (!(flags & MAP_NONBLOCK) && !(vma->vm_flags & VM_POPULATE)) {
--		if (!has_write_lock)
--			goto get_write_lock;
--		vma->vm_flags |= VM_POPULATE;
+-static bool page_is_zero_filled(void *ptr)
+-{
+-	unsigned int pos;
+-	unsigned long *page;
+-
+-	page = (unsigned long *)ptr;
+-
+-	for (pos = 0; pos < PAGE_SIZE / sizeof(*page); pos++) {
+-		if (page[pos])
+-			return false;
 -	}
 -
- 	if (vma->vm_flags & VM_LOCKED) {
- 		/*
- 		 * drop PG_Mlocked flag for over-mapped range
-diff -puN mm/mlock.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/mlock.c
---- a/mm/mlock.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
-+++ a/mm/mlock.c
-@@ -358,7 +358,7 @@ static int do_mlock(unsigned long start,
- 
- 		newflags = vma->vm_flags & ~VM_LOCKED;
- 		if (on)
--			newflags |= VM_LOCKED | VM_POPULATE;
-+			newflags |= VM_LOCKED;
- 
- 		tmp = vma->vm_end;
- 		if (tmp > end)
-@@ -418,8 +418,7 @@ int __mm_populate(unsigned long start, u
- 		 * range with the first VMA. Also, skip undesirable VMA types.
- 		 */
- 		nend = min(end, vma->vm_end);
--		if ((vma->vm_flags & (VM_IO | VM_PFNMAP | VM_POPULATE)) !=
--		    VM_POPULATE)
-+		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
- 			continue;
- 		if (nstart < vma->vm_start)
- 			nstart = vma->vm_start;
-@@ -492,9 +491,9 @@ static int do_mlockall(int flags)
- 	struct vm_area_struct * vma, * prev = NULL;
- 
- 	if (flags & MCL_FUTURE)
--		current->mm->def_flags |= VM_LOCKED | VM_POPULATE;
-+		current->mm->def_flags |= VM_LOCKED;
- 	else
--		current->mm->def_flags &= ~(VM_LOCKED | VM_POPULATE);
-+		current->mm->def_flags &= ~VM_LOCKED;
- 	if (flags == MCL_FUTURE)
- 		goto out;
- 
-@@ -503,7 +502,7 @@ static int do_mlockall(int flags)
- 
- 		newflags = vma->vm_flags & ~VM_LOCKED;
- 		if (flags & MCL_CURRENT)
--			newflags |= VM_LOCKED | VM_POPULATE;
-+			newflags |= VM_LOCKED;
- 
- 		/* Ignore errors */
- 		mlock_fixup(vma, &prev, vma->vm_start, vma->vm_end, newflags);
-diff -puN mm/mmap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs mm/mmap.c
---- a/mm/mmap.c~revert-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs
-+++ a/mm/mmap.c
-@@ -1306,7 +1306,9 @@ unsigned long do_mmap_pgoff(struct file
- 	}
- 
- 	addr = mmap_region(file, addr, len, vm_flags, pgoff);
--	if (!IS_ERR_VALUE(addr) && (vm_flags & VM_POPULATE))
-+	if (!IS_ERR_VALUE(addr) &&
-+	    ((vm_flags & VM_LOCKED) ||
-+	     (flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
- 		*populate = len;
- 	return addr;
- }
+-	return true;
+-}
+-
+-static void handle_zero_filled_page(void *page)
+-{
+-	void *user_mem;
+-
+-	user_mem = kmap_atomic(page);
+-	memset(user_mem, 0, PAGE_SIZE);
+-	kunmap_atomic(user_mem);
+-
+-	flush_dcache_page(page);
+-}
+-
+ static struct tmem_hostops zcache_hostops = {
+ 	.obj_alloc = zcache_obj_alloc,
+ 	.obj_free = zcache_obj_free,
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-remove-free_area_cache-use-in-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-powerpc-architecture.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-rmap-recompute-pgoff-for-unmapping-huge-page.patch
-mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
-mm-remove-free_area_cache.patch
-ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
-ipc-introduce-obtaining-a-lockless-ipc-object.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+mips-define-kvm_user_mem_slots.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
 ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipc-introduce-lockless-pre_down-ipcctl.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
-ipcsem-open-code-and-rename-sem_lock.patch
 ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-have-only-one-list-in-struct-sem_queue.patch
-ipcsem-fine-grained-locking-for-semtimedop.patch
-ipcsem-fine-grained-locking-for-semtimedop-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
