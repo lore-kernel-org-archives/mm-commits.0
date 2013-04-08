@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + auditsc-use-kzalloc-instead-of-kmallocmemset.patch added to -mm tree
-Date: Mon, 08 Apr 2013 14:44:22 -0700
-Message-ID: <20130408214422.E24BB5A4331@corp2gmr1-2.hot.corp.google.com>
+Subject: + thp-fix-comment-about-memory-barrier.patch added to -mm tree
+Date: Mon, 08 Apr 2013 15:57:47 -0700
+Message-ID: <20130408225747.9D92031C2FE@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:56724 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935961Ab3DHVoY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 17:44:24 -0400
-Received: by mail-ia0-f202.google.com with SMTP id p22so1590987iad.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 14:44:24 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:40868 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760209Ab3DHW5t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 18:57:49 -0400
+Received: by mail-ie0-f201.google.com with SMTP id a11so1610127iee.0
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 15:57:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rakib.mullick@gmail.com, eparis@redhat.com, viro@zeniv.linux.org.uk
+Cc: minchan@kernel.org, a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com
 
 
 The patch titled
-     Subject: kernel/auditsc.c: use kzalloc instead of kmalloc+memset
+     Subject: THP: fix comment about memory barrier
 has been added to the -mm tree.  Its filename is
-     auditsc-use-kzalloc-instead-of-kmallocmemset.patch
+     thp-fix-comment-about-memory-barrier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rakib Mullick <rakib.mullick@gmail.com>
-Subject: kernel/auditsc.c: use kzalloc instead of kmalloc+memset
+From: Minchan Kim <minchan@kernel.org>
+Subject: THP: fix comment about memory barrier
 
-In audit_alloc_context() use kzalloc instead of kmalloc+memset.  Also
-rename audit_zero_context() to audit_set_context(), to represent it's
-inner workings properly.
+Now, memory barrier in __do_huge_pmd_anonymous_page doesn't work.  Because
+lru_cache_add_lru uses pagevec so it could miss spinlock easily so above
+rule was broken so user might see inconsistent data.
 
-Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
+I was not first person who pointed out the problem.  Mel and Peter pointed
+out a few months ago and Peter pointed out further that even
+spin_lock/unlock can't make sure it.  http://marc.info/?t=134333512700004
+
+	In particular:
+
+        	*A = a;
+        	LOCK
+        	UNLOCK
+        	*B = b;
+
+	may occur as:
+
+        	LOCK, STORE *B, STORE *A, UNLOCK
+
+At last, Hugh pointed out that even we don't need memory barrier in there
+because __SetPageUpdate already have done it from Nick's 0ed361dec ("mm:
+fix PageUptodate data race") explicitly.
+
+So this patch fixes comment on THP and adds same comment for
+do_anonymous_page, too because everybody except Hugh was missing that.  It
+means we need a comment about that.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   11 +++++------
+ mm/memory.c      |    5 +++++
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN kernel/auditsc.c~auditsc-use-kzalloc-instead-of-kmallocmemset kernel/auditsc.c
---- a/kernel/auditsc.c~auditsc-use-kzalloc-instead-of-kmallocmemset
-+++ a/kernel/auditsc.c
-@@ -1034,10 +1034,9 @@ static inline void audit_free_aux(struct
- 	}
- }
+diff -puN mm/huge_memory.c~thp-fix-comment-about-memory-barrier mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-comment-about-memory-barrier
++++ a/mm/huge_memory.c
+@@ -713,6 +713,11 @@ static int __do_huge_pmd_anonymous_page(
+ 		return VM_FAULT_OOM;
  
--static inline void audit_zero_context(struct audit_context *context,
-+static inline void audit_set_context(struct audit_context *context,
- 				      enum audit_state state)
- {
--	memset(context, 0, sizeof(*context));
- 	context->state      = state;
- 	context->prio = state == AUDIT_RECORD_CONTEXT ? ~0ULL : 0;
- }
-@@ -1046,9 +1045,10 @@ static inline struct audit_context *audi
- {
- 	struct audit_context *context;
+ 	clear_huge_page(page, haddr, HPAGE_PMD_NR);
++	/*
++	 * The memory barrier inside __SetPageUptodate makes sure that
++	 * clear_huge_page writes become visible before the set_pmd_at()
++	 * write.
++	 */
+ 	__SetPageUptodate(page);
  
--	if (!(context = kmalloc(sizeof(*context), GFP_KERNEL)))
-+	context = kzalloc(sizeof(*context), GFP_KERNEL);
-+	if (!context)
- 		return NULL;
--	audit_zero_context(context, state);
-+	audit_set_context(context, state);
- 	INIT_LIST_HEAD(&context->killed_trees);
- 	INIT_LIST_HEAD(&context->names_list);
- 	return context;
+ 	spin_lock(&mm->page_table_lock);
+@@ -724,12 +729,6 @@ static int __do_huge_pmd_anonymous_page(
+ 	} else {
+ 		pmd_t entry;
+ 		entry = mk_huge_pmd(page, vma);
+-		/*
+-		 * The spinlocking to take the lru_lock inside
+-		 * page_add_new_anon_rmap() acts as a full memory
+-		 * barrier to be sure clear_huge_page writes become
+-		 * visible after the set_pmd_at() write.
+-		 */
+ 		page_add_new_anon_rmap(page, vma, haddr);
+ 		set_pmd_at(mm, haddr, pmd, entry);
+ 		pgtable_trans_huge_deposit(mm, pgtable);
+diff -puN mm/memory.c~thp-fix-comment-about-memory-barrier mm/memory.c
+--- a/mm/memory.c~thp-fix-comment-about-memory-barrier
++++ a/mm/memory.c
+@@ -3196,6 +3196,11 @@ static int do_anonymous_page(struct mm_s
+ 	page = alloc_zeroed_user_highpage_movable(vma, address);
+ 	if (!page)
+ 		goto oom;
++	/*
++	 * The memory barrier inside __SetPageUptodate makes sure that
++	 * preceeding stores to the page contents become visible before
++	 * the set_pte_at() write.
++	 */
+ 	__SetPageUptodate(page);
+ 
+ 	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-auditsc-use-kzalloc-instead-of-kmallocmemset.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+linux-next.patch
+mm-frontswap-lazy-initialization-to-allow-tmem-backends-to-build-run-as-modules.patch
+frontswap-make-frontswap_init-use-a-pointer-for-the-ops.patch
+mm-frontswap-cleanup-code.patch
+frontswap-get-rid-of-swap_lock-dependency.patch
+mm-cleancache-lazy-initialization-to-allow-tmem-backends-to-build-run-as-modules.patch
+cleancache-make-cleancache_init-use-a-pointer-for-the-ops.patch
+mm-cleancache-clean-up-cleancache_enabled.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+zcache-tmem-better-error-checking-on-frontswap_register_ops-return-value.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module.patch
+staging-zcache-enable-zcache-to-be-built-loaded-as-a-module.patch
+mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
+thp-fix-comment-about-memory-barrier.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
