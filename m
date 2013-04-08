@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-config_hotplug-ifdefs.patch added to -mm tree
-Date: Mon, 08 Apr 2013 13:58:25 -0700
-Message-ID: <20130408205825.810DB31C336@corp2gmr1-1.hot.corp.google.com>
+Subject: + kernel-compatc-make-do_sysinfo-static.patch added to -mm tree
+Date: Mon, 08 Apr 2013 14:36:07 -0700
+Message-ID: <20130408213607.EBA1E31C3B4@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:59180 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936171Ab3DHU61 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 16:58:27 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va7so448117obc.3
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 13:58:26 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:62431 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935997Ab3DHVgJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 17:36:09 -0400
+Received: by mail-oa0-f74.google.com with SMTP id k14so1590291oag.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 14:36:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wangyijing@huawei.com, gregkh@linuxfoundation.org, riel@redhat.com
+Cc: sfr@canb.auug.org.au, arnd@arndb.de, linux@roeck-us.net, tglx@linutronix.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm: remove CONFIG_HOTPLUG ifdefs
+     Subject: kernel/compat.c: make do_sysinfo() static
 has been added to the -mm tree.  Its filename is
-     mm-remove-config_hotplug-ifdefs.patch
+     kernel-compatc-make-do_sysinfo-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,213 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yijing Wang <wangyijing@huawei.com>
-Subject: mm: remove CONFIG_HOTPLUG ifdefs
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: kernel/compat.c: make do_sysinfo() static
 
-CONFIG_HOTPLUG is going away as an option, cleanup CONFIG_HOTPLUG
-ifdefs in mm files.
+The only use outside of kernel/timer.c was in kernel/compat.c, so move
+compat_sys_sysinfo() next to sys_sysinfo() in kernel/timer.c.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    7 +------
- mm/vmstat.c            |    2 --
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ include/linux/kernel.h |    2 -
+ kernel/compat.c        |   65 ------------------------------------
+ kernel/timer.c         |   70 ++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 69 insertions(+), 68 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-remove-config_hotplug-ifdefs include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-remove-config_hotplug-ifdefs
-+++ a/include/linux/vmstat.h
-@@ -48,13 +48,8 @@ static inline void count_vm_events(enum
- }
+diff -puN include/linux/kernel.h~kernel-compatc-make-do_sysinfo-static include/linux/kernel.h
+--- a/include/linux/kernel.h~kernel-compatc-make-do_sysinfo-static
++++ a/include/linux/kernel.h
+@@ -791,6 +791,4 @@ static inline void ftrace_dump(enum ftra
+ # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
+ #endif
  
- extern void all_vm_events(unsigned long *);
--#ifdef CONFIG_HOTPLUG
-+
- extern void vm_events_fold_cpu(int cpu);
--#else
--static inline void vm_events_fold_cpu(int cpu)
+-extern int do_sysinfo(struct sysinfo *info);
+-
+ #endif
+diff -puN kernel/compat.c~kernel-compatc-make-do_sysinfo-static kernel/compat.c
+--- a/kernel/compat.c~kernel-compatc-make-do_sysinfo-static
++++ a/kernel/compat.c
+@@ -1119,71 +1119,6 @@ asmlinkage long compat_sys_migrate_pages
+ }
+ #endif
+ 
+-struct compat_sysinfo {
+-	s32 uptime;
+-	u32 loads[3];
+-	u32 totalram;
+-	u32 freeram;
+-	u32 sharedram;
+-	u32 bufferram;
+-	u32 totalswap;
+-	u32 freeswap;
+-	u16 procs;
+-	u16 pad;
+-	u32 totalhigh;
+-	u32 freehigh;
+-	u32 mem_unit;
+-	char _f[20-2*sizeof(u32)-sizeof(int)];
+-};
+-
+-asmlinkage long
+-compat_sys_sysinfo(struct compat_sysinfo __user *info)
 -{
+-	struct sysinfo s;
+-
+-	do_sysinfo(&s);
+-
+-	/* Check to see if any memory value is too large for 32-bit and scale
+-	 *  down if needed
+-	 */
+-	if ((s.totalram >> 32) || (s.totalswap >> 32)) {
+-		int bitcount = 0;
+-
+-		while (s.mem_unit < PAGE_SIZE) {
+-			s.mem_unit <<= 1;
+-			bitcount++;
+-		}
+-
+-		s.totalram >>= bitcount;
+-		s.freeram >>= bitcount;
+-		s.sharedram >>= bitcount;
+-		s.bufferram >>= bitcount;
+-		s.totalswap >>= bitcount;
+-		s.freeswap >>= bitcount;
+-		s.totalhigh >>= bitcount;
+-		s.freehigh >>= bitcount;
+-	}
+-
+-	if (!access_ok(VERIFY_WRITE, info, sizeof(struct compat_sysinfo)) ||
+-	    __put_user (s.uptime, &info->uptime) ||
+-	    __put_user (s.loads[0], &info->loads[0]) ||
+-	    __put_user (s.loads[1], &info->loads[1]) ||
+-	    __put_user (s.loads[2], &info->loads[2]) ||
+-	    __put_user (s.totalram, &info->totalram) ||
+-	    __put_user (s.freeram, &info->freeram) ||
+-	    __put_user (s.sharedram, &info->sharedram) ||
+-	    __put_user (s.bufferram, &info->bufferram) ||
+-	    __put_user (s.totalswap, &info->totalswap) ||
+-	    __put_user (s.freeswap, &info->freeswap) ||
+-	    __put_user (s.procs, &info->procs) ||
+-	    __put_user (s.totalhigh, &info->totalhigh) ||
+-	    __put_user (s.freehigh, &info->freehigh) ||
+-	    __put_user (s.mem_unit, &info->mem_unit))
+-		return -EFAULT;
+-
+-	return 0;
 -}
--#endif
+-
+ COMPAT_SYSCALL_DEFINE2(sched_rr_get_interval,
+ 		       compat_pid_t, pid,
+ 		       struct compat_timespec __user *, interval)
+diff -puN kernel/timer.c~kernel-compatc-make-do_sysinfo-static kernel/timer.c
+--- a/kernel/timer.c~kernel-compatc-make-do_sysinfo-static
++++ a/kernel/timer.c
+@@ -41,6 +41,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/sysctl.h>
+ #include <linux/slab.h>
++#include <linux/compat.h>
  
- #else
- 
-diff -puN mm/vmstat.c~mm-remove-config_hotplug-ifdefs mm/vmstat.c
---- a/mm/vmstat.c~mm-remove-config_hotplug-ifdefs
-+++ a/mm/vmstat.c
-@@ -52,7 +52,6 @@ void all_vm_events(unsigned long *ret)
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+@@ -1567,7 +1568,7 @@ SYSCALL_DEFINE0(gettid)
+  * do_sysinfo - fill in sysinfo struct
+  * @info: pointer to buffer to fill
+  */
+-int do_sysinfo(struct sysinfo *info)
++static int do_sysinfo(struct sysinfo *info)
+ {
+ 	unsigned long mem_total, sav_total;
+ 	unsigned int mem_unit, bitcount;
+@@ -1642,6 +1643,73 @@ SYSCALL_DEFINE1(sysinfo, struct sysinfo
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(all_vm_events);
  
--#ifdef CONFIG_HOTPLUG
- /*
-  * Fold the foreign cpu events into our own.
-  *
-@@ -69,7 +68,6 @@ void vm_events_fold_cpu(int cpu)
- 		fold_state->event[i] = 0;
- 	}
- }
--#endif /* CONFIG_HOTPLUG */
- 
- #endif /* CONFIG_VM_EVENT_COUNTERS */
- 
++#ifdef CONFIG_COMPAT
++struct compat_sysinfo {
++	s32 uptime;
++	u32 loads[3];
++	u32 totalram;
++	u32 freeram;
++	u32 sharedram;
++	u32 bufferram;
++	u32 totalswap;
++	u32 freeswap;
++	u16 procs;
++	u16 pad;
++	u32 totalhigh;
++	u32 freehigh;
++	u32 mem_unit;
++	char _f[20-2*sizeof(u32)-sizeof(int)];
++};
++
++asmlinkage long
++compat_sys_sysinfo(struct compat_sysinfo __user *info)
++{
++	struct sysinfo s;
++
++	do_sysinfo(&s);
++
++	/* Check to see if any memory value is too large for 32-bit and scale
++	 *  down if needed
++	 */
++	if ((s.totalram >> 32) || (s.totalswap >> 32)) {
++		int bitcount = 0;
++
++		while (s.mem_unit < PAGE_SIZE) {
++			s.mem_unit <<= 1;
++			bitcount++;
++		}
++
++		s.totalram >>= bitcount;
++		s.freeram >>= bitcount;
++		s.sharedram >>= bitcount;
++		s.bufferram >>= bitcount;
++		s.totalswap >>= bitcount;
++		s.freeswap >>= bitcount;
++		s.totalhigh >>= bitcount;
++		s.freehigh >>= bitcount;
++	}
++
++	if (!access_ok(VERIFY_WRITE, info, sizeof(struct compat_sysinfo)) ||
++	    __put_user (s.uptime, &info->uptime) ||
++	    __put_user (s.loads[0], &info->loads[0]) ||
++	    __put_user (s.loads[1], &info->loads[1]) ||
++	    __put_user (s.loads[2], &info->loads[2]) ||
++	    __put_user (s.totalram, &info->totalram) ||
++	    __put_user (s.freeram, &info->freeram) ||
++	    __put_user (s.sharedram, &info->sharedram) ||
++	    __put_user (s.bufferram, &info->bufferram) ||
++	    __put_user (s.totalswap, &info->totalswap) ||
++	    __put_user (s.freeswap, &info->freeswap) ||
++	    __put_user (s.procs, &info->procs) ||
++	    __put_user (s.totalhigh, &info->totalhigh) ||
++	    __put_user (s.freehigh, &info->freehigh) ||
++	    __put_user (s.mem_unit, &info->mem_unit))
++		return -EFAULT;
++
++	return 0;
++}
++#endif /* CONFIG_COMPAT */
++
+ static int __cpuinit init_timers_cpu(int cpu)
+ {
+ 	int j;
 _
 
-Patches currently in -mm which might be from wangyijing@huawei.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 linux-next.patch
-mm-remove-config_hotplug-ifdefs.patch
+powerpc-mm-numa-use-setup_nr_node_ids-instead-of-opencoding-fix.patch
+kernel-compatc-make-do_sysinfo-static.patch
+kernel-timerc-convert-compat_sys_sysinfo-to-compat_syscall_define.patch
+kconfig-consolidate-config_debug_strict_user_copy_checks.patch
+kconfig-consolidate-config_debug_strict_user_copy_checks-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
