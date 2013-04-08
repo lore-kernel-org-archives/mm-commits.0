@@ -1,87 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-staging-zcache-zcache-mainc-fix-build.patch removed from -mm tree
-Date: Mon, 08 Apr 2013 12:18:04 -0700
-Message-ID: <20130408191804.8823331C2E8@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 08 Apr 2013 12:29:40 -0700
+Message-ID: <20130408192940.6ADD45A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:44905 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935467Ab3DHTSG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 15:18:06 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va7so418190obc.3
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 12:18:06 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:65399 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761523Ab3DHT3l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 15:29:41 -0400
+Received: by mail-oa0-f73.google.com with SMTP id o6so1554019oag.4
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 12:29:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.magenheimer@oracle.com, gregkh@linuxfoundation.org, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agshew@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/staging/zcache/zcache-main.c: fix build
+     Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-staging-zcache-zcache-mainc-fix-build.patch
+     mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/zcache/zcache-main.c: fix build
+Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
 
-flush_dcache_page() takes a page*, not a void*.  It breaks ia64.
+WARNING: externs should be avoided in .c files
+#366: FILE: kernel/sysctl.c:100:
++extern unsigned long sysctl_user_reserve_kbytes;
 
-Remove this and another unused function.  Warnings remain:
+ERROR: code indent should use tabs where possible
+#421: FILE: mm/mmap.c:189:
++ ^I * Don't let a single process grow so big a user can't recover$
 
-drivers/staging/zcache/zcache-main.c: In function '__check_disable_cleancache':
-drivers/staging/zcache/zcache-main.c:1837: warning: return from incompatible pointer type
-drivers/staging/zcache/zcache-main.c: In function '__check_disable_frontswap':
-drivers/staging/zcache/zcache-main.c:1838: warning: return from incompatible pointer type
-drivers/staging/zcache/zcache-main.c: In function '__check_disable_frontswap_ignore_nonactive':
-drivers/staging/zcache/zcache-main.c:1842: warning: return from incompatible pointer type
+WARNING: please, no space before tabs
+#421: FILE: mm/mmap.c:189:
++ ^I * Don't let a single process grow so big a user can't recover$
 
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+ERROR: code indent should use tabs where possible
+#422: FILE: mm/mmap.c:190:
++         */$
+
+WARNING: line over 80 characters
+#439: FILE: mm/mmap.c:3107:
++ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
+
+ERROR: code indent should use tabs where possible
+#492: FILE: mm/nommu.c:1953:
++         */$
+
+WARNING: line over 80 characters
+#509: FILE: mm/nommu.c:2124:
++ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
+
+total: 3 errors, 4 warnings, 202 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andrew Shewmaker <agshew@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zcache/zcache-main.c |   26 -------------------------
- 1 file changed, 26 deletions(-)
+ include/linux/mm.h |    2 ++
+ kernel/sysctl.c    |    1 -
+ mm/mmap.c          |    7 ++++---
+ mm/nommu.c         |    5 +++--
+ 4 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/staging/zcache/zcache-main.c~drivers-staging-zcache-zcache-mainc-fix-build drivers/staging/zcache/zcache-main.c
---- a/drivers/staging/zcache/zcache-main.c~drivers-staging-zcache-zcache-mainc-fix-build
-+++ a/drivers/staging/zcache/zcache-main.c
-@@ -277,32 +277,6 @@ static void zcache_obj_free(struct tmem_
- 	kmem_cache_free(zcache_obj_cache, obj);
- }
+diff -puN include/linux/mm.h~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes include/linux/mm.h
+--- a/include/linux/mm.h~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
++++ a/include/linux/mm.h
+@@ -44,6 +44,8 @@ extern int sysctl_legacy_va_layout;
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
  
--static bool page_is_zero_filled(void *ptr)
--{
--	unsigned int pos;
--	unsigned long *page;
--
--	page = (unsigned long *)ptr;
--
--	for (pos = 0; pos < PAGE_SIZE / sizeof(*page); pos++) {
--		if (page[pos])
--			return false;
--	}
--
--	return true;
--}
--
--static void handle_zero_filled_page(void *page)
--{
--	void *user_mem;
--
--	user_mem = kmap_atomic(page);
--	memset(user_mem, 0, PAGE_SIZE);
--	kunmap_atomic(user_mem);
--
--	flush_dcache_page(page);
--}
--
- static struct tmem_hostops zcache_hostops = {
- 	.obj_alloc = zcache_obj_alloc,
- 	.obj_free = zcache_obj_free,
++extern unsigned long sysctl_user_reserve_kbytes;
++
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+ /* to align the pointer to the (next) page boundary */
+diff -puN kernel/sysctl.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
++++ a/kernel/sysctl.c
+@@ -97,7 +97,6 @@
+ /* External variables not in a header file. */
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+-extern unsigned long sysctl_user_reserve_kbytes;
+ extern int max_threads;
+ extern int suid_dumpable;
+ #ifdef CONFIG_COREDUMP
+diff -puN mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes mm/mmap.c
+--- a/mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
++++ a/mm/mmap.c
+@@ -186,8 +186,8 @@ int __vm_enough_memory(struct mm_struct
+ 	allowed += total_swap_pages;
+ 
+ 	/*
+- 	 * Don't let a single process grow so big a user can't recover
+-         */
++	 * Don't let a single process grow so big a user can't recover
++	 */
+ 	if (mm) {
+ 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
+ 		allowed -= min(mm->total_vm / 32, reserve);
+@@ -3104,7 +3104,8 @@ void __init mmap_init(void)
+  * Initialise sysctl_user_reserve_kbytes.
+  *
+  * This is intended to prevent a user from starting a single memory hogging
+- * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
++ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER
++ * mode.
+  *
+  * The default value is min(3% of free memory, 128MB)
+  * 128MB is enough to recover with sshd/login, bash, and top/kill.
+diff -puN mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes mm/nommu.c
+--- a/mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes
++++ a/mm/nommu.c
+@@ -1950,7 +1950,7 @@ int __vm_enough_memory(struct mm_struct
+ 
+ 	/*
+ 	 * Don't let a single process grow so big a user can't recover
+-         */
++	 */
+ 	if (mm) {
+ 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
+ 		allowed -= min(mm->total_vm / 32, reserve);
+@@ -2121,7 +2121,8 @@ int nommu_shrink_inode_mappings(struct i
+  * Initialise sysctl_user_reserve_kbytes.
+  *
+  * This is intended to prevent a user from starting a single memory hogging
+- * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER mode.
++ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER
++ * mode.
+  *
+  * The default value is min(3% of free memory, 128MB)
+  * 128MB is enough to recover with sshd/login, bash, and top/kill.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,7 +165,7 @@ kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
 mm-speedup-in-__early_pfn_to_nid.patch
 mm-speedup-in-__early_pfn_to_nid-fix.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve-checkpatch-fixes.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-checkpatch-fixes.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
