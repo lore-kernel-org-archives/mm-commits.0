@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-memoryh-implement-register_hotmemory_notifier.patch added to -mm tree
-Date: Mon, 08 Apr 2013 13:37:31 -0700
-Message-ID: <20130408203731.DE8B65A4201@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch added to -mm tree
+Date: Mon, 08 Apr 2013 13:37:36 -0700
+Message-ID: <20130408203736.D70B331C0F7__12409.8480832346$1365453475$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:62112 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936032Ab3DHUhe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 16:37:34 -0400
-Received: by mail-ia0-f202.google.com with SMTP id p22so1572036iad.3
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 13:37:32 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:48125 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936032Ab3DHUhj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 16:37:39 -0400
+Received: by mail-ob0-f202.google.com with SMTP id va7so440810obc.3
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 13:37:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agshew@gmail.com
+Cc: akpm@linux-foundation.org, agshew@gmail.com, linux-mm@kvack.org
 
 
 The patch titled
-     Subject: include/linux/memory.h: implement register_hotmemory_notifier()
+     Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix
 has been added to the -mm tree.  Its filename is
-     include-linux-memoryh-implement-register_hotmemory_notifier.patch
+     mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/memory.h: implement register_hotmemory_notifier()
+Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix
 
-When CONFIG_MEMORY_HOTPLUG=n, we don't want the memory-hotplug notifier
-handlers to be included in the .o files, for space reasons.
+use register_hotmemory_notifier()
 
-The existing hotplug_memory_notifier() tries to handle this but testing
-with gcc-4.4.4 shows that it doesn't work - the hotplug functions are
-still present in the .o files.
-
-So implement a new register_hotmemory_notifier() which is a copy of
-register_hotcpu_notifier(), and which actually works as desired. 
-hotplug_memory_notifier() and register_memory_notifier() callsites should
-be converted to use this new register_hotmemory_notifier().
-
-While we're there, let's repair the existing hotplug_memory_notifier(): it
-simply stomps on the register_memory_notifier() return value, so
-well-behaved code cannot check for errors.  Apparently non of the existing
-callers were well-behaved :(
-
+Cc: <linux-mm@kvack.org>
 Cc: Andrew Shewmaker <agshew@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h   |   15 ++++++++++++---
- include/linux/notifier.h |    5 ++++-
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memory.h~include-linux-memoryh-implement-register_hotmemory_notifier include/linux/memory.h
---- a/include/linux/memory.h~include-linux-memoryh-implement-register_hotmemory_notifier
-+++ a/include/linux/memory.h
-@@ -18,6 +18,7 @@
- #include <linux/node.h>
- #include <linux/compiler.h>
- #include <linux/mutex.h>
-+#include <linux/notifier.h>
+diff -puN mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix mm/mmap.c
+--- a/mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix
++++ a/mm/mmap.c
+@@ -3198,7 +3198,7 @@ static struct notifier_block reserve_mem
  
- #define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+ int __meminit init_reserve_notifier(void)
+ {
+-	if (register_memory_notifier(&reserve_mem_nb))
++	if (register_hotmemory_notifier(&reserve_mem_nb))
+ 		printk("Failed registering memory add/remove notifier for admin reserve");
  
-@@ -127,13 +128,21 @@ enum mem_add_context { BOOT, HOTPLUG };
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--#define hotplug_memory_notifier(fn, pri) {			\
-+#define hotplug_memory_notifier(fn, pri) ({			\
- 	static __meminitdata struct notifier_block fn##_mem_nb =\
- 		{ .notifier_call = fn, .priority = pri };	\
- 	register_memory_notifier(&fn##_mem_nb);			\
--}
-+})
-+#define register_hotmemory_notifier(nb)		register_memory_notifier(nb)
-+#define unregister_hotmemory_notifier(nb) 	unregister_memory_notifier(nb)
- #else
--#define hotplug_memory_notifier(fn, pri) do { } while (0)
-+static inline int hotplug_memory_notifier(notifier_fn_t fn, int priority)
-+{
-+	return 0;
-+}
-+/* These aren't inline functions due to a GCC bug. */
-+#define register_hotmemory_notifier(nb)    ({ (void)(nb); 0; })
-+#define unregister_hotmemory_notifier(nb)  ({ (void)(nb); })
- #endif
- 
- /*
-diff -puN include/linux/notifier.h~include-linux-memoryh-implement-register_hotmemory_notifier include/linux/notifier.h
---- a/include/linux/notifier.h~include-linux-memoryh-implement-register_hotmemory_notifier
-+++ a/include/linux/notifier.h
-@@ -47,8 +47,11 @@
-  * runtime initialization.
-  */
- 
-+typedef	int (*notifier_fn_t)(struct notifier_block *nb,
-+			unsigned long action, void *data);
-+
- struct notifier_block {
--	int (*notifier_call)(struct notifier_block *, unsigned long, void *);
-+	notifier_fn_t notifier_call;
- 	struct notifier_block __rcu *next;
- 	int priority;
- };
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
