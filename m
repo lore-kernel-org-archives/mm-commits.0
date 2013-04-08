@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ili9320-use-spi_set_drvdata.patch added to -mm tree
-Date: Mon, 08 Apr 2013 16:10:35 -0700
-Message-ID: <20130408231035.7CF6E5A4354@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-ili922x-use-spi_set_drvdata.patch added to -mm tree
+Date: Mon, 08 Apr 2013 16:10:42 -0700
+Message-ID: <20130408231042.7C3AB5A4364@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:52127 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935512Ab3DHXKg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:10:36 -0400
-Received: by mail-ia0-f202.google.com with SMTP id p22so1611965iad.5
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:10:36 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:62867 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935512Ab3DHXKn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:10:43 -0400
+Received: by mail-oa0-f74.google.com with SMTP id k14so1613478oag.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:10:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: ili9320: use spi_set_drvdata()
+     Subject: backlight: ili922x: use spi_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     backlight-ili9320-use-spi_set_drvdata.patch
+     backlight-ili922x-use-spi_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ili9320: use spi_set_drvdata()
+Subject: backlight: ili922x: use spi_set_drvdata()
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -44,21 +44,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ili9320.c |    2 +-
+ drivers/video/backlight/ili922x.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/ili9320.c~backlight-ili9320-use-spi_set_drvdata drivers/video/backlight/ili9320.c
---- a/drivers/video/backlight/ili9320.c~backlight-ili9320-use-spi_set_drvdata
-+++ a/drivers/video/backlight/ili9320.c
-@@ -231,7 +231,7 @@ int ili9320_probe_spi(struct spi_device
- 	ili->power = FB_BLANK_POWERDOWN;
- 	ili->platdata = cfg;
+diff -puN drivers/video/backlight/ili922x.c~backlight-ili922x-use-spi_set_drvdata drivers/video/backlight/ili922x.c
+--- a/drivers/video/backlight/ili922x.c~backlight-ili922x-use-spi_set_drvdata
++++ a/drivers/video/backlight/ili922x.c
+@@ -488,7 +488,7 @@ static int ili922x_probe(struct spi_devi
+ 	}
  
+ 	ili->spi = spi;
 -	dev_set_drvdata(&spi->dev, ili);
 +	spi_set_drvdata(spi, ili);
  
- 	ili9320_setup_spi(ili, spi);
- 
+ 	/* check if the device is connected */
+ 	ret = ili922x_read(spi, REG_DRIVER_CODE_READ, &reg);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
