@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-m41t93-use-spi_set_drvdata.patch added to -mm tree
-Date: Mon, 08 Apr 2013 16:09:49 -0700
-Message-ID: <20130408230949.D4BB45A4347@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-m41t94-use-spi_set_drvdata.patch added to -mm tree
+Date: Mon, 08 Apr 2013 16:09:41 -0700
+Message-ID: <20130408230941.D39C15A4336@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:48116 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936390Ab3DHXJv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:09:51 -0400
-Received: by mail-ie0-f202.google.com with SMTP id qd14so1612298ieb.5
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:09:50 -0700 (PDT)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:55625 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934944Ab3DHXJn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 19:09:43 -0400
+Received: by mail-oa0-f73.google.com with SMTP id o6so1613212oag.0
+        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 16:09:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-m41t93: use spi_set_drvdata()
+     Subject: rtc: rtc-m41t94: use spi_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-m41t93-use-spi_set_drvdata.patch
+     rtc-rtc-m41t94-use-spi_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-m41t93: use spi_set_drvdata()
+Subject: rtc: rtc-m41t94: use spi_set_drvdata()
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -44,13 +44,13 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t93.c |    2 +-
+ drivers/rtc/rtc-m41t94.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-m41t93.c~rtc-rtc-m41t93-use-spi_set_drvdata drivers/rtc/rtc-m41t93.c
---- a/drivers/rtc/rtc-m41t93.c~rtc-rtc-m41t93-use-spi_set_drvdata
-+++ a/drivers/rtc/rtc-m41t93.c
-@@ -189,7 +189,7 @@ static int m41t93_probe(struct spi_devic
+diff -puN drivers/rtc/rtc-m41t94.c~rtc-rtc-m41t94-use-spi_set_drvdata drivers/rtc/rtc-m41t94.c
+--- a/drivers/rtc/rtc-m41t94.c~rtc-rtc-m41t94-use-spi_set_drvdata
++++ a/drivers/rtc/rtc-m41t94.c
+@@ -129,7 +129,7 @@ static int m41t94_probe(struct spi_devic
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
  
