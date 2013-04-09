@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-implement-a-simple-framebuffer-driver-fix.patch added to -mm tree
-Date: Mon, 08 Apr 2013 17:16:50 -0700
-Message-ID: <20130409001650.DEBA231C3D5@corp2gmr1-1.hot.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 09 Apr 2013 12:42:32 -0700
+Message-ID: <20130409194232.72D8C31C0A5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:58585 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934100Ab3DIAQw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Apr 2013 20:16:52 -0400
-Received: by mail-ie0-f201.google.com with SMTP id a11so1627623iee.0
-        for <mm-commits@vger.kernel.org>; Mon, 08 Apr 2013 17:16:52 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:64425 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932929Ab3DITmd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 15:42:33 -0400
+Received: by mail-oa0-f74.google.com with SMTP id k14so1849705oag.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 12:42:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, FlorianSchandinat@gmx.de, arnd@arndb.de, olof@lixom.net, robclark@gmail.com, swarren@wwwdotorg.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: drivers-video-implement-a-simple-framebuffer-driver-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-video-implement-a-simple-framebuffer-driver-fix
+Subject: linux-next-git-rejects
 
-make simplefb_formats[] static
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Rob Clark <robclark@gmail.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/simplefb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/remoteproc/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/video/simplefb.c~drivers-video-implement-a-simple-framebuffer-driver-fix drivers/video/simplefb.c
---- a/drivers/video/simplefb.c~drivers-video-implement-a-simple-framebuffer-driver-fix
-+++ a/drivers/video/simplefb.c
-@@ -82,7 +82,7 @@ struct simplefb_format {
- 	struct fb_bitfield transp;
- };
+diff -puN drivers/remoteproc/Kconfig~linux-next-git-rejects drivers/remoteproc/Kconfig
+--- a/drivers/remoteproc/Kconfig~linux-next-git-rejects
++++ a/drivers/remoteproc/Kconfig
+@@ -4,12 +4,9 @@ menu "Remoteproc drivers"
+ config REMOTEPROC
+ 	tristate
+ 	depends on HAS_DMA
+-<<<<<<< HEAD
+ 	select FW_LOADER
+-=======
+ 	select CRC32
+ 	select FW_CONFIG
+->>>>>>> linux-next/akpm-base
+ 	select VIRTIO
  
--struct simplefb_format simplefb_formats[] = {
-+static struct simplefb_format simplefb_formats[] = {
- 	{ "r5g6b5", 16, {11, 5}, {5, 6}, {0, 5}, {0, 0} },
- };
- 
+ config OMAP_REMOTEPROC
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 revert-ipc-dont-allocate-a-copy-larger-than-max.patch
