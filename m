@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-hfsplus-convert-dprint-to-hfs_dbg.patch added to -mm tree
-Date: Tue, 09 Apr 2013 12:50:02 -0700
-Message-ID: <20130409195003.3B6345A42B4@corp2gmr1-2.hot.corp.google.com>
+Subject: + hfs-hfsplus-convert-printks-to-pr_level.patch added to -mm tree
+Date: Tue, 09 Apr 2013 12:50:05 -0700
+Message-ID: <20130409195006.3880231C2E1@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:56240 "EHLO
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:49750 "EHLO
 	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765436Ab3DITuF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 15:50:05 -0400
-Received: by mail-oa0-f73.google.com with SMTP id o6so1852207oag.4
-        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 12:50:04 -0700 (PDT)
+	with ESMTP id S1765436Ab3DITuH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 15:50:07 -0400
+Received: by mail-oa0-f73.google.com with SMTP id o6so1852383oag.4
+        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 12:50:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: joe@perches.com, hch@infradead.org, htl10@users.sourceforge.net, slava@dubey
 
 
 The patch titled
-     Subject: hfs/hfsplus: convert dprint to hfs_dbg
+     Subject: hfs/hfsplus: convert printks to pr_<level>
 has been added to the -mm tree.  Its filename is
-     hfs-hfsplus-convert-dprint-to-hfs_dbg.patch
+     hfs-hfsplus-convert-printks-to-pr_level.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: hfs/hfsplus: convert dprint to hfs_dbg
+Subject: hfs/hfsplus: convert printks to pr_<level>
 
 Use a more current logging style.
 
-Rename macro and uses.
-Add do {} while (0) to macro.
-Add DBG_ to macro.
-Add and use hfs_dbg_cont variant where appropriate.
+Add #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+hfsplus now uses "hfsplus: " for all messages.
+Coalesce formats.
+Prefix debugging messages too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
@@ -50,826 +50,1432 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/bfind.c          |    6 ++++--
- fs/hfs/bitmap.c         |    4 ++--
- fs/hfs/bnode.c          |   35 +++++++++++++++++++----------------
- fs/hfs/brec.c           |   11 +++++++----
- fs/hfs/btree.c          |    2 +-
- fs/hfs/catalog.c        |    8 +++++---
- fs/hfs/extent.c         |   20 +++++++++++---------
- fs/hfs/hfs_fs.h         |   14 ++++++++++++--
- fs/hfs/inode.c          |    4 ++--
- fs/hfsplus/attributes.c |    8 ++++----
- fs/hfsplus/bfind.c      |    4 ++--
- fs/hfsplus/bitmap.c     |   10 +++++-----
- fs/hfsplus/bnode.c      |   30 +++++++++++++++---------------
- fs/hfsplus/brec.c       |   10 +++++-----
- fs/hfsplus/btree.c      |    4 ++--
- fs/hfsplus/catalog.c    |    7 +++----
- fs/hfsplus/extents.c    |   26 +++++++++++++-------------
- fs/hfsplus/hfsplus_fs.h |   14 +++++++++++---
- fs/hfsplus/super.c      |    8 ++++----
- 19 files changed, 127 insertions(+), 98 deletions(-)
+ fs/hfs/bfind.c          |    4 +--
+ fs/hfs/bnode.c          |    4 +--
+ fs/hfs/brec.c           |    8 ++----
+ fs/hfs/btree.c          |   29 ++++++++++++----------
+ fs/hfs/catalog.c        |    4 +--
+ fs/hfs/dir.c            |   12 ++++-----
+ fs/hfs/hfs_fs.h         |   22 +++++++++++------
+ fs/hfs/mdb.c            |   23 ++++++++----------
+ fs/hfs/super.c          |   43 ++++++++++++++++------------------
+ fs/hfsplus/attributes.c |   18 +++++++-------
+ fs/hfsplus/bfind.c      |    2 -
+ fs/hfsplus/bitmap.c     |    2 -
+ fs/hfsplus/bnode.c      |    6 ++--
+ fs/hfsplus/brec.c       |    4 +--
+ fs/hfsplus/btree.c      |   25 +++++++++----------
+ fs/hfsplus/catalog.c    |    4 +--
+ fs/hfsplus/dir.c        |   14 +++++------
+ fs/hfsplus/extents.c    |    6 ++--
+ fs/hfsplus/hfsplus_fs.h |   22 +++++++++++------
+ fs/hfsplus/inode.c      |    4 +--
+ fs/hfsplus/options.c    |   22 ++++++++---------
+ fs/hfsplus/super.c      |   48 ++++++++++++++------------------------
+ fs/hfsplus/wrapper.c    |    8 ++----
+ fs/hfsplus/xattr.c      |   41 +++++++++++++++-----------------
+ 24 files changed, 185 insertions(+), 190 deletions(-)
 
-diff -puN fs/hfs/bfind.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/bfind.c
---- a/fs/hfs/bfind.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
+diff -puN fs/hfs/bfind.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/bfind.c
+--- a/fs/hfs/bfind.c~hfs-hfsplus-convert-printks-to-pr_level
 +++ a/fs/hfs/bfind.c
-@@ -22,7 +22,8 @@ int hfs_find_init(struct hfs_btree *tree
- 		return -ENOMEM;
- 	fd->search_key = ptr;
- 	fd->key = ptr + tree->max_key_len + 2;
--	dprint(DBG_BNODE_REFS, "find_init: %d (%p)\n", tree->cnid, __builtin_return_address(0));
-+	hfs_dbg(BNODE_REFS, "find_init: %d (%p)\n",
-+		tree->cnid, __builtin_return_address(0));
- 	mutex_lock(&tree->tree_lock);
- 	return 0;
- }
-@@ -31,7 +32,8 @@ void hfs_find_exit(struct hfs_find_data
- {
- 	hfs_bnode_put(fd->bnode);
- 	kfree(fd->search_key);
--	dprint(DBG_BNODE_REFS, "find_exit: %d (%p)\n", fd->tree->cnid, __builtin_return_address(0));
-+	hfs_dbg(BNODE_REFS, "find_exit: %d (%p)\n",
-+		fd->tree->cnid, __builtin_return_address(0));
- 	mutex_unlock(&fd->tree->tree_lock);
- 	fd->tree = NULL;
- }
-diff -puN fs/hfs/bitmap.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/bitmap.c
---- a/fs/hfs/bitmap.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/bitmap.c
-@@ -158,7 +158,7 @@ u32 hfs_vbm_search_free(struct super_blo
- 		}
- 	}
- 
--	dprint(DBG_BITMAP, "alloc_bits: %u,%u\n", pos, *num_bits);
-+	hfs_dbg(BITMAP, "alloc_bits: %u,%u\n", pos, *num_bits);
- 	HFS_SB(sb)->free_ablocks -= *num_bits;
- 	hfs_bitmap_dirty(sb);
- out:
-@@ -200,7 +200,7 @@ int hfs_clear_vbm_bits(struct super_bloc
- 	if (!count)
- 		return 0;
- 
--	dprint(DBG_BITMAP, "clear_bits: %u,%u\n", start, count);
-+	hfs_dbg(BITMAP, "clear_bits: %u,%u\n", start, count);
- 	/* are all of the bits in range? */
- 	if ((start + count) > HFS_SB(sb)->fs_ablocks)
- 		return -2;
-diff -puN fs/hfs/bnode.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/bnode.c
---- a/fs/hfs/bnode.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/bnode.c
-@@ -100,7 +100,7 @@ void hfs_bnode_copy(struct hfs_bnode *ds
- 	struct hfs_btree *tree;
- 	struct page *src_page, *dst_page;
- 
--	dprint(DBG_BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
-+	hfs_dbg(BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
- 	if (!len)
- 		return;
- 	tree = src_node->tree;
-@@ -120,7 +120,7 @@ void hfs_bnode_move(struct hfs_bnode *no
- 	struct page *page;
- 	void *ptr;
- 
--	dprint(DBG_BNODE_MOD, "movebytes: %u,%u,%u\n", dst, src, len);
-+	hfs_dbg(BNODE_MOD, "movebytes: %u,%u,%u\n", dst, src, len);
- 	if (!len)
- 		return;
- 	src += node->page_offset;
-@@ -138,16 +138,16 @@ void hfs_bnode_dump(struct hfs_bnode *no
- 	__be32 cnid;
- 	int i, off, key_off;
- 
--	dprint(DBG_BNODE_MOD, "bnode: %d\n", node->this);
-+	hfs_dbg(BNODE_MOD, "bnode: %d\n", node->this);
- 	hfs_bnode_read(node, &desc, 0, sizeof(desc));
--	dprint(DBG_BNODE_MOD, "%d, %d, %d, %d, %d\n",
-+	hfs_dbg(BNODE_MOD, "%d, %d, %d, %d, %d\n",
- 		be32_to_cpu(desc.next), be32_to_cpu(desc.prev),
- 		desc.type, desc.height, be16_to_cpu(desc.num_recs));
- 
- 	off = node->tree->node_size - 2;
- 	for (i = be16_to_cpu(desc.num_recs); i >= 0; off -= 2, i--) {
- 		key_off = hfs_bnode_read_u16(node, off);
--		dprint(DBG_BNODE_MOD, " %d", key_off);
-+		hfs_dbg_cont(BNODE_MOD, " %d", key_off);
- 		if (i && node->type == HFS_NODE_INDEX) {
- 			int tmp;
- 
-@@ -155,17 +155,18 @@ void hfs_bnode_dump(struct hfs_bnode *no
- 				tmp = (hfs_bnode_read_u8(node, key_off) | 1) + 1;
- 			else
- 				tmp = node->tree->max_key_len + 1;
--			dprint(DBG_BNODE_MOD, " (%d,%d", tmp, hfs_bnode_read_u8(node, key_off));
-+			hfs_dbg_cont(BNODE_MOD, " (%d,%d",
-+				     tmp, hfs_bnode_read_u8(node, key_off));
- 			hfs_bnode_read(node, &cnid, key_off + tmp, 4);
--			dprint(DBG_BNODE_MOD, ",%d)", be32_to_cpu(cnid));
-+			hfs_dbg_cont(BNODE_MOD, ",%d)", be32_to_cpu(cnid));
- 		} else if (i && node->type == HFS_NODE_LEAF) {
- 			int tmp;
- 
- 			tmp = hfs_bnode_read_u8(node, key_off);
--			dprint(DBG_BNODE_MOD, " (%d)", tmp);
-+			hfs_dbg_cont(BNODE_MOD, " (%d)", tmp);
- 		}
- 	}
--	dprint(DBG_BNODE_MOD, "\n");
-+	hfs_dbg_cont(BNODE_MOD, "\n");
- }
- 
- void hfs_bnode_unlink(struct hfs_bnode *node)
-@@ -257,8 +258,8 @@ static struct hfs_bnode *__hfs_bnode_cre
- 	node->this = cnid;
- 	set_bit(HFS_BNODE_NEW, &node->flags);
- 	atomic_set(&node->refcnt, 1);
--	dprint(DBG_BNODE_REFS, "new_node(%d:%d): 1\n",
--	       node->tree->cnid, node->this);
-+	hfs_dbg(BNODE_REFS, "new_node(%d:%d): 1\n",
-+		node->tree->cnid, node->this);
- 	init_waitqueue_head(&node->lock_wq);
- 	spin_lock(&tree->hash_lock);
- 	node2 = hfs_bnode_findhash(tree, cnid);
-@@ -301,7 +302,7 @@ void hfs_bnode_unhash(struct hfs_bnode *
- {
- 	struct hfs_bnode **p;
- 
--	dprint(DBG_BNODE_REFS, "remove_node(%d:%d): %d\n",
-+	hfs_dbg(BNODE_REFS, "remove_node(%d:%d): %d\n",
- 		node->tree->cnid, node->this, atomic_read(&node->refcnt));
- 	for (p = &node->tree->node_hash[hfs_bnode_hash(node->this)];
- 	     *p && *p != node; p = &(*p)->next_hash)
-@@ -443,8 +444,9 @@ void hfs_bnode_get(struct hfs_bnode *nod
- {
- 	if (node) {
- 		atomic_inc(&node->refcnt);
--		dprint(DBG_BNODE_REFS, "get_node(%d:%d): %d\n",
--		       node->tree->cnid, node->this, atomic_read(&node->refcnt));
-+		hfs_dbg(BNODE_REFS, "get_node(%d:%d): %d\n",
-+			node->tree->cnid, node->this,
-+			atomic_read(&node->refcnt));
- 	}
- }
- 
-@@ -455,8 +457,9 @@ void hfs_bnode_put(struct hfs_bnode *nod
- 		struct hfs_btree *tree = node->tree;
- 		int i;
- 
--		dprint(DBG_BNODE_REFS, "put_node(%d:%d): %d\n",
--		       node->tree->cnid, node->this, atomic_read(&node->refcnt));
-+		hfs_dbg(BNODE_REFS, "put_node(%d:%d): %d\n",
-+			node->tree->cnid, node->this,
-+			atomic_read(&node->refcnt));
- 		BUG_ON(!atomic_read(&node->refcnt));
- 		if (!atomic_dec_and_lock(&node->refcnt, &tree->hash_lock))
- 			return;
-diff -puN fs/hfs/brec.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/brec.c
---- a/fs/hfs/brec.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/brec.c
-@@ -94,7 +94,8 @@ again:
- 	end_rec_off = tree->node_size - (node->num_recs + 1) * 2;
- 	end_off = hfs_bnode_read_u16(node, end_rec_off);
- 	end_rec_off -= 2;
--	dprint(DBG_BNODE_MOD, "insert_rec: %d, %d, %d, %d\n", rec, size, end_off, end_rec_off);
-+	hfs_dbg(BNODE_MOD, "insert_rec: %d, %d, %d, %d\n",
-+		rec, size, end_off, end_rec_off);
- 	if (size > end_rec_off - end_off) {
- 		if (new_node)
- 			panic("not enough room!\n");
-@@ -190,7 +191,8 @@ again:
- 		mark_inode_dirty(tree->inode);
- 	}
- 	hfs_bnode_dump(node);
--	dprint(DBG_BNODE_MOD, "remove_rec: %d, %d\n", fd->record, fd->keylength + fd->entrylength);
-+	hfs_dbg(BNODE_MOD, "remove_rec: %d, %d\n",
-+		fd->record, fd->keylength + fd->entrylength);
- 	if (!--node->num_recs) {
- 		hfs_bnode_unlink(node);
- 		if (!node->parent)
-@@ -240,7 +242,7 @@ static struct hfs_bnode *hfs_bnode_split
- 	if (IS_ERR(new_node))
- 		return new_node;
- 	hfs_bnode_get(node);
--	dprint(DBG_BNODE_MOD, "split_nodes: %d - %d - %d\n",
-+	hfs_dbg(BNODE_MOD, "split_nodes: %d - %d - %d\n",
- 		node->this, new_node->this, node->next);
- 	new_node->next = node->next;
- 	new_node->prev = node->this;
-@@ -374,7 +376,8 @@ again:
- 		newkeylen = (hfs_bnode_read_u8(node, 14) | 1) + 1;
- 	else
- 		fd->keylength = newkeylen = tree->max_key_len + 1;
--	dprint(DBG_BNODE_MOD, "update_rec: %d, %d, %d\n", rec, fd->keylength, newkeylen);
-+	hfs_dbg(BNODE_MOD, "update_rec: %d, %d, %d\n",
-+		rec, fd->keylength, newkeylen);
- 
- 	rec_off = tree->node_size - (rec + 2) * 2;
- 	end_rec_off = tree->node_size - (parent->num_recs + 1) * 2;
-diff -puN fs/hfs/btree.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/btree.c
---- a/fs/hfs/btree.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/btree.c
-@@ -316,7 +316,7 @@ void hfs_bmap_free(struct hfs_bnode *nod
- 	u32 nidx;
- 	u8 *data, byte, m;
- 
--	dprint(DBG_BNODE_MOD, "btree_free_node: %u\n", node->this);
-+	hfs_dbg(BNODE_MOD, "btree_free_node: %u\n", node->this);
- 	tree = node->tree;
- 	nidx = node->this;
- 	node = hfs_bnode_find(tree, 0);
-diff -puN fs/hfs/catalog.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/catalog.c
---- a/fs/hfs/catalog.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/catalog.c
-@@ -87,7 +87,8 @@ int hfs_cat_create(u32 cnid, struct inod
- 	int entry_size;
- 	int err;
- 
--	dprint(DBG_CAT_MOD, "create_cat: %s,%u(%d)\n", str->name, cnid, inode->i_nlink);
-+	hfs_dbg(CAT_MOD, "create_cat: %s,%u(%d)\n",
-+		str->name, cnid, inode->i_nlink);
- 	if (dir->i_size >= HFS_MAX_VALENCE)
- 		return -ENOSPC;
- 
-@@ -212,7 +213,7 @@ int hfs_cat_delete(u32 cnid, struct inod
- 	struct list_head *pos;
- 	int res, type;
- 
--	dprint(DBG_CAT_MOD, "delete_cat: %s,%u\n", str ? str->name : NULL, cnid);
-+	hfs_dbg(CAT_MOD, "delete_cat: %s,%u\n", str ? str->name : NULL, cnid);
- 	sb = dir->i_sb;
- 	hfs_find_init(HFS_SB(sb)->cat_tree, &fd);
- 
-@@ -278,7 +279,8 @@ int hfs_cat_move(u32 cnid, struct inode
- 	int entry_size, type;
- 	int err;
- 
--	dprint(DBG_CAT_MOD, "rename_cat: %u - %lu,%s - %lu,%s\n", cnid, src_dir->i_ino, src_name->name,
-+	hfs_dbg(CAT_MOD, "rename_cat: %u - %lu,%s - %lu,%s\n",
-+		cnid, src_dir->i_ino, src_name->name,
- 		dst_dir->i_ino, dst_name->name);
- 	sb = src_dir->i_sb;
- 	hfs_find_init(HFS_SB(sb)->cat_tree, &src_fd);
-diff -puN fs/hfs/extent.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/extent.c
---- a/fs/hfs/extent.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/extent.c
-@@ -195,11 +195,12 @@ static void hfs_dump_extent(struct hfs_e
- {
- 	int i;
- 
--	dprint(DBG_EXTENT, "   ");
-+	hfs_dbg(EXTENT, "   ");
- 	for (i = 0; i < 3; i++)
--		dprint(DBG_EXTENT, " %u:%u", be16_to_cpu(extent[i].block),
--				 be16_to_cpu(extent[i].count));
--	dprint(DBG_EXTENT, "\n");
-+		hfs_dbg_cont(EXTENT, " %u:%u",
-+			     be16_to_cpu(extent[i].block),
-+			     be16_to_cpu(extent[i].count));
-+	hfs_dbg_cont(EXTENT, "\n");
- }
- 
- static int hfs_add_extent(struct hfs_extent *extent, u16 offset,
-@@ -392,10 +393,10 @@ int hfs_extend_file(struct inode *inode)
- 		goto out;
- 	}
- 
--	dprint(DBG_EXTENT, "extend %lu: %u,%u\n", inode->i_ino, start, len);
-+	hfs_dbg(EXTENT, "extend %lu: %u,%u\n", inode->i_ino, start, len);
- 	if (HFS_I(inode)->alloc_blocks == HFS_I(inode)->first_blocks) {
- 		if (!HFS_I(inode)->first_blocks) {
--			dprint(DBG_EXTENT, "first extents\n");
-+			hfs_dbg(EXTENT, "first extents\n");
- 			/* no extents yet */
- 			HFS_I(inode)->first_extents[0].block = cpu_to_be16(start);
- 			HFS_I(inode)->first_extents[0].count = cpu_to_be16(len);
-@@ -437,7 +438,7 @@ out:
+@@ -137,8 +137,8 @@ int hfs_brec_find(struct hfs_find_data *
  	return res;
  
- insert_extent:
--	dprint(DBG_EXTENT, "insert new extent\n");
-+	hfs_dbg(EXTENT, "insert new extent\n");
- 	hfs_ext_write_extent(inode);
+ invalid:
+-	printk(KERN_ERR "hfs: inconsistency in B*Tree (%d,%d,%d,%u,%u)\n",
+-		height, bnode->height, bnode->type, nidx, parent);
++	pr_err("inconsistency in B*Tree (%d,%d,%d,%u,%u)\n",
++	       height, bnode->height, bnode->type, nidx, parent);
+ 	res = -EIO;
+ release:
+ 	hfs_bnode_put(bnode);
+diff -puN fs/hfs/bnode.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/bnode.c
+--- a/fs/hfs/bnode.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/bnode.c
+@@ -221,7 +221,7 @@ struct hfs_bnode *hfs_bnode_findhash(str
+ 	struct hfs_bnode *node;
  
- 	memset(HFS_I(inode)->cached_extents, 0, sizeof(hfs_extent_rec));
-@@ -460,8 +461,9 @@ void hfs_file_truncate(struct inode *ino
- 	u32 size;
- 	int res;
- 
--	dprint(DBG_INODE, "truncate: %lu, %Lu -> %Lu\n", inode->i_ino,
--	       (long long)HFS_I(inode)->phys_size, inode->i_size);
-+	hfs_dbg(INODE, "truncate: %lu, %Lu -> %Lu\n",
-+		inode->i_ino, (long long)HFS_I(inode)->phys_size,
-+		inode->i_size);
- 	if (inode->i_size > HFS_I(inode)->phys_size) {
- 		struct address_space *mapping = inode->i_mapping;
- 		void *fsdata;
-diff -puN fs/hfs/hfs_fs.h~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/hfs_fs.h
---- a/fs/hfs/hfs_fs.h~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/hfs_fs.h
-@@ -34,8 +34,18 @@
- //#define DBG_MASK	(DBG_CAT_MOD|DBG_BNODE_REFS|DBG_INODE|DBG_EXTENT)
- #define DBG_MASK	(0)
- 
--#define dprint(flg, fmt, args...) \
--	if (flg & DBG_MASK) printk(fmt , ## args)
-+#define hfs_dbg(flg, fmt, ...)				\
-+do {							\
-+	if (DBG_##flg & DBG_MASK)			\
-+		printk(KERN_DEBUG fmt, ##__VA_ARGS__);	\
-+} while (0)
-+
-+#define hfs_dbg_cont(flg, fmt, ...)			\
-+do {							\
-+	if (DBG_##flg & DBG_MASK)			\
-+		printk(KERN_CONT fmt, ##__VA_ARGS__);	\
-+} while (0)
-+
- 
- /*
-  * struct hfs_inode_info
-diff -puN fs/hfs/inode.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfs/inode.c
---- a/fs/hfs/inode.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfs/inode.c
-@@ -237,7 +237,7 @@ void hfs_delete_inode(struct inode *inod
- {
- 	struct super_block *sb = inode->i_sb;
- 
--	dprint(DBG_INODE, "delete_inode: %lu\n", inode->i_ino);
-+	hfs_dbg(INODE, "delete_inode: %lu\n", inode->i_ino);
- 	if (S_ISDIR(inode->i_mode)) {
- 		HFS_SB(sb)->folder_count--;
- 		if (HFS_I(inode)->cat_key.ParID == cpu_to_be32(HFS_ROOT_CNID))
-@@ -417,7 +417,7 @@ int hfs_write_inode(struct inode *inode,
- 	struct hfs_find_data fd;
- 	hfs_cat_rec rec;
- 
--	dprint(DBG_INODE, "hfs_write_inode: %lu\n", inode->i_ino);
-+	hfs_dbg(INODE, "hfs_write_inode: %lu\n", inode->i_ino);
- 	hfs_ext_write_extent(inode);
- 
- 	if (inode->i_ino < HFS_FIRSTUSER_CNID) {
-diff -puN fs/hfsplus/attributes.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/attributes.c
---- a/fs/hfsplus/attributes.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/attributes.c
-@@ -166,7 +166,7 @@ int hfsplus_find_attr(struct super_block
- {
- 	int err = 0;
- 
--	dprint(DBG_ATTR_MOD, "find_attr: %s,%d\n", name ? name : NULL, cnid);
-+	hfs_dbg(ATTR_MOD, "find_attr: %s,%d\n", name ? name : NULL, cnid);
- 
- 	if (!HFSPLUS_SB(sb)->attr_tree) {
- 		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
-@@ -228,7 +228,7 @@ int hfsplus_create_attr(struct inode *in
- 	int entry_size;
- 	int err;
- 
--	dprint(DBG_ATTR_MOD, "create_attr: %s,%ld\n",
-+	hfs_dbg(ATTR_MOD, "create_attr: %s,%ld\n",
- 		name ? name : NULL, inode->i_ino);
- 
- 	if (!HFSPLUS_SB(sb)->attr_tree) {
-@@ -328,7 +328,7 @@ int hfsplus_delete_attr(struct inode *in
- 	struct super_block *sb = inode->i_sb;
- 	struct hfs_find_data fd;
- 
--	dprint(DBG_ATTR_MOD, "delete_attr: %s,%ld\n",
-+	hfs_dbg(ATTR_MOD, "delete_attr: %s,%ld\n",
- 		name ? name : NULL, inode->i_ino);
- 
- 	if (!HFSPLUS_SB(sb)->attr_tree) {
-@@ -369,7 +369,7 @@ int hfsplus_delete_all_attrs(struct inod
- 	int err = 0;
- 	struct hfs_find_data fd;
- 
--	dprint(DBG_ATTR_MOD, "delete_all_attrs: %d\n", cnid);
-+	hfs_dbg(ATTR_MOD, "delete_all_attrs: %d\n", cnid);
- 
- 	if (!HFSPLUS_SB(dir->i_sb)->attr_tree) {
- 		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
-diff -puN fs/hfsplus/bfind.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/bfind.c
---- a/fs/hfsplus/bfind.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/bfind.c
-@@ -22,7 +22,7 @@ int hfs_find_init(struct hfs_btree *tree
- 		return -ENOMEM;
- 	fd->search_key = ptr;
- 	fd->key = ptr + tree->max_key_len + 2;
--	dprint(DBG_BNODE_REFS, "find_init: %d (%p)\n",
-+	hfs_dbg(BNODE_REFS, "find_init: %d (%p)\n",
- 		tree->cnid, __builtin_return_address(0));
- 	switch (tree->cnid) {
- 	case HFSPLUS_CAT_CNID:
-@@ -44,7 +44,7 @@ void hfs_find_exit(struct hfs_find_data
- {
- 	hfs_bnode_put(fd->bnode);
- 	kfree(fd->search_key);
--	dprint(DBG_BNODE_REFS, "find_exit: %d (%p)\n",
-+	hfs_dbg(BNODE_REFS, "find_exit: %d (%p)\n",
- 		fd->tree->cnid, __builtin_return_address(0));
- 	mutex_unlock(&fd->tree->tree_lock);
- 	fd->tree = NULL;
-diff -puN fs/hfsplus/bitmap.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/bitmap.c
---- a/fs/hfsplus/bitmap.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/bitmap.c
-@@ -30,7 +30,7 @@ int hfsplus_block_allocate(struct super_
- 	if (!len)
- 		return size;
- 
--	dprint(DBG_BITMAP, "block_allocate: %u,%u,%u\n", size, offset, len);
-+	hfs_dbg(BITMAP, "block_allocate: %u,%u,%u\n", size, offset, len);
- 	mutex_lock(&sbi->alloc_mutex);
- 	mapping = sbi->alloc_file->i_mapping;
- 	page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS, NULL);
-@@ -89,14 +89,14 @@ int hfsplus_block_allocate(struct super_
- 		else
- 			end = pptr + ((size + 31) & (PAGE_CACHE_BITS - 1)) / 32;
+ 	if (cnid >= tree->node_count) {
+-		printk(KERN_ERR "hfs: request for non-existent node %d in B*Tree\n", cnid);
++		pr_err("request for non-existent node %d in B*Tree\n", cnid);
+ 		return NULL;
  	}
--	dprint(DBG_BITMAP, "bitmap full\n");
-+	hfs_dbg(BITMAP, "bitmap full\n");
- 	start = size;
- 	goto out;
  
- found:
- 	start = offset + (curr - pptr) * 32 + i;
- 	if (start >= size) {
--		dprint(DBG_BITMAP, "bitmap full\n");
-+		hfs_dbg(BITMAP, "bitmap full\n");
- 		goto out;
+@@ -244,7 +244,7 @@ static struct hfs_bnode *__hfs_bnode_cre
+ 	loff_t off;
+ 
+ 	if (cnid >= tree->node_count) {
+-		printk(KERN_ERR "hfs: request for non-existent node %d in B*Tree\n", cnid);
++		pr_err("request for non-existent node %d in B*Tree\n", cnid);
+ 		return NULL;
  	}
- 	/* do any partial u32 at the start */
-@@ -154,7 +154,7 @@ done:
- 	*max = offset + (curr - pptr) * 32 + i - start;
- 	sbi->free_blocks -= *max;
- 	hfsplus_mark_mdb_dirty(sb);
--	dprint(DBG_BITMAP, "-> %u,%u\n", start, *max);
-+	hfs_dbg(BITMAP, "-> %u,%u\n", start, *max);
- out:
- 	mutex_unlock(&sbi->alloc_mutex);
- 	return start;
-@@ -173,7 +173,7 @@ int hfsplus_block_free(struct super_bloc
- 	if (!count)
- 		return 0;
  
--	dprint(DBG_BITMAP, "block_free: %u,%u\n", offset, count);
-+	hfs_dbg(BITMAP, "block_free: %u,%u\n", offset, count);
- 	/* are all of the bits in range? */
- 	if ((offset + count) > sbi->total_blocks)
- 		return -ENOENT;
-diff -puN fs/hfsplus/bnode.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/bnode.c
---- a/fs/hfsplus/bnode.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/bnode.c
-@@ -130,7 +130,7 @@ void hfs_bnode_copy(struct hfs_bnode *ds
- 	struct page **src_page, **dst_page;
- 	int l;
- 
--	dprint(DBG_BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
-+	hfs_dbg(BNODE_MOD, "copybytes: %u,%u,%u\n", dst, src, len);
- 	if (!len)
- 		return;
- 	tree = src_node->tree;
-@@ -188,7 +188,7 @@ void hfs_bnode_move(struct hfs_bnode *no
- 	struct page **src_page, **dst_page;
- 	int l;
- 
--	dprint(DBG_BNODE_MOD, "movebytes: %u,%u,%u\n", dst, src, len);
-+	hfs_dbg(BNODE_MOD, "movebytes: %u,%u,%u\n", dst, src, len);
- 	if (!len)
- 		return;
- 	src += node->page_offset;
-@@ -302,16 +302,16 @@ void hfs_bnode_dump(struct hfs_bnode *no
- 	__be32 cnid;
- 	int i, off, key_off;
- 
--	dprint(DBG_BNODE_MOD, "bnode: %d\n", node->this);
-+	hfs_dbg(BNODE_MOD, "bnode: %d\n", node->this);
- 	hfs_bnode_read(node, &desc, 0, sizeof(desc));
--	dprint(DBG_BNODE_MOD, "%d, %d, %d, %d, %d\n",
-+	hfs_dbg(BNODE_MOD, "%d, %d, %d, %d, %d\n",
- 		be32_to_cpu(desc.next), be32_to_cpu(desc.prev),
- 		desc.type, desc.height, be16_to_cpu(desc.num_recs));
- 
- 	off = node->tree->node_size - 2;
- 	for (i = be16_to_cpu(desc.num_recs); i >= 0; off -= 2, i--) {
- 		key_off = hfs_bnode_read_u16(node, off);
--		dprint(DBG_BNODE_MOD, " %d", key_off);
-+		hfs_dbg(BNODE_MOD, " %d", key_off);
- 		if (i && node->type == HFS_NODE_INDEX) {
- 			int tmp;
- 
-@@ -320,17 +320,17 @@ void hfs_bnode_dump(struct hfs_bnode *no
- 				tmp = hfs_bnode_read_u16(node, key_off) + 2;
- 			else
- 				tmp = node->tree->max_key_len + 2;
--			dprint(DBG_BNODE_MOD, " (%d", tmp);
-+			hfs_dbg_cont(BNODE_MOD, " (%d", tmp);
- 			hfs_bnode_read(node, &cnid, key_off + tmp, 4);
--			dprint(DBG_BNODE_MOD, ",%d)", be32_to_cpu(cnid));
-+			hfs_dbg_cont(BNODE_MOD, ",%d)", be32_to_cpu(cnid));
- 		} else if (i && node->type == HFS_NODE_LEAF) {
- 			int tmp;
- 
- 			tmp = hfs_bnode_read_u16(node, key_off);
--			dprint(DBG_BNODE_MOD, " (%d)", tmp);
-+			hfs_dbg_cont(BNODE_MOD, " (%d)", tmp);
+diff -puN fs/hfs/brec.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/brec.c
+--- a/fs/hfs/brec.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/brec.c
+@@ -47,15 +47,13 @@ u16 hfs_brec_keylen(struct hfs_bnode *no
+ 		if (node->tree->attributes & HFS_TREE_BIGKEYS) {
+ 			retval = hfs_bnode_read_u16(node, recoff) + 2;
+ 			if (retval > node->tree->max_key_len + 2) {
+-				printk(KERN_ERR "hfs: keylen %d too large\n",
+-					retval);
++				pr_err("keylen %d too large\n", retval);
+ 				retval = 0;
+ 			}
+ 		} else {
+ 			retval = (hfs_bnode_read_u8(node, recoff) | 1) + 1;
+ 			if (retval > node->tree->max_key_len + 1) {
+-				printk(KERN_ERR "hfs: keylen %d too large\n",
+-					retval);
++				pr_err("keylen %d too large\n", retval);
+ 				retval = 0;
+ 			}
  		}
- 	}
--	dprint(DBG_BNODE_MOD, "\n");
-+	hfs_dbg_cont(BNODE_MOD, "\n");
- }
- 
- void hfs_bnode_unlink(struct hfs_bnode *node)
-@@ -366,7 +366,7 @@ void hfs_bnode_unlink(struct hfs_bnode *
- 
- 	/* move down? */
- 	if (!node->prev && !node->next)
--		dprint(DBG_BNODE_MOD, "hfs_btree_del_level\n");
-+		hfs_dbg(BNODE_MOD, "hfs_btree_del_level\n");
- 	if (!node->parent) {
- 		tree->root = 0;
- 		tree->depth = 0;
-@@ -425,8 +425,8 @@ static struct hfs_bnode *__hfs_bnode_cre
- 	node->this = cnid;
- 	set_bit(HFS_BNODE_NEW, &node->flags);
- 	atomic_set(&node->refcnt, 1);
--	dprint(DBG_BNODE_REFS, "new_node(%d:%d): 1\n",
--	       node->tree->cnid, node->this);
-+	hfs_dbg(BNODE_REFS, "new_node(%d:%d): 1\n",
-+		node->tree->cnid, node->this);
- 	init_waitqueue_head(&node->lock_wq);
- 	spin_lock(&tree->hash_lock);
- 	node2 = hfs_bnode_findhash(tree, cnid);
-@@ -470,7 +470,7 @@ void hfs_bnode_unhash(struct hfs_bnode *
- {
- 	struct hfs_bnode **p;
- 
--	dprint(DBG_BNODE_REFS, "remove_node(%d:%d): %d\n",
-+	hfs_dbg(BNODE_REFS, "remove_node(%d:%d): %d\n",
- 		node->tree->cnid, node->this, atomic_read(&node->refcnt));
- 	for (p = &node->tree->node_hash[hfs_bnode_hash(node->this)];
- 	     *p && *p != node; p = &(*p)->next_hash)
-@@ -620,7 +620,7 @@ void hfs_bnode_get(struct hfs_bnode *nod
- {
- 	if (node) {
- 		atomic_inc(&node->refcnt);
--		dprint(DBG_BNODE_REFS, "get_node(%d:%d): %d\n",
-+		hfs_dbg(BNODE_REFS, "get_node(%d:%d): %d\n",
- 			node->tree->cnid, node->this,
- 			atomic_read(&node->refcnt));
- 	}
-@@ -633,7 +633,7 @@ void hfs_bnode_put(struct hfs_bnode *nod
- 		struct hfs_btree *tree = node->tree;
- 		int i;
- 
--		dprint(DBG_BNODE_REFS, "put_node(%d:%d): %d\n",
-+		hfs_dbg(BNODE_REFS, "put_node(%d:%d): %d\n",
- 			node->tree->cnid, node->this,
- 			atomic_read(&node->refcnt));
- 		BUG_ON(!atomic_read(&node->refcnt));
-diff -puN fs/hfsplus/brec.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/brec.c
---- a/fs/hfsplus/brec.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/brec.c
-@@ -90,7 +90,7 @@ again:
- 	end_rec_off = tree->node_size - (node->num_recs + 1) * 2;
- 	end_off = hfs_bnode_read_u16(node, end_rec_off);
- 	end_rec_off -= 2;
--	dprint(DBG_BNODE_MOD, "insert_rec: %d, %d, %d, %d\n",
-+	hfs_dbg(BNODE_MOD, "insert_rec: %d, %d, %d, %d\n",
- 		rec, size, end_off, end_rec_off);
- 	if (size > end_rec_off - end_off) {
- 		if (new_node)
-@@ -191,7 +191,7 @@ again:
- 		mark_inode_dirty(tree->inode);
- 	}
- 	hfs_bnode_dump(node);
--	dprint(DBG_BNODE_MOD, "remove_rec: %d, %d\n",
-+	hfs_dbg(BNODE_MOD, "remove_rec: %d, %d\n",
- 		fd->record, fd->keylength + fd->entrylength);
- 	if (!--node->num_recs) {
- 		hfs_bnode_unlink(node);
-@@ -244,7 +244,7 @@ static struct hfs_bnode *hfs_bnode_split
- 	if (IS_ERR(new_node))
- 		return new_node;
- 	hfs_bnode_get(node);
--	dprint(DBG_BNODE_MOD, "split_nodes: %d - %d - %d\n",
-+	hfs_dbg(BNODE_MOD, "split_nodes: %d - %d - %d\n",
- 		node->this, new_node->this, node->next);
- 	new_node->next = node->next;
- 	new_node->prev = node->this;
-@@ -379,7 +379,7 @@ again:
- 		newkeylen = hfs_bnode_read_u16(node, 14) + 2;
- 	else
- 		fd->keylength = newkeylen = tree->max_key_len + 2;
--	dprint(DBG_BNODE_MOD, "update_rec: %d, %d, %d\n",
-+	hfs_dbg(BNODE_MOD, "update_rec: %d, %d, %d\n",
- 		rec, fd->keylength, newkeylen);
- 
- 	rec_off = tree->node_size - (rec + 2) * 2;
-@@ -391,7 +391,7 @@ again:
+@@ -388,7 +386,7 @@ again:
  		end_off = hfs_bnode_read_u16(parent, end_rec_off);
  		if (end_rec_off - end_off < diff) {
  
--			dprint(DBG_BNODE_MOD, "hfs: splitting index node.\n");
-+			hfs_dbg(BNODE_MOD, "splitting index node\n");
+-			printk(KERN_DEBUG "hfs: splitting index node...\n");
++			printk(KERN_DEBUG "splitting index node...\n");
  			fd->bnode = parent;
  			new_node = hfs_bnode_split(fd);
  			if (IS_ERR(new_node))
-diff -puN fs/hfsplus/btree.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/btree.c
---- a/fs/hfsplus/btree.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/btree.c
-@@ -303,7 +303,7 @@ struct hfs_bnode *hfs_bmap_alloc(struct
+diff -puN fs/hfs/btree.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/btree.c
+--- a/fs/hfs/btree.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/btree.c
+@@ -48,7 +48,7 @@ struct hfs_btree *hfs_btree_open(struct
+ 				    mdb->drXTFlSize, be32_to_cpu(mdb->drXTClpSiz));
+ 		if (HFS_I(tree->inode)->alloc_blocks >
+ 					HFS_I(tree->inode)->first_blocks) {
+-			printk(KERN_ERR "hfs: invalid btree extent records\n");
++			pr_err("invalid btree extent records\n");
+ 			unlock_new_inode(tree->inode);
+ 			goto free_inode;
+ 		}
+@@ -60,8 +60,7 @@ struct hfs_btree *hfs_btree_open(struct
+ 				    mdb->drCTFlSize, be32_to_cpu(mdb->drCTClpSiz));
+ 
+ 		if (!HFS_I(tree->inode)->first_blocks) {
+-			printk(KERN_ERR "hfs: invalid btree extent records "
+-								"(0 size).\n");
++			pr_err("invalid btree extent records (0 size)\n");
+ 			unlock_new_inode(tree->inode);
+ 			goto free_inode;
+ 		}
+@@ -100,15 +99,15 @@ struct hfs_btree *hfs_btree_open(struct
+ 	switch (id) {
+ 	case HFS_EXT_CNID:
+ 		if (tree->max_key_len != HFS_MAX_EXT_KEYLEN) {
+-			printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
+-				tree->max_key_len);
++			pr_err("invalid extent max_key_len %d\n",
++			       tree->max_key_len);
+ 			goto fail_page;
+ 		}
+ 		break;
+ 	case HFS_CAT_CNID:
+ 		if (tree->max_key_len != HFS_MAX_CAT_KEYLEN) {
+-			printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
+-				tree->max_key_len);
++			pr_err("invalid catalog max_key_len %d\n",
++			       tree->max_key_len);
+ 			goto fail_page;
+ 		}
+ 		break;
+@@ -146,8 +145,9 @@ void hfs_btree_close(struct hfs_btree *t
+ 		while ((node = tree->node_hash[i])) {
+ 			tree->node_hash[i] = node->next_hash;
+ 			if (atomic_read(&node->refcnt))
+-				printk(KERN_ERR "hfs: node %d:%d still has %d user(s)!\n",
+-					node->tree->cnid, node->this, atomic_read(&node->refcnt));
++				pr_err("node %d:%d still has %d user(s)!\n",
++				       node->tree->cnid, node->this,
++				       atomic_read(&node->refcnt));
+ 			hfs_bnode_free(node);
+ 			tree->node_hash_cnt--;
+ 		}
+@@ -290,7 +290,7 @@ struct hfs_bnode *hfs_bmap_alloc(struct
  		kunmap(*pagep);
  		nidx = node->next;
  		if (!nidx) {
--			dprint(DBG_BNODE_MOD, "hfs: create new bmap node.\n");
-+			hfs_dbg(BNODE_MOD, "create new bmap node\n");
+-			printk(KERN_DEBUG "hfs: create new bmap node...\n");
++			printk(KERN_DEBUG "create new bmap node...\n");
  			next_node = hfs_bmap_new_bmap(node, idx);
  		} else
  			next_node = hfs_bnode_find(tree, nidx);
-@@ -329,7 +329,7 @@ void hfs_bmap_free(struct hfs_bnode *nod
- 	u32 nidx;
- 	u8 *data, byte, m;
- 
--	dprint(DBG_BNODE_MOD, "btree_free_node: %u\n", node->this);
-+	hfs_dbg(BNODE_MOD, "btree_free_node: %u\n", node->this);
- 	BUG_ON(!node->this);
- 	tree = node->tree;
- 	nidx = node->this;
-diff -puN fs/hfsplus/catalog.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/catalog.c
---- a/fs/hfsplus/catalog.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/catalog.c
-@@ -212,7 +212,7 @@ int hfsplus_create_cat(u32 cnid, struct
- 	int entry_size;
- 	int err;
- 
--	dprint(DBG_CAT_MOD, "create_cat: %s,%u(%d)\n",
-+	hfs_dbg(CAT_MOD, "create_cat: %s,%u(%d)\n",
- 		str->name, cnid, inode->i_nlink);
- 	err = hfs_find_init(HFSPLUS_SB(sb)->cat_tree, &fd);
- 	if (err)
-@@ -271,8 +271,7 @@ int hfsplus_delete_cat(u32 cnid, struct
- 	int err, off;
- 	u16 type;
- 
--	dprint(DBG_CAT_MOD, "delete_cat: %s,%u\n",
--		str ? str->name : NULL, cnid);
-+	hfs_dbg(CAT_MOD, "delete_cat: %s,%u\n", str ? str->name : NULL, cnid);
- 	err = hfs_find_init(HFSPLUS_SB(sb)->cat_tree, &fd);
- 	if (err)
- 		return err;
-@@ -361,7 +360,7 @@ int hfsplus_rename_cat(u32 cnid,
- 	int entry_size, type;
- 	int err;
- 
--	dprint(DBG_CAT_MOD, "rename_cat: %u - %lu,%s - %lu,%s\n",
-+	hfs_dbg(CAT_MOD, "rename_cat: %u - %lu,%s - %lu,%s\n",
- 		cnid, src_dir->i_ino, src_name->name,
- 		dst_dir->i_ino, dst_name->name);
- 	err = hfs_find_init(HFSPLUS_SB(sb)->cat_tree, &src_fd);
-diff -puN fs/hfsplus/extents.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/extents.c
---- a/fs/hfsplus/extents.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
-+++ a/fs/hfsplus/extents.c
-@@ -265,7 +265,7 @@ int hfsplus_get_block(struct inode *inod
- 	mutex_unlock(&hip->extents_lock);
- 
- done:
--	dprint(DBG_EXTENT, "get_block(%lu): %llu - %u\n",
-+	hfs_dbg(EXTENT, "get_block(%lu): %llu - %u\n",
- 		inode->i_ino, (long long)iblock, dblock);
- 
- 	mask = (1 << sbi->fs_shift) - 1;
-@@ -288,11 +288,12 @@ static void hfsplus_dump_extent(struct h
- {
- 	int i;
- 
--	dprint(DBG_EXTENT, "   ");
-+	hfs_dbg(EXTENT, "   ");
- 	for (i = 0; i < 8; i++)
--		dprint(DBG_EXTENT, " %u:%u", be32_to_cpu(extent[i].start_block),
--				 be32_to_cpu(extent[i].block_count));
--	dprint(DBG_EXTENT, "\n");
-+		hfs_dbg_cont(EXTENT, " %u:%u",
-+			     be32_to_cpu(extent[i].start_block),
-+			     be32_to_cpu(extent[i].block_count));
-+	hfs_dbg_cont(EXTENT, "\n");
- }
- 
- static int hfsplus_add_extent(struct hfsplus_extent *extent, u32 offset,
-@@ -349,7 +350,7 @@ found:
- 			err = hfsplus_block_free(sb, start, count);
- 			if (err) {
- 				printk(KERN_ERR "hfs: can't free extent\n");
--				dprint(DBG_EXTENT, " start: %u count: %u\n",
-+				hfs_dbg(EXTENT, " start: %u count: %u\n",
- 					start, count);
- 			}
- 			extent->block_count = 0;
-@@ -360,7 +361,7 @@ found:
- 			err = hfsplus_block_free(sb, start + count, block_nr);
- 			if (err) {
- 				printk(KERN_ERR "hfs: can't free extent\n");
--				dprint(DBG_EXTENT, " start: %u count: %u\n",
-+				hfs_dbg(EXTENT, " start: %u count: %u\n",
- 					start, count);
- 			}
- 			extent->block_count = cpu_to_be32(count);
-@@ -459,11 +460,11 @@ int hfsplus_file_extend(struct inode *in
+@@ -331,7 +331,8 @@ void hfs_bmap_free(struct hfs_bnode *nod
+ 		hfs_bnode_put(node);
+ 		if (!i) {
+ 			/* panic */;
+-			printk(KERN_CRIT "hfs: unable to free bnode %u. bmap not found!\n", node->this);
++			pr_crit("unable to free bnode %u. bmap not found!\n",
++				node->this);
+ 			return;
  		}
+ 		node = hfs_bnode_find(tree, i);
+@@ -339,7 +340,8 @@ void hfs_bmap_free(struct hfs_bnode *nod
+ 			return;
+ 		if (node->type != HFS_NODE_MAP) {
+ 			/* panic */;
+-			printk(KERN_CRIT "hfs: invalid bmap found! (%u,%d)\n", node->this, node->type);
++			pr_crit("invalid bmap found! (%u,%d)\n",
++				node->this, node->type);
+ 			hfs_bnode_put(node);
+ 			return;
+ 		}
+@@ -352,7 +354,8 @@ void hfs_bmap_free(struct hfs_bnode *nod
+ 	m = 1 << (~nidx & 7);
+ 	byte = data[off];
+ 	if (!(byte & m)) {
+-		printk(KERN_CRIT "hfs: trying to free free bnode %u(%d)\n", node->this, node->type);
++		pr_crit("trying to free free bnode %u(%d)\n",
++			node->this, node->type);
+ 		kunmap(page);
+ 		hfs_bnode_put(node);
+ 		return;
+diff -puN fs/hfs/catalog.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/catalog.c
+--- a/fs/hfs/catalog.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/catalog.c
+@@ -185,14 +185,14 @@ int hfs_cat_find_brec(struct super_block
+ 
+ 	type = rec.type;
+ 	if (type != HFS_CDR_THD && type != HFS_CDR_FTH) {
+-		printk(KERN_ERR "hfs: found bad thread record in catalog\n");
++		pr_err("found bad thread record in catalog\n");
+ 		return -EIO;
  	}
  
--	dprint(DBG_EXTENT, "extend %lu: %u,%u\n", inode->i_ino, start, len);
-+	hfs_dbg(EXTENT, "extend %lu: %u,%u\n", inode->i_ino, start, len);
+ 	fd->search_key->cat.ParID = rec.thread.ParID;
+ 	len = fd->search_key->cat.CName.len = rec.thread.CName.len;
+ 	if (len > HFS_NAMELEN) {
+-		printk(KERN_ERR "hfs: bad catalog namelength\n");
++		pr_err("bad catalog namelength\n");
+ 		return -EIO;
+ 	}
+ 	memcpy(fd->search_key->cat.CName.name, rec.thread.CName.name, len);
+diff -puN fs/hfs/dir.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/dir.c
+--- a/fs/hfs/dir.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/dir.c
+@@ -84,12 +84,12 @@ static int hfs_readdir(struct file *filp
  
- 	if (hip->alloc_blocks <= hip->first_blocks) {
- 		if (!hip->first_blocks) {
--			dprint(DBG_EXTENT, "first extents\n");
-+			hfs_dbg(EXTENT, "first extents\n");
- 			/* no extents yet */
- 			hip->first_extents[0].start_block = cpu_to_be32(start);
- 			hip->first_extents[0].block_count = cpu_to_be32(len);
-@@ -500,7 +501,7 @@ out:
+ 		hfs_bnode_read(fd.bnode, &entry, fd.entryoffset, fd.entrylength);
+ 		if (entry.type != HFS_CDR_THD) {
+-			printk(KERN_ERR "hfs: bad catalog folder thread\n");
++			pr_err("bad catalog folder thread\n");
+ 			err = -EIO;
+ 			goto out;
+ 		}
+ 		//if (fd.entrylength < HFS_MIN_THREAD_SZ) {
+-		//	printk(KERN_ERR "hfs: truncated catalog thread\n");
++		//	pr_err("truncated catalog thread\n");
+ 		//	err = -EIO;
+ 		//	goto out;
+ 		//}
+@@ -108,7 +108,7 @@ static int hfs_readdir(struct file *filp
+ 
+ 	for (;;) {
+ 		if (be32_to_cpu(fd.key->cat.ParID) != inode->i_ino) {
+-			printk(KERN_ERR "hfs: walked past end of dir\n");
++			pr_err("walked past end of dir\n");
+ 			err = -EIO;
+ 			goto out;
+ 		}
+@@ -123,7 +123,7 @@ static int hfs_readdir(struct file *filp
+ 		len = hfs_mac2asc(sb, strbuf, &fd.key->cat.CName);
+ 		if (type == HFS_CDR_DIR) {
+ 			if (fd.entrylength < sizeof(struct hfs_cat_dir)) {
+-				printk(KERN_ERR "hfs: small dir entry\n");
++				pr_err("small dir entry\n");
+ 				err = -EIO;
+ 				goto out;
+ 			}
+@@ -132,7 +132,7 @@ static int hfs_readdir(struct file *filp
+ 				break;
+ 		} else if (type == HFS_CDR_FIL) {
+ 			if (fd.entrylength < sizeof(struct hfs_cat_file)) {
+-				printk(KERN_ERR "hfs: small file entry\n");
++				pr_err("small file entry\n");
+ 				err = -EIO;
+ 				goto out;
+ 			}
+@@ -140,7 +140,7 @@ static int hfs_readdir(struct file *filp
+ 				    be32_to_cpu(entry.file.FlNum), DT_REG))
+ 				break;
+ 		} else {
+-			printk(KERN_ERR "hfs: bad catalog entry type %d\n", type);
++			pr_err("bad catalog entry type %d\n", type);
+ 			err = -EIO;
+ 			goto out;
+ 		}
+diff -puN fs/hfs/hfs_fs.h~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/hfs_fs.h
+--- a/fs/hfs/hfs_fs.h~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/hfs_fs.h
+@@ -9,6 +9,12 @@
+ #ifndef _LINUX_HFS_FS_H
+ #define _LINUX_HFS_FS_H
+ 
++#ifdef pr_fmt
++#undef pr_fmt
++#endif
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/mutex.h>
+@@ -34,16 +40,16 @@
+ //#define DBG_MASK	(DBG_CAT_MOD|DBG_BNODE_REFS|DBG_INODE|DBG_EXTENT)
+ #define DBG_MASK	(0)
+ 
+-#define hfs_dbg(flg, fmt, ...)				\
+-do {							\
+-	if (DBG_##flg & DBG_MASK)			\
+-		printk(KERN_DEBUG fmt, ##__VA_ARGS__);	\
++#define hfs_dbg(flg, fmt, ...)					\
++do {								\
++	if (DBG_##flg & DBG_MASK)				\
++		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ } while (0)
+ 
+-#define hfs_dbg_cont(flg, fmt, ...)			\
+-do {							\
+-	if (DBG_##flg & DBG_MASK)			\
+-		printk(KERN_CONT fmt, ##__VA_ARGS__);	\
++#define hfs_dbg_cont(flg, fmt, ...)				\
++do {								\
++	if (DBG_##flg & DBG_MASK)				\
++		pr_cont(fmt, ##__VA_ARGS__);			\
+ } while (0)
+ 
+ 
+diff -puN fs/hfs/mdb.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/mdb.c
+--- a/fs/hfs/mdb.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/mdb.c
+@@ -48,7 +48,7 @@ static int hfs_get_last_session(struct s
+ 			*start = (sector_t)te.cdte_addr.lba << 2;
+ 			return 0;
+ 		}
+-		printk(KERN_ERR "hfs: invalid session number or type of track\n");
++		pr_err("invalid session number or type of track\n");
+ 		return -EINVAL;
+ 	}
+ 	ms_info.addr_format = CDROM_LBA;
+@@ -101,7 +101,7 @@ int hfs_mdb_get(struct super_block *sb)
+ 
+ 	HFS_SB(sb)->alloc_blksz = size = be32_to_cpu(mdb->drAlBlkSiz);
+ 	if (!size || (size & (HFS_SECTOR_SIZE - 1))) {
+-		printk(KERN_ERR "hfs: bad allocation block size %d\n", size);
++		pr_err("bad allocation block size %d\n", size);
+ 		goto out_bh;
+ 	}
+ 
+@@ -118,7 +118,7 @@ int hfs_mdb_get(struct super_block *sb)
+ 		size >>= 1;
+ 	brelse(bh);
+ 	if (!sb_set_blocksize(sb, size)) {
+-		printk(KERN_ERR "hfs: unable to set blocksize to %u\n", size);
++		pr_err("unable to set blocksize to %u\n", size);
+ 		goto out;
+ 	}
+ 
+@@ -162,8 +162,8 @@ int hfs_mdb_get(struct super_block *sb)
+ 	}
+ 
+ 	if (!HFS_SB(sb)->alt_mdb) {
+-		printk(KERN_WARNING "hfs: unable to locate alternate MDB\n");
+-		printk(KERN_WARNING "hfs: continuing without an alternate MDB\n");
++		pr_warn("unable to locate alternate MDB\n");
++		pr_warn("continuing without an alternate MDB\n");
+ 	}
+ 
+ 	HFS_SB(sb)->bitmap = (__be32 *)__get_free_pages(GFP_KERNEL, PAGE_SIZE < 8192 ? 1 : 0);
+@@ -178,7 +178,7 @@ int hfs_mdb_get(struct super_block *sb)
+ 	while (size) {
+ 		bh = sb_bread(sb, off >> sb->s_blocksize_bits);
+ 		if (!bh) {
+-			printk(KERN_ERR "hfs: unable to read volume bitmap\n");
++			pr_err("unable to read volume bitmap\n");
+ 			goto out;
+ 		}
+ 		off2 = off & (sb->s_blocksize - 1);
+@@ -192,23 +192,22 @@ int hfs_mdb_get(struct super_block *sb)
+ 
+ 	HFS_SB(sb)->ext_tree = hfs_btree_open(sb, HFS_EXT_CNID, hfs_ext_keycmp);
+ 	if (!HFS_SB(sb)->ext_tree) {
+-		printk(KERN_ERR "hfs: unable to open extent tree\n");
++		pr_err("unable to open extent tree\n");
+ 		goto out;
+ 	}
+ 	HFS_SB(sb)->cat_tree = hfs_btree_open(sb, HFS_CAT_CNID, hfs_cat_keycmp);
+ 	if (!HFS_SB(sb)->cat_tree) {
+-		printk(KERN_ERR "hfs: unable to open catalog tree\n");
++		pr_err("unable to open catalog tree\n");
+ 		goto out;
+ 	}
+ 
+ 	attrib = mdb->drAtrb;
+ 	if (!(attrib & cpu_to_be16(HFS_SB_ATTRIB_UNMNT))) {
+-		printk(KERN_WARNING "hfs: filesystem was not cleanly unmounted, "
+-			 "running fsck.hfs is recommended.  mounting read-only.\n");
++		pr_warn("filesystem was not cleanly unmounted, running fsck.hfs is recommended.  mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+ 	if ((attrib & cpu_to_be16(HFS_SB_ATTRIB_SLOCK))) {
+-		printk(KERN_WARNING "hfs: filesystem is marked locked, mounting read-only.\n");
++		pr_warn("filesystem is marked locked, mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+ 	if (!(sb->s_flags & MS_RDONLY)) {
+@@ -312,7 +311,7 @@ void hfs_mdb_commit(struct super_block *
+ 		while (size) {
+ 			bh = sb_bread(sb, block);
+ 			if (!bh) {
+-				printk(KERN_ERR "hfs: unable to read volume bitmap\n");
++				pr_err("unable to read volume bitmap\n");
+ 				break;
+ 			}
+ 			len = min((int)sb->s_blocksize - off, size);
+diff -puN fs/hfs/super.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfs/super.c
+--- a/fs/hfs/super.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfs/super.c
+@@ -117,12 +117,11 @@ static int hfs_remount(struct super_bloc
+ 		return 0;
+ 	if (!(*flags & MS_RDONLY)) {
+ 		if (!(HFS_SB(sb)->mdb->drAtrb & cpu_to_be16(HFS_SB_ATTRIB_UNMNT))) {
+-			printk(KERN_WARNING "hfs: filesystem was not cleanly unmounted, "
+-			       "running fsck.hfs is recommended.  leaving read-only.\n");
++			pr_warn("filesystem was not cleanly unmounted, running fsck.hfs is recommended.  leaving read-only.\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			*flags |= MS_RDONLY;
+ 		} else if (HFS_SB(sb)->mdb->drAtrb & cpu_to_be16(HFS_SB_ATTRIB_SLOCK)) {
+-			printk(KERN_WARNING "hfs: filesystem is marked locked, leaving read-only.\n");
++			pr_warn("filesystem is marked locked, leaving read-only.\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			*flags |= MS_RDONLY;
+ 		}
+@@ -253,29 +252,29 @@ static int parse_options(char *options,
+ 		switch (token) {
+ 		case opt_uid:
+ 			if (match_int(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: uid requires an argument\n");
++				pr_err("uid requires an argument\n");
+ 				return 0;
+ 			}
+ 			hsb->s_uid = make_kuid(current_user_ns(), (uid_t)tmp);
+ 			if (!uid_valid(hsb->s_uid)) {
+-				printk(KERN_ERR "hfs: invalid uid %d\n", tmp);
++				pr_err("invalid uid %d\n", tmp);
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_gid:
+ 			if (match_int(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: gid requires an argument\n");
++				pr_err("gid requires an argument\n");
+ 				return 0;
+ 			}
+ 			hsb->s_gid = make_kgid(current_user_ns(), (gid_t)tmp);
+ 			if (!gid_valid(hsb->s_gid)) {
+-				printk(KERN_ERR "hfs: invalid gid %d\n", tmp);
++				pr_err("invalid gid %d\n", tmp);
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_umask:
+ 			if (match_octal(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: umask requires a value\n");
++				pr_err("umask requires a value\n");
+ 				return 0;
+ 			}
+ 			hsb->s_file_umask = (umode_t)tmp;
+@@ -283,39 +282,39 @@ static int parse_options(char *options,
+ 			break;
+ 		case opt_file_umask:
+ 			if (match_octal(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: file_umask requires a value\n");
++				pr_err("file_umask requires a value\n");
+ 				return 0;
+ 			}
+ 			hsb->s_file_umask = (umode_t)tmp;
+ 			break;
+ 		case opt_dir_umask:
+ 			if (match_octal(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: dir_umask requires a value\n");
++				pr_err("dir_umask requires a value\n");
+ 				return 0;
+ 			}
+ 			hsb->s_dir_umask = (umode_t)tmp;
+ 			break;
+ 		case opt_part:
+ 			if (match_int(&args[0], &hsb->part)) {
+-				printk(KERN_ERR "hfs: part requires an argument\n");
++				pr_err("part requires an argument\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_session:
+ 			if (match_int(&args[0], &hsb->session)) {
+-				printk(KERN_ERR "hfs: session requires an argument\n");
++				pr_err("session requires an argument\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_type:
+ 			if (match_fourchar(&args[0], &hsb->s_type)) {
+-				printk(KERN_ERR "hfs: type requires a 4 character value\n");
++				pr_err("type requires a 4 character value\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_creator:
+ 			if (match_fourchar(&args[0], &hsb->s_creator)) {
+-				printk(KERN_ERR "hfs: creator requires a 4 character value\n");
++				pr_err("creator requires a 4 character value\n");
+ 				return 0;
+ 			}
+ 			break;
+@@ -324,14 +323,14 @@ static int parse_options(char *options,
+ 			break;
+ 		case opt_codepage:
+ 			if (hsb->nls_disk) {
+-				printk(KERN_ERR "hfs: unable to change codepage\n");
++				pr_err("unable to change codepage\n");
+ 				return 0;
+ 			}
+ 			p = match_strdup(&args[0]);
+ 			if (p)
+ 				hsb->nls_disk = load_nls(p);
+ 			if (!hsb->nls_disk) {
+-				printk(KERN_ERR "hfs: unable to load codepage \"%s\"\n", p);
++				pr_err("unable to load codepage \"%s\"\n", p);
+ 				kfree(p);
+ 				return 0;
+ 			}
+@@ -339,14 +338,14 @@ static int parse_options(char *options,
+ 			break;
+ 		case opt_iocharset:
+ 			if (hsb->nls_io) {
+-				printk(KERN_ERR "hfs: unable to change iocharset\n");
++				pr_err("unable to change iocharset\n");
+ 				return 0;
+ 			}
+ 			p = match_strdup(&args[0]);
+ 			if (p)
+ 				hsb->nls_io = load_nls(p);
+ 			if (!hsb->nls_io) {
+-				printk(KERN_ERR "hfs: unable to load iocharset \"%s\"\n", p);
++				pr_err("unable to load iocharset \"%s\"\n", p);
+ 				kfree(p);
+ 				return 0;
+ 			}
+@@ -360,7 +359,7 @@ static int parse_options(char *options,
+ 	if (hsb->nls_disk && !hsb->nls_io) {
+ 		hsb->nls_io = load_nls_default();
+ 		if (!hsb->nls_io) {
+-			printk(KERN_ERR "hfs: unable to load default iocharset\n");
++			pr_err("unable to load default iocharset\n");
+ 			return 0;
+ 		}
+ 	}
+@@ -400,7 +399,7 @@ static int hfs_fill_super(struct super_b
+ 
+ 	res = -EINVAL;
+ 	if (!parse_options((char *)data, sbi)) {
+-		printk(KERN_ERR "hfs: unable to parse mount options.\n");
++		pr_err("unable to parse mount options\n");
+ 		goto bail;
+ 	}
+ 
+@@ -411,7 +410,7 @@ static int hfs_fill_super(struct super_b
+ 	res = hfs_mdb_get(sb);
+ 	if (res) {
+ 		if (!silent)
+-			printk(KERN_WARNING "hfs: can't find a HFS filesystem on dev %s.\n",
++			pr_warn("can't find a HFS filesystem on dev %s\n",
+ 				hfs_mdb_name(sb));
+ 		res = -EINVAL;
+ 		goto bail;
+@@ -447,7 +446,7 @@ static int hfs_fill_super(struct super_b
+ 	return 0;
+ 
+ bail_no_root:
+-	printk(KERN_ERR "hfs: get root inode failed.\n");
++	pr_err("get root inode failed\n");
+ bail:
+ 	hfs_mdb_put(sb);
+ 	return res;
+diff -puN fs/hfsplus/attributes.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/attributes.c
+--- a/fs/hfsplus/attributes.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/attributes.c
+@@ -56,7 +56,7 @@ int hfsplus_attr_build_key(struct super_
+ 	if (name) {
+ 		len = strlen(name);
+ 		if (len > HFSPLUS_ATTR_MAX_STRLEN) {
+-			printk(KERN_ERR "hfs: invalid xattr name's length\n");
++			pr_err("invalid xattr name's length\n");
+ 			return -EINVAL;
+ 		}
+ 		hfsplus_asc2uni(sb,
+@@ -169,7 +169,7 @@ int hfsplus_find_attr(struct super_block
+ 	hfs_dbg(ATTR_MOD, "find_attr: %s,%d\n", name ? name : NULL, cnid);
+ 
+ 	if (!HFSPLUS_SB(sb)->attr_tree) {
+-		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		pr_err("attributes file doesn't exist\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -232,7 +232,7 @@ int hfsplus_create_attr(struct inode *in
+ 		name ? name : NULL, inode->i_ino);
+ 
+ 	if (!HFSPLUS_SB(sb)->attr_tree) {
+-		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		pr_err("attributes file doesn't exist\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -307,10 +307,10 @@ static int __hfsplus_delete_attr(struct
+ 		break;
+ 	case HFSPLUS_ATTR_FORK_DATA:
+ 	case HFSPLUS_ATTR_EXTENTS:
+-		printk(KERN_ERR "hfs: only inline data xattr are supported\n");
++		pr_err("only inline data xattr are supported\n");
+ 		return -EOPNOTSUPP;
+ 	default:
+-		printk(KERN_ERR "hfs: invalid extended attribute record\n");
++		pr_err("invalid extended attribute record\n");
+ 		return -ENOENT;
+ 	}
+ 
+@@ -332,7 +332,7 @@ int hfsplus_delete_attr(struct inode *in
+ 		name ? name : NULL, inode->i_ino);
+ 
+ 	if (!HFSPLUS_SB(sb)->attr_tree) {
+-		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		pr_err("attributes file doesn't exist\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -346,7 +346,7 @@ int hfsplus_delete_attr(struct inode *in
+ 		if (err)
+ 			goto out;
+ 	} else {
+-		printk(KERN_ERR "hfs: invalid extended attribute name\n");
++		pr_err("invalid extended attribute name\n");
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+@@ -372,7 +372,7 @@ int hfsplus_delete_all_attrs(struct inod
+ 	hfs_dbg(ATTR_MOD, "delete_all_attrs: %d\n", cnid);
+ 
+ 	if (!HFSPLUS_SB(dir->i_sb)->attr_tree) {
+-		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		pr_err("attributes file doesn't exist\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -384,7 +384,7 @@ int hfsplus_delete_all_attrs(struct inod
+ 		err = hfsplus_find_attr(dir->i_sb, cnid, NULL, &fd);
+ 		if (err) {
+ 			if (err != -ENOENT)
+-				printk(KERN_ERR "hfs: xattr search failed.\n");
++				pr_err("xattr search failed\n");
+ 			goto end_delete_all;
+ 		}
+ 
+diff -puN fs/hfsplus/bfind.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/bfind.c
+--- a/fs/hfsplus/bfind.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/bfind.c
+@@ -208,7 +208,7 @@ int hfs_brec_find(struct hfs_find_data *
  	return res;
  
- insert_extent:
--	dprint(DBG_EXTENT, "insert new extent\n");
-+	hfs_dbg(EXTENT, "insert new extent\n");
- 	res = hfsplus_ext_write_extent_locked(inode);
- 	if (res)
- 		goto out;
-@@ -525,9 +526,8 @@ void hfsplus_file_truncate(struct inode
- 	u32 alloc_cnt, blk_cnt, start;
- 	int res;
+ invalid:
+-	printk(KERN_ERR "hfs: inconsistency in B*Tree (%d,%d,%d,%u,%u)\n",
++	pr_err("inconsistency in B*Tree (%d,%d,%d,%u,%u)\n",
+ 		height, bnode->height, bnode->type, nidx, parent);
+ 	res = -EIO;
+ release:
+diff -puN fs/hfsplus/bitmap.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/bitmap.c
+--- a/fs/hfsplus/bitmap.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/bitmap.c
+@@ -238,7 +238,7 @@ out:
+ 	return 0;
  
--	dprint(DBG_INODE, "truncate: %lu, %llu -> %llu\n",
--		inode->i_ino, (long long)hip->phys_size,
--		inode->i_size);
-+	hfs_dbg(INODE, "truncate: %lu, %llu -> %llu\n",
-+		inode->i_ino, (long long)hip->phys_size, inode->i_size);
+ kaboom:
+-	printk(KERN_CRIT "hfsplus: unable to mark blocks free: error %ld\n",
++	pr_crit("hfsplus: unable to mark blocks free: error %ld\n",
+ 			PTR_ERR(page));
+ 	mutex_unlock(&sbi->alloc_mutex);
  
- 	if (inode->i_size > hip->phys_size) {
- 		struct address_space *mapping = inode->i_mapping;
-diff -puN fs/hfsplus/hfsplus_fs.h~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfs-hfsplus-convert-dprint-to-hfs_dbg
+diff -puN fs/hfsplus/bnode.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/bnode.c
+--- a/fs/hfsplus/bnode.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/bnode.c
+@@ -386,7 +386,7 @@ struct hfs_bnode *hfs_bnode_findhash(str
+ 	struct hfs_bnode *node;
+ 
+ 	if (cnid >= tree->node_count) {
+-		printk(KERN_ERR "hfs: request for non-existent node "
++		pr_err("request for non-existent node "
+ 				"%d in B*Tree\n",
+ 			cnid);
+ 		return NULL;
+@@ -409,7 +409,7 @@ static struct hfs_bnode *__hfs_bnode_cre
+ 	loff_t off;
+ 
+ 	if (cnid >= tree->node_count) {
+-		printk(KERN_ERR "hfs: request for non-existent node "
++		pr_err("request for non-existent node "
+ 				"%d in B*Tree\n",
+ 			cnid);
+ 		return NULL;
+@@ -588,7 +588,7 @@ struct hfs_bnode *hfs_bnode_create(struc
+ 	node = hfs_bnode_findhash(tree, num);
+ 	spin_unlock(&tree->hash_lock);
+ 	if (node) {
+-		printk(KERN_CRIT "new node %u already hashed?\n", num);
++		pr_crit("new node %u already hashed?\n", num);
+ 		WARN_ON(1);
+ 		return node;
+ 	}
+diff -puN fs/hfsplus/brec.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/brec.c
+--- a/fs/hfsplus/brec.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/brec.c
+@@ -45,13 +45,13 @@ u16 hfs_brec_keylen(struct hfs_bnode *no
+ 		if (!recoff)
+ 			return 0;
+ 		if (recoff > node->tree->node_size - 2) {
+-			printk(KERN_ERR "hfs: recoff %d too large\n", recoff);
++			pr_err("recoff %d too large\n", recoff);
+ 			return 0;
+ 		}
+ 
+ 		retval = hfs_bnode_read_u16(node, recoff) + 2;
+ 		if (retval > node->tree->max_key_len + 2) {
+-			printk(KERN_ERR "hfs: keylen %d too large\n",
++			pr_err("keylen %d too large\n",
+ 				retval);
+ 			retval = 0;
+ 		}
+diff -puN fs/hfsplus/btree.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/btree.c
+--- a/fs/hfsplus/btree.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/btree.c
+@@ -40,8 +40,7 @@ struct hfs_btree *hfs_btree_open(struct
+ 	tree->inode = inode;
+ 
+ 	if (!HFSPLUS_I(tree->inode)->first_blocks) {
+-		printk(KERN_ERR
+-		       "hfs: invalid btree extent records (0 size).\n");
++		pr_err("invalid btree extent records (0 size)\n");
+ 		goto free_inode;
+ 	}
+ 
+@@ -68,12 +67,12 @@ struct hfs_btree *hfs_btree_open(struct
+ 	switch (id) {
+ 	case HFSPLUS_EXT_CNID:
+ 		if (tree->max_key_len != HFSPLUS_EXT_KEYLEN - sizeof(u16)) {
+-			printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
++			pr_err("invalid extent max_key_len %d\n",
+ 				tree->max_key_len);
+ 			goto fail_page;
+ 		}
+ 		if (tree->attributes & HFS_TREE_VARIDXKEYS) {
+-			printk(KERN_ERR "hfs: invalid extent btree flag\n");
++			pr_err("invalid extent btree flag\n");
+ 			goto fail_page;
+ 		}
+ 
+@@ -81,12 +80,12 @@ struct hfs_btree *hfs_btree_open(struct
+ 		break;
+ 	case HFSPLUS_CAT_CNID:
+ 		if (tree->max_key_len != HFSPLUS_CAT_KEYLEN - sizeof(u16)) {
+-			printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
++			pr_err("invalid catalog max_key_len %d\n",
+ 				tree->max_key_len);
+ 			goto fail_page;
+ 		}
+ 		if (!(tree->attributes & HFS_TREE_VARIDXKEYS)) {
+-			printk(KERN_ERR "hfs: invalid catalog btree flag\n");
++			pr_err("invalid catalog btree flag\n");
+ 			goto fail_page;
+ 		}
+ 
+@@ -100,19 +99,19 @@ struct hfs_btree *hfs_btree_open(struct
+ 		break;
+ 	case HFSPLUS_ATTR_CNID:
+ 		if (tree->max_key_len != HFSPLUS_ATTR_KEYLEN - sizeof(u16)) {
+-			printk(KERN_ERR "hfs: invalid attributes max_key_len %d\n",
++			pr_err("invalid attributes max_key_len %d\n",
+ 				tree->max_key_len);
+ 			goto fail_page;
+ 		}
+ 		tree->keycmp = hfsplus_attr_bin_cmp_key;
+ 		break;
+ 	default:
+-		printk(KERN_ERR "hfs: unknown B*Tree requested\n");
++		pr_err("unknown B*Tree requested\n");
+ 		goto fail_page;
+ 	}
+ 
+ 	if (!(tree->attributes & HFS_TREE_BIGKEYS)) {
+-		printk(KERN_ERR "hfs: invalid btree flag\n");
++		pr_err("invalid btree flag\n");
+ 		goto fail_page;
+ 	}
+ 
+@@ -155,7 +154,7 @@ void hfs_btree_close(struct hfs_btree *t
+ 		while ((node = tree->node_hash[i])) {
+ 			tree->node_hash[i] = node->next_hash;
+ 			if (atomic_read(&node->refcnt))
+-				printk(KERN_CRIT "hfs: node %d:%d "
++				pr_crit("node %d:%d "
+ 						"still has %d user(s)!\n",
+ 					node->tree->cnid, node->this,
+ 					atomic_read(&node->refcnt));
+@@ -345,7 +344,7 @@ void hfs_bmap_free(struct hfs_bnode *nod
+ 		hfs_bnode_put(node);
+ 		if (!i) {
+ 			/* panic */;
+-			printk(KERN_CRIT "hfs: unable to free bnode %u. "
++			pr_crit("unable to free bnode %u. "
+ 					"bmap not found!\n",
+ 				node->this);
+ 			return;
+@@ -355,7 +354,7 @@ void hfs_bmap_free(struct hfs_bnode *nod
+ 			return;
+ 		if (node->type != HFS_NODE_MAP) {
+ 			/* panic */;
+-			printk(KERN_CRIT "hfs: invalid bmap found! "
++			pr_crit("invalid bmap found! "
+ 					"(%u,%d)\n",
+ 				node->this, node->type);
+ 			hfs_bnode_put(node);
+@@ -370,7 +369,7 @@ void hfs_bmap_free(struct hfs_bnode *nod
+ 	m = 1 << (~nidx & 7);
+ 	byte = data[off];
+ 	if (!(byte & m)) {
+-		printk(KERN_CRIT "hfs: trying to free free bnode "
++		pr_crit("trying to free free bnode "
+ 				"%u(%d)\n",
+ 			node->this, node->type);
+ 		kunmap(page);
+diff -puN fs/hfsplus/catalog.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/catalog.c
+--- a/fs/hfsplus/catalog.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/catalog.c
+@@ -188,12 +188,12 @@ int hfsplus_find_cat(struct super_block
+ 
+ 	type = be16_to_cpu(tmp.type);
+ 	if (type != HFSPLUS_FOLDER_THREAD && type != HFSPLUS_FILE_THREAD) {
+-		printk(KERN_ERR "hfs: found bad thread record in catalog\n");
++		pr_err("found bad thread record in catalog\n");
+ 		return -EIO;
+ 	}
+ 
+ 	if (be16_to_cpu(tmp.thread.nodeName.length) > 255) {
+-		printk(KERN_ERR "hfs: catalog name length corrupted\n");
++		pr_err("catalog name length corrupted\n");
+ 		return -EIO;
+ 	}
+ 
+diff -puN fs/hfsplus/dir.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/dir.c
+--- a/fs/hfsplus/dir.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/dir.c
+@@ -103,7 +103,7 @@ again:
+ 		} else if (!dentry->d_fsdata)
+ 			dentry->d_fsdata = (void *)(unsigned long)cnid;
+ 	} else {
+-		printk(KERN_ERR "hfs: invalid catalog entry type in lookup\n");
++		pr_err("invalid catalog entry type in lookup\n");
+ 		err = -EIO;
+ 		goto fail;
+ 	}
+@@ -159,12 +159,12 @@ static int hfsplus_readdir(struct file *
+ 		hfs_bnode_read(fd.bnode, &entry, fd.entryoffset,
+ 			fd.entrylength);
+ 		if (be16_to_cpu(entry.type) != HFSPLUS_FOLDER_THREAD) {
+-			printk(KERN_ERR "hfs: bad catalog folder thread\n");
++			pr_err("bad catalog folder thread\n");
+ 			err = -EIO;
+ 			goto out;
+ 		}
+ 		if (fd.entrylength < HFSPLUS_MIN_THREAD_SZ) {
+-			printk(KERN_ERR "hfs: truncated catalog thread\n");
++			pr_err("truncated catalog thread\n");
+ 			err = -EIO;
+ 			goto out;
+ 		}
+@@ -183,7 +183,7 @@ static int hfsplus_readdir(struct file *
+ 
+ 	for (;;) {
+ 		if (be32_to_cpu(fd.key->cat.parent) != inode->i_ino) {
+-			printk(KERN_ERR "hfs: walked past end of dir\n");
++			pr_err("walked past end of dir\n");
+ 			err = -EIO;
+ 			goto out;
+ 		}
+@@ -203,7 +203,7 @@ static int hfsplus_readdir(struct file *
+ 		if (type == HFSPLUS_FOLDER) {
+ 			if (fd.entrylength <
+ 					sizeof(struct hfsplus_cat_folder)) {
+-				printk(KERN_ERR "hfs: small dir entry\n");
++				pr_err("small dir entry\n");
+ 				err = -EIO;
+ 				goto out;
+ 			}
+@@ -216,7 +216,7 @@ static int hfsplus_readdir(struct file *
+ 				break;
+ 		} else if (type == HFSPLUS_FILE) {
+ 			if (fd.entrylength < sizeof(struct hfsplus_cat_file)) {
+-				printk(KERN_ERR "hfs: small file entry\n");
++				pr_err("small file entry\n");
+ 				err = -EIO;
+ 				goto out;
+ 			}
+@@ -224,7 +224,7 @@ static int hfsplus_readdir(struct file *
+ 				    be32_to_cpu(entry.file.id), DT_REG))
+ 				break;
+ 		} else {
+-			printk(KERN_ERR "hfs: bad catalog entry type\n");
++			pr_err("bad catalog entry type\n");
+ 			err = -EIO;
+ 			goto out;
+ 		}
+diff -puN fs/hfsplus/extents.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/extents.c
+--- a/fs/hfsplus/extents.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/extents.c
+@@ -349,7 +349,7 @@ found:
+ 		if (count <= block_nr) {
+ 			err = hfsplus_block_free(sb, start, count);
+ 			if (err) {
+-				printk(KERN_ERR "hfs: can't free extent\n");
++				pr_err("can't free extent\n");
+ 				hfs_dbg(EXTENT, " start: %u count: %u\n",
+ 					start, count);
+ 			}
+@@ -360,7 +360,7 @@ found:
+ 			count -= block_nr;
+ 			err = hfsplus_block_free(sb, start + count, block_nr);
+ 			if (err) {
+-				printk(KERN_ERR "hfs: can't free extent\n");
++				pr_err("can't free extent\n");
+ 				hfs_dbg(EXTENT, " start: %u count: %u\n",
+ 					start, count);
+ 			}
+@@ -433,7 +433,7 @@ int hfsplus_file_extend(struct inode *in
+ 	if (sbi->alloc_file->i_size * 8 <
+ 	    sbi->total_blocks - sbi->free_blocks + 8) {
+ 		/* extend alloc file */
+-		printk(KERN_ERR "hfs: extend alloc file! "
++		pr_err("extend alloc file! "
+ 				"(%llu,%u,%u)\n",
+ 			sbi->alloc_file->i_size * 8,
+ 			sbi->total_blocks, sbi->free_blocks);
+diff -puN fs/hfsplus/hfsplus_fs.h~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~hfs-hfsplus-convert-printks-to-pr_level
 +++ a/fs/hfsplus/hfsplus_fs.h
-@@ -32,9 +32,17 @@
+@@ -10,6 +10,12 @@
+ #ifndef _LINUX_HFSPLUS_FS_H
+ #define _LINUX_HFSPLUS_FS_H
+ 
++#ifdef pr_fmt
++#undef pr_fmt
++#endif
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/fs.h>
+ #include <linux/mutex.h>
+ #include <linux/buffer_head.h>
+@@ -32,16 +38,16 @@
  #endif
  #define DBG_MASK	(0)
  
--#define dprint(flg, fmt, args...) \
--	if (flg & DBG_MASK) \
--		printk(fmt , ## args)
-+#define hfs_dbg(flg, fmt, ...)				\
-+do {							\
-+	if (DBG_##flg & DBG_MASK)			\
-+		printk(KERN_DEBUG fmt, ##__VA_ARGS__);	\
-+} while (0)
-+
-+#define hfs_dbg_cont(flg, fmt, ...)			\
-+do {							\
-+	if (DBG_##flg & DBG_MASK)			\
-+		printk(KERN_CONT fmt, ##__VA_ARGS__);	\
-+} while (0)
+-#define hfs_dbg(flg, fmt, ...)				\
+-do {							\
+-	if (DBG_##flg & DBG_MASK)			\
+-		printk(KERN_DEBUG fmt, ##__VA_ARGS__);	\
++#define hfs_dbg(flg, fmt, ...)					\
++do {								\
++	if (DBG_##flg & DBG_MASK)				\
++		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+ } while (0)
+ 
+-#define hfs_dbg_cont(flg, fmt, ...)			\
+-do {							\
+-	if (DBG_##flg & DBG_MASK)			\
+-		printk(KERN_CONT fmt, ##__VA_ARGS__);	\
++#define hfs_dbg_cont(flg, fmt, ...)				\
++do {								\
++	if (DBG_##flg & DBG_MASK)				\
++		pr_cont(fmt, ##__VA_ARGS__);			\
+ } while (0)
  
  /* Runtime config options */
- #define HFSPLUS_DEF_CR_TYPE    0x3F3F3F3F  /* '????' */
-diff -puN fs/hfsplus/super.c~hfs-hfsplus-convert-dprint-to-hfs_dbg fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfs-hfsplus-convert-dprint-to-hfs_dbg
+diff -puN fs/hfsplus/inode.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/inode.c
+--- a/fs/hfsplus/inode.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/inode.c
+@@ -357,7 +357,7 @@ int hfsplus_file_fsync(struct file *file
+ 			if (!error)
+ 				error = error2;
+ 		} else {
+-			printk(KERN_ERR "hfs: sync non-existent attributes tree\n");
++			pr_err("sync non-existent attributes tree\n");
+ 		}
+ 	}
+ 
+@@ -573,7 +573,7 @@ int hfsplus_cat_read_inode(struct inode
+ 		inode->i_ctime = hfsp_mt2ut(file->attribute_mod_date);
+ 		HFSPLUS_I(inode)->create_date = file->create_date;
+ 	} else {
+-		printk(KERN_ERR "hfs: bad catalog entry used to create inode\n");
++		pr_err("bad catalog entry used to create inode\n");
+ 		res = -EIO;
+ 	}
+ 	return res;
+diff -puN fs/hfsplus/options.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/options.c
+--- a/fs/hfsplus/options.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/options.c
+@@ -113,67 +113,67 @@ int hfsplus_parse_options(char *input, s
+ 		switch (token) {
+ 		case opt_creator:
+ 			if (match_fourchar(&args[0], &sbi->creator)) {
+-				printk(KERN_ERR "hfs: creator requires a 4 character value\n");
++				pr_err("creator requires a 4 character value\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_type:
+ 			if (match_fourchar(&args[0], &sbi->type)) {
+-				printk(KERN_ERR "hfs: type requires a 4 character value\n");
++				pr_err("type requires a 4 character value\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_umask:
+ 			if (match_octal(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: umask requires a value\n");
++				pr_err("umask requires a value\n");
+ 				return 0;
+ 			}
+ 			sbi->umask = (umode_t)tmp;
+ 			break;
+ 		case opt_uid:
+ 			if (match_int(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: uid requires an argument\n");
++				pr_err("uid requires an argument\n");
+ 				return 0;
+ 			}
+ 			sbi->uid = make_kuid(current_user_ns(), (uid_t)tmp);
+ 			if (!uid_valid(sbi->uid)) {
+-				printk(KERN_ERR "hfs: invalid uid specified\n");
++				pr_err("invalid uid specified\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_gid:
+ 			if (match_int(&args[0], &tmp)) {
+-				printk(KERN_ERR "hfs: gid requires an argument\n");
++				pr_err("gid requires an argument\n");
+ 				return 0;
+ 			}
+ 			sbi->gid = make_kgid(current_user_ns(), (gid_t)tmp);
+ 			if (!gid_valid(sbi->gid)) {
+-				printk(KERN_ERR "hfs: invalid gid specified\n");
++				pr_err("invalid gid specified\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_part:
+ 			if (match_int(&args[0], &sbi->part)) {
+-				printk(KERN_ERR "hfs: part requires an argument\n");
++				pr_err("part requires an argument\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_session:
+ 			if (match_int(&args[0], &sbi->session)) {
+-				printk(KERN_ERR "hfs: session requires an argument\n");
++				pr_err("session requires an argument\n");
+ 				return 0;
+ 			}
+ 			break;
+ 		case opt_nls:
+ 			if (sbi->nls) {
+-				printk(KERN_ERR "hfs: unable to change nls mapping\n");
++				pr_err("unable to change nls mapping\n");
+ 				return 0;
+ 			}
+ 			p = match_strdup(&args[0]);
+ 			if (p)
+ 				sbi->nls = load_nls(p);
+ 			if (!sbi->nls) {
+-				printk(KERN_ERR "hfs: unable to load "
++				pr_err("unable to load "
+ 						"nls mapping \"%s\"\n",
+ 					p);
+ 				kfree(p);
+diff -puN fs/hfsplus/super.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfs-hfsplus-convert-printks-to-pr_level
 +++ a/fs/hfsplus/super.c
-@@ -145,7 +145,7 @@ static int hfsplus_write_inode(struct in
- {
- 	int err;
+@@ -132,7 +132,7 @@ static int hfsplus_system_write_inode(st
+ 	if (tree) {
+ 		int err = hfs_btree_write(tree);
+ 		if (err) {
+-			printk(KERN_ERR "hfs: b-tree write err: %d, ino %lu\n",
++			pr_err("b-tree write err: %d, ino %lu\n",
+ 					err, inode->i_ino);
+ 			return err;
+ 		}
+@@ -251,7 +251,7 @@ static void delayed_sync_fs(struct work_
  
--	dprint(DBG_INODE, "hfsplus_write_inode: %lu\n", inode->i_ino);
-+	hfs_dbg(INODE, "hfsplus_write_inode: %lu\n", inode->i_ino);
- 
- 	err = hfsplus_ext_write_extent(inode);
+ 	err = hfsplus_sync_fs(sbi->alloc_file->i_sb, 1);
  	if (err)
-@@ -160,7 +160,7 @@ static int hfsplus_write_inode(struct in
+-		printk(KERN_ERR "hfs: delayed sync fs err %d\n", err);
++		pr_err("delayed sync fs err %d\n", err);
+ }
  
- static void hfsplus_evict_inode(struct inode *inode)
- {
--	dprint(DBG_INODE, "hfsplus_evict_inode: %lu\n", inode->i_ino);
-+	hfs_dbg(INODE, "hfsplus_evict_inode: %lu\n", inode->i_ino);
- 	truncate_inode_pages(&inode->i_data, 0);
- 	clear_inode(inode);
- 	if (HFSPLUS_IS_RSRC(inode)) {
-@@ -179,7 +179,7 @@ static int hfsplus_sync_fs(struct super_
- 	if (!wait)
- 		return 0;
+ void hfsplus_mark_mdb_dirty(struct super_block *sb)
+@@ -333,25 +333,19 @@ static int hfsplus_remount(struct super_
+ 			return -EINVAL;
  
--	dprint(DBG_SUPER, "hfsplus_sync_fs\n");
-+	hfs_dbg(SUPER, "hfsplus_sync_fs\n");
+ 		if (!(vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_UNMNT))) {
+-			printk(KERN_WARNING "hfs: filesystem was "
+-					"not cleanly unmounted, "
+-					"running fsck.hfsplus is recommended.  "
+-					"leaving read-only.\n");
++			pr_warn("filesystem was not cleanly unmounted, running fsck.hfsplus is recommended.  leaving read-only.\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			*flags |= MS_RDONLY;
+ 		} else if (force) {
+ 			/* nothing */
+ 		} else if (vhdr->attributes &
+ 				cpu_to_be32(HFSPLUS_VOL_SOFTLOCK)) {
+-			printk(KERN_WARNING "hfs: filesystem is marked locked, "
+-					"leaving read-only.\n");
++			pr_warn("filesystem is marked locked, leaving read-only.\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			*flags |= MS_RDONLY;
+ 		} else if (vhdr->attributes &
+ 				cpu_to_be32(HFSPLUS_VOL_JOURNALED)) {
+-			printk(KERN_WARNING "hfs: filesystem is "
+-					"marked journaled, "
+-					"leaving read-only.\n");
++			pr_warn("filesystem is marked journaled, leaving read-only.\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			*flags |= MS_RDONLY;
+ 		}
+@@ -397,7 +391,7 @@ static int hfsplus_fill_super(struct sup
  
- 	/*
- 	 * Explicitly write out the special metadata inodes.
-@@ -275,7 +275,7 @@ static void hfsplus_put_super(struct sup
- {
- 	struct hfsplus_sb_info *sbi = HFSPLUS_SB(sb);
+ 	err = -EINVAL;
+ 	if (!hfsplus_parse_options(data, sbi)) {
+-		printk(KERN_ERR "hfs: unable to parse mount options\n");
++		pr_err("unable to parse mount options\n");
+ 		goto out_unload_nls;
+ 	}
  
--	dprint(DBG_SUPER, "hfsplus_put_super\n");
-+	hfs_dbg(SUPER, "hfsplus_put_super\n");
+@@ -405,14 +399,14 @@ static int hfsplus_fill_super(struct sup
+ 	nls = sbi->nls;
+ 	sbi->nls = load_nls("utf8");
+ 	if (!sbi->nls) {
+-		printk(KERN_ERR "hfs: unable to load nls for utf8\n");
++		pr_err("unable to load nls for utf8\n");
+ 		goto out_unload_nls;
+ 	}
  
- 	cancel_delayed_work_sync(&sbi->sync_work);
+ 	/* Grab the volume header */
+ 	if (hfsplus_read_wrapper(sb)) {
+ 		if (!silent)
+-			printk(KERN_WARNING "hfs: unable to find HFS+ superblock\n");
++			pr_warn("unable to find HFS+ superblock\n");
+ 		goto out_unload_nls;
+ 	}
+ 	vhdr = sbi->s_vhdr;
+@@ -421,7 +415,7 @@ static int hfsplus_fill_super(struct sup
+ 	sb->s_magic = HFSPLUS_VOLHEAD_SIG;
+ 	if (be16_to_cpu(vhdr->version) < HFSPLUS_MIN_VERSION ||
+ 	    be16_to_cpu(vhdr->version) > HFSPLUS_CURRENT_VERSION) {
+-		printk(KERN_ERR "hfs: wrong filesystem version\n");
++		pr_err("wrong filesystem version\n");
+ 		goto out_free_vhdr;
+ 	}
+ 	sbi->total_blocks = be32_to_cpu(vhdr->total_blocks);
+@@ -445,7 +439,7 @@ static int hfsplus_fill_super(struct sup
  
+ 	if ((last_fs_block > (sector_t)(~0ULL) >> (sbi->alloc_blksz_shift - 9)) ||
+ 	    (last_fs_page > (pgoff_t)(~0ULL))) {
+-		printk(KERN_ERR "hfs: filesystem size too large.\n");
++		pr_err("filesystem size too large\n");
+ 		goto out_free_vhdr;
+ 	}
+ 
+@@ -454,22 +448,16 @@ static int hfsplus_fill_super(struct sup
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 
+ 	if (!(vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_UNMNT))) {
+-		printk(KERN_WARNING "hfs: Filesystem was "
+-				"not cleanly unmounted, "
+-				"running fsck.hfsplus is recommended.  "
+-				"mounting read-only.\n");
++		pr_warn("Filesystem was not cleanly unmounted, running fsck.hfsplus is recommended.  mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	} else if (test_and_clear_bit(HFSPLUS_SB_FORCE, &sbi->flags)) {
+ 		/* nothing */
+ 	} else if (vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_SOFTLOCK)) {
+-		printk(KERN_WARNING "hfs: Filesystem is marked locked, mounting read-only.\n");
++		pr_warn("Filesystem is marked locked, mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	} else if ((vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_JOURNALED)) &&
+ 			!(sb->s_flags & MS_RDONLY)) {
+-		printk(KERN_WARNING "hfs: write access to "
+-				"a journaled filesystem is not supported, "
+-				"use the force option at your own risk, "
+-				"mounting read-only.\n");
++		pr_warn("write access to a journaled filesystem is not supported, use the force option at your own risk, mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+ 
+@@ -478,18 +466,18 @@ static int hfsplus_fill_super(struct sup
+ 	/* Load metadata objects (B*Trees) */
+ 	sbi->ext_tree = hfs_btree_open(sb, HFSPLUS_EXT_CNID);
+ 	if (!sbi->ext_tree) {
+-		printk(KERN_ERR "hfs: failed to load extents file\n");
++		pr_err("failed to load extents file\n");
+ 		goto out_free_vhdr;
+ 	}
+ 	sbi->cat_tree = hfs_btree_open(sb, HFSPLUS_CAT_CNID);
+ 	if (!sbi->cat_tree) {
+-		printk(KERN_ERR "hfs: failed to load catalog file\n");
++		pr_err("failed to load catalog file\n");
+ 		goto out_close_ext_tree;
+ 	}
+ 	if (vhdr->attr_file.total_blocks != 0) {
+ 		sbi->attr_tree = hfs_btree_open(sb, HFSPLUS_ATTR_CNID);
+ 		if (!sbi->attr_tree) {
+-			printk(KERN_ERR "hfs: failed to load attributes file\n");
++			pr_err("failed to load attributes file\n");
+ 			goto out_close_cat_tree;
+ 		}
+ 	}
+@@ -497,7 +485,7 @@ static int hfsplus_fill_super(struct sup
+ 
+ 	inode = hfsplus_iget(sb, HFSPLUS_ALLOC_CNID);
+ 	if (IS_ERR(inode)) {
+-		printk(KERN_ERR "hfs: failed to load allocation file\n");
++		pr_err("failed to load allocation file\n");
+ 		err = PTR_ERR(inode);
+ 		goto out_close_attr_tree;
+ 	}
+@@ -506,7 +494,7 @@ static int hfsplus_fill_super(struct sup
+ 	/* Load the root directory */
+ 	root = hfsplus_iget(sb, HFSPLUS_ROOT_CNID);
+ 	if (IS_ERR(root)) {
+-		printk(KERN_ERR "hfs: failed to load root directory\n");
++		pr_err("failed to load root directory\n");
+ 		err = PTR_ERR(root);
+ 		goto out_put_alloc_file;
+ 	}
+diff -puN fs/hfsplus/wrapper.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/wrapper.c
+--- a/fs/hfsplus/wrapper.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/wrapper.c
+@@ -156,7 +156,7 @@ static int hfsplus_get_last_session(stru
+ 			*start = (sector_t)te.cdte_addr.lba << 2;
+ 			return 0;
+ 		}
+-		printk(KERN_ERR "hfs: invalid session number or type of track\n");
++		pr_err("invalid session number or type of track\n");
+ 		return -EINVAL;
+ 	}
+ 	ms_info.addr_format = CDROM_LBA;
+@@ -234,8 +234,7 @@ reread:
+ 
+ 	error = -EINVAL;
+ 	if (sbi->s_backup_vhdr->signature != sbi->s_vhdr->signature) {
+-		printk(KERN_WARNING
+-			"hfs: invalid secondary volume header\n");
++		pr_warn("invalid secondary volume header\n");
+ 		goto out_free_backup_vhdr;
+ 	}
+ 
+@@ -259,8 +258,7 @@ reread:
+ 		blocksize >>= 1;
+ 
+ 	if (sb_set_blocksize(sb, blocksize) != blocksize) {
+-		printk(KERN_ERR "hfs: unable to set blocksize to %u!\n",
+-			blocksize);
++		pr_err("unable to set blocksize to %u!\n", blocksize);
+ 		goto out_free_backup_vhdr;
+ 	}
+ 
+diff -puN fs/hfsplus/xattr.c~hfs-hfsplus-convert-printks-to-pr_level fs/hfsplus/xattr.c
+--- a/fs/hfsplus/xattr.c~hfs-hfsplus-convert-printks-to-pr_level
++++ a/fs/hfsplus/xattr.c
+@@ -107,19 +107,19 @@ int __hfsplus_setxattr(struct inode *ino
+ 
+ 	err = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &cat_fd);
+ 	if (err) {
+-		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		pr_err("can't init xattr find struct\n");
+ 		return err;
+ 	}
+ 
+ 	err = hfsplus_find_cat(inode->i_sb, inode->i_ino, &cat_fd);
+ 	if (err) {
+-		printk(KERN_ERR "hfs: catalog searching failed\n");
++		pr_err("catalog searching failed\n");
+ 		goto end_setxattr;
+ 	}
+ 
+ 	if (!strcmp_xattr_finder_info(name)) {
+ 		if (flags & XATTR_CREATE) {
+-			printk(KERN_ERR "hfs: xattr exists yet\n");
++			pr_err("xattr exists yet\n");
+ 			err = -EOPNOTSUPP;
+ 			goto end_setxattr;
+ 		}
+@@ -165,7 +165,7 @@ int __hfsplus_setxattr(struct inode *ino
+ 
+ 	if (hfsplus_attr_exists(inode, name)) {
+ 		if (flags & XATTR_CREATE) {
+-			printk(KERN_ERR "hfs: xattr exists yet\n");
++			pr_err("xattr exists yet\n");
+ 			err = -EOPNOTSUPP;
+ 			goto end_setxattr;
+ 		}
+@@ -177,7 +177,7 @@ int __hfsplus_setxattr(struct inode *ino
+ 			goto end_setxattr;
+ 	} else {
+ 		if (flags & XATTR_REPLACE) {
+-			printk(KERN_ERR "hfs: cannot replace xattr\n");
++			pr_err("cannot replace xattr\n");
+ 			err = -EOPNOTSUPP;
+ 			goto end_setxattr;
+ 		}
+@@ -210,7 +210,7 @@ int __hfsplus_setxattr(struct inode *ino
+ 				    cat_entry_flags);
+ 		hfsplus_mark_inode_dirty(inode, HFSPLUS_I_CAT_DIRTY);
+ 	} else {
+-		printk(KERN_ERR "hfs: invalid catalog entry type\n");
++		pr_err("invalid catalog entry type\n");
+ 		err = -EIO;
+ 		goto end_setxattr;
+ 	}
+@@ -269,7 +269,7 @@ static ssize_t hfsplus_getxattr_finder_i
+ 	if (size >= record_len) {
+ 		res = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &fd);
+ 		if (res) {
+-			printk(KERN_ERR "hfs: can't init xattr find struct\n");
++			pr_err("can't init xattr find struct\n");
+ 			return res;
+ 		}
+ 		res = hfsplus_find_cat(inode->i_sb, inode->i_ino, &fd);
+@@ -340,13 +340,13 @@ ssize_t hfsplus_getxattr(struct dentry *
+ 
+ 	entry = hfsplus_alloc_attr_entry();
+ 	if (!entry) {
+-		printk(KERN_ERR "hfs: can't allocate xattr entry\n");
++		pr_err("can't allocate xattr entry\n");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	res = hfs_find_init(HFSPLUS_SB(inode->i_sb)->attr_tree, &fd);
+ 	if (res) {
+-		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		pr_err("can't init xattr find struct\n");
+ 		goto failed_getxattr_init;
+ 	}
+ 
+@@ -355,7 +355,7 @@ ssize_t hfsplus_getxattr(struct dentry *
+ 		if (res == -ENOENT)
+ 			res = -ENODATA;
+ 		else
+-			printk(KERN_ERR "hfs: xattr searching failed\n");
++			pr_err("xattr searching failed\n");
+ 		goto out;
+ 	}
+ 
+@@ -368,17 +368,17 @@ ssize_t hfsplus_getxattr(struct dentry *
+ 				offsetof(struct hfsplus_attr_inline_data,
+ 				length));
+ 		if (record_length > HFSPLUS_MAX_INLINE_DATA_SIZE) {
+-			printk(KERN_ERR "hfs: invalid xattr record size\n");
++			pr_err("invalid xattr record size\n");
+ 			res = -EIO;
+ 			goto out;
+ 		}
+ 	} else if (record_type == HFSPLUS_ATTR_FORK_DATA ||
+ 			record_type == HFSPLUS_ATTR_EXTENTS) {
+-		printk(KERN_ERR "hfs: only inline data xattr are supported\n");
++		pr_err("only inline data xattr are supported\n");
+ 		res = -EOPNOTSUPP;
+ 		goto out;
+ 	} else {
+-		printk(KERN_ERR "hfs: invalid xattr record\n");
++		pr_err("invalid xattr record\n");
+ 		res = -EIO;
+ 		goto out;
+ 	}
+@@ -427,7 +427,7 @@ static ssize_t hfsplus_listxattr_finder_
+ 
+ 	res = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &fd);
+ 	if (res) {
+-		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		pr_err("can't init xattr find struct\n");
+ 		return res;
+ 	}
+ 
+@@ -506,7 +506,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 
+ 	err = hfs_find_init(HFSPLUS_SB(inode->i_sb)->attr_tree, &fd);
+ 	if (err) {
+-		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		pr_err("can't init xattr find struct\n");
+ 		return err;
+ 	}
+ 
+@@ -525,8 +525,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 	for (;;) {
+ 		key_len = hfs_bnode_read_u16(fd.bnode, fd.keyoffset);
+ 		if (key_len == 0 || key_len > fd.tree->max_key_len) {
+-			printk(KERN_ERR "hfs: invalid xattr key length: %d\n",
+-							key_len);
++			pr_err("invalid xattr key length: %d\n", key_len);
+ 			res = -EIO;
+ 			goto end_listxattr;
+ 		}
+@@ -541,7 +540,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 		if (hfsplus_uni2asc(inode->i_sb,
+ 			(const struct hfsplus_unistr *)&fd.key->attr.key_name,
+ 					strbuf, &xattr_name_len)) {
+-			printk(KERN_ERR "hfs: unicode conversion failed\n");
++			pr_err("unicode conversion failed\n");
+ 			res = -EIO;
+ 			goto end_listxattr;
+ 		}
+@@ -598,13 +597,13 @@ int hfsplus_removexattr(struct dentry *d
+ 
+ 	err = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &cat_fd);
+ 	if (err) {
+-		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		pr_err("can't init xattr find struct\n");
+ 		return err;
+ 	}
+ 
+ 	err = hfsplus_find_cat(inode->i_sb, inode->i_ino, &cat_fd);
+ 	if (err) {
+-		printk(KERN_ERR "hfs: catalog searching failed\n");
++		pr_err("catalog searching failed\n");
+ 		goto end_removexattr;
+ 	}
+ 
+@@ -643,7 +642,7 @@ int hfsplus_removexattr(struct dentry *d
+ 				flags);
+ 		hfsplus_mark_inode_dirty(inode, HFSPLUS_I_CAT_DIRTY);
+ 	} else {
+-		printk(KERN_ERR "hfs: invalid catalog entry type\n");
++		pr_err("invalid catalog entry type\n");
+ 		err = -EIO;
+ 		goto end_removexattr;
+ 	}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
