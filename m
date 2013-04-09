@@ -1,135 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch removed from -mm tree
-Date: Tue, 09 Apr 2013 13:56:27 -0700
-Message-ID: <20130409205627.B64805A425C@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3.patch added to -mm tree
+Date: Tue, 09 Apr 2013 14:00:18 -0700
+Message-ID: <20130409210018.8EEF65A4252@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:50325 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762739Ab3DIU43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 16:56:29 -0400
-Received: by mail-ie0-f202.google.com with SMTP id qd14so1871211ieb.5
-        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 13:56:28 -0700 (PDT)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:56406 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936020Ab3DIVAU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 17:00:20 -0400
+Received: by mail-ie0-f201.google.com with SMTP id a11so1872735iee.0
+        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 14:00:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, darrick.wong@oracle.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: darrick.wong@oracle.com, adrian.hunter@intel.com, axboe@kernel.dk, dedekind1@gmail.com, jack@suse.cz, luto@amacapital.net
 
 
 The patch titled
-     Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix
-has been removed from the -mm tree.  Its filename was
-     mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
+     Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
+has been added to the -mm tree.  Its filename is
+     mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3.patch
 
-This patch was dropped because it was folded into mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
 
-teeny cleanup
+v3: Improve the documentation in jbd for why we're doing this, and clean up
+some code.
+[darrick.wong@oracle.com: Fold in a couple of small cleanups from akpm]
 
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/buffer.c               |    2 +-
+ fs/jbd/commit.c           |   21 ++++++++++++++++++++-
+ include/linux/blk_types.h |    1 +
+ 3 files changed, 22 insertions(+), 2 deletions(-)
 
-diff -puN fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix fs/buffer.c
---- a/fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix
+diff -puN fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3 fs/buffer.c
+--- a/fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
 +++ a/fs/buffer.c
-@@ -2949,7 +2949,7 @@ static void guard_bh_eod(int rw, struct
+@@ -2999,7 +2999,7 @@ int _submit_bh(int rw, struct buffer_hea
+ }
+ EXPORT_SYMBOL_GPL(_submit_bh);
+ 
+-int submit_bh(int rw, struct buffer_head * bh)
++int submit_bh(int rw, struct buffer_head *bh)
+ {
+ 	return _submit_bh(rw, bh, 0);
+ }
+diff -puN fs/jbd/commit.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3 fs/jbd/commit.c
+--- a/fs/jbd/commit.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
++++ a/fs/jbd/commit.c
+@@ -162,7 +162,16 @@ static void journal_do_submit_data(struc
+ 
+ 	for (i = 0; i < bufs; i++) {
+ 		wbuf[i]->b_end_io = end_buffer_write_sync;
+-		/* We use-up our safety reference in submit_bh() */
++		/*
++		 * Here we write back pagecache data that may be mmaped. Since
++		 * we cannot afford to clean the page and set PageWriteback
++		 * here due to lock ordering (page lock ranks above transaction
++		 * start), the data can change while IO is in flight. Tell the
++		 * block layer it should bounce the bio pages if stable data
++		 * during write is required.
++		 *
++		 * We use up our safety reference in submit_bh().
++		 */
+ 		_submit_bh(write_op, wbuf[i], 1 << BIO_SNAP_STABLE);
  	}
  }
- 
--int _submit_bh(int rw, struct buffer_head * bh, unsigned long bio_flags)
-+int _submit_bh(int rw, struct buffer_head *bh, unsigned long bio_flags)
- {
- 	struct bio *bio;
- 	int ret = 0;
+@@ -667,6 +676,16 @@ start_journal_io:
+ 				clear_buffer_dirty(bh);
+ 				set_buffer_uptodate(bh);
+ 				bh->b_end_io = journal_end_buffer_io_sync;
++				/*
++				 * In data=journal mode, here we can end up
++				 * writing pagecache data that might be
++				 * mmapped. Since we can't afford to clean the
++				 * page and set PageWriteback (see the comment
++				 * near the other use of _submit_bh()), the
++				 * data can change while the write is in
++				 * flight.  Tell the block layer to bounce the
++				 * bio pages if stable pages are required.
++				 */
+ 				_submit_bh(write_op, bh, 1 << BIO_SNAP_STABLE);
+ 			}
+ 			cond_resched();
+diff -puN include/linux/blk_types.h~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3 include/linux/blk_types.h
+--- a/include/linux/blk_types.h~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
++++ a/include/linux/blk_types.h
+@@ -112,6 +112,7 @@ struct bio {
+ #define BIO_QUIET	10	/* Make BIO Quiet */
+ #define BIO_MAPPED_INTEGRITY 11/* integrity metadata has been remapped */
+ #define BIO_SNAP_STABLE	12	/* bio data must be snapshotted during write */
++
+ /*
+  * Flags starting here get preserved by bio_reset() - this includes
+  * BIO_POOL_IDX()
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from darrick.wong@oracle.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-mips-define-kvm_user_mem_slots.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
