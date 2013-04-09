@@ -1,79 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch removed from -mm tree
-Date: Tue, 09 Apr 2013 13:56:23 -0700
-Message-ID: <20130409205624.586A831C18B@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch removed from -mm tree
+Date: Tue, 09 Apr 2013 13:56:27 -0700
+Message-ID: <20130409205627.B64805A425C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:63613 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762739Ab3DIU40 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 16:56:26 -0400
-Received: by mail-oa0-f73.google.com with SMTP id o6so1871967oag.4
-        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 13:56:25 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:50325 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762739Ab3DIU43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 16:56:29 -0400
+Received: by mail-ie0-f202.google.com with SMTP id qd14so1871211ieb.5
+        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 13:56:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adrian.hunter@intel.com, axboe@kernel.dk, darrick.wong@oracle.com, dedekind1@gmail.com, jack@suse.cz, luto@amacapital.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, darrick.wong@oracle.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix
+     Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix.patch
+     mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
 
 This patch was dropped because it was folded into mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix
+Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix
 
-rename _submit_bh()'s `flags' to `bio_flags', delobotomize the _submit_bh declaration
+teeny cleanup
 
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |    4 ++--
- include/linux/buffer_head.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/buffer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix fs/buffer.c
---- a/fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix
+diff -puN fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix fs/buffer.c
+--- a/fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix
 +++ a/fs/buffer.c
 @@ -2949,7 +2949,7 @@ static void guard_bh_eod(int rw, struct
  	}
  }
  
--int _submit_bh(int rw, struct buffer_head * bh, unsigned long flags)
-+int _submit_bh(int rw, struct buffer_head * bh, unsigned long bio_flags)
+-int _submit_bh(int rw, struct buffer_head * bh, unsigned long bio_flags)
++int _submit_bh(int rw, struct buffer_head *bh, unsigned long bio_flags)
  {
  	struct bio *bio;
  	int ret = 0;
-@@ -2983,7 +2983,7 @@ int _submit_bh(int rw, struct buffer_hea
- 
- 	bio->bi_end_io = end_bio_bh_io_sync;
- 	bio->bi_private = bh;
--	bio->bi_flags |= flags;
-+	bio->bi_flags |= bio_flags;
- 
- 	/* Take care of bh's that straddle the end of the device */
- 	guard_bh_eod(rw, bio, bh);
-diff -puN include/linux/buffer_head.h~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix
-+++ a/include/linux/buffer_head.h
-@@ -181,7 +181,7 @@ void ll_rw_block(int, int, struct buffer
- int sync_dirty_buffer(struct buffer_head *bh);
- int __sync_dirty_buffer(struct buffer_head *bh, int rw);
- void write_dirty_buffer(struct buffer_head *bh, int rw);
--int _submit_bh(int, struct buffer_head *, unsigned long);
-+int _submit_bh(int rw, struct buffer_head *bh, unsigned long bio_flags);
- int submit_bh(int, struct buffer_head *);
- void write_boundary_block(struct block_device *bdev,
- 			sector_t bblock, unsigned blocksize);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +68,6 @@ mm-shmemc-remove-an-ifdef.patch
 xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
 memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-fix-fix.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3.patch
 kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
