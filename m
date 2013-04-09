@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes.patch added to -mm tree
-Date: Tue, 09 Apr 2013 13:03:10 -0700
-Message-ID: <20130409200310.8A9235A425C@corp2gmr1-2.hot.corp.google.com>
+Subject: + ocfs2-fix-error-handling-in-ocfs2_ioctl_move_extents.patch added to -mm tree
+Date: Tue, 09 Apr 2013 13:08:40 -0700
+Message-ID: <20130409200840.DD13731C1D4@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:53306 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761961Ab3DIUDM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 16:03:12 -0400
-Received: by mail-ob0-f201.google.com with SMTP id uz6so1855891obc.2
-        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 13:03:11 -0700 (PDT)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:63766 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764684Ab3DIUIm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Apr 2013 16:08:42 -0400
+Received: by mail-ia0-f202.google.com with SMTP id p22so1856285iad.3
+        for <mm-commits@vger.kernel.org>; Tue, 09 Apr 2013 13:08:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, john.stultz@linaro.org
+Cc: dan.carpenter@oracle.com, jeff.liu@oracle.com, jlbec@evilplan.org, mfasheh@suse.com
 
 
 The patch titled
-     Subject: fs, proc: truncate /proc/pid/comm writes to first TASK_COMM_LEN bytes
+     Subject: ocfs2: fix error handling in ocfs2_ioctl_move_extents()
 has been added to the -mm tree.  Its filename is
-     fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes.patch
+     ocfs2-fix-error-handling-in-ocfs2_ioctl_move_extents.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: fs, proc: truncate /proc/pid/comm writes to first TASK_COMM_LEN bytes
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: fix error handling in ocfs2_ioctl_move_extents()
 
-Currently, a write to a procfs file will return the number of bytes
-successfully written.  If the actual string is longer than this, the
-remainder of the string will not be be written and userspace will complete
-the operation by issuing additional write()s.
+Smatch complains that if we hit an error (for example if the file is
+immutable) then "range" has uninitialized stack data and we copy it to the
+user.
 
-Hence
+I've re-written the error handling to avoid this problem and make it a
+little cleaner as well.
 
-	$ echo -n "abcdefghijklmnopqrs" > /proc/self/comm
-
-results in
-
-	$ cat /proc/$$/comm
-	pqrs
-
-since the final four bytes were written with a second write() since
-TASK_COMM_LEN == 16.  This is obviously an undesired result and not
-equivalent to prctl(PR_SET_NAME).  The implementation should not need to
-know the definition of TASK_COMM_LEN.
-
-This patch truncates the string to the first TASK_COMM_LEN bytes and
-returns the bytes written as the length of the string written so the
-second write() is suppressed.
-
-	$ cat /proc/$$/comm
-	abcdefghijklmno
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Jie Liu <jeff.liu@oracle.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/ocfs2/move_extents.c |   37 +++++++++++++++++--------------------
+ 1 file changed, 17 insertions(+), 20 deletions(-)
 
-diff -puN fs/proc/base.c~fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes fs/proc/base.c
---- a/fs/proc/base.c~fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes
-+++ a/fs/proc/base.c
-@@ -1347,11 +1347,10 @@ static ssize_t comm_write(struct file *f
- 	struct inode *inode = file_inode(file);
- 	struct task_struct *p;
- 	char buffer[TASK_COMM_LEN];
-+	const size_t maxlen = sizeof(buffer) - 1;
+diff -puN fs/ocfs2/move_extents.c~ocfs2-fix-error-handling-in-ocfs2_ioctl_move_extents fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~ocfs2-fix-error-handling-in-ocfs2_ioctl_move_extents
++++ a/fs/ocfs2/move_extents.c
+@@ -1057,42 +1057,40 @@ int ocfs2_ioctl_move_extents(struct file
  
- 	memset(buffer, 0, sizeof(buffer));
--	if (count > sizeof(buffer) - 1)
--		count = sizeof(buffer) - 1;
--	if (copy_from_user(buffer, buf, count))
-+	if (copy_from_user(buffer, buf, count > maxlen ? maxlen : count))
- 		return -EFAULT;
+ 	struct inode *inode = file_inode(filp);
+ 	struct ocfs2_move_extents range;
+-	struct ocfs2_move_extents_context *context = NULL;
++	struct ocfs2_move_extents_context *context;
++
++	if (!argp)
++		return -EINVAL;
  
- 	p = get_proc_task(inode);
-_
-
-Patches currently in -mm which might be from rientjes@google.com are
-
-linux-next.patch
-mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
-mm-hugetlb-include-hugepages-in-meminfo.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-thp-fix-comment-about-memory-barrier.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
-fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes.patch
-
+ 	status = mnt_want_write_file(filp);
+ 	if (status)
+ 		return status;
+ 
+ 	if ((!S_ISREG(inode->i_mode)) || !(filp->f_mode & FMODE_WRITE))
+-		goto out;
++		goto out_drop;
+ 
+ 	if (inode->i_flags & (S_IMMUTABLE|S_APPEND)) {
+ 		status = -EPERM;
+-		goto out;
++		goto out_drop;
+ 	}
+ 
+ 	context = kzalloc(sizeof(struct ocfs2_move_extents_context), GFP_NOFS);
+ 	if (!context) {
+ 		status = -ENOMEM;
+ 		mlog_errno(status);
+-		goto out;
++		goto out_drop;
+ 	}
+ 
+ 	context->inode = inode;
+ 	context->file = filp;
+ 
+-	if (argp) {
+-		if (copy_from_user(&range, argp, sizeof(range))) {
+-			status = -EFAULT;
+-			goto out;
+-		}
+-	} else {
+-		status = -EINVAL;
+-		goto out;
++	if (copy_from_user(&range, argp, sizeof(range))) {
++		status = -EFAULT;
++		goto out_free;
+ 	}
+ 
+ 	if (range.me_start > i_size_read(inode))
+-		goto out;
++		goto out_free;
+ 
+ 	if (range.me_start + range.me_len > i_size_read(inode))
+ 			range.me_len = i_size_read(inode) - range.me_start;
+@@ -1124,25 +1122,24 @@ int ocfs2_ioctl_move_extents(struct file
+ 
+ 		status = ocfs2_validate_and_adjust_move_goal(inode, &range);
+ 		if (status)
+-			goto out;
++			goto out_copy;
+ 	}
+ 
+ 	status = ocfs2_move_extents(context);
+ 	if (status)
+ 		mlog_errno(status);
+-out:
++out_copy:
+ 	/*
+ 	 * movement/defragmentation may end up being partially completed,
+ 	 * that's the reason why we need to return userspace the finished
+ 	 * length and new_offset even if failure happens somewhere.
+ 	 */
+-	if (argp) {
+-		if (copy_to_user(argp, &range, sizeof(range)))
+-			status = -EFAULT;
+-	}
++	if (copy_to_user(argp, &range, sizeof(range)))
++		status = -EFAULT;
+ 
++out_free:
+ 	kfree(context);
