@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch added to -mm tree
-Date: Wed, 10 Apr 2013 15:15:22 -0700
-Message-ID: <20130410221522.DB21131C107__49429.164970252$1365632134$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: + resource-add-release_mem_region_adjustable-fix-fix.patch added to -mm tree
+Date: Wed, 10 Apr 2013 15:24:47 -0700
+Message-ID: <20130410222447.E908431C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:59655 "EHLO
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:60107 "EHLO
 	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935291Ab3DJWPY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:15:24 -0400
-Received: by mail-ia0-f201.google.com with SMTP id k25so235509iah.2
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:15:24 -0700 (PDT)
+	with ESMTP id S935132Ab3DJWYt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:24:49 -0400
+Received: by mail-ia0-f201.google.com with SMTP id k25so237689iah.2
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:24:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agshew@gmail.com, linux-mm@kvack.org
+Cc: akpm@linux-foundation.org, jiang.liu@huawei.com, linuxram@us.ibm.com, rientjes@google.com, tangchen@cn.fujitsu.com, tmac@hp.com, toshi.kani@hp.com, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
+     Subject: resource-add-release_mem_region_adjustable-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
+     resource-add-release_mem_region_adjustable-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,91 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
+Subject: resource-add-release_mem_region_adjustable-fix-fix
 
-make init_user_reserve() static
+switch back to GFP_KERNEL, less buggily
 
-Cc: <linux-mm@kvack.org>
-Cc: Andrew Shewmaker <agshew@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: T Makphaibulchoke <tmac@hp.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c  |    2 +-
- mm/nommu.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/resource.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix mm/mmap.c
---- a/mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
-+++ a/mm/mmap.c
-@@ -3109,7 +3109,7 @@ void __init mmap_init(void)
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
-  */
--int __meminit init_user_reserve(void)
-+static int __meminit init_user_reserve(void)
+diff -puN kernel/resource.c~resource-add-release_mem_region_adjustable-fix-fix kernel/resource.c
+--- a/kernel/resource.c~resource-add-release_mem_region_adjustable-fix-fix
++++ a/kernel/resource.c
+@@ -1046,7 +1046,8 @@ int release_mem_region_adjustable(struct
+ 			resource_size_t start, resource_size_t size)
  {
- 	unsigned long free_kbytes;
+ 	struct resource **p;
+-	struct resource *res, *new;
++	struct resource *res;
++	struct resource *new_res;
+ 	resource_size_t end;
+ 	int ret = -EINVAL;
  
-diff -puN mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix mm/nommu.c
---- a/mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
-+++ a/mm/nommu.c
-@@ -2126,7 +2126,7 @@ int nommu_shrink_inode_mappings(struct i
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
-  */
--int __meminit init_user_reserve(void)
-+static int __meminit init_user_reserve(void)
- {
- 	unsigned long free_kbytes;
+@@ -1054,6 +1055,9 @@ int release_mem_region_adjustable(struct
+ 	if ((start < parent->start) || (end > parent->end))
+ 		return ret;
  
++	/* The kzalloc() result gets checked later */
++	new_res = kzalloc(sizeof(struct resource), GFP_KERNEL);
++
+ 	p = &parent->child;
+ 	write_lock(&resource_lock);
+ 
+@@ -1091,32 +1095,33 @@ int release_mem_region_adjustable(struct
+ 						start - res->start);
+ 		} else {
+ 			/* split into two entries */
+-			new = kzalloc(sizeof(struct resource), GFP_ATOMIC);
+-			if (!new) {
++			if (!new_res) {
+ 				ret = -ENOMEM;
+ 				break;
+ 			}
+-			new->name = res->name;
+-			new->start = end + 1;
+-			new->end = res->end;
+-			new->flags = res->flags;
+-			new->parent = res->parent;
+-			new->sibling = res->sibling;
+-			new->child = NULL;
++			new_res->name = res->name;
++			new_res->start = end + 1;
++			new_res->end = res->end;
++			new_res->flags = res->flags;
++			new_res->parent = res->parent;
++			new_res->sibling = res->sibling;
++			new_res->child = NULL;
+ 
+ 			ret = __adjust_resource(res, res->start,
+ 						start - res->start);
+ 			if (ret) {
+-				kfree(new);
++				kfree(new_res);
+ 				break;
+ 			}
+-			res->sibling = new;
++			res->sibling = new_res;
++			new_res = NULL;
+ 		}
+ 
+ 		break;
+ 	}
+ 
+ 	write_unlock(&resource_lock);
++	kfree(new_res);
+ 	return ret;
+ }
+ #endif	/* CONFIG_MEMORY_HOTPLUG */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +144,7 @@ mm-speedup-in-__early_pfn_to_nid-fix.patch
 include-linux-memoryh-implement-register_hotmemory_notifier.patch
 ipc-utilc-use-register_hotmemory_notifier.patch
 mm-slubc-use-register_hotmemory_notifier.patch
+a.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
@@ -103,6 +152,7 @@ mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch
 resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
