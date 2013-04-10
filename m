@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slubc-use-register_hotmemory_notifier.patch added to -mm tree
-Date: Wed, 10 Apr 2013 13:49:55 -0700
-Message-ID: <20130410204955.D586E31C0F7@corp2gmr1-1.hot.corp.google.com>
+Subject: + genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch added to -mm tree
+Date: Wed, 10 Apr 2013 13:52:01 -0700
+Message-ID: <20130410205201.EE15031C2B5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:51908 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755531Ab3DJUt5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 16:49:57 -0400
-Received: by mail-ie0-f202.google.com with SMTP id x12so132535ief.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 13:49:56 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:55514 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933904Ab3DJUwE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 16:52:04 -0400
+Received: by mail-oa0-f74.google.com with SMTP id k14so215919oag.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 13:52:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, penberg@kernel.org
+Cc: akpm@linux-foundation.org, dong.aisheng@linaro.org, fabio.estevam@freescale.com, grant.likely@secretlab.ca, gregkh@linuxfoundation.org, javier.martin@vista-silicon.com, monstr@monstr.eu, mporter@ti.com, p.zabel@pengutronix.de, paul.gortmaker@windriver.com, rob.herring@calxeda.com, shijie8@gmail.com
 
 
 The patch titled
-     Subject: mm/slub.c: use register_hotmemory_notifier()
+     Subject: genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-slubc-use-register_hotmemory_notifier.patch
+     genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/slub.c: use register_hotmemory_notifier()
+Subject: genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix
 
-Squishes a statement-with-no-effect warning, removes some ifdefs and
-shrinks .text by 2 bytes.
+squish "struct device declared inside parameter list" warning
 
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Dong Aisheng <dong.aisheng@linaro.org>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huang Shijie <shijie8@gmail.com>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Cc: Matt Porter <mporter@ti.com>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/genalloc.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~mm-slubc-use-register_hotmemory_notifier mm/slub.c
---- a/mm/slub.c~mm-slubc-use-register_hotmemory_notifier
-+++ a/mm/slub.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include "slab.h"
- #include <linux/proc_fs.h>
-+#include <linux/notifier.h>
- #include <linux/seq_file.h>
- #include <linux/kmemcheck.h>
- #include <linux/cpu.h>
-@@ -3425,7 +3426,6 @@ int kmem_cache_shrink(struct kmem_cache
- }
- EXPORT_SYMBOL(kmem_cache_shrink);
+diff -puN include/linux/genalloc.h~genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix include/linux/genalloc.h
+--- a/include/linux/genalloc.h~genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix
++++ a/include/linux/genalloc.h
+@@ -29,6 +29,10 @@
  
--#if defined(CONFIG_MEMORY_HOTPLUG)
- static int slab_mem_going_offline_callback(void *arg)
- {
- 	struct kmem_cache *s;
-@@ -3540,7 +3540,10 @@ static int slab_memory_callback(struct n
- 	return ret;
- }
+ #ifndef __GENALLOC_H__
+ #define __GENALLOC_H__
++
++struct device;
++struct device_node;
++
+ /**
+  * Allocation callback function type definition
+  * @map: Pointer to bitmap
+@@ -109,7 +113,6 @@ extern struct gen_pool *devm_gen_pool_cr
+ 		int min_alloc_order, int nid);
+ extern struct gen_pool *dev_get_gen_pool(struct device *dev);
  
--#endif /* CONFIG_MEMORY_HOTPLUG */
-+static struct notifier_block slab_memory_callback_nb = {
-+	.notifier_call = slab_memory_callback,
-+	.priority = SLAB_CALLBACK_PRI,
-+};
- 
- /********************************************************************
-  *			Basic setup of slabs
-@@ -3597,7 +3600,7 @@ void __init kmem_cache_init(void)
- 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
- 		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN);
- 
--	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
-+	register_hotmemory_notifier(&slab_memory_callback_nb);
- 
- 	/* Able to allocate the per node structures */
- 	slab_state = PARTIAL;
+-struct device_node;
+ #ifdef CONFIG_OF
+ extern struct gen_pool *of_get_named_gen_pool(struct device_node *np,
+ 	const char *propname, int index);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +110,7 @@ include-linux-mmzoneh-cleanups-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
 misc-generic-on-chip-sram-allocation-driver-fix.patch
 kernel-smpc-cleanups.patch
 early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
