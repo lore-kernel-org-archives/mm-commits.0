@@ -1,105 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch added to -mm tree
-Date: Wed, 10 Apr 2013 14:44:33 -0700
-Message-ID: <20130410214433.F39FF5A415F@corp2gmr1-2.hot.corp.google.com>
+Subject: [nacked] mm-print-the-correct-method-to-disable-automatic-numa-migration.patch removed from -mm tree
+Date: Wed, 10 Apr 2013 14:45:45 -0700
+Message-ID: <20130410214545.8504C5A42B4@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:58418 "EHLO
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:49111 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936783Ab3DJVog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 17:44:36 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va7so228199obc.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 14:44:35 -0700 (PDT)
+	with ESMTP id S1752757Ab3DJVpq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 17:45:46 -0400
+Received: by mail-ob0-f202.google.com with SMTP id va7so228492obc.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 14:45:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: toshi.kani@hp.com, jiang.liu@huawei.com, linuxram@us.ibm.com, rientjes@google.com, tangchen@cn.fujitsu.com, tmac@hp.com, wency@cn.fujitsu.com
+To: ak@linux.intel.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change __remove_pages() to call release_mem_region_adjustable()
-has been added to the -mm tree.  Its filename is
-     mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch
+     Subject: mm: print the correct method to disable automatic numa migration
+has been removed from the -mm tree.  Its filename was
+     mm-print-the-correct-method-to-disable-automatic-numa-migration.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: change __remove_pages() to call release_mem_region_adjustable()
+From: Andi Kleen <ak@linux.intel.com>
+Subject: mm: print the correct method to disable automatic numa migration
 
-Chang __remove_pages() to call release_mem_region_adjustable().  This
-allows a requested memory range to be released from the iomem_resource
-table even if it does not match exactly to an resource entry but still
-fits into.  The resource entries initialized at bootup usually cover the
-whole contiguous memory ranges and may not necessarily match with the size
-of memory hot-delete requests.
+When the "default y" CONFIG_NUMA_BALANCING_DEFAULT_ENABLED is enabled, the
+message it prints refers to a sysctl to disable it again.  But that sysctl
+doesn't exist.
 
-If release_mem_region_adjustable() failed, __remove_pages() emits a
-warning message and continues to proceed as it was the case with
-release_mem_region().  release_mem_region(), which is defined to
-__release_region(), emits a warning message and returns no error since a
-void function.
+Document the correct (highly obscure method) through debugfs.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: T Makphaibulchoke <tmac@hp.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
+This should be also in Documentation/* but isn't.
+
+Also fix the checkpatch problems.
+
+BTW I think the "default y" is highly dubious for such a
+experimential feature.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-change-__remove_pages-to-call-release_mem_region_adjustable mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-change-__remove_pages-to-call-release_mem_region_adjustable
-+++ a/mm/memory_hotplug.c
-@@ -705,8 +705,10 @@ EXPORT_SYMBOL_GPL(__add_pages);
- int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
- 		 unsigned long nr_pages)
- {
--	unsigned long i, ret = 0;
-+	unsigned long i;
- 	int sections_to_remove;
-+	resource_size_t start, size;
-+	int ret = 0;
+diff -puN mm/mempolicy.c~mm-print-the-correct-method-to-disable-automatic-numa-migration mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-print-the-correct-method-to-disable-automatic-numa-migration
++++ a/mm/mempolicy.c
+@@ -2530,8 +2530,8 @@ static void __init check_numabalancing_e
+ 		numabalancing_default = true;
  
- 	/*
- 	 * We can only remove entire sections
-@@ -714,7 +716,12 @@ int __remove_pages(struct zone *zone, un
- 	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
- 	BUG_ON(nr_pages % PAGES_PER_SECTION);
- 
--	release_mem_region(phys_start_pfn << PAGE_SHIFT, nr_pages * PAGE_SIZE);
-+	start = phys_start_pfn << PAGE_SHIFT;
-+	size = nr_pages * PAGE_SIZE;
-+	ret = release_mem_region_adjustable(&iomem_resource, start, size);
-+	if (ret)
-+		pr_warn("Unable to release resource <%016llx-%016llx> (%d)\n",
-+				start, start + size - 1, ret);
- 
- 	sections_to_remove = nr_pages / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
+ 	if (nr_node_ids > 1 && !numabalancing_override) {
+-		printk(KERN_INFO "Enabling automatic NUMA balancing. "
+-			"Configure with numa_balancing= or sysctl");
++		pr_info("Enabling automatic NUMA balancing.\n");
++		pr_info("Change with numa_balancing= or echo -NUMA >/sys/kernel/debug/sched_features\n");
+ 		set_numabalancing_state(numabalancing_default);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 linux-next.patch
-mm-walk_memory_range-fix-typo-in-comment.patch
-resource-add-__adjust_resource-for-internal-use.patch
-resource-add-release_mem_region_adjustable.patch
-resource-add-release_mem_region_adjustable-fix.patch
-mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
 
