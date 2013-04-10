@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch added to -mm tree
-Date: Wed, 10 Apr 2013 15:15:28 -0700
-Message-ID: <20130410221528.D866F31C107@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch added to -mm tree
+Date: Wed, 10 Apr 2013 15:15:22 -0700
+Message-ID: <20130410221522.DB21131C107__49429.164970252$1365632134$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:39008 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935291Ab3DJWPa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:15:30 -0400
-Received: by mail-ob0-f201.google.com with SMTP id uz6so235853obc.4
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:15:29 -0700 (PDT)
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:59655 "EHLO
+	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935291Ab3DJWPY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:15:24 -0400
+Received: by mail-ia0-f201.google.com with SMTP id k25so235509iah.2
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:15:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, agshew@gmail.com, linux-mm@kvack.org
 
 
 The patch titled
-     Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix
+     Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
 has been added to the -mm tree.  Its filename is
-     mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch
+     mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix
+Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
 
-init_user_reserve() and init_admin_reserve can no longer be __meminit
+make init_user_reserve() static
 
 Cc: <linux-mm@kvack.org>
 Cc: Andrew Shewmaker <agshew@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mmap.c  |    2 +-
+ mm/nommu.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix mm/mmap.c
---- a/mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix
+diff -puN mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix mm/mmap.c
+--- a/mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
 +++ a/mm/mmap.c
-@@ -3112,7 +3112,7 @@ void __init mmap_init(void)
+@@ -3109,7 +3109,7 @@ void __init mmap_init(void)
   * The default value is min(3% of free memory, 128MB)
   * 128MB is enough to recover with sshd/login, bash, and top/kill.
   */
--static int __meminit init_user_reserve(void)
-+static int init_user_reserve(void)
+-int __meminit init_user_reserve(void)
++static int __meminit init_user_reserve(void)
  {
  	unsigned long free_kbytes;
  
-@@ -3133,7 +3133,7 @@ module_init(init_user_reserve)
-  * with sshd, bash, and top in OVERCOMMIT_GUESS. Smaller systems will
-  * only reserve 3% of free pages by default.
+diff -puN mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix mm/nommu.c
+--- a/mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
++++ a/mm/nommu.c
+@@ -2126,7 +2126,7 @@ int nommu_shrink_inode_mappings(struct i
+  * The default value is min(3% of free memory, 128MB)
+  * 128MB is enough to recover with sshd/login, bash, and top/kill.
   */
--static int __meminit init_admin_reserve(void)
-+static int init_admin_reserve(void)
+-int __meminit init_user_reserve(void)
++static int __meminit init_user_reserve(void)
  {
  	unsigned long free_kbytes;
  
