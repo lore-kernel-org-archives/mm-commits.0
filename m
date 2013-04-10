@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly.patch added to -mm tree
-Date: Wed, 10 Apr 2013 14:14:58 -0700
-Message-ID: <20130410211458.8A4625A425C@corp2gmr1-2.hot.corp.google.com>
+Subject: + resource-add-__adjust_resource-for-internal-use.patch added to -mm tree
+Date: Wed, 10 Apr 2013 14:44:24 -0700
+Message-ID: <20130410214424.F091C31C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:64999 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678Ab3DJVPA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 17:15:00 -0400
-Received: by mail-ie0-f201.google.com with SMTP id a11so221248iee.4
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 14:14:59 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:57290 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936728Ab3DJVo0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 17:44:26 -0400
+Received: by mail-ie0-f202.google.com with SMTP id x12so146204ief.3
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 14:44:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srivatsa.bhat@linux.vnet.ibm.com, cl@linux.com, hughd@google.com, mgorman@suse.de
+Cc: toshi.kani@hp.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, linuxram@us.ibm.com, rientjes@google.com, tangchen@cn.fujitsu.com, tmac@hp.com, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: mm: Rewrite the comment over migrate_pages() more comprehensibly
+     Subject: resource: add __adjust_resource() for internal use
 has been added to the -mm tree.  Its filename is
-     mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly.patch
+     resource-add-__adjust_resource-for-internal-use.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: mm: Rewrite the comment over migrate_pages() more comprehensibly
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: resource: add __adjust_resource() for internal use
 
-The comment over migrate_pages() looks quite weird, and makes it hard
-to grasp what it is trying to say. Rewrite it more comprehensibly.
+Add __adjust_resource(), which is called by adjust_resource() internally
+after the resource_lock is held.  There is no interface change to
+adjust_resource().  This change allows other functions to call
+__adjust_resource() internally while the resource_lock is held.
 
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: T Makphaibulchoke <tmac@hp.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ kernel/resource.c |   35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN mm/migrate.c~mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly mm/migrate.c
---- a/mm/migrate.c~mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly
-+++ a/mm/migrate.c
-@@ -973,19 +973,23 @@ out:
+diff -puN kernel/resource.c~resource-add-__adjust_resource-for-internal-use kernel/resource.c
+--- a/kernel/resource.c~resource-add-__adjust_resource-for-internal-use
++++ a/kernel/resource.c
+@@ -706,24 +706,13 @@ void insert_resource_expand_to_fit(struc
+ 	write_unlock(&resource_lock);
  }
  
- /*
-- * migrate_pages
-+ * migrate_pages - migrate the pages specified in a list, to the free pages
-+ *		   supplied as the target for the page migration
-  *
-- * The function takes one list of pages to migrate and a function
-- * that determines from the page to be migrated and the private data
-- * the target of the move and allocates the page.
-+ * @from:		The list of pages to be migrated.
-+ * @get_new_page:	The function used to allocate free pages to be used
-+ *			as the target of the page migration.
-+ * @private:		Private data to be passed on to get_new_page()
-+ * @mode:		The migration mode that specifies the constraints for
-+ *			page migration, if any.
-+ * @reason:		The reason for page migration.
-  *
-- * The function returns after 10 attempts or if no pages
-- * are movable anymore because to has become empty
-- * or no retryable pages exist anymore.
-- * Caller should call putback_lru_pages to return pages to the LRU
-+ * The function returns after 10 attempts or if no pages are movable any more
-+ * because the list has become empty or no retryable pages exist any more.
-+ * The caller should call putback_lru_pages() to return pages to the LRU
-  * or free list only if ret != 0.
-  *
-- * Return: Number of pages not migrated or error code.
-+ * Returns the number of pages that were not migrated, or an error code.
-  */
- int migrate_pages(struct list_head *from, new_page_t get_new_page,
- 		unsigned long private, enum migrate_mode mode, int reason)
+-/**
+- * adjust_resource - modify a resource's start and size
+- * @res: resource to modify
+- * @start: new start value
+- * @size: new size
+- *
+- * Given an existing resource, change its start and size to match the
+- * arguments.  Returns 0 on success, -EBUSY if it can't fit.
+- * Existing children of the resource are assumed to be immutable.
+- */
+-int adjust_resource(struct resource *res, resource_size_t start, resource_size_t size)
++static int __adjust_resource(struct resource *res, resource_size_t start,
++				resource_size_t size)
+ {
+ 	struct resource *tmp, *parent = res->parent;
+ 	resource_size_t end = start + size - 1;
+ 	int result = -EBUSY;
+ 
+-	write_lock(&resource_lock);
+-
+ 	if (!parent)
+ 		goto skip;
+ 
+@@ -751,6 +740,26 @@ skip:
+ 	result = 0;
+ 
+  out:
++	return result;
++}
++
++/**
++ * adjust_resource - modify a resource's start and size
++ * @res: resource to modify
++ * @start: new start value
++ * @size: new size
++ *
++ * Given an existing resource, change its start and size to match the
++ * arguments.  Returns 0 on success, -EBUSY if it can't fit.
++ * Existing children of the resource are assumed to be immutable.
++ */
++int adjust_resource(struct resource *res, resource_size_t start,
++			resource_size_t size)
++{
++	int result;
++
++	write_lock(&resource_lock);
++	result = __adjust_resource(res, start, size);
+ 	write_unlock(&resource_lock);
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
 linux-next.patch
-kthread-introduce-to_live_kthread.patch
-kthread-kill-task_get_live_kthread.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly.patch
+mm-walk_memory_range-fix-typo-in-comment.patch
+resource-add-__adjust_resource-for-internal-use.patch
+resource-add-release_mem_region_adjustable.patch
+resource-add-release_mem_region_adjustable-fix.patch
+mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch
 
