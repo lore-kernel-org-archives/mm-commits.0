@@ -1,71 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mm-print-the-correct-method-to-disable-automatic-numa-migration.patch removed from -mm tree
-Date: Wed, 10 Apr 2013 14:45:45 -0700
-Message-ID: <20130410214545.8504C5A42B4@corp2gmr1-2.hot.corp.google.com>
+Subject: + fix-hugetlb-memory-check-in-vma_dump_size.patch added to -mm tree
+Date: Wed, 10 Apr 2013 14:55:40 -0700
+Message-ID: <20130410215540.EE06231C107__13969.5605882027$1365630946$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:49111 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752757Ab3DJVpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 17:45:46 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va7so228492obc.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 14:45:46 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:58859 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755680Ab3DJVzm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 17:55:42 -0400
+Received: by mail-oa0-f74.google.com with SMTP id k14so231958oag.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 14:55:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: n-horiguchi@ah.jp.nec.com, d.hatayama@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: print the correct method to disable automatic numa migration
-has been removed from the -mm tree.  Its filename was
-     mm-print-the-correct-method-to-disable-automatic-numa-migration.patch
+     Subject: fs/binfmt_elf.c: fix hugetlb memory check in vma_dump_size()
+has been added to the -mm tree.  Its filename is
+     fix-hugetlb-memory-check-in-vma_dump_size.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: mm: print the correct method to disable automatic numa migration
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: fs/binfmt_elf.c: fix hugetlb memory check in vma_dump_size()
 
-When the "default y" CONFIG_NUMA_BALANCING_DEFAULT_ENABLED is enabled, the
-message it prints refers to a sysctl to disable it again.  But that sysctl
-doesn't exist.
+Documentation/filesystems/proc.txt says about coredump_filter bitmask,
 
-Document the correct (highly obscure method) through debugfs.
+  Note bit 0-4 doesn't effect any hugetlb memory. hugetlb memory are only
+  effected by bit 5-6.
 
-This should be also in Documentation/* but isn't.
+However current code can go into the subsequent flag checks of bit 0-4
+for vma(VM_HUGETLB). So this patch inserts 'return' and makes it work
+as written in the document.
 
-Also fix the checkpatch problems.
-
-BTW I think the "default y" is highly dubious for such a
-experimential feature.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>	[2.6.34+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mempolicy.c~mm-print-the-correct-method-to-disable-automatic-numa-migration mm/mempolicy.c
---- a/mm/mempolicy.c~mm-print-the-correct-method-to-disable-automatic-numa-migration
-+++ a/mm/mempolicy.c
-@@ -2530,8 +2530,8 @@ static void __init check_numabalancing_e
- 		numabalancing_default = true;
- 
- 	if (nr_node_ids > 1 && !numabalancing_override) {
--		printk(KERN_INFO "Enabling automatic NUMA balancing. "
--			"Configure with numa_balancing= or sysctl");
-+		pr_info("Enabling automatic NUMA balancing.\n");
-+		pr_info("Change with numa_balancing= or echo -NUMA >/sys/kernel/debug/sched_features\n");
- 		set_numabalancing_state(numabalancing_default);
+diff -puN fs/binfmt_elf.c~fix-hugetlb-memory-check-in-vma_dump_size fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fix-hugetlb-memory-check-in-vma_dump_size
++++ a/fs/binfmt_elf.c
+@@ -1137,6 +1137,7 @@ static unsigned long vma_dump_size(struc
+ 			goto whole;
+ 		if (!(vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_PRIVATE))
+ 			goto whole;
++		return 0;
  	}
- }
+ 
+ 	/* Do not dump I/O mapped devices or special mappings */
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-linux-next.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+hugetlbfs-stop-setting-vm_dontdump-in-initializing-vmavm_hugetlb.patch
+fix-hugetlb-memory-check-in-vma_dump_size.patch
+hugetlbfs-add-swap-entry-check-in-follow_hugetlb_page.patch
+hwpoison-check-dirty-flag-to-match-against-clean-page.patch
 
