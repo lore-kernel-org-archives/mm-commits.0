@@ -1,53 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 10 Apr 2013 13:37:16 -0700
-Message-ID: <20130410203716.B83095A42BE@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipc-utilc-use-register_hotmemory_notifier.patch added to -mm tree
+Date: Wed, 10 Apr 2013 13:44:05 -0700
+Message-ID: <20130410204405.764255A42BE@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:36142 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764955Ab3DJUhS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 16:37:18 -0400
-Received: by mail-ie0-f202.google.com with SMTP id x12so128683ief.5
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 13:37:17 -0700 (PDT)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:57307 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932803Ab3DJUoH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 16:44:07 -0400
+Received: by mail-oa0-f74.google.com with SMTP id k14so212106oag.3
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 13:44:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: ipc/util.c: use register_hotmemory_notifier()
+has been added to the -mm tree.  Its filename is
+     ipc-utilc-use-register_hotmemory_notifier.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: ipc/util.c: use register_hotmemory_notifier()
+
+Squishes a statement-with-no-effect warning, removes some ifdefs and
+shrinks .text by one byte!
+
+
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/remoteproc/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ ipc/util.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/remoteproc/Kconfig~linux-next-git-rejects drivers/remoteproc/Kconfig
---- a/drivers/remoteproc/Kconfig~linux-next-git-rejects
-+++ a/drivers/remoteproc/Kconfig
-@@ -4,12 +4,9 @@ menu "Remoteproc drivers"
- config REMOTEPROC
- 	tristate
- 	depends on HAS_DMA
--<<<<<<< HEAD
- 	select FW_LOADER
--=======
- 	select CRC32
- 	select FW_CONFIG
-->>>>>>> linux-next/akpm-base
- 	select VIRTIO
+diff -puN ipc/util.c~ipc-utilc-use-register_hotmemory_notifier ipc/util.c
+--- a/ipc/util.c~ipc-utilc-use-register_hotmemory_notifier
++++ a/ipc/util.c
+@@ -23,6 +23,7 @@
+ #include <linux/msg.h>
+ #include <linux/vmalloc.h>
+ #include <linux/slab.h>
++#include <linux/notifier.h>
+ #include <linux/capability.h>
+ #include <linux/highuid.h>
+ #include <linux/security.h>
+@@ -47,19 +48,16 @@ struct ipc_proc_iface {
+ 	int (*show)(struct seq_file *, void *);
+ };
  
- config OMAP_REMOTEPROC
+-#ifdef CONFIG_MEMORY_HOTPLUG
+-
+ static void ipc_memory_notifier(struct work_struct *work)
+ {
+ 	ipcns_notify(IPCNS_MEMCHANGED);
+ }
+ 
+-static DECLARE_WORK(ipc_memory_wq, ipc_memory_notifier);
+-
+-
+ static int ipc_memory_callback(struct notifier_block *self,
+ 				unsigned long action, void *arg)
+ {
++	static DECLARE_WORK(ipc_memory_wq, ipc_memory_notifier);
++
+ 	switch (action) {
+ 	case MEM_ONLINE:    /* memory successfully brought online */
+ 	case MEM_OFFLINE:   /* or offline: it's time to recompute msgmni */
+@@ -85,7 +83,10 @@ static int ipc_memory_callback(struct no
+ 	return NOTIFY_OK;
+ }
+ 
+-#endif /* CONFIG_MEMORY_HOTPLUG */
++static struct notifier_block ipc_memory_nb = {
++	.notifier_call = ipc_memory_callback,
++	.priority = IPC_CALLBACK_PRI,
++};
+ 
+ /**
+  *	ipc_init	-	initialise IPC subsystem
+@@ -102,7 +103,7 @@ static int __init ipc_init(void)
+ 	sem_init();
+ 	msg_init();
+ 	shm_init();
+-	hotplug_memory_notifier(ipc_memory_callback, IPC_CALLBACK_PRI);
++	register_hotmemory_notifier(&ipc_memory_nb);
+ 	register_ipcns_notifier(&init_ipc_ns);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +124,7 @@ mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
 mm-speedup-in-__early_pfn_to_nid.patch
 mm-speedup-in-__early_pfn_to_nid-fix.patch
 include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
