@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-sysv-shared-memory-limited-to-8tib-fix.patch added to -mm tree
-Date: Wed, 10 Apr 2013 16:15:31 -0700
-Message-ID: <20130410231531.C575331C25E__31444.3406802186$1365635742$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: + fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch added to -mm tree
+Date: Wed, 10 Apr 2013 16:45:06 -0700
+Message-ID: <20130410234506.A28BD5A42B8@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:45287 "EHLO
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:59975 "EHLO
 	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762080Ab3DJXPd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 19:15:33 -0400
-Received: by mail-ie0-f202.google.com with SMTP id x12so166169ief.3
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 16:15:32 -0700 (PDT)
+	with ESMTP id S934578Ab3DJXpI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 19:45:08 -0400
+Received: by mail-ie0-f202.google.com with SMTP id x12so171456ief.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 16:45:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, athorlton@sgi.com, holt@sgi.com, stable@vger.kernel.org
+Cc: gthelen@google.com, david@fromorbit.com, stable@kernel.org
 
 
 The patch titled
-     Subject: ipc-sysv-shared-memory-limited-to-8tib-fix
+     Subject: fs/dcache.c: add cond_resched() to shrink_dcache_parent()
 has been added to the -mm tree.  Its filename is
-     ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+     fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-sysv-shared-memory-limited-to-8tib-fix
+From: Greg Thelen <gthelen@google.com>
+Subject: fs/dcache.c: add cond_resched() to shrink_dcache_parent()
 
-make ipc/shm.c:newseg()'s numpages size_t, not int
+Call cond_resched() in shrink_dcache_parent() to maintain interactivity.
 
-Cc: <stable@vger.kernel.org>
-Cc: Alex Thorlton <athorlton@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
+Before this patch:
+
+void shrink_dcache_parent(struct dentry * parent)
+{
+	while ((found = select_parent(parent, &dispose)) != 0)
+		shrink_dentry_list(&dispose);
+}
+
+select_parent() populates the dispose list with dentries which
+shrink_dentry_list() then deletes.  select_parent() carefully uses
+need_resched() to avoid doing too much work at once.  But neither
+shrink_dcache_parent() nor its called functions call cond_resched().  So
+once need_resched() is set select_parent() will return single dentry
+dispose list which is then deleted by shrink_dentry_list().  This is
+inefficient when there are a lot of dentry to process.  This can cause
+softlockup and hurts interactivity on non preemptable kernels.
+
+This change adds cond_resched() in shrink_dcache_parent().  The benefit of
+this is that need_resched() is quickly cleared so that future calls to
+select_parent() are able to efficiently return a big batch of dentry.
+
+These additional cond_resched() do not seem to impact performance, at
+least for the workload below.
+
+Here is a program which can cause soft lockup if other system activity
+sets need_resched().
+
+	int main()
+	{
+	        struct rlimit rlim;
+	        int i;
+	        int f[100000];
+	        char buf[20];
+	        struct timeval t1, t2;
+	        double diff;
+
+	        /* cleanup past run */
+	        system("rm -rf x");
+
+	        /* boost nfile rlimit */
+	        rlim.rlim_cur = 200000;
+	        rlim.rlim_max = 200000;
+	        if (setrlimit(RLIMIT_NOFILE, &rlim))
+	                err(1, "setrlimit");
+
+	        /* make directory for files */
+	        if (mkdir("x", 0700))
+	                err(1, "mkdir");
+
+	        if (gettimeofday(&t1, NULL))
+	                err(1, "gettimeofday");
+
+	        /* populate directory with open files */
+	        for (i = 0; i < 100000; i++) {
+	                snprintf(buf, sizeof(buf), "x/%d", i);
+	                f[i] = open(buf, O_CREAT);
+	                if (f[i] == -1)
+	                        err(1, "open");
+	        }
+
+	        /* close some of the files */
+	        for (i = 0; i < 85000; i++)
+	                close(f[i]);
+
+	        /* unlink all files, even open ones */
+	        system("rm -rf x");
+
+	        if (gettimeofday(&t2, NULL))
+	                err(1, "gettimeofday");
+
+	        diff = (((double)t2.tv_sec * 1000000 + t2.tv_usec) -
+	                ((double)t1.tv_sec * 1000000 + t1.tv_usec));
+
+	        printf("done: %g elapsed\n", diff/1e6);
+	        return 0;
+	}
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Signed-off-by: Dave Chinner <david@fromorbit.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dcache.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN ipc/shm.c~ipc-sysv-shared-memory-limited-to-8tib-fix ipc/shm.c
---- a/ipc/shm.c~ipc-sysv-shared-memory-limited-to-8tib-fix
-+++ a/ipc/shm.c
-@@ -462,7 +462,7 @@ static int newseg(struct ipc_namespace *
- 	size_t size = params->u.size;
- 	int error;
- 	struct shmid_kernel *shp;
--	int numpages = (size + PAGE_SIZE -1) >> PAGE_SHIFT;
-+	size_t numpages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	struct file * file;
- 	char name[13];
- 	int id;
+diff -puN fs/dcache.c~fs-dcachec-add-cond_resched-to-shrink_dcache_parent fs/dcache.c
+--- a/fs/dcache.c~fs-dcachec-add-cond_resched-to-shrink_dcache_parent
++++ a/fs/dcache.c
+@@ -1230,8 +1230,10 @@ void shrink_dcache_parent(struct dentry
+ 	LIST_HEAD(dispose);
+ 	int found;
+ 
+-	while ((found = select_parent(parent, &dispose)) != 0)
++	while ((found = select_parent(parent, &dispose)) != 0) {
+ 		shrink_dentry_list(&dispose);
++		cond_resched();
++	}
+ }
+ EXPORT_SYMBOL(shrink_dcache_parent);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gthelen@google.com are
 
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-mips-define-kvm_user_mem_slots.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch
 
