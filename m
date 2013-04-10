@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch added to -mm tree
-Date: Wed, 10 Apr 2013 16:45:06 -0700
-Message-ID: <20130410234506.A28BD5A42B8@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-madvise-complete-input-validation-before-taking-lock.patch added to -mm tree
+Date: Wed, 10 Apr 2013 16:49:33 -0700
+Message-ID: <20130410234933.80FB131C309@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:59975 "EHLO
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:58828 "EHLO
 	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934578Ab3DJXpI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 19:45:08 -0400
-Received: by mail-ie0-f202.google.com with SMTP id x12so171456ief.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 16:45:07 -0700 (PDT)
+	with ESMTP id S1761186Ab3DJXte (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 19:49:34 -0400
+Received: by mail-ie0-f202.google.com with SMTP id x12so172341ief.5
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 16:49:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gthelen@google.com, david@fromorbit.com, stable@kernel.org
+Cc: linux@rasmusvillemoes.dk
 
 
 The patch titled
-     Subject: fs/dcache.c: add cond_resched() to shrink_dcache_parent()
+     Subject: mm: madvise: complete input validation before taking lock
 has been added to the -mm tree.  Its filename is
-     fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch
+     mm-madvise-complete-input-validation-before-taking-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: fs/dcache.c: add cond_resched() to shrink_dcache_parent()
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm: madvise: complete input validation before taking lock
 
-Call cond_resched() in shrink_dcache_parent() to maintain interactivity.
+In madvise(), there doesn't seem to be any reason for taking the
+&current->mm->mmap_sem before start and len_in have been validated. 
+Incidentally, this removes the need for the out: label.
 
-Before this patch:
-
-void shrink_dcache_parent(struct dentry * parent)
-{
-	while ((found = select_parent(parent, &dispose)) != 0)
-		shrink_dentry_list(&dispose);
-}
-
-select_parent() populates the dispose list with dentries which
-shrink_dentry_list() then deletes.  select_parent() carefully uses
-need_resched() to avoid doing too much work at once.  But neither
-shrink_dcache_parent() nor its called functions call cond_resched().  So
-once need_resched() is set select_parent() will return single dentry
-dispose list which is then deleted by shrink_dentry_list().  This is
-inefficient when there are a lot of dentry to process.  This can cause
-softlockup and hurts interactivity on non preemptable kernels.
-
-This change adds cond_resched() in shrink_dcache_parent().  The benefit of
-this is that need_resched() is quickly cleared so that future calls to
-select_parent() are able to efficiently return a big batch of dentry.
-
-These additional cond_resched() do not seem to impact performance, at
-least for the workload below.
-
-Here is a program which can cause soft lockup if other system activity
-sets need_resched().
-
-	int main()
-	{
-	        struct rlimit rlim;
-	        int i;
-	        int f[100000];
-	        char buf[20];
-	        struct timeval t1, t2;
-	        double diff;
-
-	        /* cleanup past run */
-	        system("rm -rf x");
-
-	        /* boost nfile rlimit */
-	        rlim.rlim_cur = 200000;
-	        rlim.rlim_max = 200000;
-	        if (setrlimit(RLIMIT_NOFILE, &rlim))
-	                err(1, "setrlimit");
-
-	        /* make directory for files */
-	        if (mkdir("x", 0700))
-	                err(1, "mkdir");
-
-	        if (gettimeofday(&t1, NULL))
-	                err(1, "gettimeofday");
-
-	        /* populate directory with open files */
-	        for (i = 0; i < 100000; i++) {
-	                snprintf(buf, sizeof(buf), "x/%d", i);
-	                f[i] = open(buf, O_CREAT);
-	                if (f[i] == -1)
-	                        err(1, "open");
-	        }
-
-	        /* close some of the files */
-	        for (i = 0; i < 85000; i++)
-	                close(f[i]);
-
-	        /* unlink all files, even open ones */
-	        system("rm -rf x");
-
-	        if (gettimeofday(&t2, NULL))
-	                err(1, "gettimeofday");
-
-	        diff = (((double)t2.tv_sec * 1000000 + t2.tv_usec) -
-	                ((double)t1.tv_sec * 1000000 + t1.tv_usec));
-
-	        printf("done: %g elapsed\n", diff/1e6);
-	        return 0;
-	}
-
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Signed-off-by: Dave Chinner <david@fromorbit.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/madvise.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN fs/dcache.c~fs-dcachec-add-cond_resched-to-shrink_dcache_parent fs/dcache.c
---- a/fs/dcache.c~fs-dcachec-add-cond_resched-to-shrink_dcache_parent
-+++ a/fs/dcache.c
-@@ -1230,8 +1230,10 @@ void shrink_dcache_parent(struct dentry
- 	LIST_HEAD(dispose);
- 	int found;
+diff -puN mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock
++++ a/mm/madvise.c
+@@ -473,27 +473,27 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 	if (!madvise_behavior_valid(behavior))
+ 		return error;
  
--	while ((found = select_parent(parent, &dispose)) != 0)
-+	while ((found = select_parent(parent, &dispose)) != 0) {
- 		shrink_dentry_list(&dispose);
-+		cond_resched();
-+	}
- }
- EXPORT_SYMBOL(shrink_dcache_parent);
+-	write = madvise_need_mmap_write(behavior);
+-	if (write)
+-		down_write(&current->mm->mmap_sem);
+-	else
+-		down_read(&current->mm->mmap_sem);
+-
+ 	if (start & ~PAGE_MASK)
+-		goto out;
++		return error;
+ 	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
  
+ 	/* Check to see whether len was rounded up from small -ve to zero */
+ 	if (len_in && !len)
+-		goto out;
++		return error;
+ 
+ 	end = start + len;
+ 	if (end < start)
+-		goto out;
++		return error;
+ 
+ 	error = 0;
+ 	if (end == start)
+-		goto out;
++		return error;
++
++	write = madvise_need_mmap_write(behavior);
++	if (write)
++		down_write(&current->mm->mmap_sem);
++	else
++		down_read(&current->mm->mmap_sem);
+ 
+ 	/*
+ 	 * If the interval [start,end) covers some unmapped address
+@@ -541,7 +541,6 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 	}
+ out_plug:
+ 	blk_finish_plug(&plug);
+-out:
+ 	if (write)
+ 		up_write(&current->mm->mmap_sem);
+ 	else
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch
+mm-madvise-complete-input-validation-before-taking-lock.patch
 
