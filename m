@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-kcorec-use-register_hotmemory_notifier.patch added to -mm tree
-Date: Wed, 10 Apr 2013 15:34:33 -0700
-Message-ID: <20130410223433.CE8B95A404E@corp2gmr1-2.hot.corp.google.com>
+Subject: + kernel-cpusetc-use-register_hotmemory_notifier.patch added to -mm tree
+Date: Wed, 10 Apr 2013 15:39:19 -0700
+Message-ID: <20130410223919.D878A31C15F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:41586 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406Ab3DJWef (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:34:35 -0400
-Received: by mail-ie0-f202.google.com with SMTP id x12so158016ief.3
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:34:34 -0700 (PDT)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:43125 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406Ab3DJWjV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:39:21 -0400
+Received: by mail-ia0-f202.google.com with SMTP id h8so240186iaa.3
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:39:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, lizefan@huawei.com, tj@kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
+     Subject: kernel/cpuset.c: use register_hotmemory_notifier()
 has been added to the -mm tree.  Its filename is
-     fs-proc-kcorec-use-register_hotmemory_notifier.patch
+     kernel-cpusetc-use-register_hotmemory_notifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
+Subject: kernel/cpuset.c: use register_hotmemory_notifier()
 
-Saves an ifdef, no code size changes
+Use the new interface, remove one ifdef.  No code size changes.
 
+We could/should have been using __meminit/__meminitdata here but there's
+now no point in doing that because all this code is elided at compile time.
+
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/cpuset.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier fs/proc/kcore.c
---- a/fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier
-+++ a/fs/proc/kcore.c
-@@ -15,6 +15,7 @@
- #include <linux/capability.h>
- #include <linux/elf.h>
- #include <linux/elfcore.h>
-+#include <linux/notifier.h>
- #include <linux/vmalloc.h>
- #include <linux/highmem.h>
- #include <linux/printk.h>
-@@ -564,7 +565,6 @@ static const struct file_operations proc
- 	.llseek		= default_llseek,
- };
+diff -puN kernel/cpuset.c~kernel-cpusetc-use-register_hotmemory_notifier kernel/cpuset.c
+--- a/kernel/cpuset.c~kernel-cpusetc-use-register_hotmemory_notifier
++++ a/kernel/cpuset.c
+@@ -2201,7 +2201,6 @@ void cpuset_update_active_cpus(bool cpu_
+ 	schedule_work(&cpuset_hotplug_work);
+ }
  
 -#ifdef CONFIG_MEMORY_HOTPLUG
- /* just remember that we have to update kcore */
- static int __meminit kcore_callback(struct notifier_block *self,
- 				    unsigned long action, void *arg)
-@@ -578,8 +578,11 @@ static int __meminit kcore_callback(stru
- 	}
+ /*
+  * Keep top_cpuset.mems_allowed tracking node_states[N_MEMORY].
+  * Call this routine anytime after node_states[N_MEMORY] changes.
+@@ -2213,20 +2212,23 @@ static int cpuset_track_online_nodes(str
+ 	schedule_work(&cpuset_hotplug_work);
  	return NOTIFY_OK;
  }
 -#endif
- 
-+static struct notifier_block kcore_callback_nb __meminitdata = {
-+	.notifier_call = kcore_callback,
-+	.priority = 0,
++
++static struct notifier_block cpuset_track_online_nodes_nb = {
++	.notifier_call = cpuset_track_online_nodes,
++	.priority = 10,		/* ??! */
 +};
  
- static struct kcore_list kcore_vmalloc;
+ /**
+  * cpuset_init_smp - initialize cpus_allowed
+  *
+  * Description: Finish top cpuset after cpu, node maps are initialized
+- **/
+-
++ */
+ void __init cpuset_init_smp(void)
+ {
+ 	cpumask_copy(top_cpuset.cpus_allowed, cpu_active_mask);
+ 	top_cpuset.mems_allowed = node_states[N_MEMORY];
  
-@@ -631,7 +634,7 @@ static int __init proc_kcore_init(void)
- 	add_modules_range();
- 	/* Store direct-map area from physical memory map */
- 	kcore_update_ram();
--	hotplug_memory_notifier(kcore_callback, 0);
-+	register_hotmemory_notifier(&kcore_callback_nb);
+-	hotplug_memory_notifier(cpuset_track_online_nodes, 10);
++	register_hotmemory_notifier(&cpuset_track_online_nodes_nb);
  
- 	return 0;
- }
+ 	cpuset_propagate_hotplug_wq =
+ 		alloc_ordered_workqueue("cpuset_hotplug", 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +115,7 @@ ipc-utilc-use-register_hotmemory_notifier.patch
 mm-slubc-use-register_hotmemory_notifier.patch
 drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
 fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
