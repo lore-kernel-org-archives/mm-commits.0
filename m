@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + resource-add-release_mem_region_adjustable-fix-fix.patch added to -mm tree
-Date: Wed, 10 Apr 2013 15:24:47 -0700
-Message-ID: <20130410222447.E908431C022@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-base-nodec-switch-to-register_hotmemory_notifier.patch added to -mm tree
+Date: Wed, 10 Apr 2013 15:30:25 -0700
+Message-ID: <20130410223025.7D1B55A404E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:60107 "EHLO
-	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935132Ab3DJWYt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:24:49 -0400
-Received: by mail-ia0-f201.google.com with SMTP id k25so237689iah.2
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:24:49 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:47086 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756630Ab3DJWa0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:30:26 -0400
+Received: by mail-ie0-f202.google.com with SMTP id x12so157408ief.5
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:30:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jiang.liu@huawei.com, linuxram@us.ibm.com, rientjes@google.com, tangchen@cn.fujitsu.com, tmac@hp.com, toshi.kani@hp.com, wency@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     Subject: resource-add-release_mem_region_adjustable-fix-fix
+     Subject: drivers/base/node.c: switch to register_hotmemory_notifier()
 has been added to the -mm tree.  Its filename is
-     resource-add-release_mem_region_adjustable-fix-fix.patch
+     drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: resource-add-release_mem_region_adjustable-fix-fix
+Subject: drivers/base/node.c: switch to register_hotmemory_notifier()
 
-switch back to GFP_KERNEL, less buggily
+Squishes a warning which my change to hotplug_memory_notifier() added.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: T Makphaibulchoke <tmac@hp.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+I want to keep that warning, because it is punishment for failnig to check
+the hotplug_memory_notifier() return value.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ drivers/base/node.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/resource.c~resource-add-release_mem_region_adjustable-fix-fix kernel/resource.c
---- a/kernel/resource.c~resource-add-release_mem_region_adjustable-fix-fix
-+++ a/kernel/resource.c
-@@ -1046,7 +1046,8 @@ int release_mem_region_adjustable(struct
- 			resource_size_t start, resource_size_t size)
- {
- 	struct resource **p;
--	struct resource *res, *new;
-+	struct resource *res;
-+	struct resource *new_res;
- 	resource_size_t end;
- 	int ret = -EINVAL;
+diff -puN drivers/base/node.c~drivers-base-nodec-switch-to-register_hotmemory_notifier drivers/base/node.c
+--- a/drivers/base/node.c~drivers-base-nodec-switch-to-register_hotmemory_notifier
++++ a/drivers/base/node.c
+@@ -7,6 +7,7 @@
+ #include <linux/mm.h>
+ #include <linux/memory.h>
+ #include <linux/vmstat.h>
++#include <linux/notifier.h>
+ #include <linux/node.h>
+ #include <linux/hugetlb.h>
+ #include <linux/compaction.h>
+@@ -683,8 +684,11 @@ static int __init register_node_type(voi
  
-@@ -1054,6 +1055,9 @@ int release_mem_region_adjustable(struct
- 	if ((start < parent->start) || (end > parent->end))
- 		return ret;
- 
-+	/* The kzalloc() result gets checked later */
-+	new_res = kzalloc(sizeof(struct resource), GFP_KERNEL);
-+
- 	p = &parent->child;
- 	write_lock(&resource_lock);
- 
-@@ -1091,32 +1095,33 @@ int release_mem_region_adjustable(struct
- 						start - res->start);
- 		} else {
- 			/* split into two entries */
--			new = kzalloc(sizeof(struct resource), GFP_ATOMIC);
--			if (!new) {
-+			if (!new_res) {
- 				ret = -ENOMEM;
- 				break;
- 			}
--			new->name = res->name;
--			new->start = end + 1;
--			new->end = res->end;
--			new->flags = res->flags;
--			new->parent = res->parent;
--			new->sibling = res->sibling;
--			new->child = NULL;
-+			new_res->name = res->name;
-+			new_res->start = end + 1;
-+			new_res->end = res->end;
-+			new_res->flags = res->flags;
-+			new_res->parent = res->parent;
-+			new_res->sibling = res->sibling;
-+			new_res->child = NULL;
- 
- 			ret = __adjust_resource(res, res->start,
- 						start - res->start);
- 			if (ret) {
--				kfree(new);
-+				kfree(new_res);
- 				break;
- 			}
--			res->sibling = new;
-+			res->sibling = new_res;
-+			new_res = NULL;
- 		}
- 
- 		break;
+ 	ret = subsys_system_register(&node_subsys, cpu_root_attr_groups);
+ 	if (!ret) {
+-		hotplug_memory_notifier(node_memory_callback,
+-					NODE_CALLBACK_PRI);
++		static struct notifier_block node_memory_callback_nb = {
++			.notifier_call = node_memory_callback,
++			.priority = NODE_CALLBACK_PRI,
++		};
++		register_hotmemory_notifier(&node_memory_callback_nb);
  	}
  
- 	write_unlock(&resource_lock);
-+	kfree(new_res);
- 	return ret;
- }
- #endif	/* CONFIG_MEMORY_HOTPLUG */
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,7 +98,7 @@ mm-speedup-in-__early_pfn_to_nid-fix.patch
 include-linux-memoryh-implement-register_hotmemory_notifier.patch
 ipc-utilc-use-register_hotmemory_notifier.patch
 mm-slubc-use-register_hotmemory_notifier.patch
-a.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
