@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-utilc-use-register_hotmemory_notifier.patch added to -mm tree
-Date: Wed, 10 Apr 2013 13:44:05 -0700
-Message-ID: <20130410204405.764255A42BE@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-slubc-use-register_hotmemory_notifier.patch added to -mm tree
+Date: Wed, 10 Apr 2013 13:49:55 -0700
+Message-ID: <20130410204955.D586E31C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:57307 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932803Ab3DJUoH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 16:44:07 -0400
-Received: by mail-oa0-f74.google.com with SMTP id k14so212106oag.3
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 13:44:06 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:51908 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755531Ab3DJUt5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 16:49:57 -0400
+Received: by mail-ie0-f202.google.com with SMTP id x12so132535ief.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 13:49:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, penberg@kernel.org
 
 
 The patch titled
-     Subject: ipc/util.c: use register_hotmemory_notifier()
+     Subject: mm/slub.c: use register_hotmemory_notifier()
 has been added to the -mm tree.  Its filename is
-     ipc-utilc-use-register_hotmemory_notifier.patch
+     mm-slubc-use-register_hotmemory_notifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc/util.c: use register_hotmemory_notifier()
+Subject: mm/slub.c: use register_hotmemory_notifier()
 
 Squishes a statement-with-no-effect warning, removes some ifdefs and
-shrinks .text by one byte!
+shrinks .text by 2 bytes.
 
-
-
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/slub.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN ipc/util.c~ipc-utilc-use-register_hotmemory_notifier ipc/util.c
---- a/ipc/util.c~ipc-utilc-use-register_hotmemory_notifier
-+++ a/ipc/util.c
-@@ -23,6 +23,7 @@
- #include <linux/msg.h>
- #include <linux/vmalloc.h>
+diff -puN mm/slub.c~mm-slubc-use-register_hotmemory_notifier mm/slub.c
+--- a/mm/slub.c~mm-slubc-use-register_hotmemory_notifier
++++ a/mm/slub.c
+@@ -18,6 +18,7 @@
  #include <linux/slab.h>
+ #include "slab.h"
+ #include <linux/proc_fs.h>
 +#include <linux/notifier.h>
- #include <linux/capability.h>
- #include <linux/highuid.h>
- #include <linux/security.h>
-@@ -47,19 +48,16 @@ struct ipc_proc_iface {
- 	int (*show)(struct seq_file *, void *);
- };
- 
--#ifdef CONFIG_MEMORY_HOTPLUG
--
- static void ipc_memory_notifier(struct work_struct *work)
- {
- 	ipcns_notify(IPCNS_MEMCHANGED);
+ #include <linux/seq_file.h>
+ #include <linux/kmemcheck.h>
+ #include <linux/cpu.h>
+@@ -3425,7 +3426,6 @@ int kmem_cache_shrink(struct kmem_cache
  }
+ EXPORT_SYMBOL(kmem_cache_shrink);
  
--static DECLARE_WORK(ipc_memory_wq, ipc_memory_notifier);
--
--
- static int ipc_memory_callback(struct notifier_block *self,
- 				unsigned long action, void *arg)
+-#if defined(CONFIG_MEMORY_HOTPLUG)
+ static int slab_mem_going_offline_callback(void *arg)
  {
-+	static DECLARE_WORK(ipc_memory_wq, ipc_memory_notifier);
-+
- 	switch (action) {
- 	case MEM_ONLINE:    /* memory successfully brought online */
- 	case MEM_OFFLINE:   /* or offline: it's time to recompute msgmni */
-@@ -85,7 +83,10 @@ static int ipc_memory_callback(struct no
- 	return NOTIFY_OK;
+ 	struct kmem_cache *s;
+@@ -3540,7 +3540,10 @@ static int slab_memory_callback(struct n
+ 	return ret;
  }
  
 -#endif /* CONFIG_MEMORY_HOTPLUG */
-+static struct notifier_block ipc_memory_nb = {
-+	.notifier_call = ipc_memory_callback,
-+	.priority = IPC_CALLBACK_PRI,
++static struct notifier_block slab_memory_callback_nb = {
++	.notifier_call = slab_memory_callback,
++	.priority = SLAB_CALLBACK_PRI,
 +};
  
- /**
-  *	ipc_init	-	initialise IPC subsystem
-@@ -102,7 +103,7 @@ static int __init ipc_init(void)
- 	sem_init();
- 	msg_init();
- 	shm_init();
--	hotplug_memory_notifier(ipc_memory_callback, IPC_CALLBACK_PRI);
-+	register_hotmemory_notifier(&ipc_memory_nb);
- 	register_ipcns_notifier(&init_ipc_ns);
- 	return 0;
- }
+ /********************************************************************
+  *			Basic setup of slabs
+@@ -3597,7 +3600,7 @@ void __init kmem_cache_init(void)
+ 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
+ 		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN);
+ 
+-	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
++	register_hotmemory_notifier(&slab_memory_callback_nb);
+ 
+ 	/* Able to allocate the per node structures */
+ 	slab_state = PARTIAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,6 +110,7 @@ mm-speedup-in-__early_pfn_to_nid.patch
 mm-speedup-in-__early_pfn_to_nid-fix.patch
 include-linux-memoryh-implement-register_hotmemory_notifier.patch
 ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
