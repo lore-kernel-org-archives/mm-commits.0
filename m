@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-nodec-switch-to-register_hotmemory_notifier.patch added to -mm tree
-Date: Wed, 10 Apr 2013 15:30:25 -0700
-Message-ID: <20130410223025.7D1B55A404E@corp2gmr1-2.hot.corp.google.com>
+Subject: + fs-proc-kcorec-use-register_hotmemory_notifier.patch added to -mm tree
+Date: Wed, 10 Apr 2013 15:34:33 -0700
+Message-ID: <20130410223433.CE8B95A404E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:47086 "EHLO
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:41586 "EHLO
 	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756630Ab3DJWa0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:30:26 -0400
-Received: by mail-ie0-f202.google.com with SMTP id x12so157408ief.5
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:30:26 -0700 (PDT)
+	with ESMTP id S1751406Ab3DJWef (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 18:34:35 -0400
+Received: by mail-ie0-f202.google.com with SMTP id x12so158016ief.3
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 15:34:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: drivers/base/node.c: switch to register_hotmemory_notifier()
+     Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
 has been added to the -mm tree.  Its filename is
-     drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+     fs-proc-kcorec-use-register_hotmemory_notifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/base/node.c: switch to register_hotmemory_notifier()
+Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
 
-Squishes a warning which my change to hotplug_memory_notifier() added.
+Saves an ifdef, no code size changes
 
-I want to keep that warning, because it is punishment for failnig to check
-the hotplug_memory_notifier() return value.
-
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/proc/kcore.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/node.c~drivers-base-nodec-switch-to-register_hotmemory_notifier drivers/base/node.c
---- a/drivers/base/node.c~drivers-base-nodec-switch-to-register_hotmemory_notifier
-+++ a/drivers/base/node.c
-@@ -7,6 +7,7 @@
- #include <linux/mm.h>
- #include <linux/memory.h>
- #include <linux/vmstat.h>
+diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier
++++ a/fs/proc/kcore.c
+@@ -15,6 +15,7 @@
+ #include <linux/capability.h>
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
 +#include <linux/notifier.h>
- #include <linux/node.h>
- #include <linux/hugetlb.h>
- #include <linux/compaction.h>
-@@ -683,8 +684,11 @@ static int __init register_node_type(voi
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
+ #include <linux/printk.h>
+@@ -564,7 +565,6 @@ static const struct file_operations proc
+ 	.llseek		= default_llseek,
+ };
  
- 	ret = subsys_system_register(&node_subsys, cpu_root_attr_groups);
- 	if (!ret) {
--		hotplug_memory_notifier(node_memory_callback,
--					NODE_CALLBACK_PRI);
-+		static struct notifier_block node_memory_callback_nb = {
-+			.notifier_call = node_memory_callback,
-+			.priority = NODE_CALLBACK_PRI,
-+		};
-+		register_hotmemory_notifier(&node_memory_callback_nb);
+-#ifdef CONFIG_MEMORY_HOTPLUG
+ /* just remember that we have to update kcore */
+ static int __meminit kcore_callback(struct notifier_block *self,
+ 				    unsigned long action, void *arg)
+@@ -578,8 +578,11 @@ static int __meminit kcore_callback(stru
  	}
+ 	return NOTIFY_OK;
+ }
+-#endif
  
- 	/*
++static struct notifier_block kcore_callback_nb __meminitdata = {
++	.notifier_call = kcore_callback,
++	.priority = 0,
++};
+ 
+ static struct kcore_list kcore_vmalloc;
+ 
+@@ -631,7 +634,7 @@ static int __init proc_kcore_init(void)
+ 	add_modules_range();
+ 	/* Store direct-map area from physical memory map */
+ 	kcore_update_ram();
+-	hotplug_memory_notifier(kcore_callback, 0);
++	register_hotmemory_notifier(&kcore_callback_nb);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +111,7 @@ include-linux-memoryh-implement-register_hotmemory_notifier.patch
 ipc-utilc-use-register_hotmemory_notifier.patch
 mm-slubc-use-register_hotmemory_notifier.patch
 drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
