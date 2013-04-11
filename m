@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arc-print-fatal-signals-reduce-duplicated-information.patch added to -mm tree
-Date: Thu, 11 Apr 2013 13:07:51 -0700
-Message-ID: <20130411200752.0361C5A42F3@corp2gmr1-2.hot.corp.google.com>
+Subject: + early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix.patch added to -mm tree
+Date: Thu, 11 Apr 2013 13:22:01 -0700
+Message-ID: <20130411202201.7D77A5A41FA@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:40979 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633Ab3DKUHx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 16:07:53 -0400
-Received: by mail-yh0-f73.google.com with SMTP id 47so179790yhr.4
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 13:07:53 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:37567 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753077Ab3DKUWD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 16:22:03 -0400
+Received: by mail-vc0-f202.google.com with SMTP id m16so181455vca.1
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 13:22:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vgupta@synopsys.com, bhelgaas@google.com, davem@davemloft.net, fengguang.wu@intel.com, heiko.carstens@de.ibm.com, jesper.nilsson@axis.com, sam@ravnborg.org, schwidefsky@de.ibm.com, tj@kernel.org, vapier@gentoo.org
+Cc: paul.gortmaker@windriver.com, geert@linux-m68k.org, lethal@linux-sh.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: arc, print-fatal-signals: reduce duplicated information
+     Subject: sh4: make the bios early console support depend on EARLY_PRINTK
 has been added to the -mm tree.  Its filename is
-     arc-print-fatal-signals-reduce-duplicated-information.patch
+     early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vineet Gupta <vgupta@synopsys.com>
-Subject: arc, print-fatal-signals: reduce duplicated information
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: sh4: make the bios early console support depend on EARLY_PRINTK
 
-After the recent generic debug info on dump_stack() and friends, arc
-is printing duplicate information on debug dumps.
+The commit "early_printk: consolidate random copies of identical code"
+introduces a build failure for the lboxre2_defconfig because arch/sh
+unconditionally assumes that there will be an early_console struct
+present that it can populate with bios routines to drive the
+early printk support.
 
- [ARCLinux]$ ./crash
- crash/50: potentially unexpected fatal signal 11.	<-- [1]
- /sbin/crash, TGID 50					<-- [2]
- Pid: 50, comm: crash Not tainted 3.9.0-rc4+ #132 	<-- [3]
- ...
+Making this whole block conditional on EARLY_PRINTK solves the
+problem and gets rid of unused runtime code for when the feature
+is disabled at the same time.
 
-Remove them.
-
-[tj@kernel.org: updated patch desc]
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/troubleshoot.c |    2 +-
- kernel/signal.c                |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ arch/sh/kernel/sh_bios.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/arc/kernel/troubleshoot.c~arc-print-fatal-signals-reduce-duplicated-information arch/arc/kernel/troubleshoot.c
---- a/arch/arc/kernel/troubleshoot.c~arc-print-fatal-signals-reduce-duplicated-information
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -75,7 +75,7 @@ void print_task_path_n_nm(struct task_st
- 	}
- 
- done:
--	pr_info("%s, TGID %u\n", path_nm, tsk->tgid);
-+	pr_info("Path: %s\n", path_nm);
+diff -puN arch/sh/kernel/sh_bios.c~early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix arch/sh/kernel/sh_bios.c
+--- a/arch/sh/kernel/sh_bios.c~early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix
++++ a/arch/sh/kernel/sh_bios.c
+@@ -104,6 +104,7 @@ void sh_bios_vbr_reload(void)
+ 		);
  }
- EXPORT_SYMBOL(print_task_path_n_nm);
  
-diff -puN kernel/signal.c~arc-print-fatal-signals-reduce-duplicated-information kernel/signal.c
---- a/kernel/signal.c~arc-print-fatal-signals-reduce-duplicated-information
-+++ a/kernel/signal.c
-@@ -1161,8 +1161,7 @@ static int send_signal(int sig, struct s
- static void print_fatal_signal(int signr)
- {
- 	struct pt_regs *regs = signal_pt_regs();
--	printk(KERN_INFO "%s/%d: potentially unexpected fatal signal %d.\n",
--		current->comm, task_pid_nr(current), signr);
-+	printk(KERN_INFO "potentially unexpected fatal signal %d.\n", signr);
- 
- #if defined(__i386__) && !defined(__arch_um__)
- 	printk(KERN_INFO "code at %08lx: ", regs->ip);
++#ifdef CONFIG_EARLY_PRINTK
+ /*
+  *	Print a string through the BIOS
+  */
+@@ -168,3 +169,4 @@ static int __init setup_early_printk(cha
+ 	return 0;
+ }
+ early_param("earlyprintk", setup_early_printk);
++#endif
 _
 
-Patches currently in -mm which might be from vgupta@synopsys.com are
+Patches currently in -mm which might be from paul.gortmaker@windriver.com are
 
-origin.patch
 linux-next.patch
-memblock-add-assertion-for-zero-allocation-alignment.patch
-mm-introduce-common-help-functions-to-deal-with-reserved-managed-pages.patch
-mm-arc-use-common-help-functions-to-free-reserved-pages.patch
-x86-dont-show-trace-beyond-show_stacknull-null.patch
-sparc32-make-show_stack-acquire-%fp-if-_ksp-is-not-specified.patch
-dump_stack-consolidate-dump_stack-implementations-and-unify-their-behaviors.patch
-dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer.patch
-dump_stack-implement-arch-specific-hardware-description-in-task-dumps.patch
-dump_stack-unify-debug-information-printed-by-show_regs.patch
-arc-print-fatal-signals-reduce-duplicated-information.patch
+debug_locksh-make-warning-more-verbose.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver.patch
+media-coda-use-genalloc-api.patch
+early_printk-consolidate-random-copies-of-identical-code.patch
+early_printk-consolidate-random-copies-of-identical-code-v3.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix.patch
 
