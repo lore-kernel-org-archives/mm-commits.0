@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1286-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:18 -0700
-Message-ID: <20130411234818.C5B875A41BD@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-ds2404-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:22 -0700
+Message-ID: <20130411234822.C3C9531C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:38610 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001Ab3DKXsT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:19 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m2so199093yen.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:19 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:55012 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001Ab3DKXsX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:23 -0400
+Received: by mail-ve0-f202.google.com with SMTP id m1so199098ves.1
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ds1286: use devm_*() functions
+     Subject: rtc: rtc-ds2404: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1286-use-devm_-functions.patch
+     rtc-rtc-ds2404-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1286: use devm_*() functions
+Subject: rtc: rtc-ds2404: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,87 +42,53 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1286.c |   46 +++++++------------------------------
- 1 file changed, 9 insertions(+), 37 deletions(-)
+ drivers/rtc/rtc-ds2404.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1286.c~rtc-rtc-ds1286-use-devm_-functions drivers/rtc/rtc-ds1286.c
---- a/drivers/rtc/rtc-ds1286.c~rtc-rtc-ds1286-use-devm_-functions
-+++ a/drivers/rtc/rtc-ds1286.c
-@@ -25,8 +25,6 @@
- struct ds1286_priv {
- 	struct rtc_device *rtc;
- 	u32 __iomem *rtcregs;
--	size_t size;
--	unsigned long baseaddr;
- 	spinlock_t lock;
- };
+diff -puN drivers/rtc/rtc-ds2404.c~rtc-rtc-ds2404-use-devm_-functions drivers/rtc/rtc-ds2404.c
+--- a/drivers/rtc/rtc-ds2404.c~rtc-rtc-ds2404-use-devm_-functions
++++ a/drivers/rtc/rtc-ds2404.c
+@@ -228,7 +228,7 @@ static int rtc_probe(struct platform_dev
+ 	struct ds2404 *chip;
+ 	int retval = -EBUSY;
  
-@@ -333,56 +331,30 @@ static int ds1286_probe(struct platform_
- 	struct rtc_device *rtc;
- 	struct resource *res;
- 	struct ds1286_priv *priv;
--	int ret = 0;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENODEV;
--	priv = kzalloc(sizeof(struct ds1286_priv), GFP_KERNEL);
-+	priv = devm_kzalloc(&pdev->dev, sizeof(struct ds1286_priv), GFP_KERNEL);
- 	if (!priv)
+-	chip = kzalloc(sizeof(struct ds2404), GFP_KERNEL);
++	chip = devm_kzalloc(&pdev->dev, sizeof(struct ds2404), GFP_KERNEL);
+ 	if (!chip)
  		return -ENOMEM;
  
--	priv->size = resource_size(res);
--	if (!request_mem_region(res->start, priv->size, pdev->name)) {
--		ret = -EBUSY;
--		goto out;
--	}
--	priv->baseaddr = res->start;
--	priv->rtcregs = ioremap(priv->baseaddr, priv->size);
--	if (!priv->rtcregs) {
--		ret = -ENOMEM;
--		goto out;
--	}
-+	priv->rtcregs = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(priv->rtcregs))
-+		return PTR_ERR(priv->rtcregs);
-+
- 	spin_lock_init(&priv->lock);
- 	platform_set_drvdata(pdev, priv);
--	rtc = rtc_device_register("ds1286", &pdev->dev,
--				  &ds1286_ops, THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		ret = PTR_ERR(rtc);
--		goto out;
--	}
-+	rtc = devm_rtc_device_register(&pdev->dev, "ds1286", &ds1286_ops,
-+					THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 	priv->rtc = rtc;
- 	return 0;
--
--out:
--	if (priv->rtc)
--		rtc_device_unregister(priv->rtc);
--	if (priv->rtcregs)
--		iounmap(priv->rtcregs);
--	if (priv->baseaddr)
--		release_mem_region(priv->baseaddr, priv->size);
--	kfree(priv);
--	return ret;
+@@ -244,8 +244,8 @@ static int rtc_probe(struct platform_dev
+ 
+ 	platform_set_drvdata(pdev, chip);
+ 
+-	chip->rtc = rtc_device_register("ds2404",
+-				&pdev->dev, &ds2404_rtc_ops, THIS_MODULE);
++	chip->rtc = devm_rtc_device_register(&pdev->dev, "ds2404",
++					&ds2404_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(chip->rtc)) {
+ 		retval = PTR_ERR(chip->rtc);
+ 		goto err_io;
+@@ -257,20 +257,14 @@ static int rtc_probe(struct platform_dev
+ err_io:
+ 	chip->ops->unmap_io(chip);
+ err_chip:
+-	kfree(chip);
+ 	return retval;
  }
  
- static int ds1286_remove(struct platform_device *pdev)
+ static int rtc_remove(struct platform_device *dev)
  {
--	struct ds1286_priv *priv = platform_get_drvdata(pdev);
+ 	struct ds2404 *chip = platform_get_drvdata(dev);
+-	struct rtc_device *rtc = chip->rtc;
 -
--	rtc_device_unregister(priv->rtc);
--	iounmap(priv->rtcregs);
--	release_mem_region(priv->baseaddr, priv->size);
--	kfree(priv);
+-	if (rtc)
+-		rtc_device_unregister(rtc);
+ 
+ 	chip->ops->unmap_io(chip);
+-	kfree(chip);
+ 
  	return 0;
  }
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
