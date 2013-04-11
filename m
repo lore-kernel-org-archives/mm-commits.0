@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allow-for-outstanding-swap-writeback-accounting.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:11:39 -0700
-Message-ID: <20130411231139.E080931C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:17:12 -0700
+Message-ID: <20130411231712.7CDAA5A41FA__10089.9612451487$1365722250$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:50444 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765536Ab3DKXLl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:11:41 -0400
-Received: by mail-gg0-f201.google.com with SMTP id q6so197220ggc.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:11:40 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:48664 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934422Ab3DKXRO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:17:14 -0400
+Received: by mail-vc0-f202.google.com with SMTP id m16so197308vca.3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:17:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sjenning@linux.vnet.ibm.com, bob.liu@oracle.com, dan.magenheimer@oracle.com, konrad.wilk@oracle.com, minchan@kernel.org
+Cc: jwboyer@redhat.com, eparis@redhat.com, keescook@chromium.org, lists@nerdbynature.de, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: allow for outstanding swap writeback accounting
+     Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
 has been added to the -mm tree.  Its filename is
-     mm-allow-for-outstanding-swap-writeback-accounting.patch
+     kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,158 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Subject: mm: allow for outstanding swap writeback accounting
+From: Josh Boyer <jwboyer@redhat.com>
+Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
 
-To prevent flooding the swap device with writebacks, frontswap backends
-need to count and limit the number of outstanding writebacks.  The
-incrementing of the counter can be done before the call to
-__swap_writepage().  However, the caller must receive a notification when
-the writeback completes in order to decrement the counter.
+The dmesg_restrict sysctl currently covers the syslog method for access
+dmesg, however /dev/kmsg isn't covered by the same protections.  Most
+people haven't noticed because util-linux dmesg(1) defaults to using the
+syslog method for access in older versions.  With util-linux dmesg(1)
+defaults to reading directly from /dev/kmsg.
 
-To achieve this functionality, this patch modifies __swap_writepage() to
-take the bio completion callback function as an argument.
+Fix this by reworking all of the access methods to use the
+check_syslog_permissions function and adding checks to devkmsg_open and
+devkmsg_read.
 
-end_swap_bio_write(), the normal bio completion function, is also made
-non-static so that code doing the accounting can call it after the
-accounting is done.
+Addresses https://bugzilla.redhat.com/show_bug.cgi?id=903192
 
-There should be no behavioural change to existing code.
-
-Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Signed-off-by: Bob Liu <bob.liu@oracle.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Reported-by: Christian Kujau <lists@nerdbynature.de>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 +++-
- mm/page_io.c         |    9 +++++----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ kernel/printk.c |   91 +++++++++++++++++++++++-----------------------
+ 1 file changed, 47 insertions(+), 44 deletions(-)
 
-diff -puN include/linux/swap.h~mm-allow-for-outstanding-swap-writeback-accounting include/linux/swap.h
---- a/include/linux/swap.h~mm-allow-for-outstanding-swap-writeback-accounting
-+++ a/include/linux/swap.h
-@@ -330,7 +330,9 @@ static inline void mem_cgroup_uncharge_s
- /* linux/mm/page_io.c */
- extern int swap_readpage(struct page *);
- extern int swap_writepage(struct page *page, struct writeback_control *wbc);
--extern int __swap_writepage(struct page *page, struct writeback_control *wbc);
-+extern void end_swap_bio_write(struct bio *bio, int err);
-+extern int __swap_writepage(struct page *page, struct writeback_control *wbc,
-+	void (*end_write_func)(struct bio *, int));
- extern int swap_set_page_dirty(struct page *page);
- extern void end_swap_bio_read(struct bio *bio, int err);
- 
-diff -puN mm/page_io.c~mm-allow-for-outstanding-swap-writeback-accounting mm/page_io.c
---- a/mm/page_io.c~mm-allow-for-outstanding-swap-writeback-accounting
-+++ a/mm/page_io.c
-@@ -41,7 +41,7 @@ static struct bio *get_swap_bio(gfp_t gf
- 	return bio;
+diff -puN kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg kernel/printk.c
+--- a/kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
++++ a/kernel/printk.c
+@@ -362,6 +362,46 @@ static void log_store(int facility, int
+ 	log_next_seq++;
  }
  
--static void end_swap_bio_write(struct bio *bio, int err)
-+void end_swap_bio_write(struct bio *bio, int err)
- {
- 	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
- 	struct page *page = bio->bi_io_vec[0].bv_page;
-@@ -196,12 +196,13 @@ int swap_writepage(struct page *page, st
- 		end_page_writeback(page);
- 		goto out;
- 	}
--	ret = __swap_writepage(page, wbc);
-+	ret = __swap_writepage(page, wbc, end_swap_bio_write);
- out:
- 	return ret;
- }
++#ifdef CONFIG_SECURITY_DMESG_RESTRICT
++int dmesg_restrict = 1;
++#else
++int dmesg_restrict;
++#endif
++
++static int syslog_action_restricted(int type)
++{
++	if (dmesg_restrict)
++		return 1;
++	/* Unless restricted, we allow "read all" and "get buffer size" for everybody */
++	return type != SYSLOG_ACTION_READ_ALL && type != SYSLOG_ACTION_SIZE_BUFFER;
++}
++
++static int check_syslog_permissions(int type, bool from_file)
++{
++	/*
++	 * If this is from /proc/kmsg and we've already opened it, then we've
++	 * already done the capabilities checks at open time.
++	 */
++	if (from_file && type != SYSLOG_ACTION_OPEN)
++		goto ok;
++
++	if (syslog_action_restricted(type)) {
++		if (capable(CAP_SYSLOG))
++			goto ok;
++		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
++		if (capable(CAP_SYS_ADMIN)) {
++			printk_once(KERN_WARNING "%s (%d): "
++				 "Attempt to access syslog with CAP_SYS_ADMIN "
++				 "but no CAP_SYSLOG (deprecated).\n",
++				 current->comm, task_pid_nr(current));
++			goto ok;
++		}
++		return -EPERM;
++	}
++ok:
++	return security_syslog(type);
++}
++
+ /* /dev/kmsg - userspace message inject/listen interface */
+ struct devkmsg_user {
+ 	u64 seq;
+@@ -437,10 +477,16 @@ static ssize_t devkmsg_read(struct file
+ 	char cont = '-';
+ 	size_t len;
+ 	ssize_t ret;
++	int err;
  
--int __swap_writepage(struct page *page, struct writeback_control *wbc)
-+int __swap_writepage(struct page *page, struct writeback_control *wbc,
-+	void (*end_write_func)(struct bio *, int))
- {
- 	struct bio *bio;
- 	int ret = 0, rw = WRITE;
-@@ -233,7 +234,7 @@ int __swap_writepage(struct page *page,
+ 	if (!user)
+ 		return -EBADF;
+ 
++	err = check_syslog_permissions(SYSLOG_ACTION_READ_ALL,
++		SYSLOG_FROM_FILE);
++	if (err)
++		return err;
++
+ 	ret = mutex_lock_interruptible(&user->lock);
+ 	if (ret)
  		return ret;
- 	}
+@@ -619,7 +665,7 @@ static int devkmsg_open(struct inode *in
+ 	if ((file->f_flags & O_ACCMODE) == O_WRONLY)
+ 		return 0;
  
--	bio = get_swap_bio(GFP_NOIO, page, end_swap_bio_write);
-+	bio = get_swap_bio(GFP_NOIO, page, end_write_func);
- 	if (bio == NULL) {
- 		set_page_dirty(page);
- 		unlock_page(page);
-_
-
-Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
-
-mm-break-up-swap_writepage-for-frontswap-backends.patch
-mm-allow-for-outstanding-swap-writeback-accounting.patch
-
+-	err = security_syslog(SYSLOG_ACTION_READ_ALL);
++	err = check_syslog_permissions(SYSLOG_ACTION_OPEN, SYSLOG_FROM_FILE);
+ 	if (err)
+ 		return err;
+ 
+@@ -812,45 +858,6 @@ static inline void boot_delay_msec(int l
+ }
+ #endif
+ 
+-#ifdef CONFIG_SECURITY_DMESG_RESTRICT
+-int dmesg_restrict = 1;
+-#else
+-int dmesg_restrict;
+-#endif
+-
+-static int syslog_action_restricted(int type)
+-{
+-	if (dmesg_restrict)
+-		return 1;
+-	/* Unless restricted, we allow "read all" and "get buffer size" for everybody */
+-	return type != SYSLOG_ACTION_READ_ALL && type != SYSLOG_ACTION_SIZE_BUFFER;
+-}
+-
+-static int check_syslog_permissions(int type, bool from_file)
+-{
+-	/*
+-	 * If this is from /proc/kmsg and we've already opened it, then we've
+-	 * already done the capabilities checks at open time.
+-	 */
+-	if (from_file && type != SYSLOG_ACTION_OPEN)
+-		return 0;
+-
+-	if (syslog_action_restricted(type)) {
+-		if (capable(CAP_SYSLOG))
+-			return 0;
+-		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
+-		if (capable(CAP_SYS_ADMIN)) {
+-			printk_once(KERN_WARNING "%s (%d): "
+-				 "Attempt to access syslog with CAP_SYS_ADMIN "
+-				 "but no CAP_SYSLOG (deprecated).\n",
+-				 current->comm, task_pid_nr(current));
+-			return 0;
+-		}
+-		return -EPERM;
+-	}
+-	return 0;
+-}
+-
+ #if defined(CONFIG_PRINTK_TIME)
+ static bool printk_time = 1;
+ #else
+@@ -1126,10 +1133,6 @@ int do_syslog(int type, char __user *buf
+ 	if (error)
+ 		goto out;
+ 
+-	error = security_syslog(type);
+-	if (error)
+-		return error;
