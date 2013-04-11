@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch removed from -mm tree
-Date: Thu, 11 Apr 2013 13:46:00 -0700
-Message-ID: <20130411204600.E42415A41FA@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix.patch removed from -mm tree
+Date: Thu, 11 Apr 2013 13:47:19 -0700
+Message-ID: <20130411204719.9B89031C27F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:41277 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018Ab3DKUqC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 16:46:02 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so183646ghb.5
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 13:46:01 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:42712 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751501Ab3DKUrU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 16:47:20 -0400
+Received: by mail-yh0-f73.google.com with SMTP id 47so183809yhr.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 13:47:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, agshew@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
+     Subject: mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix
 has been removed from the -mm tree.  Its filename was
-     mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
+     mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix.patch
 
-This patch was dropped because it was folded into mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+This patch was dropped because it was folded into mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
+Subject: mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix
 
-make init_user_reserve() static
+make init_admin_reserve() static
 
 Cc: <linux-mm@kvack.org>
 Cc: Andrew Shewmaker <agshew@gmail.com>
@@ -37,27 +37,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/nommu.c |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix mm/mmap.c
---- a/mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
+diff -puN mm/mmap.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix mm/mmap.c
+--- a/mm/mmap.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix
 +++ a/mm/mmap.c
-@@ -3109,7 +3109,7 @@ void __init mmap_init(void)
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
+@@ -3131,7 +3131,7 @@ module_init(init_user_reserve)
+  * with sshd, bash, and top in OVERCOMMIT_GUESS. Smaller systems will
+  * only reserve 3% of free pages by default.
   */
--int __meminit init_user_reserve(void)
-+static int __meminit init_user_reserve(void)
+-int __meminit init_admin_reserve(void)
++static int __meminit init_admin_reserve(void)
  {
  	unsigned long free_kbytes;
  
-diff -puN mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix mm/nommu.c
---- a/mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix
+diff -puN mm/nommu.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix mm/nommu.c
+--- a/mm/nommu.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix
 +++ a/mm/nommu.c
-@@ -2126,7 +2126,7 @@ int nommu_shrink_inode_mappings(struct i
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
+@@ -2148,7 +2148,7 @@ module_init(init_user_reserve)
+  * with sshd, bash, and top in OVERCOMMIT_GUESS. Smaller systems will
+  * only reserve 3% of free pages by default.
   */
--int __meminit init_user_reserve(void)
-+static int __meminit init_user_reserve(void)
+-int __meminit init_admin_reserve(void)
++static int __meminit init_admin_reserve(void)
  {
  	unsigned long free_kbytes;
  
@@ -91,7 +91,6 @@ fs-proc-kcorec-use-register_hotmemory_notifier.patch
 kernel-cpusetc-use-register_hotmemory_notifier.patch
 mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch
 resource-add-release_mem_region_adjustable-fix.patch
