@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer.patch added to -mm tree
-Date: Thu, 11 Apr 2013 13:07:41 -0700
-Message-ID: <20130411200741.EE2BE31C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + dump_stack-implement-arch-specific-hardware-description-in-task-dumps.patch added to -mm tree
+Date: Thu, 11 Apr 2013 13:07:44 -0700
+Message-ID: <20130411200745.2F17731C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:40886 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753650Ab3DKUHo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 16:07:44 -0400
-Received: by mail-yh0-f74.google.com with SMTP id q10so179873yhf.3
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 13:07:42 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:50457 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633Ab3DKUHr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 16:07:47 -0400
+Received: by mail-qe0-f74.google.com with SMTP id b10so179531qen.3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 13:07:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: tj@kernel.org, bhelgaas@google.com, davem@davemloft.net, fengguang.wu@intel.
 
 
 The patch titled
-     Subject: dmi: morph dmi_dump_ids() into dmi_format_ids() which formats into a buffer
+     Subject: dump_stack: implement arch-specific hardware description in task dumps
 has been added to the -mm tree.  Its filename is
-     dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer.patch
+     dump_stack-implement-arch-specific-hardware-description-in-task-dumps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dmi: morph dmi_dump_ids() into dmi_format_ids() which formats into a buffer
+Subject: dump_stack: implement arch-specific hardware description in task dumps
 
-We're gonna use DMI identification for other purposes too.  Morph
-dmi_dump_ids() which is used to print DMI identification as a debug
-message during boot into dmi_format_ids() which formats the same
-information sans the leading "DMI:" tag into a string buffer.
+x86 and ia64 can acquire extra hardware identification information
+from DMI and print it along with task dumps; however, the usage isn't
+consistent.
 
-dmi_present() is updated to format the information into dmi_ids_string[]
-using the new function and print it with "DMI:" prefix.  dmi_ids_string[]
-will be used for another purpose by a future patch.
+* x86 show_regs() collects vendor, product and board strings and print
+  them out with PID, comm and utsname.  Some of the information is
+  printed again later in the same dump.
+
+* warn_slowpath_common() explicitly accesses the DMI board and prints
+  it out with "Hardware name:" label.  This applies to both x86 and
+  ia64 but is irrelevant on all other archs.
+
+* ia64 doesn't show DMI information on other non-WARN dumps.
+
+This patch introduces arch-specific hardware description used by
+dump_stack().  It can be set by calling dump_stack_set_arch_desc()
+during boot and, if exists, printed out in a separate line with
+"Hardware name:" label.
+
+dmi_set_dump_stack_arch_desc() is added which sets arch-specific
+description from DMI data.  It uses dmi_ids_string[] which is set from
+dmi_present() used for DMI debug message.  It is superset of the
+information x86 show_regs() is using.  The function is called from x86
+and ia64 boot code right after dmi_scan_machine().
+
+This makes the explicit DMI handling in warn_slowpath_common()
+unnecessary.  Removed.
+
+show_regs() isn't yet converted to use generic debug information
+printing and this patch doesn't remove the duplicate DMI handling in
+x86 show_regs().  The next patch will unify show_regs() handling and
+remove the duplication.
+
+An example WARN dump follows.
+
+ WARNING: at /work/os/work/kernel/workqueue.c:4841 init_workqueues+0x35/0x505()
+ Modules linked in:
+ CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.9.0-rc1-work+ #3
+ Hardware name: empty empty/S3992, BIOS 080011  10/26/2007
+  0000000000000009 ffff88007c861e08 ffffffff81c614dc ffff88007c861e48
+  ffffffff8108f500 ffffffff82228240 0000000000000040 ffffffff8234a08e
+  0000000000000000 0000000000000000 0000000000000000 ffff88007c861e58
+ Call Trace:
+  [<ffffffff81c614dc>] dump_stack+0x19/0x1b
+  [<ffffffff8108f500>] warn_slowpath_common+0x70/0xa0
+  [<ffffffff8108f54a>] warn_slowpath_null+0x1a/0x20
+  [<ffffffff8234a0c3>] init_workqueues+0x35/0x505
+  ...
+
+v2: Use the same string as the debug message from dmi_present() which
+    also contains BIOS information.  Move hardware name into its own
+    line as warn_slowpath_common() did.  This change was suggested by
+    Bjorn Helgaas.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
@@ -58,93 +103,169 @@ Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |   44 ++++++++++++++++++++--------------
- 1 file changed, 27 insertions(+), 17 deletions(-)
+ arch/ia64/kernel/setup.c    |    1 +
+ arch/x86/kernel/setup.c     |    1 +
+ drivers/firmware/dmi_scan.c |   13 +++++++++++++
+ include/linux/dmi.h         |    2 ++
+ include/linux/printk.h      |    5 +++++
+ kernel/panic.c              |    6 ------
+ kernel/printk.c             |   26 ++++++++++++++++++++++++++
+ 7 files changed, 48 insertions(+), 6 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer
+diff -puN arch/ia64/kernel/setup.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps
++++ a/arch/ia64/kernel/setup.c
+@@ -1063,6 +1063,7 @@ check_bugs (void)
+ static int __init run_dmi_scan(void)
+ {
+ 	dmi_scan_machine();
++	dmi_set_dump_stack_arch_desc();
+ 	return 0;
+ }
+ core_initcall(run_dmi_scan);
+diff -puN arch/x86/kernel/setup.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps
++++ a/arch/x86/kernel/setup.c
+@@ -970,6 +970,7 @@ void __init setup_arch(char **cmdline_p)
+ 		efi_init();
+ 
+ 	dmi_scan_machine();
++	dmi_set_dump_stack_arch_desc();
+ 
+ 	/*
+ 	 * VMware detection requires dmi to be available, so this
+diff -puN drivers/firmware/dmi_scan.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps
 +++ a/drivers/firmware/dmi_scan.c
-@@ -22,6 +22,9 @@ static u16 __initdata dmi_ver;
+@@ -531,6 +531,19 @@ void __init dmi_scan_machine(void)
+ }
+ 
+ /**
++ * dmi_set_dump_stack_arch_desc - set arch description for dump_stack()
++ *
++ * Invoke dump_stack_set_arch_desc() with DMI system information so that
++ * DMI identifiers are printed out on task dumps.  Arch boot code should
++ * call this function after dmi_scan_machine() if it wants to print out DMI
++ * identifiers on task dumps.
++ */
++void __init dmi_set_dump_stack_arch_desc(void)
++{
++	dump_stack_set_arch_desc("%s", dmi_ids_string);
++}
++
++/**
+  *	dmi_matches - check if dmi_system_id structure matches system DMI data
+  *	@dmi: pointer to the dmi_system_id structure to check
   */
- static int dmi_initialized;
+diff -puN include/linux/dmi.h~dump_stack-implement-arch-specific-hardware-description-in-task-dumps include/linux/dmi.h
+--- a/include/linux/dmi.h~dump_stack-implement-arch-specific-hardware-description-in-task-dumps
++++ a/include/linux/dmi.h
+@@ -99,6 +99,7 @@ extern const char * dmi_get_system_info(
+ extern const struct dmi_device * dmi_find_device(int type, const char *name,
+ 	const struct dmi_device *from);
+ extern void dmi_scan_machine(void);
++extern void dmi_set_dump_stack_arch_desc(void);
+ extern bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp);
+ extern int dmi_name_in_vendors(const char *str);
+ extern int dmi_name_in_serial(const char *str);
+@@ -114,6 +115,7 @@ static inline const char * dmi_get_syste
+ static inline const struct dmi_device * dmi_find_device(int type, const char *name,
+ 	const struct dmi_device *from) { return NULL; }
+ static inline void dmi_scan_machine(void) { return; }
++static inline void dmi_set_dump_stack_arch_desc(void) { }
+ static inline bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp)
+ {
+ 	if (yearp)
+diff -puN include/linux/printk.h~dump_stack-implement-arch-specific-hardware-description-in-task-dumps include/linux/printk.h
+--- a/include/linux/printk.h~dump_stack-implement-arch-specific-hardware-description-in-task-dumps
++++ a/include/linux/printk.h
+@@ -138,6 +138,7 @@ extern void wake_up_klogd(void);
  
-+/* DMI system identification string used during boot */
-+static char dmi_ids_string[128] __initdata;
+ void log_buf_kexec_setup(void);
+ void __init setup_log_buf(int early);
++void dump_stack_set_arch_desc(const char *fmt, ...);
+ void dump_stack_print_info(const char *log_lvl);
+ #else
+ static inline __printf(1, 0)
+@@ -177,6 +178,10 @@ static inline void setup_log_buf(int ear
+ {
+ }
+ 
++static inline void dump_stack_set_arch_desc(const char *fmt, ...)
++{
++}
 +
- static const char * __init dmi_string_nosave(const struct dmi_header *dm, u8 s)
+ static inline void dump_stack_print_info(const char *log_lvl)
  {
- 	const u8 *bp = ((u8 *) dm) + dm->length;
-@@ -376,38 +379,44 @@ static void __init dmi_decode(const stru
- 	}
  }
+diff -puN kernel/panic.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps kernel/panic.c
+--- a/kernel/panic.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps
++++ a/kernel/panic.c
+@@ -22,7 +22,6 @@
+ #include <linux/sysrq.h>
+ #include <linux/init.h>
+ #include <linux/nmi.h>
+-#include <linux/dmi.h>
  
--static void __init print_filtered(const char *info)
-+static int __init print_filtered(char *buf, size_t len, const char *info)
+ #define PANIC_TIMER_STEP 100
+ #define PANIC_BLINK_SPD 18
+@@ -400,13 +399,8 @@ struct slowpath_args {
+ static void warn_slowpath_common(const char *file, int line, void *caller,
+ 				 unsigned taint, struct slowpath_args *args)
  {
-+	int c = 0;
- 	const char *p;
+-	const char *board;
+-
+ 	printk(KERN_WARNING "------------[ cut here ]------------\n");
+ 	printk(KERN_WARNING "WARNING: at %s:%d %pS()\n", file, line, caller);
+-	board = dmi_get_system_info(DMI_PRODUCT_NAME);
+-	if (board)
+-		printk(KERN_WARNING "Hardware name: %s\n", board);
  
- 	if (!info)
--		return;
-+		return c;
- 
- 	for (p = info; *p; p++)
- 		if (isprint(*p))
--			printk(KERN_CONT "%c", *p);
-+			c += scnprintf(buf + c, len - c, "%c", *p);
- 		else
--			printk(KERN_CONT "\\x%02x", *p & 0xff);
-+			c += scnprintf(buf + c, len - c, "\\x%02x", *p & 0xff);
-+	return c;
+ 	if (args)
+ 		vprintk(args->fmt, args->args);
+diff -puN kernel/printk.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps kernel/printk.c
+--- a/kernel/printk.c~dump_stack-implement-arch-specific-hardware-description-in-task-dumps
++++ a/kernel/printk.c
+@@ -2835,6 +2835,28 @@ void kmsg_dump_rewind(struct kmsg_dumper
  }
+ EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
  
--static void __init dmi_dump_ids(void)
-+static void __init dmi_format_ids(char *buf, size_t len)
- {
-+	int c = 0;
- 	const char *board;	/* Board Name is optional */
- 
--	printk(KERN_DEBUG "DMI: ");
--	print_filtered(dmi_get_system_info(DMI_SYS_VENDOR));
--	printk(KERN_CONT " ");
--	print_filtered(dmi_get_system_info(DMI_PRODUCT_NAME));
-+	c += print_filtered(buf + c, len - c,
-+			    dmi_get_system_info(DMI_SYS_VENDOR));
-+	c += scnprintf(buf + c, len - c, " ");
-+	c += print_filtered(buf + c, len - c,
-+			    dmi_get_system_info(DMI_PRODUCT_NAME));
++static char dump_stack_arch_desc_str[128];
 +
- 	board = dmi_get_system_info(DMI_BOARD_NAME);
- 	if (board) {
--		printk(KERN_CONT "/");
--		print_filtered(board);
-+		c += scnprintf(buf + c, len - c, "/");
-+		c += print_filtered(buf + c, len - c, board);
- 	}
--	printk(KERN_CONT ", BIOS ");
--	print_filtered(dmi_get_system_info(DMI_BIOS_VERSION));
--	printk(KERN_CONT " ");
--	print_filtered(dmi_get_system_info(DMI_BIOS_DATE));
--	printk(KERN_CONT "\n");
-+	c += scnprintf(buf + c, len - c, ", BIOS ");
-+	c += print_filtered(buf + c, len - c,
-+			    dmi_get_system_info(DMI_BIOS_VERSION));
-+	c += scnprintf(buf + c, len - c, " ");
-+	c += print_filtered(buf + c, len - c,
-+			    dmi_get_system_info(DMI_BIOS_DATE));
++/**
++ * dump_stack_set_arch_desc - set arch-specific str to show with task dumps
++ * @fmt: printf-style format string
++ * @...: arguments for the format string
++ *
++ * The configured string will be printed right after utsname during task
++ * dumps.  Usually used to add arch-specific system identifiers.  If an
++ * arch wants to make use of such an ID string, it should initialize this
++ * as soon as possible during boot.
++ */
++void __init dump_stack_set_arch_desc(const char *fmt, ...)
++{
++	va_list args;
++
++	va_start(args, fmt);
++	vsnprintf(dump_stack_arch_desc_str, sizeof(dump_stack_arch_desc_str),
++		  fmt, args);
++	va_end(args);
++}
++
+ /**
+  * dump_stack_print_info - print generic debug info for dump_stack()
+  * @log_lvl: log level
+@@ -2849,6 +2871,10 @@ void dump_stack_print_info(const char *l
+ 	       print_tainted(), init_utsname()->release,
+ 	       (int)strcspn(init_utsname()->version, " "),
+ 	       init_utsname()->version);
++
++	if (dump_stack_arch_desc_str[0] != '\0')
++		printk("%sHardware name: %s\n",
++		       log_lvl, dump_stack_arch_desc_str);
  }
  
- static int __init dmi_present(const char __iomem *p)
-@@ -431,7 +440,8 @@ static int __init dmi_present(const char
- 				pr_info("Legacy DMI %d.%d present.\n",
- 				       dmi_ver >> 8, dmi_ver & 0xFF);
- 			}
--			dmi_dump_ids();
-+			dmi_format_ids(dmi_ids_string, sizeof(dmi_ids_string));
-+			printk(KERN_DEBUG "DMI: %s\n", dmi_ids_string);
- 			return 0;
- 		}
- 	}
+ #endif
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
