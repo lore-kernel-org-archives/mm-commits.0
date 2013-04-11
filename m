@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-fm3130-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:24 -0700
-Message-ID: <20130411234824.C409331C2A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-isl12022-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:26 -0700
+Message-ID: <20130411234826.C434C31C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:34190 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001Ab3DKXsZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:25 -0400
-Received: by mail-vc0-f202.google.com with SMTP id m16so199316vca.5
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:25 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:46988 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001Ab3DKXs1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:27 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so199317ghb.3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-fm3130: use devm_*() functions
+     Subject: rtc: rtc-isl12022: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-fm3130-use-devm_-functions.patch
+     rtc-rtc-isl12022-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-fm3130: use devm_*() functions
+Subject: rtc: rtc-isl12022: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,44 +42,61 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-fm3130.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-isl12022.c |   29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
 
-diff -puN drivers/rtc/rtc-fm3130.c~rtc-rtc-fm3130-use-devm_-functions drivers/rtc/rtc-fm3130.c
---- a/drivers/rtc/rtc-fm3130.c~rtc-rtc-fm3130-use-devm_-functions
-+++ a/drivers/rtc/rtc-fm3130.c
-@@ -358,7 +358,7 @@ static int fm3130_probe(struct i2c_clien
- 			I2C_FUNC_I2C | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
- 		return -EIO;
+diff -puN drivers/rtc/rtc-isl12022.c~rtc-rtc-isl12022-use-devm_-functions drivers/rtc/rtc-isl12022.c
+--- a/drivers/rtc/rtc-isl12022.c~rtc-rtc-isl12022-use-devm_-functions
++++ a/drivers/rtc/rtc-isl12022.c
+@@ -252,12 +252,11 @@ static int isl12022_probe(struct i2c_cli
+ {
+ 	struct isl12022 *isl12022;
  
--	fm3130 = kzalloc(sizeof(struct fm3130), GFP_KERNEL);
-+	fm3130 = devm_kzalloc(&client->dev, sizeof(struct fm3130), GFP_KERNEL);
+-	int ret = 0;
+-
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 		return -ENODEV;
  
- 	if (!fm3130)
+-	isl12022 = kzalloc(sizeof(struct isl12022), GFP_KERNEL);
++	isl12022 = devm_kzalloc(&client->dev, sizeof(struct isl12022),
++				GFP_KERNEL);
+ 	if (!isl12022)
  		return -ENOMEM;
-@@ -507,7 +507,7 @@ bad_clock:
  
- 	/* We won't bail out here because we just got invalid data.
- 	   Time setting from u-boot doesn't work anyway */
--	fm3130->rtc = rtc_device_register(client->name, &client->dev,
-+	fm3130->rtc = devm_rtc_device_register(&client->dev, client->name,
- 				&fm3130_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(fm3130->rtc)) {
- 		err = PTR_ERR(fm3130->rtc);
-@@ -517,16 +517,11 @@ bad_clock:
- 	}
+@@ -265,31 +264,17 @@ static int isl12022_probe(struct i2c_cli
+ 
+ 	i2c_set_clientdata(client, isl12022);
+ 
+-	isl12022->rtc = rtc_device_register(isl12022_driver.driver.name,
+-					    &client->dev,
+-					    &isl12022_rtc_ops,
+-					    THIS_MODULE);
+-
+-	if (IS_ERR(isl12022->rtc)) {
+-		ret = PTR_ERR(isl12022->rtc);
+-		goto exit_kfree;
+-	}
++	isl12022->rtc = devm_rtc_device_register(&client->dev,
++					isl12022_driver.driver.name,
++					&isl12022_rtc_ops, THIS_MODULE);
++	if (IS_ERR(isl12022->rtc))
++		return PTR_ERR(isl12022->rtc);
+ 
  	return 0;
- exit_free:
--	kfree(fm3130);
- 	return err;
+-
+-exit_kfree:
+-	kfree(isl12022);
+-
+-	return ret;
  }
  
- static int fm3130_remove(struct i2c_client *client)
+ static int isl12022_remove(struct i2c_client *client)
  {
--	struct fm3130 *fm3130 = i2c_get_clientdata(client);
+-	struct isl12022 *isl12022 = i2c_get_clientdata(client);
 -
--	rtc_device_unregister(fm3130->rtc);
--	kfree(fm3130);
+-	rtc_device_unregister(isl12022->rtc);
+-	kfree(isl12022);
+-
  	return 0;
  }
  
