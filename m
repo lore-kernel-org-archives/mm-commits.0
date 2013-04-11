@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:31:34 -0700
-Message-ID: <20130411233134.D1DD15A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:44:28 -0700
+Message-ID: <20130411234428.913485A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:35763 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753914Ab3DKXbg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:31:36 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 1so198117qee.0
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:31:35 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:44406 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806Ab3DKXoa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:44:30 -0400
+Received: by mail-qa0-f73.google.com with SMTP id i20so103811qad.4
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:44:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nschichan@freebox.fr
+Cc: shli@kernel.org, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, liwanp@linux.vnet.ibm.com, minchan@kernel.org, riel@redhat.com, shli@fusionio.com
 
 
 The patch titled
-     Subject: arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
+     Subject: mm: thp: add split tail pages to shrink page list in page reclaim
 has been added to the -mm tree.  Its filename is
-     arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
+     mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,137 +33,230 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
+From: Shaohua Li <shli@kernel.org>
+Subject: mm: thp: add split tail pages to shrink page list in page reclaim
 
-ERROR: "(foo*)" should be "(foo *)"
-#144: FILE: arch/arm/net/bpf_jit_32.c:938:
-+		fp->bpf_func = (void*)ctx.target;
+In page reclaim, huge page is split.  split_huge_page() adds tail pages to
+LRU list.  Since we are reclaiming a huge page, it's better we reclaim all
+subpages of the huge page instead of just the head page.  This patch adds
+split tail pages to shrink page list so the tail pages can be reclaimed
+soon.
 
-total: 1 errors, 0 warnings, 117 lines checked
+Before this patch, run a swap workload:
+thp_fault_alloc 3492
+thp_fault_fallback 608
+thp_collapse_alloc 6
+thp_collapse_alloc_failed 0
+thp_split 916
 
-./patches/arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter.patch has style problems, please review.
+With this patch:
+thp_fault_alloc 4085
+thp_fault_fallback 16
+thp_collapse_alloc 90
+thp_collapse_alloc_failed 0
+thp_split 1272
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
+fallback allocation is reduced a lot.
 
-Please run checkpatch prior to sending patches
-
-Cc: Nicolas Schichan <nschichan@freebox.fr>
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/net/bpf_jit_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/huge_mm.h |   11 ++++++++++-
+ include/linux/swap.h    |    4 ++--
+ mm/huge_memory.c        |   14 ++++++++------
+ mm/swap.c               |   11 ++++++++---
+ mm/swap_state.c         |    4 ++--
+ mm/vmscan.c             |    2 +-
+ 6 files changed, 31 insertions(+), 15 deletions(-)
 
-diff -puN arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes arch/arm/net/bpf_jit_32.c
---- a/arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
-+++ a/arch/arm/net/bpf_jit_32.c
-@@ -935,7 +935,7 @@ void bpf_jit_compile(struct sk_filter *f
+diff -puN include/linux/huge_mm.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim
++++ a/include/linux/huge_mm.h
+@@ -99,7 +99,11 @@ extern int copy_pte_range(struct mm_stru
+ extern int handle_pte_fault(struct mm_struct *mm,
+ 			    struct vm_area_struct *vma, unsigned long address,
+ 			    pte_t *pte, pmd_t *pmd, unsigned int flags);
+-extern int split_huge_page(struct page *page);
++extern int split_huge_page_to_list(struct page *page, struct list_head *list);
++static inline int split_huge_page(struct page *page)
++{
++	return split_huge_page_to_list(page, NULL);
++}
+ extern void __split_huge_page_pmd(struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmd);
+ #define split_huge_page_pmd(__vma, __address, __pmd)			\
+@@ -186,6 +190,11 @@ extern int do_huge_pmd_numa_page(struct
+ #define transparent_hugepage_enabled(__vma) 0
  
- 	__bpf_jit_compile(&ctx);
- 	if (ctx.target)
--		fp->bpf_func = (void*)ctx.target;
-+		fp->bpf_func = (void *)ctx.target;
+ #define transparent_hugepage_flags 0UL
++static inline int
++split_huge_page_to_list(struct page *page, struct list_head *list)
++{
++	return 0;
++}
+ static inline int split_huge_page(struct page *page)
+ {
+ 	return 0;
+diff -puN include/linux/swap.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim
++++ a/include/linux/swap.h
+@@ -236,7 +236,7 @@ extern unsigned long nr_free_pagecache_p
+ extern void __lru_cache_add(struct page *, enum lru_list lru);
+ extern void lru_cache_add_lru(struct page *, enum lru_list lru);
+ extern void lru_add_page_tail(struct page *page, struct page *page_tail,
+-			      struct lruvec *lruvec);
++			 struct lruvec *lruvec, struct list_head *head);
+ extern void activate_page(struct page *);
+ extern void mark_page_accessed(struct page *);
+ extern void lru_add_drain(void);
+@@ -346,7 +346,7 @@ extern struct address_space swapper_spac
+ #define swap_address_space(entry) (&swapper_spaces[swp_type(entry)])
+ extern unsigned long total_swapcache_pages(void);
+ extern void show_swap_cache_info(void);
+-extern int add_to_swap(struct page *);
++extern int add_to_swap(struct page *, struct list_head *list);
+ extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
+ extern int __add_to_swap_cache(struct page *page, swp_entry_t entry);
+ extern void __delete_from_swap_cache(struct page *);
+diff -puN mm/huge_memory.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim
++++ a/mm/huge_memory.c
+@@ -1559,7 +1559,8 @@ static int __split_huge_page_splitting(s
+ 	return ret;
  }
  
- static void bpf_jit_free_worker(struct work_struct *work)
+-static void __split_huge_page_refcount(struct page *page)
++static void __split_huge_page_refcount(struct page *page,
++				       struct list_head *list)
+ {
+ 	int i;
+ 	struct zone *zone = page_zone(page);
+@@ -1645,7 +1646,7 @@ static void __split_huge_page_refcount(s
+ 		BUG_ON(!PageDirty(page_tail));
+ 		BUG_ON(!PageSwapBacked(page_tail));
+ 
+-		lru_add_page_tail(page, page_tail, lruvec);
++		lru_add_page_tail(page, page_tail, lruvec, list);
+ 	}
+ 	atomic_sub(tail_count, &page->_count);
+ 	BUG_ON(atomic_read(&page->_count) <= 0);
+@@ -1752,7 +1753,8 @@ static int __split_huge_page_map(struct
+ 
+ /* must be called with anon_vma->root->rwsem held */
+ static void __split_huge_page(struct page *page,
+-			      struct anon_vma *anon_vma)
++			      struct anon_vma *anon_vma,
++			      struct list_head *list)
+ {
+ 	int mapcount, mapcount2;
+ 	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
+@@ -1783,7 +1785,7 @@ static void __split_huge_page(struct pag
+ 		       mapcount, page_mapcount(page));
+ 	BUG_ON(mapcount != page_mapcount(page));
+ 
+-	__split_huge_page_refcount(page);
++	__split_huge_page_refcount(page, list);
+ 
+ 	mapcount2 = 0;
+ 	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root, pgoff, pgoff) {
+@@ -1798,7 +1800,7 @@ static void __split_huge_page(struct pag
+ 	BUG_ON(mapcount != mapcount2);
+ }
+ 
+-int split_huge_page(struct page *page)
++int split_huge_page_to_list(struct page *page, struct list_head *list)
+ {
+ 	struct anon_vma *anon_vma;
+ 	int ret = 1;
+@@ -1823,7 +1825,7 @@ int split_huge_page(struct page *page)
+ 		goto out_unlock;
+ 
+ 	BUG_ON(!PageSwapBacked(page));
+-	__split_huge_page(page, anon_vma);
++	__split_huge_page(page, anon_vma, list);
+ 	count_vm_event(THP_SPLIT);
+ 
+ 	BUG_ON(PageCompound(page));
+diff -puN mm/swap.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim mm/swap.c
+--- a/mm/swap.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim
++++ a/mm/swap.c
+@@ -737,7 +737,7 @@ EXPORT_SYMBOL(__pagevec_release);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /* used by __split_huge_page_refcount() */
+ void lru_add_page_tail(struct page *page, struct page *page_tail,
+-		       struct lruvec *lruvec)
++		       struct lruvec *lruvec, struct list_head *list)
+ {
+ 	int uninitialized_var(active);
+ 	enum lru_list lru;
+@@ -749,7 +749,8 @@ void lru_add_page_tail(struct page *page
+ 	VM_BUG_ON(NR_CPUS != 1 &&
+ 		  !spin_is_locked(&lruvec_zone(lruvec)->lru_lock));
+ 
+-	SetPageLRU(page_tail);
++	if (!list)
++		SetPageLRU(page_tail);
+ 
+ 	if (page_evictable(page_tail)) {
+ 		if (PageActive(page)) {
+@@ -767,7 +768,11 @@ void lru_add_page_tail(struct page *page
+ 
+ 	if (likely(PageLRU(page)))
+ 		list_add_tail(&page_tail->lru, &page->lru);
+-	else {
++	else if (list) {
++		/* page reclaim is reclaiming a huge page */
++		get_page(page_tail);
++		list_add_tail(&page_tail->lru, list);
++	} else {
+ 		struct list_head *list_head;
+ 		/*
+ 		 * Head page has not yet been counted, as an hpage,
+diff -puN mm/swap_state.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim mm/swap_state.c
+--- a/mm/swap_state.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim
++++ a/mm/swap_state.c
+@@ -160,7 +160,7 @@ void __delete_from_swap_cache(struct pag
+  * Allocate swap space for the page and add the page to the
+  * swap cache.  Caller needs to hold the page lock. 
+  */
+-int add_to_swap(struct page *page)
++int add_to_swap(struct page *page, struct list_head *list)
+ {
+ 	swp_entry_t entry;
+ 	int err;
+@@ -173,7 +173,7 @@ int add_to_swap(struct page *page)
+ 		return 0;
+ 
+ 	if (unlikely(PageTransHuge(page)))
+-		if (unlikely(split_huge_page(page))) {
++		if (unlikely(split_huge_page_to_list(page, list))) {
+ 			swapcache_free(entry, NULL);
+ 			return 0;
+ 		}
+diff -puN mm/vmscan.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim
++++ a/mm/vmscan.c
+@@ -781,7 +781,7 @@ static unsigned long shrink_page_list(st
+ 		if (PageAnon(page) && !PageSwapCache(page)) {
+ 			if (!(sc->gfp_mask & __GFP_IO))
+ 				goto keep_locked;
+-			if (!add_to_swap(page))
++			if (!add_to_swap(page, page_list))
+ 				goto activate_locked;
+ 			may_enter_fs = 1;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shli@kernel.org are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-mips-define-kvm_user_mem_slots.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix-fix.patch
-mm-madvise-complete-input-validation-before-taking-lock-fix.patch
-clear_refs-sanitize-accepted-commands-declaration-fix.patch
-memcg-add-memorypressure_level-events-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch
 kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
-arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
