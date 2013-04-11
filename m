@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-pcf2123-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:40 -0700
-Message-ID: <20130411234840.C54B131C2A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-pcf50633-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:42 -0700
+Message-ID: <20130411234842.C42765A41BD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:51635 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490Ab3DKXsl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:41 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so199379ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:41 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:46911 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556Ab3DKXsn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:43 -0400
+Received: by mail-vc0-f202.google.com with SMTP id m16so199337vca.5
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-pcf2123: use devm_*() functions
+     Subject: rtc: rtc-pcf50633: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-pcf2123-use-devm_-functions.patch
+     rtc-rtc-pcf50633-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pcf2123: use devm_*() functions
+Subject: rtc: rtc-pcf50633: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,55 +42,50 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-pcf50633.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~rtc-rtc-pcf2123-use-devm_-functions drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~rtc-rtc-pcf2123-use-devm_-functions
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -226,7 +226,8 @@ static int pcf2123_probe(struct spi_devi
- 	u8 txbuf[2], rxbuf[2];
- 	int ret, i;
+diff -puN drivers/rtc/rtc-pcf50633.c~rtc-rtc-pcf50633-use-devm_-functions drivers/rtc/rtc-pcf50633.c
+--- a/drivers/rtc/rtc-pcf50633.c~rtc-rtc-pcf50633-use-devm_-functions
++++ a/drivers/rtc/rtc-pcf50633.c
+@@ -252,20 +252,17 @@ static int pcf50633_rtc_probe(struct pla
+ {
+ 	struct pcf50633_rtc *rtc;
  
--	pdata = kzalloc(sizeof(struct pcf2123_plat_data), GFP_KERNEL);
-+	pdata = devm_kzalloc(&spi->dev, sizeof(struct pcf2123_plat_data),
-+				GFP_KERNEL);
- 	if (!pdata)
+-	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
++	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+ 	if (!rtc)
  		return -ENOMEM;
- 	spi->dev.platform_data = pdata;
-@@ -281,7 +282,7 @@ static int pcf2123_probe(struct spi_devi
- 	pcf2123_delay_trec();
  
- 	/* Finalize the initialization */
--	rtc = rtc_device_register(pcf2123_driver.driver.name, &spi->dev,
-+	rtc = devm_rtc_device_register(&spi->dev, pcf2123_driver.driver.name,
- 			&pcf2123_rtc_ops, THIS_MODULE);
+ 	rtc->pcf = dev_to_pcf50633(pdev->dev.parent);
+ 	platform_set_drvdata(pdev, rtc);
+-	rtc->rtc_dev = rtc_device_register("pcf50633-rtc", &pdev->dev,
++	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, "pcf50633-rtc",
+ 				&pcf50633_rtc_ops, THIS_MODULE);
  
- 	if (IS_ERR(rtc)) {
-@@ -314,7 +315,6 @@ sysfs_exit:
- 		device_remove_file(&spi->dev, &pdata->regs[i].attr);
+-	if (IS_ERR(rtc->rtc_dev)) {
+-		int ret =  PTR_ERR(rtc->rtc_dev);
+-		kfree(rtc);
+-		return ret;
+-	}
++	if (IS_ERR(rtc->rtc_dev))
++		return PTR_ERR(rtc->rtc_dev);
  
- kfree_exit:
--	kfree(pdata);
- 	spi->dev.platform_data = NULL;
- 	return ret;
- }
-@@ -325,15 +325,10 @@ static int pcf2123_remove(struct spi_dev
- 	int i;
+ 	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_ALARM,
+ 					pcf50633_rtc_irq, rtc);
+@@ -277,12 +274,8 @@ static int pcf50633_rtc_remove(struct pl
+ 	struct pcf50633_rtc *rtc;
  
- 	if (pdata) {
--		struct rtc_device *rtc = pdata->rtc;
+ 	rtc = platform_get_drvdata(pdev);
 -
--		if (rtc)
--			rtc_device_unregister(rtc);
- 		for (i = 0; i < 16; i++)
- 			if (pdata->regs[i].name[0])
- 				device_remove_file(&spi->dev,
- 						   &pdata->regs[i].attr);
--		kfree(pdata);
- 	}
+ 	pcf50633_free_irq(rtc->pcf, PCF50633_IRQ_ALARM);
  
+-	rtc_device_unregister(rtc->rtc_dev);
+-	kfree(rtc);
+-
  	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
