@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:01:39 -0700
-Message-ID: <20130411230139.C9E5431C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-at32ap700xc-use-devm_-apis.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:01:41 -0700
+Message-ID: <20130411230141.CA4655A4228@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:59770 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755874Ab3DKXBk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:40 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r13so196379ghr.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:40 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:55441 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755874Ab3DKXBm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:42 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so196385ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, haojian.zhuang@linaro.org, jg1.han@samsung.com
+Cc: sachin.kamat@linaro.org, hcegtvedt@atmel.com, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-88pm860x.c: use devm_* APIs
+     Subject: drivers/rtc/rtc-at32ap700x.c: use devm_* APIs
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch
+     drivers-rtc-rtc-at32ap700xc-use-devm_-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,95 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-88pm860x.c: use devm_* APIs
+Subject: drivers/rtc/rtc-at32ap700x.c: use devm_* APIs
 
 devm_* functions are device managed and make cleanup code simpler.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Haojian Zhuang <haojian.zhuang@linaro.org>
+Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm860x.c |   29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ drivers/rtc/rtc-at32ap700x.c |   27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-diff -puN drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-devm_-apis drivers/rtc/rtc-88pm860x.c
---- a/drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-devm_-apis
-+++ a/drivers/rtc/rtc-88pm860x.c
-@@ -318,14 +318,14 @@ static int pm860x_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-at32ap700x.c~drivers-rtc-rtc-at32ap700xc-use-devm_-apis drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~drivers-rtc-rtc-at32ap700xc-use-devm_-apis
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -202,7 +202,8 @@ static int __init at32_rtc_probe(struct
+ 	int irq;
+ 	int ret;
  
- 	pdata = pdev->dev.platform_data;
- 
--	info = kzalloc(sizeof(struct pm860x_rtc_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct pm860x_rtc_info),
-+			    GFP_KERNEL);
- 	if (!info)
+-	rtc = kzalloc(sizeof(struct rtc_at32ap700x), GFP_KERNEL);
++	rtc = devm_kzalloc(&pdev->dev, sizeof(struct rtc_at32ap700x),
++			   GFP_KERNEL);
+ 	if (!rtc) {
+ 		dev_dbg(&pdev->dev, "out of memory\n");
  		return -ENOMEM;
- 	info->irq = platform_get_irq(pdev, 0);
- 	if (info->irq < 0) {
- 		dev_err(&pdev->dev, "No IRQ resource!\n");
--		ret = -EINVAL;
--		goto out;
-+		return info->irq;
+@@ -223,7 +224,7 @@ static int __init at32_rtc_probe(struct
  	}
  
- 	info->chip = chip;
-@@ -333,12 +333,13 @@ static int pm860x_rtc_probe(struct platf
- 	info->dev = &pdev->dev;
- 	dev_set_drvdata(&pdev->dev, info);
- 
--	ret = request_threaded_irq(info->irq, NULL, rtc_update_handler,
--				   IRQF_ONESHOT, "rtc", info);
-+	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
-+					rtc_update_handler, IRQF_ONESHOT, "rtc",
-+					info);
- 	if (ret < 0) {
- 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
- 			info->irq, ret);
--		goto out;
-+		return ret;
+ 	rtc->irq = irq;
+-	rtc->regs = ioremap(regs->start, resource_size(regs));
++	rtc->regs = devm_ioremap(&pdev->dev, regs->start, resource_size(regs));
+ 	if (!rtc->regs) {
+ 		ret = -ENOMEM;
+ 		dev_dbg(&pdev->dev, "could not map I/O memory\n");
+@@ -244,20 +245,21 @@ static int __init at32_rtc_probe(struct
+ 				| RTC_BIT(CTRL_EN));
  	}
  
- 	/* set addresses of 32-bit base value for RTC time */
-@@ -350,7 +351,7 @@ static int pm860x_rtc_probe(struct platf
- 	ret = pm860x_rtc_read_time(&pdev->dev, &tm);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Failed to read initial time.\n");
--		goto out_rtc;
-+		return ret;
- 	}
- 	if ((tm.tm_year < 70) || (tm.tm_year > 138)) {
- 		tm.tm_year = 70;
-@@ -362,7 +363,7 @@ static int pm860x_rtc_probe(struct platf
- 		ret = pm860x_rtc_set_time(&pdev->dev, &tm);
- 		if (ret < 0) {
- 			dev_err(&pdev->dev, "Failed to set initial time.\n");
--			goto out_rtc;
-+			return ret;
- 		}
- 	}
- 	rtc_tm_to_time(&tm, &ticks);
-@@ -373,12 +374,12 @@ static int pm860x_rtc_probe(struct platf
- 		}
+-	ret = request_irq(irq, at32_rtc_interrupt, IRQF_SHARED, "rtc", rtc);
++	ret = devm_request_irq(&pdev->dev, irq, at32_rtc_interrupt, IRQF_SHARED,
++				"rtc", rtc);
+ 	if (ret) {
+ 		dev_dbg(&pdev->dev, "could not request irq %d\n", irq);
+-		goto out_iounmap;
++		goto out;
  	}
  
--	info->rtc_dev = rtc_device_register("88pm860x-rtc", &pdev->dev,
-+	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "88pm860x-rtc",
- 					    &pm860x_rtc_ops, THIS_MODULE);
- 	ret = PTR_ERR(info->rtc_dev);
- 	if (IS_ERR(info->rtc_dev)) {
- 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
--		goto out_rtc;
-+		return ret;
+ 	platform_set_drvdata(pdev, rtc);
+ 
+-	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
++	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				&at32_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rtc)) {
+ 		dev_dbg(&pdev->dev, "could not register rtc device\n");
+ 		ret = PTR_ERR(rtc->rtc);
+-		goto out_free_irq;
++		goto out;
  	}
  
- 	/*
-@@ -405,11 +406,6 @@ static int pm860x_rtc_probe(struct platf
  	device_init_wakeup(&pdev->dev, 1);
+@@ -267,26 +269,15 @@ static int __init at32_rtc_probe(struct
  
  	return 0;
--out_rtc:
--	free_irq(info->irq, info);
--out:
--	kfree(info);
--	return ret;
+ 
+-out_free_irq:
+-	platform_set_drvdata(pdev, NULL);
+-	free_irq(irq, rtc);
+-out_iounmap:
+-	iounmap(rtc->regs);
+ out:
+-	kfree(rtc);
++	platform_set_drvdata(pdev, NULL);
+ 	return ret;
  }
  
- static int pm860x_rtc_remove(struct platform_device *pdev)
-@@ -423,9 +419,6 @@ static int pm860x_rtc_remove(struct plat
- #endif	/* VRTC_CALIBRATION */
+ static int __exit at32_rtc_remove(struct platform_device *pdev)
+ {
+-	struct rtc_at32ap700x *rtc = platform_get_drvdata(pdev);
+-
+ 	device_init_wakeup(&pdev->dev, 0);
  
+-	free_irq(rtc->irq, rtc);
+-	iounmap(rtc->regs);
+-	rtc_device_unregister(rtc->rtc);
+-	kfree(rtc);
  	platform_set_drvdata(pdev, NULL);
--	rtc_device_unregister(info->rtc_dev);
--	free_irq(info->irq, info);
--	kfree(info);
- 	return 0;
- }
  
+ 	return 0;
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
