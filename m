@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-pcf50633-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:42 -0700
-Message-ID: <20130411234842.C42765A41BD@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-pcf8563-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:44 -0700
+Message-ID: <20130411234844.C460431C2BF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:46911 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab3DKXsn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:43 -0400
-Received: by mail-vc0-f202.google.com with SMTP id m16so199337vca.5
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:43 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:44612 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751579Ab3DKXsp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:45 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so12472qcr.4
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-pcf50633: use devm_*() functions
+     Subject: rtc: rtc-pcf8563: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-pcf50633-use-devm_-functions.patch
+     rtc-rtc-pcf8563-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pcf50633: use devm_*() functions
+Subject: rtc: rtc-pcf8563: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,46 +42,62 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf50633.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |   28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf50633.c~rtc-rtc-pcf50633-use-devm_-functions drivers/rtc/rtc-pcf50633.c
---- a/drivers/rtc/rtc-pcf50633.c~rtc-rtc-pcf50633-use-devm_-functions
-+++ a/drivers/rtc/rtc-pcf50633.c
-@@ -252,20 +252,17 @@ static int pcf50633_rtc_probe(struct pla
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-use-devm_-functions drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-use-devm_-functions
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -245,14 +245,13 @@ static int pcf8563_probe(struct i2c_clie
  {
- 	struct pcf50633_rtc *rtc;
+ 	struct pcf8563 *pcf8563;
  
--	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
+-	int err = 0;
+-
+ 	dev_dbg(&client->dev, "%s\n", __func__);
+ 
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 		return -ENODEV;
+ 
+-	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL);
++	pcf8563 = devm_kzalloc(&client->dev, sizeof(struct pcf8563),
++				GFP_KERNEL);
+ 	if (!pcf8563)
  		return -ENOMEM;
  
- 	rtc->pcf = dev_to_pcf50633(pdev->dev.parent);
- 	platform_set_drvdata(pdev, rtc);
--	rtc->rtc_dev = rtc_device_register("pcf50633-rtc", &pdev->dev,
-+	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, "pcf50633-rtc",
- 				&pcf50633_rtc_ops, THIS_MODULE);
+@@ -260,31 +259,18 @@ static int pcf8563_probe(struct i2c_clie
  
--	if (IS_ERR(rtc->rtc_dev)) {
--		int ret =  PTR_ERR(rtc->rtc_dev);
--		kfree(rtc);
--		return ret;
+ 	i2c_set_clientdata(client, pcf8563);
+ 
+-	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name,
+-				&client->dev, &pcf8563_rtc_ops, THIS_MODULE);
++	pcf8563->rtc = devm_rtc_device_register(&client->dev,
++				pcf8563_driver.driver.name,
++				&pcf8563_rtc_ops, THIS_MODULE);
+ 
+-	if (IS_ERR(pcf8563->rtc)) {
+-		err = PTR_ERR(pcf8563->rtc);
+-		goto exit_kfree;
 -	}
-+	if (IS_ERR(rtc->rtc_dev))
-+		return PTR_ERR(rtc->rtc_dev);
++	if (IS_ERR(pcf8563->rtc))
++		return PTR_ERR(pcf8563->rtc);
  
- 	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_ALARM,
- 					pcf50633_rtc_irq, rtc);
-@@ -277,12 +274,8 @@ static int pcf50633_rtc_remove(struct pl
- 	struct pcf50633_rtc *rtc;
- 
- 	rtc = platform_get_drvdata(pdev);
+ 	return 0;
 -
- 	pcf50633_free_irq(rtc->pcf, PCF50633_IRQ_ALARM);
+-exit_kfree:
+-	kfree(pcf8563);
+-
+-	return err;
+ }
  
--	rtc_device_unregister(rtc->rtc_dev);
--	kfree(rtc);
+ static int pcf8563_remove(struct i2c_client *client)
+ {
+-	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
+-
+-	if (pcf8563->rtc)
+-		rtc_device_unregister(pcf8563->rtc);
+-
+-	kfree(pcf8563);
 -
  	return 0;
  }
