@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-bfin-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:12 -0700
-Message-ID: <20130411234812.C46825A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-bq4802-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:14 -0700
+Message-ID: <20130411234814.C3E5A31C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:59820 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731Ab3DKXsN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:13 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 1so199041qee.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:13 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:48587 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875Ab3DKXsP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:15 -0400
+Received: by mail-ve0-f201.google.com with SMTP id ox1so199110veb.0
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-bfin: use devm_*() functions
+     Subject: rtc: rtc-bq4802: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-bfin-use-devm_-functions.patch
+     rtc-rtc-bq4802-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-bfin: use devm_*() functions
+Subject: rtc: rtc-bq4802: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,66 +42,83 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-bq4802.c |   29 ++++++++---------------------
+ 1 file changed, 8 insertions(+), 21 deletions(-)
 
-diff -puN drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-use-devm_-functions drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-use-devm_-functions
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -352,14 +352,14 @@ static int bfin_rtc_probe(struct platfor
- 	dev_dbg_stamp(dev);
+diff -puN drivers/rtc/rtc-bq4802.c~rtc-rtc-bq4802-use-devm_-functions drivers/rtc/rtc-bq4802.c
+--- a/drivers/rtc/rtc-bq4802.c~rtc-rtc-bq4802-use-devm_-functions
++++ a/drivers/rtc/rtc-bq4802.c
+@@ -142,7 +142,7 @@ static const struct rtc_class_ops bq4802
  
- 	/* Allocate memory for our RTC struct */
--	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
-+	rtc = devm_kzalloc(dev, sizeof(*rtc), GFP_KERNEL);
- 	if (unlikely(!rtc))
- 		return -ENOMEM;
- 	platform_set_drvdata(pdev, rtc);
- 	device_init_wakeup(dev, 1);
+ static int bq4802_probe(struct platform_device *pdev)
+ {
+-	struct bq4802 *p = kzalloc(sizeof(*p), GFP_KERNEL);
++	struct bq4802 *p = devm_kzalloc(&pdev->dev, sizeof(*p), GFP_KERNEL);
+ 	int err = -ENOMEM;
  
- 	/* Register our RTC with the RTC framework */
--	rtc->rtc_dev = rtc_device_register(pdev->name, dev, &bfin_rtc_ops,
-+	rtc->rtc_dev = devm_rtc_device_register(dev, pdev->name, &bfin_rtc_ops,
- 						THIS_MODULE);
- 	if (unlikely(IS_ERR(rtc->rtc_dev))) {
- 		ret = PTR_ERR(rtc->rtc_dev);
-@@ -367,9 +367,10 @@ static int bfin_rtc_probe(struct platfor
+ 	if (!p)
+@@ -155,54 +155,41 @@ static int bq4802_probe(struct platform_
+ 		p->r = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 		err = -EINVAL;
+ 		if (!p->r)
+-			goto out_free;
++			goto out;
+ 	}
+ 	if (p->r->flags & IORESOURCE_IO) {
+ 		p->ioport = p->r->start;
+ 		p->read = bq4802_read_io;
+ 		p->write = bq4802_write_io;
+ 	} else if (p->r->flags & IORESOURCE_MEM) {
+-		p->regs = ioremap(p->r->start, resource_size(p->r));
++		p->regs = devm_ioremap(&pdev->dev, p->r->start,
++					resource_size(p->r));
+ 		p->read = bq4802_read_mem;
+ 		p->write = bq4802_write_mem;
+ 	} else {
+ 		err = -EINVAL;
+-		goto out_free;
++		goto out;
  	}
  
- 	/* Grab the IRQ and init the hardware */
--	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, 0, pdev->name, dev);
-+	ret = devm_request_irq(dev, IRQ_RTC, bfin_rtc_interrupt, 0,
-+				pdev->name, dev);
- 	if (unlikely(ret))
--		goto err_reg;
-+		goto err;
- 	/* sometimes the bootloader touched things, but the write complete was not
- 	 * enabled, so let's just do a quick timeout here since the IRQ will not fire ...
- 	 */
-@@ -381,23 +382,16 @@ static int bfin_rtc_probe(struct platfor
+ 	platform_set_drvdata(pdev, p);
  
- 	return 0;
+-	p->rtc = rtc_device_register("bq4802", &pdev->dev,
+-				     &bq4802_ops, THIS_MODULE);
++	p->rtc = devm_rtc_device_register(&pdev->dev, "bq4802",
++					&bq4802_ops, THIS_MODULE);
+ 	if (IS_ERR(p->rtc)) {
+ 		err = PTR_ERR(p->rtc);
+-		goto out_iounmap;
++		goto out;
+ 	}
  
--err_reg:
--	rtc_device_unregister(rtc->rtc_dev);
- err:
--	kfree(rtc);
- 	return ret;
+ 	err = 0;
+ out:
+ 	return err;
+ 
+-out_iounmap:
+-	if (p->r->flags & IORESOURCE_MEM)
+-		iounmap(p->regs);
+-out_free:
+-	kfree(p);
+-	goto out;
  }
  
- static int bfin_rtc_remove(struct platform_device *pdev)
+ static int bq4802_remove(struct platform_device *pdev)
  {
--	struct bfin_rtc *rtc = platform_get_drvdata(pdev);
- 	struct device *dev = &pdev->dev;
- 
- 	bfin_rtc_reset(dev, 0);
--	free_irq(IRQ_RTC, dev);
--	rtc_device_unregister(rtc->rtc_dev);
+-	struct bq4802 *p = platform_get_drvdata(pdev);
+-
+-	rtc_device_unregister(p->rtc);
+-	if (p->r->flags & IORESOURCE_MEM)
+-		iounmap(p->regs);
+-
  	platform_set_drvdata(pdev, NULL);
--	kfree(rtc);
  
+-	kfree(p);
+-
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
