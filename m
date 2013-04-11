@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmap-check-for-rlimit_as-before-unmapping.patch added to -mm tree
-Date: Thu, 11 Apr 2013 15:57:43 -0700
-Message-ID: <20130411225743.7F9E631C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:01:39 -0700
+Message-ID: <20130411230139.C9E5431C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:52936 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765445Ab3DKW5o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 18:57:44 -0400
-Received: by mail-gg0-f201.google.com with SMTP id q6so196343ggc.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 15:57:44 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:59770 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755874Ab3DKXBk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:40 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r13so196379ghr.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chrubis@suse.cz, liwanp@linux.vnet.ibm.com, mgorman@suse.de
+Cc: sachin.kamat@linaro.org, haojian.zhuang@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: mm/mmap: check for RLIMIT_AS before unmapping
+     Subject: drivers/rtc/rtc-88pm860x.c: use devm_* APIs
 has been added to the -mm tree.  Its filename is
-     mm-mmap-check-for-rlimit_as-before-unmapping.patch
+     drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,120 +33,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyril Hrubis <chrubis@suse.cz>
-Subject: mm/mmap: check for RLIMIT_AS before unmapping
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-88pm860x.c: use devm_* APIs
 
-Fix a corner case for MAP_FIXED when requested mapping length is larger
-than rlimit for virtual memory.  In such case any overlapping mappings are
-unmapped before we check for the limit and return ENOMEM.
+devm_* functions are device managed and make cleanup code simpler.
 
-The check is moved before the loop that unmaps overlapping parts of
-existing mappings.  When we are about to hit the limit (currently mapped
-pages + len > limit) we scan for overlapping pages and check again
-accounting for them.
-
-This fixes situation when userspace program expects that the previous
-mappings are preserved after the mmap() syscall has returned with error. 
-(POSIX clearly states that successfull mapping shall replace any previous
-mappings.)
-
-This corner case was found and can be tested with LTP testcase:
-
-testcases/open_posix_testsuite/conformance/interfaces/mmap/24-2.c
-
-In this case the mmap, which is clearly over current limit, unmaps dynamic
-libraries and the testcase segfaults right after returning into userspace.
-
-I've also looked at the second instance of the unmapping loop in the
-do_brk().  The do_brk() is called from brk() syscall and from vm_brk(). 
-The brk() syscall checks for overlapping mappings and bails out when there
-are any (so it can't be triggered from the brk syscall).  The vm_brk() is
-called only from binmft handlers so it shouldn't be triggered unless
-binmft handler created overlapping mappings.
-
-Signed-off-by: Cyril Hrubis <chrubis@suse.cz>
-Reviewed-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Haojian Zhuang <haojian.zhuang@linaro.org>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   50 ++++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 46 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-88pm860x.c |   29 +++++++++++------------------
+ 1 file changed, 11 insertions(+), 18 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmap-check-for-rlimit_as-before-unmapping mm/mmap.c
---- a/mm/mmap.c~mm-mmap-check-for-rlimit_as-before-unmapping
-+++ a/mm/mmap.c
-@@ -6,6 +6,7 @@
-  * Address space accounting code	<alan@lxorguk.ukuu.org.uk>
-  */
+diff -puN drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-devm_-apis drivers/rtc/rtc-88pm860x.c
+--- a/drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-devm_-apis
++++ a/drivers/rtc/rtc-88pm860x.c
+@@ -318,14 +318,14 @@ static int pm860x_rtc_probe(struct platf
  
-+#include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/backing-dev.h>
- #include <linux/mm.h>
-@@ -550,6 +551,34 @@ static int find_vma_links(struct mm_stru
+ 	pdata = pdev->dev.platform_data;
+ 
+-	info = kzalloc(sizeof(struct pm860x_rtc_info), GFP_KERNEL);
++	info = devm_kzalloc(&pdev->dev, sizeof(struct pm860x_rtc_info),
++			    GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+ 	info->irq = platform_get_irq(pdev, 0);
+ 	if (info->irq < 0) {
+ 		dev_err(&pdev->dev, "No IRQ resource!\n");
+-		ret = -EINVAL;
+-		goto out;
++		return info->irq;
+ 	}
+ 
+ 	info->chip = chip;
+@@ -333,12 +333,13 @@ static int pm860x_rtc_probe(struct platf
+ 	info->dev = &pdev->dev;
+ 	dev_set_drvdata(&pdev->dev, info);
+ 
+-	ret = request_threaded_irq(info->irq, NULL, rtc_update_handler,
+-				   IRQF_ONESHOT, "rtc", info);
++	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
++					rtc_update_handler, IRQF_ONESHOT, "rtc",
++					info);
+ 	if (ret < 0) {
+ 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
+ 			info->irq, ret);
+-		goto out;
++		return ret;
+ 	}
+ 
+ 	/* set addresses of 32-bit base value for RTC time */
+@@ -350,7 +351,7 @@ static int pm860x_rtc_probe(struct platf
+ 	ret = pm860x_rtc_read_time(&pdev->dev, &tm);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "Failed to read initial time.\n");
+-		goto out_rtc;
++		return ret;
+ 	}
+ 	if ((tm.tm_year < 70) || (tm.tm_year > 138)) {
+ 		tm.tm_year = 70;
+@@ -362,7 +363,7 @@ static int pm860x_rtc_probe(struct platf
+ 		ret = pm860x_rtc_set_time(&pdev->dev, &tm);
+ 		if (ret < 0) {
+ 			dev_err(&pdev->dev, "Failed to set initial time.\n");
+-			goto out_rtc;
++			return ret;
+ 		}
+ 	}
+ 	rtc_tm_to_time(&tm, &ticks);
+@@ -373,12 +374,12 @@ static int pm860x_rtc_probe(struct platf
+ 		}
+ 	}
+ 
+-	info->rtc_dev = rtc_device_register("88pm860x-rtc", &pdev->dev,
++	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "88pm860x-rtc",
+ 					    &pm860x_rtc_ops, THIS_MODULE);
+ 	ret = PTR_ERR(info->rtc_dev);
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
+-		goto out_rtc;
++		return ret;
+ 	}
+ 
+ 	/*
+@@ -405,11 +406,6 @@ static int pm860x_rtc_probe(struct platf
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+ 	return 0;
+-out_rtc:
+-	free_irq(info->irq, info);
+-out:
+-	kfree(info);
+-	return ret;
+ }
+ 
+ static int pm860x_rtc_remove(struct platform_device *pdev)
+@@ -423,9 +419,6 @@ static int pm860x_rtc_remove(struct plat
+ #endif	/* VRTC_CALIBRATION */
+ 
+ 	platform_set_drvdata(pdev, NULL);
+-	rtc_device_unregister(info->rtc_dev);
+-	free_irq(info->irq, info);
+-	kfree(info);
  	return 0;
  }
  
-+static unsigned long count_vma_pages_range(struct mm_struct *mm,
-+		unsigned long addr, unsigned long end)
-+{
-+	unsigned long nr_pages = 0;
-+	struct vm_area_struct *vma;
-+
-+	/* Find first overlaping mapping */
-+	vma = find_vma_intersection(mm, addr, end);
-+	if (!vma)
-+		return 0;
-+
-+	nr_pages = (min(end, vma->vm_end) -
-+		max(addr, vma->vm_start)) >> PAGE_SHIFT;
-+
-+	/* Iterate over the rest of the overlaps */
-+	for (vma = vma->vm_next; vma; vma = vma->vm_next) {
-+		unsigned long overlap_len;
-+
-+		if (vma->vm_start > end)
-+			break;
-+
-+		overlap_len = min(end, vma->vm_end) - vma->vm_start;
-+		nr_pages += overlap_len >> PAGE_SHIFT;
-+	}
-+
-+	return nr_pages;
-+}
-+
- void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
- 		struct rb_node **rb_link, struct rb_node *rb_parent)
- {
-@@ -1442,6 +1471,23 @@ unsigned long mmap_region(struct file *f
- 	unsigned long charged = 0;
- 	struct inode *inode =  file ? file_inode(file) : NULL;
- 
-+	/* Check against address space limit. */
-+	if (!may_expand_vm(mm, len >> PAGE_SHIFT)) {
-+		unsigned long nr_pages;
-+
-+		/*
-+		 * MAP_FIXED may remove pages of mappings that intersects with
-+		 * requested mapping. Account for the pages it would unmap.
-+		 */
-+		if (!(vm_flags & MAP_FIXED))
-+			return -ENOMEM;
-+
-+		nr_pages = count_vma_pages_range(mm, addr, addr + len);
-+
-+		if (!may_expand_vm(mm, (len >> PAGE_SHIFT) - nr_pages))
-+			return -ENOMEM;
-+	}
-+
- 	/* Clear old maps */
- 	error = -ENOMEM;
- munmap_back:
-@@ -1451,10 +1497,6 @@ munmap_back:
- 		goto munmap_back;
- 	}
- 
--	/* Check against address space limit. */
--	if (!may_expand_vm(mm, len >> PAGE_SHIFT))
--		return -ENOMEM;
+_
+
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
+
+linux-next.patch
+drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
+drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
+drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8997c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max77686c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8907c-remove-redundant-code.patch
+drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c.patch
+drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch
+drivers-rtc-rtc-at32ap700xc-use-devm_-apis.patch
+drivers-rtc-rtc-ds1305c-use-devm_-apis.patch
+drivers-rtc-rtc-ds1374c-use-devm_-apis.patch
+drivers-rtc-rtc-ds3232c-use-devm_-apis.patch
+drivers-rtc-rtc-m48t35c-use-devm_-apis.patch
+drivers-rtc-rtc-max8925c-use-devm_-apis.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+
