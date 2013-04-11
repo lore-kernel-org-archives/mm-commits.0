@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-only-warn-for-empty-lines-before-closing-braces-by-themselves.patch added to -mm tree
-Date: Thu, 11 Apr 2013 15:07:51 -0700
-Message-ID: <20130411220751.AB4585A4228@corp2gmr1-2.hot.corp.google.com>
+Subject: + audit-dont-check-if-kauditd-is-valid-every-time.patch added to -mm tree
+Date: Thu, 11 Apr 2013 15:16:05 -0700
+Message-ID: <20130411221605.783DD5A4228@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:40539 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186Ab3DKWHw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 18:07:52 -0400
-Received: by mail-ve0-f201.google.com with SMTP id ox1so192238veb.0
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 15:07:52 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:43465 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754680Ab3DKWQH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 18:16:07 -0400
+Received: by mail-vb0-f73.google.com with SMTP id q12so193013vbe.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 15:16:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthijs@stdin.nl, apw@canonical.com, joe@perches.com
+Cc: gaofeng@cn.fujitsu.com, eparis@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: checkpatch: only warn for empty lines before closing braces by themselves
+     Subject: audit: don't check if kauditd is valid every time
 has been added to the -mm tree.  Its filename is
-     checkpatch-only-warn-for-empty-lines-before-closing-braces-by-themselves.patch
+     audit-dont-check-if-kauditd-is-valid-every-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthijs Kooijman <matthijs@stdin.nl>
-Subject: checkpatch: only warn for empty lines before closing braces by themselves
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: audit: don't check if kauditd is valid every time
 
-This check was intended to catch extra newlines at the end of a function
-definition, but it would trigger on any closing brace, including those of
-inline functions and macro definitions, triggering false positives.  Now,
-only closing braces on a line by themselves trigger this check.
+We only need to check if kauditd is valid after we start it, if kauditd is
+invalid, we will set kauditd_task to NULL.  So next time, we will start
+kauditd again.
 
-Tested with:
+It means if kauditd_task is not NULL,it must be valid.
 
-$ cat test.h
-/* test.h - Test file */
-
-static inline int foo(void) { return 0; }
-
-static inline int bar(void)
-{
-        return 1;
-
-}
-
-$ ./scripts/checkpatch.pl --strict -f test.h # Before this commit
-CHECK: Blank lines aren't necessary before a close brace '}'
-+
-+static inline int foo(void) { return 0; }
-
-CHECK: Blank lines aren't necessary before a close brace '}'
-+
-+}
-
-total: 0 errors, 0 warnings, 2 checks, 9 lines checked
-
-$ ./scripts/checkpatch.pl --strict -f test.h # After this commit
-CHECK: Blank lines aren't necessary before a close brace '}'
-+
-+}
-
-total: 0 errors, 0 warnings, 1 checks, 9 lines checked
-
-Signed-off-by: Matthijs Kooijman <matthijs@stdin.nl>
-Cc: Andy Whitcroft <apw@canonical.com>
-Acked-by: Joe Perches <joe@perches.com>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/audit.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-only-warn-for-empty-lines-before-closing-braces-by-themselves scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-only-warn-for-empty-lines-before-closing-braces-by-themselves
-+++ a/scripts/checkpatch.pl
-@@ -3229,7 +3229,7 @@ sub process {
- 		}
+diff -puN kernel/audit.c~audit-dont-check-if-kauditd-is-valid-every-time kernel/audit.c
+--- a/kernel/audit.c~audit-dont-check-if-kauditd-is-valid-every-time
++++ a/kernel/audit.c
+@@ -660,14 +660,14 @@ static int audit_receive_msg(struct sk_b
  
- # check for unnecessary blank lines around braces
--		if (($line =~ /^..*}\s*$/ && $prevline =~ /^.\s*$/)) {
-+		if (($line =~ /^.\s*}\s*$/ && $prevline =~ /^.\s*$/)) {
- 			CHK("BRACES",
- 			    "Blank lines aren't necessary before a close brace '}'\n" . $hereprev);
- 		}
-_
-
-Patches currently in -mm which might be from matthijs@stdin.nl are
-
-linux-next.patch
-checkpatch-only-warn-for-empty-lines-before-closing-braces-by-themselves.patch
-
+ 	/* As soon as there's any sign of userspace auditd,
+ 	 * start kauditd to talk to it */
+-	if (!kauditd_task)
++	if (!kauditd_task) {
+ 		kauditd_task = kthread_run(kauditd_thread, NULL, "kauditd");
+-	if (IS_ERR(kauditd_task)) {
+-		err = PTR_ERR(kauditd_task);
+-		kauditd_task = NULL;
+-		return err;
++		if (IS_ERR(kauditd_task)) {
++			err = PTR_ERR(kauditd_task);
++			kauditd_task = NULL;
++			return err;
++		}
+ 	}
