@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-max8998-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:30 -0700
-Message-ID: <20130411234830.B1AE85A41BD@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-mc13xxx-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:32 -0700
+Message-ID: <20130411234832.C265631C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:41288 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001Ab3DKXsb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:31 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r13so199406ghr.0
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:31 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:54734 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab3DKXsd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:33 -0400
+Received: by mail-yh0-f74.google.com with SMTP id q10so199316yhf.1
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-max8998: use devm_*() functions
+     Subject: rtc: rtc-mc13xxx: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-max8998-use-devm_-functions.patch
+     rtc-rtc-mc13xxx-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-max8998: use devm_*() functions
+Subject: rtc: rtc-mc13xxx: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,59 +42,54 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max8998.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ drivers/rtc/rtc-mc13xxx.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-max8998.c~rtc-rtc-max8998-use-devm_-functions drivers/rtc/rtc-max8998.c
---- a/drivers/rtc/rtc-max8998.c~rtc-rtc-max8998-use-devm_-functions
-+++ a/drivers/rtc/rtc-max8998.c
-@@ -256,7 +256,8 @@ static int max8998_rtc_probe(struct plat
- 	struct max8998_rtc_info *info;
- 	int ret;
+diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-rtc-mc13xxx-use-devm_-functions drivers/rtc/rtc-mc13xxx.c
+--- a/drivers/rtc/rtc-mc13xxx.c~rtc-rtc-mc13xxx-use-devm_-functions
++++ a/drivers/rtc/rtc-mc13xxx.c
+@@ -316,7 +316,7 @@ static int __init mc13xxx_rtc_probe(stru
+ 	struct mc13xxx *mc13xxx;
+ 	int rtcrst_pending;
  
--	info = kzalloc(sizeof(struct max8998_rtc_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct max8998_rtc_info),
-+			GFP_KERNEL);
- 	if (!info)
+-	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
  		return -ENOMEM;
  
-@@ -267,7 +268,7 @@ static int max8998_rtc_probe(struct plat
+@@ -351,8 +351,8 @@ static int __init mc13xxx_rtc_probe(stru
  
- 	platform_set_drvdata(pdev, info);
+ 	mc13xxx_unlock(mc13xxx);
  
--	info->rtc_dev = rtc_device_register("max8998-rtc", &pdev->dev,
-+	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "max8998-rtc",
- 			&max8998_rtc_ops, THIS_MODULE);
+-	priv->rtc = rtc_device_register(pdev->name,
+-			&pdev->dev, &mc13xxx_rtc_ops, THIS_MODULE);
++	priv->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
++					&mc13xxx_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(priv->rtc)) {
+ 		ret = PTR_ERR(priv->rtc);
  
- 	if (IS_ERR(info->rtc_dev)) {
-@@ -276,8 +277,8 @@ static int max8998_rtc_probe(struct plat
- 		goto out_rtc;
+@@ -372,7 +372,6 @@ err_reset_irq_request:
+ 		mc13xxx_unlock(mc13xxx);
+ 
+ 		platform_set_drvdata(pdev, NULL);
+-		kfree(priv);
  	}
  
--	ret = request_threaded_irq(info->irq, NULL, max8998_rtc_alarm_irq, 0,
--			"rtc-alarm0", info);
-+	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
-+				max8998_rtc_alarm_irq, 0, "rtc-alarm0", info);
- 
- 	if (ret < 0)
- 		dev_err(&pdev->dev, "Failed to request alarm IRQ: %d: %d\n",
-@@ -294,20 +295,11 @@ static int max8998_rtc_probe(struct plat
- 
- out_rtc:
- 	platform_set_drvdata(pdev, NULL);
--	kfree(info);
  	return ret;
- }
+@@ -384,8 +383,6 @@ static int __exit mc13xxx_rtc_remove(str
  
- static int max8998_rtc_remove(struct platform_device *pdev)
- {
--	struct max8998_rtc_info *info = platform_get_drvdata(pdev);
+ 	mc13xxx_lock(priv->mc13xxx);
+ 
+-	rtc_device_unregister(priv->rtc);
 -
--	if (info) {
--		free_irq(info->irq, info);
--		rtc_device_unregister(info->rtc_dev);
--		kfree(info);
--	}
+ 	mc13xxx_irq_free(priv->mc13xxx, MC13XXX_IRQ_TODA, priv);
+ 	mc13xxx_irq_free(priv->mc13xxx, MC13XXX_IRQ_1HZ, priv);
+ 	mc13xxx_irq_free(priv->mc13xxx, MC13XXX_IRQ_RTCRST, priv);
+@@ -394,8 +391,6 @@ static int __exit mc13xxx_rtc_remove(str
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
+-	kfree(priv);
 -
  	return 0;
  }
