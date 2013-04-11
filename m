@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1374c-use-devm_-apis.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:01:45 -0700
-Message-ID: <20130411230145.CD7B931C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-max8925c-use-devm_-apis.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:01:51 -0700
+Message-ID: <20130411230151.CB91F31C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:36798 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765445Ab3DKXBr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:47 -0400
-Received: by mail-qa0-f73.google.com with SMTP id i20so101240qad.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:46 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:35869 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933289Ab3DKXBx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:53 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so9563qcr.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, scottwood@freescale.com
+Cc: sachin.kamat@linaro.org, haojian.zhuang@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1374.c: use devm_* APIs
+     Subject: drivers/rtc/rtc-max8925.c: use devm_* APIs
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1374c-use-devm_-apis.patch
+     drivers-rtc-rtc-max8925c-use-devm_-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,82 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ds1374.c: use devm_* APIs
+Subject: drivers/rtc/rtc-max8925.c: use devm_* APIs
 
 devm_* functions are device managed and make cleanup code simpler.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Scott Wood <scottwood@freescale.com>
+Acked-by: Haojian Zhuang <haojian.zhuang@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+ drivers/rtc/rtc-max8925.c |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-use-devm_-apis drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-use-devm_-apis
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -347,7 +347,7 @@ static int ds1374_probe(struct i2c_clien
- 	struct ds1374 *ds1374;
+diff -puN drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-use-devm_-apis drivers/rtc/rtc-max8925.c
+--- a/drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-use-devm_-apis
++++ a/drivers/rtc/rtc-max8925.c
+@@ -253,7 +253,8 @@ static int max8925_rtc_probe(struct plat
+ 	struct max8925_rtc_info *info;
  	int ret;
  
--	ds1374 = kzalloc(sizeof(struct ds1374), GFP_KERNEL);
-+	ds1374 = devm_kzalloc(&client->dev, sizeof(struct ds1374), GFP_KERNEL);
- 	if (!ds1374)
+-	info = kzalloc(sizeof(struct max8925_rtc_info), GFP_KERNEL);
++	info = devm_kzalloc(&pdev->dev, sizeof(struct max8925_rtc_info),
++			    GFP_KERNEL);
+ 	if (!info)
  		return -ENOMEM;
+ 	info->chip = chip;
+@@ -261,12 +262,13 @@ static int max8925_rtc_probe(struct plat
+ 	info->dev = &pdev->dev;
+ 	info->irq = platform_get_irq(pdev, 0);
  
-@@ -359,36 +359,27 @@ static int ds1374_probe(struct i2c_clien
- 
- 	ret = ds1374_check_rtc_status(client);
- 	if (ret)
--		goto out_free;
-+		return ret;
- 
- 	if (client->irq > 0) {
--		ret = request_irq(client->irq, ds1374_irq, 0,
-+		ret = devm_request_irq(&client->dev, client->irq, ds1374_irq, 0,
- 		                  "ds1374", client);
- 		if (ret) {
- 			dev_err(&client->dev, "unable to request IRQ\n");
--			goto out_free;
-+			return ret;
- 		}
- 
- 		device_set_wakeup_capable(&client->dev, 1);
+-	ret = request_threaded_irq(info->irq, NULL, rtc_update_handler,
+-				   IRQF_ONESHOT, "rtc-alarm0", info);
++	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
++					rtc_update_handler, IRQF_ONESHOT,
++					"rtc-alarm0", info);
+ 	if (ret < 0) {
+ 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
+ 			info->irq, ret);
+-		goto out_irq;
++		goto err;
  	}
  
--	ds1374->rtc = rtc_device_register(client->name, &client->dev,
-+	ds1374->rtc = devm_rtc_device_register(&client->dev, client->name,
- 	                                  &ds1374_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(ds1374->rtc)) {
--		ret = PTR_ERR(ds1374->rtc);
- 		dev_err(&client->dev, "unable to register the class device\n");
--		goto out_irq;
-+		return PTR_ERR(ds1374->rtc);
+ 	dev_set_drvdata(&pdev->dev, info);
+@@ -275,32 +277,22 @@ static int max8925_rtc_probe(struct plat
+ 
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+-	info->rtc_dev = rtc_device_register("max8925-rtc", &pdev->dev,
++	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "max8925-rtc",
+ 					&max8925_rtc_ops, THIS_MODULE);
+ 	ret = PTR_ERR(info->rtc_dev);
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
+-		goto out_rtc;
++		goto err;
  	}
  
  	return 0;
--
+-out_rtc:
++err:
+ 	platform_set_drvdata(pdev, NULL);
+-	free_irq(info->irq, info);
 -out_irq:
--	if (client->irq > 0)
--		free_irq(client->irq, client);
--
--out_free:
--	kfree(ds1374);
--	return ret;
+-	kfree(info);
+ 	return ret;
  }
  
- static int ds1374_remove(struct i2c_client *client)
-@@ -400,12 +391,10 @@ static int ds1374_remove(struct i2c_clie
- 		ds1374->exiting = 1;
- 		mutex_unlock(&ds1374->mutex);
- 
--		free_irq(client->irq, client);
-+		devm_free_irq(&client->dev, client->irq, client);
- 		cancel_work_sync(&ds1374->work);
- 	}
- 
--	rtc_device_unregister(ds1374->rtc);
--	kfree(ds1374);
+ static int max8925_rtc_remove(struct platform_device *pdev)
+ {
+-	struct max8925_rtc_info *info = platform_get_drvdata(pdev);
+-
+-	if (info) {
+-		free_irq(info->irq, info);
+-		rtc_device_unregister(info->rtc_dev);
+-		kfree(info);
+-	}
  	return 0;
  }
  
