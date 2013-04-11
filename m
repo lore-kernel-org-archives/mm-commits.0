@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c.patch added to -mm tree
-Date: Thu, 11 Apr 2013 15:52:37 -0700
-Message-ID: <20130411225237.6CA785A4228@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-mmap-check-for-rlimit_as-before-unmapping.patch added to -mm tree
+Date: Thu, 11 Apr 2013 15:57:43 -0700
+Message-ID: <20130411225743.7F9E631C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:36059 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752968Ab3DKWwi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 18:52:38 -0400
-Received: by mail-yh0-f74.google.com with SMTP id q10so195818yhf.1
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 15:52:37 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:52936 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1765445Ab3DKW5o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 18:57:44 -0400
+Received: by mail-gg0-f201.google.com with SMTP id q6so196343ggc.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 15:57:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, woong.byun@samsung.com
+Cc: chrubis@suse.cz, liwanp@linux.vnet.ibm.com, mgorman@suse.de
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max77686.c: use devm_regmap_init_i2c()
+     Subject: mm/mmap: check for RLIMIT_AS before unmapping
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c.patch
+     mm-mmap-check-for-rlimit_as-before-unmapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max77686.c: use devm_regmap_init_i2c()
+From: Cyril Hrubis <chrubis@suse.cz>
+Subject: mm/mmap: check for RLIMIT_AS before unmapping
 
-This driver already uses other devm_* APIs.
-Convert regmap_init_i2c too.
+Fix a corner case for MAP_FIXED when requested mapping length is larger
+than rlimit for virtual memory.  In such case any overlapping mappings are
+unmapped before we check for the limit and return ENOMEM.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Chiwoong Byun <woong.byun@samsung.com>
+The check is moved before the loop that unmaps overlapping parts of
+existing mappings.  When we are about to hit the limit (currently mapped
+pages + len > limit) we scan for overlapping pages and check again
+accounting for them.
+
+This fixes situation when userspace program expects that the previous
+mappings are preserved after the mmap() syscall has returned with error. 
+(POSIX clearly states that successfull mapping shall replace any previous
+mappings.)
+
+This corner case was found and can be tested with LTP testcase:
+
+testcases/open_posix_testsuite/conformance/interfaces/mmap/24-2.c
+
+In this case the mmap, which is clearly over current limit, unmaps dynamic
+libraries and the testcase segfaults right after returning into userspace.
+
+I've also looked at the second instance of the unmapping loop in the
+do_brk().  The do_brk() is called from brk() syscall and from vm_brk(). 
+The brk() syscall checks for overlapping mappings and bails out when there
+are any (so it can't be triggered from the brk syscall).  The vm_brk() is
+called only from binmft handlers so it shouldn't be triggered unless
+binmft handler created overlapping mappings.
+
+Signed-off-by: Cyril Hrubis <chrubis@suse.cz>
+Reviewed-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |   50 ++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 46 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -514,7 +514,7 @@ static int max77686_rtc_probe(struct pla
- 	info->dev = &pdev->dev;
- 	info->max77686 = max77686;
- 	info->rtc = max77686->rtc;
--	info->max77686->rtc_regmap = regmap_init_i2c(info->max77686->rtc,
-+	info->max77686->rtc_regmap = devm_regmap_init_i2c(info->max77686->rtc,
- 					 &max77686_rtc_regmap_config);
- 	if (IS_ERR(info->max77686->rtc_regmap)) {
- 		ret = PTR_ERR(info->max77686->rtc_regmap);
-_
-
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
-
-linux-next.patch
-drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
-drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
-drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max8997c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max77686c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max8907c-remove-redundant-code.patch
-drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c.patch
-
+diff -puN mm/mmap.c~mm-mmap-check-for-rlimit_as-before-unmapping mm/mmap.c
+--- a/mm/mmap.c~mm-mmap-check-for-rlimit_as-before-unmapping
++++ a/mm/mmap.c
+@@ -6,6 +6,7 @@
+  * Address space accounting code	<alan@lxorguk.ukuu.org.uk>
+  */
+ 
++#include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/backing-dev.h>
+ #include <linux/mm.h>
+@@ -550,6 +551,34 @@ static int find_vma_links(struct mm_stru
+ 	return 0;
+ }
+ 
++static unsigned long count_vma_pages_range(struct mm_struct *mm,
++		unsigned long addr, unsigned long end)
++{
++	unsigned long nr_pages = 0;
++	struct vm_area_struct *vma;
++
++	/* Find first overlaping mapping */
++	vma = find_vma_intersection(mm, addr, end);
++	if (!vma)
++		return 0;
++
++	nr_pages = (min(end, vma->vm_end) -
++		max(addr, vma->vm_start)) >> PAGE_SHIFT;
++
++	/* Iterate over the rest of the overlaps */
++	for (vma = vma->vm_next; vma; vma = vma->vm_next) {
++		unsigned long overlap_len;
++
++		if (vma->vm_start > end)
++			break;
++
++		overlap_len = min(end, vma->vm_end) - vma->vm_start;
++		nr_pages += overlap_len >> PAGE_SHIFT;
++	}
++
++	return nr_pages;
++}
++
+ void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ {
+@@ -1442,6 +1471,23 @@ unsigned long mmap_region(struct file *f
+ 	unsigned long charged = 0;
+ 	struct inode *inode =  file ? file_inode(file) : NULL;
+ 
++	/* Check against address space limit. */
++	if (!may_expand_vm(mm, len >> PAGE_SHIFT)) {
++		unsigned long nr_pages;
++
++		/*
++		 * MAP_FIXED may remove pages of mappings that intersects with
++		 * requested mapping. Account for the pages it would unmap.
++		 */
++		if (!(vm_flags & MAP_FIXED))
++			return -ENOMEM;
++
++		nr_pages = count_vma_pages_range(mm, addr, addr + len);
++
++		if (!may_expand_vm(mm, (len >> PAGE_SHIFT) - nr_pages))
++			return -ENOMEM;
++	}
++
+ 	/* Clear old maps */
+ 	error = -ENOMEM;
+ munmap_back:
+@@ -1451,10 +1497,6 @@ munmap_back:
+ 		goto munmap_back;
+ 	}
+ 
+-	/* Check against address space limit. */
+-	if (!may_expand_vm(mm, len >> PAGE_SHIFT))
+-		return -ENOMEM;
