@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-pxac-use-devm_-apis.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:01:53 -0700
-Message-ID: <20130411230153.CB4F231C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-break-up-swap_writepage-for-frontswap-backends.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:11:36 -0700
+Message-ID: <20130411231136.DD23831C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36934 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289Ab3DKXBz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:55 -0400
-Received: by mail-gg0-f202.google.com with SMTP id q1so196665ggn.3
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:54 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:57108 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754850Ab3DKXLi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:11:38 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r13so196961ghr.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:11:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, robert.jarzmik@free.fr
+Cc: sjenning@linux.vnet.ibm.com, bob.liu@oracle.com, dan.magenheimer@oracle.com, konrad.wilk@oracle.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pxa.c: use devm_* APIs
+     Subject: mm: break up swap_writepage() for frontswap backends
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-pxac-use-devm_-apis.patch
+     mm-break-up-swap_writepage-for-frontswap-backends.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-pxa.c: use devm_* APIs
+From: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Subject: mm: break up swap_writepage() for frontswap backends
 
-devm_* functions are device managed and make cleanup code simpler.
+swap_writepage() is currently where frontswap hooks into the swap write
+path to capture pages with the frontswap_store() function.  However, if a
+frontswap backend wants to "resume" the writeback of a page to the swap
+device, it can't call swap_writepage() as the page will simply reenter the
+backend.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Jingoo Han <jg1.han@samsung.com>
+This patch separates swap_writepage() into a top and bottom half, the
+bottom half named __swap_writepage() to allow a frontswap backend, like
+zswap, to resume writeback beyond the frontswap_store() hook.
+
+__add_to_swap_cache() is also made non-static so that the page for
+which writeback is to be resumed can be added to the swap cache.
+
+Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Signed-off-by: Bob Liu <bob.liu@oracle.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pxa.c |   41 +++++++++++-----------------------------
- 1 file changed, 12 insertions(+), 29 deletions(-)
+ include/linux/swap.h |    2 ++
+ mm/page_io.c         |   14 +++++++++++---
+ mm/swap_state.c      |    2 +-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-use-devm_-apis drivers/rtc/rtc-pxa.c
---- a/drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-use-devm_-apis
-+++ a/drivers/rtc/rtc-pxa.c
-@@ -364,7 +364,7 @@ static int __init pxa_rtc_probe(struct p
- 	int ret;
- 	u32 rttr;
+diff -puN include/linux/swap.h~mm-break-up-swap_writepage-for-frontswap-backends include/linux/swap.h
+--- a/include/linux/swap.h~mm-break-up-swap_writepage-for-frontswap-backends
++++ a/include/linux/swap.h
+@@ -330,6 +330,7 @@ static inline void mem_cgroup_uncharge_s
+ /* linux/mm/page_io.c */
+ extern int swap_readpage(struct page *);
+ extern int swap_writepage(struct page *page, struct writeback_control *wbc);
++extern int __swap_writepage(struct page *page, struct writeback_control *wbc);
+ extern int swap_set_page_dirty(struct page *page);
+ extern void end_swap_bio_read(struct bio *bio, int err);
  
--	pxa_rtc = kzalloc(sizeof(struct pxa_rtc), GFP_KERNEL);
-+	pxa_rtc = devm_kzalloc(dev, sizeof(struct pxa_rtc), GFP_KERNEL);
- 	if (!pxa_rtc)
- 		return -ENOMEM;
- 	rtc_info = pxa_rtc;
-@@ -375,37 +375,37 @@ static int __init pxa_rtc_probe(struct p
- 	pxa_rtc->ress = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!pxa_rtc->ress) {
- 		dev_err(dev, "No I/O memory resource defined\n");
--		goto err_ress;
-+		return ret;
- 	}
- 	pxa_rtc->ress_psbr = platform_get_resource(pdev, IORESOURCE_MEM, 1);
- 	if (!pxa_rtc->ress_psbr) {
- 		dev_err(dev, "No I/O memory resource defined\n");
--		goto err_ress;
-+		return ret;
- 	}
- 
- 	pxa_rtc->irq_1Hz = platform_get_irq(pdev, 0);
- 	if (pxa_rtc->irq_1Hz < 0) {
- 		dev_err(dev, "No 1Hz IRQ resource defined\n");
--		goto err_ress;
-+		return ret;
- 	}
- 	pxa_rtc->irq_Alrm = platform_get_irq(pdev, 1);
- 	if (pxa_rtc->irq_Alrm < 0) {
- 		dev_err(dev, "No alarm IRQ resource defined\n");
--		goto err_ress;
-+		return ret;
- 	}
- 	ret = -ENOMEM;
--	pxa_rtc->base = ioremap(pxa_rtc->ress->start,
-+	pxa_rtc->base = devm_ioremap(&pdev->dev, pxa_rtc->ress->start,
- 				resource_size(pxa_rtc->ress));
- 	if (!pxa_rtc->base) {
- 		dev_err(&pdev->dev, "Unable to map pxa RTC I/O memory\n");
--		goto err_map;
-+		return ret;
- 	}
- 
--	pxa_rtc->base_psbr = ioremap(pxa_rtc->ress_psbr->start,
-+	pxa_rtc->base_psbr = devm_ioremap(&pdev->dev, pxa_rtc->ress_psbr->start,
- 				resource_size(pxa_rtc->ress_psbr));
- 	if (!pxa_rtc->base_psbr) {
- 		dev_err(&pdev->dev, "Unable to map pxa RTC PSBR I/O memory\n");
--		goto err_map;
-+		return ret;
- 	}
- 	/*
- 	 * If the clock divider is uninitialized then reset it to the
-@@ -420,41 +420,24 @@ static int __init pxa_rtc_probe(struct p
- 
- 	rtsr_clear_bits(pxa_rtc, RTSR_PIALE | RTSR_RDALE1 | RTSR_HZE);
- 
--	pxa_rtc->rtc = rtc_device_register("pxa-rtc", &pdev->dev, &pxa_rtc_ops,
--					   THIS_MODULE);
-+	pxa_rtc->rtc = devm_rtc_device_register(&pdev->dev, "pxa-rtc",
-+						&pxa_rtc_ops, THIS_MODULE);
- 	ret = PTR_ERR(pxa_rtc->rtc);
- 	if (IS_ERR(pxa_rtc->rtc)) {
- 		dev_err(dev, "Failed to register RTC device -> %d\n", ret);
--		goto err_rtc_reg;
-+		return ret;
- 	}
- 
- 	device_init_wakeup(dev, 1);
- 	pxa_rtc_open(dev);
- 	return 0;
--
--err_rtc_reg:
--	 iounmap(pxa_rtc->base);
--err_ress:
--err_map:
--	kfree(pxa_rtc);
--	return ret;
- }
- 
- static int __exit pxa_rtc_remove(struct platform_device *pdev)
+@@ -345,6 +346,7 @@ extern unsigned long total_swapcache_pag
+ extern void show_swap_cache_info(void);
+ extern int add_to_swap(struct page *);
+ extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
++extern int __add_to_swap_cache(struct page *page, swp_entry_t entry);
+ extern void __delete_from_swap_cache(struct page *);
+ extern void delete_from_swap_cache(struct page *);
+ extern void free_page_and_swap_cache(struct page *);
+diff -puN mm/page_io.c~mm-break-up-swap_writepage-for-frontswap-backends mm/page_io.c
+--- a/mm/page_io.c~mm-break-up-swap_writepage-for-frontswap-backends
++++ a/mm/page_io.c
+@@ -184,9 +184,7 @@ bad_bmap:
+  */
+ int swap_writepage(struct page *page, struct writeback_control *wbc)
  {
--	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
--
- 	struct device *dev = &pdev->dev;
- 	pxa_rtc_release(dev);
+-	struct bio *bio;
+-	int ret = 0, rw = WRITE;
+-	struct swap_info_struct *sis = page_swap_info(page);
++	int ret = 0;
  
--	rtc_device_unregister(pxa_rtc->rtc);
--
--	spin_lock_irq(&pxa_rtc->lock);
--	iounmap(pxa_rtc->base);
--	spin_unlock_irq(&pxa_rtc->lock);
--
--	kfree(pxa_rtc);
+ 	if (try_to_free_swap(page)) {
+ 		unlock_page(page);
+@@ -198,6 +196,16 @@ int swap_writepage(struct page *page, st
+ 		end_page_writeback(page);
+ 		goto out;
+ 	}
++	ret = __swap_writepage(page, wbc);
++out:
++	return ret;
++}
++
++int __swap_writepage(struct page *page, struct writeback_control *wbc)
++{
++	struct bio *bio;
++	int ret = 0, rw = WRITE;
++	struct swap_info_struct *sis = page_swap_info(page);
+ 
+ 	if (sis->flags & SWP_FILE) {
+ 		struct kiocb kiocb;
+diff -puN mm/swap_state.c~mm-break-up-swap_writepage-for-frontswap-backends mm/swap_state.c
+--- a/mm/swap_state.c~mm-break-up-swap_writepage-for-frontswap-backends
++++ a/mm/swap_state.c
+@@ -78,7 +78,7 @@ void show_swap_cache_info(void)
+  * __add_to_swap_cache resembles add_to_page_cache_locked on swapper_space,
+  * but sets SwapCache flag and private instead of mapping and index.
+  */
+-static int __add_to_swap_cache(struct page *page, swp_entry_t entry)
++int __add_to_swap_cache(struct page *page, swp_entry_t entry)
+ {
+ 	int error;
+ 	struct address_space *address_space;
+_
+
+Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
+
+mm-break-up-swap_writepage-for-frontswap-backends.patch
+mm-allow-for-outstanding-swap-writeback-accounting.patch
+
