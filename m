@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds3232c-use-devm_-apis.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:01:47 -0700
-Message-ID: <20130411230147.C986131C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-m48t35c-use-devm_-apis.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:01:49 -0700
+Message-ID: <20130411230149.CC2FB5A4228@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:42181 "EHLO
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:42818 "EHLO
 	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765536Ab3DKXBs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:48 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r13so196390ghr.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:48 -0700 (PDT)
+	with ESMTP id S933289Ab3DKXBu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:50 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r13so196391ghr.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, srikanth.srinivasan@freescale.com
+Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, tsbogend@alpha.franken.de
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds3232.c: use devm_* APIs
+     Subject: drivers/rtc/rtc-m48t35.c: use devm_* APIs
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds3232c-use-devm_-apis.patch
+     drivers-rtc-rtc-m48t35c-use-devm_-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,93 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ds3232.c: use devm_* APIs
+Subject: drivers/rtc/rtc-m48t35.c: use devm_* APIs
 
 devm_* functions are device managed and make cleanup code simpler.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Srikanth Srinivasan <srikanth.srinivasan@freescale.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3232.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+ drivers/rtc/rtc-m48t35.c |   42 ++++++++-----------------------------
+ 1 file changed, 10 insertions(+), 32 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-use-devm_-apis drivers/rtc/rtc-ds3232.c
---- a/drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-use-devm_-apis
-+++ a/drivers/rtc/rtc-ds3232.c
-@@ -397,7 +397,7 @@ static int ds3232_probe(struct i2c_clien
- 	struct ds3232 *ds3232;
- 	int ret;
+diff -puN drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-devm_-apis drivers/rtc/rtc-m48t35.c
+--- a/drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-devm_-apis
++++ a/drivers/rtc/rtc-m48t35.c
+@@ -145,12 +145,11 @@ static int m48t35_probe(struct platform_
+ {
+ 	struct resource *res;
+ 	struct m48t35_priv *priv;
+-	int ret = 0;
  
--	ds3232 = kzalloc(sizeof(struct ds3232), GFP_KERNEL);
-+	ds3232 = devm_kzalloc(&client->dev, sizeof(struct ds3232), GFP_KERNEL);
- 	if (!ds3232)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+ 		return -ENODEV;
+-	priv = kzalloc(sizeof(struct m48t35_priv), GFP_KERNEL);
++	priv = devm_kzalloc(&pdev->dev, sizeof(struct m48t35_priv), GFP_KERNEL);
+ 	if (!priv)
  		return -ENOMEM;
  
-@@ -409,34 +409,25 @@ static int ds3232_probe(struct i2c_clien
+@@ -160,50 +159,29 @@ static int m48t35_probe(struct platform_
+ 	 * conflicts are resolved
+ 	 */
+ #ifndef CONFIG_SGI_IP27
+-	if (!request_mem_region(res->start, priv->size, pdev->name)) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
++	if (!devm_request_mem_region(&pdev->dev, res->start, priv->size,
++				     pdev->name))
++		return -EBUSY;
+ #endif
+ 	priv->baseaddr = res->start;
+-	priv->reg = ioremap(priv->baseaddr, priv->size);
+-	if (!priv->reg) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
++	priv->reg = devm_ioremap(&pdev->dev, priv->baseaddr, priv->size);
++	if (!priv->reg)
++		return -ENOMEM;
  
- 	ret = ds3232_check_rtc_status(client);
- 	if (ret)
--		goto out_free;
-+		return ret;
+ 	spin_lock_init(&priv->lock);
  
--	ds3232->rtc = rtc_device_register(client->name, &client->dev,
-+	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
- 					  &ds3232_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(ds3232->rtc)) {
--		ret = PTR_ERR(ds3232->rtc);
- 		dev_err(&client->dev, "unable to register the class device\n");
--		goto out_irq;
-+		return PTR_ERR(ds3232->rtc);
- 	}
+ 	platform_set_drvdata(pdev, priv);
  
- 	if (client->irq >= 0) {
--		ret = request_irq(client->irq, ds3232_irq, 0,
-+		ret = devm_request_irq(&client->dev, client->irq, ds3232_irq, 0,
- 				 "ds3232", client);
- 		if (ret) {
- 			dev_err(&client->dev, "unable to request IRQ\n");
--			goto out_free;
-+			return ret;
- 		}
- 	}
+-	priv->rtc = rtc_device_register("m48t35", &pdev->dev,
++	priv->rtc = devm_rtc_device_register(&pdev->dev, "m48t35",
+ 				  &m48t35_ops, THIS_MODULE);
+-	if (IS_ERR(priv->rtc)) {
+-		ret = PTR_ERR(priv->rtc);
+-		goto out;
+-	}
++	if (IS_ERR(priv->rtc))
++		return PTR_ERR(priv->rtc);
  
  	return 0;
 -
--out_irq:
--	if (client->irq >= 0)
--		free_irq(client->irq, client);
--
--out_free:
--	kfree(ds3232);
+-out:
+-	if (priv->reg)
+-		iounmap(priv->reg);
+-	if (priv->baseaddr)
+-		release_mem_region(priv->baseaddr, priv->size);
+-	kfree(priv);
 -	return ret;
  }
  
- static int ds3232_remove(struct i2c_client *client)
-@@ -448,12 +439,10 @@ static int ds3232_remove(struct i2c_clie
- 		ds3232->exiting = 1;
- 		mutex_unlock(&ds3232->mutex);
- 
--		free_irq(client->irq, client);
-+		devm_free_irq(&client->dev, client->irq, client);
- 		cancel_work_sync(&ds3232->work);
- 	}
- 
--	rtc_device_unregister(ds3232->rtc);
--	kfree(ds3232);
+ static int m48t35_remove(struct platform_device *pdev)
+ {
+-	struct m48t35_priv *priv = platform_get_drvdata(pdev);
+-
+-	rtc_device_unregister(priv->rtc);
+-	iounmap(priv->reg);
+-#ifndef CONFIG_SGI_IP27
+-	release_mem_region(priv->baseaddr, priv->size);
+-#endif
+-	kfree(priv);
  	return 0;
  }
  
