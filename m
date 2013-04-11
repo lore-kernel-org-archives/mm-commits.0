@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + resource-add-release_mem_region_adjustable-fix-fix-fix-fix.patch added to -mm tree
-Date: Thu, 11 Apr 2013 15:44:56 -0700
-Message-ID: <20130411224456.D0F9A31C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-vmscan-fix-error-return-in-kswapd_run.patch added to -mm tree
+Date: Thu, 11 Apr 2013 15:50:55 -0700
+Message-ID: <20130411225055.73D7231C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:45003 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763192Ab3DKWo5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 18:44:57 -0400
-Received: by mail-yh0-f73.google.com with SMTP id 47so194920yhr.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 15:44:57 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:60418 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752043Ab3DKWu4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 18:50:56 -0400
+Received: by mail-gg0-f202.google.com with SMTP id q1so195933ggn.3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 15:50:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: toshi.kani@hp.com, rientjes@google.com
+Cc: qiuxishi@huawei.com, liwanp@linux.vnet.ibm.com, riel@redhat.com
 
 
 The patch titled
-     Subject: resource: update config option of release_mem_region_adjustable()
+     Subject: mm/vmscan: fix error return in kswapd_run()
 has been added to the -mm tree.  Its filename is
-     resource-add-release_mem_region_adjustable-fix-fix-fix-fix.patch
+     mm-vmscan-fix-error-return-in-kswapd_run.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: resource: update config option of release_mem_region_adjustable()
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm/vmscan: fix error return in kswapd_run()
 
-Change the config option of release_mem_region_adjustable() from
-CONFIG_MEMORY_HOTPLUG to CONFIG_MEMORY_HOTREMOVE since this function
-is only used for memory hot-delete.
+Fix the error return value in kswapd_run().  The bug was introduced by
+d5dc0ad928fb9 ("mm/vmscan: fix error number for failed kthread").
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Suggested-by: David Rientjes <rientjes@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    2 +-
- kernel/resource.c      |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ioport.h~resource-add-release_mem_region_adjustable-fix-fix-fix-fix include/linux/ioport.h
---- a/include/linux/ioport.h~resource-add-release_mem_region_adjustable-fix-fix-fix-fix
-+++ a/include/linux/ioport.h
-@@ -192,7 +192,7 @@ extern struct resource * __request_regio
- extern int __check_region(struct resource *, resource_size_t, resource_size_t);
- extern void __release_region(struct resource *, resource_size_t,
- 				resource_size_t);
--#ifdef CONFIG_MEMORY_HOTPLUG
-+#ifdef CONFIG_MEMORY_HOTREMOVE
- extern int release_mem_region_adjustable(struct resource *, resource_size_t,
- 				resource_size_t);
- #endif
-diff -puN kernel/resource.c~resource-add-release_mem_region_adjustable-fix-fix-fix-fix kernel/resource.c
---- a/kernel/resource.c~resource-add-release_mem_region_adjustable-fix-fix-fix-fix
-+++ a/kernel/resource.c
-@@ -1021,7 +1021,7 @@ void __release_region(struct resource *p
- }
- EXPORT_SYMBOL(__release_region);
- 
--#ifdef CONFIG_MEMORY_HOTPLUG
-+#ifdef CONFIG_MEMORY_HOTREMOVE
- /**
-  * release_mem_region_adjustable - release a previously reserved memory region
-  * @parent: parent resource descriptor
-@@ -1122,7 +1122,7 @@ int release_mem_region_adjustable(struct
- 	kfree(new_res);
+diff -puN mm/vmscan.c~mm-vmscan-fix-error-return-in-kswapd_run mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-error-return-in-kswapd_run
++++ a/mm/vmscan.c
+@@ -3192,9 +3192,9 @@ int kswapd_run(int nid)
+ 	if (IS_ERR(pgdat->kswapd)) {
+ 		/* failure at boot is fatal */
+ 		BUG_ON(system_state == SYSTEM_BOOTING);
+-		pgdat->kswapd = NULL;
+ 		pr_err("Failed to start kswapd on node %d\n", nid);
+ 		ret = PTR_ERR(pgdat->kswapd);
++		pgdat->kswapd = NULL;
+ 	}
  	return ret;
  }
--#endif	/* CONFIG_MEMORY_HOTPLUG */
-+#endif	/* CONFIG_MEMORY_HOTREMOVE */
- 
- /*
-  * Managed region resource
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
 linux-next.patch
-mm-walk_memory_range-fix-typo-in-comment.patch
-resource-add-__adjust_resource-for-internal-use.patch
-resource-add-release_mem_region_adjustable.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix-fix-fix.patch
-mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch
-mm-hotplug-avoid-compiling-memory-hotremove-functions-when-disabled.patch
+arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n.patch
+mm-vmscan-fix-error-return-in-kswapd_run.patch
 
