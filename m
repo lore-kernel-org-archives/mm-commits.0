@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-msm6242-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:34 -0700
-Message-ID: <20130411234834.BBFC331C2A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-nuc900-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:36 -0700
+Message-ID: <20130411234836.C47F531C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:61281 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742Ab3DKXsf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:35 -0400
-Received: by mail-qa0-f73.google.com with SMTP id i20so104242qad.0
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:35 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:57365 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab3DKXsh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:37 -0400
+Received: by mail-ye0-f202.google.com with SMTP id l8so199061yen.5
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-msm6242: use devm_*() functions
+     Subject: rtc: rtc-nuc900: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-msm6242-use-devm_-functions.patch
+     rtc-rtc-nuc900-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-msm6242: use devm_*() functions
+Subject: rtc: rtc-nuc900: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,75 +42,102 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-msm6242.c |   32 +++++++++++---------------------
- 1 file changed, 11 insertions(+), 21 deletions(-)
+ drivers/rtc/rtc-nuc900.c |   53 +++++++------------------------------
+ 1 file changed, 11 insertions(+), 42 deletions(-)
 
-diff -puN drivers/rtc/rtc-msm6242.c~rtc-rtc-msm6242-use-devm_-functions drivers/rtc/rtc-msm6242.c
---- a/drivers/rtc/rtc-msm6242.c~rtc-rtc-msm6242-use-devm_-functions
-+++ a/drivers/rtc/rtc-msm6242.c
-@@ -194,30 +194,28 @@ static const struct rtc_class_ops msm624
- 	.set_time	= msm6242_set_time,
- };
- 
--static int __init msm6242_rtc_probe(struct platform_device *dev)
-+static int __init msm6242_rtc_probe(struct platform_device *pdev)
+diff -puN drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-devm_-functions drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-devm_-functions
++++ a/drivers/rtc/rtc-nuc900.c
+@@ -226,9 +226,9 @@ static int __init nuc900_rtc_probe(struc
  {
  	struct resource *res;
- 	struct msm6242_priv *priv;
- 	struct rtc_device *rtc;
- 	int error;
+ 	struct nuc900_rtc *nuc900_rtc;
+-	int err = 0;
  
--	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENODEV;
- 
--	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
- 	if (!priv)
+-	nuc900_rtc = kzalloc(sizeof(struct nuc900_rtc), GFP_KERNEL);
++	nuc900_rtc = devm_kzalloc(&pdev->dev, sizeof(struct nuc900_rtc),
++				GFP_KERNEL);
+ 	if (!nuc900_rtc) {
+ 		dev_err(&pdev->dev, "kzalloc nuc900_rtc failed\n");
  		return -ENOMEM;
+@@ -236,68 +236,37 @@ static int __init nuc900_rtc_probe(struc
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "platform_get_resource failed\n");
+-		err = -ENXIO;
+-		goto fail1;
++		return -ENXIO;
+ 	}
  
--	priv->regs = ioremap(res->start, resource_size(res));
--	if (!priv->regs) {
--		error = -ENOMEM;
--		goto out_free_priv;
+-	if (!request_mem_region(res->start, resource_size(res),
+-				pdev->name)) {
+-		dev_err(&pdev->dev, "request_mem_region failed\n");
+-		err = -EBUSY;
+-		goto fail1;
 -	}
--	platform_set_drvdata(dev, priv);
-+	priv->regs = devm_ioremap(&pdev->dev, res->start, resource_size(res));
-+	if (!priv->regs)
-+		return -ENOMEM;
-+	platform_set_drvdata(pdev, priv);
- 
--	rtc = rtc_device_register("rtc-msm6242", &dev->dev, &msm6242_rtc_ops,
--				  THIS_MODULE);
-+	rtc = devm_rtc_device_register(&pdev->dev, "rtc-msm6242",
-+				&msm6242_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		error = PTR_ERR(rtc);
- 		goto out_unmap;
-@@ -227,20 +225,12 @@ static int __init msm6242_rtc_probe(stru
- 	return 0;
- 
- out_unmap:
--	platform_set_drvdata(dev, NULL);
--	iounmap(priv->regs);
--out_free_priv:
--	kfree(priv);
-+	platform_set_drvdata(pdev, NULL);
- 	return error;
- }
- 
--static int __exit msm6242_rtc_remove(struct platform_device *dev)
-+static int __exit msm6242_rtc_remove(struct platform_device *pdev)
- {
--	struct msm6242_priv *priv = platform_get_drvdata(dev);
 -
--	rtc_device_unregister(priv->rtc);
--	iounmap(priv->regs);
--	kfree(priv);
+-	nuc900_rtc->rtc_reg = ioremap(res->start, resource_size(res));
+-	if (!nuc900_rtc->rtc_reg) {
+-		dev_err(&pdev->dev, "ioremap rtc_reg failed\n");
+-		err = -ENOMEM;
+-		goto fail2;
+-	}
++	nuc900_rtc->rtc_reg = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(nuc900_rtc->rtc_reg))
++		return PTR_ERR(nuc900_rtc->rtc_reg);
+ 
+ 	platform_set_drvdata(pdev, nuc900_rtc);
+ 
+-	nuc900_rtc->rtcdev = rtc_device_register(pdev->name, &pdev->dev,
++	nuc900_rtc->rtcdev = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 						&nuc900_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(nuc900_rtc->rtcdev)) {
+ 		dev_err(&pdev->dev, "rtc device register failed\n");
+-		err = PTR_ERR(nuc900_rtc->rtcdev);
+-		goto fail3;
++		return PTR_ERR(nuc900_rtc->rtcdev);
+ 	}
+ 
+ 	__raw_writel(__raw_readl(nuc900_rtc->rtc_reg + REG_RTC_TSSR) | MODE24,
+ 					nuc900_rtc->rtc_reg + REG_RTC_TSSR);
+ 
+ 	nuc900_rtc->irq_num = platform_get_irq(pdev, 0);
+-	if (request_irq(nuc900_rtc->irq_num, nuc900_rtc_interrupt,
+-				0, "nuc900rtc", nuc900_rtc)) {
++	if (devm_request_irq(&pdev->dev, nuc900_rtc->irq_num,
++			nuc900_rtc_interrupt, 0, "nuc900rtc", nuc900_rtc)) {
+ 		dev_err(&pdev->dev, "NUC900 RTC request irq failed\n");
+-		err = -EBUSY;
+-		goto fail4;
++		return -EBUSY;
+ 	}
+ 
  	return 0;
+-
+-fail4:	rtc_device_unregister(nuc900_rtc->rtcdev);
+-fail3:	iounmap(nuc900_rtc->rtc_reg);
+-fail2:	release_mem_region(res->start, resource_size(res));
+-fail1:	kfree(nuc900_rtc);
+-	return err;
  }
  
+ static int __exit nuc900_rtc_remove(struct platform_device *pdev)
+ {
+-	struct nuc900_rtc *nuc900_rtc = platform_get_drvdata(pdev);
+-	struct resource *res;
+-
+-	free_irq(nuc900_rtc->irq_num, nuc900_rtc);
+-	rtc_device_unregister(nuc900_rtc->rtcdev);
+-	iounmap(nuc900_rtc->rtc_reg);
+-
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(res->start, resource_size(res));
+-
+-	kfree(nuc900_rtc);
+-
+ 	platform_set_drvdata(pdev, NULL);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
