@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-s35390a-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:54 -0700
-Message-ID: <20130411234854.C5BFE5A41BD@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-sa1100-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:56 -0700
+Message-ID: <20130411234856.C54FC5A41BD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:36241 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736Ab3DKXsz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:55 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so12492qcr.4
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:55 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:61382 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751755Ab3DKXs5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:57 -0400
+Received: by mail-vb0-f73.google.com with SMTP id q12so199358vbe.0
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-s35390a: use devm_*() functions
+     Subject: rtc: rtc-sa1100: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-s35390a-use-devm_-functions.patch
+     rtc-rtc-sa1100-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-s35390a: use devm_*() functions
+Subject: rtc: rtc-sa1100: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,59 +42,63 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s35390a.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-sa1100.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-s35390a.c~rtc-rtc-s35390a-use-devm_-functions drivers/rtc/rtc-s35390a.c
---- a/drivers/rtc/rtc-s35390a.c~rtc-rtc-s35390a-use-devm_-functions
-+++ a/drivers/rtc/rtc-s35390a.c
-@@ -338,7 +338,8 @@ static int s35390a_probe(struct i2c_clie
- 		goto exit;
+diff -puN drivers/rtc/rtc-sa1100.c~rtc-rtc-sa1100-use-devm_-functions drivers/rtc/rtc-sa1100.c
+--- a/drivers/rtc/rtc-sa1100.c~rtc-rtc-sa1100-use-devm_-functions
++++ a/drivers/rtc/rtc-sa1100.c
+@@ -234,14 +234,13 @@ static int sa1100_rtc_probe(struct platf
+ 	if (irq_1hz < 0 || irq_alarm < 0)
+ 		return -ENODEV;
+ 
+-	info = kzalloc(sizeof(struct sa1100_rtc), GFP_KERNEL);
++	info = devm_kzalloc(&pdev->dev, sizeof(struct sa1100_rtc), GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+-	info->clk = clk_get(&pdev->dev, NULL);
++	info->clk = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(info->clk)) {
+ 		dev_err(&pdev->dev, "failed to find rtc clock source\n");
+-		ret = PTR_ERR(info->clk);
+-		goto err_clk;
++		return PTR_ERR(info->clk);
  	}
+ 	info->irq_1hz = irq_1hz;
+ 	info->irq_alarm = irq_alarm;
+@@ -268,8 +267,8 @@ static int sa1100_rtc_probe(struct platf
  
--	s35390a = kzalloc(sizeof(struct s35390a), GFP_KERNEL);
-+	s35390a = devm_kzalloc(&client->dev, sizeof(struct s35390a),
-+				GFP_KERNEL);
- 	if (!s35390a) {
- 		err = -ENOMEM;
- 		goto exit;
-@@ -386,8 +387,9 @@ static int s35390a_probe(struct i2c_clie
+ 	device_init_wakeup(&pdev->dev, 1);
  
- 	device_set_wakeup_capable(&client->dev, 1);
+-	rtc = rtc_device_register(pdev->name, &pdev->dev, &sa1100_rtc_ops,
+-		THIS_MODULE);
++	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &sa1100_rtc_ops,
++					THIS_MODULE);
  
--	s35390a->rtc = rtc_device_register(s35390a_driver.driver.name,
--				&client->dev, &s35390a_rtc_ops, THIS_MODULE);
-+	s35390a->rtc = devm_rtc_device_register(&client->dev,
-+					s35390a_driver.driver.name,
-+					&s35390a_rtc_ops, THIS_MODULE);
- 
- 	if (IS_ERR(s35390a->rtc)) {
- 		err = PTR_ERR(s35390a->rtc);
-@@ -399,7 +401,6 @@ exit_dummy:
- 	for (i = 1; i < 8; ++i)
- 		if (s35390a->client[i])
- 			i2c_unregister_device(s35390a->client[i]);
--	kfree(s35390a);
- 
- exit:
- 	return err;
-@@ -408,15 +409,12 @@ exit:
- static int s35390a_remove(struct i2c_client *client)
- {
- 	unsigned int i;
--
- 	struct s35390a *s35390a = i2c_get_clientdata(client);
-+
- 	for (i = 1; i < 8; ++i)
- 		if (s35390a->client[i])
- 			i2c_unregister_device(s35390a->client[i]);
- 
--	rtc_device_unregister(s35390a->rtc);
--	kfree(s35390a);
--
- 	return 0;
+ 	if (IS_ERR(rtc)) {
+ 		ret = PTR_ERR(rtc);
+@@ -306,9 +305,6 @@ err_dev:
+ 	clk_disable_unprepare(info->clk);
+ err_enable_clk:
+ 	platform_set_drvdata(pdev, NULL);
+-	clk_put(info->clk);
+-err_clk:
+-	kfree(info);
+ 	return ret;
  }
  
+@@ -317,11 +313,8 @@ static int sa1100_rtc_remove(struct plat
+ 	struct sa1100_rtc *info = platform_get_drvdata(pdev);
+ 
+ 	if (info) {
+-		rtc_device_unregister(info->rtc);
+ 		clk_disable_unprepare(info->clk);
+-		clk_put(info->clk);
+ 		platform_set_drvdata(pdev, NULL);
+-		kfree(info);
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
