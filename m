@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-bq4802-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:14 -0700
-Message-ID: <20130411234814.C3E5A31C2A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ds1216-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:16 -0700
+Message-ID: <20130411234816.C51F331C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:48587 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875Ab3DKXsP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:15 -0400
-Received: by mail-ve0-f201.google.com with SMTP id ox1so199110veb.0
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:15 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:35534 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab3DKXsR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:17 -0400
+Received: by mail-vb0-f73.google.com with SMTP id q12so199289vbe.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-bq4802: use devm_*() functions
+     Subject: rtc: rtc-ds1216: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-bq4802-use-devm_-functions.patch
+     rtc-rtc-ds1216-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-bq4802: use devm_*() functions
+Subject: rtc: rtc-ds1216: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,80 +42,85 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bq4802.c |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ drivers/rtc/rtc-ds1216.c |   44 +++++++------------------------------
+ 1 file changed, 9 insertions(+), 35 deletions(-)
 
-diff -puN drivers/rtc/rtc-bq4802.c~rtc-rtc-bq4802-use-devm_-functions drivers/rtc/rtc-bq4802.c
---- a/drivers/rtc/rtc-bq4802.c~rtc-rtc-bq4802-use-devm_-functions
-+++ a/drivers/rtc/rtc-bq4802.c
-@@ -142,7 +142,7 @@ static const struct rtc_class_ops bq4802
+diff -puN drivers/rtc/rtc-ds1216.c~rtc-rtc-ds1216-use-devm_-functions drivers/rtc/rtc-ds1216.c
+--- a/drivers/rtc/rtc-ds1216.c~rtc-rtc-ds1216-use-devm_-functions
++++ a/drivers/rtc/rtc-ds1216.c
+@@ -30,8 +30,6 @@ struct ds1216_regs {
+ struct ds1216_priv {
+ 	struct rtc_device *rtc;
+ 	void __iomem *ioaddr;
+-	size_t size;
+-	unsigned long baseaddr;
+ };
  
- static int bq4802_probe(struct platform_device *pdev)
+ static const u8 magic[] = {
+@@ -144,57 +142,33 @@ static int __init ds1216_rtc_probe(struc
  {
--	struct bq4802 *p = kzalloc(sizeof(*p), GFP_KERNEL);
-+	struct bq4802 *p = devm_kzalloc(&pdev->dev, sizeof(*p), GFP_KERNEL);
- 	int err = -ENOMEM;
+ 	struct resource *res;
+ 	struct ds1216_priv *priv;
+-	int ret = 0;
+ 	u8 dummy[8];
  
- 	if (!p)
-@@ -155,54 +155,41 @@ static int bq4802_probe(struct platform_
- 		p->r = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 		err = -EINVAL;
- 		if (!p->r)
--			goto out_free;
-+			goto out;
- 	}
- 	if (p->r->flags & IORESOURCE_IO) {
- 		p->ioport = p->r->start;
- 		p->read = bq4802_read_io;
- 		p->write = bq4802_write_io;
- 	} else if (p->r->flags & IORESOURCE_MEM) {
--		p->regs = ioremap(p->r->start, resource_size(p->r));
-+		p->regs = devm_ioremap(&pdev->dev, p->r->start,
-+					resource_size(p->r));
- 		p->read = bq4802_read_mem;
- 		p->write = bq4802_write_mem;
- 	} else {
- 		err = -EINVAL;
--		goto out_free;
-+		goto out;
- 	}
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+ 		return -ENODEV;
+-	priv = kzalloc(sizeof *priv, GFP_KERNEL);
++	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+ 		return -ENOMEM;
  
- 	platform_set_drvdata(pdev, p);
+ 	platform_set_drvdata(pdev, priv);
  
--	p->rtc = rtc_device_register("bq4802", &pdev->dev,
--				     &bq4802_ops, THIS_MODULE);
-+	p->rtc = devm_rtc_device_register(&pdev->dev, "bq4802",
-+					&bq4802_ops, THIS_MODULE);
- 	if (IS_ERR(p->rtc)) {
- 		err = PTR_ERR(p->rtc);
--		goto out_iounmap;
-+		goto out;
- 	}
+-	priv->size = resource_size(res);
+-	if (!request_mem_region(res->start, priv->size, pdev->name)) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-	priv->baseaddr = res->start;
+-	priv->ioaddr = ioremap(priv->baseaddr, priv->size);
+-	if (!priv->ioaddr) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+-	priv->rtc = rtc_device_register("ds1216", &pdev->dev,
+-				  &ds1216_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(priv->rtc)) {
+-		ret = PTR_ERR(priv->rtc);
+-		goto out;
+-	}
++	priv->ioaddr = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(priv->ioaddr))
++		return PTR_ERR(priv->ioaddr);
++
++	priv->rtc = devm_rtc_device_register(&pdev->dev, "ds1216",
++					&ds1216_rtc_ops, THIS_MODULE);
++	if (IS_ERR(priv->rtc))
++		return PTR_ERR(priv->rtc);
  
- 	err = 0;
- out:
- 	return err;
- 
--out_iounmap:
--	if (p->r->flags & IORESOURCE_MEM)
--		iounmap(p->regs);
--out_free:
--	kfree(p);
--	goto out;
+ 	/* dummy read to get clock into a known state */
+ 	ds1216_read(priv->ioaddr, dummy);
+ 	return 0;
+-
+-out:
+-	if (priv->ioaddr)
+-		iounmap(priv->ioaddr);
+-	if (priv->baseaddr)
+-		release_mem_region(priv->baseaddr, priv->size);
+-	kfree(priv);
+-	return ret;
  }
  
- static int bq4802_remove(struct platform_device *pdev)
+ static int __exit ds1216_rtc_remove(struct platform_device *pdev)
  {
--	struct bq4802 *p = platform_get_drvdata(pdev);
+-	struct ds1216_priv *priv = platform_get_drvdata(pdev);
 -
--	rtc_device_unregister(p->rtc);
--	if (p->r->flags & IORESOURCE_MEM)
--		iounmap(p->regs);
--
- 	platform_set_drvdata(pdev, NULL);
- 
--	kfree(p);
--
+-	rtc_device_unregister(priv->rtc);
+-	iounmap(priv->ioaddr);
+-	release_mem_region(priv->baseaddr, priv->size);
+-	kfree(priv);
  	return 0;
  }
  
