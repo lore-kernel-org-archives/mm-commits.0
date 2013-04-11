@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:17:12 -0700
-Message-ID: <20130411231712.7CDAA5A41FA__10089.9612451487$1365722250$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: + seccomp-add-generic-code-for-jitted-seccomp-filters.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:29:54 -0700
+Message-ID: <20130411232955.121A631C274@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:48664 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934422Ab3DKXRO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:17:14 -0400
-Received: by mail-vc0-f202.google.com with SMTP id m16so197308vca.3
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:17:13 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:50807 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753415Ab3DKX34 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:29:56 -0400
+Received: by mail-gg0-f202.google.com with SMTP id q1so198440ggn.3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:29:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jwboyer@redhat.com, eparis@redhat.com, keescook@chromium.org, lists@nerdbynature.de, stable@vger.kernel.org
+Cc: nschichan@freebox.fr, eparis@redhat.com, james.l.morris@oracle.com, keescook@chromium.org, mgherzan@gmail.com, rmk@arm.linux.org.uk, serge.hallyn@canonical.com, wad@chromium.org
 
 
 The patch titled
-     Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+     Subject: seccomp: add generic code for jitted seccomp filters
 has been added to the -mm tree.  Its filename is
-     kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+     seccomp-add-generic-code-for-jitted-seccomp-filters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,158 +33,254 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Boyer <jwboyer@redhat.com>
-Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+From: Nicolas Schichan <nschichan@freebox.fr>
+Subject: seccomp: add generic code for jitted seccomp filters
 
-The dmesg_restrict sysctl currently covers the syslog method for access
-dmesg, however /dev/kmsg isn't covered by the same protections.  Most
-people haven't noticed because util-linux dmesg(1) defaults to using the
-syslog method for access in older versions.  With util-linux dmesg(1)
-defaults to reading directly from /dev/kmsg.
+This patch serie adds support for jitted seccomp BPF filters, with the
+required modifications to make it work on the ARM architecture.
 
-Fix this by reworking all of the access methods to use the
-check_syslog_permissions function and adding checks to devkmsg_open and
-devkmsg_read.
+- The first patch in the serie adds the required boiler plate in the
+  core kernel seccomp code to invoke the JIT compilation/free code.
 
-Addresses https://bugzilla.redhat.com/show_bug.cgi?id=903192
+- The second patch reworks the ARM BPF JIT code to make the generation
+  process less dependent on struct sk_filter.
 
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Signed-off-by: Josh Boyer <jwboyer@redhat.com>
-Reported-by: Christian Kujau <lists@nerdbynature.de>
+- The last patch actually implements the ARM part in the BPF jit code.
+
+Some benchmarks, on a 1.6Ghz 88f6282 CPU:
+
+Each system call is tested in two way (fast/slow):
+
+ - on the fast version, the tested system call is accepted immediately
+   after checking the architecture (5 BPF instructions).
+
+ - on the slow version, the tested system call is accepted after
+   previously checking for 85 syscall (90 instructions, including the
+   architecture check).
+
+The tested syscall is invoked in a loop 1000000 time, the reported
+time is the time spent in the loop in seconds.
+
+Without Seccomp JIT:
+
+Syscall		Time-Fast  Time-Slow
+--------------- ---------- ----------
+gettimeofday	0.389	   1.633
+getpid		0.406	   1.688
+getresuid	1.003	   2.266
+getcwd		1.342	   2.128
+
+With Seccomp JIT:
+
+Syscall		Time-Fast  Time-Slow
+--------------- ----------- ---------
+gettimeofday	0.348	    0.428
+getpid		0.365	    0.480
+getresuid	0.981	    1.060
+getcwd		1.237	    1.294
+
+For reference, the same code without any seccomp filter:
+
+Syscall		Time
+--------------- -----
+gettimeofday	0.119
+getpid		0.137
+getresuid	0.747
+getcwd		1.021
+
+The activation of the BPF JIT for seccomp is still controled with the
+/proc/sys/net/core/bpf_jit_enable sysctl knob.
+
+
+
+This patch:
+
+Architectures must select HAVE_SECCOMP_FILTER_JIT and implement
+seccomp_jit_compile() and seccomp_jit_free() if they intend to support
+jitted seccomp filters.
+
+struct seccomp_filter has been moved to <linux/seccomp.h> to make its
+content available to the jit compilation code.
+
+In a way similar to the net BPF, the jit compilation code is expected to
+updates struct seccomp_filter.bpf_func pointer to the generated code.
+
+Signed-off-by: Nicolas Schichan <nschichan@freebox.fr>
 Acked-by: Kees Cook <keescook@chromium.org>
-Cc: <stable@vger.kernel.org>
+Acked-by: Will Drewry <wad@chromium.org>
+Cc: Mircea Gherzan <mgherzan@gmail.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   91 +++++++++++++++++++++++-----------------------
- 1 file changed, 47 insertions(+), 44 deletions(-)
+ arch/Kconfig            |   14 ++++++++++++
+ include/linux/seccomp.h |   41 ++++++++++++++++++++++++++++++++++++++
+ kernel/seccomp.c        |   34 ++++---------------------------
+ 3 files changed, 60 insertions(+), 29 deletions(-)
 
-diff -puN kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg kernel/printk.c
---- a/kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
-+++ a/kernel/printk.c
-@@ -362,6 +362,46 @@ static void log_store(int facility, int
- 	log_next_seq++;
+diff -puN arch/Kconfig~seccomp-add-generic-code-for-jitted-seccomp-filters arch/Kconfig
+--- a/arch/Kconfig~seccomp-add-generic-code-for-jitted-seccomp-filters
++++ a/arch/Kconfig
+@@ -332,6 +332,10 @@ config HAVE_ARCH_SECCOMP_FILTER
+ 	  - secure_computing return value is checked and a return value of -1
+ 	    results in the system call being skipped immediately.
+ 
++# Used by archs to tell that they support SECCOMP_FILTER_JIT
++config HAVE_SECCOMP_FILTER_JIT
++	bool
++
+ config SECCOMP_FILTER
+ 	def_bool y
+ 	depends on HAVE_ARCH_SECCOMP_FILTER && SECCOMP && NET
+@@ -342,6 +346,16 @@ config SECCOMP_FILTER
+ 
+ 	  See Documentation/prctl/seccomp_filter.txt for details.
+ 
++config SECCOMP_FILTER_JIT
++	bool "enable Seccomp filter Just In Time compiler"
++	depends on HAVE_SECCOMP_FILTER_JIT && BPF_JIT && SECCOMP_FILTER
++	help
++	  Seccomp syscall filtering capabilities are normally handled
++	  by an interpreter. This option allows kernel to generate a native
++	  code when filter is loaded in memory. This should speedup
++	  syscall filtering. Note : Admin should enable this feature
++	  changing /proc/sys/net/core/bpf_jit_enable
++
+ config HAVE_CONTEXT_TRACKING
+ 	bool
+ 	help
+diff -puN include/linux/seccomp.h~seccomp-add-generic-code-for-jitted-seccomp-filters include/linux/seccomp.h
+--- a/include/linux/seccomp.h~seccomp-add-generic-code-for-jitted-seccomp-filters
++++ a/include/linux/seccomp.h
+@@ -6,6 +6,7 @@
+ #ifdef CONFIG_SECCOMP
+ 
+ #include <linux/thread_info.h>
++#include <linux/filter.h>
+ #include <asm/seccomp.h>
+ 
+ struct seccomp_filter;
+@@ -47,6 +48,46 @@ static inline int seccomp_mode(struct se
+ 	return s->mode;
  }
  
-+#ifdef CONFIG_SECURITY_DMESG_RESTRICT
-+int dmesg_restrict = 1;
++/**
++ * struct seccomp_filter - container for seccomp BPF programs
++ *
++ * @usage: reference count to manage the object lifetime.
++ *         get/put helpers should be used when accessing an instance
++ *         outside of a lifetime-guarded section.  In general, this
++ *         is only needed for handling filters shared across tasks.
++ * @prev: points to a previously installed, or inherited, filter
++ * @len: the number of instructions in the program
++ * @bpc_func: points to either sk_run_filter or the code generated
++ *         by the BPF JIT.
++ * @insns: the BPF program instructions to evaluate
++ *
++ * seccomp_filter objects are organized in a tree linked via the @prev
++ * pointer.  For any task, it appears to be a singly-linked list starting
++ * with current->seccomp.filter, the most recently attached or inherited filter.
++ * However, multiple filters may share a @prev node, by way of fork(), which
++ * results in a unidirectional tree existing in memory.  This is similar to
++ * how namespaces work.
++ *
++ * seccomp_filter objects should never be modified after being attached
++ * to a task_struct (other than @usage).
++ */
++struct seccomp_filter {
++	atomic_t usage;
++	struct seccomp_filter *prev;
++	unsigned short len;  /* Instruction count */
++	unsigned int (*bpf_func)(const struct sk_buff *skb,
++				 const struct sock_filter *filter);
++	struct sock_filter insns[];
++};
++
++#ifdef CONFIG_SECCOMP_FILTER_JIT
++extern void seccomp_jit_compile(struct seccomp_filter *fp);
++extern void seccomp_jit_free(struct seccomp_filter *fp);
 +#else
-+int dmesg_restrict;
++static inline void seccomp_jit_compile(struct seccomp_filter *fp) { }
++static inline void seccomp_jit_free(struct seccomp_filter *fp) { }
 +#endif
 +
-+static int syslog_action_restricted(int type)
-+{
-+	if (dmesg_restrict)
-+		return 1;
-+	/* Unless restricted, we allow "read all" and "get buffer size" for everybody */
-+	return type != SYSLOG_ACTION_READ_ALL && type != SYSLOG_ACTION_SIZE_BUFFER;
-+}
-+
-+static int check_syslog_permissions(int type, bool from_file)
-+{
-+	/*
-+	 * If this is from /proc/kmsg and we've already opened it, then we've
-+	 * already done the capabilities checks at open time.
-+	 */
-+	if (from_file && type != SYSLOG_ACTION_OPEN)
-+		goto ok;
-+
-+	if (syslog_action_restricted(type)) {
-+		if (capable(CAP_SYSLOG))
-+			goto ok;
-+		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
-+		if (capable(CAP_SYS_ADMIN)) {
-+			printk_once(KERN_WARNING "%s (%d): "
-+				 "Attempt to access syslog with CAP_SYS_ADMIN "
-+				 "but no CAP_SYSLOG (deprecated).\n",
-+				 current->comm, task_pid_nr(current));
-+			goto ok;
-+		}
-+		return -EPERM;
-+	}
-+ok:
-+	return security_syslog(type);
-+}
-+
- /* /dev/kmsg - userspace message inject/listen interface */
- struct devkmsg_user {
- 	u64 seq;
-@@ -437,10 +477,16 @@ static ssize_t devkmsg_read(struct file
- 	char cont = '-';
- 	size_t len;
- 	ssize_t ret;
-+	int err;
+ #else /* CONFIG_SECCOMP */
  
- 	if (!user)
- 		return -EBADF;
+ #include <linux/errno.h>
+diff -puN kernel/seccomp.c~seccomp-add-generic-code-for-jitted-seccomp-filters kernel/seccomp.c
+--- a/kernel/seccomp.c~seccomp-add-generic-code-for-jitted-seccomp-filters
++++ a/kernel/seccomp.c
+@@ -30,34 +30,6 @@
+ #include <linux/tracehook.h>
+ #include <linux/uaccess.h>
  
-+	err = check_syslog_permissions(SYSLOG_ACTION_READ_ALL,
-+		SYSLOG_FROM_FILE);
-+	if (err)
-+		return err;
-+
- 	ret = mutex_lock_interruptible(&user->lock);
+-/**
+- * struct seccomp_filter - container for seccomp BPF programs
+- *
+- * @usage: reference count to manage the object lifetime.
+- *         get/put helpers should be used when accessing an instance
+- *         outside of a lifetime-guarded section.  In general, this
+- *         is only needed for handling filters shared across tasks.
+- * @prev: points to a previously installed, or inherited, filter
+- * @len: the number of instructions in the program
+- * @insns: the BPF program instructions to evaluate
+- *
+- * seccomp_filter objects are organized in a tree linked via the @prev
+- * pointer.  For any task, it appears to be a singly-linked list starting
+- * with current->seccomp.filter, the most recently attached or inherited filter.
+- * However, multiple filters may share a @prev node, by way of fork(), which
+- * results in a unidirectional tree existing in memory.  This is similar to
+- * how namespaces work.
+- *
+- * seccomp_filter objects should never be modified after being attached
+- * to a task_struct (other than @usage).
+- */
+-struct seccomp_filter {
+-	atomic_t usage;
+-	struct seccomp_filter *prev;
+-	unsigned short len;  /* Instruction count */
+-	struct sock_filter insns[];
+-};
+-
+ /* Limit any path through the tree to 256KB worth of instructions. */
+ #define MAX_INSNS_PER_PATH ((1 << 18) / sizeof(struct sock_filter))
+ 
+@@ -213,7 +185,7 @@ static u32 seccomp_run_filters(int sysca
+ 	 * value always takes priority (ignoring the DATA).
+ 	 */
+ 	for (f = current->seccomp.filter; f; f = f->prev) {
+-		u32 cur_ret = sk_run_filter(NULL, f->insns);
++		u32 cur_ret = f->bpf_func(NULL, f->insns);
+ 		if ((cur_ret & SECCOMP_RET_ACTION) < (ret & SECCOMP_RET_ACTION))
+ 			ret = cur_ret;
+ 	}
+@@ -275,6 +247,9 @@ static long seccomp_attach_filter(struct
  	if (ret)
- 		return ret;
-@@ -619,7 +665,7 @@ static int devkmsg_open(struct inode *in
- 	if ((file->f_flags & O_ACCMODE) == O_WRONLY)
- 		return 0;
+ 		goto fail;
  
--	err = security_syslog(SYSLOG_ACTION_READ_ALL);
-+	err = check_syslog_permissions(SYSLOG_ACTION_OPEN, SYSLOG_FROM_FILE);
- 	if (err)
- 		return err;
- 
-@@ -812,45 +858,6 @@ static inline void boot_delay_msec(int l
++	filter->bpf_func = sk_run_filter;
++	seccomp_jit_compile(filter);
++
+ 	/*
+ 	 * If there is an existing filter, make it the prev and don't drop its
+ 	 * task reference.
+@@ -332,6 +307,7 @@ void put_seccomp_filter(struct task_stru
+ 	while (orig && atomic_dec_and_test(&orig->usage)) {
+ 		struct seccomp_filter *freeme = orig;
+ 		orig = orig->prev;
++		seccomp_jit_free(freeme);
+ 		kfree(freeme);
+ 	}
  }
- #endif
- 
--#ifdef CONFIG_SECURITY_DMESG_RESTRICT
--int dmesg_restrict = 1;
--#else
--int dmesg_restrict;
--#endif
--
--static int syslog_action_restricted(int type)
--{
--	if (dmesg_restrict)
--		return 1;
--	/* Unless restricted, we allow "read all" and "get buffer size" for everybody */
--	return type != SYSLOG_ACTION_READ_ALL && type != SYSLOG_ACTION_SIZE_BUFFER;
--}
--
--static int check_syslog_permissions(int type, bool from_file)
--{
--	/*
--	 * If this is from /proc/kmsg and we've already opened it, then we've
--	 * already done the capabilities checks at open time.
--	 */
--	if (from_file && type != SYSLOG_ACTION_OPEN)
--		return 0;
--
--	if (syslog_action_restricted(type)) {
--		if (capable(CAP_SYSLOG))
--			return 0;
--		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
--		if (capable(CAP_SYS_ADMIN)) {
--			printk_once(KERN_WARNING "%s (%d): "
--				 "Attempt to access syslog with CAP_SYS_ADMIN "
--				 "but no CAP_SYSLOG (deprecated).\n",
--				 current->comm, task_pid_nr(current));
--			return 0;
--		}
--		return -EPERM;
--	}
--	return 0;
--}
--
- #if defined(CONFIG_PRINTK_TIME)
- static bool printk_time = 1;
- #else
-@@ -1126,10 +1133,6 @@ int do_syslog(int type, char __user *buf
- 	if (error)
- 		goto out;
- 
--	error = security_syslog(type);
--	if (error)
--		return error;
+_
+
+Patches currently in -mm which might be from nschichan@freebox.fr are
+
+linux-next.patch
+seccomp-add-generic-code-for-jitted-seccomp-filters.patch
+arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter.patch
+arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters.patch
+
