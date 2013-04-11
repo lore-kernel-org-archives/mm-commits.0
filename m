@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rs5c372-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:52 -0700
-Message-ID: <20130411234852.C489B5A41BD@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-s35390a-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:54 -0700
+Message-ID: <20130411234854.C5BFE5A41BD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:58246 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab3DKXsx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:53 -0400
-Received: by mail-vb0-f73.google.com with SMTP id q12so199307vbe.4
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:53 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:36241 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751736Ab3DKXsz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:55 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so12492qcr.4
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-rs5c372: use devm_*() functions
+     Subject: rtc: rtc-s35390a: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rs5c372-use-devm_-functions.patch
+     rtc-rtc-s35390a-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rs5c372: use devm_*() functions
+Subject: rtc: rtc-s35390a: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,91 +42,56 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c372.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ drivers/rtc/rtc-s35390a.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-devm_-functions drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-use-devm_-functions
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -579,7 +579,9 @@ static int rs5c372_probe(struct i2c_clie
- 		}
- 	}
- 
--	if (!(rs5c372 = kzalloc(sizeof(struct rs5c372), GFP_KERNEL))) {
-+	rs5c372 = devm_kzalloc(&client->dev, sizeof(struct rs5c372),
-+				GFP_KERNEL);
-+	if (!rs5c372) {
- 		err = -ENOMEM;
+diff -puN drivers/rtc/rtc-s35390a.c~rtc-rtc-s35390a-use-devm_-functions drivers/rtc/rtc-s35390a.c
+--- a/drivers/rtc/rtc-s35390a.c~rtc-rtc-s35390a-use-devm_-functions
++++ a/drivers/rtc/rtc-s35390a.c
+@@ -338,7 +338,8 @@ static int s35390a_probe(struct i2c_clie
  		goto exit;
  	}
-@@ -594,7 +596,7 @@ static int rs5c372_probe(struct i2c_clie
  
- 	err = rs5c_get_regs(rs5c372);
- 	if (err < 0)
--		goto exit_kfree;
-+		goto exit;
+-	s35390a = kzalloc(sizeof(struct s35390a), GFP_KERNEL);
++	s35390a = devm_kzalloc(&client->dev, sizeof(struct s35390a),
++				GFP_KERNEL);
+ 	if (!s35390a) {
+ 		err = -ENOMEM;
+ 		goto exit;
+@@ -386,8 +387,9 @@ static int s35390a_probe(struct i2c_clie
  
- 	/* clock may be set for am/pm or 24 hr time */
- 	switch (rs5c372->type) {
-@@ -617,7 +619,7 @@ static int rs5c372_probe(struct i2c_clie
- 		break;
- 	default:
- 		dev_err(&client->dev, "unknown RTC type\n");
--		goto exit_kfree;
-+		goto exit;
- 	}
+ 	device_set_wakeup_capable(&client->dev, 1);
  
- 	/* if the oscillator lost power and no other software (like
-@@ -629,7 +631,7 @@ static int rs5c372_probe(struct i2c_clie
- 	err = rs5c_oscillator_setup(rs5c372);
- 	if (unlikely(err < 0)) {
- 		dev_err(&client->dev, "setup error\n");
--		goto exit_kfree;
-+		goto exit;
- 	}
+-	s35390a->rtc = rtc_device_register(s35390a_driver.driver.name,
+-				&client->dev, &s35390a_rtc_ops, THIS_MODULE);
++	s35390a->rtc = devm_rtc_device_register(&client->dev,
++					s35390a_driver.driver.name,
++					&s35390a_rtc_ops, THIS_MODULE);
  
- 	if (rs5c372_get_datetime(client, &tm) < 0)
-@@ -648,38 +650,28 @@ static int rs5c372_probe(struct i2c_clie
- 			);
+ 	if (IS_ERR(s35390a->rtc)) {
+ 		err = PTR_ERR(s35390a->rtc);
+@@ -399,7 +401,6 @@ exit_dummy:
+ 	for (i = 1; i < 8; ++i)
+ 		if (s35390a->client[i])
+ 			i2c_unregister_device(s35390a->client[i]);
+-	kfree(s35390a);
  
- 	/* REVISIT use client->irq to register alarm irq ... */
--
--	rs5c372->rtc = rtc_device_register(rs5c372_driver.driver.name,
--				&client->dev, &rs5c372_rtc_ops, THIS_MODULE);
-+	rs5c372->rtc = devm_rtc_device_register(&client->dev,
-+					rs5c372_driver.driver.name,
-+					&rs5c372_rtc_ops, THIS_MODULE);
- 
- 	if (IS_ERR(rs5c372->rtc)) {
- 		err = PTR_ERR(rs5c372->rtc);
--		goto exit_kfree;
-+		goto exit;
- 	}
- 
- 	err = rs5c_sysfs_register(&client->dev);
- 	if (err)
--		goto exit_devreg;
-+		goto exit;
- 
- 	return 0;
- 
--exit_devreg:
--	rtc_device_unregister(rs5c372->rtc);
--
--exit_kfree:
--	kfree(rs5c372);
--
  exit:
  	return err;
- }
- 
- static int rs5c372_remove(struct i2c_client *client)
+@@ -408,15 +409,12 @@ exit:
+ static int s35390a_remove(struct i2c_client *client)
  {
--	struct rs5c372 *rs5c372 = i2c_get_clientdata(client);
+ 	unsigned int i;
 -
--	rtc_device_unregister(rs5c372->rtc);
- 	rs5c_sysfs_unregister(&client->dev);
--	kfree(rs5c372);
+ 	struct s35390a *s35390a = i2c_get_clientdata(client);
++
+ 	for (i = 1; i < 8; ++i)
+ 		if (s35390a->client[i])
+ 			i2c_unregister_device(s35390a->client[i]);
+ 
+-	rtc_device_unregister(s35390a->rtc);
+-	kfree(s35390a);
+-
  	return 0;
  }
  
