@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:30:48 -0700
-Message-ID: <20130411233048.D54205A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:31:34 -0700
+Message-ID: <20130411233134.D1DD15A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:33176 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934192Ab3DKXat (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:30:49 -0400
-Received: by mail-gg0-f202.google.com with SMTP id q1so198470ggn.5
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:30:49 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:35763 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753914Ab3DKXbg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:31:36 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 1so198117qee.0
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:31:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, nschichan@freebox.fr
 
 
 The patch titled
-     Subject: arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes
+     Subject: arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
+     arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes
-
-WARNING: Avoid CamelCase: <r_A>
-#50: FILE: arch/arm/net/bpf_jit_32.c:557:
-+			emit(ARM_MOV_R(r_A, ARM_R0), ctx);
+Subject: arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
 
 ERROR: "(foo*)" should be "(foo *)"
-#72: FILE: arch/arm/net/bpf_jit_32.c:978:
+#144: FILE: arch/arm/net/bpf_jit_32.c:938:
 +		fp->bpf_func = (void*)ctx.target;
 
-total: 1 errors, 1 warnings, 52 lines checked
+total: 1 errors, 0 warnings, 117 lines checked
 
-./patches/arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters.patch has style problems, please review.
+./patches/arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -60,10 +56,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  arch/arm/net/bpf_jit_32.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes arch/arm/net/bpf_jit_32.c
---- a/arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes
+diff -puN arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes arch/arm/net/bpf_jit_32.c
+--- a/arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
 +++ a/arch/arm/net/bpf_jit_32.c
-@@ -975,7 +975,7 @@ void seccomp_jit_compile(struct seccomp_
+@@ -935,7 +935,7 @@ void bpf_jit_compile(struct sk_filter *f
  
  	__bpf_jit_compile(&ctx);
  	if (ctx.target)
@@ -71,7 +67,7 @@ diff -puN arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-add-support-for-jit
 +		fp->bpf_func = (void *)ctx.target;
  }
  
- void seccomp_jit_free(struct seccomp_filter *fp)
+ static void bpf_jit_free_worker(struct work_struct *work)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -161,6 +157,7 @@ block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 lib-add-lz4-compressor-module-fix.patch
 crypto-add-lz4-cryptographic-api-fix.patch
+arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
 arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
