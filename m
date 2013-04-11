@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at91sam9-use-devm_-functions.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:48:10 -0700
-Message-ID: <20130411234810.C4DA931C2A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-bfin-use-devm_-functions.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:48:12 -0700
+Message-ID: <20130411234812.C46825A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:64064 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731Ab3DKXsL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:11 -0400
-Received: by mail-vc0-f202.google.com with SMTP id m16so199343vca.3
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:11 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:59820 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750731Ab3DKXsN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:48:13 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 1so199041qee.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:48:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-at91sam9: use devm_*() functions
+     Subject: rtc: rtc-bfin: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at91sam9-use-devm_-functions.patch
+     rtc-rtc-bfin-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-at91sam9: use devm_*() functions
+Subject: rtc: rtc-bfin: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -42,108 +42,66 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91sam9.c |   34 ++++++++++++----------------------
- 1 file changed, 12 insertions(+), 22 deletions(-)
+ drivers/rtc/rtc-bfin.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91sam9.c~rtc-rtc-at91sam9-use-devm_-functions drivers/rtc/rtc-at91sam9.c
---- a/drivers/rtc/rtc-at91sam9.c~rtc-rtc-at91sam9-use-devm_-functions
-+++ a/drivers/rtc/rtc-at91sam9.c
-@@ -20,6 +20,7 @@
- #include <linux/ioctl.h>
- #include <linux/slab.h>
- #include <linux/platform_data/atmel.h>
-+#include <linux/io.h>
+diff -puN drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-use-devm_-functions drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-use-devm_-functions
++++ a/drivers/rtc/rtc-bfin.c
+@@ -352,14 +352,14 @@ static int bfin_rtc_probe(struct platfor
+ 	dev_dbg_stamp(dev);
  
- #include <mach/at91_rtt.h>
- #include <mach/cpu.h>
-@@ -309,7 +310,7 @@ static int at91_rtc_probe(struct platfor
- 		return irq;
- 	}
- 
--	rtc = kzalloc(sizeof *rtc, GFP_KERNEL);
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
+ 	/* Allocate memory for our RTC struct */
+-	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
++	rtc = devm_kzalloc(dev, sizeof(*rtc), GFP_KERNEL);
+ 	if (unlikely(!rtc))
  		return -ENOMEM;
- 
-@@ -320,18 +321,19 @@ static int at91_rtc_probe(struct platfor
- 		device_init_wakeup(&pdev->dev, 1);
- 
  	platform_set_drvdata(pdev, rtc);
--	rtc->rtt = ioremap(r->start, resource_size(r));
-+	rtc->rtt = devm_ioremap(&pdev->dev, r->start, resource_size(r));
- 	if (!rtc->rtt) {
- 		dev_err(&pdev->dev, "failed to map registers, aborting.\n");
- 		ret = -ENOMEM;
- 		goto fail;
+ 	device_init_wakeup(dev, 1);
+ 
+ 	/* Register our RTC with the RTC framework */
+-	rtc->rtc_dev = rtc_device_register(pdev->name, dev, &bfin_rtc_ops,
++	rtc->rtc_dev = devm_rtc_device_register(dev, pdev->name, &bfin_rtc_ops,
+ 						THIS_MODULE);
+ 	if (unlikely(IS_ERR(rtc->rtc_dev))) {
+ 		ret = PTR_ERR(rtc->rtc_dev);
+@@ -367,9 +367,10 @@ static int bfin_rtc_probe(struct platfor
  	}
  
--	rtc->gpbr = ioremap(r_gpbr->start, resource_size(r_gpbr));
-+	rtc->gpbr = devm_ioremap(&pdev->dev, r_gpbr->start,
-+				resource_size(r_gpbr));
- 	if (!rtc->gpbr) {
- 		dev_err(&pdev->dev, "failed to map gpbr registers, aborting.\n");
- 		ret = -ENOMEM;
--		goto fail_gpbr;
-+		goto fail;
- 	}
- 
- 	mr = rtt_readl(rtc, MR);
-@@ -346,20 +348,19 @@ static int at91_rtc_probe(struct platfor
- 	mr &= ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
- 	rtt_writel(rtc, MR, mr);
- 
--	rtc->rtcdev = rtc_device_register(pdev->name, &pdev->dev,
--				&at91_rtc_ops, THIS_MODULE);
-+	rtc->rtcdev = devm_rtc_device_register(&pdev->dev, pdev->name,
-+					&at91_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtcdev)) {
- 		ret = PTR_ERR(rtc->rtcdev);
--		goto fail_register;
-+		goto fail;
- 	}
- 
- 	/* register irq handler after we know what name we'll use */
--	ret = request_irq(rtc->irq, at91_rtc_interrupt, IRQF_SHARED,
--				dev_name(&rtc->rtcdev->dev), rtc);
-+	ret = devm_request_irq(&pdev->dev, rtc->irq, at91_rtc_interrupt,
-+				IRQF_SHARED, dev_name(&rtc->rtcdev->dev), rtc);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "can't share IRQ %d?\n", rtc->irq);
--		rtc_device_unregister(rtc->rtcdev);
--		goto fail_register;
-+		goto fail;
- 	}
- 
- 	/* NOTE:  sam9260 rev A silicon has a ROM bug which resets the
-@@ -374,13 +375,8 @@ static int at91_rtc_probe(struct platfor
+ 	/* Grab the IRQ and init the hardware */
+-	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, 0, pdev->name, dev);
++	ret = devm_request_irq(dev, IRQ_RTC, bfin_rtc_interrupt, 0,
++				pdev->name, dev);
+ 	if (unlikely(ret))
+-		goto err_reg;
++		goto err;
+ 	/* sometimes the bootloader touched things, but the write complete was not
+ 	 * enabled, so let's just do a quick timeout here since the IRQ will not fire ...
+ 	 */
+@@ -381,23 +382,16 @@ static int bfin_rtc_probe(struct platfor
  
  	return 0;
  
--fail_register:
--	iounmap(rtc->gpbr);
--fail_gpbr:
--	iounmap(rtc->rtt);
- fail:
- 	platform_set_drvdata(pdev, NULL);
+-err_reg:
+-	rtc_device_unregister(rtc->rtc_dev);
+ err:
 -	kfree(rtc);
  	return ret;
  }
  
-@@ -394,14 +390,8 @@ static int at91_rtc_remove(struct platfo
+ static int bfin_rtc_remove(struct platform_device *pdev)
+ {
+-	struct bfin_rtc *rtc = platform_get_drvdata(pdev);
+ 	struct device *dev = &pdev->dev;
  
- 	/* disable all interrupts */
- 	rtt_writel(rtc, MR, mr & ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN));
--	free_irq(rtc->irq, rtc);
--
--	rtc_device_unregister(rtc->rtcdev);
- 
--	iounmap(rtc->gpbr);
--	iounmap(rtc->rtt);
+ 	bfin_rtc_reset(dev, 0);
+-	free_irq(IRQ_RTC, dev);
+-	rtc_device_unregister(rtc->rtc_dev);
  	platform_set_drvdata(pdev, NULL);
 -	kfree(rtc);
+ 
  	return 0;
  }
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
