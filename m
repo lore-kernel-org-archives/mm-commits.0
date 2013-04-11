@@ -1,152 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch removed from -mm tree
-Date: Thu, 11 Apr 2013 13:48:24 -0700
-Message-ID: <20130411204825.4925F31C27C__35415.073860395$1365715700$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] rtc-rtc-palmas-use-devm_request_threaded_irq.patch removed from -mm tree
+Date: Thu, 11 Apr 2013 14:50:39 -0700
+Message-ID: <20130411215040.43A635A4228@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:34418 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752922Ab3DKUs0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 16:48:26 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so183859qcs.3
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 13:48:25 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:51655 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753345Ab3DKVul (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 17:50:41 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz11so191006vcb.0
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 14:50:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agshew@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix
+     Subject: rtc: rtc-palmas: use devm_request_threaded_irq()
 has been removed from the -mm tree.  Its filename was
-     mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch
+     rtc-rtc-palmas-use-devm_request_threaded_irq.patch
 
-This patch was dropped because it was folded into mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+This patch was dropped because it was folded into rtc-rtc-palmas-use-devm_rtc_device_register.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-palmas: use devm_request_threaded_irq()
 
-init_user_reserve() and init_admin_reserve can no longer be __meminit
+Use devm_request_threaded_irq() to make cleanup paths more simple.
 
-Cc: <linux-mm@kvack.org>
-Cc: Andrew Shewmaker <agshew@gmail.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-palmas.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix mm/mmap.c
---- a/mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix
-+++ a/mm/mmap.c
-@@ -3112,7 +3112,7 @@ void __init mmap_init(void)
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
-  */
--static int __meminit init_user_reserve(void)
-+static int init_user_reserve(void)
- {
- 	unsigned long free_kbytes;
+diff -puN drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_request_threaded_irq drivers/rtc/rtc-palmas.c
+--- a/drivers/rtc/rtc-palmas.c~rtc-rtc-palmas-use-devm_request_threaded_irq
++++ a/drivers/rtc/rtc-palmas.c
+@@ -272,7 +272,7 @@ static int palmas_rtc_probe(struct platf
+ 		return ret;
+ 	}
  
-@@ -3133,7 +3133,7 @@ module_init(init_user_reserve)
-  * with sshd, bash, and top in OVERCOMMIT_GUESS. Smaller systems will
-  * only reserve 3% of free pages by default.
-  */
--static int __meminit init_admin_reserve(void)
-+static int init_admin_reserve(void)
+-	ret = request_threaded_irq(palmas_rtc->irq, NULL,
++	ret = devm_request_threaded_irq(&pdev->dev, palmas_rtc->irq, NULL,
+ 			palmas_rtc_interrupt,
+ 			IRQF_TRIGGER_LOW | IRQF_ONESHOT |
+ 			IRQF_EARLY_RESUME,
+@@ -289,7 +289,6 @@ static int palmas_rtc_probe(struct platf
+ static int palmas_rtc_remove(struct platform_device *pdev)
  {
- 	unsigned long free_kbytes;
+ 	palmas_rtc_alarm_irq_enable(&pdev->dev, 0);
+-	free_irq(palmas_rtc->irq, palmas_rtc);
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-mips-define-kvm_user_mem_slots.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-mm-madvise-complete-input-validation-before-taking-lock-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
+drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
+drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
+drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
+drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
+drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
+backlight-adp8870-add-missing-braces.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
+backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
+backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
+backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
+backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
+backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
+backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
+backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
+backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
+backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
+backlight-kb3886_bl-convert-kb3886bl-to-dev_pm_ops.patch
+backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
+backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
+backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
+backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
+drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
+drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch
+video-backlight-add-ili922x-lcd-driver.patch
+backlight-da903x_bl-use-bl_core_suspendresume-option.patch
+backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch
+drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch
+drivers-video-backlight-adp8870_blc-fix-error-return-code-in-adp8870_led_probe.patch
+drivers-video-backlight-as3711_blc-add-of-support.patch
+backlight-ili9320-use-spi_set_drvdata.patch
+backlight-ili922x-use-spi_set_drvdata.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+rtc-rtc-ab3100-use-module_platform_driver_probe.patch
+rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
+rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
+rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
+rtc-rtc-coh901331-use-module_platform_driver_probe.patch
+rtc-rtc-davinci-use-module_platform_driver_probe.patch
+rtc-rtc-ds1302-use-module_platform_driver_probe.patch
+rtc-rtc-efi-use-module_platform_driver_probe.patch
+rtc-rtc-generic-use-module_platform_driver_probe.patch
+rtc-rtc-imxdi-use-module_platform_driver_probe.patch
+rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
+rtc-rtc-msm6242-use-module_platform_driver_probe.patch
+rtc-rtc-mv-use-module_platform_driver_probe.patch
+rtc-rtc-nuc900-use-module_platform_driver_probe.patch
+rtc-rtc-omap-use-module_platform_driver_probe.patch
+rtc-rtc-pcap-use-module_platform_driver_probe.patch
+rtc-rtc-ps3-use-module_platform_driver_probe.patch
+rtc-rtc-pxa-use-module_platform_driver_probe.patch
+rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
+rtc-rtc-sh-use-module_platform_driver_probe.patch
+rtc-rtc-starfire-use-module_platform_driver_probe.patch
+rtc-rtc-sun4v-use-module_platform_driver_probe.patch
+rtc-rtc-tegra-use-module_platform_driver_probe.patch
+rtc-rtc-tx4939-use-module_platform_driver_probe.patch
+rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+rtc-rtc-coh90133-use-devm_rtc_device_register.patch
+rtc-rtc-da9052-use-devm_rtc_device_register.patch
+rtc-rtc-da9055-use-devm_rtc_device_register.patch
+rtc-rtc-davinci-use-devm_rtc_device_register.patch
+rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+rtc-rtc-lp8788-use-devm_rtc_device_register.patch
+rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+rtc-rtc-max77686-use-devm_rtc_device_register.patch
+rtc-rtc-max8907-use-devm_rtc_device_register.patch
+rtc-rtc-max8997-use-devm_rtc_device_register.patch
+rtc-rtc-mv-use-devm_rtc_device_register.patch
+rtc-rtc-mxc-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_rtc_device_register.patch
+rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
+rtc-rtc-s3c-use-devm_rtc_device_register.patch
+rtc-rtc-snvs-use-devm_rtc_device_register.patch
+rtc-rtc-spear-use-devm_rtc_device_register.patch
+rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
+rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+rtc-rtc-tps65910-use-devm_rtc_device_register.patch
+rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
+rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
+rtc-tegra-set-irq-name-as-device-name.patch
+rtc-tegra-use-managed-rtc_device_register.patch
+rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
+rtc-rtc-ds1307-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-ab3100-use-devm_rtc_device_register.patch
+rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
+rtc-rtc-bq32k-use-devm_rtc_device_register.patch
+rtc-rtc-dm355evm-use-devm_rtc_device_register.patch
+rtc-rtc-ds1302-use-devm_rtc_device_register.patch
+rtc-rtc-ds1672-use-devm_rtc_device_register.patch
+rtc-rtc-ds3234-use-devm_rtc_device_register.patch
+rtc-rtc-efi-use-devm_rtc_device_register.patch
+rtc-rtc-em3027-use-devm_rtc_device_register.patch
+rtc-rtc-generic-use-devm_rtc_device_register.patch
+rtc-hid-sensor-time-use-devm_rtc_device_register.patch
+rtc-rtc-ls1x-use-devm_rtc_device_register.patch
+rtc-rtc-m41t93-use-devm_rtc_device_register.patch
+rtc-rtc-m41t94-use-devm_rtc_device_register.patch
+rtc-rtc-m48t86-use-devm_rtc_device_register.patch
+rtc-rtc-max6900-use-devm_rtc_device_register.patch
+rtc-rtc-max6902-use-devm_rtc_device_register.patch
+rtc-rtc-ps3-use-devm_rtc_device_register.patch
+rtc-rtc-r9701-use-devm_rtc_device_register.patch
+rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
+rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
+rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
+rtc-rtc-rx4581-use-devm_rtc_device_register.patch
+rtc-rtc-rx8581-use-devm_rtc_device_register.patch
+rtc-rtc-starfire-use-devm_rtc_device_register.patch
+rtc-rtc-sun4v-use-devm_rtc_device_register.patch
+rtc-rtc-test-use-devm_rtc_device_register.patch
+rtc-rtc-tile-use-devm_rtc_device_register.patch
+rtc-rtc-wm8350-use-devm_rtc_device_register.patch
+rtc-rtc-x1205-use-devm_rtc_device_register.patch
+rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-sh-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch
+rtc-omap-update-to-devm_-api.patch
+drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
+drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8997c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max77686c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8907c-remove-redundant-code.patch
+rtc-rtc-rx4581-use-spi_set_drvdata.patch
+rtc-rtc-m41t94-use-spi_set_drvdata.patch
+rtc-rtc-r9701-use-spi_set_drvdata.patch
+rtc-rtc-ds3234-use-spi_set_drvdata.patch
+rtc-rtc-ds1390-use-spi_set_drvdata.patch
+rtc-rtc-m41t93-use-spi_set_drvdata.patch
+rtc-rtc-max6902-use-spi_set_drvdata.patch
+drivers-rtc-rtc-s3cc-use-clk_prepare_enable-and-clk_disable_unprepare.patch
+memstick-r592-make-r592_pm_ops-static.patch
 
