@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max8925c-use-devm_-apis.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:01:51 -0700
-Message-ID: <20130411230151.CB91F31C10E@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-pxac-use-devm_-apis.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:01:53 -0700
+Message-ID: <20130411230153.CB4F231C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:35869 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289Ab3DKXBx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:53 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so9563qcr.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:52 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:36934 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933289Ab3DKXBz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:55 -0400
+Received: by mail-gg0-f202.google.com with SMTP id q1so196665ggn.3
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, haojian.zhuang@linaro.org, jg1.han@samsung.com
+Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, robert.jarzmik@free.fr
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max8925.c: use devm_* APIs
+     Subject: drivers/rtc/rtc-pxa.c: use devm_* APIs
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max8925c-use-devm_-apis.patch
+     drivers-rtc-rtc-pxac-use-devm_-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,115 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max8925.c: use devm_* APIs
+Subject: drivers/rtc/rtc-pxa.c: use devm_* APIs
 
 devm_* functions are device managed and make cleanup code simpler.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Haojian Zhuang <haojian.zhuang@linaro.org>
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max8925.c |   26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ drivers/rtc/rtc-pxa.c |   41 +++++++++++-----------------------------
+ 1 file changed, 12 insertions(+), 29 deletions(-)
 
-diff -puN drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-use-devm_-apis drivers/rtc/rtc-max8925.c
---- a/drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-use-devm_-apis
-+++ a/drivers/rtc/rtc-max8925.c
-@@ -253,7 +253,8 @@ static int max8925_rtc_probe(struct plat
- 	struct max8925_rtc_info *info;
+diff -puN drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-use-devm_-apis drivers/rtc/rtc-pxa.c
+--- a/drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-use-devm_-apis
++++ a/drivers/rtc/rtc-pxa.c
+@@ -364,7 +364,7 @@ static int __init pxa_rtc_probe(struct p
  	int ret;
+ 	u32 rttr;
  
--	info = kzalloc(sizeof(struct max8925_rtc_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct max8925_rtc_info),
-+			    GFP_KERNEL);
- 	if (!info)
+-	pxa_rtc = kzalloc(sizeof(struct pxa_rtc), GFP_KERNEL);
++	pxa_rtc = devm_kzalloc(dev, sizeof(struct pxa_rtc), GFP_KERNEL);
+ 	if (!pxa_rtc)
  		return -ENOMEM;
- 	info->chip = chip;
-@@ -261,12 +262,13 @@ static int max8925_rtc_probe(struct plat
- 	info->dev = &pdev->dev;
- 	info->irq = platform_get_irq(pdev, 0);
- 
--	ret = request_threaded_irq(info->irq, NULL, rtc_update_handler,
--				   IRQF_ONESHOT, "rtc-alarm0", info);
-+	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
-+					rtc_update_handler, IRQF_ONESHOT,
-+					"rtc-alarm0", info);
- 	if (ret < 0) {
- 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
- 			info->irq, ret);
--		goto out_irq;
-+		goto err;
+ 	rtc_info = pxa_rtc;
+@@ -375,37 +375,37 @@ static int __init pxa_rtc_probe(struct p
+ 	pxa_rtc->ress = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!pxa_rtc->ress) {
+ 		dev_err(dev, "No I/O memory resource defined\n");
+-		goto err_ress;
++		return ret;
+ 	}
+ 	pxa_rtc->ress_psbr = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+ 	if (!pxa_rtc->ress_psbr) {
+ 		dev_err(dev, "No I/O memory resource defined\n");
+-		goto err_ress;
++		return ret;
  	}
  
- 	dev_set_drvdata(&pdev->dev, info);
-@@ -275,32 +277,22 @@ static int max8925_rtc_probe(struct plat
- 
- 	device_init_wakeup(&pdev->dev, 1);
- 
--	info->rtc_dev = rtc_device_register("max8925-rtc", &pdev->dev,
-+	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "max8925-rtc",
- 					&max8925_rtc_ops, THIS_MODULE);
- 	ret = PTR_ERR(info->rtc_dev);
- 	if (IS_ERR(info->rtc_dev)) {
- 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
--		goto out_rtc;
-+		goto err;
+ 	pxa_rtc->irq_1Hz = platform_get_irq(pdev, 0);
+ 	if (pxa_rtc->irq_1Hz < 0) {
+ 		dev_err(dev, "No 1Hz IRQ resource defined\n");
+-		goto err_ress;
++		return ret;
+ 	}
+ 	pxa_rtc->irq_Alrm = platform_get_irq(pdev, 1);
+ 	if (pxa_rtc->irq_Alrm < 0) {
+ 		dev_err(dev, "No alarm IRQ resource defined\n");
+-		goto err_ress;
++		return ret;
+ 	}
+ 	ret = -ENOMEM;
+-	pxa_rtc->base = ioremap(pxa_rtc->ress->start,
++	pxa_rtc->base = devm_ioremap(&pdev->dev, pxa_rtc->ress->start,
+ 				resource_size(pxa_rtc->ress));
+ 	if (!pxa_rtc->base) {
+ 		dev_err(&pdev->dev, "Unable to map pxa RTC I/O memory\n");
+-		goto err_map;
++		return ret;
  	}
  
+-	pxa_rtc->base_psbr = ioremap(pxa_rtc->ress_psbr->start,
++	pxa_rtc->base_psbr = devm_ioremap(&pdev->dev, pxa_rtc->ress_psbr->start,
+ 				resource_size(pxa_rtc->ress_psbr));
+ 	if (!pxa_rtc->base_psbr) {
+ 		dev_err(&pdev->dev, "Unable to map pxa RTC PSBR I/O memory\n");
+-		goto err_map;
++		return ret;
+ 	}
+ 	/*
+ 	 * If the clock divider is uninitialized then reset it to the
+@@ -420,41 +420,24 @@ static int __init pxa_rtc_probe(struct p
+ 
+ 	rtsr_clear_bits(pxa_rtc, RTSR_PIALE | RTSR_RDALE1 | RTSR_HZE);
+ 
+-	pxa_rtc->rtc = rtc_device_register("pxa-rtc", &pdev->dev, &pxa_rtc_ops,
+-					   THIS_MODULE);
++	pxa_rtc->rtc = devm_rtc_device_register(&pdev->dev, "pxa-rtc",
++						&pxa_rtc_ops, THIS_MODULE);
+ 	ret = PTR_ERR(pxa_rtc->rtc);
+ 	if (IS_ERR(pxa_rtc->rtc)) {
+ 		dev_err(dev, "Failed to register RTC device -> %d\n", ret);
+-		goto err_rtc_reg;
++		return ret;
+ 	}
+ 
+ 	device_init_wakeup(dev, 1);
+ 	pxa_rtc_open(dev);
  	return 0;
--out_rtc:
-+err:
- 	platform_set_drvdata(pdev, NULL);
--	free_irq(info->irq, info);
--out_irq:
--	kfree(info);
- 	return ret;
- }
- 
- static int max8925_rtc_remove(struct platform_device *pdev)
- {
--	struct max8925_rtc_info *info = platform_get_drvdata(pdev);
 -
--	if (info) {
--		free_irq(info->irq, info);
--		rtc_device_unregister(info->rtc_dev);
--		kfree(info);
--	}
- 	return 0;
+-err_rtc_reg:
+-	 iounmap(pxa_rtc->base);
+-err_ress:
+-err_map:
+-	kfree(pxa_rtc);
+-	return ret;
  }
  
-_
-
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
-
-linux-next.patch
-drivers-video-exynos-exynos_mipi_dsic-convert-to-devm_ioremap_resource.patch
-drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
-drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max8997c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max77686c-fix-incorrect-return-value-on-error.patch
-drivers-rtc-rtc-max8907c-remove-redundant-code.patch
-drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c.patch
-drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch
-drivers-rtc-rtc-at32ap700xc-use-devm_-apis.patch
-drivers-rtc-rtc-ds1305c-use-devm_-apis.patch
-drivers-rtc-rtc-ds1374c-use-devm_-apis.patch
-drivers-rtc-rtc-ds3232c-use-devm_-apis.patch
-drivers-rtc-rtc-m48t35c-use-devm_-apis.patch
-drivers-rtc-rtc-max8925c-use-devm_-apis.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
-
+ static int __exit pxa_rtc_remove(struct platform_device *pdev)
+ {
+-	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
+-
+ 	struct device *dev = &pdev->dev;
+ 	pxa_rtc_release(dev);
+ 
+-	rtc_device_unregister(pxa_rtc->rtc);
+-
+-	spin_lock_irq(&pxa_rtc->lock);
+-	iounmap(pxa_rtc->base);
+-	spin_unlock_irq(&pxa_rtc->lock);
+-
+-	kfree(pxa_rtc);
