@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-cmosc-dont-disable-hpet-emulation-on-suspend.patch added to -mm tree
-Date: Wed, 10 Apr 2013 16:58:23 -0700
-Message-ID: <20130410235823.976C731C1FE__36149.171277839$1365638310$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-madvise-complete-input-validation-before-taking-lock-fix.patch added to -mm tree
+Date: Wed, 10 Apr 2013 17:00:26 -0700
+Message-ID: <20130411000026.7401D31C107@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:48691 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S937220Ab3DJX6Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 19:58:25 -0400
-Received: by mail-ob0-f202.google.com with SMTP id va7so256561obc.5
-        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 16:58:25 -0700 (PDT)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:63115 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762947Ab3DKAA1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Apr 2013 20:00:27 -0400
+Received: by mail-ie0-f202.google.com with SMTP id x12so175451ief.5
+        for <mm-commits@vger.kernel.org>; Wed, 10 Apr 2013 17:00:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbasehore@chromium.org, hpa@zytor.com, maximlevitsky@gmail.com, mingo@elte.hu, rjw@sisk.pl, stable@vger.kernel.org, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, linux@rasmusvillemoes.dk, rientjes@google.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-cmos.c: don't disable hpet emulation on suspend
+     Subject: mm-madvise-complete-input-validation-before-taking-lock-fix
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-cmosc-dont-disable-hpet-emulation-on-suspend.patch
+     mm-madvise-complete-input-validation-before-taking-lock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,156 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Derek Basehore <dbasehore@chromium.org>
-Subject: drivers/rtc/rtc-cmos.c: don't disable hpet emulation on suspend
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-madvise-complete-input-validation-before-taking-lock-fix
 
-There's a bug where rtc alarms are ignored after the rtc cmos suspends but
-before the system finishes suspend.  Since hpet emulation is disabled and
-it still handles the interrupts, a wake event is never registered which is
-done from the rtc layer.
+s/out_plug/out/, per David
 
-This patch reverts d1b2efa83fbf ("rtc: disable hpet emulation on suspend")
-which disabled hpet emulation.  To fix the problem mentioned in that
-commit, hpet_rtc_timer_init() is called directly on resume.
-
-Signed-off-by: Derek Basehore <dbasehore@chromium.org>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: <stable@vger.kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/madvise.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-dont-disable-hpet-emulation-on-suspend drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-dont-disable-hpet-emulation-on-suspend
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -804,9 +804,8 @@ static int cmos_suspend(struct device *d
- 			mask = RTC_IRQMASK;
- 		tmp &= ~mask;
- 		CMOS_WRITE(tmp, RTC_CONTROL);
-+		hpet_mask_rtc_irq_bit(mask);
+diff -puN mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock-fix mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock-fix
++++ a/mm/madvise.c
+@@ -509,14 +509,14 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 		/* Still start < end. */
+ 		error = -ENOMEM;
+ 		if (!vma)
+-			goto out_plug;
++			goto out;
  
--		/* shut down hpet emulation - we don't need it for alarm */
--		hpet_mask_rtc_irq_bit(RTC_PIE|RTC_AIE|RTC_UIE);
- 		cmos_checkintr(cmos, tmp);
+ 		/* Here start < (end|vma->vm_end). */
+ 		if (start < vma->vm_start) {
+ 			unmapped_error = -ENOMEM;
+ 			start = vma->vm_start;
+ 			if (start >= end)
+-				goto out_plug;
++				goto out;
+ 		}
+ 
+ 		/* Here vma->vm_start <= start < (end|vma->vm_end) */
+@@ -527,19 +527,19 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+ 		error = madvise_vma(vma, &prev, start, tmp, behavior);
+ 		if (error)
+-			goto out_plug;
++			goto out;
+ 		start = tmp;
+ 		if (prev && start < prev->vm_end)
+ 			start = prev->vm_end;
+ 		error = unmapped_error;
+ 		if (start >= end)
+-			goto out_plug;
++			goto out;
+ 		if (prev)
+ 			vma = prev->vm_next;
+ 		else	/* madvise_remove dropped mmap_sem */
+ 			vma = find_vma(current->mm, start);
  	}
- 	spin_unlock_irq(&rtc_lock);
-@@ -870,6 +869,7 @@ static int cmos_resume(struct device *de
- 			rtc_update_irq(cmos->rtc, 1, mask);
- 			tmp &= ~RTC_AIE;
- 			hpet_mask_rtc_irq_bit(RTC_AIE);
-+			hpet_rtc_timer_init();
- 		} while (mask & RTC_AIE);
- 		spin_unlock_irq(&rtc_lock);
- 	}
+-out_plug:
++out:
+ 	blk_finish_plug(&plug);
+ 	if (write)
+ 		up_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from dbasehore@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-rtc-rtc-cmosc-dont-disable-hpet-emulation-on-suspend.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+mips-define-kvm_user_mem_slots.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve-fix.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob-fix.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
