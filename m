@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-m48t35c-use-devm_-apis.patch added to -mm tree
-Date: Thu, 11 Apr 2013 16:01:49 -0700
-Message-ID: <20130411230149.CC2FB5A4228@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-ds1374c-use-devm_-apis.patch added to -mm tree
+Date: Thu, 11 Apr 2013 16:01:45 -0700
+Message-ID: <20130411230145.CD7B931C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:42818 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289Ab3DKXBu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:50 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r13so196391ghr.2
-        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:50 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:36798 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1765445Ab3DKXBr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Apr 2013 19:01:47 -0400
+Received: by mail-qa0-f73.google.com with SMTP id i20so101240qad.2
+        for <mm-commits@vger.kernel.org>; Thu, 11 Apr 2013 16:01:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, tsbogend@alpha.franken.de
+Cc: sachin.kamat@linaro.org, jg1.han@samsung.com, scottwood@freescale.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m48t35.c: use devm_* APIs
+     Subject: drivers/rtc/rtc-ds1374.c: use devm_* APIs
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-m48t35c-use-devm_-apis.patch
+     drivers-rtc-rtc-ds1374c-use-devm_-apis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-m48t35.c: use devm_* APIs
+Subject: drivers/rtc/rtc-ds1374.c: use devm_* APIs
 
 devm_* functions are device managed and make cleanup code simpler.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Scott Wood <scottwood@freescale.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t35.c |   42 ++++++++-----------------------------
- 1 file changed, 10 insertions(+), 32 deletions(-)
+ drivers/rtc/rtc-ds1374.c |   25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-diff -puN drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-devm_-apis drivers/rtc/rtc-m48t35.c
---- a/drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-devm_-apis
-+++ a/drivers/rtc/rtc-m48t35.c
-@@ -145,12 +145,11 @@ static int m48t35_probe(struct platform_
- {
- 	struct resource *res;
- 	struct m48t35_priv *priv;
--	int ret = 0;
+diff -puN drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-use-devm_-apis drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-use-devm_-apis
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -347,7 +347,7 @@ static int ds1374_probe(struct i2c_clien
+ 	struct ds1374 *ds1374;
+ 	int ret;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res)
- 		return -ENODEV;
--	priv = kzalloc(sizeof(struct m48t35_priv), GFP_KERNEL);
-+	priv = devm_kzalloc(&pdev->dev, sizeof(struct m48t35_priv), GFP_KERNEL);
- 	if (!priv)
+-	ds1374 = kzalloc(sizeof(struct ds1374), GFP_KERNEL);
++	ds1374 = devm_kzalloc(&client->dev, sizeof(struct ds1374), GFP_KERNEL);
+ 	if (!ds1374)
  		return -ENOMEM;
  
-@@ -160,50 +159,29 @@ static int m48t35_probe(struct platform_
- 	 * conflicts are resolved
- 	 */
- #ifndef CONFIG_SGI_IP27
--	if (!request_mem_region(res->start, priv->size, pdev->name)) {
--		ret = -EBUSY;
--		goto out;
--	}
-+	if (!devm_request_mem_region(&pdev->dev, res->start, priv->size,
-+				     pdev->name))
-+		return -EBUSY;
- #endif
- 	priv->baseaddr = res->start;
--	priv->reg = ioremap(priv->baseaddr, priv->size);
--	if (!priv->reg) {
--		ret = -ENOMEM;
--		goto out;
--	}
-+	priv->reg = devm_ioremap(&pdev->dev, priv->baseaddr, priv->size);
-+	if (!priv->reg)
-+		return -ENOMEM;
+@@ -359,36 +359,27 @@ static int ds1374_probe(struct i2c_clien
  
- 	spin_lock_init(&priv->lock);
+ 	ret = ds1374_check_rtc_status(client);
+ 	if (ret)
+-		goto out_free;
++		return ret;
  
- 	platform_set_drvdata(pdev, priv);
+ 	if (client->irq > 0) {
+-		ret = request_irq(client->irq, ds1374_irq, 0,
++		ret = devm_request_irq(&client->dev, client->irq, ds1374_irq, 0,
+ 		                  "ds1374", client);
+ 		if (ret) {
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+-			goto out_free;
++			return ret;
+ 		}
  
--	priv->rtc = rtc_device_register("m48t35", &pdev->dev,
-+	priv->rtc = devm_rtc_device_register(&pdev->dev, "m48t35",
- 				  &m48t35_ops, THIS_MODULE);
--	if (IS_ERR(priv->rtc)) {
--		ret = PTR_ERR(priv->rtc);
--		goto out;
--	}
-+	if (IS_ERR(priv->rtc))
-+		return PTR_ERR(priv->rtc);
+ 		device_set_wakeup_capable(&client->dev, 1);
+ 	}
+ 
+-	ds1374->rtc = rtc_device_register(client->name, &client->dev,
++	ds1374->rtc = devm_rtc_device_register(&client->dev, client->name,
+ 	                                  &ds1374_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(ds1374->rtc)) {
+-		ret = PTR_ERR(ds1374->rtc);
+ 		dev_err(&client->dev, "unable to register the class device\n");
+-		goto out_irq;
++		return PTR_ERR(ds1374->rtc);
+ 	}
  
  	return 0;
 -
--out:
--	if (priv->reg)
--		iounmap(priv->reg);
--	if (priv->baseaddr)
--		release_mem_region(priv->baseaddr, priv->size);
--	kfree(priv);
+-out_irq:
+-	if (client->irq > 0)
+-		free_irq(client->irq, client);
+-
+-out_free:
+-	kfree(ds1374);
 -	return ret;
  }
  
- static int m48t35_remove(struct platform_device *pdev)
- {
--	struct m48t35_priv *priv = platform_get_drvdata(pdev);
--
--	rtc_device_unregister(priv->rtc);
--	iounmap(priv->reg);
--#ifndef CONFIG_SGI_IP27
--	release_mem_region(priv->baseaddr, priv->size);
--#endif
--	kfree(priv);
+ static int ds1374_remove(struct i2c_client *client)
+@@ -400,12 +391,10 @@ static int ds1374_remove(struct i2c_clie
+ 		ds1374->exiting = 1;
+ 		mutex_unlock(&ds1374->mutex);
+ 
+-		free_irq(client->irq, client);
++		devm_free_irq(&client->dev, client->irq, client);
+ 		cancel_work_sync(&ds1374->work);
+ 	}
+ 
+-	rtc_device_unregister(ds1374->rtc);
+-	kfree(ds1374);
  	return 0;
  }
  
