@@ -1,66 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-watchdogc-add-comments-to-explain-watchdog_disabled-variable.patch removed from -mm tree
-Date: Mon, 15 Apr 2013 13:04:38 -0700
-Message-ID: <20130415200438.DB28431C1BB@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-pageattr-convert-noop-to-functional-fix.patch removed from -mm tree
+Date: Mon, 15 Apr 2013 13:04:44 -0700
+Message-ID: <20130415200444.761F231C056@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:57472 "EHLO
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34190 "EHLO
 	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426Ab3DOUEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 16:04:40 -0400
-Received: by mail-vc0-f202.google.com with SMTP id m16so504486vca.1
-        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 13:04:39 -0700 (PDT)
+	with ESMTP id S1752426Ab3DOUEp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 16:04:45 -0400
+Received: by mail-vc0-f202.google.com with SMTP id m16so504449vca.3
+        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 13:04:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anish198519851985@gmail.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, bp@suse.de, stefan.bader@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: add comments to explain watchdog_disabled variable
+     Subject: mm: pageattr: convert noop to functional fix
 has been removed from the -mm tree.  Its filename was
-     kernel-watchdogc-add-comments-to-explain-watchdog_disabled-variable.patch
+     mm-pageattr-convert-noop-to-functional-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: anish kumar <anish198519851985@gmail.com>
-Subject: kernel/watchdog.c: add comments to explain watchdog_disabled variable
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: pageattr: convert noop to functional fix
 
-This watchdog_disabled flag is a bit cryptic.  However it's usefulness is
-multifold.  Uses are:
+Commit a8aed3e0752b4beb ("x86/mm/pageattr: Prevent PSE and GLOABL
+leftovers to confuse pmd/pte_present and pmd_huge") introduced some valid
+fix but one location that didn't trigger the bug that lead to finding
+those (small) problems, wasn't updated using the right variable.
 
-1. Check if smpboot_register_percpu_thread function passed.
-2. Makes sure that user enables and disables the watchdog in sequence
-   i.e. enable watchdog->disable watchdog->enable watchdog
-   Unlike enable watchdog->enable watchdog which is wrong.
+The wrong variable was also initialized for no good reason, that may have
+been the source of the confusion.  Remove the noop initialization
+accordingly.
 
-[dzickus@redhat.com: small text cleanups]
-Signed-off-by: anish kumar <anish198519851985@gmail.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+a8aed3e0752b4beb also erroneously removed one canon_pgprot pass meant to
+clear pmd bitflags not supported in hardware by older CPUs, that
+automatically gets corrected by this patch too by applying it to the right
+variable in the new location.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Stefan Bader <stefan.bader@canonical.com>
+Acked-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/x86/mm/pageattr.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdogc-add-comments-to-explain-watchdog_disabled-variable kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdogc-add-comments-to-explain-watchdog_disabled-variable
-+++ a/kernel/watchdog.c
-@@ -521,6 +521,11 @@ int proc_dowatchdog(struct ctl_table *ta
- 		return ret;
+diff -puN arch/x86/mm/pageattr.c~mm-pageattr-convert-noop-to-functional-fix arch/x86/mm/pageattr.c
+--- a/arch/x86/mm/pageattr.c~mm-pageattr-convert-noop-to-functional-fix
++++ a/arch/x86/mm/pageattr.c
+@@ -467,7 +467,7 @@ try_preserve_large_page(pte_t *kpte, uns
+ 	 * We are safe now. Check whether the new pgprot is the same:
+ 	 */
+ 	old_pte = *kpte;
+-	old_prot = new_prot = req_prot = pte_pgprot(old_pte);
++	old_prot = req_prot = pte_pgprot(old_pte);
  
- 	set_sample_period();
-+	/*
-+	 * Watchdog threads shouldn't be enabled if they are
-+	 * disabled. The 'watchdog_disabled' variable check in
-+	 * watchdog_*_all_cpus() function takes care of this.
-+	 */
- 	if (watchdog_enabled && watchdog_thresh)
- 		watchdog_enable_all_cpus();
+ 	pgprot_val(req_prot) &= ~pgprot_val(cpa->mask_clr);
+ 	pgprot_val(req_prot) |= pgprot_val(cpa->mask_set);
+@@ -478,12 +478,12 @@ try_preserve_large_page(pte_t *kpte, uns
+ 	 * a non present pmd. The canon_pgprot will clear _PAGE_GLOBAL
+ 	 * for the ancient hardware that doesn't support it.
+ 	 */
+-	if (pgprot_val(new_prot) & _PAGE_PRESENT)
+-		pgprot_val(new_prot) |= _PAGE_PSE | _PAGE_GLOBAL;
++	if (pgprot_val(req_prot) & _PAGE_PRESENT)
++		pgprot_val(req_prot) |= _PAGE_PSE | _PAGE_GLOBAL;
  	else
+-		pgprot_val(new_prot) &= ~(_PAGE_PSE | _PAGE_GLOBAL);
++		pgprot_val(req_prot) &= ~(_PAGE_PSE | _PAGE_GLOBAL);
+ 
+-	new_prot = canon_pgprot(new_prot);
++	req_prot = canon_pgprot(req_prot);
+ 
+ 	/*
+ 	 * old_pte points to the large page base address. So we need
 _
 
-Patches currently in -mm which might be from anish198519851985@gmail.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-linux-next.patch
+thp-fix-comment-about-memory-barrier.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch
 
