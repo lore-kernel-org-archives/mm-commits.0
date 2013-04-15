@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix.patch added to -mm tree
-Date: Mon, 15 Apr 2013 13:42:37 -0700
-Message-ID: <20130415204237.648AB5A4266@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-vmstat-add-note-on-safety-of-drain_zonestat.patch added to -mm tree
+Date: Mon, 15 Apr 2013 13:43:19 -0700
+Message-ID: <20130415204319.5FBE05A41F7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:44062 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753692Ab3DOUmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 16:42:38 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 1so507698qee.4
-        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 13:42:37 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:37612 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755942Ab3DOUnU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 16:43:20 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so508086ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 13:43:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shli@kernel.org
+Cc: cody@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix
+     Subject: mm/vmstat: add note on safety of drain_zonestat
 has been added to the -mm tree.  Its filename is
-     mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix.patch
+     mm-vmstat-add-note-on-safety-of-drain_zonestat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shli@kernel.org>
-Subject: mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix
+From: Cody P Schafer <cody@linux.vnet.ibm.com>
+Subject: mm/vmstat: add note on safety of drain_zonestat
 
-document split_huge_page_to_list
-
+Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/vmstat.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix
-+++ a/mm/huge_memory.c
-@@ -1800,6 +1800,13 @@ static void __split_huge_page(struct pag
- 	BUG_ON(mapcount != mapcount2);
+diff -puN mm/vmstat.c~mm-vmstat-add-note-on-safety-of-drain_zonestat mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-add-note-on-safety-of-drain_zonestat
++++ a/mm/vmstat.c
+@@ -493,6 +493,10 @@ void refresh_cpu_vm_stats(int cpu)
+ 			atomic_long_add(global_diff[i], &vm_stat[i]);
  }
  
 +/*
-+ * Split a hugepage into normal pages. This doesn't change the position of head
-+ * page. If @list is null, tail pages will be added to LRU list, otherwise, to
-+ * @list. Both head page and tail pages will inherit mapping, flags, and so on
-+ * from the hugepage.
-+ * Return 0 if the hugepage is split successfully otherwise return 1.
++ * this is only called if !populated_zone(zone), which implies no other users of
++ * pset->vm_stat_diff[] exsist.
 + */
- int split_huge_page_to_list(struct page *page, struct list_head *list)
+ void drain_zonestat(struct zone *zone, struct per_cpu_pageset *pset)
  {
- 	struct anon_vma *anon_vma;
+ 	int i;
 _
 
-Patches currently in -mm which might be from shli@kernel.org are
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
 
 linux-next.patch
-mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch
-mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix.patch
-kernel-smpc-cleanups.patch
+page_alloc-make-setup_nr_node_ids-usable-for-arch-init-code.patch
+x86-mm-numa-use-setup_nr_node_ids-instead-of-opencoding.patch
+powerpc-mm-numa-use-setup_nr_node_ids-instead-of-opencoding.patch
+powerpc-mm-numa-use-setup_nr_node_ids-instead-of-opencoding-fix.patch
+mm-vmstat-add-note-on-safety-of-drain_zonestat.patch
 
