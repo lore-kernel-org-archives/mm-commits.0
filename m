@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-string_helpers-introduce-generic-string_unescape-fix.patch added to -mm tree
-Date: Mon, 15 Apr 2013 14:40:58 -0700
-Message-ID: <20130415214058.BEA4B5A41D5@corp2gmr1-2.hot.corp.google.com>
+Subject: + lib-string_helpers-introduce-generic-string_unescape.patch added to -mm tree
+Date: Mon, 15 Apr 2013 14:40:55 -0700
+Message-ID: <20130415214055.F009A31C1C6@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:47030 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756057Ab3DOVlA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 17:41:00 -0400
-Received: by mail-ve0-f201.google.com with SMTP id jz10so149714veb.4
-        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 14:40:59 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:49372 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932397Ab3DOVk5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 17:40:57 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so515191qcs.5
+        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 14:40:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com
+Cc: andriy.shevchenko@linux.intel.com, chris@the-brannons.com, gregkh@linuxfoundation.org, jbaron@redhat.com, kirk@braille.uwo.ca, samuel.thibault@ens-lyon.org, viro@zeniv.linux.org.uk, w.d.hubbs@gmail.com
 
 
 The patch titled
-     Subject: lib-string_helpers-introduce-generic-string_unescape-fix
+     Subject: lib/string_helpers: introduce generic string_unescape
 has been added to the -mm tree.  Its filename is
-     lib-string_helpers-introduce-generic-string_unescape-fix.patch
+     lib-string_helpers-introduce-generic-string_unescape.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,128 +33,393 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-string_helpers-introduce-generic-string_unescape-fix
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/string_helpers: introduce generic string_unescape
 
-clarify comment
+There are several places in kernel where modules unescapes input to convert
+C-Style Escape Sequences into byte codes.
 
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+The patch provides generic implementation of such approach. Test cases are
+also included into the patch.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: William Hubbs <w.d.hubbs@gmail.com>
+Cc: Chris Brannon <chris@the-brannons.com>
+Cc: Kirk Reiser <kirk@braille.uwo.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string_helpers.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/string_helpers.h |   58 +++++++++++++
+ lib/Kconfig.debug              |    3 
+ lib/Makefile                   |    4 
+ lib/string_helpers.c           |  133 +++++++++++++++++++++++++++++++
+ lib/test-string_helpers.c      |  103 ++++++++++++++++++++++++
+ 5 files changed, 300 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/string_helpers.h~lib-string_helpers-introduce-generic-string_unescape-fix include/linux/string_helpers.h
---- a/include/linux/string_helpers.h~lib-string_helpers-introduce-generic-string_unescape-fix
+diff -puN include/linux/string_helpers.h~lib-string_helpers-introduce-generic-string_unescape include/linux/string_helpers.h
+--- a/include/linux/string_helpers.h~lib-string_helpers-introduce-generic-string_unescape
 +++ a/include/linux/string_helpers.h
-@@ -47,8 +47,8 @@ int string_get_size(u64 size, enum strin
-  * Returns amount of characters processed to the destination buffer excluding
-  * trailing '\0'.
+@@ -13,4 +13,62 @@ enum string_size_units {
+ int string_get_size(u64 size, enum string_size_units units,
+ 		    char *buf, int len);
+ 
++#define UNESCAPE_SPACE		0x01
++#define UNESCAPE_OCTAL		0x02
++#define UNESCAPE_HEX		0x04
++#define UNESCAPE_SPECIAL	0x08
++#define UNESCAPE_ANY		\
++	(UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL)
++
++/**
++ * string_unescape - unquote characters in the given string
++ * @src:	source buffer (escaped)
++ * @dst:	destination buffer (unescaped)
++ * @size:	size of the destination buffer (0 to unlimit)
++ * @flags:	combination of the flags (bitwise OR):
++ *	%UNESCAPE_SPACE:
++ *		'\f' - form feed
++ *		'\n' - new line
++ *		'\r' - carriage return
++ *		'\t' - horizontal tab
++ *		'\v' - vertical tab
++ *	%UNESCAPE_OCTAL:
++ *		'\NNN' - byte with octal value NNN (1 to 3 digits)
++ *	%UNESCAPE_HEX:
++ *		'\xHH' - byte with hexadecimal value HH (1 to 2 digits)
++ *	%UNESCAPE_SPECIAL:
++ *		'\"' - double quote
++ *		'\\' - backslash
++ *		'\a' - alert (BEL)
++ *		'\e' - escape
++ *	%UNESCAPE_ANY:
++ *		all previous together
++ *
++ * Returns amount of characters processed to the destination buffer excluding
++ * trailing '\0'.
++ *
++ * Due to size of output will be the same or smaller the translation could be
++ * done in place.
++ *
++ * Caller must provide valid source and destination pointers. Be aware that
++ * destination buffer will always be NULL-terminated. Source string must be
++ * NULL-terminated as well.
++ */
++int string_unescape(char *src, char *dst, size_t size, unsigned int flags);
++
++static inline int string_unescape_inplace(char *buf, unsigned int flags)
++{
++	return string_unescape(buf, buf, 0, flags);
++}
++
++static inline int string_unescape_any(char *src, char *dst, size_t size)
++{
++	return string_unescape(src, dst, size, UNESCAPE_ANY);
++}
++
++static inline int string_unescape_any_inplace(char *buf)
++{
++	return string_unescape_any(buf, buf, 0);
++}
++
+ #endif
+diff -puN lib/Kconfig.debug~lib-string_helpers-introduce-generic-string_unescape lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-string_helpers-introduce-generic-string_unescape
++++ a/lib/Kconfig.debug
+@@ -1463,5 +1463,8 @@ source "lib/Kconfig.kgdb"
+ 
+ source "lib/Kconfig.kmemcheck"
+ 
++config TEST_STRING_HELPERS
++	tristate "Test functions located in the string_helpers module at runtime"
++
+ config TEST_KSTRTOX
+ 	tristate "Test kstrto*() family of functions at runtime"
+diff -puN lib/Makefile~lib-string_helpers-introduce-generic-string_unescape lib/Makefile
+--- a/lib/Makefile~lib-string_helpers-introduce-generic-string_unescape
++++ a/lib/Makefile
+@@ -22,8 +22,10 @@ lib-y	+= kobject.o klist.o
+ 
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
++	 gcd.o lcm.o list_sort.o uuid.o flex_array.o \
+ 	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o kfifo.o
++obj-y += string_helpers.o
++obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
+ obj-y += kstrtox.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+ 
+diff -puN lib/string_helpers.c~lib-string_helpers-introduce-generic-string_unescape lib/string_helpers.c
+--- a/lib/string_helpers.c~lib-string_helpers-introduce-generic-string_unescape
++++ a/lib/string_helpers.c
+@@ -2,10 +2,12 @@
+  * Helpers for formatting and printing strings
   *
-- * Due to size of output will be the same or smaller the translation could be
-- * done in place.
-+ * Because the size of the output will be the same as or less than the size of
-+ * the input, the transformation may be performed in place.
-  *
-  * Caller must provide valid source and destination pointers. Be aware that
-  * destination buffer will always be NULL-terminated. Source string must be
+  * Copyright 31 August 2008 James Bottomley
++ * Copyright (C) 2013, Intel Corporation
+  */
+ #include <linux/kernel.h>
+ #include <linux/math64.h>
+ #include <linux/export.h>
++#include <linux/ctype.h>
+ #include <linux/string_helpers.h>
+ 
+ /**
+@@ -66,3 +68,134 @@ int string_get_size(u64 size, const enum
+ 	return 0;
+ }
+ EXPORT_SYMBOL(string_get_size);
++
++static bool unescape_space(char **src, char **dst)
++{
++	char *p = *dst, *q = *src;
++
++	switch (*q) {
++	case 'n':
++		*p = '\n';
++		break;
++	case 'r':
++		*p = '\r';
++		break;
++	case 't':
++		*p = '\t';
++		break;
++	case 'v':
++		*p = '\v';
++		break;
++	case 'f':
++		*p = '\f';
++		break;
++	default:
++		return false;
++	}
++	*dst += 1;
++	*src += 1;
++	return true;
++}
++
++static bool unescape_octal(char **src, char **dst)
++{
++	char *p = *dst, *q = *src;
++	u8 num;
++
++	if (isodigit(*q) == 0)
++		return false;
++
++	num = (*q++) & 7;
++	while (num < 32 && isodigit(*q) && (q - *src < 3)) {
++		num <<= 3;
++		num += (*q++) & 7;
++	}
++	*p = num;
++	*dst += 1;
++	*src = q;
++	return true;
++}
++
++static bool unescape_hex(char **src, char **dst)
++{
++	char *p = *dst, *q = *src;
++	int digit;
++	u8 num;
++
++	if (*q++ != 'x')
++		return false;
++
++	num = digit = hex_to_bin(*q++);
++	if (digit < 0)
++		return false;
++
++	digit = hex_to_bin(*q);
++	if (digit >= 0) {
++		q++;
++		num = (num << 4) | digit;
++	}
++	*p = num;
++	*dst += 1;
++	*src = q;
++	return true;
++}
++
++static bool unescape_special(char **src, char **dst)
++{
++	char *p = *dst, *q = *src;
++
++	switch (*q) {
++	case '\"':
++		*p = '\"';
++		break;
++	case '\\':
++		*p = '\\';
++		break;
++	case 'a':
++		*p = '\a';
++		break;
++	case 'e':
++		*p = '\e';
++		break;
++	default:
++		return false;
++	}
++	*dst += 1;
++	*src += 1;
++	return true;
++}
++
++int string_unescape(char *src, char *dst, size_t size, unsigned int flags)
++{
++	char *out = dst;
++
++	while (*src && --size) {
++		if (src[0] == '\\' && src[1] != '\0' && size > 1) {
++			src++;
++			size--;
++
++			if (flags & UNESCAPE_SPACE &&
++					unescape_space(&src, &out))
++				continue;
++
++			if (flags & UNESCAPE_OCTAL &&
++					unescape_octal(&src, &out))
++				continue;
++
++			if (flags & UNESCAPE_HEX &&
++					unescape_hex(&src, &out))
++				continue;
++
++			if (flags & UNESCAPE_SPECIAL &&
++					unescape_special(&src, &out))
++				continue;
++
++			*out++ = '\\';
++		}
++		*out++ = *src++;
++	}
++	*out = '\0';
++
++	return out - dst;
++}
++EXPORT_SYMBOL(string_unescape);
+diff -puN /dev/null lib/test-string_helpers.c
+--- /dev/null
++++ a/lib/test-string_helpers.c
+@@ -0,0 +1,103 @@
++/*
++ * Test cases for lib/string_helpers.c module.
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/random.h>
++#include <linux/string.h>
++#include <linux/string_helpers.h>
++
++struct test_string {
++	const char *in;
++	const char *out;
++	unsigned int flags;
++};
++
++static const struct test_string strings[] __initconst = {
++	{
++		.in = "\\f\\ \\n\\r\\t\\v",
++		.out = "\f\\ \n\r\t\v",
++		.flags = UNESCAPE_SPACE,
++	},
++	{
++		.in = "\\40\\1\\387\\0064\\05\\040\\8a\\110\\777",
++		.out = " \001\00387\0064\005 \\8aH?7",
++		.flags = UNESCAPE_OCTAL,
++	},
++	{
++		.in = "\\xv\\xa\\x2c\\xD\\x6f2",
++		.out = "\\xv\n,\ro2",
++		.flags = UNESCAPE_HEX,
++	},
++	{
++		.in = "\\h\\\\\\\"\\a\\e\\",
++		.out = "\\h\\\"\a\e\\",
++		.flags = UNESCAPE_SPECIAL,
++	},
++};
++
++static void __init test_string_unescape(unsigned int flags, bool inplace)
++{
++	char in[256];
++	char out_test[256];
++	char out_real[256];
++	int i, p = 0, q_test = 0, q_real = sizeof(out_real);
++
++	for (i = 0; i < ARRAY_SIZE(strings); i++) {
++		const char *s = strings[i].in;
++		int len = strlen(strings[i].in);
++
++		/* Copy string to in buffer */
++		memcpy(&in[p], s, len);
++		p += len;
++
++		/* Copy expected result for given flags */
++		if (flags & strings[i].flags) {
++			s = strings[i].out;
++			len = strlen(strings[i].out);
++		}
++		memcpy(&out_test[q_test], s, len);
++		q_test += len;
++	}
++	in[p++] = '\0';
++
++	/* Call string_unescape and compare result */
++	if (inplace) {
++		memcpy(out_real, in, p);
++		if (flags == UNESCAPE_ANY)
++			q_real = string_unescape_any_inplace(out_real);
++		else
++			q_real = string_unescape_inplace(out_real, flags);
++	} else if (flags == UNESCAPE_ANY) {
++		q_real = string_unescape_any(in, out_real, q_real);
++	} else {
++		q_real = string_unescape(in, out_real, q_real, flags);
++	}
++
++	if (q_real != q_test || memcmp(out_test, out_real, q_test)) {
++		pr_warn("Test failed: flags = %u\n", flags);
++		print_hex_dump(KERN_WARNING, "Input: ",
++			       DUMP_PREFIX_NONE, 16, 1, in, p - 1, true);
++		print_hex_dump(KERN_WARNING, "Expected: ",
++			       DUMP_PREFIX_NONE, 16, 1, out_test, q_test, true);
++		print_hex_dump(KERN_WARNING, "Got: ",
++			       DUMP_PREFIX_NONE, 16, 1, out_real, q_real, true);
++	}
++}
++
++static int __init test_string_helpers_init(void)
++{
++	unsigned int i;
++
++	pr_info("Running tests...\n");
++	for (i = 0; i < UNESCAPE_ANY + 1; i++)
++		test_string_unescape(i, false);
++	test_string_unescape(get_random_int() % (UNESCAPE_ANY + 1), true);
++
++	return -EINVAL;
++}
++module_init(test_string_helpers_init);
++MODULE_LICENSE("Dual BSD/GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix-fix.patch
-mm-madvise-complete-input-validation-before-taking-lock-fix.patch
-clear_refs-sanitize-accepted-commands-declaration-fix.patch
-memcg-add-memorypressure_level-events-checkpatch-fixes.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
+lib-net-make-isodigit-public-and-use-it.patch
+lib-string_helpers-introduce-generic-string_unescape.patch
 lib-string_helpers-introduce-generic-string_unescape-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
-arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+staging-speakup-remove-custom-string_unescape_any_inplace.patch
+dynamic_debug-reuse-generic-string_unescape-function.patch
+binfmt_misc-reuse-string_unescape_inplace.patch
 
