@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + staging-speakup-remove-custom-string_unescape_any_inplace.patch added to -mm tree
-Date: Mon, 15 Apr 2013 14:41:00 -0700
-Message-ID: <20130415214100.DC4B531C145@corp2gmr1-1.hot.corp.google.com>
+Subject: + dynamic_debug-reuse-generic-string_unescape-function.patch added to -mm tree
+Date: Mon, 15 Apr 2013 14:41:03 -0700
+Message-ID: <20130415214103.CCFEA31C145@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:42908 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756299Ab3DOVlD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 17:41:03 -0400
-Received: by mail-vb0-f73.google.com with SMTP id q12so514705vbe.4
-        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 14:41:01 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:37920 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab3DOVlF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 17:41:05 -0400
+Received: by mail-vc0-f202.google.com with SMTP id m16so515064vca.3
+        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 14:41:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andriy.shevchenko@linux.intel.com, chris@the-brannons.com, gregkh@linuxfoundation.org, kirk@braille.uwo.ca, samuel.thibault@ens-lyon.org, w.d.hubbs@gmail.com
+Cc: andriy.shevchenko@linux.intel.com, jbaron@redhat.com
 
 
 The patch titled
-     Subject: staging: speakup: remove custom string_unescape_any_inplace
+     Subject: dynamic_debug: reuse generic string_unescape function
 has been added to the -mm tree.  Its filename is
-     staging-speakup-remove-custom-string_unescape_any_inplace.patch
+     dynamic_debug-reuse-generic-string_unescape-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,90 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: staging: speakup: remove custom string_unescape_any_inplace
+Subject: dynamic_debug: reuse generic string_unescape function
 
-There is generic implementation of the function to unescape strings.
+There is kernel function to do the job in generic way. Let's use it.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: William Hubbs <w.d.hubbs@gmail.com>
-Cc: Chris Brannon <chris@the-brannons.com>
-Cc: Kirk Reiser <kirk@braille.uwo.ca>
+Cc: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/speakup/kobjects.c    |    6 ++-
- drivers/staging/speakup/speakup.h     |    1 
- drivers/staging/speakup/varhandlers.c |   46 ------------------------
- 3 files changed, 4 insertions(+), 49 deletions(-)
+ lib/dynamic_debug.c |   48 ++++--------------------------------------
+ 1 file changed, 5 insertions(+), 43 deletions(-)
 
-diff -puN drivers/staging/speakup/kobjects.c~staging-speakup-remove-custom-string_unescape_any_inplace drivers/staging/speakup/kobjects.c
---- a/drivers/staging/speakup/kobjects.c~staging-speakup-remove-custom-string_unescape_any_inplace
-+++ a/drivers/staging/speakup/kobjects.c
-@@ -15,6 +15,7 @@
- #include <linux/kernel.h>
- #include <linux/kobject.h>
+diff -puN lib/dynamic_debug.c~dynamic_debug-reuse-generic-string_unescape-function lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic_debug-reuse-generic-string_unescape-function
++++ a/lib/dynamic_debug.c
+@@ -24,6 +24,7 @@
+ #include <linux/sysctl.h>
+ #include <linux/ctype.h>
  #include <linux/string.h>
 +#include <linux/string_helpers.h>
- #include <linux/sysfs.h>
- #include <linux/ctype.h>
- 
-@@ -417,7 +418,7 @@ static ssize_t synth_direct_store(struct
- 		bytes = min_t(size_t, len, 250);
- 		strncpy(tmp, ptr, bytes);
- 		tmp[bytes] = '\0';
--		spk_xlate(tmp);
-+		string_unescape_any_inplace(tmp);
- 		synth_printf("%s", tmp);
- 		ptr += bytes;
- 		len -= bytes;
-@@ -605,7 +606,8 @@ ssize_t spk_var_store(struct kobject *ko
- 	if (param->data == NULL)
- 		return 0;
- 	ret = 0;
--	cp = spk_xlate((char *) buf);
-+	cp = (char *)buf;
-+	string_unescape_any_inplace(cp);
- 
- 	spk_lock(flags);
- 	switch (param->var_type) {
-diff -puN drivers/staging/speakup/speakup.h~staging-speakup-remove-custom-string_unescape_any_inplace drivers/staging/speakup/speakup.h
---- a/drivers/staging/speakup/speakup.h~staging-speakup-remove-custom-string_unescape_any_inplace
-+++ a/drivers/staging/speakup/speakup.h
-@@ -54,7 +54,6 @@ void spk_get_index_count(int *linecount,
- extern int spk_set_key_info(const u_char *key_info, u_char *k_buffer);
- extern char *spk_strlwr(char *s);
- extern char *spk_s2uchar(char *start, char *dest);
--extern char *spk_xlate(char *s);
- extern int speakup_kobj_init(void);
- extern void speakup_kobj_exit(void);
- extern int spk_chartab_get_value(char *keyword);
-diff -puN drivers/staging/speakup/varhandlers.c~staging-speakup-remove-custom-string_unescape_any_inplace drivers/staging/speakup/varhandlers.c
---- a/drivers/staging/speakup/varhandlers.c~staging-speakup-remove-custom-string_unescape_any_inplace
-+++ a/drivers/staging/speakup/varhandlers.c
-@@ -328,49 +328,3 @@ char *spk_s2uchar(char *start, char *des
- 	*dest = (u_char)val;
- 	return start;
+ #include <linux/uaccess.h>
+ #include <linux/dynamic_debug.h>
+ #include <linux/debugfs.h>
+@@ -276,47 +277,6 @@ static inline int parse_lineno(const cha
+ 	return 0;
  }
--
--char *spk_xlate(char *s)
+ 
+-/*
+- * Undo octal escaping in a string, inplace.  This is useful to
+- * allow the user to express a query which matches a format
+- * containing embedded spaces.
+- */
+-static char *unescape(char *str)
 -{
--	static const char finds[] = "nrtvafe";
--	static const char subs[] = "\n\r\t\013\001\014\033";
--	static const char hx[] = "0123456789abcdefABCDEF";
--	char *p = s, *p1, *p2, c;
--	int num;
--	while ((p = strchr(p, '\\'))) {
--		p1 = p+1;
--		p2 = strchr(finds, *p1);
--		if (p2) {
--			*p++ = subs[p2-finds];
--			p1++;
--		} else if (*p1 >= '0' && *p1 <= '7') {
--			num = (*p1++)&7;
--			while (num < 32 && *p1 >= '0' && *p1 <= '7') {
--				num <<= 3;
--				num += (*p1++)&7;
+-	char *in = str;
+-	char *out = str;
+-
+-	while (*in) {
+-		if (*in == '\\') {
+-			if (in[1] == '\\') {
+-				*out++ = '\\';
+-				in += 2;
+-				continue;
+-			} else if (in[1] == 't') {
+-				*out++ = '\t';
+-				in += 2;
+-				continue;
+-			} else if (in[1] == 'n') {
+-				*out++ = '\n';
+-				in += 2;
+-				continue;
+-			} else if (isodigit(in[1]) &&
+-				   isodigit(in[2]) &&
+-				   isodigit(in[3])) {
+-				*out++ = (((in[1] - '0') << 6) |
+-					  ((in[2] - '0') << 3) |
+-					  (in[3] - '0'));
+-				in += 4;
+-				continue;
 -			}
--			*p++ = num;
--		} else if (*p1 == 'x' &&
--				strchr(hx, p1[1]) && strchr(hx, p1[2])) {
--			p1++;
--			c = *p1++;
--			if (c > '9')
--				c = (c - '7') & 0x0f;
--			else
--				c -= '0';
--			num = c << 4;
--			c = *p1++;
--			if (c > '9')
--				c = (c-'7')&0x0f;
--			else
--				c -= '0';
--			num += c;
--			*p++ = num;
--		} else
--			*p++ = *p1++;
--		p2 = p;
--		while (*p1)
--			*p2++ = *p1++;
--		*p2 = '\0';
+-		}
+-		*out++ = *in++;
 -	}
--	return s;
+-	*out = '\0';
+-
+-	return str;
 -}
+-
+ static int check_set(const char **dest, char *src, char *name)
+ {
+ 	int rc = 0;
+@@ -370,8 +330,10 @@ static int ddebug_parse_query(char *word
+ 		} else if (!strcmp(words[i], "module")) {
+ 			rc = check_set(&query->module, words[i+1], "module");
+ 		} else if (!strcmp(words[i], "format")) {
+-			rc = check_set(&query->format, unescape(words[i+1]),
+-				       "format");
++			string_unescape_inplace(words[i+1], UNESCAPE_SPACE |
++							    UNESCAPE_OCTAL |
++							    UNESCAPE_SPECIAL);
++			rc = check_set(&query->format, words[i+1], "format");
+ 		} else if (!strcmp(words[i], "line")) {
+ 			char *first = words[i+1];
+ 			char *last = strchr(first, '-');
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
