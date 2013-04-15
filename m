@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fat-additions-to-support-fat_fallocate.patch added to -mm tree
-Date: Mon, 15 Apr 2013 15:54:26 -0700
-Message-ID: <20130415225426.78EEE31C0F7@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-video-backlight-platform_lcdc-introduce-probe-callback.patch added to -mm tree
+Date: Mon, 15 Apr 2013 16:07:32 -0700
+Message-ID: <20130415230732.7E33631C034@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:56107 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932397Ab3DOWy1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 18:54:27 -0400
-Received: by mail-ye0-f202.google.com with SMTP id l8so522064yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 15:54:27 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:35111 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934152Ab3DOXHe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 19:07:34 -0400
+Received: by mail-ve0-f201.google.com with SMTP id jz10so157962veb.0
+        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 16:07:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com
+Cc: abrestic@chromium.org, FlorianSchandinat@gmx.de, dianders@chromium.org, jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: fat: additions to support fat_fallocate
+     Subject: drivers/video/backlight/platform_lcd.c: introduce probe callback
 has been added to the -mm tree.  Its filename is
-     fat-additions-to-support-fat_fallocate.patch
+     drivers-video-backlight-platform_lcdc-introduce-probe-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,266 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: additions to support fat_fallocate
+From: Andrew Bresticker <abrestic@chromium.org>
+Subject: drivers/video/backlight/platform_lcd.c: introduce probe callback
 
-Implement preallocation via the fallocate syscall on VFAT partitions.
+Platform LCD devices may need to do some device-specific initialization
+before they can be used (regulator or GPIO setup, for example), but
+currently the driver does not support any way of doing this.  This patch
+adds a probe() callback to plat_lcd_data which platform LCD devices can
+set to indicate that device-specific initialization is needed.
 
-With FALLOC_FL_KEEP_SIZE, there is no way to distinguish if the mismatch
-between i_size and no.  of clusters allocated is a consequence of
-fallocate or just plain corruption.  When a non fallocate aware (old)
-linux fat driver tries to write to such a file, it throws an error.Also,
-fsck detects this as inconsistency and truncates the prealloc'd blocks.
-
-To avoid this, as suggested by OGAWA, remove changes that make fallocate
-persistent across mounts and restrict lifetime of blocks from fallocate(2)
-to file release.
-
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Andrew Bresticker <abrestic@chromium.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Reviewed-by: Doug Anderson <dianders@chromium.org>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/file.c  |  108 ++++++++++++++++++++++++++++++++++++++++++++++-
- fs/fat/inode.c |   53 +++++++++++++++++++++++
- 2 files changed, 160 insertions(+), 1 deletion(-)
+ drivers/video/backlight/platform_lcd.c |    6 ++++++
+ include/video/platform_lcd.h           |    1 +
+ 2 files changed, 7 insertions(+)
 
-diff -puN fs/fat/file.c~fat-additions-to-support-fat_fallocate fs/fat/file.c
---- a/fs/fat/file.c~fat-additions-to-support-fat_fallocate
-+++ a/fs/fat/file.c
-@@ -17,8 +17,11 @@
- #include <linux/blkdev.h>
- #include <linux/fsnotify.h>
- #include <linux/security.h>
-+#include <linux/falloc.h>
- #include "fat.h"
- 
-+static long fat_fallocate(struct file *file, int mode,
-+				loff_t offset, loff_t len);
- static int fat_ioctl_get_attributes(struct inode *inode, u32 __user *user_attr)
- {
- 	u32 attr;
-@@ -140,6 +143,22 @@ static long fat_generic_compat_ioctl(str
- 
- static int fat_file_release(struct inode *inode, struct file *filp)
- {
-+
-+	struct super_block *sb = inode->i_sb;
-+	loff_t mmu_private_ideal;
-+
-+	/*
-+	 * Release unwritten fallocated blocks on file release.
-+	 * Do this only when the last open file descriptor is closed.
-+	 */
-+	mutex_lock(&inode->i_mutex);
-+	mmu_private_ideal = round_up(inode->i_size, sb->s_blocksize);
-+
-+	if (mmu_private_ideal < MSDOS_I(inode)->mmu_private &&
-+	    filp->f_dentry->d_count == 1)
-+		fat_truncate_blocks(inode, inode->i_size);
-+	mutex_unlock(&inode->i_mutex);
-+
- 	if ((filp->f_mode & FMODE_WRITE) &&
- 	     MSDOS_SB(inode->i_sb)->options.flush) {
- 		fat_flush_inodes(inode->i_sb, inode, NULL);
-@@ -174,6 +193,7 @@ const struct file_operations fat_file_op
- #endif
- 	.fsync		= fat_file_fsync,
- 	.splice_read	= generic_file_splice_read,
-+	.fallocate      = fat_fallocate,
- };
- 
- static int fat_cont_expand(struct inode *inode, loff_t size)
-@@ -212,6 +232,88 @@ out:
- 	return err;
- }
- 
-+/*
-+ * Preallocate space for a file. This implements fat's fallocate file
-+ * operation, which gets called from sys_fallocate system call. User
-+ * space requests len bytes at offset. If FALLOC_FL_KEEP_SIZE is set
-+ * we just allocate clusters without zeroing them out. Otherwise we
-+ * allocate and zero out clusters via an expanding truncate. The
-+ * allocated clusters are freed in fat_file_release().
-+ */
-+static long fat_fallocate(struct file *file, int mode,
-+				loff_t offset, loff_t len)
-+{
-+	int cluster, fclus, dclus;
-+	int nr_cluster; /* Number of clusters to be allocated */
-+	loff_t nr_bytes; /* Number of bytes to be allocated*/
-+	loff_t free_bytes; /* Unused bytes in the last cluster of file*/
-+	struct inode *inode = file->f_mapping->host;
-+	struct super_block *sb = inode->i_sb;
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	int err = 0;
-+
-+	/* No support for hole punch or other fallocate flags. */
-+	if (mode & ~FALLOC_FL_KEEP_SIZE)
-+		return -EOPNOTSUPP;
-+
-+	mutex_lock(&inode->i_mutex);
-+	if ((offset + len) <= MSDOS_I(inode)->mmu_private) {
-+		fat_msg(sb, KERN_ERR,
-+			"fat_fallocate(): Blocks already allocated");
-+		err = -EINVAL;
-+		goto error;
-+	}
-+
-+	if (mode & FALLOC_FL_KEEP_SIZE) {
-+		/* First compute the number of clusters to be allocated */
-+		if (inode->i_size > 0) {
-+			err = fat_get_cluster(inode, FAT_ENT_EOF,
-+					      &fclus, &dclus);
-+			if (err < 0) {
-+				fat_msg(sb, KERN_ERR,
-+					"fat_fallocate(): fat_get_cluster() error");
-+				goto error;
-+			}
-+			free_bytes = ((fclus + 1) << sbi->cluster_bits) -
-+				     inode->i_size;
-+			nr_bytes = offset + len - inode->i_size - free_bytes;
-+			MSDOS_I(inode)->mmu_private = (fclus + 1) <<
-+						      sbi->cluster_bits;
-+		} else
-+			nr_bytes = offset + len - inode->i_size;
-+
-+		nr_cluster = (nr_bytes + (sbi->cluster_size - 1)) >>
-+			     sbi->cluster_bits;
-+
-+		/* Start the allocation.We are not zeroing out the clusters */
-+		while (nr_cluster-- > 0) {
-+			err = fat_alloc_clusters(inode, &cluster, 1);
-+			if (err) {
-+				fat_msg(sb, KERN_ERR,
-+					"fat_fallocate(): fat_alloc_clusters() error");
-+				goto error;
-+			}
-+			err = fat_chain_add(inode, cluster, 1);
-+			if (err) {
-+				fat_free_clusters(inode, cluster);
-+				goto error;
-+			}
-+			MSDOS_I(inode)->mmu_private += sbi->cluster_size;
-+		}
-+	} else {
-+		/* This is just an expanding truncate */
-+		err = fat_cont_expand(inode, (offset + len));
-+		if (err) {
-+			fat_msg(sb, KERN_ERR,
-+				"fat_fallocate(): fat_cont_expand() error");
-+		}
-+	}
-+
-+error:
-+	mutex_unlock(&inode->i_mutex);
-+	return err;
-+}
-+
- /* Free all clusters after the skip'th cluster. */
- static int fat_free(struct inode *inode, int skip)
- {
-@@ -378,6 +480,9 @@ int fat_setattr(struct dentry *dentry, s
- 	struct inode *inode = dentry->d_inode;
- 	unsigned int ia_valid;
- 	int error;
-+	loff_t mmu_private_ideal;
-+
-+	mmu_private_ideal = round_up(inode->i_size, dentry->d_sb->s_blocksize);
- 
- 	/* Check for setting the inode time. */
- 	ia_valid = attr->ia_valid;
-@@ -403,7 +508,8 @@ int fat_setattr(struct dentry *dentry, s
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		inode_dio_wait(inode);
- 
--		if (attr->ia_size > inode->i_size) {
-+		if (attr->ia_size > inode->i_size &&
-+		    MSDOS_I(inode)->mmu_private <= mmu_private_ideal) {
- 			error = fat_cont_expand(inode, attr->ia_size);
- 			if (error || attr->ia_valid == ATTR_SIZE)
- 				goto out;
-diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate fs/fat/inode.c
---- a/fs/fat/inode.c~fat-additions-to-support-fat_fallocate
-+++ a/fs/fat/inode.c
-@@ -151,11 +151,64 @@ static void fat_write_failed(struct addr
+diff -puN drivers/video/backlight/platform_lcd.c~drivers-video-backlight-platform_lcdc-introduce-probe-callback drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~drivers-video-backlight-platform_lcdc-introduce-probe-callback
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -86,6 +86,12 @@ static int platform_lcd_probe(struct pla
+ 		return -EINVAL;
  	}
- }
  
-+static int fat_zero_falloc_area(struct file *file,
-+				struct address_space *mapping, loff_t pos)
-+{
-+	struct page *page;
-+	struct inode *inode = mapping->host;
-+	loff_t curpos = i_size_read(inode);
-+	size_t count = pos - curpos;
-+	int err;
-+
-+	do {
-+		unsigned offset, bytes;
-+		void *fsdata;
-+
-+		offset = (curpos & (PAGE_CACHE_SIZE - 1));
-+		bytes = PAGE_CACHE_SIZE - offset;
-+		bytes = min(bytes, count);
-+
-+		err = pagecache_write_begin(NULL, mapping, curpos, bytes,
-+					AOP_FLAG_UNINTERRUPTIBLE,
-+					&page, &fsdata);
++	if (pdata->probe) {
++		err = pdata->probe(pdata);
 +		if (err)
-+			break;
-+
-+		zero_user(page, offset, bytes);
-+
-+		err = pagecache_write_end(NULL, mapping, curpos, bytes, bytes,
-+					page, fsdata);
-+		if (err < 0)
-+			break;
-+		curpos += bytes;
-+		count -= bytes;
-+		err = 0;
-+	} while (count);
-+
-+	return err;
-+}
-+
- static int fat_write_begin(struct file *file, struct address_space *mapping,
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata)
- {
- 	int err;
-+	loff_t mmu_private_ideal, mmu_private_actual;
-+	loff_t size;
-+	struct inode *inode = mapping->host;
-+	struct super_block *sb = inode->i_sb;
-+
-+	size = i_size_read(inode);
-+	mmu_private_actual = MSDOS_I(inode)->mmu_private;
-+	mmu_private_ideal = round_up(size, sb->s_blocksize);
-+	if ((mmu_private_actual > mmu_private_ideal) && (pos > size)) {
-+		err = fat_zero_falloc_area(file, mapping, pos);
-+		if (err) {
-+			fat_msg(sb, KERN_ERR,
-+				"Error (%d) zeroing fallocated area", err);
 +			return err;
-+		}
 +	}
++
+ 	plcd = devm_kzalloc(&pdev->dev, sizeof(struct platform_lcd),
+ 			    GFP_KERNEL);
+ 	if (!plcd) {
+diff -puN include/video/platform_lcd.h~drivers-video-backlight-platform_lcdc-introduce-probe-callback include/video/platform_lcd.h
+--- a/include/video/platform_lcd.h~drivers-video-backlight-platform_lcdc-introduce-probe-callback
++++ a/include/video/platform_lcd.h
+@@ -15,6 +15,7 @@ struct plat_lcd_data;
+ struct fb_info;
  
- 	*pagep = NULL;
- 	err = cont_write_begin(file, mapping, pos, len, flags,
+ struct plat_lcd_data {
++	int	(*probe)(struct plat_lcd_data *);
+ 	void	(*set_power)(struct plat_lcd_data *, unsigned int power);
+ 	int	(*match_fb)(struct plat_lcd_data *, struct fb_info *);
+ };
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from abrestic@chromium.org are
 
 linux-next.patch
-fat-introduce-2-new-values-for-the-o-nfs-mount-option.patch
-fat-move-fat_i_pos_read-to-fath.patch
-fat-introduce-a-helper-fat_get_blknr_offset.patch
-fat-restructure-export_operations.patch
-fat-exportfs-rebuild-inode-if-ilookup-fails.patch
-fat-exportfs-rebuild-directory-inode-if-fat_dget.patch
-documentation-update-nfs-option-in-filesystem-vfattxt.patch
-fat-additions-to-support-fat_fallocate.patch
+drivers-video-backlight-platform_lcdc-introduce-probe-callback.patch
 
