@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch added to -mm tree
-Date: Tue, 16 Apr 2013 12:59:04 -0700
-Message-ID: <20130416195904.7766831C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + hfsplus-fix-potential-overflow-in-hfsplus_file_truncate.patch added to -mm tree
+Date: Tue, 16 Apr 2013 13:16:18 -0700
+Message-ID: <20130416201618.7D72A31C034@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:37935 "EHLO
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:60073 "EHLO
 	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935400Ab3DPT7F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 15:59:05 -0400
-Received: by mail-gg0-f201.google.com with SMTP id q6so86963ggc.0
-        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 12:59:05 -0700 (PDT)
+	with ESMTP id S934781Ab3DPUQT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 16:16:19 -0400
+Received: by mail-gg0-f201.google.com with SMTP id q6so88408ggc.2
+        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 13:16:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@parallels.com, sfr@canb.auug.org.au
+Cc: slava@dubeyko.com, hch@infradead.org, htl10@users.sourceforge.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mem-soft-dirty: Reshuffle CONFIG_ options to be more Arch-friendly
+     Subject: hfsplus: fix potential overflow in hfsplus_file_truncate()
 has been added to the -mm tree.  Its filename is
-     mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch
+     hfsplus-fix-potential-overflow-in-hfsplus_file_truncate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Emelyanov <xemul@parallels.com>
-Subject: mem-soft-dirty: Reshuffle CONFIG_ options to be more Arch-friendly
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: hfsplus: fix potential overflow in hfsplus_file_truncate()
 
-As Stephen Rothwell pointed out, config options, that depend on
-architecture support, are better to be wrapped into a select +
-depends on scheme.
+Change a u32 to loff_t hfsplus_file_truncate().
 
-Do this for CONFIG_MEM_SOFT_DIRTY, as it currently works only
-for X86.
-
-Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                   |    3 +++
- arch/x86/Kconfig               |    1 +
- arch/x86/include/asm/pgtable.h |    2 --
- include/asm-generic/pgtable.h  |    2 +-
- mm/Kconfig                     |    2 +-
- 5 files changed, 6 insertions(+), 4 deletions(-)
+ fs/hfsplus/extents.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/Kconfig
---- a/arch/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
-+++ a/arch/Kconfig
-@@ -365,6 +365,9 @@ config HAVE_IRQ_TIME_ACCOUNTING
- config HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	bool
+diff -puN fs/hfsplus/extents.c~hfsplus-fix-potential-overflow-in-hfsplus_file_truncate fs/hfsplus/extents.c
+--- a/fs/hfsplus/extents.c~hfsplus-fix-potential-overflow-in-hfsplus_file_truncate
++++ a/fs/hfsplus/extents.c
+@@ -533,7 +533,7 @@ void hfsplus_file_truncate(struct inode
+ 		struct address_space *mapping = inode->i_mapping;
+ 		struct page *page;
+ 		void *fsdata;
+-		u32 size = inode->i_size;
++		loff_t size = inode->i_size;
  
-+config HAVE_ARCH_SOFT_DIRTY
-+	bool
-+
- config HAVE_MOD_ARCH_SPECIFIC
- 	bool
- 	help
-diff -puN arch/x86/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
-+++ a/arch/x86/Kconfig
-@@ -102,6 +102,7 @@ config X86
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select BUILDTIME_EXTABLE_SORT
- 	select GENERIC_CMOS_UPDATE
-+	select HAVE_ARCH_SOFT_DIRTY
- 	select CLOCKSOURCE_WATCHDOG
- 	select GENERIC_CLOCKEVENTS
- 	select ARCH_CLOCKSOURCE_DATA if X86_64
-diff -puN arch/x86/include/asm/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -294,8 +294,6 @@ static inline pmd_t pmd_mknotpresent(pmd
- 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
- }
- 
--#define __HAVE_SOFT_DIRTY
--
- static inline int pte_soft_dirty(pte_t pte)
- {
- 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
-diff -puN include/asm-generic/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
-+++ a/include/asm-generic/pgtable.h
-@@ -396,7 +396,7 @@ static inline void ptep_modify_prot_comm
- #define arch_start_context_switch(prev)	do {} while (0)
- #endif
- 
--#ifndef __HAVE_SOFT_DIRTY
-+#ifndef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline int pte_soft_dirty(pte_t pte)
- {
- 	return 0;
-diff -puN mm/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix mm/Kconfig
---- a/mm/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
-+++ a/mm/Kconfig
-@@ -474,7 +474,7 @@ config FRONTSWAP
- 
- config MEM_SOFT_DIRTY
- 	bool "Track memory changes"
--	depends on CHECKPOINT_RESTORE && X86
-+	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY
- 	select PROC_PAGE_MONITOR
- 	help
- 	  This option enables memory changes tracking by introducing a
+ 		res = pagecache_write_begin(NULL, mapping, size, 0,
+ 						AOP_FLAG_UNINTERRUPTIBLE,
 _
 
-Patches currently in -mm which might be from xemul@parallels.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-linux-next.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-clear_refs-sanitize-accepted-commands-declaration-fix.patch
-clear_refs-introduce-private-struct-for-mm_walk.patch
-pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
-pagemap-introduce-the-proc-pid-pagemap2-file.patch
-mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
-mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
-kernel-sysc-make-prctlpr_set_mm-generally-available.patch
+hfsplus-fix-potential-overflow-in-hfsplus_file_truncate.patch
+hfs-add-error-checking-for-hfs_find_init.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+hfs-hfsplus-convert-dprint-to-hfs_dbg.patch
+hfs-hfsplus-convert-printks-to-pr_level.patch
+hfsplus-add-error-propagation-to-__hfsplus_ext_write_extent.patch
 
