@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-avoid-accessing-memcg-after-releasing-reference.patch added to -mm tree
-Date: Tue, 16 Apr 2013 15:58:06 -0700
-Message-ID: <20130416225806.84FDB5A4145@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix.patch added to -mm tree
+Date: Tue, 16 Apr 2013 16:04:55 -0700
+Message-ID: <20130416230455.7F8B531C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:32780 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965533Ab3DPW6J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 18:58:09 -0400
-Received: by mail-ve0-f201.google.com with SMTP id jz10so105243veb.4
-        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 15:58:08 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:48806 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965565Ab3DPXE4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 19:04:56 -0400
+Received: by mail-yh0-f73.google.com with SMTP id i21so106041yha.4
+        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 16:04:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizefan@huawei.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: sasha.levin@oracle.com, davidlohr.bueso@hp.com, riel@redhat.com
 
 
 The patch titled
-     Subject: memcg: avoid accessing memcg after releasing reference
+     Subject: ipc,sem: prevent releasing RCU read lock twice in semctl_main
 has been added to the -mm tree.  Its filename is
-     memcg-avoid-accessing-memcg-after-releasing-reference.patch
+     ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Zefan <lizefan@huawei.com>
-Subject: memcg: avoid accessing memcg after releasing reference
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: ipc,sem: prevent releasing RCU read lock twice in semctl_main
 
-This might cause a use-after-free bug.
+We will release RCU read lock twice if the sem id passed from userspace is
+not within the legal range in semctl_main.
 
-Signed-off-by: Li Zefan <lizefan@huawei.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/sem.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-avoid-accessing-memcg-after-releasing-reference mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-avoid-accessing-memcg-after-releasing-reference
-+++ a/mm/memcontrol.c
-@@ -3215,12 +3215,12 @@ void memcg_release_cache(struct kmem_cac
+diff -puN ipc/sem.c~ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix ipc/sem.c
+--- a/ipc/sem.c~ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix
++++ a/ipc/sem.c
+@@ -1098,8 +1098,10 @@ static int semctl_main(struct ipc_namesp
+ 	/* GETVAL, GETPID, GETNCTN, GETZCNT: fall-through */
+ 	}
+ 	err = -EINVAL;
+-	if(semnum < 0 || semnum >= nsems)
+-		goto out_unlock;
++	if(semnum < 0 || semnum >= nsems) {
++		rcu_read_unlock();
++		goto out_wakeup;
++	}
  
- 	root = s->memcg_params->root_cache;
- 	root->memcg_params->memcg_caches[id] = NULL;
--	mem_cgroup_put(memcg);
- 
- 	mutex_lock(&memcg->slab_caches_mutex);
- 	list_del(&s->memcg_params->list);
- 	mutex_unlock(&memcg->slab_caches_mutex);
- 
-+	mem_cgroup_put(memcg);
- out:
- 	kfree(s->memcg_params);
- }
+ 	spin_lock(&sma->sem_perm.lock);
+ 	curr = &sma->sem_base[semnum];
 _
 
-Patches currently in -mm which might be from lizefan@huawei.com are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
 linux-next.patch
-memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter.patch
-memcg-rework-mem_cgroup_iter-to-use-cgroup-iterators.patch
-memcg-relax-memcg-iter-caching.patch
-memcg-simplify-mem_cgroup_iter.patch
-memcg-further-simplify-mem_cgroup_iter.patch
-cgroup-remove-css_get_next.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-memcg-avoid-accessing-memcg-after-releasing-reference.patch
-exec-do-not-abuse-cred_guard_mutex-in-threadgroup_lock.patch
+watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix.patch
 
