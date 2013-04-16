@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch added to -mm tree
-Date: Tue, 16 Apr 2013 15:01:37 -0700
-Message-ID: <20130416220137.7B60331C034@corp2gmr1-1.hot.corp.google.com>
+Subject: + staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch added to -mm tree
+Date: Tue, 16 Apr 2013 15:13:45 -0700
+Message-ID: <20130416221345.D33D731C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:52554 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965344Ab3DPWBi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 18:01:38 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r13so17775ghr.4
-        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 15:01:37 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:61686 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965255Ab3DPWNr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 18:13:47 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w16so101501vbb.5
+        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 15:13:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, axboe@kernel.dk
+Cc: akpm@linux-foundation.org, dan.magenheimer@oracle.com, fengguang.wu@intel.com
 
 
 The patch titled
-     Subject: cciss: bug fix, prevent cciss from loading in kdump kernel
+     Subject: staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix
 has been added to the -mm tree.  Its filename is
-     cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch
+     staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Miller <mike.miller@hp.com>
-Subject: cciss: bug fix, prevent cciss from loading in kdump kernel
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix
 
-If hpsa is selected as the Smart Array driver cciss may try to load in the
-kdump kernel.  When this happens kdump fails and a core file cannot be
-created.  This patch prevents cciss from trying to load in this scenario. 
-This effects primarily older Smart Array controllers.
+use_frontswap_selfshrink cannot be __initdata
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/staging/zcache/ramster/ramster.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel
-+++ a/drivers/block/cciss.c
-@@ -4960,6 +4960,12 @@ static int cciss_init_one(struct pci_dev
- 	ctlr_info_t *h;
- 	unsigned long flags;
+diff -puN drivers/staging/zcache/ramster/ramster.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix drivers/staging/zcache/ramster/ramster.c
+--- a/drivers/staging/zcache/ramster/ramster.c~staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix
++++ a/drivers/staging/zcache/ramster/ramster.c
+@@ -773,7 +773,7 @@ static DECLARE_DELAYED_WORK(selfshrink_w
  
-+	/*
-+	 * if this is the kdump kernel and the user has set the flags to
-+	 * use hpsa rather than cciss just bail
-+	 */
-+	if ((reset_devices) && (cciss_allow_hpsa == 1))
-+		return -ENODEV;
- 	rc = cciss_init_reset_devices(pdev);
- 	if (rc) {
- 		if (rc != -ENOTSUPP)
+ #ifndef CONFIG_RAMSTER_MODULE
+ /* Enable/disable with kernel boot option. */
+-static bool use_frontswap_selfshrink __initdata = true;
++static bool use_frontswap_selfshrink = true;
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
+arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
