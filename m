@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mwave-fix-info-leak-in-mwave_ioctl.patch added to -mm tree
-Date: Tue, 16 Apr 2013 14:10:42 -0700
-Message-ID: <20130416211042.7E3FB31C034@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-remove-unused-parameter-of-pages_correctly_reserved.patch added to -mm tree
+Date: Tue, 16 Apr 2013 14:16:34 -0700
+Message-ID: <20130416211634.7BDF85A4145@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:39170 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965351Ab3DPVKn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 17:10:43 -0400
-Received: by mail-gg0-f202.google.com with SMTP id q1so95120ggn.5
-        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 14:10:43 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:59909 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965262Ab3DPVQf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 17:16:35 -0400
+Received: by mail-qe0-f74.google.com with SMTP id b10so95554qen.5
+        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 14:16:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dan.carpenter@oracle.com, greg@kroah.com, jkosina@suse.cz
+Cc: tangchen@cn.fujitsu.com, gregkh@linuxfoundation.org, wangsl-fnst@cn.fujitsu.com, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: mwave: fix info leak in mwave_ioctl()
+     Subject: mm: Remove unused parameter of pages_correctly_reserved()
 has been added to the -mm tree.  Its filename is
-     mwave-fix-info-leak-in-mwave_ioctl.patch
+     mm-remove-unused-parameter-of-pages_correctly_reserved.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: mwave: fix info leak in mwave_ioctl()
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: mm: Remove unused parameter of pages_correctly_reserved()
 
-Smatch complains that on 64 bit systems, there is a hole in the
-MW_ABILITIES struct between ->component_count and ->component_list[].  It
-leaks stack information from the mwave_ioctl() function.
+nr_pages is not used in pages_correctly_reserved().
+So remove it.
 
-I've added a memset() to initialize the struct to zero.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Wang Shilong <wangsl-fnst@cn.fujitsu.com>
+Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mwave/tp3780i.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/memory.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/mwave/tp3780i.c~mwave-info-leak-in-mwave_ioctl drivers/char/mwave/tp3780i.c
---- a/drivers/char/mwave/tp3780i.c~mwave-info-leak-in-mwave_ioctl
-+++ a/drivers/char/mwave/tp3780i.c
-@@ -479,6 +479,7 @@ int tp3780I_QueryAbilities(THINKPAD_BD_D
- 	PRINTK_2(TRACE_TP3780I,
- 		"tp3780i::tp3780I_QueryAbilities entry pBDData %p\n", pBDData);
+diff -puN drivers/base/memory.c~mm-remove-unused-parameter-of-pages_correctly_reserved drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-remove-unused-parameter-of-pages_correctly_reserved
++++ a/drivers/base/memory.c
+@@ -207,8 +207,7 @@ int memory_isolate_notify(unsigned long
+  * The probe routines leave the pages reserved, just as the bootmem code does.
+  * Make sure they're still that way.
+  */
+-static bool pages_correctly_reserved(unsigned long start_pfn,
+-					unsigned long nr_pages)
++static bool pages_correctly_reserved(unsigned long start_pfn)
+ {
+ 	int i, j;
+ 	struct page *page;
+@@ -256,7 +255,7 @@ memory_block_action(unsigned long phys_i
  
-+	memset(pAbilities, 0, sizeof(*pAbilities));
- 	/* fill out standard constant fields */
- 	pAbilities->instr_per_sec = pBDData->rDspSettings.uIps;
- 	pAbilities->data_size = pBDData->rDspSettings.uDStoreSize;
+ 	switch (action) {
+ 		case MEM_ONLINE:
+-			if (!pages_correctly_reserved(start_pfn, nr_pages))
++			if (!pages_correctly_reserved(start_pfn))
+ 				return -EBUSY;
+ 
+ 			ret = online_pages(start_pfn, nr_pages, online_type);
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 linux-next.patch
-ocfs2-fix-error-handling-in-ocfs2_ioctl_move_extents.patch
-ocfs2-fix-null-dereference-for-moving-extents.patch
-mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix.patch
-i2o-check-copy_from_user-size-parameter.patch
-mwave-fix-info-leak-in-mwave_ioctl.patch
+arch-x86-mm-init_64c-fix-build-warning-when-config_memory_hotremove=n.patch
+resource-add-__adjust_resource-for-internal-use.patch
+resource-add-release_mem_region_adjustable.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch
+mm-hotplug-avoid-compiling-memory-hotremove-functions-when-disabled.patch
+firmware-memmap-fix-firmware_map_entry-leak.patch
+mm-remove-unused-parameter-of-pages_correctly_reserved.patch
+mem-hotplug-put-kernel_physical_mapping_remove-declaration-in-config_memory_hotremove.patch
+memblock-fix-missing-comment-of-memblock_insert_region.patch
 
