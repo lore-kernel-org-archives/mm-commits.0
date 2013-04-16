@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fix-fsync-error-reporting.patch added to -mm tree
-Date: Tue, 16 Apr 2013 14:30:18 -0700
-Message-ID: <20130416213018.825EC31C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch added to -mm tree
+Date: Tue, 16 Apr 2013 15:01:37 -0700
+Message-ID: <20130416220137.7B60331C034@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:43686 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965271Ab3DPVaV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 17:30:21 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so105726qab.5
-        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 14:30:19 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:52554 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965344Ab3DPWBi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 18:01:38 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r13so17775ghr.4
+        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 15:01:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, jack@suse.cz, viro@zeniv.linux.org.uk
+Cc: mike.miller@hp.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: fs: fix fsync() error reporting
+     Subject: cciss: bug fix, prevent cciss from loading in kdump kernel
 has been added to the -mm tree.  Its filename is
-     fs-fix-fsync-error-reporting.patch
+     cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,106 +33,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Monakhov <dmonakhov@openvz.org>
-Subject: fs: fix fsync() error reporting
+From: Mike Miller <mike.miller@hp.com>
+Subject: cciss: bug fix, prevent cciss from loading in kdump kernel
 
-There are two convenient ways to report errors to userspace
+If hpsa is selected as the Smart Array driver cciss may try to load in the
+kdump kernel.  When this happens kdump fails and a core file cannot be
+created.  This patch prevents cciss from trying to load in this scenario. 
+This effects primarily older Smart Array controllers.
 
-1) retun error to original syscall for example write(2)
-2) mark mapping with error flag and return it on later fsync(2)
-
-Second one is broken if (mapping->nrpages == 0) This is real-life
-situation because after error pages are likey to be truncated or
-invalidated.
-
-We have to return an error regardless to number of pages in the mapping.
-
-#Original testcase: git@github.com:dmonakhov/xfstests.git
-MOUNT_OPTIONS="-b1024"
-./check shared/305
-
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   29 +++++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ drivers/block/cciss.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/filemap.c~fs-fix-fsync-error-reporting mm/filemap.c
---- a/mm/filemap.c~fs-fix-fsync-error-reporting
-+++ a/mm/filemap.c
-@@ -188,6 +188,17 @@ static int sleep_on_page_killable(void *
- 	return fatal_signal_pending(current) ? -EINTR : 0;
- }
+diff -puN drivers/block/cciss.c~cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel
++++ a/drivers/block/cciss.c
+@@ -4960,6 +4960,12 @@ static int cciss_init_one(struct pci_dev
+ 	ctlr_info_t *h;
+ 	unsigned long flags;
  
-+static int filemap_check_errors(struct address_space *mapping)
-+{
-+	int ret = 0;
-+	/* Check for outstanding write errors */
-+	if (test_and_clear_bit(AS_ENOSPC, &mapping->flags))
-+		ret = -ENOSPC;
-+	if (test_and_clear_bit(AS_EIO, &mapping->flags))
-+		ret = -EIO;
-+	return ret;
-+}
-+
- /**
-  * __filemap_fdatawrite_range - start writeback on mapping dirty pages in range
-  * @mapping:	address space structure to write
-@@ -269,10 +280,10 @@ int filemap_fdatawait_range(struct addre
- 	pgoff_t end = end_byte >> PAGE_CACHE_SHIFT;
- 	struct pagevec pvec;
- 	int nr_pages;
--	int ret = 0;
-+	int ret2, ret = 0;
- 
- 	if (end_byte < start_byte)
--		return 0;
-+		goto out;
- 
- 	pagevec_init(&pvec, 0);
- 	while ((index <= end) &&
-@@ -295,12 +306,10 @@ int filemap_fdatawait_range(struct addre
- 		pagevec_release(&pvec);
- 		cond_resched();
- 	}
--
--	/* Check for outstanding write errors */
--	if (test_and_clear_bit(AS_ENOSPC, &mapping->flags))
--		ret = -ENOSPC;
--	if (test_and_clear_bit(AS_EIO, &mapping->flags))
--		ret = -EIO;
-+out:
-+	ret2 = filemap_check_errors(mapping);
-+	if (!ret)
-+		ret = ret2;
- 
- 	return ret;
- }
-@@ -341,6 +350,8 @@ int filemap_write_and_wait(struct addres
- 			if (!err)
- 				err = err2;
- 		}
-+	} else {
-+		err = filemap_check_errors(mapping);
- 	}
- 	return err;
- }
-@@ -372,6 +383,8 @@ int filemap_write_and_wait_range(struct
- 			if (!err)
- 				err = err2;
- 		}
-+	} else {
-+		err = filemap_check_errors(mapping);
- 	}
- 	return err;
- }
++	/*
++	 * if this is the kdump kernel and the user has set the flags to
++	 * use hpsa rather than cciss just bail
++	 */
++	if ((reset_devices) && (cciss_allow_hpsa == 1))
++		return -ENODEV;
+ 	rc = cciss_init_reset_devices(pdev);
+ 	if (rc) {
+ 		if (rc != -ENOTSUPP)
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-linux-next.patch
-fs-fix-fsync-error-reporting.patch
+cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch
 
