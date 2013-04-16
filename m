@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-platform_lcdc-introduce-probe-callback.patch added to -mm tree
-Date: Mon, 15 Apr 2013 16:07:32 -0700
-Message-ID: <20130415230732.7E33631C034@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch added to -mm tree
+Date: Tue, 16 Apr 2013 12:59:04 -0700
+Message-ID: <20130416195904.7766831C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:35111 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934152Ab3DOXHe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Apr 2013 19:07:34 -0400
-Received: by mail-ve0-f201.google.com with SMTP id jz10so157962veb.0
-        for <mm-commits@vger.kernel.org>; Mon, 15 Apr 2013 16:07:33 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:37935 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935400Ab3DPT7F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 15:59:05 -0400
+Received: by mail-gg0-f201.google.com with SMTP id q6so86963ggc.0
+        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 12:59:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: abrestic@chromium.org, FlorianSchandinat@gmx.de, dianders@chromium.org, jg1.han@samsung.com, rpurdie@rpsys.net
+Cc: xemul@parallels.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: drivers/video/backlight/platform_lcd.c: introduce probe callback
+     Subject: mem-soft-dirty: Reshuffle CONFIG_ options to be more Arch-friendly
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-platform_lcdc-introduce-probe-callback.patch
+     mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Bresticker <abrestic@chromium.org>
-Subject: drivers/video/backlight/platform_lcd.c: introduce probe callback
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: mem-soft-dirty: Reshuffle CONFIG_ options to be more Arch-friendly
 
-Platform LCD devices may need to do some device-specific initialization
-before they can be used (regulator or GPIO setup, for example), but
-currently the driver does not support any way of doing this.  This patch
-adds a probe() callback to plat_lcd_data which platform LCD devices can
-set to indicate that device-specific initialization is needed.
+As Stephen Rothwell pointed out, config options, that depend on
+architecture support, are better to be wrapped into a select +
+depends on scheme.
 
-Signed-off-by: Andrew Bresticker <abrestic@chromium.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Reviewed-by: Doug Anderson <dianders@chromium.org>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Do this for CONFIG_MEM_SOFT_DIRTY, as it currently works only
+for X86.
+
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/platform_lcd.c |    6 ++++++
- include/video/platform_lcd.h           |    1 +
- 2 files changed, 7 insertions(+)
+ arch/Kconfig                   |    3 +++
+ arch/x86/Kconfig               |    1 +
+ arch/x86/include/asm/pgtable.h |    2 --
+ include/asm-generic/pgtable.h  |    2 +-
+ mm/Kconfig                     |    2 +-
+ 5 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/platform_lcd.c~drivers-video-backlight-platform_lcdc-introduce-probe-callback drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~drivers-video-backlight-platform_lcdc-introduce-probe-callback
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -86,6 +86,12 @@ static int platform_lcd_probe(struct pla
- 		return -EINVAL;
- 	}
+diff -puN arch/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/Kconfig
+--- a/arch/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/arch/Kconfig
+@@ -365,6 +365,9 @@ config HAVE_IRQ_TIME_ACCOUNTING
+ config HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	bool
  
-+	if (pdata->probe) {
-+		err = pdata->probe(pdata);
-+		if (err)
-+			return err;
-+	}
++config HAVE_ARCH_SOFT_DIRTY
++	bool
 +
- 	plcd = devm_kzalloc(&pdev->dev, sizeof(struct platform_lcd),
- 			    GFP_KERNEL);
- 	if (!plcd) {
-diff -puN include/video/platform_lcd.h~drivers-video-backlight-platform_lcdc-introduce-probe-callback include/video/platform_lcd.h
---- a/include/video/platform_lcd.h~drivers-video-backlight-platform_lcdc-introduce-probe-callback
-+++ a/include/video/platform_lcd.h
-@@ -15,6 +15,7 @@ struct plat_lcd_data;
- struct fb_info;
+ config HAVE_MOD_ARCH_SPECIFIC
+ 	bool
+ 	help
+diff -puN arch/x86/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/arch/x86/Kconfig
+@@ -102,6 +102,7 @@ config X86
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select BUILDTIME_EXTABLE_SORT
+ 	select GENERIC_CMOS_UPDATE
++	select HAVE_ARCH_SOFT_DIRTY
+ 	select CLOCKSOURCE_WATCHDOG
+ 	select GENERIC_CLOCKEVENTS
+ 	select ARCH_CLOCKSOURCE_DATA if X86_64
+diff -puN arch/x86/include/asm/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/arch/x86/include/asm/pgtable.h
+@@ -294,8 +294,6 @@ static inline pmd_t pmd_mknotpresent(pmd
+ 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
+ }
  
- struct plat_lcd_data {
-+	int	(*probe)(struct plat_lcd_data *);
- 	void	(*set_power)(struct plat_lcd_data *, unsigned int power);
- 	int	(*match_fb)(struct plat_lcd_data *, struct fb_info *);
- };
+-#define __HAVE_SOFT_DIRTY
+-
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+ 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
+diff -puN include/asm-generic/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/include/asm-generic/pgtable.h
+@@ -396,7 +396,7 @@ static inline void ptep_modify_prot_comm
+ #define arch_start_context_switch(prev)	do {} while (0)
+ #endif
+ 
+-#ifndef __HAVE_SOFT_DIRTY
++#ifndef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+ 	return 0;
+diff -puN mm/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix mm/Kconfig
+--- a/mm/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/mm/Kconfig
+@@ -474,7 +474,7 @@ config FRONTSWAP
+ 
+ config MEM_SOFT_DIRTY
+ 	bool "Track memory changes"
+-	depends on CHECKPOINT_RESTORE && X86
++	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY
+ 	select PROC_PAGE_MONITOR
+ 	help
+ 	  This option enables memory changes tracking by introducing a
 _
 
-Patches currently in -mm which might be from abrestic@chromium.org are
+Patches currently in -mm which might be from xemul@parallels.com are
 
 linux-next.patch
-drivers-video-backlight-platform_lcdc-introduce-probe-callback.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+clear_refs-introduce-private-struct-for-mm_walk.patch
+pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
+pagemap-introduce-the-proc-pid-pagemap2-file.patch
+mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
+mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
+selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+kernel-sysc-make-prctlpr_set_mm-generally-available.patch
 
