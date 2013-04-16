@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-unused-parameter-of-pages_correctly_reserved.patch added to -mm tree
-Date: Tue, 16 Apr 2013 14:16:34 -0700
-Message-ID: <20130416211634.7BDF85A4145@corp2gmr1-2.hot.corp.google.com>
+Subject: + memblock-fix-missing-comment-of-memblock_insert_region.patch added to -mm tree
+Date: Tue, 16 Apr 2013 14:17:02 -0700
+Message-ID: <20130416211702.95DA15A422E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:59909 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965262Ab3DPVQf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 17:16:35 -0400
-Received: by mail-qe0-f74.google.com with SMTP id b10so95554qen.5
-        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 14:16:35 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:64827 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965219Ab3DPVRE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Apr 2013 17:17:04 -0400
+Received: by mail-vc0-f202.google.com with SMTP id m16so95893vca.3
+        for <mm-commits@vger.kernel.org>; Tue, 16 Apr 2013 14:17:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tangchen@cn.fujitsu.com, gregkh@linuxfoundation.org, wangsl-fnst@cn.fujitsu.com, wency@cn.fujitsu.com
+Cc: tangchen@cn.fujitsu.com
 
 
 The patch titled
-     Subject: mm: Remove unused parameter of pages_correctly_reserved()
+     Subject: memblock: fix missing comment of memblock_insert_region()
 has been added to the -mm tree.  Its filename is
-     mm-remove-unused-parameter-of-pages_correctly_reserved.patch
+     memblock-fix-missing-comment-of-memblock_insert_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm: Remove unused parameter of pages_correctly_reserved()
+Subject: memblock: fix missing comment of memblock_insert_region()
 
-nr_pages is not used in pages_correctly_reserved().
-So remove it.
+There is no comment for parameter nid of memblock_insert_region().
+This patch adds comment for it.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wang Shilong <wangsl-fnst@cn.fujitsu.com>
-Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memblock.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-remove-unused-parameter-of-pages_correctly_reserved drivers/base/memory.c
---- a/drivers/base/memory.c~mm-remove-unused-parameter-of-pages_correctly_reserved
-+++ a/drivers/base/memory.c
-@@ -207,8 +207,7 @@ int memory_isolate_notify(unsigned long
-  * The probe routines leave the pages reserved, just as the bootmem code does.
-  * Make sure they're still that way.
-  */
--static bool pages_correctly_reserved(unsigned long start_pfn,
--					unsigned long nr_pages)
-+static bool pages_correctly_reserved(unsigned long start_pfn)
- {
- 	int i, j;
- 	struct page *page;
-@@ -256,7 +255,7 @@ memory_block_action(unsigned long phys_i
+diff -puN mm/memblock.c~memblock-fix-missing-comment-of-memblock_insert_region mm/memblock.c
+--- a/mm/memblock.c~memblock-fix-missing-comment-of-memblock_insert_region
++++ a/mm/memblock.c
+@@ -322,10 +322,11 @@ static void __init_memblock memblock_mer
  
- 	switch (action) {
- 		case MEM_ONLINE:
--			if (!pages_correctly_reserved(start_pfn, nr_pages))
-+			if (!pages_correctly_reserved(start_pfn))
- 				return -EBUSY;
- 
- 			ret = online_pages(start_pfn, nr_pages, online_type);
+ /**
+  * memblock_insert_region - insert new memblock region
+- * @type: memblock type to insert into
+- * @idx: index for the insertion point
+- * @base: base address of the new region
+- * @size: size of the new region
++ * @type:	memblock type to insert into
++ * @idx:	index for the insertion point
++ * @base:	base address of the new region
++ * @size:	size of the new region
++ * @nid:	node id of the new region
+  *
+  * Insert new memblock region [@base,@base+@size) into @type at @idx.
+  * @type must already have extra room to accomodate the new region.
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
@@ -86,6 +80,5 @@ mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch
 mm-hotplug-avoid-compiling-memory-hotremove-functions-when-disabled.patch
 firmware-memmap-fix-firmware_map_entry-leak.patch
 mm-remove-unused-parameter-of-pages_correctly_reserved.patch
-mem-hotplug-put-kernel_physical_mapping_remove-declaration-in-config_memory_hotremove.patch
 memblock-fix-missing-comment-of-memblock_insert_region.patch
 
