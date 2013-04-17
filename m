@@ -1,62 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch added to -mm tree
-Date: Wed, 17 Apr 2013 14:21:43 -0700
-Message-ID: <20130417212144.7E3CA32AB80@corp2gmr1-1.hot.corp.google.com>
+Subject: [failures] arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 17 Apr 2013 14:56:57 -0700
+Message-ID: <20130417215657.8666B5AA07D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:45712 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965578Ab3DQVbx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 17:31:53 -0400
-Received: by mail-yh0-f74.google.com with SMTP id q10so212866yhf.5
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 14:31:52 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:45412 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966827Ab3DQV46 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 17:56:58 -0400
+Received: by mail-yh0-f73.google.com with SMTP id i21so215676yha.4
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 14:56:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, shli@kernel.org
+To: akpm@linux-foundation.org, nschichan@freebox.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
+     Subject: arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix
+Subject: arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
 
-fix CONFIG_SWAP=n build
+ERROR: "(foo*)" should be "(foo *)"
+#144: FILE: arch/arm/net/bpf_jit_32.c:938:
++		fp->bpf_func = (void*)ctx.target;
 
-Cc: Shaohua Li <shli@kernel.org>
+total: 1 errors, 0 warnings, 117 lines checked
+
+./patches/arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Nicolas Schichan <nschichan@freebox.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
+ arch/arm/net/bpf_jit_32.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix include/linux/swap.h
---- a/include/linux/swap.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix
-+++ a/include/linux/swap.h
-@@ -465,7 +465,7 @@ static inline struct page *lookup_swap_c
- 	return NULL;
+diff -puN arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes arch/arm/net/bpf_jit_32.c
+--- a/arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes
++++ a/arch/arm/net/bpf_jit_32.c
+@@ -935,7 +935,7 @@ void bpf_jit_compile(struct sk_filter *f
+ 
+ 	__bpf_jit_compile(&ctx);
+ 	if (ctx.target)
+-		fp->bpf_func = (void*)ctx.target;
++		fp->bpf_func = (void *)ctx.target;
  }
  
--static inline int add_to_swap(struct page *page)
-+static inline int add_to_swap(struct page *page, struct list_head *list)
- {
- 	return 0;
- }
+ static void bpf_jit_free_worker(struct work_struct *work)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +97,7 @@ mm-madvise-complete-input-validation-before-taking-lock-fix.patch
 clear_refs-sanitize-accepted-commands-declaration-fix.patch
 selftest-add-simple-test-for-soft-dirty-bit.patch
 memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+memcg-add-memorypressure_level-events-fix.patch
 mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
@@ -150,7 +152,6 @@ block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 lib-add-lz4-compressor-module-fix.patch
 crypto-add-lz4-cryptographic-api-fix.patch
-arch-arm-net-bpf_jit_32c-make-code-generation-less-dependent-on-struct-sk_filter-checkpatch-fixes.patch
 arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
