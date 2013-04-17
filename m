@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption.patch added to -mm tree
-Date: Wed, 17 Apr 2013 12:56:41 -0700
-Message-ID: <20130417195641.EF9463262B9@corp2gmr1-1.hot.corp.google.com>
+Subject: + thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0.patch added to -mm tree
+Date: Wed, 17 Apr 2013 13:00:23 -0700
+Message-ID: <20130417200023.8A8CA5AB49F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:37176 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757777Ab3DQT4n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 15:56:43 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so202787qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 12:56:42 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:46279 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965607Ab3DQUAZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:00:25 -0400
+Received: by mail-gg0-f201.google.com with SMTP id q6so202642ggc.4
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:00:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: slava@dubeyko.com, Anthony2486@interfaces.org.uk, freeboy6716@gmail.com, hermes@ceres.dti.ne.jp, konishi.ryusuke@lab.ntt.co.jp, szarpaj@grubelek.pl, zahid.chowdhury@starsolutions.com
+Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hannes@cmpxchg.org, minchan@kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix issue with flush kernel thread after remount in RO mode because of driver's internal error or metadata corruption
+     Subject: thp: fix huge zero page logic for page with pfn == 0
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption.patch
+     thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,278 +33,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: fix issue with flush kernel thread after remount in RO mode because of driver's internal error or metadata corruption
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: fix huge zero page logic for page with pfn == 0
 
-DESCRIPTION:
+Current implementation of huge zero page uses pfn value 0 to indicate that
+the page hasn't allocated yet.  It assumes that buddy page allocator can't
+return page with pfn == 0.
 
-NILFS2 driver remounts itself in RO mode in the case of metadata
-corruption discovering (for example, in the case of broken bmap
-discovering).  But, usually, it takes place file system operations before
-remounting in RO mode.  Thereby, NILFS2 driver can be in RO mode with
-presence of dirty pages in modified inodes' address spaces.  It results in
-flush kernel thread's infinite trying to flush dirty pages in RO mode.  As
-a result, it is possible to see such side effects as: (1) flush kernel
-thread occupies 50% - 99% of CPU time; (2) system can't be shutdowned
-without manual power switch off.
+Let's rework the code to store 'struct page *' of huge zero page, not its
+pfn.  This way we can avoid the weak assumption.
 
-SYMPTOMS:
-(1) System log contains error message: "Remounting filesystem read-only".
-(2) The flush kernel thread occupies 50% - 99% of CPU time.
-(3) The system can't be shutdowned without manual power switch off.
-
-REPRODUCTION PATH:
-(1) Create volume group with name "unencrypted" by means of vgcreate utility.
-(2) Run script (prepared by Anthony Doggett <Anthony2486@interfaces.org.uk>):
-
-----------------[BEGIN SCRIPT]--------------------
-#!/bin/bash
-
-VG=unencrypted
-#apt-get install nilfs-tools darcs
-lvcreate --size 2G --name ntest $VG
-mkfs.nilfs2 -b 1024 -B 8192 /dev/mapper/$VG-ntest
-mkdir /var/tmp/n
-mkdir /var/tmp/n/ntest
-mount /dev/mapper/$VG-ntest /var/tmp/n/ntest
-mkdir /var/tmp/n/ntest/thedir
-cd /var/tmp/n/ntest/thedir
-sleep 2
-date
-darcs init
-sleep 2
-dmesg|tail -n 5
-date
-darcs whatsnew || true
-date
-sleep 2
-dmesg|tail -n 5
-----------------[END SCRIPT]--------------------
-
-(3) Try to shutdown the system.
-
-REPRODUCIBILITY: 100%
-
-FIX:
-
-The patch implements checking mount state of NILFS2 driver in
-nilfs_writepage(), nilfs_writepages() and nilfs_mdt_write_page() methods. 
-If it is detected the RO mount state then all dirty pages are simply
-discarded with warning messages is written in system log.
-
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Anthony Doggett <Anthony2486@interfaces.org.uk>
-Cc: ARAI Shun-ichi <hermes@ceres.dti.ne.jp>
-Cc: Piotr Szymaniak <szarpaj@grubelek.pl>
-Cc: Zahid Chowdhury <zahid.chowdhury@starsolutions.com>
-Cc: Elmer Zhang <freeboy6716@gmail.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |   17 ++++++++++
- fs/nilfs2/mdt.c   |   19 +++++++++--
- fs/nilfs2/page.c  |   70 ++++++++++++++++++++++++++++++++------------
- fs/nilfs2/page.h  |    3 +
- 4 files changed, 86 insertions(+), 23 deletions(-)
+ mm/huge_memory.c |   43 +++++++++++++++++++++----------------------
+ 1 file changed, 21 insertions(+), 22 deletions(-)
 
-diff -puN fs/nilfs2/inode.c~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption
-+++ a/fs/nilfs2/inode.c
-@@ -175,6 +175,11 @@ static int nilfs_writepages(struct addre
- 	struct inode *inode = mapping->host;
- 	int err = 0;
- 
-+	if (inode->i_sb->s_flags & MS_RDONLY) {
-+		nilfs_clear_dirty_pages(mapping, false);
-+		return -EROFS;
-+	}
-+
- 	if (wbc->sync_mode == WB_SYNC_ALL)
- 		err = nilfs_construct_dsync_segment(inode->i_sb, inode,
- 						    wbc->range_start,
-@@ -187,6 +192,18 @@ static int nilfs_writepage(struct page *
- 	struct inode *inode = page->mapping->host;
- 	int err;
- 
-+	if (inode && (inode->i_sb->s_flags & MS_RDONLY)) {
-+		/*
-+		 * It means that filesystem was remounted in read-only
-+		 * mode because of error or metadata corruption. But we
-+		 * have dirty pages that try to be flushed in background.
-+		 * So, here we simply discard this dirty page.
-+		 */
-+		nilfs_clear_dirty_page(page, false);
-+		unlock_page(page);
-+		return -EROFS;
-+	}
-+
- 	redirty_page_for_writepage(wbc, page);
- 	unlock_page(page);
- 
-diff -puN fs/nilfs2/mdt.c~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption fs/nilfs2/mdt.c
---- a/fs/nilfs2/mdt.c~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption
-+++ a/fs/nilfs2/mdt.c
-@@ -375,14 +375,25 @@ int nilfs_mdt_fetch_dirty(struct inode *
- static int
- nilfs_mdt_write_page(struct page *page, struct writeback_control *wbc)
- {
--	struct inode *inode;
-+	struct inode *inode = page->mapping->host;
- 	struct super_block *sb;
- 	int err = 0;
- 
-+	if (inode && (inode->i_sb->s_flags & MS_RDONLY)) {
-+		/*
-+		 * It means that filesystem was remounted in read-only
-+		 * mode because of error or metadata corruption. But we
-+		 * have dirty pages that try to be flushed in background.
-+		 * So, here we simply discard this dirty page.
-+		 */
-+		nilfs_clear_dirty_page(page, false);
-+		unlock_page(page);
-+		return -EROFS;
-+	}
-+
- 	redirty_page_for_writepage(wbc, page);
- 	unlock_page(page);
- 
--	inode = page->mapping->host;
- 	if (!inode)
- 		return 0;
- 
-@@ -561,10 +572,10 @@ void nilfs_mdt_restore_from_shadow_map(s
- 	if (mi->mi_palloc_cache)
- 		nilfs_palloc_clear_cache(inode);
- 
--	nilfs_clear_dirty_pages(inode->i_mapping);
-+	nilfs_clear_dirty_pages(inode->i_mapping, true);
- 	nilfs_copy_back_pages(inode->i_mapping, &shadow->frozen_data);
- 
--	nilfs_clear_dirty_pages(&ii->i_btnode_cache);
-+	nilfs_clear_dirty_pages(&ii->i_btnode_cache, true);
- 	nilfs_copy_back_pages(&ii->i_btnode_cache, &shadow->frozen_btnodes);
- 
- 	nilfs_bmap_restore(ii->i_bmap, &shadow->bmap_store);
-diff -puN fs/nilfs2/page.c~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption
-+++ a/fs/nilfs2/page.c
-@@ -370,7 +370,12 @@ repeat:
- 	goto repeat;
+diff -puN mm/huge_memory.c~thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0
++++ a/mm/huge_memory.c
+@@ -163,25 +163,24 @@ static int start_khugepaged(void)
  }
  
--void nilfs_clear_dirty_pages(struct address_space *mapping)
-+/**
-+ * nilfs_clear_dirty_pages - discard dirty pages in address space
-+ * @mapping: address space with dirty pages for discarding
-+ * @silent: suppress [true] or print [false] warning messages
-+ */
-+void nilfs_clear_dirty_pages(struct address_space *mapping, bool silent)
- {
- 	struct pagevec pvec;
- 	unsigned int i;
-@@ -382,25 +387,9 @@ void nilfs_clear_dirty_pages(struct addr
- 				  PAGEVEC_SIZE)) {
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			struct page *page = pvec.pages[i];
--			struct buffer_head *bh, *head;
+ static atomic_t huge_zero_refcount;
+-static unsigned long huge_zero_pfn __read_mostly;
++static struct page *huge_zero_page __read_mostly;
  
- 			lock_page(page);
--			ClearPageUptodate(page);
--			ClearPageMappedToDisk(page);
--			bh = head = page_buffers(page);
--			do {
--				lock_buffer(bh);
--				clear_buffer_dirty(bh);
--				clear_buffer_nilfs_volatile(bh);
--				clear_buffer_nilfs_checked(bh);
--				clear_buffer_nilfs_redirected(bh);
--				clear_buffer_uptodate(bh);
--				clear_buffer_mapped(bh);
--				unlock_buffer(bh);
--				bh = bh->b_this_page;
--			} while (bh != head);
--
--			__nilfs_clear_page_dirty(page);
-+			nilfs_clear_dirty_page(page, silent);
- 			unlock_page(page);
- 		}
- 		pagevec_release(&pvec);
-@@ -408,6 +397,51 @@ void nilfs_clear_dirty_pages(struct addr
+-static inline bool is_huge_zero_pfn(unsigned long pfn)
++static inline bool is_huge_zero_page(struct page *page)
+ {
+-	unsigned long zero_pfn = ACCESS_ONCE(huge_zero_pfn);
+-	return zero_pfn && pfn == zero_pfn;
++	return ACCESS_ONCE(huge_zero_page) == page;
+ }
+ 
+ static inline bool is_huge_zero_pmd(pmd_t pmd)
+ {
+-	return is_huge_zero_pfn(pmd_pfn(pmd));
++	return is_huge_zero_page(pmd_page(pmd));
+ }
+ 
+-static unsigned long get_huge_zero_page(void)
++static struct page *get_huge_zero_page(void)
+ {
+ 	struct page *zero_page;
+ retry:
+ 	if (likely(atomic_inc_not_zero(&huge_zero_refcount)))
+-		return ACCESS_ONCE(huge_zero_pfn);
++		return ACCESS_ONCE(huge_zero_page);
+ 
+ 	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
+ 			HPAGE_PMD_ORDER);
+@@ -191,7 +190,7 @@ retry:
  	}
+ 	count_vm_event(THP_ZERO_PAGE_ALLOC);
+ 	preempt_disable();
+-	if (cmpxchg(&huge_zero_pfn, 0, page_to_pfn(zero_page))) {
++	if (cmpxchg(&huge_zero_page, NULL, zero_page)) {
+ 		preempt_enable();
+ 		__free_page(zero_page);
+ 		goto retry;
+@@ -200,7 +199,7 @@ retry:
+ 	/* We take additional reference here. It will be put back by shrinker */
+ 	atomic_set(&huge_zero_refcount, 2);
+ 	preempt_enable();
+-	return ACCESS_ONCE(huge_zero_pfn);
++	return ACCESS_ONCE(huge_zero_page);
  }
  
-+/**
-+ * nilfs_clear_dirty_page - discard dirty page
-+ * @page: dirty page that will be discarded
-+ * @silent: suppress [true] or print [false] warning messages
-+ */
-+void nilfs_clear_dirty_page(struct page *page, bool silent)
-+{
-+	struct inode *inode = page->mapping->host;
-+	struct super_block *sb = inode->i_sb;
-+
-+	BUG_ON(!test_bit(PG_locked, &page->flags));
-+
-+	if (!silent) {
-+		nilfs_warning(sb, __func__,
-+				"discard page: offset %lld, ino %lu",
-+				page_offset(page), inode->i_ino);
-+	}
-+
-+	ClearPageUptodate(page);
-+	ClearPageMappedToDisk(page);
-+
-+	if (page_has_buffers(page)) {
-+		struct buffer_head *bh, *head;
-+
-+		bh = head = page_buffers(page);
-+		do {
-+			lock_buffer(bh);
-+			if (!silent) {
-+				nilfs_warning(sb, __func__,
-+					"discard block %llu, size %lu",
-+					(u64)bh->b_blocknr, bh->b_size);
-+			}
-+			clear_buffer_dirty(bh);
-+			clear_buffer_nilfs_volatile(bh);
-+			clear_buffer_nilfs_checked(bh);
-+			clear_buffer_nilfs_redirected(bh);
-+			clear_buffer_uptodate(bh);
-+			clear_buffer_mapped(bh);
-+			unlock_buffer(bh);
-+		} while (bh = bh->b_this_page, bh != head);
-+	}
-+
-+	__nilfs_clear_page_dirty(page);
-+}
-+
- unsigned nilfs_page_count_clean_buffers(struct page *page,
- 					unsigned from, unsigned to)
- {
-diff -puN fs/nilfs2/page.h~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption fs/nilfs2/page.h
---- a/fs/nilfs2/page.h~nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption
-+++ a/fs/nilfs2/page.h
-@@ -55,7 +55,8 @@ void nilfs_page_bug(struct page *);
+ static void put_huge_zero_page(void)
+@@ -220,9 +219,9 @@ static int shrink_huge_zero_page(struct
+ 		return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
  
- int nilfs_copy_dirty_pages(struct address_space *, struct address_space *);
- void nilfs_copy_back_pages(struct address_space *, struct address_space *);
--void nilfs_clear_dirty_pages(struct address_space *);
-+void nilfs_clear_dirty_page(struct page *, bool);
-+void nilfs_clear_dirty_pages(struct address_space *, bool);
- void nilfs_mapping_init(struct address_space *mapping, struct inode *inode,
- 			struct backing_dev_info *bdi);
- unsigned nilfs_page_count_clean_buffers(struct page *, unsigned, unsigned);
+ 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
+-		unsigned long zero_pfn = xchg(&huge_zero_pfn, 0);
+-		BUG_ON(zero_pfn == 0);
+-		__free_page(__pfn_to_page(zero_pfn));
++		struct page *zero_page = xchg(&huge_zero_page, NULL);
++		BUG_ON(zero_page == NULL);
++		__free_page(zero_page);
+ 	}
+ 
+ 	return 0;
+@@ -764,12 +763,12 @@ static inline struct page *alloc_hugepag
+ 
+ static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
+-		unsigned long zero_pfn)
++		struct page *zero_page)
+ {
+ 	pmd_t entry;
+ 	if (!pmd_none(*pmd))
+ 		return false;
+-	entry = pfn_pmd(zero_pfn, vma->vm_page_prot);
++	entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	entry = pmd_wrprotect(entry);
+ 	entry = pmd_mkhuge(entry);
+ 	set_pmd_at(mm, haddr, pmd, entry);
+@@ -794,20 +793,20 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		if (!(flags & FAULT_FLAG_WRITE) &&
+ 				transparent_hugepage_use_zero_page()) {
+ 			pgtable_t pgtable;
+-			unsigned long zero_pfn;
++			struct page *zero_page;
+ 			bool set;
+ 			pgtable = pte_alloc_one(mm, haddr);
+ 			if (unlikely(!pgtable))
+ 				return VM_FAULT_OOM;
+-			zero_pfn = get_huge_zero_page();
+-			if (unlikely(!zero_pfn)) {
++			zero_page = get_huge_zero_page();
++			if (unlikely(!zero_page)) {
+ 				pte_free(mm, pgtable);
+ 				count_vm_event(THP_FAULT_FALLBACK);
+ 				goto out;
+ 			}
+ 			spin_lock(&mm->page_table_lock);
+ 			set = set_huge_zero_page(pgtable, mm, vma, haddr, pmd,
+-					zero_pfn);
++					zero_page);
+ 			spin_unlock(&mm->page_table_lock);
+ 			if (!set) {
+ 				pte_free(mm, pgtable);
+@@ -886,16 +885,16 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	 * a page table.
+ 	 */
+ 	if (is_huge_zero_pmd(pmd)) {
+-		unsigned long zero_pfn;
++		struct page *zero_page;
+ 		bool set;
+ 		/*
+ 		 * get_huge_zero_page() will never allocate a new page here,
+ 		 * since we already have a zero page to copy. It just takes a
+ 		 * reference.
+ 		 */
+-		zero_pfn = get_huge_zero_page();
++		zero_page = get_huge_zero_page();
+ 		set = set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd,
+-				zero_pfn);
++				zero_page);
+ 		BUG_ON(!set); /* unexpected !pmd_none(dst_pmd) */
+ 		ret = 0;
+ 		goto out_unlock;
+@@ -1812,7 +1811,7 @@ int split_huge_page_to_list(struct page
+ 	struct anon_vma *anon_vma;
+ 	int ret = 1;
+ 
+-	BUG_ON(is_huge_zero_pfn(page_to_pfn(page)));
++	BUG_ON(is_huge_zero_page(page));
+ 	BUG_ON(!PageAnon(page));
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-hfsplus-fix-potential-overflow-in-hfsplus_file_truncate.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption.patch
-hfs-add-error-checking-for-hfs_find_init.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-hfs-hfsplus-convert-dprint-to-hfs_dbg.patch
-hfs-hfsplus-convert-printks-to-pr_level.patch
-hfsplus-add-error-propagation-to-__hfsplus_ext_write_extent.patch
+thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0.patch
 
