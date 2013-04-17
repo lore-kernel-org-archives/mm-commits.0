@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops.patch added to -mm tree
-Date: Wed, 17 Apr 2013 13:43:11 -0700
-Message-ID: <20130417204311.BE6955AB7D5@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops.patch added to -mm tree
+Date: Wed, 17 Apr 2013 13:43:13 -0700
+Message-ID: <20130417204313.875D15AB477@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:56753 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965067Ab3DQUnN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:43:13 -0400
-Received: by mail-qa0-f73.google.com with SMTP id p6so215641qad.4
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:43:12 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:58073 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965067Ab3DQUnO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:43:14 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w16so207114vbb.1
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:43:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-coh901331: convert coh901331_driver to dev_pm_ops
+     Subject: rtc: rtc-omap: convert omap_rtc_driver to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops.patch
+     rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-coh901331: convert coh901331_driver to dev_pm_ops
+Subject: rtc: rtc-omap: convert omap_rtc_driver to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,85 +43,82 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |   24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+ drivers/rtc/rtc-omap.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops
-+++ a/drivers/rtc/rtc-coh901331.c
-@@ -47,7 +47,7 @@ struct coh901331_port {
- 	u32 physize;
- 	void __iomem *virtbase;
- 	int irq;
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- 	u32 irqmaskstore;
- #endif
- };
-@@ -225,17 +225,17 @@ static int __init coh901331_probe(struct
- 	return ret;
+diff -puN drivers/rtc/rtc-omap.c~rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops
++++ a/drivers/rtc/rtc-omap.c
+@@ -464,11 +464,10 @@ static int __exit omap_rtc_remove(struct
+ 	return 0;
  }
  
 -#ifdef CONFIG_PM
--static int coh901331_suspend(struct platform_device *pdev, pm_message_t state)
+-
 +#ifdef CONFIG_PM_SLEEP
-+static int coh901331_suspend(struct device *dev)
- {
--	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
-+	struct coh901331_port *rtap = dev_get_drvdata(dev);
+ static u8 irqstat;
  
- 	/*
- 	 * If this RTC alarm will be used for waking the system up,
- 	 * don't disable it of course. Else we just disable the alarm
- 	 * and await suspension.
+-static int omap_rtc_suspend(struct platform_device *pdev, pm_message_t state)
++static int omap_rtc_suspend(struct device *dev)
+ {
+ 	irqstat = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+ 
+@@ -476,34 +475,32 @@ static int omap_rtc_suspend(struct platf
+ 	 * source, and in fact this enable() call is just saving a flag
+ 	 * that's never used...
  	 */
--	if (device_may_wakeup(&pdev->dev)) {
-+	if (device_may_wakeup(dev)) {
- 		enable_irq_wake(rtap->irq);
- 	} else {
- 		clk_enable(rtap->clk);
-@@ -247,12 +247,12 @@ static int coh901331_suspend(struct plat
+-	if (device_may_wakeup(&pdev->dev))
++	if (device_may_wakeup(dev))
+ 		enable_irq_wake(omap_rtc_alarm);
+ 	else
+ 		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+ 
+ 	/* Disable the clock/module */
+-	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_put_sync(dev);
+ 
  	return 0;
  }
  
--static int coh901331_resume(struct platform_device *pdev)
-+static int coh901331_resume(struct device *dev)
+-static int omap_rtc_resume(struct platform_device *pdev)
++static int omap_rtc_resume(struct device *dev)
  {
--	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
-+	struct coh901331_port *rtap = dev_get_drvdata(dev);
+ 	/* Enable the clock/module so that we can access the registers */
+-	pm_runtime_get_sync(&pdev->dev);
++	pm_runtime_get_sync(dev);
  
- 	clk_prepare(rtap->clk);
--	if (device_may_wakeup(&pdev->dev)) {
-+	if (device_may_wakeup(dev)) {
- 		disable_irq_wake(rtap->irq);
- 	} else {
- 		clk_enable(rtap->clk);
-@@ -261,11 +261,10 @@ static int coh901331_resume(struct platf
- 	}
+-	if (device_may_wakeup(&pdev->dev))
++	if (device_may_wakeup(dev))
+ 		disable_irq_wake(omap_rtc_alarm);
+ 	else
+ 		rtc_write(irqstat, OMAP_RTC_INTERRUPTS_REG);
  	return 0;
  }
+-
 -#else
--#define coh901331_suspend NULL
--#define coh901331_resume NULL
+-#define omap_rtc_suspend NULL
+-#define omap_rtc_resume  NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(coh901331_pm_ops, coh901331_suspend, coh901331_resume);
++static SIMPLE_DEV_PM_OPS(omap_rtc_pm_ops, omap_rtc_suspend, omap_rtc_resume);
 +
- static void coh901331_shutdown(struct platform_device *pdev)
+ static void omap_rtc_shutdown(struct platform_device *pdev)
  {
- 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
-@@ -279,10 +278,9 @@ static struct platform_driver coh901331_
- 	.driver = {
- 		.name = "rtc-coh901331",
- 		.owner = THIS_MODULE,
-+		.pm = &coh901331_pm_ops,
+ 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+@@ -512,12 +509,11 @@ static void omap_rtc_shutdown(struct pla
+ MODULE_ALIAS("platform:omap_rtc");
+ static struct platform_driver omap_rtc_driver = {
+ 	.remove		= __exit_p(omap_rtc_remove),
+-	.suspend	= omap_rtc_suspend,
+-	.resume		= omap_rtc_resume,
+ 	.shutdown	= omap_rtc_shutdown,
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
++		.pm	= &omap_rtc_pm_ops,
+ 		.of_match_table = of_match_ptr(omap_rtc_of_match),
  	},
- 	.remove = __exit_p(coh901331_remove),
--	.suspend = coh901331_suspend,
--	.resume = coh901331_resume,
- 	.shutdown = coh901331_shutdown,
- };
- 
+ 	.id_table	= omap_rtc_devtype,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
