@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-omap1-convert-omapbl-to-dev_pm_ops.patch added to -mm tree
-Date: Wed, 17 Apr 2013 13:41:29 -0700
-Message-ID: <20130417204129.D181E32615C@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-tosa-convert-tosa-to-dev_pm_ops.patch added to -mm tree
+Date: Wed, 17 Apr 2013 13:41:31 -0700
+Message-ID: <20130417204132.15CAC5AB47A@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:44863 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965269Ab3DQUlb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:41:31 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz11so207253vcb.2
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:41:30 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:48243 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965269Ab3DQUlf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:41:35 -0400
+Received: by mail-yh0-f74.google.com with SMTP id q10so206930yhf.5
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:41:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: omap1: convert omapbl to dev_pm_ops
+     Subject: backlight: tosa: convert tosa to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-omap1-convert-omapbl-to-dev_pm_ops.patch
+     backlight-tosa-convert-tosa-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: omap1: convert omapbl to dev_pm_ops
+Subject: backlight: tosa: convert tosa to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,64 +43,114 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/omap1_bl.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/video/backlight/tosa_bl.c  |   18 ++++++++----------
+ drivers/video/backlight/tosa_lcd.c |   18 ++++++++----------
+ 2 files changed, 16 insertions(+), 20 deletions(-)
 
-diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-convert-omapbl-to-dev_pm_ops drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-convert-omapbl-to-dev_pm_ops
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -71,27 +71,24 @@ static void omapbl_blank(struct omap_bac
- 	}
+diff -puN drivers/video/backlight/tosa_bl.c~backlight-tosa-convert-tosa-to-dev_pm_ops drivers/video/backlight/tosa_bl.c
+--- a/drivers/video/backlight/tosa_bl.c~backlight-tosa-convert-tosa-to-dev_pm_ops
++++ a/drivers/video/backlight/tosa_bl.c
+@@ -134,28 +134,27 @@ static int tosa_bl_remove(struct i2c_cli
+ 	return 0;
  }
  
 -#ifdef CONFIG_PM
--static int omapbl_suspend(struct platform_device *pdev, pm_message_t state)
+-static int tosa_bl_suspend(struct i2c_client *client, pm_message_t pm)
 +#ifdef CONFIG_PM_SLEEP
-+static int omapbl_suspend(struct device *dev)
++static int tosa_bl_suspend(struct device *dev)
  {
--	struct backlight_device *dev = platform_get_drvdata(pdev);
--	struct omap_backlight *bl = bl_get_data(dev);
-+	struct backlight_device *bl_dev = dev_get_drvdata(dev);
-+	struct omap_backlight *bl = bl_get_data(bl_dev);
+-	struct tosa_bl_data *data = i2c_get_clientdata(client);
++	struct tosa_bl_data *data = dev_get_drvdata(dev);
  
- 	omapbl_blank(bl, FB_BLANK_POWERDOWN);
+ 	tosa_bl_set_backlight(data, 0);
+ 
  	return 0;
  }
  
--static int omapbl_resume(struct platform_device *pdev)
-+static int omapbl_resume(struct device *dev)
+-static int tosa_bl_resume(struct i2c_client *client)
++static int tosa_bl_resume(struct device *dev)
  {
--	struct backlight_device *dev = platform_get_drvdata(pdev);
--	struct omap_backlight *bl = bl_get_data(dev);
-+	struct backlight_device *bl_dev = dev_get_drvdata(dev);
-+	struct omap_backlight *bl = bl_get_data(bl_dev);
+-	struct tosa_bl_data *data = i2c_get_clientdata(client);
++	struct tosa_bl_data *data = dev_get_drvdata(dev);
  
- 	omapbl_blank(bl, bl->powermode);
+ 	backlight_update_status(data->bl);
  	return 0;
  }
 -#else
--#define omapbl_suspend	NULL
--#define omapbl_resume	NULL
+-#define tosa_bl_suspend NULL
+-#define tosa_bl_resume NULL
  #endif
  
- static int omapbl_set_power(struct backlight_device *dev, int state)
-@@ -182,13 +179,14 @@ static int omapbl_remove(struct platform
++static SIMPLE_DEV_PM_OPS(tosa_bl_pm_ops, tosa_bl_suspend, tosa_bl_resume);
++
+ static const struct i2c_device_id tosa_bl_id[] = {
+ 	{ "tosa-bl", 0 },
+ 	{ },
+@@ -165,11 +164,10 @@ static struct i2c_driver tosa_bl_driver
+ 	.driver = {
+ 		.name		= "tosa-bl",
+ 		.owner		= THIS_MODULE,
++		.pm		= &tosa_bl_pm_ops,
+ 	},
+ 	.probe		= tosa_bl_probe,
+ 	.remove		= tosa_bl_remove,
+-	.suspend	= tosa_bl_suspend,
+-	.resume		= tosa_bl_resume,
+ 	.id_table	= tosa_bl_id,
+ };
+ 
+diff -puN drivers/video/backlight/tosa_lcd.c~backlight-tosa-convert-tosa-to-dev_pm_ops drivers/video/backlight/tosa_lcd.c
+--- a/drivers/video/backlight/tosa_lcd.c~backlight-tosa-convert-tosa-to-dev_pm_ops
++++ a/drivers/video/backlight/tosa_lcd.c
+@@ -240,19 +240,19 @@ static int tosa_lcd_remove(struct spi_de
  	return 0;
  }
  
-+static SIMPLE_DEV_PM_OPS(omapbl_pm_ops, omapbl_suspend, omapbl_resume);
+-#ifdef CONFIG_PM
+-static int tosa_lcd_suspend(struct spi_device *spi, pm_message_t state)
++#ifdef CONFIG_PM_SLEEP
++static int tosa_lcd_suspend(struct device *dev)
+ {
+-	struct tosa_lcd_data *data = spi_get_drvdata(spi);
++	struct tosa_lcd_data *data = dev_get_drvdata(dev);
+ 
+ 	tosa_lcd_tg_off(data);
+ 
+ 	return 0;
+ }
+ 
+-static int tosa_lcd_resume(struct spi_device *spi)
++static int tosa_lcd_resume(struct device *dev)
+ {
+-	struct tosa_lcd_data *data = spi_get_drvdata(spi);
++	struct tosa_lcd_data *data = dev_get_drvdata(dev);
+ 
+ 	tosa_lcd_tg_init(data);
+ 	if (POWER_IS_ON(data->lcd_power))
+@@ -262,20 +262,18 @@ static int tosa_lcd_resume(struct spi_de
+ 
+ 	return 0;
+ }
+-#else
+-#define tosa_lcd_suspend	NULL
+-#define tosa_lcd_resume NULL
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(tosa_lcd_pm_ops, tosa_lcd_suspend, tosa_lcd_resume);
 +
- static struct platform_driver omapbl_driver = {
- 	.probe		= omapbl_probe,
- 	.remove		= omapbl_remove,
--	.suspend	= omapbl_suspend,
--	.resume		= omapbl_resume,
- 	.driver		= {
- 		.name	= "omap-bl",
-+		.pm	= &omapbl_pm_ops,
+ static struct spi_driver tosa_lcd_driver = {
+ 	.driver = {
+ 		.name		= "tosa-lcd",
+ 		.owner		= THIS_MODULE,
++		.pm		= &tosa_lcd_pm_ops,
  	},
+ 	.probe		= tosa_lcd_probe,
+ 	.remove		= tosa_lcd_remove,
+-	.suspend	= tosa_lcd_suspend,
+-	.resume		= tosa_lcd_resume,
  };
  
+ module_spi_driver(tosa_lcd_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
