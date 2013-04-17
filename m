@@ -1,62 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [failures] cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch removed from -mm tree
-Date: Wed, 17 Apr 2013 15:03:11 -0700
-Message-ID: <20130417220312.5302831C03C@corp2gmr1-1.hot.corp.google.com>
+Subject: + binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate.patch added to -mm tree
+Date: Wed, 17 Apr 2013 15:04:23 -0700
+Message-ID: <20130417220423.75C2631C1FB@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:35630 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965558Ab3DQWDN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 18:03:13 -0400
-Received: by mail-qe0-f74.google.com with SMTP id b10so216054qen.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 15:03:12 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:40886 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965558Ab3DQWEY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 18:04:24 -0400
+Received: by mail-gg0-f202.google.com with SMTP id q1so216232ggn.3
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 15:04:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jkosina@suse.cz
 
 
 The patch titled
-     Subject: cciss: bug fix, prevent cciss from loading in kdump kernel
-has been removed from the -mm tree.  Its filename was
-     cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel.patch
+     Subject: binfmt_elf: PIE: make PF_RANDOMIZE check comment more accurate
+has been added to the -mm tree.  Its filename is
+     binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Miller <mike.miller@hp.com>
-Subject: cciss: bug fix, prevent cciss from loading in kdump kernel
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: binfmt_elf: PIE: make PF_RANDOMIZE check comment more accurate
 
-If hpsa is selected as the Smart Array driver cciss may try to load in the
-kdump kernel.  When this happens kdump fails and a core file cannot be
-created.  This patch prevents cciss from trying to load in this scenario. 
-This effects primarily older Smart Array controllers.
+The comment I originally added in a3defbe5c337db ("binfmt_elf: fix PIE
+execution with randomization disabled") is not really 100% accurate --
+sysctl is not the only way how PF_RANDOMIZE could be forcibly unset in
+runtime.
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Another option of course is direct modification of personality flags (i.e.
+running through setarch wrapper).
+
+Make the comment more explicit and accurate.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/binfmt_elf.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-bug-fix-prevent-cciss-from-loading-in-kdump-kernel
-+++ a/drivers/block/cciss.c
-@@ -4960,6 +4960,12 @@ static int cciss_init_one(struct pci_dev
- 	ctlr_info_t *h;
- 	unsigned long flags;
- 
-+	/*
-+	 * if this is the kdump kernel and the user has set the flags to
-+	 * use hpsa rather than cciss just bail
-+	 */
-+	if ((reset_devices) && (cciss_allow_hpsa == 1))
-+		return -ENODEV;
- 	rc = cciss_init_reset_devices(pdev);
- 	if (rc) {
- 		if (rc != -ENOTSUPP)
+diff -puN fs/binfmt_elf.c~binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate
++++ a/fs/binfmt_elf.c
+@@ -820,7 +820,8 @@ static int load_elf_binary(struct linux_
+ 			 * follow the loader, and is not movable.  */
+ #ifdef CONFIG_ARCH_BINFMT_ELF_RANDOMIZE_PIE
+ 			/* Memory randomization might have been switched off
+-			 * in runtime via sysctl.
++			 * in runtime via sysctl or explicit setting of
++			 * personality flags.
+ 			 * If that is the case, retain the original non-zero
+ 			 * load_bias value in order to establish proper
+ 			 * non-randomized mappings.
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
+linux-next.patch
+binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate.patch
+i2o-check-copy_from_user-size-parameter.patch
+mwave-fix-info-leak-in-mwave_ioctl.patch
+semaphore-give-an-unlikely-for-downs-timeout.patch
+semaphore-boolize-semaphore_waiters-up.patch
 
