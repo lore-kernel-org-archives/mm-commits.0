@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops.patch added to -mm tree
-Date: Wed, 17 Apr 2013 13:41:34 -0700
-Message-ID: <20130417204134.CE0B631CECF@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-bfin-convert-bfin_rtc_driver-to-dev_pm_ops.patch added to -mm tree
+Date: Wed, 17 Apr 2013 13:43:09 -0700
+Message-ID: <20130417204309.BD1B45AB477@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:46172 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965269Ab3DQUlg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:41:36 -0400
-Received: by mail-qe0-f74.google.com with SMTP id b10so206692qen.5
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:41:35 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:47720 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965067Ab3DQUnK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:43:10 -0400
+Received: by mail-ye0-f202.google.com with SMTP id l8so207440yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:43:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: vgg2432a4: convert vgg2432a4_driver to dev_pm_ops
+     Subject: rtc: rtc-bfin: convert bfin_rtc_driver to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops.patch
+     rtc-rtc-bfin-convert-bfin_rtc_driver-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: vgg2432a4: convert vgg2432a4_driver to dev_pm_ops
+Subject: rtc: rtc-bfin: convert bfin_rtc_driver to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
-structure allows better control over power management. Also, use of
-pm_message_t is deprecated. Thus, it is removed.
+structure allows better control over power management.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ili9320.c   |   24 +++++++++---------------
- drivers/video/backlight/ili9320.h   |    2 +-
- drivers/video/backlight/vgg2432a4.c |   18 ++++++++----------
- 3 files changed, 18 insertions(+), 26 deletions(-)
+ drivers/rtc/rtc-bfin.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/backlight/ili9320.c~backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops drivers/video/backlight/ili9320.c
---- a/drivers/video/backlight/ili9320.c~backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops
-+++ a/drivers/video/backlight/ili9320.c
-@@ -270,27 +270,21 @@ int ili9320_remove(struct ili9320 *ili)
- }
- EXPORT_SYMBOL_GPL(ili9320_remove);
- 
--#ifdef CONFIG_PM
--int ili9320_suspend(struct ili9320 *lcd, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+int ili9320_suspend(struct ili9320 *lcd)
- {
- 	int ret;
- 
--	dev_dbg(lcd->dev, "%s: event %d\n", __func__, state.event);
-+	ret = ili9320_power(lcd, FB_BLANK_POWERDOWN);
- 
--	if (state.event == PM_EVENT_SUSPEND) {
--		ret = ili9320_power(lcd, FB_BLANK_POWERDOWN);
--
--		if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP) {
--			ili9320_write(lcd, ILI9320_POWER1, lcd->power1 |
--				      ILI9320_POWER1_SLP |
--				      ILI9320_POWER1_DSTB);
--			lcd->initialised = 0;
--		}
--
--		return ret;
-+	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP) {
-+		ili9320_write(lcd, ILI9320_POWER1, lcd->power1 |
-+			      ILI9320_POWER1_SLP |
-+			      ILI9320_POWER1_DSTB);
-+		lcd->initialised = 0;
- 	}
- 
--	return 0;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(ili9320_suspend);
- 
-diff -puN drivers/video/backlight/ili9320.h~backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops drivers/video/backlight/ili9320.h
---- a/drivers/video/backlight/ili9320.h~backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops
-+++ a/drivers/video/backlight/ili9320.h
-@@ -76,5 +76,5 @@ extern void ili9320_shutdown(struct ili9
- 
- /* PM */
- 
--extern int ili9320_suspend(struct ili9320 *lcd, pm_message_t state);
-+extern int ili9320_suspend(struct ili9320 *lcd);
- extern int ili9320_resume(struct ili9320 *lcd);
-diff -puN drivers/video/backlight/vgg2432a4.c~backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops drivers/video/backlight/vgg2432a4.c
---- a/drivers/video/backlight/vgg2432a4.c~backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops
-+++ a/drivers/video/backlight/vgg2432a4.c
-@@ -205,18 +205,15 @@ static int vgg2432a4_lcd_init(struct ili
- 	return ret;
+diff -puN drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-convert-bfin_rtc_driver-to-dev_pm_ops drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-convert-bfin_rtc_driver-to-dev_pm_ops
++++ a/drivers/rtc/rtc-bfin.c
+@@ -396,11 +396,9 @@ static int bfin_rtc_remove(struct platfo
+ 	return 0;
  }
  
 -#ifdef CONFIG_PM
--static int vgg2432a4_suspend(struct spi_device *spi, pm_message_t state)
+-static int bfin_rtc_suspend(struct platform_device *pdev, pm_message_t state)
 +#ifdef CONFIG_PM_SLEEP
-+static int vgg2432a4_suspend(struct device *dev)
++static int bfin_rtc_suspend(struct device *dev)
  {
--	return ili9320_suspend(spi_get_drvdata(spi), state);
-+	return ili9320_suspend(dev_get_drvdata(dev));
+-	struct device *dev = &pdev->dev;
+-
+ 	dev_dbg_stamp(dev);
+ 
+ 	if (device_may_wakeup(dev)) {
+@@ -412,10 +410,8 @@ static int bfin_rtc_suspend(struct platf
+ 	return 0;
  }
--static int vgg2432a4_resume(struct spi_device *spi)
-+static int vgg2432a4_resume(struct device *dev)
+ 
+-static int bfin_rtc_resume(struct platform_device *pdev)
++static int bfin_rtc_resume(struct device *dev)
  {
--	return ili9320_resume(spi_get_drvdata(spi));
-+	return ili9320_resume(dev_get_drvdata(dev));
+-	struct device *dev = &pdev->dev;
+-
+ 	dev_dbg_stamp(dev);
+ 
+ 	if (device_may_wakeup(dev))
+@@ -434,20 +430,18 @@ static int bfin_rtc_resume(struct platfo
+ 
+ 	return 0;
  }
 -#else
--#define vgg2432a4_suspend	NULL
--#define vgg2432a4_resume	NULL
+-# define bfin_rtc_suspend NULL
+-# define bfin_rtc_resume  NULL
  #endif
  
- static struct ili9320_client vgg2432a4_client = {
-@@ -249,16 +246,17 @@ static void vgg2432a4_shutdown(struct sp
- 	ili9320_shutdown(spi_get_drvdata(spi));
- }
- 
-+static SIMPLE_DEV_PM_OPS(vgg2432a4_pm_ops, vgg2432a4_suspend, vgg2432a4_resume);
++static SIMPLE_DEV_PM_OPS(bfin_rtc_pm_ops, bfin_rtc_suspend, bfin_rtc_resume);
 +
- static struct spi_driver vgg2432a4_driver = {
- 	.driver = {
- 		.name		= "VGG2432A4",
- 		.owner		= THIS_MODULE,
-+		.pm		= &vgg2432a4_pm_ops,
+ static struct platform_driver bfin_rtc_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-bfin",
+ 		.owner	= THIS_MODULE,
++		.pm	= &bfin_rtc_pm_ops,
  	},
- 	.probe		= vgg2432a4_probe,
- 	.remove		= vgg2432a4_remove,
- 	.shutdown	= vgg2432a4_shutdown,
--	.suspend	= vgg2432a4_suspend,
--	.resume		= vgg2432a4_resume,
+ 	.probe		= bfin_rtc_probe,
+ 	.remove		= bfin_rtc_remove,
+-	.suspend	= bfin_rtc_suspend,
+-	.resume		= bfin_rtc_resume,
  };
  
- module_spi_driver(vgg2432a4_driver);
+ module_platform_driver(bfin_rtc_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -359,5 +312,13 @@ rtc-rtc-s35390a-use-devm_-functions.patch
 rtc-rtc-sa1100-use-devm_-functions.patch
 rtc-rtc-stmp3xxx-use-devm_-functions.patch
 rtc-rtc-v3020-use-devm_-functions.patch
+rtc-rtc-at91sam9-convert-at91_rtc_driver-to-dev_pm_ops.patch
+rtc-rtc-bfin-convert-bfin_rtc_driver-to-dev_pm_ops.patch
+rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops.patch
+rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops.patch
+rtc-rtc-puv3-convert-puv3_rtc_driver-to-dev_pm_ops.patch
+rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops.patch
+rtc-rtc-stmp3xxx-convert-stmp3xxx_rtcdrv-to-dev_pm_ops.patch
+rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops.patch
 memstick-r592-make-r592_pm_ops-static.patch
 
