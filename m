@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-memorypressure_level-events-fix.patch added to -mm tree
-Date: Wed, 17 Apr 2013 14:25:47 -0700
-Message-ID: <20130417212547.D12B45AA07D@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch added to -mm tree
+Date: Wed, 17 Apr 2013 14:21:43 -0700
+Message-ID: <20130417212144.7E3CA32AB80@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:60281 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965128Ab3DQVZu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 17:25:50 -0400
-Received: by mail-yh0-f73.google.com with SMTP id i21so212489yha.2
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 14:25:49 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:45712 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965578Ab3DQVbx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 17:31:53 -0400
+Received: by mail-yh0-f74.google.com with SMTP id q10so212866yhf.5
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 14:31:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, anton.vorontsov@linaro.org
+Cc: akpm@linux-foundation.org, shli@kernel.org
 
 
 The patch titled
-     Subject: memcg-add-memorypressure_level-events-fix
+     Subject: mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix
 has been added to the -mm tree.  Its filename is
-     memcg-add-memorypressure_level-events-fix.patch
+     mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-add-memorypressure_level-events-fix
+Subject: mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix
 
-fix CONFIG_CGROPUPS=n warnings:
+fix CONFIG_SWAP=n build
 
-In file included from mm/vmscan.c:22:
-include/linux/vmpressure.h:44: warning: 'struct cftype' declared inside parameter list
-include/linux/vmpressure.h:44: warning: its scope is only this definition or declaration, which is probably not what you want
-include/linux/vmpressure.h:44: warning: 'struct cgroup' declared inside parameter list
-include/linux/vmpressure.h:46: warning: 'struct cftype' declared inside parameter list
-include/linux/vmpressure.h:46: warning: 'struct cgroup' declared inside parameter list
-
-Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmpressure.h |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ include/linux/swap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmpressure.h~memcg-add-memorypressure_level-events-fix include/linux/vmpressure.h
---- a/include/linux/vmpressure.h~memcg-add-memorypressure_level-events-fix
-+++ a/include/linux/vmpressure.h
-@@ -28,12 +28,6 @@ struct mem_cgroup;
- extern void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
- 		       unsigned long scanned, unsigned long reclaimed);
- extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
--#else
--static inline void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
--			      unsigned long scanned, unsigned long reclaimed) {}
--static inline void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg,
--				   int prio) {}
--#endif /* CONFIG_MEMCG */
+diff -puN include/linux/swap.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix
++++ a/include/linux/swap.h
+@@ -465,7 +465,7 @@ static inline struct page *lookup_swap_c
+ 	return NULL;
+ }
  
- extern void vmpressure_init(struct vmpressure *vmpr);
- extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
-@@ -44,5 +38,10 @@ extern int vmpressure_register_event(str
- 				     const char *args);
- extern void vmpressure_unregister_event(struct cgroup *cg, struct cftype *cft,
- 					struct eventfd_ctx *eventfd);
--
-+#else
-+static inline void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
-+			      unsigned long scanned, unsigned long reclaimed) {}
-+static inline void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg,
-+				   int prio) {}
-+#endif /* CONFIG_MEMCG */
- #endif /* __LINUX_VMPRESSURE_H */
+-static inline int add_to_swap(struct page *page)
++static inline int add_to_swap(struct page *page, struct list_head *list)
+ {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,7 +96,6 @@ mm-madvise-complete-input-validation-before-taking-lock-fix.patch
 clear_refs-sanitize-accepted-commands-declaration-fix.patch
 selftest-add-simple-test-for-soft-dirty-bit.patch
 memcg-add-memorypressure_level-events-checkpatch-fixes.patch
-memcg-add-memorypressure_level-events-fix.patch
 mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
