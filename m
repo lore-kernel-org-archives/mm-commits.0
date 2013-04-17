@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops.patch added to -mm tree
-Date: Wed, 17 Apr 2013 13:43:13 -0700
-Message-ID: <20130417204313.875D15AB477@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-puv3-convert-puv3_rtc_driver-to-dev_pm_ops.patch added to -mm tree
+Date: Wed, 17 Apr 2013 13:43:15 -0700
+Message-ID: <20130417204315.8918F5AB47A@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:58073 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965067Ab3DQUnO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:43:14 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w16so207114vbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:43:14 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:45738 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965067Ab3DQUnQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:43:16 -0400
+Received: by mail-yh0-f73.google.com with SMTP id i21so207102yha.4
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:43:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-omap: convert omap_rtc_driver to dev_pm_ops
+     Subject: rtc: rtc-puv3: convert puv3_rtc_driver to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops.patch
+     rtc-rtc-puv3-convert-puv3_rtc_driver-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-omap: convert omap_rtc_driver to dev_pm_ops
+Subject: rtc: rtc-puv3: convert puv3_rtc_driver to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,82 +43,92 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ drivers/rtc/rtc-puv3.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-rtc-omap-convert-omap_rtc_driver-to-dev_pm_ops
-+++ a/drivers/rtc/rtc-omap.c
-@@ -464,11 +464,10 @@ static int __exit omap_rtc_remove(struct
+diff -puN drivers/rtc/rtc-puv3.c~rtc-rtc-puv3-convert-puv3_rtc_driver-to-dev_pm_ops drivers/rtc/rtc-puv3.c
+--- a/drivers/rtc/rtc-puv3.c~rtc-rtc-puv3-convert-puv3_rtc_driver-to-dev_pm_ops
++++ a/drivers/rtc/rtc-puv3.c
+@@ -207,14 +207,14 @@ static const struct rtc_class_ops puv3_r
+ 	.proc	        = puv3_rtc_proc,
+ };
+ 
+-static void puv3_rtc_enable(struct platform_device *pdev, int en)
++static void puv3_rtc_enable(struct device *dev, int en)
+ {
+ 	if (!en) {
+ 		writel(readl(RTC_RTSR) & ~RTC_RTSR_HZE, RTC_RTSR);
+ 	} else {
+ 		/* re-enable the device, and check it is ok */
+ 		if ((readl(RTC_RTSR) & RTC_RTSR_HZE) == 0) {
+-			dev_info(&pdev->dev, "rtc disabled, re-enabling\n");
++			dev_info(dev, "rtc disabled, re-enabling\n");
+ 			writel(readl(RTC_RTSR) | RTC_RTSR_HZE, RTC_RTSR);
+ 		}
+ 	}
+@@ -276,7 +276,7 @@ static int puv3_rtc_probe(struct platfor
+ 		goto err_nores;
+ 	}
+ 
+-	puv3_rtc_enable(pdev, 1);
++	puv3_rtc_enable(&pdev->dev, 1);
+ 
+ 	/* register RTC and exit */
+ 	rtc = rtc_device_register("pkunity", &pdev->dev, &puv3_rtcops,
+@@ -296,44 +296,41 @@ static int puv3_rtc_probe(struct platfor
  	return 0;
+ 
+  err_nortc:
+-	puv3_rtc_enable(pdev, 0);
++	puv3_rtc_enable(&pdev->dev, 0);
+ 	release_resource(puv3_rtc_mem);
+ 
+  err_nores:
+ 	return ret;
  }
  
 -#ifdef CONFIG_PM
 -
 +#ifdef CONFIG_PM_SLEEP
- static u8 irqstat;
+ static int ticnt_save;
  
--static int omap_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+static int omap_rtc_suspend(struct device *dev)
+-static int puv3_rtc_suspend(struct platform_device *pdev, pm_message_t state)
++static int puv3_rtc_suspend(struct device *dev)
  {
- 	irqstat = rtc_read(OMAP_RTC_INTERRUPTS_REG);
- 
-@@ -476,34 +475,32 @@ static int omap_rtc_suspend(struct platf
- 	 * source, and in fact this enable() call is just saving a flag
- 	 * that's never used...
- 	 */
--	if (device_may_wakeup(&pdev->dev))
-+	if (device_may_wakeup(dev))
- 		enable_irq_wake(omap_rtc_alarm);
- 	else
- 		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
- 
- 	/* Disable the clock/module */
--	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_put_sync(dev);
- 
+ 	/* save RTAR for anyone using periodic interrupts */
+ 	ticnt_save = readl(RTC_RTAR);
+-	puv3_rtc_enable(pdev, 0);
++	puv3_rtc_enable(dev, 0);
  	return 0;
  }
  
--static int omap_rtc_resume(struct platform_device *pdev)
-+static int omap_rtc_resume(struct device *dev)
+-static int puv3_rtc_resume(struct platform_device *pdev)
++static int puv3_rtc_resume(struct device *dev)
  {
- 	/* Enable the clock/module so that we can access the registers */
--	pm_runtime_get_sync(&pdev->dev);
-+	pm_runtime_get_sync(dev);
- 
--	if (device_may_wakeup(&pdev->dev))
-+	if (device_may_wakeup(dev))
- 		disable_irq_wake(omap_rtc_alarm);
- 	else
- 		rtc_write(irqstat, OMAP_RTC_INTERRUPTS_REG);
+-	puv3_rtc_enable(pdev, 1);
++	puv3_rtc_enable(dev, 1);
+ 	writel(ticnt_save, RTC_RTAR);
  	return 0;
  }
--
 -#else
--#define omap_rtc_suspend NULL
--#define omap_rtc_resume  NULL
+-#define puv3_rtc_suspend NULL
+-#define puv3_rtc_resume  NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(omap_rtc_pm_ops, omap_rtc_suspend, omap_rtc_resume);
++static SIMPLE_DEV_PM_OPS(puv3_rtc_pm_ops, puv3_rtc_suspend, puv3_rtc_resume);
 +
- static void omap_rtc_shutdown(struct platform_device *pdev)
- {
- 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
-@@ -512,12 +509,11 @@ static void omap_rtc_shutdown(struct pla
- MODULE_ALIAS("platform:omap_rtc");
- static struct platform_driver omap_rtc_driver = {
- 	.remove		= __exit_p(omap_rtc_remove),
--	.suspend	= omap_rtc_suspend,
--	.resume		= omap_rtc_resume,
- 	.shutdown	= omap_rtc_shutdown,
+ static struct platform_driver puv3_rtc_driver = {
+ 	.probe		= puv3_rtc_probe,
+ 	.remove		= puv3_rtc_remove,
+-	.suspend	= puv3_rtc_suspend,
+-	.resume		= puv3_rtc_resume,
  	.driver		= {
- 		.name	= DRIVER_NAME,
+ 		.name	= "PKUnity-v3-RTC",
  		.owner	= THIS_MODULE,
-+		.pm	= &omap_rtc_pm_ops,
- 		.of_match_table = of_match_ptr(omap_rtc_of_match),
- 	},
- 	.id_table	= omap_rtc_devtype,
++		.pm	= &puv3_rtc_pm_ops,
+ 	}
+ };
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
