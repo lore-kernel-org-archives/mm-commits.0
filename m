@@ -1,118 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [failures] arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters.patch removed from -mm tree
-Date: Wed, 17 Apr 2013 14:57:00 -0700
-Message-ID: <20130417215700.94AD35AA07D@corp2gmr1-2.hot.corp.google.com>
+Subject: [failures] arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 17 Apr 2013 14:57:03 -0700
+Message-ID: <20130417215703.86B605AA07D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:55630 "EHLO
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:50682 "EHLO
 	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966827Ab3DQV5D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 17:57:03 -0400
-Received: by mail-vb0-f73.google.com with SMTP id q12so215554vbe.2
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 14:57:01 -0700 (PDT)
+	with ESMTP id S966827Ab3DQV5E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 17:57:04 -0400
+Received: by mail-vb0-f73.google.com with SMTP id q12so215523vbe.4
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 14:57:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nschichan@freebox.fr, eparis@redhat.com, james.l.morris@oracle.com, keescook@chromium.org, mgherzan@gmail.com, rmk@arm.linux.org.uk, serge.hallyn@canonical.com, wad@chromium.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nschichan@freebox.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/arm/net/bpf_jit_32.c: add support for jitted seccomp filters
+     Subject: arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters.patch
+     arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Nicolas Schichan <nschichan@freebox.fr>
-Subject: arch/arm/net/bpf_jit_32.c: add support for jitted seccomp filters
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes
 
-This patch selects HAVE_SECCOMP_FILTER_JIT in the ARM Kconfig file,
-implements and seccomp_jit_compile() and seccomp_jit_free(), and adds
-support for BPF_S_ANC_SECCOMP_LD_W instruction.
+WARNING: Avoid CamelCase: <r_A>
+#50: FILE: arch/arm/net/bpf_jit_32.c:557:
++			emit(ARM_MOV_R(r_A, ARM_R0), ctx);
 
-BPF_S_ANC_SECCOMP_LD_W instructions trigger the generation of a call
-to C function seccomp_bpf_load().
+ERROR: "(foo*)" should be "(foo *)"
+#72: FILE: arch/arm/net/bpf_jit_32.c:978:
++		fp->bpf_func = (void*)ctx.target;
 
-Signed-off-by: Nicolas Schichan <nschichan@freebox.fr>
-Acked-by: Will Drewry <wad@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
-Acked-by: Mircea Gherzan <mgherzan@gmail.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+total: 1 errors, 1 warnings, 52 lines checked
+
+./patches/arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Nicolas Schichan <nschichan@freebox.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig          |    1 +
- arch/arm/net/bpf_jit_32.c |   36 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
+ arch/arm/net/bpf_jit_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/Kconfig~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters arch/arm/Kconfig
---- a/arch/arm/Kconfig~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters
-+++ a/arch/arm/Kconfig
-@@ -26,6 +26,7 @@ config ARM
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_BPF_JIT
-+	select HAVE_SECCOMP_FILTER_JIT
- 	select HAVE_C_RECORDMCOUNT
- 	select HAVE_DEBUG_KMEMLEAK
- 	select HAVE_DMA_API_DEBUG
-diff -puN arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters arch/arm/net/bpf_jit_32.c
---- a/arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters
+diff -puN arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes arch/arm/net/bpf_jit_32.c
+--- a/arch/arm/net/bpf_jit_32.c~arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes
 +++ a/arch/arm/net/bpf_jit_32.c
-@@ -548,6 +548,15 @@ load_common:
- 			emit_err_ret(ARM_COND_NE, ctx);
- 			emit(ARM_MOV_R(r_A, ARM_R0), ctx);
- 			break;
-+#ifdef CONFIG_SECCOMP_FILTER_JIT
-+		case BPF_S_ANC_SECCOMP_LD_W:
-+			ctx->seen |= SEEN_CALL;
-+			emit_mov_i(ARM_R3, (u32)seccomp_bpf_load, ctx);
-+			emit_mov_i(ARM_R0, k, ctx);
-+			emit_blx_r(ARM_R3, ctx);
-+			emit(ARM_MOV_R(r_A, ARM_R0), ctx);
-+			break;
-+#endif
- 		case BPF_S_LD_W_IND:
- 			load_order = 2;
- 			goto load_ind;
-@@ -954,3 +963,30 @@ void bpf_jit_free(struct sk_filter *fp)
- 		schedule_work(work);
- 	}
+@@ -975,7 +975,7 @@ void seccomp_jit_compile(struct seccomp_
+ 
+ 	__bpf_jit_compile(&ctx);
+ 	if (ctx.target)
+-		fp->bpf_func = (void*)ctx.target;
++		fp->bpf_func = (void *)ctx.target;
  }
-+
-+#ifdef CONFIG_SECCOMP_FILTER_JIT
-+void seccomp_jit_compile(struct seccomp_filter *fp)
-+{
-+	struct jit_ctx ctx;
-+
-+	memset(&ctx, 0, sizeof(ctx));
-+	ctx.prog_len = fp->len;
-+	ctx.prog_insns = fp->insns;
-+
-+	__bpf_jit_compile(&ctx);
-+	if (ctx.target)
-+		fp->bpf_func = (void*)ctx.target;
-+}
-+
-+void seccomp_jit_free(struct seccomp_filter *fp)
-+{
-+	struct work_struct *work;
-+
-+	if (fp->bpf_func != sk_run_filter) {
-+		work = (struct work_struct *)fp->bpf_func;
-+
-+		INIT_WORK(work, bpf_jit_free_worker);
-+		schedule_work(work);
-+	}
-+}
-+#endif
+ 
+ void seccomp_jit_free(struct seccomp_filter *fp)
 _
 
-Patches currently in -mm which might be from nschichan@freebox.fr are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-arch-arm-net-bpf_jit_32c-add-support-for-jitted-seccomp-filters-checkpatch-fixes.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+memcg-add-memorypressure_level-events-fix.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
