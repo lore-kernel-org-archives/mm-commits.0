@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-prep-work-for-batch-completion-fix-4.patch added to -mm tree
-Date: Wed, 17 Apr 2013 15:21:34 -0700
-Message-ID: <20130417222134.D802E31C1CD@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch added to -mm tree
+Date: Wed, 17 Apr 2013 15:52:45 -0700
+Message-ID: <20130417225245.C371631C0F3@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:64080 "EHLO
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:64234 "EHLO
 	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965775Ab3DQWVg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 18:21:36 -0400
-Received: by mail-ve0-f202.google.com with SMTP id ox1so2366veb.3
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 15:21:35 -0700 (PDT)
+	with ESMTP id S966883Ab3DQWwr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 18:52:47 -0400
+Received: by mail-ve0-f202.google.com with SMTP id ox1so4899veb.1
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 15:52:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+Cc: akpm@linux-foundation.org, gerald.schaefer@de.ibm.com
 
 
 The patch titled
-     Subject: block-prep-work-for-batch-completion-fix-4
+     Subject: mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix
 has been added to the -mm tree.  Its filename is
-     block-prep-work-for-batch-completion-fix-4.patch
+     mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prep-work-for-batch-completion-fix-4
+Subject: mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix
 
-fix it for mm-allow-for-outstanding-swap-writeback-accounting.patch
+fix warning
 
-Cc: Kent Overstreet <koverstreet@google.com>
+mm/hugetlb.c: In function 'follow_hugetlb_page':
+mm/hugetlb.c:2976: warning: suggest parentheses around '&&' within '||'
+
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ++++--
- mm/page_io.c         |    3 ++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~block-prep-work-for-batch-completion-fix-4 include/linux/swap.h
---- a/include/linux/swap.h~block-prep-work-for-batch-completion-fix-4
-+++ a/include/linux/swap.h
-@@ -330,9 +330,11 @@ static inline void mem_cgroup_uncharge_s
- /* linux/mm/page_io.c */
- extern int swap_readpage(struct page *);
- extern int swap_writepage(struct page *page, struct writeback_control *wbc);
--extern void end_swap_bio_write(struct bio *bio, int err);
-+extern void end_swap_bio_write(struct bio *bio, int err,
-+			       struct batch_complete *batch);
- extern int __swap_writepage(struct page *page, struct writeback_control *wbc,
--	void (*end_write_func)(struct bio *, int));
-+	void (*end_write_func)(struct bio *bio, int err,
-+			       struct batch_complete *batch));
- extern int swap_set_page_dirty(struct page *page);
- extern void end_swap_bio_read(struct bio *bio, int err,
- 			      struct batch_complete *batch);
-diff -puN mm/page_io.c~block-prep-work-for-batch-completion-fix-4 mm/page_io.c
---- a/mm/page_io.c~block-prep-work-for-batch-completion-fix-4
-+++ a/mm/page_io.c
-@@ -204,7 +204,8 @@ out:
- }
+diff -puN mm/hugetlb.c~mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix
++++ a/mm/hugetlb.c
+@@ -2973,7 +2973,8 @@ long follow_hugetlb_page(struct mm_struc
+ 		 * directly from any kind of swap entries.
+ 		 */
+ 		if (absent || is_swap_pte(huge_ptep_get(pte)) ||
+-		  (flags & FOLL_WRITE) && !huge_pte_write(huge_ptep_get(pte))) {
++		    ((flags & FOLL_WRITE) &&
++		      !huge_pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
  
- int __swap_writepage(struct page *page, struct writeback_control *wbc,
--	void (*end_write_func)(struct bio *, int))
-+	void (*end_write_func)(struct bio *bio, int err,
-+			       struct batch_complete *batch))
- {
- 	struct bio *bio;
- 	int ret = 0, rw = WRITE;
+ 			spin_unlock(&mm->page_table_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +78,7 @@ mm-shmemc-remove-an-ifdef.patch
 xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
 staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
 memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
 kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
