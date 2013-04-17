@@ -1,93 +1,221 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-auditfilter-resource-management-tree-and-watch-will-memory-leak-when-failure-occurs.patch added to -mm tree
-Date: Wed, 17 Apr 2013 13:09:46 -0700
-Message-ID: <20130417200946.813E05AA07D@corp2gmr1-2.hot.corp.google.com>
+Subject: [withdrawn] posix_timers-remove-dead-task-timer-expiry-caching.patch removed from -mm tree
+Date: Wed, 17 Apr 2013 13:40:02 -0700
+Message-ID: <20130417204003.3F3F25ABC23@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:46739 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965067Ab3DQUJu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:09:50 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so120844ghb.3
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:09:50 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:37916 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964947Ab3DQUkF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:40:05 -0400
+Received: by mail-qe0-f74.google.com with SMTP id b10so206682qen.1
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:40:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gang.chen@asianux.com, eparis@redhat.com, viro@zeniv.linux.org.uk
+To: fweisbec@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, sgruszka@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/auditfilter.c: tree and watch will memory leak when failure occurs
-has been added to the -mm tree.  Its filename is
-     kernel-auditfilter-resource-management-tree-and-watch-will-memory-leak-when-failure-occurs.patch
+     Subject: posix_timers: Remove dead task timer expiry caching
+has been removed from the -mm tree.  Its filename was
+     posix_timers-remove-dead-task-timer-expiry-caching.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: kernel/auditfilter.c: tree and watch will memory leak when failure occurs
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: posix_timers: Remove dead task timer expiry caching
 
-In audit_data_to_entry() when a failure occurs we must check and free the
-tree and watch to avoid a memory leak.
+When reading a timer sample, posix_cpu_timer_get() and
+posix_cpu_timer_schedule() both perform a caching of the timer expiry time
+by converting its value from absolute to relative if the task has exited.
 
+The reason for this caching is not clear though, it could be:
 
-  test:
-    plan:
-      test command:
-        "auditctl -a exit,always -w /etc -F auid=-1"
-        (on fedora17, need modify auditctl to let "-w /etc" has effect)
-      running:
-        under fedora17 x86_64, 2 CPUs 3.20GHz, 2.5GB RAM.
-        let 15 auditctl processes continue running at the same time.
-      monitor command:
-        watch -d -n 1 "cat /proc/meminfo | awk '{print \$2}' \
-          | head -n 4 | xargs \
-          | awk '{print \"used \",\$1 - \$2 - \$3 - \$4}'"
+1) For performance reasons: no need to calculate the delta after the
+   task has died, its cputime won't change anymore.  We can thus avoid
+   some locking (sighand, tasklist_lock, rq->lock for task_delta_exec(),
+   ...), and various operations to calculate the sample...
 
-    result:
-      for original version:
-        will use up all memory, within 3 hours.
-        kill all auditctl, the memory still does not free.
-      for new version (apply this patch):
-        after 14 hours later, not find issues.
+2) To keep the remaining delta for the timer available after the task
+   has died.  When it gets reaped, its sighand disappears, so accessing
+   the process wide cputime through tsk->signal is probably not safe.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Now, is the first reason really worth it?  I have no idea if it is a case
+we really want to optimize.
+
+Considering the second reason, we return a disarmed zero'ed timer when
+tsk->sighand == NULL.  So if this is an assumed reason, it's broken.  And
+this case only concern process wide timers that have their group leader
+reaped.  The posix cpu timer shouldn't even be available anymore at that
+time.  Unless the group leader changed since we called
+posix_cpu_timer_create() after an exec?
+
+Anyway for now I'm sending this as an RFC because there may well be subtle
+things I left behind.
+
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/posix-cpu-timers.c |   67 +-----------------------------------
+ 1 file changed, 2 insertions(+), 65 deletions(-)
 
-diff -puN kernel/auditfilter.c~kernel-auditfilter-resource-management-tree-and-watch-will-memory-leak-when-failure-occurs kernel/auditfilter.c
---- a/kernel/auditfilter.c~kernel-auditfilter-resource-management-tree-and-watch-will-memory-leak-when-failure-occurs
-+++ a/kernel/auditfilter.c
-@@ -594,6 +594,10 @@ exit_nofree:
- 	return entry;
- 
- exit_free:
-+	if (entry->rule.watch)
-+		audit_put_watch(entry->rule.watch); /* matches initial get */
-+	if (entry->rule.tree)
-+		audit_put_tree(entry->rule.tree); /* that's the temporary one */
- 	audit_free_rule(entry);
- 	return ERR_PTR(err);
+diff -puN kernel/posix-cpu-timers.c~posix_timers-remove-dead-task-timer-expiry-caching kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~posix_timers-remove-dead-task-timer-expiry-caching
++++ a/kernel/posix-cpu-timers.c
+@@ -436,23 +436,6 @@ void posix_cpu_timers_exit_group(struct
+ 		       tsk->se.sum_exec_runtime + sig->sum_sched_runtime);
  }
+ 
+-static void clear_dead_task(struct k_itimer *itimer, unsigned long long now)
+-{
+-	struct cpu_timer_list *timer = &itimer->it.cpu;
+-
+-	/*
+-	 * That's all for this thread or process.
+-	 * We leave our residual in expires to be reported.
+-	 */
+-	put_task_struct(timer->task);
+-	timer->task = NULL;
+-	if (timer->expires < now) {
+-		timer->expires = 0;
+-	} else {
+-		timer->expires -= now;
+-	}
+-}
+-
+ static inline int expires_gt(cputime_t expires, cputime_t new_exp)
+ {
+ 	return expires == 0 || expires > new_exp;
+@@ -737,7 +720,6 @@ static void posix_cpu_timer_get(struct k
+ {
+ 	unsigned long long now;
+ 	struct task_struct *p = timer->it.cpu.task;
+-	int clear_dead;
+ 
+ 	/*
+ 	 * Easy part: convert the reload time.
+@@ -750,23 +732,11 @@ static void posix_cpu_timer_get(struct k
+ 		return;
+ 	}
+ 
+-	if (unlikely(p == NULL)) {
+-		/*
+-		 * This task already died and the timer will never fire.
+-		 * In this case, expires is actually the dead value.
+-		 */
+-	dead:
+-		sample_to_timespec(timer->it_clock, timer->it.cpu.expires,
+-				   &itp->it_value);
+-		return;
+-	}
+-
+ 	/*
+ 	 * Sample the clock to take the difference with the expiry time.
+ 	 */
+ 	if (CPUCLOCK_PERTHREAD(timer->it_clock)) {
+ 		cpu_clock_sample(timer->it_clock, p, &now);
+-		clear_dead = p->exit_state;
+ 	} else {
+ 		read_lock(&tasklist_lock);
+ 		if (unlikely(p->sighand == NULL)) {
+@@ -775,29 +745,16 @@ static void posix_cpu_timer_get(struct k
+ 			 * We can't even collect a sample any more.
+ 			 * Call the timer disarmed, nothing else to do.
+ 			 */
+-			put_task_struct(p);
+-			timer->it.cpu.task = NULL;
+ 			timer->it.cpu.expires = 0;
++			itp->it_value.tv_sec = itp->it_value.tv_nsec = 0;
+ 			read_unlock(&tasklist_lock);
+-			goto dead;
++			return;
+ 		} else {
+ 			cpu_timer_sample_group(timer->it_clock, p, &now);
+-			clear_dead = (unlikely(p->exit_state) &&
+-				      thread_group_empty(p));
+ 		}
+ 		read_unlock(&tasklist_lock);
+ 	}
+ 
+-	if (unlikely(clear_dead)) {
+-		/*
+-		 * We've noticed that the thread is dead, but
+-		 * not yet reaped.  Take this opportunity to
+-		 * drop our task ref.
+-		 */
+-		clear_dead_task(timer, now);
+-		goto dead;
+-	}
+-
+ 	if (now < timer->it.cpu.expires) {
+ 		sample_to_timespec(timer->it_clock,
+ 				   timer->it.cpu.expires - now,
+@@ -1027,22 +984,12 @@ void posix_cpu_timer_schedule(struct k_i
+ 	struct task_struct *p = timer->it.cpu.task;
+ 	unsigned long long now;
+ 
+-	if (unlikely(p == NULL))
+-		/*
+-		 * The task was cleaned up already, no future firings.
+-		 */
+-		goto out;
+-
+ 	/*
+ 	 * Fetch the current sample and update the timer's expiry time.
+ 	 */
+ 	if (CPUCLOCK_PERTHREAD(timer->it_clock)) {
+ 		cpu_clock_sample(timer->it_clock, p, &now);
+ 		bump_cpu_timer(timer, now);
+-		if (unlikely(p->exit_state)) {
+-			clear_dead_task(timer, now);
+-			goto out;
+-		}
+ 		read_lock(&tasklist_lock); /* arm_timer needs it.  */
+ 		spin_lock(&p->sighand->siglock);
+ 	} else {
+@@ -1056,15 +1003,6 @@ void posix_cpu_timer_schedule(struct k_i
+ 			timer->it.cpu.task = p = NULL;
+ 			timer->it.cpu.expires = 0;
+ 			goto out_unlock;
+-		} else if (unlikely(p->exit_state) && thread_group_empty(p)) {
+-			/*
+-			 * We've noticed that the thread is dead, but
+-			 * not yet reaped.  Take this opportunity to
+-			 * drop our task ref.
+-			 */
+-			cpu_timer_sample_group(timer->it_clock, p, &now);
+-			clear_dead_task(timer, now);
+-			goto out_unlock;
+ 		}
+ 		spin_lock(&p->sighand->siglock);
+ 		cpu_timer_sample_group(timer->it_clock, p, &now);
+@@ -1082,7 +1020,6 @@ void posix_cpu_timer_schedule(struct k_i
+ out_unlock:
+ 	read_unlock(&tasklist_lock);
+ 
+-out:
+ 	timer->it_overrun_last = timer->it_overrun;
+ 	timer->it_overrun = -1;
+ 	++timer->it_requeue_pending;
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
 linux-next.patch
-kernel-auditfilter-resource-management-tree-and-watch-will-memory-leak-when-failure-occurs.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+selftests-add-basic-posix-timers-selftests.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+mm-trace-filemap-add-and-del.patch
+mm-trace-filemap-add-and-del-v2.patch
+printk-tracing-rework-console-tracing.patch
 
