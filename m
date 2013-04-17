@@ -1,221 +1,318 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] posix_timers-remove-dead-task-timer-expiry-caching.patch removed from -mm tree
-Date: Wed, 17 Apr 2013 13:40:02 -0700
-Message-ID: <20130417204003.3F3F25ABC23@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-omap1-convert-omapbl-to-dev_pm_ops.patch added to -mm tree
+Date: Wed, 17 Apr 2013 13:41:29 -0700
+Message-ID: <20130417204129.D181E32615C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:37916 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964947Ab3DQUkF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:40:05 -0400
-Received: by mail-qe0-f74.google.com with SMTP id b10so206682qen.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:40:04 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:44863 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965269Ab3DQUlb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:41:31 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz11so207253vcb.2
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:41:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fweisbec@gmail.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, sgruszka@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: posix_timers: Remove dead task timer expiry caching
-has been removed from the -mm tree.  Its filename was
-     posix_timers-remove-dead-task-timer-expiry-caching.patch
+     Subject: backlight: omap1: convert omapbl to dev_pm_ops
+has been added to the -mm tree.  Its filename is
+     backlight-omap1-convert-omapbl-to-dev_pm_ops.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: posix_timers: Remove dead task timer expiry caching
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: omap1: convert omapbl to dev_pm_ops
 
-When reading a timer sample, posix_cpu_timer_get() and
-posix_cpu_timer_schedule() both perform a caching of the timer expiry time
-by converting its value from absolute to relative if the task has exited.
+Instead of using legacy suspend/resume methods, using newer dev_pm_ops
+structure allows better control over power management.
 
-The reason for this caching is not clear though, it could be:
-
-1) For performance reasons: no need to calculate the delta after the
-   task has died, its cputime won't change anymore.  We can thus avoid
-   some locking (sighand, tasklist_lock, rq->lock for task_delta_exec(),
-   ...), and various operations to calculate the sample...
-
-2) To keep the remaining delta for the timer available after the task
-   has died.  When it gets reaped, its sighand disappears, so accessing
-   the process wide cputime through tsk->signal is probably not safe.
-
-Now, is the first reason really worth it?  I have no idea if it is a case
-we really want to optimize.
-
-Considering the second reason, we return a disarmed zero'ed timer when
-tsk->sighand == NULL.  So if this is an assumed reason, it's broken.  And
-this case only concern process wide timers that have their group leader
-reaped.  The posix cpu timer shouldn't even be available anymore at that
-time.  Unless the group leader changed since we called
-posix_cpu_timer_create() after an exec?
-
-Anyway for now I'm sending this as an RFC because there may well be subtle
-things I left behind.
-
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-cpu-timers.c |   67 +-----------------------------------
- 1 file changed, 2 insertions(+), 65 deletions(-)
+ drivers/video/backlight/omap1_bl.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN kernel/posix-cpu-timers.c~posix_timers-remove-dead-task-timer-expiry-caching kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~posix_timers-remove-dead-task-timer-expiry-caching
-+++ a/kernel/posix-cpu-timers.c
-@@ -436,23 +436,6 @@ void posix_cpu_timers_exit_group(struct
- 		       tsk->se.sum_exec_runtime + sig->sum_sched_runtime);
+diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-convert-omapbl-to-dev_pm_ops drivers/video/backlight/omap1_bl.c
+--- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-convert-omapbl-to-dev_pm_ops
++++ a/drivers/video/backlight/omap1_bl.c
+@@ -71,27 +71,24 @@ static void omapbl_blank(struct omap_bac
+ 	}
  }
  
--static void clear_dead_task(struct k_itimer *itimer, unsigned long long now)
--{
--	struct cpu_timer_list *timer = &itimer->it.cpu;
--
--	/*
--	 * That's all for this thread or process.
--	 * We leave our residual in expires to be reported.
--	 */
--	put_task_struct(timer->task);
--	timer->task = NULL;
--	if (timer->expires < now) {
--		timer->expires = 0;
--	} else {
--		timer->expires -= now;
--	}
--}
--
- static inline int expires_gt(cputime_t expires, cputime_t new_exp)
+-#ifdef CONFIG_PM
+-static int omapbl_suspend(struct platform_device *pdev, pm_message_t state)
++#ifdef CONFIG_PM_SLEEP
++static int omapbl_suspend(struct device *dev)
  {
- 	return expires == 0 || expires > new_exp;
-@@ -737,7 +720,6 @@ static void posix_cpu_timer_get(struct k
+-	struct backlight_device *dev = platform_get_drvdata(pdev);
+-	struct omap_backlight *bl = bl_get_data(dev);
++	struct backlight_device *bl_dev = dev_get_drvdata(dev);
++	struct omap_backlight *bl = bl_get_data(bl_dev);
+ 
+ 	omapbl_blank(bl, FB_BLANK_POWERDOWN);
+ 	return 0;
+ }
+ 
+-static int omapbl_resume(struct platform_device *pdev)
++static int omapbl_resume(struct device *dev)
  {
- 	unsigned long long now;
- 	struct task_struct *p = timer->it.cpu.task;
--	int clear_dead;
+-	struct backlight_device *dev = platform_get_drvdata(pdev);
+-	struct omap_backlight *bl = bl_get_data(dev);
++	struct backlight_device *bl_dev = dev_get_drvdata(dev);
++	struct omap_backlight *bl = bl_get_data(bl_dev);
  
- 	/*
- 	 * Easy part: convert the reload time.
-@@ -750,23 +732,11 @@ static void posix_cpu_timer_get(struct k
- 		return;
- 	}
+ 	omapbl_blank(bl, bl->powermode);
+ 	return 0;
+ }
+-#else
+-#define omapbl_suspend	NULL
+-#define omapbl_resume	NULL
+ #endif
  
--	if (unlikely(p == NULL)) {
--		/*
--		 * This task already died and the timer will never fire.
--		 * In this case, expires is actually the dead value.
--		 */
--	dead:
--		sample_to_timespec(timer->it_clock, timer->it.cpu.expires,
--				   &itp->it_value);
--		return;
--	}
--
- 	/*
- 	 * Sample the clock to take the difference with the expiry time.
- 	 */
- 	if (CPUCLOCK_PERTHREAD(timer->it_clock)) {
- 		cpu_clock_sample(timer->it_clock, p, &now);
--		clear_dead = p->exit_state;
- 	} else {
- 		read_lock(&tasklist_lock);
- 		if (unlikely(p->sighand == NULL)) {
-@@ -775,29 +745,16 @@ static void posix_cpu_timer_get(struct k
- 			 * We can't even collect a sample any more.
- 			 * Call the timer disarmed, nothing else to do.
- 			 */
--			put_task_struct(p);
--			timer->it.cpu.task = NULL;
- 			timer->it.cpu.expires = 0;
-+			itp->it_value.tv_sec = itp->it_value.tv_nsec = 0;
- 			read_unlock(&tasklist_lock);
--			goto dead;
-+			return;
- 		} else {
- 			cpu_timer_sample_group(timer->it_clock, p, &now);
--			clear_dead = (unlikely(p->exit_state) &&
--				      thread_group_empty(p));
- 		}
- 		read_unlock(&tasklist_lock);
- 	}
+ static int omapbl_set_power(struct backlight_device *dev, int state)
+@@ -182,13 +179,14 @@ static int omapbl_remove(struct platform
+ 	return 0;
+ }
  
--	if (unlikely(clear_dead)) {
--		/*
--		 * We've noticed that the thread is dead, but
--		 * not yet reaped.  Take this opportunity to
--		 * drop our task ref.
--		 */
--		clear_dead_task(timer, now);
--		goto dead;
--	}
--
- 	if (now < timer->it.cpu.expires) {
- 		sample_to_timespec(timer->it_clock,
- 				   timer->it.cpu.expires - now,
-@@ -1027,22 +984,12 @@ void posix_cpu_timer_schedule(struct k_i
- 	struct task_struct *p = timer->it.cpu.task;
- 	unsigned long long now;
++static SIMPLE_DEV_PM_OPS(omapbl_pm_ops, omapbl_suspend, omapbl_resume);
++
+ static struct platform_driver omapbl_driver = {
+ 	.probe		= omapbl_probe,
+ 	.remove		= omapbl_remove,
+-	.suspend	= omapbl_suspend,
+-	.resume		= omapbl_resume,
+ 	.driver		= {
+ 		.name	= "omap-bl",
++		.pm	= &omapbl_pm_ops,
+ 	},
+ };
  
--	if (unlikely(p == NULL))
--		/*
--		 * The task was cleaned up already, no future firings.
--		 */
--		goto out;
--
- 	/*
- 	 * Fetch the current sample and update the timer's expiry time.
- 	 */
- 	if (CPUCLOCK_PERTHREAD(timer->it_clock)) {
- 		cpu_clock_sample(timer->it_clock, p, &now);
- 		bump_cpu_timer(timer, now);
--		if (unlikely(p->exit_state)) {
--			clear_dead_task(timer, now);
--			goto out;
--		}
- 		read_lock(&tasklist_lock); /* arm_timer needs it.  */
- 		spin_lock(&p->sighand->siglock);
- 	} else {
-@@ -1056,15 +1003,6 @@ void posix_cpu_timer_schedule(struct k_i
- 			timer->it.cpu.task = p = NULL;
- 			timer->it.cpu.expires = 0;
- 			goto out_unlock;
--		} else if (unlikely(p->exit_state) && thread_group_empty(p)) {
--			/*
--			 * We've noticed that the thread is dead, but
--			 * not yet reaped.  Take this opportunity to
--			 * drop our task ref.
--			 */
--			cpu_timer_sample_group(timer->it_clock, p, &now);
--			clear_dead_task(timer, now);
--			goto out_unlock;
- 		}
- 		spin_lock(&p->sighand->siglock);
- 		cpu_timer_sample_group(timer->it_clock, p, &now);
-@@ -1082,7 +1020,6 @@ void posix_cpu_timer_schedule(struct k_i
- out_unlock:
- 	read_unlock(&tasklist_lock);
- 
--out:
- 	timer->it_overrun_last = timer->it_overrun;
- 	timer->it_overrun = -1;
- 	++timer->it_requeue_pending;
 _
 
-Patches currently in -mm which might be from fweisbec@gmail.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
-posix_cpu_timer-consolidate-expiry-time-type.patch
-posix_cpu_timers-consolidate-timer-list-cleanups.patch
-posix_cpu_timers-consolidate-expired-timers-check.patch
-selftests-add-basic-posix-timers-selftests.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
-mm-trace-filemap-add-and-del.patch
-mm-trace-filemap-add-and-del-v2.patch
-printk-tracing-rework-console-tracing.patch
+drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops-fix.patch
+backlight-platform_lcd-remove-unnecessary-ifdefs.patch
+backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
+drivers-video-backlight-atmel-pwm-blc-add-__init-annotation.patch
+drivers-video-backlight-lp855x_blc-fix-compiler-warning-in-lp855x_probe.patch
+drivers-video-backlight-jornada720_c-use-dev_err-dev_info-instead-of-pr_err-pr_info.patch
+drivers-video-backlight-omap1_blc-use-dev_info-instead-of-pr_info.patch
+drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
+backlight-adp8870-add-missing-braces.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
+drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable-fix.patch
+backlight-ld9040-convert-ld9040-to-dev_pm_ops.patch
+backlight-lms501kf03-convert-lms501kf03-to-dev_pm_ops.patch
+backlight-s6e63m0-convert-s6e63m0-to-dev_pm_ops.patch
+backlight-adp5520-convert-adp5520_bl-to-dev_pm_ops.patch
+backlight-adp8860-convert-adp8860-to-dev_pm_ops.patch
+backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
+backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
+backlight-ep93xx-convert-ep93xx-to-dev_pm_ops.patch
+backlight-hp680_bl-convert-hp680bl-to-dev_pm_ops.patch
+backlight-kb3886_bl-convert-kb3886bl-to-dev_pm_ops.patch
+backlight-lm3533_bl-convert-lm3533_bl-to-dev_pm_ops.patch
+backlight-locomolcd-convert-locomolcd-to-dev_pm_ops.patch
+backlight-ltv350qv-convert-ltv350qv-to-dev_pm_ops.patch
+backlight-tdo24m-convert-tdo24m-to-dev_pm_ops.patch
+drivers-video-backlight-kconfig-fix-typo-mach_sam9ek-three-times.patch
+drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch
+video-backlight-add-ili922x-lcd-driver.patch
+backlight-da903x_bl-use-bl_core_suspendresume-option.patch
+backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch
+drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch
+drivers-video-backlight-adp8870_blc-fix-error-return-code-in-adp8870_led_probe.patch
+drivers-video-backlight-as3711_blc-add-of-support.patch
+backlight-ili9320-use-spi_set_drvdata.patch
+backlight-ili922x-use-spi_set_drvdata.patch
+drivers-video-backlight-platform_lcdc-introduce-probe-callback.patch
+backlight-omap1-convert-omapbl-to-dev_pm_ops.patch
+backlight-tosa-convert-tosa-to-dev_pm_ops.patch
+backlight-vgg2432a4-convert-vgg2432a4_driver-to-dev_pm_ops.patch
+rtc-rtc-mv-add-__init-annotation.patch
+rtc-rtc-davinci-add-__exit-annotation.patch
+rtc-rtc-ds1302-add-__exit-annotation.patch
+rtc-rtc-imxdi-add-__init-__exit-annotation.patch
+rtc-rtc-nuc900-add-__init-__exit-annotation.patch
+rtc-rtc-pcap-add-__init-__exit-annotation.patch
+rtc-rtc-tegra-add-__init-__exit-annotation.patch
+rtc-add-devm_rtc_device_registerunregister.patch
+rtc-max77686-use-module_platform_driver.patch
+rtc-max77686-add-missing-module-author-name.patch
+rtc-max77686-use-devm_kzalloc.patch
+rtc-max77686-fix-indentation-of-bit-definitions.patch
+rtc-max77686-use-dev_info-dev_emerg-instead-of-pr_info-pr_emerg.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+rtc-use-struct-device-as-the-first-argument-for-devm_rtc_device_register.patch
+rtc-rtc-ab3100-use-module_platform_driver_probe.patch
+rtc-rtc-at32ap700x-use-module_platform_driver_probe.patch
+rtc-rtc-at91rm9200-use-module_platform_driver_probe.patch
+rtc-rtc-au1xxx-use-module_platform_driver_probe.patch
+rtc-rtc-coh901331-use-module_platform_driver_probe.patch
+rtc-rtc-davinci-use-module_platform_driver_probe.patch
+rtc-rtc-ds1302-use-module_platform_driver_probe.patch
+rtc-rtc-efi-use-module_platform_driver_probe.patch
+rtc-rtc-generic-use-module_platform_driver_probe.patch
+rtc-rtc-imxdi-use-module_platform_driver_probe.patch
+rtc-rtc-mc13xxx-use-module_platform_driver_probe.patch
+rtc-rtc-msm6242-use-module_platform_driver_probe.patch
+rtc-rtc-mv-use-module_platform_driver_probe.patch
+rtc-rtc-nuc900-use-module_platform_driver_probe.patch
+rtc-rtc-omap-use-module_platform_driver_probe.patch
+rtc-rtc-pcap-use-module_platform_driver_probe.patch
+rtc-rtc-ps3-use-module_platform_driver_probe.patch
+rtc-rtc-pxa-use-module_platform_driver_probe.patch
+rtc-rtc-rp5c01-use-module_platform_driver_probe.patch
+rtc-rtc-sh-use-module_platform_driver_probe.patch
+rtc-rtc-starfire-use-module_platform_driver_probe.patch
+rtc-rtc-sun4v-use-module_platform_driver_probe.patch
+rtc-rtc-tegra-use-module_platform_driver_probe.patch
+rtc-rtc-tx4939-use-module_platform_driver_probe.patch
+rtc-rtc-88pm80x-use-devm_rtc_device_register.patch
+rtc-rtc-coh90133-use-devm_rtc_device_register.patch
+rtc-rtc-da9052-use-devm_rtc_device_register.patch
+rtc-rtc-da9055-use-devm_rtc_device_register.patch
+rtc-rtc-davinci-use-devm_rtc_device_register.patch
+rtc-rtc-ds1511-use-devm_rtc_device_register.patch
+rtc-rtc-ds1553-use-devm_rtc_device_register.patch
+rtc-rtc-ds1742-use-devm_rtc_device_register.patch
+rtc-rtc-ep93xx-use-devm_rtc_device_register.patch
+rtc-rtc-imxdi-use-devm_rtc_device_register.patch
+rtc-rtc-lp8788-use-devm_rtc_device_register.patch
+rtc-rtc-lpc32xx-use-devm_rtc_device_register.patch
+rtc-rtc-max77686-use-devm_rtc_device_register.patch
+rtc-rtc-max8907-use-devm_rtc_device_register.patch
+rtc-rtc-max8997-use-devm_rtc_device_register.patch
+rtc-rtc-mv-use-devm_rtc_device_register.patch
+rtc-rtc-mxc-use-devm_rtc_device_register.patch
+rtc-rtc-palmas-use-devm_rtc_device_register.patch
+rtc-rtc-pcf8523-use-devm_rtc_device_register.patch
+rtc-rtc-s3c-use-devm_rtc_device_register.patch
+rtc-rtc-snvs-use-devm_rtc_device_register.patch
+rtc-rtc-spear-use-devm_rtc_device_register.patch
+rtc-rtc-stk17ta8-use-devm_rtc_device_register.patch
+rtc-rtc-tps6586x-use-devm_rtc_device_register.patch
+rtc-rtc-tps65910-use-devm_rtc_device_register.patch
+rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+rtc-rtc-vt8500-use-devm_rtc_device_register.patch
+rtc-rtc-wm831x-use-devm_rtc_device_register.patch
+rtc-tegra-protect-suspend-resume-callbacks-with-config_pm_sleep.patch
+rtc-tegra-use-struct-dev_pm_ops-for-power-management.patch
+rtc-tegra-set-irq-name-as-device-name.patch
+rtc-tegra-use-managed-rtc_device_register.patch
+rtc-rtc-s3c-convert-s3c_rtc-to-dev_pm_ops.patch
+rtc-rtc-ds1307-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-fm3130-use-dev_dbg-instead-of-pr_debug.patch
+rtc-rtc-ab3100-use-devm_rtc_device_register.patch
+rtc-rtc-au1xxx-use-devm_rtc_device_register.patch
+rtc-rtc-bq32k-use-devm_rtc_device_register.patch
+rtc-rtc-dm355evm-use-devm_rtc_device_register.patch
+rtc-rtc-ds1302-use-devm_rtc_device_register.patch
+rtc-rtc-ds1672-use-devm_rtc_device_register.patch
+rtc-rtc-ds3234-use-devm_rtc_device_register.patch
+rtc-rtc-efi-use-devm_rtc_device_register.patch
+rtc-rtc-em3027-use-devm_rtc_device_register.patch
+rtc-rtc-generic-use-devm_rtc_device_register.patch
+rtc-hid-sensor-time-use-devm_rtc_device_register.patch
+rtc-rtc-ls1x-use-devm_rtc_device_register.patch
+rtc-rtc-m41t93-use-devm_rtc_device_register.patch
+rtc-rtc-m41t94-use-devm_rtc_device_register.patch
+rtc-rtc-m48t86-use-devm_rtc_device_register.patch
+rtc-rtc-max6900-use-devm_rtc_device_register.patch
+rtc-rtc-max6902-use-devm_rtc_device_register.patch
+rtc-rtc-ps3-use-devm_rtc_device_register.patch
+rtc-rtc-r9701-use-devm_rtc_device_register.patch
+rtc-rtc-rc5t583-use-devm_rtc_device_register.patch
+rtc-rtc-rs5c313-use-devm_rtc_device_register.patch
+rtc-rtc-rv3029c2-use-devm_rtc_device_register.patch
+rtc-rtc-rx4581-use-devm_rtc_device_register.patch
+rtc-rtc-rx8581-use-devm_rtc_device_register.patch
+rtc-rtc-starfire-use-devm_rtc_device_register.patch
+rtc-rtc-sun4v-use-devm_rtc_device_register.patch
+rtc-rtc-test-use-devm_rtc_device_register.patch
+rtc-rtc-tile-use-devm_rtc_device_register.patch
+rtc-rtc-wm8350-use-devm_rtc_device_register.patch
+rtc-rtc-x1205-use-devm_rtc_device_register.patch
+rtc-rtc-at91rm9200-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-mxc-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-pxa-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-sh-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps6586x-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch
+rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch
+rtc-omap-update-to-devm_-api.patch
+drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-rtc-rtc-88pm80xc-add-config_pm_sleep-to-suspend-resume-functions.patch
+drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
+drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8997c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max77686c-fix-incorrect-return-value-on-error.patch
+drivers-rtc-rtc-max8907c-remove-redundant-code.patch
+rtc-rtc-rx4581-use-spi_set_drvdata.patch
+rtc-rtc-m41t94-use-spi_set_drvdata.patch
+rtc-rtc-r9701-use-spi_set_drvdata.patch
+rtc-rtc-ds3234-use-spi_set_drvdata.patch
+rtc-rtc-ds1390-use-spi_set_drvdata.patch
+rtc-rtc-m41t93-use-spi_set_drvdata.patch
+rtc-rtc-max6902-use-spi_set_drvdata.patch
+drivers-rtc-rtc-s3cc-use-clk_prepare_enable-and-clk_disable_unprepare.patch
+drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch
+drivers-rtc-rtc-at32ap700xc-use-devm_-apis.patch
+drivers-rtc-rtc-ds1305c-use-devm_-apis.patch
+drivers-rtc-rtc-ds1374c-use-devm_-apis.patch
+drivers-rtc-rtc-ds3232c-use-devm_-apis.patch
+drivers-rtc-rtc-m48t35c-use-devm_-apis.patch
+drivers-rtc-rtc-max8925c-use-devm_-apis.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+rtc-rtc-ab8500-use-devm_-functions.patch
+rtc-rtc-at91sam9-use-devm_-functions.patch
+rtc-rtc-bfin-use-devm_-functions.patch
+rtc-rtc-bq4802-use-devm_-functions.patch
+rtc-rtc-ds1216-use-devm_-functions.patch
+rtc-rtc-ds1286-use-devm_-functions.patch
+rtc-rtc-ds1390-use-devm_-functions.patch
+rtc-rtc-ds2404-use-devm_-functions.patch
+rtc-rtc-fm3130-use-devm_-functions.patch
+rtc-rtc-isl12022-use-devm_-functions.patch
+rtc-rtc-m41t80-use-devm_-functions.patch
+rtc-rtc-max8998-use-devm_-functions.patch
+rtc-rtc-mc13xxx-use-devm_-functions.patch
+rtc-rtc-msm6242-use-devm_-functions.patch
+rtc-rtc-nuc900-use-devm_-functions.patch
+rtc-rtc-pcap-use-devm_-functions.patch
+rtc-rtc-pcf2123-use-devm_-functions.patch
+rtc-rtc-pcf50633-use-devm_-functions.patch
+rtc-rtc-pcf8563-use-devm_-functions.patch
+rtc-rtc-pcf8583-use-devm_-functions.patch
+rtc-rtc-rp5c01-use-devm_-functions.patch
+rtc-rtc-rs5c348-use-devm_-functions.patch
+rtc-rtc-rs5c372-use-devm_-functions.patch
+rtc-rtc-s35390a-use-devm_-functions.patch
+rtc-rtc-sa1100-use-devm_-functions.patch
+rtc-rtc-stmp3xxx-use-devm_-functions.patch
+rtc-rtc-v3020-use-devm_-functions.patch
+memstick-r592-make-r592_pm_ops-static.patch
 
