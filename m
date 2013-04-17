@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops.patch added to -mm tree
-Date: Wed, 17 Apr 2013 13:43:17 -0700
-Message-ID: <20130417204317.CE56F326162@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops.patch added to -mm tree
+Date: Wed, 17 Apr 2013 13:43:21 -0700
+Message-ID: <20130417204321.CB4BB5AB477@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:40027 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965067Ab3DQUnS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:43:18 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w16so207034vbb.5
-        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:43:18 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:40885 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965067Ab3DQUnW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Apr 2013 16:43:22 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z10so124345ghb.3
+        for <mm-commits@vger.kernel.org>; Wed, 17 Apr 2013 13:43:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-spear: convert spear_rtc_driver to dev_pm_ops
+     Subject: rtc: rtc-twl: convert twl4030rtc_driver to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops.patch
+     rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-spear: convert spear_rtc_driver to dev_pm_ops
+Subject: rtc: rtc-twl: convert twl4030rtc_driver to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -43,63 +43,58 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-spear.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-twl.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-spear.c~rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops drivers/rtc/rtc-spear.c
---- a/drivers/rtc/rtc-spear.c~rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops
-+++ a/drivers/rtc/rtc-spear.c
-@@ -434,10 +434,10 @@ static int spear_rtc_remove(struct platf
- 	return 0;
+diff -puN drivers/rtc/rtc-twl.c~rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops
++++ a/drivers/rtc/rtc-twl.c
+@@ -566,11 +566,10 @@ static void twl_rtc_shutdown(struct plat
+ 	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
  }
  
 -#ifdef CONFIG_PM
 -
--static int spear_rtc_suspend(struct platform_device *pdev, pm_message_t state)
 +#ifdef CONFIG_PM_SLEEP
-+static int spear_rtc_suspend(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct spear_rtc_config *config = platform_get_drvdata(pdev);
- 	int irq;
+ static unsigned char irqstat;
  
-@@ -453,8 +453,9 @@ static int spear_rtc_suspend(struct plat
+-static int twl_rtc_suspend(struct platform_device *pdev, pm_message_t state)
++static int twl_rtc_suspend(struct device *dev)
+ {
+ 	irqstat = rtc_irq_bits;
+ 
+@@ -578,17 +577,15 @@ static int twl_rtc_suspend(struct platfo
  	return 0;
  }
  
--static int spear_rtc_resume(struct platform_device *pdev)
-+static int spear_rtc_resume(struct device *dev)
+-static int twl_rtc_resume(struct platform_device *pdev)
++static int twl_rtc_resume(struct device *dev)
  {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct spear_rtc_config *config = platform_get_drvdata(pdev);
- 	int irq;
- 
-@@ -472,12 +473,10 @@ static int spear_rtc_resume(struct platf
- 
+ 	set_rtc_irq_bit(irqstat);
  	return 0;
  }
 -
 -#else
--#define spear_rtc_suspend	NULL
--#define spear_rtc_resume	NULL
+-#define twl_rtc_suspend NULL
+-#define twl_rtc_resume  NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(spear_rtc_pm_ops, spear_rtc_suspend, spear_rtc_resume);
++static SIMPLE_DEV_PM_OPS(twl_rtc_pm_ops, twl_rtc_suspend, twl_rtc_resume);
 +
- static void spear_rtc_shutdown(struct platform_device *pdev)
- {
- 	struct spear_rtc_config *config = platform_get_drvdata(pdev);
-@@ -497,11 +496,10 @@ MODULE_DEVICE_TABLE(of, spear_rtc_id_tab
- static struct platform_driver spear_rtc_driver = {
- 	.probe = spear_rtc_probe,
- 	.remove = spear_rtc_remove,
--	.suspend = spear_rtc_suspend,
--	.resume = spear_rtc_resume,
- 	.shutdown = spear_rtc_shutdown,
- 	.driver = {
- 		.name = "rtc-spear",
-+		.pm = &spear_rtc_pm_ops,
- 		.of_match_table = of_match_ptr(spear_rtc_id_table),
+ #ifdef CONFIG_OF
+ static const struct of_device_id twl_rtc_of_match[] = {
+ 	{.compatible = "ti,twl4030-rtc", },
+@@ -603,11 +600,10 @@ static struct platform_driver twl4030rtc
+ 	.probe		= twl_rtc_probe,
+ 	.remove		= twl_rtc_remove,
+ 	.shutdown	= twl_rtc_shutdown,
+-	.suspend	= twl_rtc_suspend,
+-	.resume		= twl_rtc_resume,
+ 	.driver		= {
+ 		.owner		= THIS_MODULE,
+ 		.name		= "twl_rtc",
++		.pm		= &twl_rtc_pm_ops,
+ 		.of_match_table = of_match_ptr(twl_rtc_of_match),
  	},
  };
 _
