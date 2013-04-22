@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lp855x-add-a-device-tree-structure.patch added to -mm tree
-Date: Mon, 22 Apr 2013 15:47:22 -0700
-Message-ID: <20130422224722.C970531C11E@corp2gmr1-1.hot.corp.google.com>
+Subject: + kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch added to -mm tree
+Date: Mon, 22 Apr 2013 16:04:19 -0700
+Message-ID: <20130422230419.CDEE231C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:52644 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753761Ab3DVWrX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 18:47:23 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 1so753228qee.4
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 15:47:23 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:61202 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753578Ab3DVXEV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 19:04:21 -0400
+Received: by mail-yh0-f73.google.com with SMTP id i21so1266yha.2
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 16:04:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Milo.Kim@ti.com, milo.kim@ti.com
+Cc: akpm@linux-foundation.org, eparis@redhat.com, gang.chen@asianux.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: backlight: lp855x: add a device tree structure
+     Subject: kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix
 has been added to the -mm tree.  Its filename is
-     backlight-lp855x-add-a-device-tree-structure.patch
+     kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,186 +33,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: backlight: lp855x: add a device tree structure
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix
 
-Enable supporting the DT structure of LP855x family devices.  If the
-platform data is NULL, the driver tries to parse a DT structure.  Then,
-the platform data is copied from the DT.  Documentation is added as well.
+run put_tree() *before* mutex_lock()
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Chen Gang <gang.chen@asianux.com>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/video/backlight/lp855x.txt |   41 +++++
- drivers/video/backlight/lp855x_bl.c                          |   73 +++++++++-
- 2 files changed, 112 insertions(+), 2 deletions(-)
+ kernel/audit_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/video/backlight/lp855x.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/video/backlight/lp855x.txt
-@@ -0,0 +1,41 @@
-+lp855x bindings
-+
-+Required properties:
-+  - compatible: "ti,lp8550", "ti,lp8551", "ti,lp8552", "ti,lp8553",
-+                "ti,lp8556", "ti,lp8557"
-+  - reg: I2C slave address (u8)
-+  - dev-ctrl: Value of DEVICE CONTROL register (u8). It depends on the device.
-+
-+Optional properties:
-+  - bl-name: Backlight device name (string)
-+  - init-brt: Initial value of backlight brightness (u8)
-+  - pwm-period: PWM period value. Set only PWM input mode used (u32)
-+  - rom-addr: Register address of ROM area to be updated (u8)
-+  - rom-val: Register value to be updated (u8)
-+
-+Example:
-+
-+	/* LP8556 */
-+	backlight@2c {
-+		compatible = "ti,lp8556";
-+		reg = <0x2c>;
-+
-+		bl-name = "lcd-bl";
-+		dev-ctrl = /bits/ 8 <0x85>;
-+		init-brt = /bits/ 8 <0x10>;
-+	};
-+
-+	/* LP8557 */
-+	backlight@2c {
-+		compatible = "ti,lp8557";
-+		reg = <0x2c>;
-+
-+		dev-ctrl = /bits/ 8 <0x41>;
-+		init-brt = /bits/ 8 <0x0a>;
-+
-+		/* 4V OV, 4 output LED string enabled */
-+		rom_14h {
-+			rom-addr = /bits/ 8 <0x14>;
-+			rom-val = /bits/ 8 <0xcf>;
-+		};
-+	};
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-add-a-device-tree-structure drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-add-a-device-tree-structure
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -14,6 +14,7 @@
- #include <linux/i2c.h>
- #include <linux/backlight.h>
- #include <linux/err.h>
-+#include <linux/of.h>
- #include <linux/platform_data/lp855x.h>
- #include <linux/pwm.h>
- 
-@@ -338,15 +339,71 @@ static const struct attribute_group lp85
- 	.attrs = lp855x_attributes,
- };
- 
-+#ifdef CONFIG_OF
-+static int lp855x_parse_dt(struct device *dev, struct device_node *node)
-+{
-+	struct lp855x_platform_data *pdata;
-+	int rom_length;
-+
-+	if (!node) {
-+		dev_err(dev, "no platform data\n");
-+		return -EINVAL;
-+	}
-+
-+	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
-+
-+	of_property_read_string(node, "bl-name", &pdata->name);
-+	of_property_read_u8(node, "dev-ctrl", &pdata->device_control);
-+	of_property_read_u8(node, "init-brt", &pdata->initial_brightness);
-+	of_property_read_u32(node, "pwm-period", &pdata->period_ns);
-+
-+	/* Fill ROM platform data if defined */
-+	rom_length = of_get_child_count(node);
-+	if (rom_length > 0) {
-+		struct lp855x_rom_data *rom;
-+		struct device_node *child;
-+		int i = 0;
-+
-+		rom = devm_kzalloc(dev, sizeof(*rom) * rom_length, GFP_KERNEL);
-+		if (!rom)
-+			return -ENOMEM;
-+
-+		for_each_child_of_node(node, child) {
-+			of_property_read_u8(child, "rom-addr", &rom[i].addr);
-+			of_property_read_u8(child, "rom-val", &rom[i].val);
-+			i++;
-+		}
-+
-+		pdata->size_program = rom_length;
-+		pdata->rom_data = &rom[0];
-+	}
-+
-+	dev->platform_data = pdata;
-+
-+	return 0;
-+}
-+#else
-+static int lp855x_parse_dt(struct device *dev, struct device_node *node)
-+{
-+	return -EINVAL;
-+}
-+#endif
-+
- static int lp855x_probe(struct i2c_client *cl, const struct i2c_device_id *id)
- {
- 	struct lp855x *lp;
- 	struct lp855x_platform_data *pdata = cl->dev.platform_data;
-+	struct device_node *node = cl->dev.of_node;
- 	int ret;
- 
- 	if (!pdata) {
--		dev_err(&cl->dev, "no platform data supplied\n");
--		return -EINVAL;
-+		ret = lp855x_parse_dt(&cl->dev, node);
-+		if (ret < 0)
-+			return ret;
-+
-+		pdata = cl->dev.platform_data;
+diff -puN kernel/audit_tree.c~kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix kernel/audit_tree.c
+--- a/kernel/audit_tree.c~kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix
++++ a/kernel/audit_tree.c
+@@ -619,8 +619,8 @@ void audit_trim_trees(void)
+ 		trim_marked(tree);
+ 		drop_collected_mounts(root_mnt);
+ skip_it:
+-		mutex_lock(&audit_filter_mutex);
+ 		put_tree(tree);
++		mutex_lock(&audit_filter_mutex);
  	}
- 
- 	if (!i2c_check_functionality(cl->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
-@@ -408,6 +465,17 @@ static int lp855x_remove(struct i2c_clie
- 	return 0;
- }
- 
-+static const struct of_device_id lp855x_dt_ids[] = {
-+	{ .compatible = "ti,lp8550", },
-+	{ .compatible = "ti,lp8551", },
-+	{ .compatible = "ti,lp8552", },
-+	{ .compatible = "ti,lp8553", },
-+	{ .compatible = "ti,lp8556", },
-+	{ .compatible = "ti,lp8557", },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, lp855x_dt_ids);
-+
- static const struct i2c_device_id lp855x_ids[] = {
- 	{"lp8550", LP8550},
- 	{"lp8551", LP8551},
-@@ -422,6 +490,7 @@ MODULE_DEVICE_TABLE(i2c, lp855x_ids);
- static struct i2c_driver lp855x_driver = {
- 	.driver = {
- 		   .name = "lp855x",
-+		   .of_match_table = of_match_ptr(lp855x_dt_ids),
- 		   },
- 	.probe = lp855x_probe,
- 	.remove = lp855x_remove,
+ 	list_del(&cursor);
+ 	mutex_unlock(&audit_filter_mutex);
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-backlight-lp855x-use-page_size-for-the-sysfs-read-operation.patch
-backlight-lp855x-convert-a-type-of-device-name.patch
-backlight-lp855x-move-backlight-mode-platform-data.patch
-backlight-lp855x-fix-initial-brightness-type.patch
-backlight-lp855x-remove-duplicate-platform-data.patch
-backlight-lp855x-add-a-device-tree-structure.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+memcg-add-memorypressure_level-events-fix.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
