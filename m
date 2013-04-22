@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch added to -mm tree
-Date: Mon, 22 Apr 2013 16:04:17 -0700
-Message-ID: <20130422230417.D066D31C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-at91rm9200c-fix-missing-iounmap.patch added to -mm tree
+Date: Mon, 22 Apr 2013 16:16:45 -0700
+Message-ID: <20130422231645.6EDA331C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:41225 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753578Ab3DVXES (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 19:04:18 -0400
-Received: by mail-gg0-f201.google.com with SMTP id q6so1210ggc.2
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 16:04:18 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:50277 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753749Ab3DVXQq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 19:16:46 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so2048qcs.3
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 16:16:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gang.chen@asianux.com, eparis@redhat.com, viro@zeniv.linux.org.uk
+Cc: jhovold@gmail.com, nicolas.ferre@atmel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/audit_tree.c: tree will leak memory when failure occurs in audit_trim_trees()
+     Subject: drivers/rtc/rtc-at91rm9200.c: fix missing iounmap
 has been added to the -mm tree.  Its filename is
-     kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
+     drivers-rtc-rtc-at91rm9200c-fix-missing-iounmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: kernel/audit_tree.c: tree will leak memory when failure occurs in audit_trim_trees()
+From: Johan Hovold <jhovold@gmail.com>
+Subject: drivers/rtc/rtc-at91rm9200.c: fix missing iounmap
 
-audit_trim_trees() calls get_tree().  If a failure occurs we must call
-put_tree().
+Add missing iounmap to probe error path and remove.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-at91rm9200.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN kernel/audit_tree.c~kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees kernel/audit_tree.c
---- a/kernel/audit_tree.c~kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees
-+++ a/kernel/audit_tree.c
-@@ -617,10 +617,10 @@ void audit_trim_trees(void)
- 		}
- 		spin_unlock(&hash_lock);
- 		trim_marked(tree);
--		put_tree(tree);
- 		drop_collected_mounts(root_mnt);
- skip_it:
- 		mutex_lock(&audit_filter_mutex);
-+		put_tree(tree);
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-missing-iounmap drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-fix-missing-iounmap
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -299,7 +299,7 @@ static int __init at91_rtc_probe(struct
+ 				"at91_rtc", pdev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "IRQ %d already in use.\n", irq);
+-		return ret;
++		goto err_unmap;
  	}
- 	list_del(&cursor);
- 	mutex_unlock(&audit_filter_mutex);
+ 
+ 	/* cpu init code should really have flagged this device as
+@@ -311,13 +311,20 @@ static int __init at91_rtc_probe(struct
+ 	rtc = rtc_device_register(pdev->name, &pdev->dev,
+ 				&at91_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+-		free_irq(irq, pdev);
+-		return PTR_ERR(rtc);
++		ret = PTR_ERR(rtc);
++		goto err_free_irq;
+ 	}
+ 	platform_set_drvdata(pdev, rtc);
+ 
+ 	dev_info(&pdev->dev, "AT91 Real Time Clock driver.\n");
+ 	return 0;
++
++err_free_irq:
++	free_irq(irq, pdev);
++err_unmap:
++	iounmap(at91_rtc_regs);
++
++	return ret;
+ }
+ 
+ /*
+@@ -334,6 +341,7 @@ static int __exit at91_rtc_remove(struct
+ 	free_irq(irq, pdev);
+ 
+ 	rtc_device_unregister(rtc);
++	iounmap(at91_rtc_regs);
+ 	platform_set_drvdata(pdev, NULL);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
 linux-next.patch
-kernel-auditfilter-resource-management-tree-and-watch-will-memory-leak-when-failure-occurs.patch
-kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
-kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+drivers-rtc-rtc-at91rm9200c-fix-missing-iounmap.patch
 
