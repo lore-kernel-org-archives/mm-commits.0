@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-memory_hotplugc-printk-format-warning.patch added to -mm tree
-Date: Mon, 22 Apr 2013 13:47:07 -0700
-Message-ID: <20130422204707.71C145A40F3@corp2gmr1-2.hot.corp.google.com>
+Subject: + fat-additions-to-support-fat_fallocate-fix.patch added to -mm tree
+Date: Mon, 22 Apr 2013 13:49:32 -0700
+Message-ID: <20130422204932.788575A40F3@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:63063 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755221Ab3DVUrI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:47:08 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 1so738184qee.2
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:47:08 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:42244 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210Ab3DVUte (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:49:34 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so85565ves.2
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:49:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@infradead.org, geert@linux-m68k.org
+Cc: akpm@linux-foundation.org, a.sahrawat@samsung.com, fengguang.wu@intel.com, hirofumi@mail.parknet.co.jp, namjae.jeon@samsung.com, ravi.n1@samsung.com
 
 
 The patch titled
-     Subject: mm: fix memory_hotplug.c printk format warning
+     Subject: fat-additions-to-support-fat_fallocate-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-memory_hotplugc-printk-format-warning.patch
+     fat-additions-to-support-fat_fallocate-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: fix memory_hotplug.c printk format warning
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fat-additions-to-support-fat_fallocate-fix
 
-PFN_PHYS() is a phys_addr_t, which can be u32 or u64.
-Fix the build warning when phys_addr_t is u32.
+fix min() warning
 
-mm/memory_hotplug.c: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 2 has type 'unsigned int' [-Wformat]:  => 1685:3
-mm/memory_hotplug.c: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 3 has type 'unsigned int' [-Wformat]:  => 1685:3
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: Namjae Jeon <namjae.jeon@samsung.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Ravishankar N <ravi.n1@samsung.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/fat/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-fix-memory_hotplugc-printk-format-warning mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-fix-memory_hotplugc-printk-format-warning
-+++ a/mm/memory_hotplug.c
-@@ -1690,11 +1690,15 @@ static int is_memblock_offlined_cb(struc
- {
- 	int ret = !is_memblock_offlined(mem);
+diff -puN fs/fat/file.c~fat-additions-to-support-fat_fallocate-fix fs/fat/file.c
+diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-additions-to-support-fat_fallocate-fix
++++ a/fs/fat/inode.c
+@@ -161,7 +161,8 @@ static int fat_zero_falloc_area(struct f
+ 	int err;
  
--	if (unlikely(ret))
-+	if (unlikely(ret)) {
-+		phys_addr_t beginpa, endpa;
-+
-+		beginpa = PFN_PHYS(section_nr_to_pfn(mem->start_section_nr));
-+		endpa = PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1;
- 		pr_warn("removing memory fails, because memory "
--			"[%#010llx-%#010llx] is onlined\n",
--			PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
--			PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1);
-+			"[%pa-%pa] is onlined\n",
-+			&beginpa, &endpa);
-+	}
+ 	do {
+-		unsigned offset, bytes;
++		unsigned offset;
++		size_t bytes;
+ 		void *fsdata;
  
- 	return ret;
- }
+ 		offset = (curpos & (PAGE_CACHE_SIZE - 1));
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-fix-memory_hotplugc-printk-format-warning.patch
-kconfig-consolidate-config_debug_strict_user_copy_checks-fix.patch
-kconfig-menu-move-virtualization-drivers-near-other-virtualization-options.patch
-init-kconfig-make-expert-as-config-instead-of-menuconfig.patch
-debugging-keep-track-of-page-owners-fix-2.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+memcg-add-memorypressure_level-events-fix.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+fat-additions-to-support-fat_fallocate-fix.patch
 
