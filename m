@@ -1,122 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] timer_list-split-timer_list_show_tickdevices.patch removed from -mm tree
-Date: Mon, 22 Apr 2013 13:07:04 -0700
-Message-ID: <20130422200704.7DAE631C19E@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] signal-stop-info-leak-via-the-tkill-and-the-tgkill-syscalls.patch removed from -mm tree
+Date: Mon, 22 Apr 2013 13:07:01 -0700
+Message-ID: <20130422200701.9445A31C121@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:38249 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755199Ab3DVUHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:07:05 -0400
-Received: by mail-ye0-f202.google.com with SMTP id l8so733137yen.3
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:07:05 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:57735 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755187Ab3DVUHE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:07:04 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz11so733307vcb.2
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:07:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nzimmer@sgi.com, davej@redhat.com, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: re.emese@gmail.com, ebiederm@xmission.com, keescook@chromium.org, oleg@redhat.com, pageexec@freemail.hu, serge.hallyn@canonical.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: timer_list: split timer_list_show_tickdevices()
+     Subject: kernel/signal.c: stop info leak via the tkill and the tgkill syscalls
 has been removed from the -mm tree.  Its filename was
-     timer_list-split-timer_list_show_tickdevices.patch
+     signal-stop-info-leak-via-the-tkill-and-the-tgkill-syscalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: timer_list: split timer_list_show_tickdevices()
+From: Emese Revfy <re.emese@gmail.com>
+Subject: kernel/signal.c: stop info leak via the tkill and the tgkill syscalls
 
-Split timer_list_show_tickdevices() out the header and just pull the rest up
-to timer_list_show.  Also tweak the location of the whitespace.  This is all
-to prep for the fix.
+This fixes a kernel memory contents leak via the tkill and tgkill syscalls
+for compat processes.
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This is visible in the siginfo_t->_sifields._rt.si_sigval.sival_ptr field
+when handling signals delivered from tkill.
+
+The place of the infoleak:
+
+int copy_siginfo_to_user32(compat_siginfo_t __user *to, siginfo_t *from)
+{
+        ...
+        put_user_ex(ptr_to_compat(from->si_ptr), &to->si_ptr);
+        ...
+}
+
+Signed-off-by: Emese Revfy <re.emese@gmail.com>
+Reviewed-by: PaX Team <pageexec@freemail.hu>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timer_list.c |   21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time/timer_list.c~timer_list-split-timer_list_show_tickdevices kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~timer_list-split-timer_list_show_tickdevices
-+++ a/kernel/time/timer_list.c
-@@ -133,7 +133,6 @@ static void print_cpu(struct seq_file *m
- 	struct hrtimer_cpu_base *cpu_base = &per_cpu(hrtimer_bases, cpu);
- 	int i;
+diff -puN kernel/signal.c~signal-stop-info-leak-via-the-tkill-and-the-tgkill-syscalls kernel/signal.c
+--- a/kernel/signal.c~signal-stop-info-leak-via-the-tkill-and-the-tgkill-syscalls
++++ a/kernel/signal.c
+@@ -2948,7 +2948,7 @@ do_send_specific(pid_t tgid, pid_t pid,
  
--	SEQ_printf(m, "\n");
- 	SEQ_printf(m, "cpu: %d\n", cpu);
- 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
- 		SEQ_printf(m, " clock %d:\n", i);
-@@ -187,6 +186,7 @@ static void print_cpu(struct seq_file *m
- 
- #undef P
- #undef P_ns
-+	SEQ_printf(m, "\n");
- }
- 
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
-@@ -195,7 +195,6 @@ print_tickdevice(struct seq_file *m, str
+ static int do_tkill(pid_t tgid, pid_t pid, int sig)
  {
- 	struct clock_event_device *dev = td->evtdev;
+-	struct siginfo info;
++	struct siginfo info = {};
  
--	SEQ_printf(m, "\n");
- 	SEQ_printf(m, "Tick Device: mode:     %d\n", td->mode);
- 	if (cpu < 0)
- 		SEQ_printf(m, "Broadcast device\n");
-@@ -230,12 +229,11 @@ print_tickdevice(struct seq_file *m, str
- 	print_name_offset(m, dev->event_handler);
- 	SEQ_printf(m, "\n");
- 	SEQ_printf(m, " retries:        %lu\n", dev->retries);
-+	SEQ_printf(m, "\n");
- }
- 
--static void timer_list_show_tickdevices(struct seq_file *m)
-+static void timer_list_show_tickdevices_header(struct seq_file *m)
- {
--	int cpu;
--
- #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
- 	print_tickdevice(m, tick_get_broadcast_device(), -1);
- 	SEQ_printf(m, "tick_broadcast_mask: %08lx\n",
-@@ -246,12 +244,7 @@ static void timer_list_show_tickdevices(
- #endif
- 	SEQ_printf(m, "\n");
- #endif
--	for_each_online_cpu(cpu)
--		print_tickdevice(m, tick_get_device(cpu), cpu);
--	SEQ_printf(m, "\n");
- }
--#else
--static void timer_list_show_tickdevices(struct seq_file *m) { }
- #endif
- 
- static int timer_list_show(struct seq_file *m, void *v)
-@@ -262,12 +255,16 @@ static int timer_list_show(struct seq_fi
- 	SEQ_printf(m, "Timer List Version: v0.7\n");
- 	SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n", HRTIMER_MAX_CLOCK_BASES);
- 	SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
-+	SEQ_printf(m, "\n");
- 
- 	for_each_online_cpu(cpu)
- 		print_cpu(m, cpu, now);
- 
--	SEQ_printf(m, "\n");
--	timer_list_show_tickdevices(m);
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+	timer_list_show_tickdevices_header(m);
-+	for_each_online_cpu(cpu)
-+		print_tickdevice(m, tick_get_device(cpu), cpu);
-+#endif
- 
- 	return 0;
- }
+ 	info.si_signo = sig;
+ 	info.si_errno = 0;
 _
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from re.emese@gmail.com are
 
-linux-next.patch
 
