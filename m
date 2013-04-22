@@ -1,210 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] timer_list-convert-timer-list-to-be-a-proper-seq_file-v5.patch removed from -mm tree
-Date: Mon, 22 Apr 2013 13:07:10 -0700
-Message-ID: <20130422200710.7B5925A4265@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] infiniband-rename-random32-to-prandom_u32.patch removed from -mm tree
+Date: Mon, 22 Apr 2013 13:07:13 -0700
+Message-ID: <20130422200713.82C7631C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:49512 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755187Ab3DVUHM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:07:12 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w16so733261vbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:07:11 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64445 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754975Ab3DVUHO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:07:14 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so378692qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:07:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nzimmer@sgi.com, davej@redhat.com, johnstul@us.ibm.com, sboyd@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, hal.rosenstock@gmail.com, roland@kernel.org, sean.hefty@intel.com, swise@opengridcomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v5
+     Subject: infiniband: rename random32() to prandom_u32()
 has been removed from the -mm tree.  Its filename was
-     timer_list-convert-timer-list-to-be-a-proper-seq_file-v5.patch
+     infiniband-rename-random32-to-prandom_u32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v5
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: infiniband: rename random32() to prandom_u32()
 
-v5: Use seq_open_private and supply a proper iterator rather then a big mess.
+Use preferable function name which implies using a pseudo-random
+number generator.
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timer_list.c |  130 +++++++++++++++++--------------------
- 1 file changed, 60 insertions(+), 70 deletions(-)
+ drivers/infiniband/hw/cxgb3/cxio_resource.c |    4 ++--
+ drivers/infiniband/hw/cxgb4/id_table.c      |    4 ++--
+ drivers/infiniband/hw/mlx4/mad.c            |    2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c     |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v5 kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v5
-+++ a/kernel/time/timer_list.c
-@@ -20,6 +20,13 @@
+diff -puN drivers/infiniband/hw/cxgb3/cxio_resource.c~infiniband-rename-random32-to-prandom_u32 drivers/infiniband/hw/cxgb3/cxio_resource.c
+--- a/drivers/infiniband/hw/cxgb3/cxio_resource.c~infiniband-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/hw/cxgb3/cxio_resource.c
+@@ -62,13 +62,13 @@ static int __cxio_init_resource_fifo(str
+ 		kfifo_in(fifo, (unsigned char *) &entry, sizeof(u32));
+ 	if (random) {
+ 		j = 0;
+-		random_bytes = random32();
++		random_bytes = prandom_u32();
+ 		for (i = 0; i < RANDOM_SIZE; i++)
+ 			rarray[i] = i + skip_low;
+ 		for (i = skip_low + RANDOM_SIZE; i < nr - skip_high; i++) {
+ 			if (j >= RANDOM_SIZE) {
+ 				j = 0;
+-				random_bytes = random32();
++				random_bytes = prandom_u32();
+ 			}
+ 			idx = (random_bytes >> (j * 2)) & 0xF;
+ 			kfifo_in(fifo,
+diff -puN drivers/infiniband/hw/cxgb4/id_table.c~infiniband-rename-random32-to-prandom_u32 drivers/infiniband/hw/cxgb4/id_table.c
+--- a/drivers/infiniband/hw/cxgb4/id_table.c~infiniband-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/hw/cxgb4/id_table.c
+@@ -54,7 +54,7 @@ u32 c4iw_id_alloc(struct c4iw_id_table *
  
- #include <asm/uaccess.h>
- 
-+
-+struct timer_list_iter {
-+	int cpu;
-+	bool second_pass;
-+	u64 now;
-+};
-+
- typedef void (*print_fn_t)(struct seq_file *m, unsigned int *classes);
- 
- DECLARE_PER_CPU(struct hrtimer_cpu_base, hrtimer_bases);
-@@ -247,86 +254,80 @@ static void timer_list_show_tickdevices_
- }
- #endif
- 
-+static inline void timer_list_header(struct seq_file *m, u64 now)
-+{
-+	SEQ_printf(m, "Timer List Version: v0.7\n");
-+	SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n", HRTIMER_MAX_CLOCK_BASES);
-+	SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
-+	SEQ_printf(m, "\n");
-+}
-+
- static int timer_list_show(struct seq_file *m, void *v)
+ 	if (obj < alloc->max) {
+ 		if (alloc->flags & C4IW_ID_TABLE_F_RANDOM)
+-			alloc->last += random32() % RANDOM_SKIP;
++			alloc->last += prandom_u32() % RANDOM_SKIP;
+ 		else
+ 			alloc->last = obj + 1;
+ 		if (alloc->last >= alloc->max)
+@@ -88,7 +88,7 @@ int c4iw_id_table_alloc(struct c4iw_id_t
+ 	alloc->start = start;
+ 	alloc->flags = flags;
+ 	if (flags & C4IW_ID_TABLE_F_RANDOM)
+-		alloc->last = random32() % RANDOM_SKIP;
++		alloc->last = prandom_u32() % RANDOM_SKIP;
+ 	else
+ 		alloc->last = 0;
+ 	alloc->max  = num;
+diff -puN drivers/infiniband/hw/mlx4/mad.c~infiniband-rename-random32-to-prandom_u32 drivers/infiniband/hw/mlx4/mad.c
+--- a/drivers/infiniband/hw/mlx4/mad.c~infiniband-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/hw/mlx4/mad.c
+@@ -93,7 +93,7 @@ static void __propagate_pkey_ev(struct m
+ __be64 mlx4_ib_gen_node_guid(void)
  {
-+	struct timer_list_iter *iter = v;
- 	u64 now = ktime_to_ns(ktime_get());
--	int cpu;
- 
--	if (v == (void *)1) {
--		SEQ_printf(m, "Timer List Version: v0.7\n");
--		SEQ_printf(m, "HRTIMER_MAX_CLOCK_BASES: %d\n",
--			   HRTIMER_MAX_CLOCK_BASES);
--		SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
--		SEQ_printf(m, "\n");
--	} else if (v < (void *)(unsigned long)(nr_cpu_ids + 2)) {
--		cpu = (unsigned long)(v - 2);
--		print_cpu(m, cpu, now);
--	}
-+	if (iter->cpu == -1 && !iter->second_pass)
-+		timer_list_header(m, now);
-+	else if (!iter->second_pass)
-+		print_cpu(m, iter->cpu, iter->now);
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
--	else if (v == (void *)(unsigned long)nr_cpu_ids + 2) {
-+	else if (iter->cpu == -1 && iter->second_pass)
- 		timer_list_show_tickdevices_header(m);
--	} else {
--		cpu = (unsigned long)(v - 3 - nr_cpu_ids);
--		print_tickdevice(m, tick_get_device(cpu), cpu);
--	}
-+	else
-+		print_tickdevice(m, tick_get_device(iter->cpu), iter->cpu);
- #endif
- 	return 0;
+ #define NODE_GUID_HI	((u64) (((u64)IB_OPENIB_OUI) << 40))
+-	return cpu_to_be64(NODE_GUID_HI | random32());
++	return cpu_to_be64(NODE_GUID_HI | prandom_u32());
  }
  
--/*
-- * This iterator really needs some explanation since it is offset and has
-- * two passes, one of which is controlled by a config option.
-- * In hotpluggable systems some cpus, including cpu 0 and the last cpu, may
-- * be missing so we have to use cpumask_* to iterate over the cpus.
-- * For the first pass:
-- * It returns 1 for the header position.
-- * For cpu 0 it returns 2 and the final possible cpu would be nr_cpu_ids + 1.
-- * On the second pass:
-- * It returns nr_cpu_ids + 1 for the second header position.
-- * For cpu 0 it returns nr_cpu_ids + 2
-- * The final possible cpu would be nr_cpu_ids + nr_cpu_ids + 2.
-- * It is also important to remember that cpumask_next returns >= nr_cpu_ids if
-- * no further cpus set.
-- */
--static void *timer_list_start(struct seq_file *file, loff_t *offset)
-+void sysrq_timer_list_show(void)
- {
--	unsigned long n = *offset;
-+	u64 now = ktime_to_ns(ktime_get());
-+	int cpu;
+ __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_cm.c~infiniband-rename-random32-to-prandom_u32 drivers/infiniband/ulp/ipoib/ipoib_cm.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c~infiniband-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -460,7 +460,7 @@ static int ipoib_cm_req_handler(struct i
+ 		goto err_qp;
+ 	}
  
--	if (n == 0)
--		return (void *) 1;
-+	timer_list_header(NULL, now);
- 
--	if (n < nr_cpu_ids + 1) {
--		n = cpumask_next(n - 2, cpu_online_mask);
--		if (n >= nr_cpu_ids)
--			n = nr_cpu_ids;
--		*offset = n + 1;
--		return (void *)(unsigned long)(n + 2);
--	}
-+	for_each_online_cpu(cpu)
-+		print_cpu(NULL, cpu, now);
- 
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
--	if (n == nr_cpu_ids + 1)
--		return (void *)(unsigned long)(nr_cpu_ids + 2);
-+	timer_list_show_tickdevices_header(NULL);
-+	for_each_online_cpu(cpu)
-+		print_tickdevice(NULL, tick_get_device(cpu), cpu);
-+#endif
-+	return;
-+}
-+
-+static void *timer_list_start(struct seq_file *file, loff_t *offset)
-+{
-+	struct timer_list_iter *iter = file->private;
- 
--	if (n < nr_cpu_ids * 2 + 2) {
--		n -= (nr_cpu_ids + 2);
--		n = cpumask_next(n - 1, cpu_online_mask);
--		if (n >= nr_cpu_ids)
-+	if (!*offset) {
-+		iter->cpu = -1;
-+		iter->now = ktime_to_ns(ktime_get());
-+	} else if (iter->cpu >= nr_cpu_ids) {
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+		if (!iter->second_pass) {
-+			iter->cpu = -1;
-+			iter->second_pass = true;
-+		} else
- 			return NULL;
--		*offset = n + 2 + nr_cpu_ids;
--		return (void *)(unsigned long)(n + 3 + nr_cpu_ids);
--	}
-+#else
-+		return NULL;
- #endif
--
--	return NULL;
-+	}
-+	return iter;
- }
- 
--static void *timer_list_next(struct seq_file *file, void *data, loff_t *offset)
-+static void *timer_list_next(struct seq_file *file, void *v, loff_t *offset)
- {
--	(*offset)++;
-+	struct timer_list_iter *iter = file->private;
-+	iter->cpu = cpumask_next(iter->cpu, cpu_online_mask);
-+	++*offset;
- 	return timer_list_start(file, offset);
- }
- 
--static void timer_list_stop(struct seq_file *file, void *data)
-+static void timer_list_stop(struct seq_file *seq, void *v)
- {
- }
- 
-@@ -337,28 +338,17 @@ static const struct seq_operations timer
- 	.show = timer_list_show,
- };
- 
--void sysrq_timer_list_show(void)
--{
--	timer_list_show(NULL, NULL);
--}
--
--static int timer_list_release(struct inode *inode, struct file *filep)
--{
--	seq_release(inode, filep);
--
--	return 0;
--}
+-	psn = random32() & 0xffffff;
++	psn = prandom_u32() & 0xffffff;
+ 	ret = ipoib_cm_modify_rx_qp(dev, cm_id, p->qp, psn);
+ 	if (ret)
+ 		goto err_modify;
+_
+
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
+
+linux-next.patch
+raid6test-use-prandom_bytes.patch
+uuid-use-prandom_bytes.patch
+x86-pageattr-test-remove-srandom32-call.patch
+x86-rename-random32-to-prandom_u32.patch
+lib-rename-random32-to-prandom_u32.patch
+mm-rename-random32-to-prandom_u32.patch
+kernel-rename-random32-to-prandom_u32.patch
+drbd-rename-random32-to-prandom_u32.patch
+mmc-rename-random32-to-prandom_u32.patch
+video-uvesafb-rename-random32-to-prandom_u32.patch
+uwb-rename-random32-to-prandom_u32.patch
+lguest-rename-random32-to-prandom_u32.patch
+scsi-rename-random32-to-prandom_u32.patch
+drivers-net-rename-random32-to-prandom_u32.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+net-sunrpc-rename-random32-to-prandom_u32.patch
+net-sched-rename-random32-to-prandom_u32.patch
+net-netfilter-rename-random32-to-prandom_u32.patch
+net-core-rename-random32-to-prandom_u32.patch
+net-core-remove-duplicate-statements-by-do-while-loop.patch
+net-rename-random32-to-prandom.patch
+remove-unused-random32-and-srandom32.patch
+
