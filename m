@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lp855x-remove-duplicate-platform-data.patch added to -mm tree
-Date: Mon, 22 Apr 2013 15:47:20 -0700
-Message-ID: <20130422224720.D139A31C11E@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-lp855x-add-a-device-tree-structure.patch added to -mm tree
+Date: Mon, 22 Apr 2013 15:47:22 -0700
+Message-ID: <20130422224722.C970531C11E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:61269 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753761Ab3DVWrW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 18:47:22 -0400
-Received: by mail-qa0-f73.google.com with SMTP id p6so5707qad.2
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 15:47:21 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:52644 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753761Ab3DVWrX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 18:47:23 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 1so753228qee.4
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 15:47:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: Milo.Kim@ti.com, milo.kim@ti.com
 
 
 The patch titled
-     Subject: backlight: lp855x: remove duplicate platform data
+     Subject: backlight: lp855x: add a device tree structure
 has been added to the -mm tree.  Its filename is
-     backlight-lp855x-remove-duplicate-platform-data.patch
+     backlight-lp855x-add-a-device-tree-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,176 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: backlight: lp855x: remove duplicate platform data
+Subject: backlight: lp855x: add a device tree structure
 
-The 'load_new_rom_data' was used for checking whether new ROM data should
-be updated or not.
-
-However, we can decide it with 'size_program' data.  If the size is
-greater than 0, it means updating ROM area is required.  Otherwise, the
-default ROM data will be used.  Therefore, this duplicate platform data
-can be removed.
+Enable supporting the DT structure of LP855x family devices.  If the
+platform data is NULL, the driver tries to parse a DT structure.  Then,
+the platform data is copied from the DT.  Documentation is added as well.
 
 Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/backlight/lp855x-driver.txt |    4 ----
- drivers/video/backlight/lp855x_bl.c       |    2 +-
- include/linux/platform_data/lp855x.h      |    4 ----
- 3 files changed, 1 insertion(+), 9 deletions(-)
+ Documentation/devicetree/bindings/video/backlight/lp855x.txt |   41 +++++
+ drivers/video/backlight/lp855x_bl.c                          |   73 +++++++++-
+ 2 files changed, 112 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/backlight/lp855x-driver.txt~backlight-lp855x-remove-duplicate-platform-data Documentation/backlight/lp855x-driver.txt
---- a/Documentation/backlight/lp855x-driver.txt~backlight-lp855x-remove-duplicate-platform-data
-+++ a/Documentation/backlight/lp855x-driver.txt
-@@ -36,9 +36,6 @@ For supporting platform specific data, t
- * initial_brightness : Initial value of backlight brightness.
- * period_ns : Platform specific PWM period value. unit is nano.
- 	     Only valid when brightness is pwm input mode.
--* load_new_rom_data :
--	0 : use default configuration data
--	1 : update values of eeprom or eprom registers on loading driver
- * size_program : Total size of lp855x_rom_data.
- * rom_data : List of new eeprom/eprom registers.
- 
-@@ -55,7 +52,6 @@ static struct lp855x_platform_data lp855
- 	.name = "lcd-bl",
- 	.device_control = I2C_CONFIG(LP8552),
- 	.initial_brightness = INITIAL_BRT,
--	.load_new_rom_data = 1,
- 	.size_program = ARRAY_SIZE(lp8552_eeprom_arr),
- 	.rom_data = lp8552_eeprom_arr,
- };
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-remove-duplicate-platform-data drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-remove-duplicate-platform-data
+diff -puN /dev/null Documentation/devicetree/bindings/video/backlight/lp855x.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/video/backlight/lp855x.txt
+@@ -0,0 +1,41 @@
++lp855x bindings
++
++Required properties:
++  - compatible: "ti,lp8550", "ti,lp8551", "ti,lp8552", "ti,lp8553",
++                "ti,lp8556", "ti,lp8557"
++  - reg: I2C slave address (u8)
++  - dev-ctrl: Value of DEVICE CONTROL register (u8). It depends on the device.
++
++Optional properties:
++  - bl-name: Backlight device name (string)
++  - init-brt: Initial value of backlight brightness (u8)
++  - pwm-period: PWM period value. Set only PWM input mode used (u32)
++  - rom-addr: Register address of ROM area to be updated (u8)
++  - rom-val: Register value to be updated (u8)
++
++Example:
++
++	/* LP8556 */
++	backlight@2c {
++		compatible = "ti,lp8556";
++		reg = <0x2c>;
++
++		bl-name = "lcd-bl";
++		dev-ctrl = /bits/ 8 <0x85>;
++		init-brt = /bits/ 8 <0x10>;
++	};
++
++	/* LP8557 */
++	backlight@2c {
++		compatible = "ti,lp8557";
++		reg = <0x2c>;
++
++		dev-ctrl = /bits/ 8 <0x41>;
++		init-brt = /bits/ 8 <0x0a>;
++
++		/* 4V OV, 4 output LED string enabled */
++		rom_14h {
++			rom-addr = /bits/ 8 <0x14>;
++			rom-val = /bits/ 8 <0xcf>;
++		};
++	};
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-add-a-device-tree-structure drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-add-a-device-tree-structure
 +++ a/drivers/video/backlight/lp855x_bl.c
-@@ -192,7 +192,7 @@ static int lp855x_configure(struct lp855
- 	if (ret)
- 		goto err;
+@@ -14,6 +14,7 @@
+ #include <linux/i2c.h>
+ #include <linux/backlight.h>
+ #include <linux/err.h>
++#include <linux/of.h>
+ #include <linux/platform_data/lp855x.h>
+ #include <linux/pwm.h>
  
--	if (pd->load_new_rom_data && pd->size_program) {
-+	if (pd->size_program > 0) {
- 		for (i = 0; i < pd->size_program; i++) {
- 			addr = pd->rom_data[i].addr;
- 			val = pd->rom_data[i].val;
-diff -puN include/linux/platform_data/lp855x.h~backlight-lp855x-remove-duplicate-platform-data include/linux/platform_data/lp855x.h
---- a/include/linux/platform_data/lp855x.h~backlight-lp855x-remove-duplicate-platform-data
-+++ a/include/linux/platform_data/lp855x.h
-@@ -115,9 +115,6 @@ struct lp855x_rom_data {
-  * @initial_brightness : initial value of backlight brightness
-  * @period_ns : platform specific pwm period value. unit is nano.
- 		Only valid when mode is PWM_BASED.
-- * @load_new_rom_data :
--	0 : use default configuration data
--	1 : update values of eeprom or eprom registers on loading driver
-  * @size_program : total size of lp855x_rom_data
-  * @rom_data : list of new eeprom/eprom registers
-  */
-@@ -126,7 +123,6 @@ struct lp855x_platform_data {
- 	u8 device_control;
- 	u8 initial_brightness;
- 	unsigned int period_ns;
--	u8 load_new_rom_data;
- 	int size_program;
- 	struct lp855x_rom_data *rom_data;
+@@ -338,15 +339,71 @@ static const struct attribute_group lp85
+ 	.attrs = lp855x_attributes,
  };
+ 
++#ifdef CONFIG_OF
++static int lp855x_parse_dt(struct device *dev, struct device_node *node)
++{
++	struct lp855x_platform_data *pdata;
++	int rom_length;
++
++	if (!node) {
++		dev_err(dev, "no platform data\n");
++		return -EINVAL;
++	}
++
++	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return -ENOMEM;
++
++	of_property_read_string(node, "bl-name", &pdata->name);
++	of_property_read_u8(node, "dev-ctrl", &pdata->device_control);
++	of_property_read_u8(node, "init-brt", &pdata->initial_brightness);
++	of_property_read_u32(node, "pwm-period", &pdata->period_ns);
++
++	/* Fill ROM platform data if defined */
++	rom_length = of_get_child_count(node);
++	if (rom_length > 0) {
++		struct lp855x_rom_data *rom;
++		struct device_node *child;
++		int i = 0;
++
++		rom = devm_kzalloc(dev, sizeof(*rom) * rom_length, GFP_KERNEL);
++		if (!rom)
++			return -ENOMEM;
++
++		for_each_child_of_node(node, child) {
++			of_property_read_u8(child, "rom-addr", &rom[i].addr);
++			of_property_read_u8(child, "rom-val", &rom[i].val);
++			i++;
++		}
++
++		pdata->size_program = rom_length;
++		pdata->rom_data = &rom[0];
++	}
++
++	dev->platform_data = pdata;
++
++	return 0;
++}
++#else
++static int lp855x_parse_dt(struct device *dev, struct device_node *node)
++{
++	return -EINVAL;
++}
++#endif
++
+ static int lp855x_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ {
+ 	struct lp855x *lp;
+ 	struct lp855x_platform_data *pdata = cl->dev.platform_data;
++	struct device_node *node = cl->dev.of_node;
+ 	int ret;
+ 
+ 	if (!pdata) {
+-		dev_err(&cl->dev, "no platform data supplied\n");
+-		return -EINVAL;
++		ret = lp855x_parse_dt(&cl->dev, node);
++		if (ret < 0)
++			return ret;
++
++		pdata = cl->dev.platform_data;
+ 	}
+ 
+ 	if (!i2c_check_functionality(cl->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+@@ -408,6 +465,17 @@ static int lp855x_remove(struct i2c_clie
+ 	return 0;
+ }
+ 
++static const struct of_device_id lp855x_dt_ids[] = {
++	{ .compatible = "ti,lp8550", },
++	{ .compatible = "ti,lp8551", },
++	{ .compatible = "ti,lp8552", },
++	{ .compatible = "ti,lp8553", },
++	{ .compatible = "ti,lp8556", },
++	{ .compatible = "ti,lp8557", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, lp855x_dt_ids);
++
+ static const struct i2c_device_id lp855x_ids[] = {
+ 	{"lp8550", LP8550},
+ 	{"lp8551", LP8551},
+@@ -422,6 +490,7 @@ MODULE_DEVICE_TABLE(i2c, lp855x_ids);
+ static struct i2c_driver lp855x_driver = {
+ 	.driver = {
+ 		   .name = "lp855x",
++		   .of_match_table = of_match_ptr(lp855x_dt_ids),
+ 		   },
+ 	.probe = lp855x_probe,
+ 	.remove = lp855x_remove,
 _
 
 Patches currently in -mm which might be from Milo.Kim@ti.com are
