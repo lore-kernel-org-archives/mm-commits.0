@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch added to -mm tree
-Date: Mon, 22 Apr 2013 16:50:21 -0700
-Message-ID: <20130422235021.C63CE31C11E@corp2gmr1-1.hot.corp.google.com>
+Subject: + block-prep-work-for-batch-completion-fix-99.patch added to -mm tree
+Date: Mon, 22 Apr 2013 16:58:34 -0700
+Message-ID: <20130422235834.BAED731C11E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:45107 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752993Ab3DVXuX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 19:50:23 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so2183ves.0
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 16:50:22 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:58652 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752423Ab3DVX6f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 19:58:35 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so5815qcr.2
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 16:58:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, kirill.shutemov@linux.intel.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, koverstreet@google.com
 
 
 The patch titled
-     Subject: thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix
+     Subject: block-prep-work-for-batch-completion-fix-99
 has been added to the -mm tree.  Its filename is
-     thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
+     block-prep-work-for-batch-completion-fix-99.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix
+Subject: block-prep-work-for-batch-completion-fix-99
 
-fix sparse warning
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Kent Overstreet <koverstreet@google.com>
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/bcache/debug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix
-+++ a/mm/huge_memory.c
-@@ -186,7 +186,7 @@ retry:
- 			HPAGE_PMD_ORDER);
- 	if (!zero_page) {
- 		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
--		return 0;
-+		return NULL;
- 	}
- 	count_vm_event(THP_ZERO_PAGE_ALLOC);
- 	preempt_disable();
+diff -puN drivers/md/bcache/debug.c~block-prep-work-for-batch-completion-fix-99 drivers/md/bcache/debug.c
+--- a/drivers/md/bcache/debug.c~block-prep-work-for-batch-completion-fix-99
++++ a/drivers/md/bcache/debug.c
+@@ -177,7 +177,8 @@ void bch_btree_verify(struct btree *b, s
+ 	mutex_unlock(&b->c->verify_lock);
+ }
+ 
+-static void data_verify_endio(struct bio *bio, int error)
++static void data_verify_endio(struct bio *bio, int error,
++			      struct batch_complete *batch)
+ {
+ 	struct closure *cl = bio->bi_private;
+ 	closure_put(cl);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,6 +151,7 @@ block-prep-work-for-batch-completion-fix-2.patch
 block-prep-work-for-batch-completion-fix-3.patch
 block-prep-work-for-batch-completion-fix-3-fix.patch
 block-prep-work-for-batch-completion-fix-4.patch
+block-prep-work-for-batch-completion-fix-99.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
 block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
