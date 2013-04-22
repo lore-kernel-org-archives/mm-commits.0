@@ -1,67 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fix-hugetlb-memory-check-in-vma_dump_size.patch removed from -mm tree
-Date: Mon, 22 Apr 2013 13:06:46 -0700
-Message-ID: <20130422200646.8AB525A4285@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drivers-video-mmp-corec-fix-use-after-free-bug.patch removed from -mm tree
+Date: Mon, 22 Apr 2013 13:06:37 -0700
+Message-ID: <20130422200637.73D6B31C19E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:39208 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754793Ab3DVUGr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:06:47 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z10so624414ghb.5
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:33317 "EHLO
+	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754900Ab3DVUGs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:06:48 -0400
+Received: by mail-ia0-f201.google.com with SMTP id n19so863690ian.4
         for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:06:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, d.hatayama@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: epure.andrei@gmail.com, FlorianSchandinat@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_elf.c: fix hugetlb memory check in vma_dump_size()
+     Subject: drivers/video/mmp/core.c: fix use-after-free bug
 has been removed from the -mm tree.  Its filename was
-     fix-hugetlb-memory-check-in-vma_dump_size.patch
+     drivers-video-mmp-corec-fix-use-after-free-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: fs/binfmt_elf.c: fix hugetlb memory check in vma_dump_size()
+From: Andrei Epure <epure.andrei@gmail.com>
+Subject: drivers/video/mmp/core.c: fix use-after-free bug
 
-Documentation/filesystems/proc.txt says about coredump_filter bitmask,
+Found with coccinelle.
 
-  Note bit 0-4 doesn't effect any hugetlb memory. hugetlb memory are only
-  effected by bit 5-6.
-
-However current code can go into the subsequent flag checks of bit 0-4
-for vma(VM_HUGETLB). So this patch inserts 'return' and makes it work
-as written in the document.
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[3.7+]
+Signed-off-by: Andrei Epure <epure.andrei@gmail.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/mmp/core.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~fix-hugetlb-memory-check-in-vma_dump_size fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fix-hugetlb-memory-check-in-vma_dump_size
-+++ a/fs/binfmt_elf.c
-@@ -1137,6 +1137,7 @@ static unsigned long vma_dump_size(struc
- 			goto whole;
- 		if (!(vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_PRIVATE))
- 			goto whole;
-+		return 0;
- 	}
+diff -puN drivers/video/mmp/core.c~drivers-video-mmp-corec-fix-use-after-free-bug drivers/video/mmp/core.c
+--- a/drivers/video/mmp/core.c~drivers-video-mmp-corec-fix-use-after-free-bug
++++ a/drivers/video/mmp/core.c
+@@ -252,7 +252,5 @@ void mmp_unregister_path(struct mmp_path
  
- 	/* Do not dump I/O mapped devices or special mappings */
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-hwpoison-check-dirty-flag-to-match-against-clean-page.patch
-
+ 	kfree(path);
+ 	mutex_unlock(&disp_lock);
