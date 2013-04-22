@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + swap-redirty-page-if-page-write-fails-on-swap-file.patch added to -mm tree
-Date: Mon, 22 Apr 2013 13:38:06 -0700
-Message-ID: <20130422203806.7FAB05A40F3@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-fix-memory_hotplugc-printk-format-warning.patch added to -mm tree
+Date: Mon, 22 Apr 2013 13:47:07 -0700
+Message-ID: <20130422204707.71C145A40F3@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:51683 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755338Ab3DVUiH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:38:07 -0400
-Received: by mail-gg0-f201.google.com with SMTP id q6so737359ggc.4
-        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:38:07 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:63063 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755221Ab3DVUrI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Apr 2013 16:47:08 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 1so738184qee.2
+        for <mm-commits@vger.kernel.org>; Mon, 22 Apr 2013 13:47:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmarchan@redhat.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, stable@vger.kernel.org
+Cc: rdunlap@infradead.org, geert@linux-m68k.org
 
 
 The patch titled
-     Subject: swap: redirty page if page write fails on swap file
+     Subject: mm: fix memory_hotplug.c printk format warning
 has been added to the -mm tree.  Its filename is
-     swap-redirty-page-if-page-write-fails-on-swap-file.patch
+     mm-fix-memory_hotplugc-printk-format-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jerome Marchand <jmarchan@redhat.com>
-Subject: swap: redirty page if page write fails on swap file
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: fix memory_hotplug.c printk format warning
 
-Since 62c230b ("mm: add support for a filesystem to activate swap files
-and use direct_IO for writing swap pages"), swap_writepage() calls
-direct_IO on swap files.  However, in that case the page isn't redirtied
-if I/O fails, and is therefore handled afterwards as if it has been
-successfully written to the swap file, leading to memory corruption when
-the page is eventually swapped back in.
+PFN_PHYS() is a phys_addr_t, which can be u32 or u64.
+Fix the build warning when phys_addr_t is u32.
 
-This patch sets the page dirty when direct_IO() fails.  It fixes a memory
-corruption that happened while using swap-over-NFS.
+mm/memory_hotplug.c: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 2 has type 'unsigned int' [-Wformat]:  => 1685:3
+mm/memory_hotplug.c: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 3 has type 'unsigned int' [-Wformat]:  => 1685:3
 
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory_hotplug.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_io.c~swap-redirty-page-if-page-write-fails-on-swap-file mm/page_io.c
---- a/mm/page_io.c~swap-redirty-page-if-page-write-fails-on-swap-file
-+++ a/mm/page_io.c
-@@ -230,6 +230,8 @@ int __swap_writepage(struct page *page,
- 		if (ret == PAGE_SIZE) {
- 			count_vm_event(PSWPOUT);
- 			ret = 0;
-+		} else {
-+			set_page_dirty(page);
- 		}
- 		return ret;
- 	}
+diff -puN mm/memory_hotplug.c~mm-fix-memory_hotplugc-printk-format-warning mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-fix-memory_hotplugc-printk-format-warning
++++ a/mm/memory_hotplug.c
+@@ -1690,11 +1690,15 @@ static int is_memblock_offlined_cb(struc
+ {
+ 	int ret = !is_memblock_offlined(mem);
+ 
+-	if (unlikely(ret))
++	if (unlikely(ret)) {
++		phys_addr_t beginpa, endpa;
++
++		beginpa = PFN_PHYS(section_nr_to_pfn(mem->start_section_nr));
++		endpa = PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1;
+ 		pr_warn("removing memory fails, because memory "
+-			"[%#010llx-%#010llx] is onlined\n",
+-			PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
+-			PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1);
++			"[%pa-%pa] is onlined\n",
++			&beginpa, &endpa);
++	}
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from jmarchan@redhat.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-swap-redirty-page-if-page-write-fails-on-swap-file.patch
+linux-next.patch
+mm-fix-memory_hotplugc-printk-format-warning.patch
+kconfig-consolidate-config_debug_strict_user_copy_checks-fix.patch
+kconfig-menu-move-virtualization-drivers-near-other-virtualization-options.patch
+init-kconfig-make-expert-as-config-instead-of-menuconfig.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 
