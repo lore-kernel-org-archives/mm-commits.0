@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + relay-fix-timer-madness.patch added to -mm tree
-Date: Tue, 23 Apr 2013 14:28:46 -0700
-Message-ID: <20130423212847.53F215A41F8@corp2gmr1-2.hot.corp.google.com>
+Subject: + pps-pps_kc_hardpps_lock-can-be-static.patch added to -mm tree
+Date: Tue, 23 Apr 2013 14:29:19 -0700
+Message-ID: <20130423212919.6EF4931C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:38658 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754099Ab3DWV2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:28:51 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so47398ves.4
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:28:51 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64241 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753246Ab3DWV3U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:29:20 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so121250qcs.5
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:29:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, axboe@kernel.dk, edumazet@google.com, jovi.zhangwei@huawei.com, rostedt@goodmis.org, viro@zeniv.linux.org.uk
+Cc: fengguang.wu@intel.com, giometti@enneenne.com
 
 
 The patch titled
-     Subject: relay: fix timer madness
+     Subject: pps: pps_kc_hardpps_lock can be static
 has been added to the -mm tree.  Its filename is
-     relay-fix-timer-madness.patch
+     pps-pps_kc_hardpps_lock-can-be-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ingo Molnar <mingo@elte.hu>
-Subject: relay: fix timer madness
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: pps: pps_kc_hardpps_lock can be static
 
-When I'm using below ktap script to tracing all event tracepoints, without
-this patch, the system will hang in few seconds, the patch indeed fix the
-problem as the changelog pointed.
+drivers/pps/kc.c:37:1: sparse: symbol 'pps_kc_hardpps_lock' was not declared. Should it be static?
+drivers/pps/kc.c:39:19: sparse: symbol 'pps_kc_hardpps_dev' was not declared. Should it be static?
+drivers/pps/kc.c:40:5: sparse: symbol 'pps_kc_hardpps_mode' was not declared. Should it be static?
 
-	function eventfun (e) {
-        	printf("%d %d\t%s\t%s", cpu(), pid(), execname(), e.annotate)
-	}
-
-	kdebug.probe("tp:", eventfun)
-
-	kdebug.probe_end(function () {
-        	printf("probe end\n")
-	})
-
-This patch is old, I can found the original patch discussion in 2007. 
-http://marc.info/?l=linux-kernel&m=118544794717162&w=2 (In that mail
-thread, the patch didn't fix that problem, but it fix the problem I
-encountered now)
-
-Ingo's original changelog:
-
-Remove timer calls (!!!) from deep within the tracing infrastructure.
-This was totally bogus code that can cause lockups and worse.
-Poll the buffer every 2 jiffies for now.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/pps/kc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/relay.c~relay-fix-timer-madness kernel/relay.c
---- a/kernel/relay.c~relay-fix-timer-madness
-+++ a/kernel/relay.c
-@@ -340,6 +340,10 @@ static void wakeup_readers(unsigned long
- {
- 	struct rchan_buf *buf = (struct rchan_buf *)data;
- 	wake_up_interruptible(&buf->read_wait);
-+	/*
-+	 * Stupid polling for now:
-+	 */
-+	mod_timer(&buf->timer, jiffies + 1);
- }
+diff -puN drivers/pps/kc.c~pps-pps_kc_hardpps_lock-can-be-static drivers/pps/kc.c
+--- a/drivers/pps/kc.c~pps-pps_kc_hardpps_lock-can-be-static
++++ a/drivers/pps/kc.c
+@@ -34,10 +34,10 @@
+  */
  
- /**
-@@ -357,6 +361,7 @@ static void __relay_reset(struct rchan_b
- 		init_waitqueue_head(&buf->read_wait);
- 		kref_init(&buf->kref);
- 		setup_timer(&buf->timer, wakeup_readers, (unsigned long)buf);
-+		mod_timer(&buf->timer, jiffies + 1);
- 	} else
- 		del_timer_sync(&buf->timer);
+ /* state variables to bind kernel consumer */
+-DEFINE_SPINLOCK(pps_kc_hardpps_lock);
++static DEFINE_SPINLOCK(pps_kc_hardpps_lock);
+ /* PPS API (RFC 2783): current source and mode for kernel consumer */
+-struct pps_device *pps_kc_hardpps_dev;	/* unique pointer to device */
+-int pps_kc_hardpps_mode;		/* mode bits for kernel consumer */
++static struct pps_device *pps_kc_hardpps_dev;	/* unique pointer to device */
++static int pps_kc_hardpps_mode;		/* mode bits for kernel consumer */
  
-@@ -739,15 +744,6 @@ size_t relay_switch_subbuf(struct rchan_
- 		else
- 			buf->early_bytes += buf->chan->subbuf_size -
- 					    buf->padding[old_subbuf];
--		smp_mb();
--		if (waitqueue_active(&buf->read_wait))
--			/*
--			 * Calling wake_up_interruptible() from here
--			 * will deadlock if we happen to be logging
--			 * from the scheduler (trying to re-grab
--			 * rq->lock), so defer it.
--			 */
--			mod_timer(&buf->timer, jiffies + 1);
- 	}
- 
- 	old = buf->data;
+ /* pps_kc_bind - control PPS kernel consumer binding
+  * @pps: the PPS source
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 linux-next.patch
-posix_cpu_timer-consolidate-expiry-time-type.patch
-posix_cpu_timers-consolidate-timer-list-cleanups.patch
-posix_cpu_timers-consolidate-expired-timers-check.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
-debug_locksh-make-warning-more-verbose.patch
-watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-mm-try-harder-to-allocate-vmemmap-blocks.patch
-sparse-vmemmap-specify-vmemmap-population-range-in-bytes.patch
-x86-64-remove-dead-debugging-code-for-pse-setups.patch
-x86-64-use-vmemmap_populate_basepages-for-pse-setups.patch
-x86-64-fall-back-to-regular-page-vmemmap-on-allocation-failure.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-numa-cpu-hotplug-change-links-of-cpu-and-node-when-changing-node-number-by-onlining-cpu.patch
+drivers-video-add-hyper-v-synthetic-video-frame-buffer-driver-fix.patch
+hwpoison-check-dirty-flag-to-match-against-clean-page.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+sparse-vmemmap-specify-vmemmap-population-range-in-bytes-fix.patch
+x86-64-use-vmemmap_populate_basepages-for-pse-setups-fix.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix.patch
+thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
 smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
-kernel-smpc-cleanups.patch
-drivers-rtc-rtc-cmosc-dont-disable-hpet-emulation-on-suspend.patch
-relay-fix-timer-madness.patch
-wait-add-wait_event_hrtimeout.patch
-decompressor-add-lz4-decompressor-module.patch
-lib-add-support-for-lz4-compressed-kernel.patch
-arm-add-support-for-lz4-compressed-kernel.patch
-x86-add-support-for-lz4-compressed-kernel.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
+x86-dont-show-trace-beyond-show_stacknull-null.patch
+sparc32-make-show_stack-acquire-%fp-if-_ksp-is-not-specified.patch
+dump_stack-consolidate-dump_stack-implementations-and-unify-their-behaviors.patch
+dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer.patch
+dump_stack-implement-arch-specific-hardware-description-in-task-dumps.patch
+dump_stack-unify-debug-information-printed-by-show_regs.patch
+arc-print-fatal-signals-reduce-duplicated-information.patch
+drivers-rtc-rtc-max6902c-use-register-defines-instead-of-magic-numbers.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ipc-refactor-msg-list-search-into-separate-function-fix.patch
+pps-pps_kc_hardpps_lock-can-be-static.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-99.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
 
