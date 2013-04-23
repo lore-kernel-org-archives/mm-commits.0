@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch added to -mm tree
-Date: Tue, 23 Apr 2013 12:38:38 -0700
-Message-ID: <20130423193838.76B4631C034@corp2gmr1-1.hot.corp.google.com>
+Subject: + ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main.patch added to -mm tree
+Date: Tue, 23 Apr 2013 12:30:32 -0700
+Message-ID: <20130423193032.7112931C034@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:61622 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908Ab3DWTij (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 15:38:39 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so107547ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 12:38:39 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:39556 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752198Ab3DWTis (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 15:38:48 -0400
+Received: by mail-qe0-f74.google.com with SMTP id a11so107154qen.3
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 12:38:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidlohr.bueso@hp.com, benisty.e@gmail.com, riel@surriel.com
+Cc: riel@redhat.com, davidlohr.bueso@hp.com
 
 
 The patch titled
-     Subject: ipc, sem: do not call sem_lock when bogus sma
+     Subject: ipc,sem: fix locking in semctl_main
 has been added to the -mm tree.  Its filename is
-     ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch
+     ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc, sem: do not call sem_lock when bogus sma
+From: Rik van Riel <riel@redhat.com>
+Subject: ipc,sem: fix locking in semctl_main
 
-In exit_sem() we attempt to acquire the sma->sem_perm.lock by calling
-sem_lock() immediately after obtaining sma. However, if sma isn't valid,
-then calling sem_lock() will tend to do bad things.
+Everywhere else in the code, we check sma->sem_perm.deleted under
+the semaphore array lock, so we should do teh same here.
+The easy fix is to simply not drop and re-take the lock, but keep
+it locked.
 
-Move the sma error check right after the sem_obtain_object_check() call
-instead.
-
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Emmanuel Benisty <benisty.e@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ ipc/sem.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma ipc/sem.c
---- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma
+diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main ipc/sem.c
+--- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main
 +++ a/ipc/sem.c
-@@ -1763,8 +1763,7 @@ void exit_sem(struct task_struct *tsk)
- 		struct sem_array *sma;
- 		struct sem_undo *un;
- 		struct list_head tasks;
--		int semid;
--		int i;
-+		int semid, i;
+@@ -1115,10 +1115,9 @@ static int semctl_main(struct ipc_namesp
+ 				err = -EIDRM;
+ 				goto out_free;
+ 			}
+-			sem_unlock(sma, -1);
+-		}
++		} else
++			sem_lock(sma, NULL, -1);
  
- 		rcu_read_lock();
- 		un = list_entry_rcu(ulp->list_proc.next,
-@@ -1780,12 +1779,13 @@ void exit_sem(struct task_struct *tsk)
- 		}
- 
- 		sma = sem_obtain_object_check(tsk->nsproxy->ipc_ns, un->semid);
 -		sem_lock(sma, NULL, -1);
--
- 		/* exit_sem raced with IPC_RMID, nothing to do */
--		if (IS_ERR(sma))
-+		if (IS_ERR(sma)) {
-+			rcu_read_unlock();
- 			continue;
-+		}
- 
-+		sem_lock(sma, NULL, -1);
- 		un = __lookup_undo(ulp, semid);
- 		if (un == NULL) {
- 			/* exit_sem raced with IPC_RMID+semget() that created
+ 		for (i = 0; i < sma->sem_nsems; i++)
+ 			sem_io[i] = sma->sem_base[i].semval;
+ 		sem_unlock(sma, -1);
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
 linux-next.patch
-lib-int_sqrtc-optimize-square-root-algorithm.patch
+mm-remove-free_area_cache-use-in-powerpc-architecture.patch
+vmscan-minor-cleanup-for-kswapd.patch
+mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
+mm-merging-memory-blocks-resets-mempolicy.patch
+mm-remove-config_hotplug-ifdefs.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch
+mm-remove-free_area_cache.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
 ipc-introduce-obtaining-a-lockless-ipc-object.patch
 ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
@@ -98,10 +88,7 @@ ipcsem-open-code-and-rename-sem_lock.patch
 ipcsem-open-code-and-rename-sem_lock-fix.patch
 ipcsem-have-only-one-list-in-struct-sem_queue.patch
 ipcsem-fine-grained-locking-for-semtimedop.patch
+ipcsem-fine-grained-locking-for-semtimedop-fix.patch
 ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch
 ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main.patch
-ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo.patch
-ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch
-rbtree_test-add-extra-rbtree-integrity-check.patch
-rbtree_test-add-__init-__exit-annotations.patch
 
