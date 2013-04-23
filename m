@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + power-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch added to -mm tree
-Date: Tue, 23 Apr 2013 16:24:58 -0700
-Message-ID: <20130423232458.D0DC431C11E@corp2gmr1-1.hot.corp.google.com>
+Subject: + kgdb-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch added to -mm tree
+Date: Tue, 23 Apr 2013 16:24:56 -0700
+Message-ID: <20130423232456.CEBF731C11E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54221 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751705Ab3DWXZA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 19:25:00 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w16so133032vbb.3
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 16:24:59 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:37606 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751705Ab3DWXY7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 19:24:59 -0400
+Received: by mail-ve0-f202.google.com with SMTP id ox1so52565veb.5
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 16:24:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jovi.zhangwei@huawei.com, benh@kernel.crashing.org
+Cc: jovi.zhangwei@huawei.com, jason.wessel@windriver.com
 
 
 The patch titled
-     Subject: power/sysrq: fix inconstistent help message of sysrq key
+     Subject: kgdb/sysrq: fix inconstistent help message of sysrq key
 has been added to the -mm tree.  Its filename is
-     power-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
+     kgdb-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Subject: power/sysrq: fix inconstistent help message of sysrq key
+Subject: kgdb/sysrq: fix inconstistent help message of sysrq key
 
-Currently help message of /proc/sysrq-trigger highlight its
-upper-case characters, like below:
+Currently help message of /proc/sysrq-trigger highlight its upper-case
+characters, like below:
 
       SysRq : HELP : loglevel(0-9) reBoot Crash terminate-all-tasks(E)
       memory-full-oom-kill(F) kill-all-tasks(I) ...
@@ -48,28 +48,28 @@ inconsistent with the real lower-case character registed key.
 This inconsistent help message will also lead more confused when
 26 upper-case letters put into use in future.
 
-This patch fix power off sysrq key: "poweroff(o)"
+This patch fix kgdb sysrq key: "debug(g)"
 
 Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/poweroff.c |    2 +-
+ kernel/debug/debug_core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/power/poweroff.c~power-sysrq-fix-inconstistent-help-message-of-sysrq-key kernel/power/poweroff.c
---- a/kernel/power/poweroff.c~power-sysrq-fix-inconstistent-help-message-of-sysrq-key
-+++ a/kernel/power/poweroff.c
-@@ -32,7 +32,7 @@ static void handle_poweroff(int key)
+diff -puN kernel/debug/debug_core.c~kgdb-sysrq-fix-inconstistent-help-message-of-sysrq-key kernel/debug/debug_core.c
+--- a/kernel/debug/debug_core.c~kgdb-sysrq-fix-inconstistent-help-message-of-sysrq-key
++++ a/kernel/debug/debug_core.c
+@@ -775,7 +775,7 @@ static void sysrq_handle_dbg(int key)
  
- static struct sysrq_key_op	sysrq_poweroff_op = {
- 	.handler        = handle_poweroff,
--	.help_msg       = "powerOff",
-+	.help_msg       = "poweroff(o)",
- 	.action_msg     = "Power Off",
- 	.enable_mask	= SYSRQ_ENABLE_BOOT,
+ static struct sysrq_key_op sysrq_dbg_op = {
+ 	.handler	= sysrq_handle_dbg,
+-	.help_msg	= "debug(G)",
++	.help_msg	= "debug(g)",
+ 	.action_msg	= "DEBUG",
  };
+ #endif
 _
 
 Patches currently in -mm which might be from jovi.zhangwei@huawei.com are
