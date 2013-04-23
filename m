@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-isl12022c-remove-rtc8564-from-isl12022_id.patch added to -mm tree
-Date: Tue, 23 Apr 2013 15:22:54 -0700
-Message-ID: <20130423222254.CE26631C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: + fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head.patch added to -mm tree
+Date: Tue, 23 Apr 2013 15:29:16 -0700
+Message-ID: <20130423222916.74A6C31C034@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:41667 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753368Ab3DWWWz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 18:22:55 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m2so127322yen.4
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 15:22:55 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:43221 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753368Ab3DWW3R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 18:29:17 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so127752ggm.5
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 15:29:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@ingics.com, jonsmirl@gmail.com, roman.fietze@telemotive.de
+Cc: majianpeng@gmail.com, jack@suse.cz, tytso@mit.edu
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-isl12022.c: Remove rtc8564 from isl12022_id
+     Subject: fs/buffer.c: remove unnecessary init operation after allocating buffer_head.
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-isl12022c-remove-rtc8564-from-isl12022_id.patch
+     fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@ingics.com>
-Subject: drivers/rtc/rtc-isl12022.c: Remove rtc8564 from isl12022_id
+From: majianpeng <majianpeng@gmail.com>
+Subject: fs/buffer.c: remove unnecessary init operation after allocating buffer_head.
 
-rtc8564 appears in i2c_device_id table of both rtc-isl12022.c and
-rtc-pcf8563.c.  commit 8ea9212c "rtc-pcf8563: add chip id" adds rtc8564
-chip entry to pcf8563.  isl12022 driver is modified from pcf8563 driver,
-so this looks like a copy-paste bug.
+bh allocation uses kmem_cache_zalloc() so we needn't call 'init_buffer(bh,
+NULL, NULL)' and perform other set-zero-operations.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
-Cc: Roman Fietze <roman.fietze@telemotive.de>
-Cc: Jon Smirl <jonsmirl@gmail.com>
+Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl12022.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/buffer.c       |    2 --
+ fs/jbd/journal.c  |    2 --
+ fs/jbd2/journal.c |    2 --
+ 3 files changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl12022.c~drivers-rtc-rtc-isl12022c-remove-rtc8564-from-isl12022_id drivers/rtc/rtc-isl12022.c
---- a/drivers/rtc/rtc-isl12022.c~drivers-rtc-rtc-isl12022c-remove-rtc8564-from-isl12022_id
-+++ a/drivers/rtc/rtc-isl12022.c
-@@ -280,7 +280,6 @@ static int isl12022_remove(struct i2c_cl
+diff -puN fs/buffer.c~fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head fs/buffer.c
+--- a/fs/buffer.c~fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head
++++ a/fs/buffer.c
+@@ -865,8 +865,6 @@ try_again:
  
- static const struct i2c_device_id isl12022_id[] = {
- 	{ "isl12022", 0 },
--	{ "rtc8564", 0 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, isl12022_id);
+ 		/* Link the buffer to its page */
+ 		set_bh_page(bh, page, offset);
+-
+-		init_buffer(bh, NULL, NULL);
+ 	}
+ 	return head;
+ /*
+diff -puN fs/jbd/journal.c~fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head fs/jbd/journal.c
+--- a/fs/jbd/journal.c~fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head
++++ a/fs/jbd/journal.c
+@@ -310,8 +310,6 @@ int journal_write_metadata_buffer(transa
+ 
+ 	new_bh = alloc_buffer_head(GFP_NOFS|__GFP_NOFAIL);
+ 	/* keep subsequent assertions sane */
+-	new_bh->b_state = 0;
+-	init_buffer(new_bh, NULL, NULL);
+ 	atomic_set(&new_bh->b_count, 1);
+ 	new_jh = journal_add_journal_head(new_bh);	/* This sleeps */
+ 
+diff -puN fs/jbd2/journal.c~fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head
++++ a/fs/jbd2/journal.c
+@@ -367,8 +367,6 @@ retry_alloc:
+ 	}
+ 
+ 	/* keep subsequent assertions sane */
+-	new_bh->b_state = 0;
+-	init_buffer(new_bh, NULL, NULL);
+ 	atomic_set(&new_bh->b_count, 1);
+ 	new_jh = jbd2_journal_add_journal_head(new_bh);	/* This sleeps */
+ 
 _
 
-Patches currently in -mm which might be from axel.lin@ingics.com are
+Patches currently in -mm which might be from majianpeng@gmail.com are
 
 linux-next.patch
-drivers-rtc-rtc-max6902c-use-register-defines-instead-of-magic-numbers.patch
-drivers-rtc-rtc-isl12022c-remove-rtc8564-from-isl12022_id.patch
+fs-block_devc-fix-iov_shorten-criteria-in-blkdev_aio_read.patch
+fs-bufferc-remove-unnecessary-init-operation-after-allocating-buffer_head.patch
 
