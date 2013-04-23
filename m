@@ -1,28 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-convert-to-pr_foo-fix-fix.patch added to -mm tree
-Date: Tue, 23 Apr 2013 12:42:36 -0700
-Message-ID: <20130423194236.B112C31C253@corp2gmr1-1.hot.corp.google.com>
+Subject: + relay-fix-timer-madness.patch added to -mm tree
+Date: Tue, 23 Apr 2013 14:28:28 -0700
+Message-ID: <20130423212828.74A2331C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:37579 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258Ab3DWTmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 15:42:38 -0400
-Received: by mail-vb0-f73.google.com with SMTP id p13so444vbe.2
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 12:42:37 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:47394 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753246Ab3DWV2a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:28:30 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz11so121394vcb.2
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:28:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, richard@nod.at, u.kleine-koenig@pengutronix.de
+Cc: mingo@elte.hu, axboe@kernel.dk, edumazet@google.com, jovi.zhangwei@huawei.com, rostedt@goodmis.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: init-mainc-convert-to-pr_foo-fix-fix
+     Subject: relay: fix timer madness
 has been added to the -mm tree.  Its filename is
-     init-mainc-convert-to-pr_foo-fix-fix.patch
+     relay-fix-timer-madness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,161 +27,121 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-mainc-convert-to-pr_foo-fix-fix
+From: Ingo Molnar <mingo@elte.hu>
+Subject: relay: fix timer madness
 
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+When I'm using below ktap script to tracing all event tracepoints, without
+this patch, the system will hang in few seconds, the patch indeed fix the
+problem as the changelog pointed.
+
+	function eventfun (e) {
+        	printf("%d %d\t%s\t%s", cpu(), pid(), execname(), e.annotate)
+	}
+
+	kdebug.probe("tp:", eventfun)
+
+	kdebug.probe_end(function () {
+        	printf("probe end\n")
+	})
+
+This patch is old, I can found the original patch discussion in 2007. 
+http://marc.info/?l=linux-kernel&m=118544794717162&w=2 (In that mail
+thread, the patch didn't fix that problem, but it fix the problem I
+encountered now)
+
+Ingo's original changelog:
+
+Remove timer calls (!!!) from deep within the tracing infrastructure.
+This was totally bogus code that can cause lockups and worse.
+Poll the buffer every 2 jiffies for now.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
+Cc: Steven Rostedt <rostedt@goodmis.org
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/relay.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN init/main.c~init-mainc-convert-to-pr_foo-fix-fix init/main.c
---- a/init/main.c~init-mainc-convert-to-pr_foo-fix-fix
-+++ a/init/main.c
-@@ -9,7 +9,7 @@
-  *  Simplified starting of init:  Michael A. Griffith <grif@acm.org>=20
-  */
-=20
--#define DEBUG
-+#define DEBUG		/* Enable initcall_debug */
-=20
- #include <linux/types.h>
- #include <linux/module.h>
+diff -puN kernel/relay.c~relay-fix-timer-madness kernel/relay.c
+--- a/kernel/relay.c~relay-fix-timer-madness
++++ a/kernel/relay.c
+@@ -340,6 +340,10 @@ static void wakeup_readers(unsigned long
+ {
+ 	struct rchan_buf *buf = (struct rchan_buf *)data;
+ 	wake_up_interruptible(&buf->read_wait);
++	/*
++	 * Stupid polling for now:
++	 */
++	mod_timer(&buf->timer, jiffies + 1);
+ }
+ 
+ /**
+@@ -357,6 +361,7 @@ static void __relay_reset(struct rchan_b
+ 		init_waitqueue_head(&buf->read_wait);
+ 		kref_init(&buf->kref);
+ 		setup_timer(&buf->timer, wakeup_readers, (unsigned long)buf);
++		mod_timer(&buf->timer, jiffies + 1);
+ 	} else
+ 		del_timer_sync(&buf->timer);
+ 
+@@ -739,15 +744,6 @@ size_t relay_switch_subbuf(struct rchan_
+ 		else
+ 			buf->early_bytes += buf->chan->subbuf_size -
+ 					    buf->padding[old_subbuf];
+-		smp_mb();
+-		if (waitqueue_active(&buf->read_wait))
+-			/*
+-			 * Calling wake_up_interruptible() from here
+-			 * will deadlock if we happen to be logging
+-			 * from the scheduler (trying to re-grab
+-			 * rq->lock), so defer it.
+-			 */
+-			mod_timer(&buf->timer, jiffies + 1);
+ 	}
+ 
+ 	old = buf->data;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_t=
-rim_trees-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_sc=
-hedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+debug_locksh-make-warning-more-verbose.patch
+watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
+mm-try-harder-to-allocate-vmemmap-blocks.patch
+sparse-vmemmap-specify-vmemmap-population-range-in-bytes.patch
+x86-64-remove-dead-debugging-code-for-pse-setups.patch
+x86-64-use-vmemmap_populate_basepages-for-pse-setups.patch
+x86-64-fall-back-to-regular-page-vmemmap-on-allocation-failure.patch
 mm-speedup-in-__early_pfn_to_nid.patch
 mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.=
-patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-=
-v9-checkpatch-fixes.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix-fix.patch
-mm-madvise-complete-input-validation-before-taking-lock-fix.patch
-clear_refs-sanitize-accepted-commands-declaration-fix.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-memcg-add-memorypressure_level-events-checkpatch-fixes.patch
-memcg-add-memorypressure_level-events-fix.patch
-mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix=
-=2Epatch
-thp-fix-huge-zero-page-logic-for-page-with-pfn-=3D=3D-0-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.=
-patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-=
-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
+numa-cpu-hotplug-change-links-of-cpu-and-node-when-changing-node-number-by-onlining-cpu.patch
+smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
 kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-lib-string_helpers-introduce-generic-string_unescape-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkp=
-atch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-init-mainc-convert-to-pr_foo-fix.patch
-init-mainc-convert-to-pr_foo-fix-fix.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-beca=
-use-of-drivers-internal-error-or-metadata-corruption-fix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_=
-by_cnid-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.pa=
-tch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
+drivers-rtc-rtc-cmosc-dont-disable-hpet-emulation-on-suspend.patch
+relay-fix-timer-madness.patch
 wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fix=
-es.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+decompressor-add-lz4-decompressor-module.patch
+lib-add-support-for-lz4-compressed-kernel.patch
+arm-add-support-for-lz4-compressed-kernel.patch
+x86-add-support-for-lz4-compressed-kernel.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+make-frame_pointer-default=y.patch
 mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
