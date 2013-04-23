@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update.patch added to -mm tree
-Date: Tue, 23 Apr 2013 14:38:28 -0700
-Message-ID: <20130423213828.7FABB31C256__5667.67532513968$1366753118$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: + lib-decompressc-fix-initconst.patch added to -mm tree
+Date: Tue, 23 Apr 2013 15:01:35 -0700
+Message-ID: <20130423220135.6792D31C0AC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:48356 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755421Ab3DWVia (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:38:30 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w16so122086vbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:38:29 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:44306 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757333Ab3DWWBg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 18:01:36 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so125366qcr.4
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 15:01:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jkosina@suse.cz, greg@kroah.com, stable@vger.kernel.org, tytso@mit.edu
+Cc: andi@firstfloor.org
 
 
 The patch titled
-     Subject: random: fix accounting race condition with lockless irq entropy_count update
+     Subject: lib/decompress.c: fix initconst
 has been added to the -mm tree.  Its filename is
-     random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update.patch
+     lib-decompressc-fix-initconst.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: random: fix accounting race condition with lockless irq entropy_count update
+From: Andi Kleen <andi@firstfloor.org>
+Subject: lib/decompress.c: fix initconst
 
-Commit 902c098a3663 ("random: use lockless techniques in the interrupt
-path") turned IRQ path from being spinlock protected into lockless
-cmpxchg-retry update.
-
-That commit removed r->lock serialization between crediting entropy bits
-from IRQ context and accounting when extracting entropy on userspace read
-path, but didn't turn the r->entropy_count reads/updates in account() to
-use cmpxchg as well.
-
-It has been observed, that under certain circumstances this leads to
-read() on /dev/urandom to return 0 (EOF), as r->entropy_count gets
-corrupted and becomes negative, which in turn results in propagating 0 all
-the way from account() to the actual read() call.
-
-Convert the accounting code to be the proper lockless counterpart of what
-has been partially done by 902c098a3663.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ lib/decompress.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/random.c~random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update drivers/char/random.c
---- a/drivers/char/random.c~random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update
-+++ a/drivers/char/random.c
-@@ -865,16 +865,24 @@ static size_t account(struct entropy_sto
- 	if (r->entropy_count / 8 < min + reserved) {
- 		nbytes = 0;
- 	} else {
-+		int entropy_count, orig;
-+retry:
-+		entropy_count = orig = ACCESS_ONCE(r->entropy_count);
- 		/* If limited, never pull more than available */
--		if (r->limit && nbytes + reserved >= r->entropy_count / 8)
--			nbytes = r->entropy_count/8 - reserved;
-+		if (r->limit && nbytes + reserved >= entropy_count / 8)
-+			nbytes = entropy_count/8 - reserved;
+diff -puN lib/decompress.c~lib-decompressc-fix-initconst lib/decompress.c
+--- a/lib/decompress.c~lib-decompressc-fix-initconst
++++ a/lib/decompress.c
+@@ -42,7 +42,7 @@ struct compress_format {
+ 	decompress_fn decompressor;
+ };
  
--		if (r->entropy_count / 8 >= nbytes + reserved)
--			r->entropy_count -= nbytes*8;
--		else
--			r->entropy_count = reserved;
-+		if (entropy_count / 8 >= nbytes + reserved) {
-+			entropy_count -= nbytes*8;
-+			if (cmpxchg(&r->entropy_count, orig, entropy_count) != orig)
-+				goto retry;
-+		} else {
-+			entropy_count = reserved;
-+			if (cmpxchg(&r->entropy_count, orig, entropy_count) != orig)
-+				goto retry;
-+		}
- 
--		if (r->entropy_count < random_write_wakeup_thresh)
-+		if (entropy_count < random_write_wakeup_thresh)
- 			wakeup_write = 1;
- 	}
- 
+-static const struct compress_format compressed_formats[] __initdata = {
++static const struct compress_format compressed_formats[] __initconst = {
+ 	{ {037, 0213}, "gzip", gunzip },
+ 	{ {037, 0236}, "gzip", gunzip },
+ 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 linux-next.patch
-binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate.patch
-i2o-check-copy_from_user-size-parameter.patch
-mwave-fix-info-leak-in-mwave_ioctl.patch
-random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update.patch
-semaphore-give-an-unlikely-for-downs-timeout.patch
-semaphore-boolize-semaphore_waiters-up.patch
+hwpoison-check-dirty-flag-to-match-against-clean-page.patch
+vm-adjust-ifdef-for-tiny_rcu.patch
+mm-merging-memory-blocks-resets-mempolicy.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+argv_split-teach-it-to-handle-mutable-strings.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix-2.patch
+set_task_comm-kill-the-pointless-memset-wmb.patch
+lib-decompressc-fix-initconst.patch
 
