@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo.patch added to -mm tree
-Date: Tue, 23 Apr 2013 12:35:46 -0700
-Message-ID: <20130423193546.787C45A426B@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch added to -mm tree
+Date: Tue, 23 Apr 2013 12:38:38 -0700
+Message-ID: <20130423193838.76B4631C034@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:44134 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697Ab3DWTfr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 15:35:47 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so107199qcr.2
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 12:35:47 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:61622 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751908Ab3DWTij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 15:38:39 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so107547ggm.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 12:38:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@surriel.com, davidlohr.bueso@hp.com, riel@redhat.com, sasha.levin@oracle.com
+Cc: davidlohr.bueso@hp.com, benisty.e@gmail.com, riel@surriel.com
 
 
 The patch titled
-     Subject: ipc,sem: untangle RCU locking with find_alloc_undo
+     Subject: ipc, sem: do not call sem_lock when bogus sma
 has been added to the -mm tree.  Its filename is
-     ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo.patch
+     ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: ipc,sem: untangle RCU locking with find_alloc_undo
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: ipc, sem: do not call sem_lock when bogus sma
 
-The ipc semaphore code has a nasty RCU locking tangle, with both
-find_alloc_undo and semtimedop taking the rcu_read_lock(). The
-code can be cleaned up somewhat by only taking the rcu_read_lock
-once.
+In exit_sem() we attempt to acquire the sma->sem_perm.lock by calling
+sem_lock() immediately after obtaining sma. However, if sma isn't valid,
+then calling sem_lock() will tend to do bad things.
 
-There are no other callers to find_alloc_undo.
+Move the sma error check right after the sem_obtain_object_check() call
+instead.
 
-This should also solve the trinity issue reported by Sasha Levin.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: Emmanuel Benisty <benisty.e@gmail.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ ipc/sem.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo ipc/sem.c
---- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo
+diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma ipc/sem.c
+--- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma
 +++ a/ipc/sem.c
-@@ -1548,22 +1548,23 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 			alter = 1;
- 	}
+@@ -1763,8 +1763,7 @@ void exit_sem(struct task_struct *tsk)
+ 		struct sem_array *sma;
+ 		struct sem_undo *un;
+ 		struct list_head tasks;
+-		int semid;
+-		int i;
++		int semid, i;
  
-+	INIT_LIST_HEAD(&tasks);
-+
- 	if (undos) {
-+		/* On success, find_alloc_undo takes the rcu_read_lock */
- 		un = find_alloc_undo(ns, semid);
- 		if (IS_ERR(un)) {
- 			error = PTR_ERR(un);
- 			goto out_free;
+ 		rcu_read_lock();
+ 		un = list_entry_rcu(ulp->list_proc.next,
+@@ -1780,12 +1779,13 @@ void exit_sem(struct task_struct *tsk)
  		}
--	} else
-+	} else {
- 		un = NULL;
-+		rcu_read_lock();
-+	}
  
--	INIT_LIST_HEAD(&tasks);
+ 		sma = sem_obtain_object_check(tsk->nsproxy->ipc_ns, un->semid);
+-		sem_lock(sma, NULL, -1);
 -
--	rcu_read_lock();
- 	sma = sem_obtain_object_check(ns, semid);
- 	if (IS_ERR(sma)) {
--		if (un)
--			rcu_read_unlock();
-+		rcu_read_unlock();
- 		error = PTR_ERR(sma);
- 		goto out_free;
- 	}
-@@ -1595,22 +1596,8 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 	 */
- 	error = -EIDRM;
- 	locknum = sem_lock(sma, sops, nsops);
--	if (un) {
--		if (un->semid == -1) {
--			rcu_read_unlock();
--			goto out_unlock_free;
--		} else {
--			/*
--			 * rcu lock can be released, "un" cannot disappear:
--			 * - sem_lock is acquired, thus IPC_RMID is
--			 *   impossible.
--			 * - exit_sem is impossible, it always operates on
--			 *   current (or a dead task).
--			 */
+ 		/* exit_sem raced with IPC_RMID, nothing to do */
+-		if (IS_ERR(sma))
++		if (IS_ERR(sma)) {
++			rcu_read_unlock();
+ 			continue;
++		}
+ 
++		sem_lock(sma, NULL, -1);
+ 		un = __lookup_undo(ulp, semid);
+ 		if (un == NULL) {
+ 			/* exit_sem raced with IPC_RMID+semget() that created
+_
+
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+
+linux-next.patch
+lib-int_sqrtc-optimize-square-root-algorithm.patch
+ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
+ipc-introduce-obtaining-a-lockless-ipc-object.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipc-introduce-lockless-pre_down-ipcctl.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix.patch
+ipcsem-open-code-and-rename-sem_lock.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipcsem-have-only-one-list-in-struct-sem_queue.patch
+ipcsem-fine-grained-locking-for-semtimedop.patch
+ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch
+ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main.patch
+ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo.patch
+ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch
+rbtree_test-add-extra-rbtree-integrity-check.patch
+rbtree_test-add-__init-__exit-annotations.patch
+
