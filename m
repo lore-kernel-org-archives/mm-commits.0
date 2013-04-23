@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pps-pps_kc_hardpps_lock-can-be-static.patch added to -mm tree
-Date: Tue, 23 Apr 2013 14:29:19 -0700
-Message-ID: <20130423212919.6EF4931C1F9@corp2gmr1-1.hot.corp.google.com>
+Subject: + random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update.patch added to -mm tree
+Date: Tue, 23 Apr 2013 14:38:28 -0700
+Message-ID: <20130423213828.7FABB31C256__5667.67532513968$1366753118$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:64241 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246Ab3DWV3U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:29:20 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so121250qcs.5
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:29:19 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:48356 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755421Ab3DWVia (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:38:30 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w16so122086vbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:38:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, giometti@enneenne.com
+Cc: jkosina@suse.cz, greg@kroah.com, stable@vger.kernel.org, tytso@mit.edu
 
 
 The patch titled
-     Subject: pps: pps_kc_hardpps_lock can be static
+     Subject: random: fix accounting race condition with lockless irq entropy_count update
 has been added to the -mm tree.  Its filename is
-     pps-pps_kc_hardpps_lock-can-be-static.patch
+     random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: pps: pps_kc_hardpps_lock can be static
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: random: fix accounting race condition with lockless irq entropy_count update
 
-drivers/pps/kc.c:37:1: sparse: symbol 'pps_kc_hardpps_lock' was not declared. Should it be static?
-drivers/pps/kc.c:39:19: sparse: symbol 'pps_kc_hardpps_dev' was not declared. Should it be static?
-drivers/pps/kc.c:40:5: sparse: symbol 'pps_kc_hardpps_mode' was not declared. Should it be static?
+Commit 902c098a3663 ("random: use lockless techniques in the interrupt
+path") turned IRQ path from being spinlock protected into lockless
+cmpxchg-retry update.
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
+That commit removed r->lock serialization between crediting entropy bits
+from IRQ context and accounting when extracting entropy on userspace read
+path, but didn't turn the r->entropy_count reads/updates in account() to
+use cmpxchg as well.
+
+It has been observed, that under certain circumstances this leads to
+read() on /dev/urandom to return 0 (EOF), as r->entropy_count gets
+corrupted and becomes negative, which in turn results in propagating 0 all
+the way from account() to the actual read() call.
+
+Convert the accounting code to be the proper lockless counterpart of what
+has been partially done by 902c098a3663.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/random.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pps/kc.c~pps-pps_kc_hardpps_lock-can-be-static drivers/pps/kc.c
---- a/drivers/pps/kc.c~pps-pps_kc_hardpps_lock-can-be-static
-+++ a/drivers/pps/kc.c
-@@ -34,10 +34,10 @@
-  */
+diff -puN drivers/char/random.c~random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update drivers/char/random.c
+--- a/drivers/char/random.c~random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update
++++ a/drivers/char/random.c
+@@ -865,16 +865,24 @@ static size_t account(struct entropy_sto
+ 	if (r->entropy_count / 8 < min + reserved) {
+ 		nbytes = 0;
+ 	} else {
++		int entropy_count, orig;
++retry:
++		entropy_count = orig = ACCESS_ONCE(r->entropy_count);
+ 		/* If limited, never pull more than available */
+-		if (r->limit && nbytes + reserved >= r->entropy_count / 8)
+-			nbytes = r->entropy_count/8 - reserved;
++		if (r->limit && nbytes + reserved >= entropy_count / 8)
++			nbytes = entropy_count/8 - reserved;
  
- /* state variables to bind kernel consumer */
--DEFINE_SPINLOCK(pps_kc_hardpps_lock);
-+static DEFINE_SPINLOCK(pps_kc_hardpps_lock);
- /* PPS API (RFC 2783): current source and mode for kernel consumer */
--struct pps_device *pps_kc_hardpps_dev;	/* unique pointer to device */
--int pps_kc_hardpps_mode;		/* mode bits for kernel consumer */
-+static struct pps_device *pps_kc_hardpps_dev;	/* unique pointer to device */
-+static int pps_kc_hardpps_mode;		/* mode bits for kernel consumer */
+-		if (r->entropy_count / 8 >= nbytes + reserved)
+-			r->entropy_count -= nbytes*8;
+-		else
+-			r->entropy_count = reserved;
++		if (entropy_count / 8 >= nbytes + reserved) {
++			entropy_count -= nbytes*8;
++			if (cmpxchg(&r->entropy_count, orig, entropy_count) != orig)
++				goto retry;
++		} else {
++			entropy_count = reserved;
++			if (cmpxchg(&r->entropy_count, orig, entropy_count) != orig)
++				goto retry;
++		}
  
- /* pps_kc_bind - control PPS kernel consumer binding
-  * @pps: the PPS source
+-		if (r->entropy_count < random_write_wakeup_thresh)
++		if (entropy_count < random_write_wakeup_thresh)
+ 			wakeup_write = 1;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 linux-next.patch
-drivers-video-add-hyper-v-synthetic-video-frame-buffer-driver-fix.patch
-hwpoison-check-dirty-flag-to-match-against-clean-page.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
-sparse-vmemmap-specify-vmemmap-population-range-in-bytes-fix.patch
-x86-64-use-vmemmap_populate_basepages-for-pse-setups-fix.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix.patch
-thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
-smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
-x86-dont-show-trace-beyond-show_stacknull-null.patch
-sparc32-make-show_stack-acquire-%fp-if-_ksp-is-not-specified.patch
-dump_stack-consolidate-dump_stack-implementations-and-unify-their-behaviors.patch
-dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer.patch
-dump_stack-implement-arch-specific-hardware-description-in-task-dumps.patch
-dump_stack-unify-debug-information-printed-by-show_regs.patch
-arc-print-fatal-signals-reduce-duplicated-information.patch
-drivers-rtc-rtc-max6902c-use-register-defines-instead-of-magic-numbers.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ipc-refactor-msg-list-search-into-separate-function-fix.patch
-pps-pps_kc_hardpps_lock-can-be-static.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-99.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
+binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate.patch
+i2o-check-copy_from_user-size-parameter.patch
+mwave-fix-info-leak-in-mwave_ioctl.patch
+random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update.patch
+semaphore-give-an-unlikely-for-downs-timeout.patch
+semaphore-boolize-semaphore_waiters-up.patch
 
