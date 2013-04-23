@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + relay-fix-timer-madness.patch added to -mm tree
-Date: Tue, 23 Apr 2013 14:28:28 -0700
-Message-ID: <20130423212828.74A2331C1F9@corp2gmr1-1.hot.corp.google.com>
+Date: Tue, 23 Apr 2013 14:28:46 -0700
+Message-ID: <20130423212847.53F215A41F8@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:47394 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246Ab3DWV2a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:28:30 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz11so121394vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:28:29 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:38658 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099Ab3DWV2v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 17:28:51 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so47398ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 14:28:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -63,7 +63,7 @@ Poll the buffer every 2 jiffies for now.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Cc: Steven Rostedt <rostedt@goodmis.org
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Eric Dumazet <edumazet@google.com>
