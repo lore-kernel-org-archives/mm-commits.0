@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch added to -mm tree
-Date: Tue, 23 Apr 2013 15:57:49 -0700
-Message-ID: <20130423225749.95AC05A4211@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-nobootmem-clean-up-of-free_low_memory_core_early.patch added to -mm tree
+Date: Tue, 23 Apr 2013 16:03:59 -0700
+Message-ID: <20130423230359.CEE3431C1F9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:34527 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987Ab3DWW5u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 18:57:50 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so130860ggm.3
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 15:57:50 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:37809 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751411Ab3DWXEB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 19:04:01 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r13so127611ghr.2
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 16:04:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, axboe@kernel.dk, edumazet@google.com, jovi.zhangwei@huawei.com, mingo@elte.hu, rostedt@goodmis.org, viro@zeniv.linux.org.uk
+Cc: iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, liuj97@gmail.com, yinghai@kernel.org
 
 
 The patch titled
-     Subject: kernel/relay.c: move remove_buf_file inside relay_close_buf()
+     Subject: mm, nobootmem: clean-up of free_low_memory_core_early()
 has been added to the -mm tree.  Its filename is
-     kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch
+     mm-nobootmem-clean-up-of-free_low_memory_core_early.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Monakhov <dmonakhov@openvz.org>
-Subject: kernel/relay.c: move remove_buf_file inside relay_close_buf()
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm, nobootmem: clean-up of free_low_memory_core_early()
 
-Currently remove_buf_file callback is called from from kobject
-release method. This result in follow issue:
-# blktrace -d /dev/sda1 -d /dev/sda -o test
+Remove unused argument and make function static, because there is no user
+outside of nobootmem.c
 
-blktrace_setup()
- dir = create_dir()
- rchan = relay_open(dir,...)
- ->create_buf_file_callback
-    buf_file  = debugfs_create_file(dir, )
-
-Userspace will open buf_file.
-Later we make a decision to stop tracing
-blktrace_down()
-  relay_close(rhcan)  /* just decrement kobj reference  */
-                      /* since it is not zero then callback not called */
-  debugfs_remove(dir) /* FAIL due to non empty dir   */
-
-Later user space will close the file and file will be deleted,
-but directory still exist.
-user_space_close()
- ->file_release
-   ->release_buf_file_callback
-     ->debugfs_remove(buf_file
-## TESTCASE:
-# blktrace -d /dev/sda1 -d /dev/sda -o test
-# After that blktrace infrastructure will remain broken in
-# an unusable state so: blktrace -d /dev/sda1 will not work.
-
-In fact this is general issue, blktrace is just one of examples.
-We can not reliably remove parent dir until all users close the
-buf_file.
-
-Solution: We don't have to wait that long. File should be deleted inside
-relay_close_buf().
-
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Acked-by: Jens Axboe <axboe@kernel.dk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jiang Liu <liuj97@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bootmem.h |    1 -
+ mm/nobootmem.c          |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/relay.c~kernel-relayc-move-remove_buf_file-inside-relay_close_buf kernel/relay.c
---- a/kernel/relay.c~kernel-relayc-move-remove_buf_file-inside-relay_close_buf
-+++ a/kernel/relay.c
-@@ -234,7 +234,6 @@ static void relay_destroy_buf(struct rch
- static void relay_remove_buf(struct kref *kref)
- {
- 	struct rchan_buf *buf = container_of(kref, struct rchan_buf, kref);
--	buf->chan->cb->remove_buf_file(buf->dentry);
- 	relay_destroy_buf(buf);
+diff -puN include/linux/bootmem.h~mm-nobootmem-clean-up-of-free_low_memory_core_early include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-nobootmem-clean-up-of-free_low_memory_core_early
++++ a/include/linux/bootmem.h
+@@ -44,7 +44,6 @@ extern unsigned long init_bootmem_node(p
+ 				       unsigned long endpfn);
+ extern unsigned long init_bootmem(unsigned long addr, unsigned long memend);
+ 
+-extern unsigned long free_low_memory_core_early(int nodeid);
+ extern unsigned long free_all_bootmem_node(pg_data_t *pgdat);
+ extern unsigned long free_all_bootmem(void);
+ 
+diff -puN mm/nobootmem.c~mm-nobootmem-clean-up-of-free_low_memory_core_early mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmem-clean-up-of-free_low_memory_core_early
++++ a/mm/nobootmem.c
+@@ -120,7 +120,7 @@ static unsigned long __init __free_memor
+ 	return end_pfn - start_pfn;
  }
  
-@@ -489,6 +488,7 @@ static void relay_close_buf(struct rchan
+-unsigned long __init free_low_memory_core_early(int nodeid)
++static unsigned long __init free_low_memory_core_early(void)
  {
- 	buf->finalized = 1;
- 	del_timer_sync(&buf->timer);
-+	buf->chan->cb->remove_buf_file(buf->dentry);
- 	kref_put(&buf->kref, relay_remove_buf);
+ 	unsigned long count = 0;
+ 	phys_addr_t start, end, size;
+@@ -170,7 +170,7 @@ unsigned long __init free_all_bootmem(vo
+ 	 *  because in some case like Node0 doesn't have RAM installed
+ 	 *  low ram will be on Node1
+ 	 */
+-	return free_low_memory_core_early(MAX_NUMNODES);
++	return free_low_memory_core_early();
  }
  
+ /**
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 linux-next.patch
-fs-fix-fsync-error-reporting.patch
-kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch
+mm-vmalloc-change-iterating-a-vmlist-to-find_vm_area.patch
+mm-vmalloc-move-get_vmalloc_info-to-vmallocc.patch
+mm-vmalloc-protect-va-vm-by-vmap_area_lock.patch
+mm-vmalloc-iterate-vmap_area_list-instead-of-vmlist-in-vread-vwrite.patch
+mm-vmalloc-iterate-vmap_area_list-in-get_vmalloc_info.patch
+mm-vmalloc-iterate-vmap_area_list-instead-of-vmlist-in-vmallocinfo.patch
+mm-vmalloc-export-vmap_area_list-instead-of-vmlist.patch
+mm-vmalloc-remove-list-management-of-vmlist-after-initializing-vmalloc.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information.patch
+mm-nobootmem-clean-up-of-free_low_memory_core_early.patch
+mm-nobootmem-do-memset-after-memblock_reserve.patch
 
