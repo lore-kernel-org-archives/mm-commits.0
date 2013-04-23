@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-smpc-remove-priv-of-call_single_data.patch added to -mm tree
-Date: Tue, 23 Apr 2013 15:44:07 -0700
-Message-ID: <20130423224407.774A831C0AC@corp2gmr1-1.hot.corp.google.com>
+Subject: + kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch added to -mm tree
+Date: Tue, 23 Apr 2013 15:57:49 -0700
+Message-ID: <20130423225749.95AC05A4211@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:54325 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709Ab3DWWoI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 18:44:08 -0400
-Received: by mail-vb0-f73.google.com with SMTP id p13so21767vbe.2
-        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 15:44:08 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:34527 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753987Ab3DWW5u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Apr 2013 18:57:50 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so130860ggm.3
+        for <mm-commits@vger.kernel.org>; Tue, 23 Apr 2013 15:57:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lig.fnst@cn.fujitsu.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com
+Cc: dmonakhov@openvz.org, axboe@kernel.dk, edumazet@google.com, jovi.zhangwei@huawei.com, mingo@elte.hu, rostedt@goodmis.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: kernel/smp.c: remove 'priv' of call_single_data
+     Subject: kernel/relay.c: move remove_buf_file inside relay_close_buf()
 has been added to the -mm tree.  Its filename is
-     kernel-smpc-remove-priv-of-call_single_data.patch
+     kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: liguang <lig.fnst@cn.fujitsu.com>
-Subject: kernel/smp.c: remove 'priv' of call_single_data
+From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: kernel/relay.c: move remove_buf_file inside relay_close_buf()
 
-The 'priv' field is redundant; we can pass data via 'info'.
+Currently remove_buf_file callback is called from from kobject
+release method. This result in follow issue:
+# blktrace -d /dev/sda1 -d /dev/sda -o test
 
-Signed-off-by: liguang <lig.fnst@cn.fujitsu.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Oleg Nesterov <oleg@redhat.com>
+blktrace_setup()
+ dir = create_dir()
+ rchan = relay_open(dir,...)
+ ->create_buf_file_callback
+    buf_file  = debugfs_create_file(dir, )
+
+Userspace will open buf_file.
+Later we make a decision to stop tracing
+blktrace_down()
+  relay_close(rhcan)  /* just decrement kobj reference  */
+                      /* since it is not zero then callback not called */
+  debugfs_remove(dir) /* FAIL due to non empty dir   */
+
+Later user space will close the file and file will be deleted,
+but directory still exist.
+user_space_close()
+ ->file_release
+   ->release_buf_file_callback
+     ->debugfs_remove(buf_file
+## TESTCASE:
+# blktrace -d /dev/sda1 -d /dev/sda -o test
+# After that blktrace infrastructure will remain broken in
+# an unusable state so: blktrace -d /dev/sda1 will not work.
+
+In fact this is general issue, blktrace is just one of examples.
+We can not reliably remove parent dir until all users close the
+buf_file.
+
+Solution: We don't have to wait that long. File should be deleted inside
+relay_close_buf().
+
+Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+Acked-by: Jens Axboe <axboe@kernel.dk>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    1 -
- kernel/softirq.c    |    6 ++----
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ kernel/relay.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/smp.h~kernel-smpc-remove-priv-of-call_single_data include/linux/smp.h
---- a/include/linux/smp.h~kernel-smpc-remove-priv-of-call_single_data
-+++ a/include/linux/smp.h
-@@ -20,7 +20,6 @@ struct call_single_data {
- 	smp_call_func_t func;
- 	void *info;
- 	u16 flags;
--	u16 priv;
- };
- 
- /* total number of cpus in this system (may exceed NR_CPUS) */
-diff -puN kernel/softirq.c~kernel-smpc-remove-priv-of-call_single_data kernel/softirq.c
---- a/kernel/softirq.c~kernel-smpc-remove-priv-of-call_single_data
-+++ a/kernel/softirq.c
-@@ -620,8 +620,7 @@ static void remote_softirq_receive(void
- 	unsigned long flags;
- 	int softirq;
- 
--	softirq = cp->priv;
--
-+	softirq = *(int *)cp->info;
- 	local_irq_save(flags);
- 	__local_trigger(cp, softirq);
- 	local_irq_restore(flags);
-@@ -631,9 +630,8 @@ static int __try_remote_softirq(struct c
+diff -puN kernel/relay.c~kernel-relayc-move-remove_buf_file-inside-relay_close_buf kernel/relay.c
+--- a/kernel/relay.c~kernel-relayc-move-remove_buf_file-inside-relay_close_buf
++++ a/kernel/relay.c
+@@ -234,7 +234,6 @@ static void relay_destroy_buf(struct rch
+ static void relay_remove_buf(struct kref *kref)
  {
- 	if (cpu_online(cpu)) {
- 		cp->func = remote_softirq_receive;
--		cp->info = cp;
-+		cp->info = &softirq;
- 		cp->flags = 0;
--		cp->priv = softirq;
+ 	struct rchan_buf *buf = container_of(kref, struct rchan_buf, kref);
+-	buf->chan->cb->remove_buf_file(buf->dentry);
+ 	relay_destroy_buf(buf);
+ }
  
- 		__smp_call_function_single(cpu, cp, 0);
- 		return 0;
+@@ -489,6 +488,7 @@ static void relay_close_buf(struct rchan
+ {
+ 	buf->finalized = 1;
+ 	del_timer_sync(&buf->timer);
++	buf->chan->cb->remove_buf_file(buf->dentry);
+ 	kref_put(&buf->kref, relay_remove_buf);
+ }
+ 
 _
 
-Patches currently in -mm which might be from lig.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
 linux-next.patch
-kernel-smpc-use-=-for-csd_lock.patch
-kernel-smpc-remove-priv-of-call_single_data.patch
-semaphore-give-an-unlikely-for-downs-timeout.patch
-semaphore-boolize-semaphore_waiters-up.patch
+fs-fix-fsync-error-reporting.patch
+kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch
 
