@@ -1,341 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel.patch removed from -mm tree
-Date: Wed, 24 Apr 2013 15:18:25 -0700
-Message-ID: <20130424221825.8B75C5A4034@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic.patch added to -mm tree
+Date: Wed, 24 Apr 2013 15:23:53 -0700
+Message-ID: <20130424222353.D53B231C071@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:64136 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756989Ab3DXWS0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:18:26 -0400
-Received: by mail-gg0-f201.google.com with SMTP id y3so7979ggc.0
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:18:26 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:46879 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758159Ab3DXWXz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:23:55 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z12so119548yhz.1
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:23:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holt@sgi.com, akpm@linux-foundation.org, hpa@zytor.com, mingo@redhat.com, rja@sgi.com, shawn.guo@linaro.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: davidlohr.bueso@hp.com, benisty.e@gmail.com, paul.mckenney@linaro.org, riel@surriel.com, sedat.dilek@gmail.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     Subject: kernel/reboot.c: move arch/x86 reboot= handling to generic kernel
-has been removed from the -mm tree.  Its filename was
-     kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel.patch
+     Subject: ipc: make refcounter atomic
+has been added to the -mm tree.  Its filename is
+     ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Robin Holt <holt@sgi.com>
-Subject: kernel/reboot.c: move arch/x86 reboot= handling to generic kernel
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: ipc: make refcounter atomic
 
-Since arch/x86 has the most extensive reboot= handling and it appears to
-have no effect on the remaining architectures.  This patch moves that
-reboot= handling from arch/x86 to the generic kernel.
+Sedat reported an issue leading to a NULL dereference in update_queue():
 
-Signed-off-by: Robin Holt <holt@sgi.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Russ Anderson <rja@sgi.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>
+[  178.490583] BUG: spinlock bad magic on CPU#1, sh/8066
+[  178.490595]  lock: 0xffff88008b53ea18, .magic: 6b6b6b6b, .owner: make/8068, .owner_cpu: 3
+[  178.490599] BUG: unable to handle kernel NULL pointer dereference at           (null)
+[  178.490608] IP: [<ffffffff812bacd0>] update_queue+0x70/0x210
+[  178.490610] PGD 0
+[  178.490612] Oops: 0000 [#1] SMP
+...
+[  178.490704] Call Trace:
+[  178.490710]  [<ffffffff812baf51>] do_smart_update+0xe1/0x140
+[  178.490713]  [<ffffffff812bd6e1>] exit_sem+0x2b1/0x350
+[  178.490718]  [<ffffffff8105de80>] do_exit+0x290/0xa70
+[  178.490721]  [<ffffffff8105e6f4>] do_group_exit+0x44/0xa0
+[  178.490724]  [<ffffffff8105e767>] SyS_exit_group+0x17/0x20
+[  178.490728]  [<ffffffff816ce15d>] system_call_fastpath+0x1a/0x1f
+
+Linus pin-pointed the problem to a race in the reference counter. To quote:
+
+"That dmesg spew very much implies that the same RCU head got added twice
+to the RCU freeing list, and the only way that happens is if the refcount
+goes to zero twice.  Which implies that either we increment a zero, or we
+lack locking and the coherency of the non-atomic access goes away."
+
+This patch converts the IPC RCU header's reference counter to atomic_t. 
+The return of ipc_rcu_getref() is modified to inform the callers if it
+actually succeeded.
+
+Now all callers return -EIDRM upon failure and abort the current
+operation.  Two exceptions are in semaphore code where
+sem_getref_and_unlock() and sem_getref() trigger a warning but proceed to
+freeing up any held locks.
+
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Paul McKenney <paul.mckenney@linaro.org>
+Cc: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Emmanuel Benisty <benisty.e@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   14 ++-
- arch/x86/kernel/reboot.c            |  113 +-------------------------
- kernel/reboot.c                     |   96 ++++++++++++++++++++--
- 3 files changed, 109 insertions(+), 114 deletions(-)
+ ipc/msg.c  |    7 ++++++-
+ ipc/sem.c  |   18 ++++++++++++------
+ ipc/util.c |   46 ++++++++++++++++++++++++----------------------
+ ipc/util.h |    2 +-
+ 4 files changed, 43 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel
-+++ a/Documentation/kernel-parameters.txt
-@@ -2669,9 +2669,17 @@ bytes respectively. Such letter suffixes
- 			Run specified binary instead of /init from the ramdisk,
- 			used for early userspace startup. See initrd.
- 
--	reboot=		[BUGS=X86-32,BUGS=ARM,BUGS=IA-64] Rebooting mode
--			Format: <reboot_mode>[,<reboot_mode2>[,...]]
--			See arch/*/kernel/reboot.c or arch/*/kernel/process.c
-+	reboot=		[KNL]
-+			Format:
-+				[w[arm] | c[old]] \
-+				[,b[ios] | a[cpi] | k[bd] | t[riple] | e[fi] | p[ci]] \
-+				[,f[orce] \
-+				[,] s[mp]####
-+			Where reboot_mode is one of warm or cold,
-+			      reboot_type is one of bios, acpi, kbd, triple, efi, or pci,
-+			      reboot_force is either force or not specified,
-+			      and reboot_cpu is s[mp]#### with #### being the
-+			      processor to be used for rebooting.
- 
- 	relax_domain_level=
- 			[KNL, SMP] Set scheduler's default relax_domain_level.
-diff -puN arch/x86/kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel
-+++ a/arch/x86/kernel/reboot.c
-@@ -36,22 +36,11 @@ void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
- 
- static const struct desc_ptr no_idt = {};
--static int reboot_mode;
--enum reboot_type reboot_type = BOOT_ACPI;
--int reboot_force;
-+extern int reboot_mode;
-+extern enum reboot_type reboot_type;
-+extern int reboot_force;
- 
--/*
-- * This variable is used privately to keep track of whether or not
-- * reboot_type is still set to its default value (i.e., reboot= hasn't
-- * been set on the command line).  This is needed so that we can
-- * suppress DMI scanning for reboot quirks.  Without it, it's
-- * impossible to override a faulty reboot quirk without recompiling.
-- */
--static int reboot_default = 1;
--
--#ifdef CONFIG_SMP
--static int reboot_cpu = -1;
--#endif
-+extern int reboot_default;
- 
- /*
-  * This is set if we need to go through the 'emergency' path.
-@@ -63,78 +52,6 @@ static int reboot_emergency;
- /* This is set by the PCI code if either type 1 or type 2 PCI is detected */
- bool port_cf9_safe = false;
- 
--/*
-- * reboot=b[ios] | s[mp] | t[riple] | k[bd] | e[fi] [, [w]arm | [c]old] | p[ci]
-- * warm   Don't set the cold reboot flag
-- * cold   Set the cold reboot flag
-- * bios   Reboot by jumping through the BIOS
-- * smp    Reboot by executing reset on BSP or other CPU
-- * triple Force a triple fault (init)
-- * kbd    Use the keyboard controller. cold reset (default)
-- * acpi   Use the RESET_REG in the FADT
-- * efi    Use efi reset_system runtime service
-- * pci    Use the so-called "PCI reset register", CF9
-- * force  Avoid anything that could hang.
-- */
--static int __init reboot_setup(char *str)
--{
--	for (;;) {
--		/*
--		 * Having anything passed on the command line via
--		 * reboot= will cause us to disable DMI checking
--		 * below.
--		 */
--		reboot_default = 0;
--
--		switch (*str) {
--		case 'w':
--			reboot_mode = 0x1234;
--			break;
--
--		case 'c':
--			reboot_mode = 0;
--			break;
--
--#ifdef CONFIG_SMP
--		case 's':
--			if (isdigit(*(str+1))) {
--				reboot_cpu = (int) (*(str+1) - '0');
--				if (isdigit(*(str+2)))
--					reboot_cpu = reboot_cpu*10 + (int)(*(str+2) - '0');
--			}
--			/*
--			 * We will leave sorting out the final value
--			 * when we are ready to reboot, since we might not
--			 * have detected BSP APIC ID or smp_num_cpu
--			 */
--			break;
--#endif /* CONFIG_SMP */
--
--		case 'b':
--		case 'a':
--		case 'k':
--		case 't':
--		case 'e':
--		case 'p':
--			reboot_type = *str;
--			break;
--
--		case 'f':
--			reboot_force = 1;
--			break;
--		}
--
--		str = strchr(str, ',');
--		if (str)
--			str++;
--		else
--			break;
--	}
--	return 1;
--}
--
--__setup("reboot=", reboot_setup);
--
- 
- /*
-  * Reboot options and system auto-detection code provided by
-@@ -614,26 +531,10 @@ void native_machine_shutdown(void)
- {
- 	/* Stop the cpus and apics */
- #ifdef CONFIG_SMP
--
--	/* The boot cpu is always logical cpu 0 */
--	int reboot_cpu_id = 0;
--
--	/* See if there has been given a command line override */
--	if ((reboot_cpu != -1) && (reboot_cpu < nr_cpu_ids) &&
--		cpu_online(reboot_cpu))
--		reboot_cpu_id = reboot_cpu;
--
--	/* Make certain the cpu I'm about to reboot on is online */
--	if (!cpu_online(reboot_cpu_id))
--		reboot_cpu_id = smp_processor_id();
--
--	/* Make certain I only run on the appropriate processor */
--	set_cpus_allowed_ptr(current, cpumask_of(reboot_cpu_id));
--
- 	/*
--	 * O.K Now that I'm on the appropriate processor, stop all of the
--	 * others. Also disable the local irq to not receive the per-cpu
--	 * timer interrupt which may trigger scheduler's load balance.
-+	 * Stop all of the others. Also disable the local irq to
-+	 * not receive the per-cpu timer interrupt which may trigger
-+	 * scheduler's load balance.
- 	 */
- 	local_irq_disable();
- 	stop_other_cpus();
-diff -puN kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel
-+++ a/kernel/reboot.c
-@@ -6,6 +6,7 @@
- 
- #define pr_fmt(fmt)	"reboot: " fmt
- 
-+#include <linux/ctype.h>
- #include <linux/export.h>
- #include <linux/kexec.h>
- #include <linux/kmod.h>
-@@ -69,22 +70,107 @@ int unregister_reboot_notifier(struct no
- }
- EXPORT_SYMBOL(unregister_reboot_notifier);
- 
-+/*
-+ * This variable is used privately to keep track of whether or not
-+ * reboot_type is still set to its default value (i.e., reboot= hasn't
-+ * been set on the command line).  This is needed so that we can
-+ * suppress DMI scanning for reboot quirks.  Without it, it's
-+ * impossible to override a faulty reboot quirk without recompiling.
-+ */
-+int reboot_default = 1;
-+int reboot_mode;
-+enum reboot_type reboot_type = BOOT_ACPI;
-+int reboot_force;
-+static int reboot_cpu;
+diff -puN ipc/msg.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/msg.c
+--- a/ipc/msg.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
++++ a/ipc/msg.c
+@@ -687,7 +687,12 @@ long do_msgsnd(int msqid, long mtype, vo
+ 			goto out_unlock_free;
+ 		}
+ 		ss_add(msq, &s);
+-		ipc_rcu_getref(msq);
 +
-+/*
-+ * reboot=b[ios] | s[mp] | t[riple] | k[bd] | e[fi] [, [w]arm | [c]old] | p[ci]
-+ * warm   Don't set the cold reboot flag
-+ * cold   Set the cold reboot flag
-+ * bios   Reboot by jumping through the BIOS
-+ * smp    Reboot by executing reset on BSP or other CPU
-+ * triple Force a triple fault (init)
-+ * kbd    Use the keyboard controller. cold reset (default)
-+ * acpi   Use the RESET_REG in the FADT
-+ * efi    Use efi reset_system runtime service
-+ * pci    Use the so-called "PCI reset register", CF9
-+ * force  Avoid anything that could hang.
-+ */
-+static int __init reboot_setup(char *str)
-+{
-+	int i;
-+
-+	for (;;) {
-+		/*
-+		 * Having anything passed on the command line via
-+		 * reboot= will cause us to disable DMI checking
-+		 * below.
-+		 */
-+		reboot_default = 0;
-+
-+		switch (*str) {
-+		case 'w':
-+			reboot_mode = 0x1234;
-+			break;
-+
-+		case 'c':
-+			reboot_mode = 0;
-+			break;
-+
-+#ifdef CONFIG_SMP
-+		case 's':
-+			if (*(str + 1) == 'm' && *(str + 2) == 'p')
-+				str += 2;
-+
-+			reboot_cpu = 0;
-+			for (i = 1; isdigit(*(str + i)); i++) {
-+				reboot_cpu *= 10;
-+				reboot_cpu += (int)(*(str + i) - '0');
-+			}
-+
-+			break;
-+#endif /* CONFIG_SMP */
-+
-+		case 'b':
-+		case 'a':
-+		case 'k':
-+		case 't':
-+		case 'e':
-+		case 'p':
-+			reboot_type = *str;
-+			break;
-+
-+		case 'f':
-+			reboot_force = 1;
-+			break;
++		if (!ipc_rcu_getref(msq)) {
++			err = -EIDRM;
++			goto out_unlock_free;
 +		}
 +
-+		str = strchr(str, ',');
-+		if (str)
-+			str++;
-+		else
-+			break;
-+	}
-+	return 1;
-+}
-+__setup("reboot=", reboot_setup);
-+
-+
- static void migrate_to_reboot_cpu(void)
+ 		msg_unlock(msq);
+ 		schedule();
+ 
+diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/sem.c
+--- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
++++ a/ipc/sem.c
+@@ -313,7 +313,7 @@ static inline void sem_lock_and_putref(s
+ 
+ static inline void sem_getref_and_unlock(struct sem_array *sma)
  {
--	/* The boot cpu is always logical cpu 0 */
--	int reboot_cpu_id = 0;
-+	int cpu = reboot_cpu;
- 
- 	cpu_hotplug_disable();
- 
- 	/* Make certain the cpu I'm about to reboot on is online */
--	if (!cpu_online(reboot_cpu_id))
--		reboot_cpu_id = cpumask_first(cpu_online_mask);
-+	if (!cpu_online(cpu))
-+		cpu = cpumask_first(cpu_online_mask);
- 
- 	/* Prevent races with other tasks migrating this task */
- 	current->flags |= PF_THREAD_BOUND;
- 
- 	/* Make certain I only run on the appropriate processor */
--	set_cpus_allowed_ptr(current, cpumask_of(reboot_cpu_id));
-+	set_cpus_allowed_ptr(current, cpumask_of(cpu));
+-	ipc_rcu_getref(sma);
++	WARN_ON_ONCE(!ipc_rcu_getref(sma));
+ 	sem_unlock(sma, -1);
  }
  
- /**
+@@ -329,7 +329,7 @@ static inline void sem_putref(struct sem
+ static inline void sem_getref(struct sem_array *sma)
+ {
+ 	sem_lock(sma, NULL, -1);
+-	ipc_rcu_getref(sma);
++	WARN_ON_ONCE(!ipc_rcu_getref(sma));
+ 	sem_unlock(sma, -1);
+ }
+ 
+@@ -1131,7 +1131,10 @@ static int semctl_main(struct ipc_namesp
+ 		int i;
+ 		struct sem_undo *un;
+ 
+-		ipc_rcu_getref(sma);
++		if (!ipc_rcu_getref(sma)) {
++			rcu_read_unlock();
++			return -EIDRM;
++		}
+ 		rcu_read_unlock();
+ 
+ 		if(nsems > SEMMSL_FAST) {
+@@ -1400,8 +1403,7 @@ static struct sem_undo *find_alloc_undo(
+ 	struct sem_array *sma;
+ 	struct sem_undo_list *ulp;
+ 	struct sem_undo *un, *new;
+-	int nsems;
+-	int error;
++	int nsems, error;
+ 
+ 	error = get_undo_list(&ulp);
+ 	if (error)
+@@ -1423,7 +1425,11 @@ static struct sem_undo *find_alloc_undo(
+ 	}
+ 
+ 	nsems = sma->sem_nsems;
+-	ipc_rcu_getref(sma);
++	if (!ipc_rcu_getref(sma)) {
++		rcu_read_unlock();
++		un = ERR_PTR(-EIDRM);
++		goto out;
++	}
+ 	rcu_read_unlock();
+ 
+ 	/* step 2: allocate new undo structure */
+diff -puN ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/util.c
+--- a/ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
++++ a/ipc/util.c
+@@ -439,9 +439,9 @@ void ipc_rmid(struct ipc_ids *ids, struc
+  *	NULL is returned if the allocation fails
+  */
+  
+-void* ipc_alloc(int size)
++void *ipc_alloc(int size)
+ {
+-	void* out;
++	void *out;
+ 	if(size > PAGE_SIZE)
+ 		out = vmalloc(size);
+ 	else
+@@ -478,7 +478,7 @@ void ipc_free(void* ptr, int size)
+  */
+ struct ipc_rcu_hdr
+ {
+-	int refcount;
++	atomic_t refcount;
+ 	int is_vmalloc;
+ 	void *data[0];
+ };
+@@ -516,39 +516,41 @@ static inline int rcu_use_vmalloc(int si
+  *	@size: size desired
+  *
+  *	Allocate memory for the rcu header structure +  the object.
+- *	Returns the pointer to the object.
+- *	NULL is returned if the allocation fails. 
++ *	Returns the pointer to the object or NULL upon failure.
+  */
+- 
+-void* ipc_rcu_alloc(int size)
++void *ipc_rcu_alloc(int size)
+ {
+ 	void* out;
+-	/* 
++
++	/*
+ 	 * We prepend the allocation with the rcu struct, and
+-	 * workqueue if necessary (for vmalloc). 
++	 * workqueue if necessary (for vmalloc).
+ 	 */
+ 	if (rcu_use_vmalloc(size)) {
+ 		out = vmalloc(HDRLEN_VMALLOC + size);
+-		if (out) {
+-			out += HDRLEN_VMALLOC;
+-			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
+-			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
+-		}
++		if (!out)
++			goto done;
++
++		out += HDRLEN_VMALLOC;
++		container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
+ 	} else {
+ 		out = kmalloc(HDRLEN_KMALLOC + size, GFP_KERNEL);
+-		if (out) {
+-			out += HDRLEN_KMALLOC;
+-			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
+-			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
+-		}
++		if (!out)
++			goto done;
++
++		out += HDRLEN_KMALLOC;
++		container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
+ 	}
+ 
++	/* set reference counter no matter what kind of allocation was done */
++	atomic_set(&container_of(out, struct ipc_rcu_hdr, data)->refcount, 1);
++done:
+ 	return out;
+ }
+ 
+-void ipc_rcu_getref(void *ptr)
++int ipc_rcu_getref(void *ptr)
+ {
+-	container_of(ptr, struct ipc_rcu_hdr, data)->refcount++;
++	return atomic_inc_not_zero(&container_of(ptr, struct ipc_rcu_hdr, data)->refcount);
+ }
+ 
+ static void ipc_do_vfree(struct work_struct *work)
+@@ -578,7 +580,7 @@ static void ipc_schedule_free(struct rcu
+ 
+ void ipc_rcu_putref(void *ptr)
+ {
+-	if (--container_of(ptr, struct ipc_rcu_hdr, data)->refcount > 0)
++	if (!atomic_dec_and_test(&container_of(ptr, struct ipc_rcu_hdr, data)->refcount))
+ 		return;
+ 
+ 	if (container_of(ptr, struct ipc_rcu_hdr, data)->is_vmalloc) {
+diff -puN ipc/util.h~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/util.h
+--- a/ipc/util.h~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
++++ a/ipc/util.h
+@@ -119,7 +119,7 @@ void ipc_free(void* ptr, int size);
+  * to 0 schedules the rcu destruction. Caller must guarantee locking.
+  */
+ void* ipc_rcu_alloc(int size);
+-void ipc_rcu_getref(void *ptr);
++int ipc_rcu_getref(void *ptr);
+ void ipc_rcu_putref(void *ptr);
+ 
+ struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
-ipc-sysv-shared-memory-limited-to-8tib.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+linux-next.patch
+lib-int_sqrtc-optimize-square-root-algorithm.patch
+ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
+ipc-introduce-obtaining-a-lockless-ipc-object.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipc-introduce-lockless-pre_down-ipcctl.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix.patch
+ipcsem-open-code-and-rename-sem_lock.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipcsem-have-only-one-list-in-struct-sem_queue.patch
+ipcsem-fine-grained-locking-for-semtimedop.patch
+ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch
+ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main.patch
+ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo.patch
+ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch
+ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic.patch
+ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
+rbtree_test-add-extra-rbtree-integrity-check.patch
+rbtree_test-add-__init-__exit-annotations.patch
 
