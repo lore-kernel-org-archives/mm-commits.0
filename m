@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch added to -mm tree
-Date: Wed, 24 Apr 2013 13:37:31 -0700
-Message-ID: <20130424203731.D5EDE31C11E@corp2gmr1-1.hot.corp.google.com>
+Subject: + cciss-bug-fix-to-prevent-cciss-from-loading-in-kdump-crash-kernel.patch added to -mm tree
+Date: Wed, 24 Apr 2013 14:21:16 -0700
+Message-ID: <20130424212116.76FDB5A4034@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:33102 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757994Ab3DXUhd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 16:37:33 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r13so236424ghr.4
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 13:37:32 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:61700 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757884Ab3DXVVR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 17:21:17 -0400
+Received: by mail-gg0-f201.google.com with SMTP id y3so1935ggc.4
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 14:21:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, linuxram@us.ibm.com, rientjes@google.com, toshi.kani@hp.com
+Cc: mike.miller@hp.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: mem-hotunplug-fix-kfree-of-bootmem-memory-fix
+     Subject: cciss: bug fix to prevent cciss from loading in kdump crash kernel
 has been added to the -mm tree.  Its filename is
-     mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
+     cciss-bug-fix-to-prevent-cciss-from-loading-in-kdump-crash-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,182 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mem-hotunplug-fix-kfree-of-bootmem-memory-fix
+From: Mike Miller <mike.miller@hp.com>
+Subject: cciss: bug fix to prevent cciss from loading in kdump crash kernel
 
-s/get_resource/alloc_resource/
+By default the cciss driver supports all "older" HP Smart Array
+controllers and hpsa supports all controllers starting with the G6 family.
+ There are module parameters that allow a user to override those defaults
+and use hpsa for any HP Smart Array controller.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+If the user does override the default behavior and uses hpsa for older
+controllers it is possible that cciss may try to load in a kdump crash
+kernel.  This may happen if cciss is loaded first from the kdump initrd
+image.  If cciss does load rather than hpsa and reset_devices is true we
+immediately call cciss_hard_reset_controller.  This will result in a
+kernel panic and the core file cannot be created.  This patch prevents
+cciss from trying to load in this scenario.
+
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/block/cciss.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN kernel/resource.c~mem-hotunplug-fix-kfree-of-bootmem-memory-fix kernel/resource.c
---- a/kernel/resource.c~mem-hotunplug-fix-kfree-of-bootmem-memory-fix
-+++ a/kernel/resource.c
-@@ -175,7 +175,7 @@ static void free_resource(struct resourc
- 	}
- }
+diff -puN drivers/block/cciss.c~cciss-bug-fix-to-prevent-cciss-from-loading-in-kdump-crash-kernel drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-bug-fix-to-prevent-cciss-from-loading-in-kdump-crash-kernel
++++ a/drivers/block/cciss.c
+@@ -4970,6 +4970,16 @@ static int cciss_init_one(struct pci_dev
+ 	ctlr_info_t *h;
+ 	unsigned long flags;
  
--static struct resource *get_resource(gfp_t flags)
-+static struct resource *alloc_resource(gfp_t flags)
- {
- 	struct resource *res = NULL;
- 
-@@ -814,7 +814,7 @@ static void __init __reserve_region_with
- {
- 	struct resource *parent = root;
- 	struct resource *conflict;
--	struct resource *res = get_resource(GFP_ATOMIC);
-+	struct resource *res = alloc_resource(GFP_ATOMIC);
- 	struct resource *next_res = NULL;
- 
- 	if (!res)
-@@ -849,7 +849,7 @@ static void __init __reserve_region_with
- 			end = res->end;
- 			res->end = conflict->start - 1;
- 			if (conflict->end < end) {
--				next_res = get_resource(GFP_ATOMIC);
-+				next_res = alloc_resource(GFP_ATOMIC);
- 				if (!next_res) {
- 					free_resource(res);
- 					break;
-@@ -941,7 +941,7 @@ struct resource * __request_region(struc
- 				   const char *name, int flags)
- {
- 	DECLARE_WAITQUEUE(wait, current);
--	struct resource *res = get_resource(GFP_KERNEL);
-+	struct resource *res = alloc_resource(GFP_KERNEL);
- 
- 	if (!res)
- 		return NULL;
-@@ -1097,8 +1097,8 @@ int release_mem_region_adjustable(struct
- 	if ((start < parent->start) || (end > parent->end))
- 		return ret;
- 
--	/* The get_resource() result gets checked later */
--	new_res = get_resource(GFP_KERNEL);
-+	/* The alloc_resource() result gets checked later */
-+	new_res = alloc_resource(GFP_KERNEL);
- 
- 	p = &parent->child;
- 	write_lock(&resource_lock);
++	/*
++	 * By default the cciss driver is used for all older HP Smart Array
++	 * controllers. There are module paramaters that allow a user to
++	 * override this behavior and instead use the hpsa SCSI driver. If
++	 * this is the case cciss may be loaded first from the kdump initrd
++	 * image and cause a kernel panic. So if reset_devices is true and
++	 * cciss_allow_hpsa is set just bail.
++	 */
++	if ((reset_devices) && (cciss_allow_hpsa == 1))
++		return -ENODEV;
+ 	rc = cciss_init_reset_devices(pdev);
+ 	if (rc) {
+ 		if (rc != -ENOTSUPP)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix-fix.patch
-mm-madvise-complete-input-validation-before-taking-lock-fix.patch
-clear_refs-sanitize-accepted-commands-declaration-fix.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-memcg-add-memorypressure_level-events-checkpatch-fixes.patch
-memcg-add-memorypressure_level-events-fix.patch
-mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
-thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
-mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-lib-string_helpers-introduce-generic-string_unescape-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-init-mainc-convert-to-pr_foo-fix.patch
-init-mainc-convert-to-pr_foo-fix-fix.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+cciss-add-cciss_allow_hpsa-module-parameter.patch
+cciss-bug-fix-to-prevent-cciss-from-loading-in-kdump-crash-kernel.patch
 
