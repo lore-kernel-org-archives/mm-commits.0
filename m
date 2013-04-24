@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic.patch added to -mm tree
-Date: Wed, 24 Apr 2013 15:23:53 -0700
-Message-ID: <20130424222353.D53B231C071@corp2gmr1-1.hot.corp.google.com>
+Subject: + ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch added to -mm tree
+Date: Wed, 24 Apr 2013 15:23:55 -0700
+Message-ID: <20130424222355.C451631C071@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:46879 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758159Ab3DXWXz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:23:55 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z12so119548yhz.1
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:23:54 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:33981 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758439Ab3DXWX5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:23:57 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so253535qcr.0
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:23:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidlohr.bueso@hp.com, benisty.e@gmail.com, paul.mckenney@linaro.org, riel@surriel.com, sedat.dilek@gmail.com, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, davidlohr.bueso@hp.com
 
 
 The patch titled
-     Subject: ipc: make refcounter atomic
+     Subject: ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix
 has been added to the -mm tree.  Its filename is
-     ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic.patch
+     ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,257 +33,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc: make refcounter atomic
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix
 
-Sedat reported an issue leading to a NULL dereference in update_queue():
+you missed one ;)
 
-[  178.490583] BUG: spinlock bad magic on CPU#1, sh/8066
-[  178.490595]  lock: 0xffff88008b53ea18, .magic: 6b6b6b6b, .owner: make/8068, .owner_cpu: 3
-[  178.490599] BUG: unable to handle kernel NULL pointer dereference at           (null)
-[  178.490608] IP: [<ffffffff812bacd0>] update_queue+0x70/0x210
-[  178.490610] PGD 0
-[  178.490612] Oops: 0000 [#1] SMP
-...
-[  178.490704] Call Trace:
-[  178.490710]  [<ffffffff812baf51>] do_smart_update+0xe1/0x140
-[  178.490713]  [<ffffffff812bd6e1>] exit_sem+0x2b1/0x350
-[  178.490718]  [<ffffffff8105de80>] do_exit+0x290/0xa70
-[  178.490721]  [<ffffffff8105e6f4>] do_group_exit+0x44/0xa0
-[  178.490724]  [<ffffffff8105e767>] SyS_exit_group+0x17/0x20
-[  178.490728]  [<ffffffff816ce15d>] system_call_fastpath+0x1a/0x1f
-
-Linus pin-pointed the problem to a race in the reference counter. To quote:
-
-"That dmesg spew very much implies that the same RCU head got added twice
-to the RCU freeing list, and the only way that happens is if the refcount
-goes to zero twice.  Which implies that either we increment a zero, or we
-lack locking and the coherency of the non-atomic access goes away."
-
-This patch converts the IPC RCU header's reference counter to atomic_t. 
-The return of ipc_rcu_getref() is modified to inform the callers if it
-actually succeeded.
-
-Now all callers return -EIDRM upon failure and abort the current
-operation.  Two exceptions are in semaphore code where
-sem_getref_and_unlock() and sem_getref() trigger a warning but proceed to
-freeing up any held locks.
-
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Paul McKenney <paul.mckenney@linaro.org>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Emmanuel Benisty <benisty.e@gmail.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    7 ++++++-
- ipc/sem.c  |   18 ++++++++++++------
- ipc/util.c |   46 ++++++++++++++++++++++++----------------------
- ipc/util.h |    2 +-
- 4 files changed, 43 insertions(+), 30 deletions(-)
+ ipc/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/msg.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/msg.c
---- a/ipc/msg.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
-+++ a/ipc/msg.c
-@@ -687,7 +687,12 @@ long do_msgsnd(int msqid, long mtype, vo
- 			goto out_unlock_free;
- 		}
- 		ss_add(msq, &s);
--		ipc_rcu_getref(msq);
-+
-+		if (!ipc_rcu_getref(msq)) {
-+			err = -EIDRM;
-+			goto out_unlock_free;
-+		}
-+
- 		msg_unlock(msq);
- 		schedule();
- 
-diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/sem.c
---- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
-+++ a/ipc/sem.c
-@@ -313,7 +313,7 @@ static inline void sem_lock_and_putref(s
- 
- static inline void sem_getref_and_unlock(struct sem_array *sma)
- {
--	ipc_rcu_getref(sma);
-+	WARN_ON_ONCE(!ipc_rcu_getref(sma));
- 	sem_unlock(sma, -1);
- }
- 
-@@ -329,7 +329,7 @@ static inline void sem_putref(struct sem
- static inline void sem_getref(struct sem_array *sma)
- {
- 	sem_lock(sma, NULL, -1);
--	ipc_rcu_getref(sma);
-+	WARN_ON_ONCE(!ipc_rcu_getref(sma));
- 	sem_unlock(sma, -1);
- }
- 
-@@ -1131,7 +1131,10 @@ static int semctl_main(struct ipc_namesp
- 		int i;
- 		struct sem_undo *un;
- 
--		ipc_rcu_getref(sma);
-+		if (!ipc_rcu_getref(sma)) {
-+			rcu_read_unlock();
-+			return -EIDRM;
-+		}
- 		rcu_read_unlock();
- 
- 		if(nsems > SEMMSL_FAST) {
-@@ -1400,8 +1403,7 @@ static struct sem_undo *find_alloc_undo(
- 	struct sem_array *sma;
- 	struct sem_undo_list *ulp;
- 	struct sem_undo *un, *new;
--	int nsems;
--	int error;
-+	int nsems, error;
- 
- 	error = get_undo_list(&ulp);
- 	if (error)
-@@ -1423,7 +1425,11 @@ static struct sem_undo *find_alloc_undo(
- 	}
- 
- 	nsems = sma->sem_nsems;
--	ipc_rcu_getref(sma);
-+	if (!ipc_rcu_getref(sma)) {
-+		rcu_read_unlock();
-+		un = ERR_PTR(-EIDRM);
-+		goto out;
-+	}
- 	rcu_read_unlock();
- 
- 	/* step 2: allocate new undo structure */
-diff -puN ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/util.c
---- a/ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
+diff -puN ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix ipc/util.c
+--- a/ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix
 +++ a/ipc/util.c
-@@ -439,9 +439,9 @@ void ipc_rmid(struct ipc_ids *ids, struc
-  *	NULL is returned if the allocation fails
+@@ -520,7 +520,7 @@ static inline int rcu_use_vmalloc(int si
   */
-  
--void* ipc_alloc(int size)
-+void *ipc_alloc(int size)
+ void *ipc_rcu_alloc(int size)
  {
 -	void* out;
 +	void *out;
- 	if(size > PAGE_SIZE)
- 		out = vmalloc(size);
- 	else
-@@ -478,7 +478,7 @@ void ipc_free(void* ptr, int size)
-  */
- struct ipc_rcu_hdr
- {
--	int refcount;
-+	atomic_t refcount;
- 	int is_vmalloc;
- 	void *data[0];
- };
-@@ -516,39 +516,41 @@ static inline int rcu_use_vmalloc(int si
-  *	@size: size desired
-  *
-  *	Allocate memory for the rcu header structure +  the object.
-- *	Returns the pointer to the object.
-- *	NULL is returned if the allocation fails. 
-+ *	Returns the pointer to the object or NULL upon failure.
-  */
-- 
--void* ipc_rcu_alloc(int size)
-+void *ipc_rcu_alloc(int size)
- {
- 	void* out;
--	/* 
-+
-+	/*
+ 
+ 	/*
  	 * We prepend the allocation with the rcu struct, and
--	 * workqueue if necessary (for vmalloc). 
-+	 * workqueue if necessary (for vmalloc).
- 	 */
- 	if (rcu_use_vmalloc(size)) {
- 		out = vmalloc(HDRLEN_VMALLOC + size);
--		if (out) {
--			out += HDRLEN_VMALLOC;
--			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
--			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
--		}
-+		if (!out)
-+			goto done;
-+
-+		out += HDRLEN_VMALLOC;
-+		container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
- 	} else {
- 		out = kmalloc(HDRLEN_KMALLOC + size, GFP_KERNEL);
--		if (out) {
--			out += HDRLEN_KMALLOC;
--			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
--			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
--		}
-+		if (!out)
-+			goto done;
-+
-+		out += HDRLEN_KMALLOC;
-+		container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
- 	}
- 
-+	/* set reference counter no matter what kind of allocation was done */
-+	atomic_set(&container_of(out, struct ipc_rcu_hdr, data)->refcount, 1);
-+done:
- 	return out;
- }
- 
--void ipc_rcu_getref(void *ptr)
-+int ipc_rcu_getref(void *ptr)
- {
--	container_of(ptr, struct ipc_rcu_hdr, data)->refcount++;
-+	return atomic_inc_not_zero(&container_of(ptr, struct ipc_rcu_hdr, data)->refcount);
- }
- 
- static void ipc_do_vfree(struct work_struct *work)
-@@ -578,7 +580,7 @@ static void ipc_schedule_free(struct rcu
- 
- void ipc_rcu_putref(void *ptr)
- {
--	if (--container_of(ptr, struct ipc_rcu_hdr, data)->refcount > 0)
-+	if (!atomic_dec_and_test(&container_of(ptr, struct ipc_rcu_hdr, data)->refcount))
- 		return;
- 
- 	if (container_of(ptr, struct ipc_rcu_hdr, data)->is_vmalloc) {
-diff -puN ipc/util.h~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic ipc/util.h
---- a/ipc/util.h~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic
-+++ a/ipc/util.h
-@@ -119,7 +119,7 @@ void ipc_free(void* ptr, int size);
-  * to 0 schedules the rcu destruction. Caller must guarantee locking.
-  */
- void* ipc_rcu_alloc(int size);
--void ipc_rcu_getref(void *ptr);
-+int ipc_rcu_getref(void *ptr);
- void ipc_rcu_putref(void *ptr);
- 
- struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-lib-int_sqrtc-optimize-square-root-algorithm.patch
-ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
-ipc-introduce-obtaining-a-lockless-ipc-object.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+memcg-add-memorypressure_level-events-fix.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
+thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
+mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
+mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
+mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+init-mainc-convert-to-pr_foo-fix.patch
+init-mainc-convert-to-pr_foo-fix-fix.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
 ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipc-introduce-lockless-pre_down-ipcctl.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix.patch
-ipcsem-open-code-and-rename-sem_lock.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
 ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-have-only-one-list-in-struct-sem_queue.patch
-ipcsem-fine-grained-locking-for-semtimedop.patch
-ipcsem-fine-grained-locking-for-semtimedop-fix-fix.patch
-ipcsem-fine-grained-locking-for-semtimedop-fix-locking-in-semctl_main.patch
-ipcsem-fine-grained-locking-for-semtimedop-untangle-rcu-locking-with-find_alloc_undo.patch
-ipcsem-fine-grained-locking-for-semtimedop-do-not-call-sem_lock-when-bogus-sma.patch
-ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic.patch
 ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
-rbtree_test-add-extra-rbtree-integrity-check.patch
-rbtree_test-add-__init-__exit-annotations.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
