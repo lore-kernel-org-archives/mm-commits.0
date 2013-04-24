@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch added to -mm tree
-Date: Wed, 24 Apr 2013 12:23:34 -0700
-Message-ID: <20130424192334.B467C5A415F@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch added to -mm tree
+Date: Wed, 24 Apr 2013 12:23:36 -0700
+Message-ID: <20130424192336.C937D5A415F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:37078 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756797Ab3DXTXf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 15:23:35 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m2so231752yen.2
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 12:23:35 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:40983 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756797Ab3DXTXh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 15:23:37 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z12so97914yhz.5
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 12:23:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, hughd@google.com, jmarchan@redhat.com, mgorman@su
 
 
 The patch titled
-     Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
+     Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
+     mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
+Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix
+
+remove hopefully-unneeded cast
 
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jerome Marchand <jmarchan@redhat.com>
@@ -42,22 +44,18 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/page_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix mm/page_io.c
---- a/mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
+diff -puN mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix mm/page_io.c
+--- a/mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix
 +++ a/mm/page_io.c
-@@ -244,10 +244,8 @@ int __swap_writepage(struct page *page,
- 			 */
+@@ -245,7 +245,7 @@ int __swap_writepage(struct page *page,
  			set_page_dirty(page);
  			ClearPageReclaim(page);
--			if (printk_ratelimit()) {
--				pr_err("Write-error on dio swapfile (%Lu)\n",
--					(unsigned long long)page_file_offset(page));
--			}
-+			pr_err_ratelimited("Write error on dio swapfile (%Lu)\n",
-+				(unsigned long long)page_file_offset(page));
+ 			pr_err_ratelimited("Write error on dio swapfile (%Lu)\n",
+-				(unsigned long long)page_file_offset(page));
++				page_file_offset(page));
  		}
  		end_page_writeback(page);
  		return ret;
