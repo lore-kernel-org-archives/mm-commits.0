@@ -1,355 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel.patch added to -mm tree
-Date: Wed, 24 Apr 2013 15:04:28 -0700
-Message-ID: <20130424220428.E64785A4034@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch removed from -mm tree
+Date: Wed, 24 Apr 2013 15:18:12 -0700
+Message-ID: <20130424221813.48F905A4034@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:54820 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758476Ab3DXWEa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:04:30 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so114160qab.3
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:04:29 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:40426 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758535Ab3DXWSO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:18:14 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r13so248657ghr.0
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:18:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: holt@sgi.com, hpa@zytor.com, mingo@redhat.com, rja@sgi.com, shawn.guo@linaro.org
+To: srivatsa.bhat@linux.vnet.ibm.com, holt@sgi.com, hpa@zytor.com, mingo@redhat.com, rja@sgi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/reboot.c: move arch/x86 reboot= handling to generic kernel
-has been added to the -mm tree.  Its filename is
-     kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel.patch
+     Subject: CPU hotplug: provide a generic helper to disable/enable CPU hotplug
+has been removed from the -mm tree.  Its filename was
+     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Robin Holt <holt@sgi.com>
-Subject: kernel/reboot.c: move arch/x86 reboot= handling to generic kernel
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: CPU hotplug: provide a generic helper to disable/enable CPU hotplug
 
-Since arch/x86 has the most extensive reboot= handling and it appears to
-have no effect on the remaining architectures.  This patch moves that
-reboot= handling from arch/x86 to the generic kernel.
+We recently noticed that reboot of a 1024 cpu machine takes approx 16
+minutes of just stopping the cpus.  The slowdown was tracked to commit
+f96972f ("kernel/sys.c: call disable_nonboot_cpus() in kernel_restart()").
 
+The current implementation does all the work of hot removing the cpus
+before halting the system.  We are switching to just migrating to the
+reboot_cpu and then continuing with shutdown/reboot.
+
+The patch set is broken into five parts.  The first two are planned for
+the stable release.  The others move the halt/shutdown/reboot related
+functions to their own kernel/reboot.c file and then introduce the kernel
+boot parameter.
+
+
+This patch:
+
+There are instances in the kernel where we would like to disable CPU
+hotplug (from sysfs) during some important operation.  Today the freezer
+code depends on this and the code to do it was kinda tailor-made for that.
+
+Restructure the code and make it generic enough to be useful for
+other usecases too.
+
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Robin Holt <holt@sgi.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Robin Holt <holt@sgi.com>
 Cc: Russ Anderson <rja@sgi.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   14 ++-
- arch/x86/kernel/reboot.c            |  113 +-------------------------
- kernel/reboot.c                     |   96 ++++++++++++++++++++--
- 3 files changed, 109 insertions(+), 114 deletions(-)
+ include/linux/cpu.h |    2 ++
+ kernel/cpu.c        |   27 +++++++++------------------
+ 2 files changed, 11 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel
-+++ a/Documentation/kernel-parameters.txt
-@@ -2669,9 +2669,17 @@ bytes respectively. Such letter suffixes
- 			Run specified binary instead of /init from the ramdisk,
- 			used for early userspace startup. See initrd.
+diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug
++++ a/include/linux/cpu.h
+@@ -141,6 +141,8 @@ static inline void unregister_cpu_notifi
+ }
+ #endif
  
--	reboot=		[BUGS=X86-32,BUGS=ARM,BUGS=IA-64] Rebooting mode
--			Format: <reboot_mode>[,<reboot_mode2>[,...]]
--			See arch/*/kernel/reboot.c or arch/*/kernel/process.c
-+	reboot=		[KNL]
-+			Format:
-+				[w[arm] | c[old]] \
-+				[,b[ios] | a[cpi] | k[bd] | t[riple] | e[fi] | p[ci]] \
-+				[,f[orce] \
-+				[,] s[mp]####
-+			Where reboot_mode is one of warm or cold,
-+			      reboot_type is one of bios, acpi, kbd, triple, efi, or pci,
-+			      reboot_force is either force or not specified,
-+			      and reboot_cpu is s[mp]#### with #### being the
-+			      processor to be used for rebooting.
- 
- 	relax_domain_level=
- 			[KNL, SMP] Set scheduler's default relax_domain_level.
-diff -puN arch/x86/kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel
-+++ a/arch/x86/kernel/reboot.c
-@@ -36,22 +36,11 @@ void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
- 
- static const struct desc_ptr no_idt = {};
--static int reboot_mode;
--enum reboot_type reboot_type = BOOT_ACPI;
--int reboot_force;
-+extern int reboot_mode;
-+extern enum reboot_type reboot_type;
-+extern int reboot_force;
- 
--/*
-- * This variable is used privately to keep track of whether or not
-- * reboot_type is still set to its default value (i.e., reboot= hasn't
-- * been set on the command line).  This is needed so that we can
-- * suppress DMI scanning for reboot quirks.  Without it, it's
-- * impossible to override a faulty reboot quirk without recompiling.
-- */
--static int reboot_default = 1;
--
--#ifdef CONFIG_SMP
--static int reboot_cpu = -1;
--#endif
-+extern int reboot_default;
++extern void cpu_hotplug_disable(void);
++extern void cpu_hotplug_enable(void);
+ int cpu_up(unsigned int cpu);
+ void notify_cpu_starting(unsigned int cpu);
+ extern void cpu_maps_update_begin(void);
+diff -puN kernel/cpu.c~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug kernel/cpu.c
+--- a/kernel/cpu.c~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug
++++ a/kernel/cpu.c
+@@ -541,29 +541,20 @@ static int __init alloc_frozen_cpus(void
+ core_initcall(alloc_frozen_cpus);
  
  /*
-  * This is set if we need to go through the 'emergency' path.
-@@ -63,78 +52,6 @@ static int reboot_emergency;
- /* This is set by the PCI code if either type 1 or type 2 PCI is detected */
- bool port_cf9_safe = false;
+- * Prevent regular CPU hotplug from racing with the freezer, by disabling CPU
+- * hotplug when tasks are about to be frozen. Also, don't allow the freezer
+- * to continue until any currently running CPU hotplug operation gets
+- * completed.
+- * To modify the 'cpu_hotplug_disabled' flag, we need to acquire the
+- * 'cpu_add_remove_lock'. And this same lock is also taken by the regular
+- * CPU hotplug path and released only after it is complete. Thus, we
+- * (and hence the freezer) will block here until any currently running CPU
+- * hotplug operation gets completed.
++ * Wait for currently running CPU hotplug operations to complete (if any) and
++ * disable future CPU hotplug (from sysfs). The 'cpu_add_remove_lock' protects
++ * the 'cpu_hotplug_disabled' flag. The same lock is also acquired by the
++ * hotplug path before performing hotplug operations. So acquiring that lock
++ * guarantees mutual exclusion from any currently running hotplug operations.
+  */
+-void cpu_hotplug_disable_before_freeze(void)
++void cpu_hotplug_disable(void)
+ {
+ 	cpu_maps_update_begin();
+ 	cpu_hotplug_disabled = 1;
+ 	cpu_maps_update_done();
+ }
  
+-
 -/*
-- * reboot=b[ios] | s[mp] | t[riple] | k[bd] | e[fi] [, [w]arm | [c]old] | p[ci]
-- * warm   Don't set the cold reboot flag
-- * cold   Set the cold reboot flag
-- * bios   Reboot by jumping through the BIOS
-- * smp    Reboot by executing reset on BSP or other CPU
-- * triple Force a triple fault (init)
-- * kbd    Use the keyboard controller. cold reset (default)
-- * acpi   Use the RESET_REG in the FADT
-- * efi    Use efi reset_system runtime service
-- * pci    Use the so-called "PCI reset register", CF9
-- * force  Avoid anything that could hang.
+- * When tasks have been thawed, re-enable regular CPU hotplug (which had been
+- * disabled while beginning to freeze tasks).
 - */
--static int __init reboot_setup(char *str)
--{
--	for (;;) {
--		/*
--		 * Having anything passed on the command line via
--		 * reboot= will cause us to disable DMI checking
--		 * below.
--		 */
--		reboot_default = 0;
--
--		switch (*str) {
--		case 'w':
--			reboot_mode = 0x1234;
--			break;
--
--		case 'c':
--			reboot_mode = 0;
--			break;
--
--#ifdef CONFIG_SMP
--		case 's':
--			if (isdigit(*(str+1))) {
--				reboot_cpu = (int) (*(str+1) - '0');
--				if (isdigit(*(str+2)))
--					reboot_cpu = reboot_cpu*10 + (int)(*(str+2) - '0');
--			}
--			/*
--			 * We will leave sorting out the final value
--			 * when we are ready to reboot, since we might not
--			 * have detected BSP APIC ID or smp_num_cpu
--			 */
--			break;
--#endif /* CONFIG_SMP */
--
--		case 'b':
--		case 'a':
--		case 'k':
--		case 't':
--		case 'e':
--		case 'p':
--			reboot_type = *str;
--			break;
--
--		case 'f':
--			reboot_force = 1;
--			break;
--		}
--
--		str = strchr(str, ',');
--		if (str)
--			str++;
--		else
--			break;
--	}
--	return 1;
--}
--
--__setup("reboot=", reboot_setup);
--
- 
- /*
-  * Reboot options and system auto-detection code provided by
-@@ -614,26 +531,10 @@ void native_machine_shutdown(void)
+-void cpu_hotplug_enable_after_thaw(void)
++void cpu_hotplug_enable(void)
  {
- 	/* Stop the cpus and apics */
- #ifdef CONFIG_SMP
--
--	/* The boot cpu is always logical cpu 0 */
--	int reboot_cpu_id = 0;
--
--	/* See if there has been given a command line override */
--	if ((reboot_cpu != -1) && (reboot_cpu < nr_cpu_ids) &&
--		cpu_online(reboot_cpu))
--		reboot_cpu_id = reboot_cpu;
--
--	/* Make certain the cpu I'm about to reboot on is online */
--	if (!cpu_online(reboot_cpu_id))
--		reboot_cpu_id = smp_processor_id();
--
--	/* Make certain I only run on the appropriate processor */
--	set_cpus_allowed_ptr(current, cpumask_of(reboot_cpu_id));
--
- 	/*
--	 * O.K Now that I'm on the appropriate processor, stop all of the
--	 * others. Also disable the local irq to not receive the per-cpu
--	 * timer interrupt which may trigger scheduler's load balance.
-+	 * Stop all of the others. Also disable the local irq to
-+	 * not receive the per-cpu timer interrupt which may trigger
-+	 * scheduler's load balance.
- 	 */
- 	local_irq_disable();
- 	stop_other_cpus();
-diff -puN kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel
-+++ a/kernel/reboot.c
-@@ -6,6 +6,7 @@
+ 	cpu_maps_update_begin();
+ 	cpu_hotplug_disabled = 0;
+@@ -589,12 +580,12 @@ cpu_hotplug_pm_callback(struct notifier_
  
- #define pr_fmt(fmt)	"reboot: " fmt
+ 	case PM_SUSPEND_PREPARE:
+ 	case PM_HIBERNATION_PREPARE:
+-		cpu_hotplug_disable_before_freeze();
++		cpu_hotplug_disable();
+ 		break;
  
-+#include <linux/ctype.h>
- #include <linux/export.h>
- #include <linux/kexec.h>
- #include <linux/kmod.h>
-@@ -69,22 +70,107 @@ int unregister_reboot_notifier(struct no
- }
- EXPORT_SYMBOL(unregister_reboot_notifier);
+ 	case PM_POST_SUSPEND:
+ 	case PM_POST_HIBERNATION:
+-		cpu_hotplug_enable_after_thaw();
++		cpu_hotplug_enable();
+ 		break;
  
-+/*
-+ * This variable is used privately to keep track of whether or not
-+ * reboot_type is still set to its default value (i.e., reboot= hasn't
-+ * been set on the command line).  This is needed so that we can
-+ * suppress DMI scanning for reboot quirks.  Without it, it's
-+ * impossible to override a faulty reboot quirk without recompiling.
-+ */
-+int reboot_default = 1;
-+int reboot_mode;
-+enum reboot_type reboot_type = BOOT_ACPI;
-+int reboot_force;
-+static int reboot_cpu;
-+
-+/*
-+ * reboot=b[ios] | s[mp] | t[riple] | k[bd] | e[fi] [, [w]arm | [c]old] | p[ci]
-+ * warm   Don't set the cold reboot flag
-+ * cold   Set the cold reboot flag
-+ * bios   Reboot by jumping through the BIOS
-+ * smp    Reboot by executing reset on BSP or other CPU
-+ * triple Force a triple fault (init)
-+ * kbd    Use the keyboard controller. cold reset (default)
-+ * acpi   Use the RESET_REG in the FADT
-+ * efi    Use efi reset_system runtime service
-+ * pci    Use the so-called "PCI reset register", CF9
-+ * force  Avoid anything that could hang.
-+ */
-+static int __init reboot_setup(char *str)
-+{
-+	int i;
-+
-+	for (;;) {
-+		/*
-+		 * Having anything passed on the command line via
-+		 * reboot= will cause us to disable DMI checking
-+		 * below.
-+		 */
-+		reboot_default = 0;
-+
-+		switch (*str) {
-+		case 'w':
-+			reboot_mode = 0x1234;
-+			break;
-+
-+		case 'c':
-+			reboot_mode = 0;
-+			break;
-+
-+#ifdef CONFIG_SMP
-+		case 's':
-+			if (*(str + 1) == 'm' && *(str + 2) == 'p')
-+				str += 2;
-+
-+			reboot_cpu = 0;
-+			for (i = 1; isdigit(*(str + i)); i++) {
-+				reboot_cpu *= 10;
-+				reboot_cpu += (int)(*(str + i) - '0');
-+			}
-+
-+			break;
-+#endif /* CONFIG_SMP */
-+
-+		case 'b':
-+		case 'a':
-+		case 'k':
-+		case 't':
-+		case 'e':
-+		case 'p':
-+			reboot_type = *str;
-+			break;
-+
-+		case 'f':
-+			reboot_force = 1;
-+			break;
-+		}
-+
-+		str = strchr(str, ',');
-+		if (str)
-+			str++;
-+		else
-+			break;
-+	}
-+	return 1;
-+}
-+__setup("reboot=", reboot_setup);
-+
-+
- static void migrate_to_reboot_cpu(void)
- {
--	/* The boot cpu is always logical cpu 0 */
--	int reboot_cpu_id = 0;
-+	int cpu = reboot_cpu;
- 
- 	cpu_hotplug_disable();
- 
- 	/* Make certain the cpu I'm about to reboot on is online */
--	if (!cpu_online(reboot_cpu_id))
--		reboot_cpu_id = cpumask_first(cpu_online_mask);
-+	if (!cpu_online(cpu))
-+		cpu = cpumask_first(cpu_online_mask);
- 
- 	/* Prevent races with other tasks migrating this task */
- 	current->flags |= PF_THREAD_BOUND;
- 
- 	/* Make certain I only run on the appropriate processor */
--	set_cpus_allowed_ptr(current, cpumask_of(reboot_cpu_id));
-+	set_cpus_allowed_ptr(current, cpumask_of(cpu));
- }
- 
- /**
+ 	default:
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
-kernel-sysc-migrate-shutdown-reboot-to-boot-cpu.patch
-kernel-sysc-move-shutdown-reboot-related-functions-to-kernel-rebootc.patch
-kernel-rebootc-fix-checkpatch-warnings.patch
-kernel-rebootc-move-arch-x86-reboot=-handling-to-generic-kernel.patch
-ipc-sysv-shared-memory-limited-to-8tib.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+linux-next.patch
+kthread-introduce-to_live_kthread.patch
+kthread-kill-task_get_live_kthread.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly.patch
+numa-cpu-hotplug-change-links-of-cpu-and-node-when-changing-node-number-by-onlining-cpu.patch
 
