@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io.patch added to -mm tree
-Date: Wed, 24 Apr 2013 12:12:52 -0700
-Message-ID: <20130424191252.E6B5C31C11E__25787.9634541043$1366830779$gmane$org@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch added to -mm tree
+Date: Wed, 24 Apr 2013 12:23:34 -0700
+Message-ID: <20130424192334.B467C5A415F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:62406 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757057Ab3DXTMy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 15:12:54 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so97606ves.4
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 12:12:53 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:37078 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756797Ab3DXTXf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 15:23:35 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m2so231752yen.2
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 12:23:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, hughd@google.com, jmarchan@redhat.com, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de
 
 
 The patch titled
-     Subject: mm: swap: Mark swap pages writeback before queueing for direct IO
+     Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
 has been added to the -mm tree.  Its filename is
-     mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io.patch
+     mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: swap: Mark swap pages writeback before queueing for direct IO
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
 
-As pointed out by Andrew Morton, the swap-over-NFS writeback is not
-setting PageWriteback before it is queued for direct IO.  While swap pages
-do not participate in BDI or process dirty accounting and the IO is
-synchronous, the writeback bit is still required and not setting it in
-this case was an oversight.  swapoff depends on the page writeback to
-synchronoise all pending writes on a swap page before it is reused. 
-Swapcache freeing and reuse depend on checking the PageWriteback under
-lock to ensure the page is safe to reuse.
-
-Direct IO handlers and the direct IO handler for NFS do not deal with
-PageWriteback as they are synchronous writes.  In the case of NFS, it
-schedules pages (or a page in the case of swap) for IO and then waits
-synchronously for IO to complete in nfs_direct_write().  It is recognised
-that this is a slowdown from normal swap handling which is asynchronous
-and uses a completion handler.  Shoving PageWriteback handling down into
-direct IO handlers looks like a bad fit to handle the swap case although
-it may have to be dealt with some day if swap is converted to use direct
-IO in general and bmap is finally done away with.  At that point it will
-be necessary to refit asynchronous direct IO with completion handlers onto
-the swap subsystem.
-
-As swapcache currently depends on PageWriteback to protect against races,
-this patch sets PageWriteback under the page lock before queueing it for
-direct IO.  It is cleared when the direct IO handler returns.  IO errors
-are treated similarly to the direct-to-bio case except PageError is not
-set as in the case of swap-over-NFS, it is likely to be a transient error.
-
-It was asked what prevents such a page being reclaimed in parallel.  With
-this patch applied, such a page will now be skipped (most of the time) or
-blocked until the writeback completes.  Reclaim checks PageWriteback under
-the page lock before calling try_to_free_swap and the page lock should
-prevent the page being requeued for IO before it is freed.
-
-This and Jerome's related patch should considered for -stable as far
-back as 3.6 when swap-over-NFS was introduced.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[3.6+]
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ mm/page_io.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io mm/page_io.c
---- a/mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io
+diff -puN mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix mm/page_io.c
+--- a/mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
 +++ a/mm/page_io.c
-@@ -222,6 +222,7 @@ int __swap_writepage(struct page *page,
- 		kiocb.ki_left = PAGE_SIZE;
- 		kiocb.ki_nbytes = PAGE_SIZE;
- 
-+		set_page_writeback(page);
- 		unlock_page(page);
- 		ret = mapping->a_ops->direct_IO(KERNEL_WRITE,
- 						&kiocb, &iov,
-@@ -231,8 +232,24 @@ int __swap_writepage(struct page *page,
- 			count_vm_event(PSWPOUT);
- 			ret = 0;
- 		} else {
-+			/*
-+			 * In the case of swap-over-nfs, this can be a
-+			 * temporary failure if the system has limited
-+			 * memory for allocating transmit buffers.
-+			 * Mark the page dirty and avoid
-+			 * rotate_reclaimable_page but rate-limit the
-+			 * messages but do not flag PageError like
-+			 * the normal direct-to-bio case as it could
-+			 * be temporary.
-+			 */
+@@ -244,10 +244,8 @@ int __swap_writepage(struct page *page,
+ 			 */
  			set_page_dirty(page);
-+			ClearPageReclaim(page);
-+			if (printk_ratelimit()) {
-+				pr_err("Write-error on dio swapfile (%Lu)\n",
-+					(unsigned long long)page_file_offset(page));
-+			}
+ 			ClearPageReclaim(page);
+-			if (printk_ratelimit()) {
+-				pr_err("Write-error on dio swapfile (%Lu)\n",
+-					(unsigned long long)page_file_offset(page));
+-			}
++			pr_err_ratelimited("Write error on dio swapfile (%Lu)\n",
++				(unsigned long long)page_file_offset(page));
  		}
-+		end_page_writeback(page);
+ 		end_page_writeback(page);
  		return ret;
- 	}
- 
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-show_mem-suppress-page-counts-in-non-blockable-contexts.patch
-mm-introduce-free_highmem_page-helper-to-free-highmem-pages-into-buddy-system.patch
-mm-hugetlb-add-more-arch-defined-huge_pte-functions.patch
-mm-merging-memory-blocks-resets-mempolicy.patch
-mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim.patch
-mm-page_alloc-avoid-marking-zones-full-prematurely-after-zone_reclaim-fix.patch
-thp-fix-comment-about-memory-barrier.patch
-mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly.patch
-memcg-add-memorypressure_level-events.patch
-mm-mmap-check-for-rlimit_as-before-unmapping.patch
-swap-redirty-page-if-page-write-fails-on-swap-file.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io.patch
-mm-memmap_init_zone-performance-improvement.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+mm-shmemc-remove-an-ifdef.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
+mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+memcg-add-memorypressure_level-events-fix.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
+thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
+mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
+mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
+genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+misc-generic-on-chip-sram-allocation-driver-fix.patch
+kernel-smpc-cleanups.patch
+early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
+include-linux-printkh-include-stdargh.patch
+get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
+argv_split-teach-it-to-handle-mutable-strings-fix.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-mainc-convert-to-pr_foo.patch
+init-mainc-convert-to-pr_foo-fix.patch
+init-mainc-convert-to-pr_foo-fix-fix.patch
+rtc-ds1307-long-block-operations-bugfix.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
