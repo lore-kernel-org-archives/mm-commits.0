@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch added to -mm tree
-Date: Wed, 24 Apr 2013 15:23:55 -0700
-Message-ID: <20130424222355.C451631C071@corp2gmr1-1.hot.corp.google.com>
+Subject: + seccomp-add-generic-code-for-jitted-seccomp-filters.patch added to -mm tree
+Date: Wed, 24 Apr 2013 15:28:25 -0700
+Message-ID: <20130424222825.EC85431C071@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:33981 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758439Ab3DXWX5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:23:57 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so253535qcr.0
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:23:56 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:35937 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758069Ab3DXW21 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:28:27 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z12so119885yhz.3
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:28:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidlohr.bueso@hp.com
+Cc: nschichan@freebox.fr, daniel.borkmann@tik.ee.ethz.ch, davem@davemloft.net, linux@arm.linux.org.uk, mgherzan@gmail.com, wad@chromium.org
 
 
 The patch titled
-     Subject: ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix
+     Subject: seccomp: add generic code for jitted seccomp filters.
 has been added to the -mm tree.  Its filename is
-     ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
+     seccomp-add-generic-code-for-jitted-seccomp-filters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,141 +33,176 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix
+From: Nicolas Schichan <nschichan@freebox.fr>
+Subject: seccomp: add generic code for jitted seccomp filters.
 
-you missed one ;)
+Architecture must select HAVE_SECCOMP_FILTER_JIT and implement
+seccomp_jit_compile() and seccomp_jit_free() if they intend to support
+jitted seccomp filters.
 
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Accessors to struct seccomp_filter fields are provided in
+<linux/seccomp.h> to be used by the JIT code.  With this, the 'struct
+seccomp_filter' structure can stay opaque when outside kernel/seccomp.c.
+
+In a way similar to the net BPF, the jit compilation code is expected to
+updates struct seccomp_filter.bpf_func pointer (using the correct
+accessor) to the generated code.
+
+Signed-off-by: Nicolas Schichan <nschichan@freebox.fr>
+Cc: Will Drewry <wad@chromium.org>
+Cc: Mircea Gherzan <mgherzan@gmail.com>
+Cc: Nicolas Schichan <nschichan@freebox.fr>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Daniel Borkmann <daniel.borkmann@tik.ee.ethz.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/Kconfig            |   14 ++++++++++++++
+ include/linux/seccomp.h |   18 ++++++++++++++++++
+ kernel/seccomp.c        |   33 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 64 insertions(+), 1 deletion(-)
 
-diff -puN ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix ipc/util.c
---- a/ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix
-+++ a/ipc/util.c
-@@ -520,7 +520,7 @@ static inline int rcu_use_vmalloc(int si
-  */
- void *ipc_rcu_alloc(int size)
- {
--	void* out;
-+	void *out;
+diff -puN arch/Kconfig~seccomp-add-generic-code-for-jitted-seccomp-filters arch/Kconfig
+--- a/arch/Kconfig~seccomp-add-generic-code-for-jitted-seccomp-filters
++++ a/arch/Kconfig
+@@ -329,6 +329,10 @@ config HAVE_ARCH_SECCOMP_FILTER
+ 	  - secure_computing return value is checked and a return value of -1
+ 	    results in the system call being skipped immediately.
  
++# Used by archs to tell that they support SECCOMP_FILTER_JIT
++config HAVE_SECCOMP_FILTER_JIT
++	bool
++
+ config SECCOMP_FILTER
+ 	def_bool y
+ 	depends on HAVE_ARCH_SECCOMP_FILTER && SECCOMP && NET
+@@ -339,6 +343,16 @@ config SECCOMP_FILTER
+ 
+ 	  See Documentation/prctl/seccomp_filter.txt for details.
+ 
++config SECCOMP_FILTER_JIT
++	bool "enable Seccomp filter Just In Time compiler"
++	depends on HAVE_SECCOMP_FILTER_JIT && BPF_JIT && SECCOMP_FILTER
++	help
++	  Seccomp syscall filtering capabilities are normally handled
++	  by an interpreter. This option allows kernel to generate a native
++	  code when filter is loaded in memory. This should speedup
++	  syscall filtering. Note : Admin should enable this feature
++	  changing /proc/sys/net/core/bpf_jit_enable
++
+ config HAVE_CONTEXT_TRACKING
+ 	bool
+ 	help
+diff -puN include/linux/seccomp.h~seccomp-add-generic-code-for-jitted-seccomp-filters include/linux/seccomp.h
+--- a/include/linux/seccomp.h~seccomp-add-generic-code-for-jitted-seccomp-filters
++++ a/include/linux/seccomp.h
+@@ -47,6 +47,24 @@ static inline int seccomp_mode(struct se
+ 	return s->mode;
+ }
+ 
++#ifdef CONFIG_SECCOMP_FILTER_JIT
++extern void seccomp_jit_compile(struct seccomp_filter *fp);
++extern void seccomp_jit_free(struct seccomp_filter *fp);
++
++/*
++ * accessors used by seccomp JIT code to avoid having to declare the
++ * seccomp_filter struct here.
++ */
++unsigned short seccomp_filter_get_len(struct seccomp_filter *fp);
++struct sock_filter *seccomp_filter_get_insns(struct seccomp_filter *fp);
++void seccomp_filter_set_bpf_func(struct seccomp_filter *fp, void *func);
++void *seccomp_filter_get_bpf_func(struct seccomp_filter *fp);
++
++#else
++static inline void seccomp_jit_compile(struct seccomp_filter *fp) { }
++static inline void seccomp_jit_free(struct seccomp_filter *fp) { }
++#endif
++
+ #else /* CONFIG_SECCOMP */
+ 
+ #include <linux/errno.h>
+diff -puN kernel/seccomp.c~seccomp-add-generic-code-for-jitted-seccomp-filters kernel/seccomp.c
+--- a/kernel/seccomp.c~seccomp-add-generic-code-for-jitted-seccomp-filters
++++ a/kernel/seccomp.c
+@@ -39,6 +39,8 @@
+  *         is only needed for handling filters shared across tasks.
+  * @prev: points to a previously installed, or inherited, filter
+  * @len: the number of instructions in the program
++ * @bpf_func: points to either sk_run_filter or the code generated
++ *         by the BPF JIT.
+  * @insns: the BPF program instructions to evaluate
+  *
+  * seccomp_filter objects are organized in a tree linked via the @prev
+@@ -55,6 +57,8 @@ struct seccomp_filter {
+ 	atomic_t usage;
+ 	struct seccomp_filter *prev;
+ 	unsigned short len;  /* Instruction count */
++	unsigned int (*bpf_func)(const struct sk_buff *skb,
++				 const struct sock_filter *filter);
+ 	struct sock_filter insns[];
+ };
+ 
+@@ -213,7 +217,7 @@ static u32 seccomp_run_filters(int sysca
+ 	 * value always takes priority (ignoring the DATA).
+ 	 */
+ 	for (f = current->seccomp.filter; f; f = f->prev) {
+-		u32 cur_ret = sk_run_filter(NULL, f->insns);
++		u32 cur_ret = f->bpf_func(NULL, f->insns);
+ 		if ((cur_ret & SECCOMP_RET_ACTION) < (ret & SECCOMP_RET_ACTION))
+ 			ret = cur_ret;
+ 	}
+@@ -275,6 +279,9 @@ static long seccomp_attach_filter(struct
+ 	if (ret)
+ 		goto fail;
+ 
++	filter->bpf_func = sk_run_filter;
++	seccomp_jit_compile(filter);
++
  	/*
- 	 * We prepend the allocation with the rcu struct, and
+ 	 * If there is an existing filter, make it the prev and don't drop its
+ 	 * task reference.
+@@ -332,10 +339,34 @@ void put_seccomp_filter(struct task_stru
+ 	while (orig && atomic_dec_and_test(&orig->usage)) {
+ 		struct seccomp_filter *freeme = orig;
+ 		orig = orig->prev;
++		seccomp_jit_free(freeme);
+ 		kfree(freeme);
+ 	}
+ }
+ 
++/*
++ * seccomp filter accessors for JIT code.
++ */
++unsigned short seccomp_filter_get_len(struct seccomp_filter *fp)
++{
++	return fp->len;
++}
++
++struct sock_filter *seccomp_filter_get_insns(struct seccomp_filter *fp)
++{
++	return fp->insns;
++}
++
++void seccomp_filter_set_bpf_func(struct seccomp_filter *fp, void *func)
++{
++	fp->bpf_func = func;
++}
++
++void *seccomp_filter_get_bpf_func(struct seccomp_filter *fp)
++{
++	return fp->bpf_func;
++}
++
+ /**
+  * seccomp_send_sigsys - signals the task to allow in-process syscall emulation
+  * @syscall: syscall number to send to userland
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nschichan@freebox.fr are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
-kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-mm-shmemc-remove-an-ifdef.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-mm-speedup-in-__early_pfn_to_nid-fix.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
-resource-add-release_mem_region_adjustable-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix.patch
-resource-add-release_mem_region_adjustable-fix-fix-fix.patch
-mm-madvise-complete-input-validation-before-taking-lock-fix.patch
-clear_refs-sanitize-accepted-commands-declaration-fix.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-memcg-add-memorypressure_level-events-checkpatch-fixes.patch
-memcg-add-memorypressure_level-events-fix.patch
-mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
-thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
-mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix.patch
-genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
-misc-generic-on-chip-sram-allocation-driver-fix.patch
-kernel-smpc-cleanups.patch
-early_printk-consolidate-random-copies-of-identical-code-v3-fix.patch
-include-linux-printkh-include-stdargh.patch
-get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
-argv_split-teach-it-to-handle-mutable-strings-fix.patch
-lib-string_helpers-introduce-generic-string_unescape-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-mainc-convert-to-pr_foo.patch
-init-mainc-convert-to-pr_foo-fix.patch
-init-mainc-convert-to-pr_foo-fix-fix.patch
-rtc-ds1307-long-block-operations-bugfix.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+seccomp-add-generic-code-for-jitted-seccomp-filters.patch
+arm-net-bpf_jit-make-code-generation-less-dependent-on-struct-sk_filter.patch
+arm-net-bpf_jit-add-support-for-jitted-seccomp-filters.patch
 
