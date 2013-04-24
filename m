@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + notifier-error-inject-fix-module-names-in-kconfig.patch added to -mm tree
-Date: Wed, 24 Apr 2013 15:48:52 -0700
-Message-ID: <20130424224852.6B8F331C19E@corp2gmr1-1.hot.corp.google.com>
+Subject: + memcg-take-reference-before-releasing-rcu_read_lock.patch added to -mm tree
+Date: Wed, 24 Apr 2013 15:50:59 -0700
+Message-ID: <20130424225059.7C2E831C19E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:52767 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758582Ab3DXWsy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:48:54 -0400
-Received: by mail-ye0-f202.google.com with SMTP id l8so254891yen.5
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:48:53 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:37239 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758197Ab3DXWvA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:51:00 -0400
+Received: by mail-yh0-f73.google.com with SMTP id i21so250530yha.4
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:51:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: lizefan@huawei.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: notifier-error-inject: fix module names in Kconfig
+     Subject: memcg: take reference before releasing rcu_read_lock
 has been added to the -mm tree.  Its filename is
-     notifier-error-inject-fix-module-names-in-kconfig.patch
+     memcg-take-reference-before-releasing-rcu_read_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: notifier-error-inject: fix module names in Kconfig
+From: Li Zefan <lizefan@huawei.com>
+Subject: memcg: take reference before releasing rcu_read_lock
 
-The Kconfig help text for MEMORY_NOTIFIER_ERROR_INJECT and
-OF_RECONFIG_NOTIFIER_ERROR_INJECT has mismatched module names.
+The memcg is not referenced, so it can be destroyed at anytime right after
+we exit rcu read section, so it's not safe to access it.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+To fix this, we call css_tryget() to get a reference while we're still in
+rcu read section.
+
+This also removes a bogus comment above __memcg_create_cache_enqueue().
+
+Signed-off-by: Li Zefan <lizefan@huawei.com>
+Acked-by: Glauber Costa <glommer@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   63 ++++++++++++++++++++++++----------------------
+ 1 file changed, 33 insertions(+), 30 deletions(-)
 
-diff -puN lib/Kconfig.debug~notifier-error-inject-fix-module-names-in-kconfig lib/Kconfig.debug
---- a/lib/Kconfig.debug~notifier-error-inject-fix-module-names-in-kconfig
-+++ a/lib/Kconfig.debug
-@@ -1192,7 +1192,7 @@ config MEMORY_NOTIFIER_ERROR_INJECT
- 	  bash: echo: write error: Cannot allocate memory
+diff -puN mm/memcontrol.c~memcg-take-reference-before-releasing-rcu_read_lock mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-take-reference-before-releasing-rcu_read_lock
++++ a/mm/memcontrol.c
+@@ -3484,7 +3484,6 @@ static void memcg_create_cache_work_func
  
- 	  To compile this code as a module, choose M here: the module will
--	  be called pSeries-reconfig-notifier-error-inject.
-+	  be called memory-notifier-error-inject.
+ /*
+  * Enqueue the creation of a per-memcg kmem_cache.
+- * Called with rcu_read_lock.
+  */
+ static void __memcg_create_cache_enqueue(struct mem_cgroup *memcg,
+ 					 struct kmem_cache *cachep)
+@@ -3492,12 +3491,8 @@ static void __memcg_create_cache_enqueue
+ 	struct create_work *cw;
  
- 	  If unsure, say N.
+ 	cw = kmalloc(sizeof(struct create_work), GFP_NOWAIT);
+-	if (cw == NULL)
+-		return;
+-
+-	/* The corresponding put will be done in the workqueue. */
+-	if (!css_tryget(&memcg->css)) {
+-		kfree(cw);
++	if (cw == NULL) {
++		css_put(&memcg->css);
+ 		return;
+ 	}
  
-@@ -1209,7 +1209,7 @@ config OF_RECONFIG_NOTIFIER_ERROR_INJECT
- 	  notified, write the error code to "actions/<notifier event>/error".
+@@ -3553,10 +3548,9 @@ struct kmem_cache *__memcg_kmem_get_cach
  
- 	  To compile this code as a module, choose M here: the module will
--	  be called memory-notifier-error-inject.
-+	  be called of-reconfig-notifier-error-inject.
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_task(rcu_dereference(current->mm->owner));
+-	rcu_read_unlock();
  
- 	  If unsure, say N.
+ 	if (!memcg_can_account_kmem(memcg))
+-		return cachep;
++		goto out;
+ 
+ 	idx = memcg_cache_id(memcg);
+ 
+@@ -3565,29 +3559,38 @@ struct kmem_cache *__memcg_kmem_get_cach
+ 	 * code updating memcg_caches will issue a write barrier to match this.
+ 	 */
+ 	read_barrier_depends();
+-	if (unlikely(cachep->memcg_params->memcg_caches[idx] == NULL)) {
+-		/*
+-		 * If we are in a safe context (can wait, and not in interrupt
+-		 * context), we could be be predictable and return right away.
+-		 * This would guarantee that the allocation being performed
+-		 * already belongs in the new cache.
+-		 *
+-		 * However, there are some clashes that can arrive from locking.
+-		 * For instance, because we acquire the slab_mutex while doing
+-		 * kmem_cache_dup, this means no further allocation could happen
+-		 * with the slab_mutex held.
+-		 *
+-		 * Also, because cache creation issue get_online_cpus(), this
+-		 * creates a lock chain: memcg_slab_mutex -> cpu_hotplug_mutex,
+-		 * that ends up reversed during cpu hotplug. (cpuset allocates
+-		 * a bunch of GFP_KERNEL memory during cpuup). Due to all that,
+-		 * better to defer everything.
+-		 */
+-		memcg_create_cache_enqueue(memcg, cachep);
+-		return cachep;
++	if (likely(cachep->memcg_params->memcg_caches[idx])) {
++		cachep = cachep->memcg_params->memcg_caches[idx];
++		goto out;
+ 	}
+ 
+-	return cachep->memcg_params->memcg_caches[idx];
++	/* The corresponding put will be done in the workqueue. */
++	if (!css_tryget(&memcg->css))
++		goto out;
++	rcu_read_unlock();
++
++	/*
++	 * If we are in a safe context (can wait, and not in interrupt
++	 * context), we could be be predictable and return right away.
++	 * This would guarantee that the allocation being performed
++	 * already belongs in the new cache.
++	 *
++	 * However, there are some clashes that can arrive from locking.
++	 * For instance, because we acquire the slab_mutex while doing
++	 * kmem_cache_dup, this means no further allocation could happen
++	 * with the slab_mutex held.
++	 *
++	 * Also, because cache creation issue get_online_cpus(), this
++	 * creates a lock chain: memcg_slab_mutex -> cpu_hotplug_mutex,
++	 * that ends up reversed during cpu hotplug. (cpuset allocates
++	 * a bunch of GFP_KERNEL memory during cpuup). Due to all that,
++	 * better to defer everything.
++	 */
++	memcg_create_cache_enqueue(memcg, cachep);
++	return cachep;
++out:
++	rcu_read_unlock();
++	return cachep;
+ }
+ EXPORT_SYMBOL(__memcg_kmem_get_cache);
  
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from lizefan@huawei.com are
 
 linux-next.patch
-raid6test-use-prandom_bytes.patch
-uuid-use-prandom_bytes.patch
-x86-pageattr-test-remove-srandom32-call.patch
-x86-rename-random32-to-prandom_u32.patch
-lib-rename-random32-to-prandom_u32.patch
-mm-rename-random32-to-prandom_u32.patch
-kernel-rename-random32-to-prandom_u32.patch
-drbd-rename-random32-to-prandom_u32.patch
-mmc-rename-random32-to-prandom_u32.patch
-video-uvesafb-rename-random32-to-prandom_u32.patch
-uwb-rename-random32-to-prandom_u32.patch
-lguest-rename-random32-to-prandom_u32.patch
-scsi-rename-random32-to-prandom_u32.patch
-drivers-net-rename-random32-to-prandom_u32.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix-fix.patch
-net-sunrpc-rename-random32-to-prandom_u32.patch
-net-sched-rename-random32-to-prandom_u32.patch
-net-netfilter-rename-random32-to-prandom_u32.patch
-net-core-rename-random32-to-prandom_u32.patch
-net-core-remove-duplicate-statements-by-do-while-loop.patch
-net-rename-random32-to-prandom.patch
-remove-unused-random32-and-srandom32.patch
-notifier-error-inject-fix-module-names-in-kconfig.patch
+memcg-keep-prevs-css-alive-for-the-whole-mem_cgroup_iter.patch
+memcg-rework-mem_cgroup_iter-to-use-cgroup-iterators.patch
+memcg-relax-memcg-iter-caching.patch
+memcg-simplify-mem_cgroup_iter.patch
+memcg-further-simplify-mem_cgroup_iter.patch
+cgroup-remove-css_get_next.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+memcg-avoid-accessing-memcg-after-releasing-reference.patch
+memcg-take-reference-before-releasing-rcu_read_lock.patch
+exec-do-not-abuse-cred_guard_mutex-in-threadgroup_lock.patch
 
