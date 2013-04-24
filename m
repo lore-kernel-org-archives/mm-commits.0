@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-cleanup-use-rcu_init_pointer-when-nulling.patch added to -mm tree
-Date: Wed, 24 Apr 2013 15:55:15 -0700
-Message-ID: <20130424225515.6F75D31C19E@corp2gmr1-1.hot.corp.google.com>
+Subject: + checkpatch-add-suggested-by-as-a-standard-signature.patch added to -mm tree
+Date: Wed, 24 Apr 2013 15:59:13 -0700
+Message-ID: <20130424225913.6E9FF31C19E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:63656 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757971Ab3DXWzQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:55:16 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz11so256778vcb.0
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:55:15 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:63772 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757864Ab3DXW7O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:59:14 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so256324ggm.5
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:59:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: normalperson@yhbt.net
+Cc: mugunthanvnm@ti.com, apw@canonical.com, joe@perches.com
 
 
 The patch titled
-     Subject: epoll: cleanup: use RCU_INIT_POINTER when nulling
+     Subject: checkpatch: add Suggested-by as a standard signature
 has been added to the -mm tree.  Its filename is
-     epoll-cleanup-use-rcu_init_pointer-when-nulling.patch
+     checkpatch-add-suggested-by-as-a-standard-signature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Wong <normalperson@yhbt.net>
-Subject: epoll: cleanup: use RCU_INIT_POINTER when nulling
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: checkpatch: add Suggested-by as a standard signature
 
-It is always safe to use RCU_INIT_POINTER to NULL a pointer.  This results
-in slightly smaller/faster code.
+As people started using Suggested-by as standard signature, adding
+"Suggested-by" to the standard signature so that checkpatch won't generate
+warning when Suggested-by is used in patch signature
 
-Signed-off-by: Eric Wong <normalperson@yhbt.net>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/SubmittingPatches |    9 ++++++++-
+ scripts/checkpatch.pl           |    1 +
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~epoll-cleanup-use-rcu_init_pointer-when-nulling fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-cleanup-use-rcu_init_pointer-when-nulling
-+++ a/fs/eventpoll.c
-@@ -1214,7 +1214,7 @@ static noinline void ep_destroy_wakeup_s
- {
- 	struct wakeup_source *ws = ep_wakeup_source(epi);
+diff -puN Documentation/SubmittingPatches~checkpatch-add-suggested-by-as-a-standard-signature Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~checkpatch-add-suggested-by-as-a-standard-signature
++++ a/Documentation/SubmittingPatches
+@@ -420,7 +420,7 @@ person it names.  This tag documents tha
+ have been included in the discussion
  
--	rcu_assign_pointer(epi->ws, NULL);
-+	RCU_INIT_POINTER(epi->ws, NULL);
  
- 	/*
- 	 * wait for ep_pm_stay_awake_rcu to finish, synchronize_rcu is
+-14) Using Reported-by:, Tested-by: and Reviewed-by:
++14) Using Reported-by:, Tested-by:, Reviewed-by: and Suggested-by:
+ 
+ If this patch fixes a problem reported by somebody else, consider adding a
+ Reported-by: tag to credit the reporter for their contribution.  Please
+@@ -468,6 +468,13 @@ done on the patch.  Reviewed-by: tags, w
+ understand the subject area and to perform thorough reviews, will normally
+ increase the likelihood of your patch getting into the kernel.
+ 
++A Suggested-by: tag indicates that the patch idea is suggested by the person
++named and ensures credit to the person for the idea. Please note that this
++tag should not be added without the reporter's permission, especially if the
++idea was not posted in a public forum. That said, if we diligently credit our
++idea reporters, they will, hopefully, be inspired to help us again in the
++future.
++
+ 
+ 15) The canonical patch format
+ 
+diff -puN scripts/checkpatch.pl~checkpatch-add-suggested-by-as-a-standard-signature scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-suggested-by-as-a-standard-signature
++++ a/scripts/checkpatch.pl
+@@ -281,6 +281,7 @@ our $signature_tags = qr{(?xi:
+ 	Tested-by:|
+ 	Reviewed-by:|
+ 	Reported-by:|
++	Suggested-by:|
+ 	To:|
+ 	Cc:
+ )};
 _
 
-Patches currently in -mm which might be from normalperson@yhbt.net are
+Patches currently in -mm which might be from mugunthanvnm@ti.com are
 
-epoll-trim-epitem-by-one-cache-line-on-x86_64.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix-fix.patch
-epoll-use-rcu-to-protect-wakeup_source-in-epitem.patch
-epoll-use-rcu-to-protect-wakeup_source-in-epitem-fix.patch
-epoll-lock-ep-mtx-in-ep_free-to-silence-lockdep.patch
-epoll-cleanup-hoist-out-f_op-poll-calls.patch
-epoll-cleanup-use-rcu_init_pointer-when-nulling.patch
+linux-next.patch
+checkpatch-add-suggested-by-as-a-standard-signature.patch
 
