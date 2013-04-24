@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-rename-random32-to-prandom_u32-fix-fix.patch added to -mm tree
-Date: Wed, 24 Apr 2013 15:48:01 -0700
-Message-ID: <20130424224801.709EE5A4250@corp2gmr1-2.hot.corp.google.com>
+Subject: + notifier-error-inject-fix-module-names-in-kconfig.patch added to -mm tree
+Date: Wed, 24 Apr 2013 15:48:52 -0700
+Message-ID: <20130424224852.6B8F331C19E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:60768 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758073Ab3DXWsC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:48:02 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hr11so19015vcb.5
-        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:48:01 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:52767 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758582Ab3DXWsy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Apr 2013 18:48:54 -0400
+Received: by mail-ye0-f202.google.com with SMTP id l8so254891yen.5
+        for <mm-commits@vger.kernel.org>; Wed, 24 Apr 2013 15:48:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, arend@broadcom.com
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     Subject: brcm80211: fix the misaligned indentation
+     Subject: notifier-error-inject: fix module names in Kconfig
 has been added to the -mm tree.  Its filename is
-     drivers-net-rename-random32-to-prandom_u32-fix-fix.patch
+     notifier-error-inject-fix-module-names-in-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: brcm80211: fix the misaligned indentation
+Subject: notifier-error-inject: fix module names in Kconfig
 
-This fixes the misaligned indentation introduced by
-drivers-net-rename-random32-to-prandom_u32.patch in the -mm tree.
-
-This also remove unneeded parentheses in order not to cause line over
-80 characters.
+The Kconfig help text for MEMORY_NOTIFIER_ERROR_INJECT and
+OF_RECONFIG_NOTIFIER_ERROR_INJECT has mismatched module names.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Arend van Spriel <arend@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/brcm80211/brcmfmac/p2p.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/brcm80211/brcmfmac/p2p.c~drivers-net-rename-random32-to-prandom_u32-fix-fix drivers/net/wireless/brcm80211/brcmfmac/p2p.c
---- a/drivers/net/wireless/brcm80211/brcmfmac/p2p.c~drivers-net-rename-random32-to-prandom_u32-fix-fix
-+++ a/drivers/net/wireless/brcm80211/brcmfmac/p2p.c
-@@ -1117,7 +1117,7 @@ static void brcmf_p2p_afx_handler(struct
- 	if (afx_hdl->is_listen && afx_hdl->my_listen_chan)
- 		/* 100ms ~ 300ms */
- 		err = brcmf_p2p_discover_listen(p2p, afx_hdl->my_listen_chan,
--					100 * (1 + (prandom_u32() % 3)));
-+						100 * (1 + prandom_u32() % 3));
- 	else
- 		err = brcmf_p2p_act_frm_search(p2p, afx_hdl->peer_listen_chan);
+diff -puN lib/Kconfig.debug~notifier-error-inject-fix-module-names-in-kconfig lib/Kconfig.debug
+--- a/lib/Kconfig.debug~notifier-error-inject-fix-module-names-in-kconfig
++++ a/lib/Kconfig.debug
+@@ -1192,7 +1192,7 @@ config MEMORY_NOTIFIER_ERROR_INJECT
+ 	  bash: echo: write error: Cannot allocate memory
+ 
+ 	  To compile this code as a module, choose M here: the module will
+-	  be called pSeries-reconfig-notifier-error-inject.
++	  be called memory-notifier-error-inject.
+ 
+ 	  If unsure, say N.
+ 
+@@ -1209,7 +1209,7 @@ config OF_RECONFIG_NOTIFIER_ERROR_INJECT
+ 	  notified, write the error code to "actions/<notifier event>/error".
+ 
+ 	  To compile this code as a module, choose M here: the module will
+-	  be called memory-notifier-error-inject.
++	  be called of-reconfig-notifier-error-inject.
+ 
+ 	  If unsure, say N.
  
 _
 
@@ -90,4 +95,5 @@ net-core-rename-random32-to-prandom_u32.patch
 net-core-remove-duplicate-statements-by-do-while-loop.patch
 net-rename-random32-to-prandom.patch
 remove-unused-random32-and-srandom32.patch
+notifier-error-inject-fix-module-names-in-kconfig.patch
 
