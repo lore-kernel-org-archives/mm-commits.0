@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sound-soc-codecs-si476xc-dont-use-0bnnn.patch added to -mm tree
-Date: Thu, 25 Apr 2013 15:57:47 -0700
-Message-ID: <20130425225747.716625A415F@corp2gmr1-2.hot.corp.google.com>
+Subject: + include-linux-mfd-si476x-coreh-dont-use-0bnnn.patch added to -mm tree
+Date: Thu, 25 Apr 2013 16:06:50 -0700
+Message-ID: <20130425230650.747EC5A415E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:37938 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757944Ab3DYW5t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Apr 2013 18:57:49 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so94572vcb.2
-        for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2013 15:57:48 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:51007 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758712Ab3DYXGw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Apr 2013 19:06:52 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so379601qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2013 16:06:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrey.smirnov@convergeddevices.net, broonie@opensource.wolfsonmicro.com, tiwai@suse.de
+Cc: akpm@linux-foundation.org, andrew.smirnov@gmail.com, hans.verkuil@cisco.com, sam@ravnborg.org, sameo@linux.intel.com
 
 
 The patch titled
-     Subject: sound/soc/codecs/si476x.c: don't use 0bNNN
+     Subject: include/linux/mfd/si476x-core.h: don't use 0bNNN
 has been added to the -mm tree.  Its filename is
-     sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+     include-linux-mfd-si476x-coreh-dont-use-0bnnn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sound/soc/codecs/si476x.c: don't use 0bNNN
+Subject: include/linux/mfd/si476x-core.h: don't use 0bNNN
 
-spacr64 gcc-3.4.5 (at least) spits this back.
+This doesn't compile with sparc64 gcc-3.4.5.
 
-Cc: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/codecs/si476x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mfd/si476x-core.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN sound/soc/codecs/si476x.c~sound-soc-codecs-si476xc-dont-use-0bnnn sound/soc/codecs/si476x.c
---- a/sound/soc/codecs/si476x.c~sound-soc-codecs-si476xc-dont-use-0bnnn
-+++ a/sound/soc/codecs/si476x.c
-@@ -38,9 +38,9 @@ enum si476x_digital_io_output_format {
- 	SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT	= 8,
+diff -puN include/linux/mfd/si476x-core.h~include-linux-mfd-si476x-coreh-dont-use-0bnnn include/linux/mfd/si476x-core.h
+--- a/include/linux/mfd/si476x-core.h~include-linux-mfd-si476x-coreh-dont-use-0bnnn
++++ a/include/linux/mfd/si476x-core.h
+@@ -515,11 +515,11 @@ enum si476x_fm_receiver_properties {
  };
  
--#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	((0b111 << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) | \
--						  (0b111 << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT))
--#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	(0b1111110)
-+#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	((0x7 << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) | \
-+						  (0x7 << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT))
-+#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	(0x7e)
+ enum si476x_prop_audio_pwr_line_filter_bits {
+-	SI476X_PROP_PWR_HARMONICS_MASK	= 0b0000000000011111,
+-	SI476X_PROP_PWR_GRID_MASK	= 0b0000000100000000,
+-	SI476X_PROP_PWR_ENABLE_MASK	= 0b0000001000000000,
+-	SI476X_PROP_PWR_GRID_50HZ	= 0b0000000000000000,
+-	SI476X_PROP_PWR_GRID_60HZ	= 0b0000000100000000,
++	SI476X_PROP_PWR_HARMONICS_MASK	= 0x001f,
++	SI476X_PROP_PWR_GRID_MASK	= 0x0100,
++	SI476X_PROP_PWR_ENABLE_MASK	= 0x0200,
++	SI476X_PROP_PWR_GRID_50HZ	= 0x0000,
++	SI476X_PROP_PWR_GRID_60HZ	= 0x0100,
+ };
  
- enum si476x_daudio_formats {
- 	SI476X_DAUDIO_MODE_I2S		= (0x0 << 1),
+ enum si476x_prop_fm_rds_config_bits {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -180,4 +185,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+include-linux-mfd-si476x-coreh-dont-use-0bnnn.patch
 
