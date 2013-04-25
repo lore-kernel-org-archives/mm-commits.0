@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fscache-statsc-fix-memory-leak.patch added to -mm tree
-Date: Thu, 25 Apr 2013 13:27:52 -0700
-Message-ID: <20130425202752.DD12C5A415E@corp2gmr1-2.hot.corp.google.com>
+Subject: + nilfs2-remove-unneeded-test-in-nilfs_writepage.patch added to -mm tree
+Date: Thu, 25 Apr 2013 13:46:25 -0700
+Message-ID: <20130425204625.7D83F31C1BD@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:34611 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754356Ab3DYU1z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Apr 2013 16:27:55 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m2so363046yen.2
-        for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2013 13:27:53 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:41352 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758772Ab3DYUq0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Apr 2013 16:46:26 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 6so135466qeb.1
+        for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2013 13:46:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anurup.m@huawei.com, dhowells@redhat.com, lizefan@huawei.com, nataraj.m@huawei.com, sanil.kumar@huawei.com, shyju.pv@huawei.com, stable@vger.kernel.org
+Cc: slava@dubeyko.com, dan.carpenter@oracle.com, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     Subject: fs/fscache/stats.c: fix memory leak
+     Subject: nilfs2: remove unneeded test in nilfs_writepage()
 has been added to the -mm tree.  Its filename is
-     fs-fscache-statsc-fix-memory-leak.patch
+     nilfs2-remove-unneeded-test-in-nilfs_writepage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anurup m <anurup.m@huawei.com>
-Subject: fs/fscache/stats.c: fix memory leak
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: nilfs2: remove unneeded test in nilfs_writepage()
 
-There is a kernel memory leak observed when the proc file
-/proc/fs/fscache/stats is read.
+page->mapping->host cannot be NULL in nilfs_writepage(), so remove the
+unneeded test.
 
-The reason is that in fscache_stats_open, single_open is called and the
-respective release function is not called during release.  Hence fix with
-correct release function - single_release().
+The fixes the sparse warning: "fs/nilfs2/inode.c:211 nilfs_writepage()
+error: we previously assumed 'inode' could be null (see line 195)".
 
-Cc: shyju pv <shyju.pv@huawei.com>
-Cc: Sanil kumar <sanil.kumar@huawei.com>
-Cc: Nataraj m <nataraj.m@huawei.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fscache/stats.c |    2 +-
+ fs/nilfs2/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fscache/stats.c~fs-fscache-statsc-fix-memory-leak fs/fscache/stats.c
---- a/fs/fscache/stats.c~fs-fscache-statsc-fix-memory-leak
-+++ a/fs/fscache/stats.c
-@@ -287,5 +287,5 @@ const struct file_operations fscache_sta
- 	.open		= fscache_stats_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release,
-+	.release        = single_release,
- };
+diff -puN fs/nilfs2/inode.c~nilfs2-remove-unneeded-test-in-nilfs_writepage fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-remove-unneeded-test-in-nilfs_writepage
++++ a/fs/nilfs2/inode.c
+@@ -192,7 +192,7 @@ static int nilfs_writepage(struct page *
+ 	struct inode *inode = page->mapping->host;
+ 	int err;
+ 
+-	if (inode && (inode->i_sb->s_flags & MS_RDONLY)) {
++	if (inode->i_sb->s_flags & MS_RDONLY) {
+ 		/*
+ 		 * It means that filesystem was remounted in read-only
+ 		 * mode because of error or metadata corruption. But we
 _
 
-Patches currently in -mm which might be from anurup.m@huawei.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-fs-fscache-statsc-fix-memory-leak.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+nilfs2-fix-using-of-pagelocked-in-nilfs_clear_dirty_page.patch
+nilfs2-remove-unneeded-test-in-nilfs_writepage.patch
+hfs-add-error-checking-for-hfs_find_init.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+hfs-hfsplus-convert-dprint-to-hfs_dbg.patch
+hfs-hfsplus-convert-printks-to-pr_level.patch
+hfsplus-add-error-propagation-to-__hfsplus_ext_write_extent.patch
+hfsplus-remove-duplicated-message-prefix-in-hfsplus_block_free.patch
 
