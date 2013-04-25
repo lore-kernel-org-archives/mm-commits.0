@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-storage-realtek_crc-fix-build.patch added to -mm tree
-Date: Thu, 25 Apr 2013 15:32:13 -0700
-Message-ID: <20130425223213.6A1EC5A415E@corp2gmr1-2.hot.corp.google.com>
+Subject: + sound-soc-codecs-si476xc-dont-use-0bnnn.patch added to -mm tree
+Date: Thu, 25 Apr 2013 15:57:47 -0700
+Message-ID: <20130425225747.716625A415F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:41234 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932396Ab3DYWcO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Apr 2013 18:32:14 -0400
-Received: by mail-vb0-f73.google.com with SMTP id p13so269141vbe.0
-        for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2013 15:32:14 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:37938 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757944Ab3DYW5t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Apr 2013 18:57:49 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so94572vcb.2
+        for <mm-commits@vger.kernel.org>; Thu, 25 Apr 2013 15:57:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, joe@perches.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, andrey.smirnov@convergeddevices.net, broonie@opensource.wolfsonmicro.com, tiwai@suse.de
 
 
 The patch titled
-     Subject: drivers/usb/storage/realtek_cr.c: fix build
+     Subject: sound/soc/codecs/si476x.c: don't use 0bNNN
 has been added to the -mm tree.  Its filename is
-     drivers-usb-storage-realtek_crc-fix-build.patch
+     sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/usb/storage/realtek_cr.c: fix build
+Subject: sound/soc/codecs/si476x.c: don't use 0bNNN
 
-Remove unused local `us', which broke the build.  Also nuke an unneeded
-cast.
+spacr64 gcc-3.4.5 (at least) spits this back.
 
-Repairs 191648d03d20 ("usb: storage: Convert US_DEBUGP to usb_stor_dbg").
-
-Cc: Joe Perches <joe@perches.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/realtek_cr.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ sound/soc/codecs/si476x.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/storage/realtek_cr.c~drivers-usb-storage-realtek_crc-fix-build drivers/usb/storage/realtek_cr.c
---- a/drivers/usb/storage/realtek_cr.c~drivers-usb-storage-realtek_crc-fix-build
-+++ a/drivers/usb/storage/realtek_cr.c
-@@ -933,14 +933,11 @@ static int realtek_cr_autosuspend_setup(
+diff -puN sound/soc/codecs/si476x.c~sound-soc-codecs-si476xc-dont-use-0bnnn sound/soc/codecs/si476x.c
+--- a/sound/soc/codecs/si476x.c~sound-soc-codecs-si476xc-dont-use-0bnnn
++++ a/sound/soc/codecs/si476x.c
+@@ -38,9 +38,9 @@ enum si476x_digital_io_output_format {
+ 	SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT	= 8,
+ };
  
- static void realtek_cr_destructor(void *extra)
- {
--	struct rts51x_chip *chip = (struct rts51x_chip *)extra;
--	struct us_data *us;
-+	struct rts51x_chip *chip = extra;
+-#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	((0b111 << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) | \
+-						  (0b111 << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT))
+-#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	(0b1111110)
++#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	((0x7 << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) | \
++						  (0x7 << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT))
++#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	(0x7e)
  
- 	if (!chip)
- 		return;
- 
--	us = chip->us;
--
- #ifdef CONFIG_REALTEK_AUTOPM
- 	if (ss_en) {
- 		del_timer(&chip->rts51x_suspend_timer);
+ enum si476x_daudio_formats {
+ 	SI476X_DAUDIO_MODE_I2S		= (0x0 << 1),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +72,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 drivers-usb-storage-realtek_crc-fix-build.patch
 revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
 kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
 drivers-video-implement-a-simple-framebuffer-driver-fix.patch
