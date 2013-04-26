@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-tps65217_blc-add-default-brightness-value-option.patch added to -mm tree
-Date: Fri, 26 Apr 2013 14:32:45 -0700
-Message-ID: <20130426213245.D27C35A4016@corp2gmr1-2.hot.corp.google.com>
+Subject: + menuconfig-print-more-info-for-symbol-without-prompts.patch added to -mm tree
+Date: Fri, 26 Apr 2013 14:36:23 -0700
+Message-ID: <20130426213623.8386931C233@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:39680 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754787Ab3DZVcr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Apr 2013 17:32:47 -0400
-Received: by mail-qa0-f73.google.com with SMTP id p6so63448qad.4
-        for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2013 14:32:46 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:50281 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699Ab3DZVgY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Apr 2013 17:36:24 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so197051vcb.0
+        for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2013 14:36:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ujhelyi.m@gmail.com, grant.likely@secretlab.ca, matus.ujhelyi@streamunlimited.com
+Cc: wengmeiling.weng@huawei.com, libo.chen@huawei.com, mmarek@suse.cz
 
 
 The patch titled
-     Subject: drivers/video/backlight/tps65217_bl.c add default brightness value option
+     Subject: menuconfig: print more info for symbol without prompts
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-tps65217_blc-add-default-brightness-value-option.patch
+     menuconfig-print-more-info-for-symbol-without-prompts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matus Ujhelyi <ujhelyi.m@gmail.com>
-Subject: drivers/video/backlight/tps65217_bl.c add default brightness value option
+From: Wengmeiling <wengmeiling.weng@huawei.com>
+Subject: menuconfig: print more info for symbol without prompts
 
-Signed-off-by: Matus Ujhelyi <matus.ujhelyi@streamunlimited.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+When we search a config symbol, if it has no prompt the position of this
+symbol in the Kconfig file and it's dependencies are not printed.  This
+can be inconvenient, especially when it's set to n and we want to find out
+why.
+
+the following is an example:
+
+before:
+
+Symbol: GENERIC_SMP_IDLE_THREAD [=y]
+Type  : boolean
+  Selected by: X86 [=y]
+
+after:
+
+Symbol: GENERIC_SMP_IDLE_THREAD [=y]
+Type  : boolean
+  Defined at arch/Kconfig:213
+  Selected by: X86 [=y]
+
+Signed-off-by: Weng Meiling <wengmeiling.weng@huawei.com>
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt |    2 +
- drivers/video/backlight/tps65217_bl.c                                    |   15 +++++++++-
- include/linux/mfd/tps65217.h                                             |    1 
- 3 files changed, 17 insertions(+), 1 deletion(-)
+ scripts/kconfig/menu.c |   27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt~drivers-video-backlight-tps65217_blc-add-default-brightness-value-option Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt
---- a/Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt~drivers-video-backlight-tps65217_blc-add-default-brightness-value-option
-+++ a/Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt
-@@ -9,6 +9,7 @@ Required properties:
- - backlight: node for specifying WLED1 and WLED2 lines in TPS65217
- - isel: selection bit, valid values: 1 for ISEL1 (low-level) and 2 for ISEL2 (high-level)
- - fdim: PWM dimming frequency, valid values: 100, 200, 500, 1000
-+- default-brightness: valid values: 0-100
+diff -puN scripts/kconfig/menu.c~menuconfig-print-more-info-for-symbol-without-prompts scripts/kconfig/menu.c
+--- a/scripts/kconfig/menu.c~menuconfig-print-more-info-for-symbol-without-prompts
++++ a/scripts/kconfig/menu.c
+@@ -515,13 +515,6 @@ static void get_prompt_str(struct gstr *
+ 	struct jump_key *jump;
  
- Each regulator is defined using the standard binding for regulators.
+ 	str_printf(r, _("Prompt: %s\n"), _(prop->text));
+-	str_printf(r, _("  Defined at %s:%d\n"), prop->menu->file->name,
+-		prop->menu->lineno);
+-	if (!expr_is_yes(prop->visible.expr)) {
+-		str_append(r, _("  Depends on: "));
+-		expr_gstr_print(prop->visible.expr, r);
+-		str_append(r, "\n");
+-	}
+ 	menu = prop->menu->parent;
+ 	for (i = 0; menu != &rootmenu && i < 8; menu = menu->parent) {
+ 		bool accessible = menu_is_visible(menu);
+@@ -572,6 +565,18 @@ static void get_prompt_str(struct gstr *
+ }
  
-@@ -20,6 +21,7 @@ Example:
- 		backlight {
- 			isel = <1>;  /* 1 - ISET1, 2 ISET2 */
- 			fdim = <100>; /* TPS65217_BL_FDIM_100HZ */
-+			default-brightness = <50>;
- 		};
- 	};
- 
-diff -puN drivers/video/backlight/tps65217_bl.c~drivers-video-backlight-tps65217_blc-add-default-brightness-value-option drivers/video/backlight/tps65217_bl.c
---- a/drivers/video/backlight/tps65217_bl.c~drivers-video-backlight-tps65217_blc-add-default-brightness-value-option
-+++ a/drivers/video/backlight/tps65217_bl.c
-@@ -245,6 +245,18 @@ tps65217_bl_parse_dt(struct platform_dev
- 		}
- 	}
- 
-+	if (!of_property_read_u32(node, "default-brightness", &val)) {
-+		if (val < 0 ||
-+			val > 100) {
-+			dev_err(&pdev->dev,
-+				"invalid 'default-brightness' value in the device tree\n");
-+			err = ERR_PTR(-EINVAL);
-+			goto err;
-+		}
+ /*
++ * get peoperty of type P_SYMBOL
++ */
++static struct property *get_symbol_prop(struct symbol *sym)
++{
++	struct property *prop = NULL;
 +
-+		pdata->dft_brightness = val;
++	for_all_properties(sym, prop, P_SYMBOL)
++		break;
++	return prop;
++}
++
++/*
+  * head is optional and may be NULL
+  */
+ void get_symbol_str(struct gstr *r, struct symbol *sym,
+@@ -595,6 +600,14 @@ void get_symbol_str(struct gstr *r, stru
+ 	}
+ 	for_all_prompts(sym, prop)
+ 		get_prompt_str(r, prop, head);
++	prop = get_symbol_prop(sym);
++	str_printf(r, _("  Defined at %s:%d\n"), prop->menu->file->name,
++		prop->menu->lineno);
++	if (!expr_is_yes(prop->visible.expr)) {
++		str_append(r, _("  Depends on: "));
++		expr_gstr_print(prop->visible.expr, r);
++		str_append(r, "\n");
 +	}
-+
- 	of_node_put(node);
- 
- 	return pdata;
-@@ -311,7 +323,8 @@ static int tps65217_bl_probe(struct plat
- 		return PTR_ERR(tps65217_bl->bl);
- 	}
- 
--	tps65217_bl->bl->props.brightness = 0;
-+	tps65217_bl->bl->props.brightness = pdata->dft_brightness;
-+	backlight_update_status(tps65217_bl->bl);
- 	platform_set_drvdata(pdev, tps65217_bl);
- 
- 	return 0;
-diff -puN include/linux/mfd/tps65217.h~drivers-video-backlight-tps65217_blc-add-default-brightness-value-option include/linux/mfd/tps65217.h
---- a/include/linux/mfd/tps65217.h~drivers-video-backlight-tps65217_blc-add-default-brightness-value-option
-+++ a/include/linux/mfd/tps65217.h
-@@ -228,6 +228,7 @@ enum tps65217_bl_fdim {
- struct tps65217_bl_pdata {
- 	enum tps65217_bl_isel isel;
- 	enum tps65217_bl_fdim fdim;
-+	int dft_brightness;
- };
- 
- /**
+ 	hit = false;
+ 	for_all_properties(sym, prop, P_SELECT) {
+ 		if (!hit) {
 _
 
-Patches currently in -mm which might be from ujhelyi.m@gmail.com are
+Patches currently in -mm which might be from wengmeiling.weng@huawei.com are
 
-documentation-add-missing-documentation-for-tps65217-bl-device-tree-binding.patch
-drivers-video-backlight-tps65217_blc-add-default-brightness-value-option.patch
+menuconfig-print-more-info-for-symbol-without-prompts.patch
 
