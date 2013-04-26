@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-w1-slaves-w1_ds2760c-fix-the-error-handling-in-w1_ds2760_add_slave.patch added to -mm tree
-Date: Fri, 26 Apr 2013 14:29:49 -0700
-Message-ID: <20130426212949.D314D5A41EC@corp2gmr1-2.hot.corp.google.com>
+Subject: + documentation-add-missing-documentation-for-tps65217-bl-device-tree-binding.patch added to -mm tree
+Date: Fri, 26 Apr 2013 14:32:43 -0700
+Message-ID: <20130426213243.C72D75A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:53163 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228Ab3DZV3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Apr 2013 17:29:52 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w16so480859vbb.1
-        for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2013 14:29:50 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:56921 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754787Ab3DZVco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Apr 2013 17:32:44 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so481115ggm.3
+        for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2013 14:32:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yongjun_wei@trendmicro.com.cn, greg@kroah.com, neilb@suse.de, zbr@ioremap.net
+Cc: ujhelyi.m@gmail.com, grant.likely@secretlab.ca, matus.ujhelyi@streamunlimited.com
 
 
 The patch titled
-     Subject: drivers/w1/slaves/w1_ds2760.c: fix the error handling in w1_ds2760_add_slave()
+     Subject: Documentation: add missing documentation for tps65217-bl device tree binding
 has been added to the -mm tree.  Its filename is
-     drivers-w1-slaves-w1_ds2760c-fix-the-error-handling-in-w1_ds2760_add_slave.patch
+     documentation-add-missing-documentation-for-tps65217-bl-device-tree-binding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: drivers/w1/slaves/w1_ds2760.c: fix the error handling in w1_ds2760_add_slave()
+From: Matus Ujhelyi <ujhelyi.m@gmail.com>
+Subject: Documentation: add missing documentation for tps65217-bl device tree binding
 
-Use platform_device_put() instead of platform_device_unregister() if
-platform_device_add() fail, and platform_device_del() should be used in
-the error handling case after platform_device_add() success.
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Matus Ujhelyi <matus.ujhelyi@streamunlimited.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2760.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt |   25 ++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN drivers/w1/slaves/w1_ds2760.c~drivers-w1-slaves-w1_ds2760c-fix-the-error-handling-in-w1_ds2760_add_slave drivers/w1/slaves/w1_ds2760.c
---- a/drivers/w1/slaves/w1_ds2760.c~drivers-w1-slaves-w1_ds2760c-fix-the-error-handling-in-w1_ds2760_add_slave
-+++ a/drivers/w1/slaves/w1_ds2760.c
-@@ -148,8 +148,9 @@ static int w1_ds2760_add_slave(struct w1
- 	goto success;
- 
- bin_attr_failed:
-+	platform_device_del(pdev);
- pdev_add_failed:
--	platform_device_unregister(pdev);
-+	platform_device_put(pdev);
- pdev_alloc_failed:
- 	ida_simple_remove(&bat_ida, id);
- noid:
+diff -puN /dev/null Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/video/backlight/tps65217-backlight.txt
+@@ -0,0 +1,25 @@
++TPS65217 family of regulators
++
++The TPS65217 chip contains a boost converter and current sinks which can be
++used to drive LEDs for use as backlights.
++
++Required properties:
++- compatible: "ti,tps65217"
++- reg: I2C slave address
++- backlight: node for specifying WLED1 and WLED2 lines in TPS65217
++- isel: selection bit, valid values: 1 for ISEL1 (low-level) and 2 for ISEL2 (high-level)
++- fdim: PWM dimming frequency, valid values: 100, 200, 500, 1000
++
++Each regulator is defined using the standard binding for regulators.
++
++Example:
++
++	tps: tps@24 {
++		reg = <0x24>;
++		compatible = "ti,tps65217";
++		backlight {
++			isel = <1>;  /* 1 - ISET1, 2 ISET2 */
++			fdim = <100>; /* TPS65217_BL_FDIM_100HZ */
++		};
++	};
++
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from ujhelyi.m@gmail.com are
 
-linux-next.patch
-ocfs2-fix-error-return-code-in-ocfs2_info_handle_freefrag.patch
-rpmsg-fix-error-return-code-in-rpmsg_probe.patch
-drivers-video-backlight-adp8860_blc-fix-error-return-code-in-adp8860_led_probe.patch
-drivers-video-backlight-adp8870_blc-fix-error-return-code-in-adp8870_led_probe.patch
-drivers-rtc-rtc-pcf2123c-fix-error-return-code-in-pcf2123_probe.patch
-drivers-w1-slaves-w1_bq27000c-fix-the-error-handling-in-w1_bq27000_add_slave.patch
-drivers-w1-slaves-w1_ds2780c-fix-the-error-handling-in-w1_ds2780_add_slave.patch
-drivers-w1-slaves-w1_ds2781c-fix-the-error-handling-in-w1_ds2781_add_slave.patch
-drivers-w1-slaves-w1_ds2760c-fix-the-error-handling-in-w1_ds2760_add_slave.patch
+documentation-add-missing-documentation-for-tps65217-bl-device-tree-binding.patch
+drivers-video-backlight-tps65217_blc-add-default-brightness-value-option.patch
 
