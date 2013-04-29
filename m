@@ -1,83 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:50:44 -0700
-Message-ID: <20130429215045.3AFAB5A4034@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:50:50 -0700
+Message-ID: <20130429215050.AA1C45A4034@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:39342 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758419Ab3D2Vuq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:50:46 -0400
-Received: by mail-qe0-f74.google.com with SMTP id a11so146882qen.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:50:45 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:49789 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758419Ab3D2Vuv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:50:51 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so109934vbe.0
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:50:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agshew@gmail.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, agshew@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9
+     Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix
 has been removed from the -mm tree.  Its filename was
-     mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9.patch
+     mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix.patch
 
 This patch was dropped because it was folded into mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
 
 ------------------------------------------------------
-From: Andrew Shewmaker <agshew@gmail.com>
-Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix
 
- * Explanatory comments for magic numbers in memory notifier
+make init_reserve_notifier() static
 
-
-
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Andrew Shewmaker <agshew@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9 mm/mmap.c
---- a/mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9
+diff -puN mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix mm/mmap.c
+--- a/mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix
 +++ a/mm/mmap.c
-@@ -3147,6 +3147,13 @@ module_init(init_admin_reserve)
- /*
-  * Reinititalise user and admin reserves if memory is added or removed.
-  *
-+ * The default user reserve max is 128MB, and the default max for the
-+ * admin reserve is 8MB. These are usually, but not always, enough to
-+ * enable recovery from a memory hogging process using login/sshd, a shell,
-+ * and tools like top. It may make sense to increase or even disable the
-+ * reserve depending on the existence of swap or variations in the recovery
-+ * tools. So, the admin may have changed them.
-+ *
-  * If memory is added and the reserves have been eliminated or increased above
-  * the default max, then we'll trust the admin.
-  *
-@@ -3162,10 +3169,16 @@ static int reserve_mem_notifier(struct n
+@@ -3205,7 +3205,7 @@ static struct notifier_block reserve_mem
+ 	.notifier_call = reserve_mem_notifier,
+ };
  
- 	switch (action) {
- 	case MEM_ONLINE:
-+		/*
-+		 * Default max is 128MB. Leave alone if modified by operator.
-+ 		 */
- 		tmp = sysctl_user_reserve_kbytes;
- 		if (0 < tmp && tmp < (1UL << 17))
- 			init_user_reserve();
- 
-+		/*
-+		 * Default max is 8MB. Leave alone if modified by operator.
-+ 		 */
- 		tmp = sysctl_admin_reserve_kbytes;
- 		if (0 < tmp && tmp < (1UL << 13))
- 			init_admin_reserve();
+-int __meminit init_reserve_notifier(void)
++static int __meminit init_reserve_notifier(void)
+ {
+ 	if (register_hotmemory_notifier(&reserve_mem_nb))
+ 		printk("Failed registering memory add/remove notifier for admin reserve");
 _
 
-Patches currently in -mm which might be from agshew@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+origin.patch
+hwpoison-check-dirty-flag-to-match-against-clean-page.patch
+sparse-vmemmap-specify-vmemmap-population-range-in-bytes.patch
+x86-64-use-vmemmap_populate_basepages-for-pse-setups.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes-fix.patch
+thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
 
