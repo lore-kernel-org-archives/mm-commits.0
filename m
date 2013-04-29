@@ -1,102 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:44:43 -0700
-Message-ID: <20130429214444.342E331C022@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:45:07 -0700
+Message-ID: <20130429214507.5D80B31C257@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:35358 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759945Ab3D2Vop (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:44:45 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w8so107026vbf.3
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:44:45 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:52677 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758818Ab3D2VpI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:45:08 -0400
+Received: by mail-qa0-f74.google.com with SMTP id bs12so240446qab.5
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:45:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, adrian.hunter@intel.com, axboe@kernel.dk, dedekind1@gmail.com, jack@suse.cz, luto@amacapital.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, kumagai-atsushi@mxc.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
+     Subject: kexec-vmalloc-export-additional-vmalloc-layer-information-fix
 has been removed from the -mm tree.  Its filename was
-     mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3.patch
+     kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 
-This patch was dropped because it was folded into mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+This patch was dropped because it was folded into kexec-vmalloc-export-additional-vmalloc-layer-information.patch
 
 ------------------------------------------------------
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec-vmalloc-export-additional-vmalloc-layer-information-fix
 
-v3: Improve the documentation in jbd for why we're doing this, and clean up
-some code.
-[darrick.wong@oracle.com: Fold in a couple of small cleanups from akpm]
+vmalloc.h should include list.h for list_head
 
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c     |    2 +-
- fs/jbd/commit.c |   21 ++++++++++++++++++++-
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ include/linux/vmalloc.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3 fs/buffer.c
---- a/fs/buffer.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
-+++ a/fs/buffer.c
-@@ -3000,7 +3000,7 @@ int _submit_bh(int rw, struct buffer_hea
- }
- EXPORT_SYMBOL_GPL(_submit_bh);
+diff -puN include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information-fix include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information-fix
++++ a/include/linux/vmalloc.h
+@@ -3,6 +3,7 @@
  
--int submit_bh(int rw, struct buffer_head * bh)
-+int submit_bh(int rw, struct buffer_head *bh)
- {
- 	return _submit_bh(rw, bh, 0);
- }
-diff -puN fs/jbd/commit.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3 fs/jbd/commit.c
---- a/fs/jbd/commit.c~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3
-+++ a/fs/jbd/commit.c
-@@ -162,7 +162,16 @@ static void journal_do_submit_data(struc
+ #include <linux/spinlock.h>
+ #include <linux/init.h>
++#include <linux/list.h>
+ #include <asm/page.h>		/* pgprot_t */
+ #include <linux/rbtree.h>
  
- 	for (i = 0; i < bufs; i++) {
- 		wbuf[i]->b_end_io = end_buffer_write_sync;
--		/* We use-up our safety reference in submit_bh() */
-+		/*
-+		 * Here we write back pagecache data that may be mmaped. Since
-+		 * we cannot afford to clean the page and set PageWriteback
-+		 * here due to lock ordering (page lock ranks above transaction
-+		 * start), the data can change while IO is in flight. Tell the
-+		 * block layer it should bounce the bio pages if stable data
-+		 * during write is required.
-+		 *
-+		 * We use up our safety reference in submit_bh().
-+		 */
- 		_submit_bh(write_op, wbuf[i], 1 << BIO_SNAP_STABLE);
- 	}
- }
-@@ -667,6 +676,16 @@ start_journal_io:
- 				clear_buffer_dirty(bh);
- 				set_buffer_uptodate(bh);
- 				bh->b_end_io = journal_end_buffer_io_sync;
-+				/*
-+				 * In data=journal mode, here we can end up
-+				 * writing pagecache data that might be
-+				 * mmapped. Since we can't afford to clean the
-+				 * page and set PageWriteback (see the comment
-+				 * near the other use of _submit_bh()), the
-+				 * data can change while the write is in
-+				 * flight.  Tell the block layer to bounce the
-+				 * bio pages if stable pages are required.
-+				 */
- 				_submit_bh(write_op, bh, 1 << BIO_SNAP_STABLE);
- 			}
- 			cond_resched();
-diff -puN include/linux/blk_types.h~mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation-v3 include/linux/blk_types.h
 _
 
-Patches currently in -mm which might be from darrick.wong@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+auditsc-use-kzalloc-instead-of-kmallocmemset.patch
+kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+mm-shmemc-remove-an-ifdef.patch
+memcg-relax-memcg-iter-caching.patch
+mm-hugetlb-add-more-arch-defined-huge_pte-functions.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
+kexec-vmalloc-export-additional-vmalloc-layer-information.patch
+mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-speedup-in-__early_pfn_to_nid.patch
+mm-speedup-in-__early_pfn_to_nid-fix.patch
+include-linux-memoryh-implement-register_hotmemory_notifier.patch
+ipc-utilc-use-register_hotmemory_notifier.patch
+mm-slubc-use-register_hotmemory_notifier.patch
+drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
+fs-proc-kcorec-use-register_hotmemory_notifier.patch
+kernel-cpusetc-use-register_hotmemory_notifier.patch
+mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
+mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed-v9-checkpatch-fixes.patch
+resource-add-release_mem_region_adjustable-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix.patch
+resource-add-release_mem_region_adjustable-fix-fix-fix.patch
+mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+clear_refs-sanitize-accepted-commands-declaration-fix.patch
+memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+memcg-add-memorypressure_level-events-fix.patch
+mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
+thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
+mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
+mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
+mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
 
