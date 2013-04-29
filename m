@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] init-mainc-convert-to-pr_foo-fix-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 16:02:52 -0700
-Message-ID: <20130429230252.A79655A418D@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] rtc-tegra-use-managed-rtc_device_register-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 16:03:43 -0700
+Message-ID: <20130429230343.AE92C5A418D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:33897 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758424Ab3D2XCx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 19:02:53 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 9so486542qea.0
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 16:02:53 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:64534 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758694Ab3D2XDo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 19:03:44 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f35so200225yha.0
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 16:03:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, richard@nod.at, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: ldewangan@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init-mainc-convert-to-pr_foo-fix-fix
+     Subject: drivers/rtc/rtc-tegra.c: fix build warning
 has been removed from the -mm tree.  Its filename was
-     init-mainc-convert-to-pr_foo-fix-fix.patch
+     rtc-tegra-use-managed-rtc_device_register-fix.patch
 
-This patch was dropped because it was folded into init-mainc-convert-to=
--pr_foo.patch
+This patch was dropped because it was folded into rtc-tegra-use-managed-rtc_device_register.patch
 
 ------------------------------------------------------
-=46rom: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-mainc-convert-to-pr_foo-fix-fix
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: drivers/rtc/rtc-tegra.c: fix build warning
 
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Fix the below build warning:
+
+drivers/rtc/rtc-tegra.c: In function 'tegra_rtc_probe':
+drivers/rtc/rtc-tegra.c:353:33: warning: passing argument 1 of 'devm_rtc_device_register' from incompatible pointer type [enabled by default]
+include/linux/rtc.h:136:27: note: expected 'struct device *' but argument is of type 'const char *'
+drivers/rtc/rtc-tegra.c:353:33: warning: passing argument 2 of 'devm_rtc_device_register' from incompatible pointer type [enabled by default]
+include/linux/rtc.h:136:27: note: expected 'const char *' but argument is of type 'struct device *'
+
+This warning was introduced with patch
+	commit 8a96d445e921b0d881421767fb6f7c5b6fb91b3a
+	drivers/rtc/rtc-tegra.c: use managed rtc_device_register()
+
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-tegra.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~init-mainc-convert-to-pr_foo-fix-fix init/main.c
---- a/init/main.c~init-mainc-convert-to-pr_foo-fix-fix
-+++ a/init/main.c
-@@ -9,7 +9,7 @@
-  *  Simplified starting of init:  Michael A. Griffith <grif@acm.org>=20
-  */
-=20
--#define DEBUG
-+#define DEBUG		/* Enable initcall_debug */
-=20
- #include <linux/types.h>
- #include <linux/module.h>
+diff -puN drivers/rtc/rtc-tegra.c~rtc-tegra-use-managed-rtc_device_register-fix drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-tegra-use-managed-rtc_device_register-fix
++++ a/drivers/rtc/rtc-tegra.c
+@@ -349,8 +349,9 @@ static int __init tegra_rtc_probe(struct
+ 
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+-	info->rtc_dev = devm_rtc_device_register(dev_name(&pdev->dev),
+-				&pdev->dev, &tegra_rtc_ops, THIS_MODULE);
++	info->rtc_dev = devm_rtc_device_register(&pdev->dev,
++				dev_name(&pdev->dev), &tegra_rtc_ops,
++				THIS_MODULE);
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		ret = PTR_ERR(info->rtc_dev);
+ 		dev_err(&pdev->dev, "Unable to register device (err=%d).\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from ldewangan@nvidia.com are
 
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
