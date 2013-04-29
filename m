@@ -1,120 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memcg-relax-memcg-iter-caching-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:44:02 -0700
-Message-ID: <20130429214402.80A335A42D5@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] drivers-video-implement-a-simple-framebuffer-driver-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:42:55 -0700
+Message-ID: <20130429214256.462A55A4034@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41999 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759375Ab3D2VoD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:44:03 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so712237qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:44:03 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:50870 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932921Ab3D2Vm6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:42:58 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w8so106807vbf.5
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:42:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, FlorianSchandinat@gmx.de, arnd@arndb.de, olof@lixom.net, robclark@gmail.com, swarren@wwwdotorg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-relax-memcg-iter-caching-checkpatch-fixes
+     Subject: drivers-video-implement-a-simple-framebuffer-driver-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
+     drivers-video-implement-a-simple-framebuffer-driver-fix.patch
 
-This patch was dropped because it was folded into memcg-relax-memcg-iter-caching.patch
+This patch was dropped because it was folded into drivers-video-implement-a-simple-framebuffer-driver.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-relax-memcg-iter-caching-checkpatch-fixes
+Subject: drivers-video-implement-a-simple-framebuffer-driver-fix
 
-ERROR: code indent should use tabs where possible
-#135: FILE: mm/memcontrol.c:1135:
-+                         * If the dead_count mismatches, a destruction$
+make simplefb_formats[] static
 
-ERROR: code indent should use tabs where possible
-#136: FILE: mm/memcontrol.c:1136:
-+                         * has happened or is happening concurrently.$
-
-ERROR: code indent should use tabs where possible
-#137: FILE: mm/memcontrol.c:1137:
-+                         * If the dead_count matches, a destruction$
-
-ERROR: code indent should use tabs where possible
-#138: FILE: mm/memcontrol.c:1138:
-+                         * might still happen concurrently, but since$
-
-ERROR: code indent should use tabs where possible
-#139: FILE: mm/memcontrol.c:1139:
-+                         * we checked under RCU, that destruction$
-
-ERROR: code indent should use tabs where possible
-#140: FILE: mm/memcontrol.c:1140:
-+                         * won't free the object until we release the$
-
-ERROR: code indent should use tabs where possible
-#141: FILE: mm/memcontrol.c:1141:
-+                         * RCU reader lock.  Thus, the dead_count$
-
-ERROR: code indent should use tabs where possible
-#142: FILE: mm/memcontrol.c:1142:
-+                         * check verifies the pointer is still valid,$
-
-ERROR: code indent should use tabs where possible
-#143: FILE: mm/memcontrol.c:1143:
-+                         * css_tryget() verifies the cgroup pointed to$
-
-ERROR: code indent should use tabs where possible
-#144: FILE: mm/memcontrol.c:1144:
-+                         * is alive.$
-
-total: 10 errors, 0 warnings, 130 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/memcg-relax-memcg-iter-caching.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Rob Clark <robclark@gmail.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/video/simplefb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-relax-memcg-iter-caching-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-relax-memcg-iter-caching-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -1132,16 +1132,16 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 			}
+diff -puN drivers/video/simplefb.c~drivers-video-implement-a-simple-framebuffer-driver-fix drivers/video/simplefb.c
+--- a/drivers/video/simplefb.c~drivers-video-implement-a-simple-framebuffer-driver-fix
++++ a/drivers/video/simplefb.c
+@@ -82,7 +82,7 @@ struct simplefb_format {
+ 	struct fb_bitfield transp;
+ };
  
- 			/*
--                         * If the dead_count mismatches, a destruction
--                         * has happened or is happening concurrently.
--                         * If the dead_count matches, a destruction
--                         * might still happen concurrently, but since
--                         * we checked under RCU, that destruction
--                         * won't free the object until we release the
--                         * RCU reader lock.  Thus, the dead_count
--                         * check verifies the pointer is still valid,
--                         * css_tryget() verifies the cgroup pointed to
--                         * is alive.
-+			 * If the dead_count mismatches, a destruction
-+			 * has happened or is happening concurrently.
-+			 * If the dead_count matches, a destruction
-+			 * might still happen concurrently, but since
-+			 * we checked under RCU, that destruction
-+			 * won't free the object until we release the
-+			 * RCU reader lock.  Thus, the dead_count
-+			 * check verifies the pointer is still valid,
-+			 * css_tryget() verifies the cgroup pointed to
-+			 * is alive.
- 			 */
- 			dead_count = atomic_read(&root->dead_count);
- 			smp_rmb();
+-struct simplefb_format simplefb_formats[] = {
++static struct simplefb_format simplefb_formats[] = {
+ 	{ "r5g6b5", 16, {11, 5}, {5, 6}, {0, 5}, {0, 0} },
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,7 +60,7 @@ auditsc-use-kzalloc-instead-of-kmallocmemset.patch
 kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
 drivers-video-implement-a-simple-framebuffer-driver.patch
 mm-shmemc-remove-an-ifdef.patch
-memcg-relax-memcg-iter-caching.patch
+memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
 mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
 kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
