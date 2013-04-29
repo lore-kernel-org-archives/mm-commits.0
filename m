@@ -1,53 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:55:38 -0700
-Message-ID: <20130429215539.00AEE31C022@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:56:03 -0700
+Message-ID: <20130429215603.F04775A41FA@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:44645 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758542Ab3D2Vzj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:55:39 -0400
-Received: by mail-gg0-f201.google.com with SMTP id y3so469769ggc.2
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:55:39 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:53247 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758542Ab3D2V4F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:56:05 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so110607vbe.2
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:56:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix
+     Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
 has been removed from the -mm tree.  Its filename was
-     thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
+     mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
 
-This patch was dropped because it was folded into thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0.patch
+This patch was dropped because it was folded into mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix
+Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
 
-fix sparse warning
+use pr_err_ratelimited()
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_io.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix
-+++ a/mm/huge_memory.c
-@@ -186,7 +186,7 @@ retry:
- 			HPAGE_PMD_ORDER);
- 	if (!zero_page) {
- 		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
--		return 0;
-+		return NULL;
- 	}
- 	count_vm_event(THP_ZERO_PAGE_ALLOC);
- 	preempt_disable();
+diff -puN mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix mm/page_io.c
+--- a/mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix
++++ a/mm/page_io.c
+@@ -244,10 +244,8 @@ int __swap_writepage(struct page *page,
+ 			 */
+ 			set_page_dirty(page);
+ 			ClearPageReclaim(page);
+-			if (printk_ratelimit()) {
+-				pr_err("Write-error on dio swapfile (%Lu)\n",
+-					(unsigned long long)page_file_offset(page));
+-			}
++			pr_err_ratelimited("Write error on dio swapfile (%Lu)\n",
++				(unsigned long long)page_file_offset(page));
+ 		}
+ 		end_page_writeback(page);
+ 		return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +82,7 @@ clear_refs-sanitize-accepted-commands-declaration.patch
 memcg-add-memorypressure_level-events.patch
 mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch
 thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
+mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io.patch
 mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
 mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
 
