@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-make-enumeration-discovery-configurable-fix.patch added to -mm tree
-Date: Fri, 26 Apr 2013 15:53:56 -0700
-Message-ID: <20130426225356.D64715A415E@corp2gmr1-2.hot.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 29 Apr 2013 11:39:38 -0700
+Message-ID: <20130429183938.62FB131C03C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:60951 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751763Ab3DZWx6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Apr 2013 18:53:58 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hr11so251069vcb.5
-        for <mm-commits@vger.kernel.org>; Fri, 26 Apr 2013 15:53:57 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:51939 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758062Ab3D2Sjj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 14:39:39 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m3so107433yen.0
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 11:39:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alexandre.bounine@idt.com, andre.van.herk@Prodrive.nl, galak@kernel.crashing.org, leoli@freescale.com, micha.nelissen@Prodrive.nl, mporter@kernel.crashing.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: rapidio-make-enumeration-discovery-configurable-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     rapidio-make-enumeration-discovery-configurable-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,141 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rapidio-make-enumeration-discovery-configurable-fix
+Subject: linux-next-git-rejects
 
-work around weird kbuild failure
-
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Andre van Herk <andre.van.herk@Prodrive.nl>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Micha Nelissen <micha.nelissen@Prodrive.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/scan.c               |    3 ---
+ drivers/gpio/gpio-pl061.c         |    3 ---
+ drivers/pinctrl/Makefile          |    3 ---
+ drivers/pinctrl/pinctrl-samsung.c |    3 ---
+ drivers/pinctrl/pinctrl-samsung.h |    3 ---
+ drivers/video/Kconfig             |   13 -------------
+ include/linux/pci.h               |    3 ---
+ 7 files changed, 31 deletions(-)
 
-diff -puN drivers/rapidio/Kconfig~rapidio-make-enumeration-discovery-configurable-fix drivers/rapidio/Kconfig
---- a/drivers/rapidio/Kconfig~rapidio-make-enumeration-discovery-configurable-fix
-+++ a/drivers/rapidio/Kconfig
-@@ -59,7 +59,7 @@ choice
- 	  If unsure, select Basic built-in.
+diff -puN drivers/acpi/scan.c~linux-next-git-rejects drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~linux-next-git-rejects
++++ a/drivers/acpi/scan.c
+@@ -2044,10 +2044,7 @@ int __init acpi_scan_init(void)
+ 	acpi_lpss_init();
+ 	acpi_csrt_init();
+ 	acpi_container_init();
+-<<<<<<< HEAD
+-=======
+ 	acpi_memory_hotplug_init();
+->>>>>>> linux-next/akpm-base
  
- config RAPIDIO_ENUM_BASIC
--	tristate "Basic"
-+	bool "Basic"
+ 	mutex_lock(&acpi_scan_lock);
+ 	/*
+diff -puN drivers/gpio/gpio-pl061.c~linux-next-git-rejects drivers/gpio/gpio-pl061.c
+--- a/drivers/gpio/gpio-pl061.c~linux-next-git-rejects
++++ a/drivers/gpio/gpio-pl061.c
+@@ -15,10 +15,7 @@
+ #include <linux/io.h>
+ #include <linux/ioport.h>
+ #include <linux/irq.h>
+-<<<<<<< HEAD
+-=======
+ #include <linux/irqchip/chained_irq.h>
+->>>>>>> linux-next/akpm-base
+ #include <linux/irqdomain.h>
+ #include <linux/bitops.h>
+ #include <linux/workqueue.h>
+diff -puN drivers/pinctrl/Makefile~linux-next-git-rejects drivers/pinctrl/Makefile
+--- a/drivers/pinctrl/Makefile~linux-next-git-rejects
++++ a/drivers/pinctrl/Makefile
+@@ -21,10 +21,7 @@ obj-$(CONFIG_PINCTRL_IMX35)	+= pinctrl-i
+ obj-$(CONFIG_PINCTRL_IMX51)	+= pinctrl-imx51.o
+ obj-$(CONFIG_PINCTRL_IMX53)	+= pinctrl-imx53.o
+ obj-$(CONFIG_PINCTRL_IMX6Q)	+= pinctrl-imx6q.o
+-<<<<<<< HEAD
+-=======
+ obj-$(CONFIG_PINCTRL_IMX6Q)	+= pinctrl-imx6dl.o
+->>>>>>> linux-next/akpm-base
+ obj-$(CONFIG_PINCTRL_FALCON)	+= pinctrl-falcon.o
+ obj-$(CONFIG_PINCTRL_MXS)	+= pinctrl-mxs.o
+ obj-$(CONFIG_PINCTRL_IMX23)	+= pinctrl-imx23.o
+diff -puN drivers/pinctrl/pinctrl-samsung.c~linux-next-git-rejects drivers/pinctrl/pinctrl-samsung.c
+--- a/drivers/pinctrl/pinctrl-samsung.c~linux-next-git-rejects
++++ a/drivers/pinctrl/pinctrl-samsung.c
+@@ -975,11 +975,8 @@ static const struct of_device_id samsung
+ 	{ .compatible = "samsung,s3c64xx-pinctrl",
+ 		.data = s3c64xx_pin_ctrl },
+ #endif
+-<<<<<<< HEAD
+-=======
+ 	{ .compatible = "samsung,exynos5250-pinctrl",
+ 		.data = (void *)exynos5250_pin_ctrl },
+->>>>>>> linux-next/akpm-base
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, samsung_pinctrl_dt_match);
+diff -puN drivers/pinctrl/pinctrl-samsung.h~linux-next-git-rejects drivers/pinctrl/pinctrl-samsung.h
+--- a/drivers/pinctrl/pinctrl-samsung.h~linux-next-git-rejects
++++ a/drivers/pinctrl/pinctrl-samsung.h
+@@ -245,9 +245,6 @@ struct samsung_pmx_func {
+ extern struct samsung_pin_ctrl exynos4210_pin_ctrl[];
+ extern struct samsung_pin_ctrl exynos4x12_pin_ctrl[];
+ extern struct samsung_pin_ctrl s3c64xx_pin_ctrl[];
+-<<<<<<< HEAD
+-=======
+ extern struct samsung_pin_ctrl exynos5250_pin_ctrl[];
+->>>>>>> linux-next/akpm-base
+ 
+ #endif /* __PINCTRL_SAMSUNG_H */
+diff -puN drivers/video/Kconfig~linux-next-git-rejects drivers/video/Kconfig
+--- a/drivers/video/Kconfig~linux-next-git-rejects
++++ a/drivers/video/Kconfig
+@@ -1792,7 +1792,6 @@ config FB_WM8505
+ 	select FB_SYS_IMAGEBLIT
+ 	select FB_MODE_HELPERS
+ 	select VIDEOMODE_HELPERS
+-<<<<<<< HEAD
  	help
- 	  This option includes basic RapidIO fabric enumeration and discovery
- 	  mechanism similar to one described in RapidIO specification Annex 1.
+ 	  This is the framebuffer driver for WonderMedia WM8xxx-series
+ 	  integrated LCD controller. This driver covers the WM8505, WM8650
+@@ -1803,18 +1802,6 @@ config FB_WMT_GE_ROPS
+ 	depends on (FB = y) && (FB_VT8500 || FB_WM8505)
+ 	default n
+ 	help
+-=======
+-	help
+-	  This is the framebuffer driver for WonderMedia WM8xxx-series
+-	  integrated LCD controller. This driver covers the WM8505, WM8650
+-	  and WM8850 SoCs.
+-
+-config FB_WMT_GE_ROPS
+-	bool "VT8500/WM8xxx accelerated raster ops support"
+-	depends on (FB = y) && (FB_VT8500 || FB_WM8505)
+-	default n
+-	help
+->>>>>>> linux-next/akpm-base
+ 	  This adds support for accelerated raster operations on the
+ 	  VIA VT8500 and Wondermedia 85xx series SoCs.
+ 
+diff -puN include/linux/pci.h~linux-next-git-rejects include/linux/pci.h
+--- a/include/linux/pci.h~linux-next-git-rejects
++++ a/include/linux/pci.h
+@@ -1661,10 +1661,7 @@ int pci_enable_sriov(struct pci_dev *dev
+ void pci_disable_sriov(struct pci_dev *dev);
+ irqreturn_t pci_sriov_migration(struct pci_dev *dev);
+ int pci_num_vf(struct pci_dev *dev);
+-<<<<<<< HEAD
+-=======
+ int pci_vfs_assigned(struct pci_dev *dev);
+->>>>>>> linux-next/akpm-base
+ int pci_sriov_set_totalvfs(struct pci_dev *dev, u16 numvfs);
+ int pci_sriov_get_totalvfs(struct pci_dev *dev);
+ #else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 drivers-usb-storage-realtek_crc-fix-build.patch
