@@ -1,76 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:41:26 -0700
-Message-ID: <20130429214126.D70A531C022@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:41:51 -0700
+Message-ID: <20130429214151.8407D31C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:61240 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759250Ab3D2Vl2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:41:28 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so711926qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:41:27 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:50831 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932770Ab3D2Vlx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:41:53 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so427774vcb.4
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:41:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eparis@redhat.com, rakib.mullick@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, eparis@redhat.com, gang.chen@asianux.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: auditsc-use-kzalloc-instead-of-kmallocmemset-fix
+     Subject: kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix
 has been removed from the -mm tree.  Its filename was
-     auditsc-use-kzalloc-instead-of-kmallocmemset-fix.patch
+     kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
 
-This patch was dropped because it was folded into auditsc-use-kzalloc-instead-of-kmallocmemset.patch
+This patch was dropped because it was folded into kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: auditsc-use-kzalloc-instead-of-kmallocmemset-fix
+Subject: kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix
 
-remove audit_set_context() altogether - fold it into its caller
+run put_tree() *before* mutex_lock()
 
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Chen Gang <gang.chen@asianux.com>
 Cc: Eric Paris <eparis@redhat.com>
-Cc: Rakib Mullick <rakib.mullick@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ kernel/audit_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/auditsc.c~auditsc-use-kzalloc-instead-of-kmallocmemset-fix kernel/auditsc.c
---- a/kernel/auditsc.c~auditsc-use-kzalloc-instead-of-kmallocmemset-fix
-+++ a/kernel/auditsc.c
-@@ -1034,13 +1034,6 @@ static inline void audit_free_aux(struct
+diff -puN kernel/audit_tree.c~kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix kernel/audit_tree.c
+--- a/kernel/audit_tree.c~kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix
++++ a/kernel/audit_tree.c
+@@ -619,8 +619,8 @@ void audit_trim_trees(void)
+ 		trim_marked(tree);
+ 		drop_collected_mounts(root_mnt);
+ skip_it:
+-		mutex_lock(&audit_filter_mutex);
+ 		put_tree(tree);
++		mutex_lock(&audit_filter_mutex);
  	}
- }
- 
--static inline void audit_set_context(struct audit_context *context,
--				      enum audit_state state)
--{
--	context->state      = state;
--	context->prio = state == AUDIT_RECORD_CONTEXT ? ~0ULL : 0;
--}
--
- static inline struct audit_context *audit_alloc_context(enum audit_state state)
- {
- 	struct audit_context *context;
-@@ -1048,7 +1041,8 @@ static inline struct audit_context *audi
- 	context = kzalloc(sizeof(*context), GFP_KERNEL);
- 	if (!context)
- 		return NULL;
--	audit_set_context(context, state);
-+	context->state = state;
-+	context->prio = state == AUDIT_RECORD_CONTEXT ? ~0ULL : 0;
- 	INIT_LIST_HEAD(&context->killed_trees);
- 	INIT_LIST_HEAD(&context->names_list);
- 	return context;
+ 	list_del(&cursor);
+ 	mutex_unlock(&audit_filter_mutex);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 auditsc-use-kzalloc-instead-of-kmallocmemset.patch
-kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees-fix.patch
+kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
 drivers-video-implement-a-simple-framebuffer-driver-fix.patch
 mm-shmemc-remove-an-ifdef.patch
 memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
