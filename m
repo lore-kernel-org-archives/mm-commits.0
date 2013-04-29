@@ -1,56 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] drivers-video-implement-a-simple-framebuffer-driver-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:42:55 -0700
-Message-ID: <20130429214256.462A55A4034@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:44:24 -0700
+Message-ID: <20130429214424.7D5845A4034@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:50870 "EHLO
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:44931 "EHLO
 	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932921Ab3D2Vm6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:42:58 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w8so106807vbf.5
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:42:57 -0700 (PDT)
+	with ESMTP id S1759905Ab3D2VoZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:44:25 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w8so106987vbf.3
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:44:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, FlorianSchandinat@gmx.de, arnd@arndb.de, olof@lixom.net, robclark@gmail.com, swarren@wwwdotorg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gerald.schaefer@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-video-implement-a-simple-framebuffer-driver-fix
+     Subject: mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-video-implement-a-simple-framebuffer-driver-fix.patch
+     mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
 
-This patch was dropped because it was folded into drivers-video-implement-a-simple-framebuffer-driver.patch
+This patch was dropped because it was folded into mm-hugetlb-add-more-arch-defined-huge_pte-functions.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-video-implement-a-simple-framebuffer-driver-fix
+Subject: mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix
 
-make simplefb_formats[] static
+fix warning
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Rob Clark <robclark@gmail.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
+mm/hugetlb.c: In function 'follow_hugetlb_page':
+mm/hugetlb.c:2976: warning: suggest parentheses around '&&' within '||'
+
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/simplefb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/simplefb.c~drivers-video-implement-a-simple-framebuffer-driver-fix drivers/video/simplefb.c
---- a/drivers/video/simplefb.c~drivers-video-implement-a-simple-framebuffer-driver-fix
-+++ a/drivers/video/simplefb.c
-@@ -82,7 +82,7 @@ struct simplefb_format {
- 	struct fb_bitfield transp;
- };
+diff -puN mm/hugetlb.c~mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix
++++ a/mm/hugetlb.c
+@@ -2973,7 +2973,8 @@ long follow_hugetlb_page(struct mm_struc
+ 		 * directly from any kind of swap entries.
+ 		 */
+ 		if (absent || is_swap_pte(huge_ptep_get(pte)) ||
+-		  (flags & FOLL_WRITE) && !huge_pte_write(huge_ptep_get(pte))) {
++		    ((flags & FOLL_WRITE) &&
++		      !huge_pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
  
--struct simplefb_format simplefb_formats[] = {
-+static struct simplefb_format simplefb_formats[] = {
- 	{ "r5g6b5", 16, {11, 5}, {5, 6}, {0, 5}, {0, 0} },
- };
- 
+ 			spin_unlock(&mm->page_table_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,8 +60,8 @@ auditsc-use-kzalloc-instead-of-kmallocmemset.patch
 kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
 drivers-video-implement-a-simple-framebuffer-driver.patch
 mm-shmemc-remove-an-ifdef.patch
-memcg-relax-memcg-iter-caching-checkpatch-fixes.patch
-mm-hugetlb-add-more-arch-defined-huge_pte-functions-fix.patch
+memcg-relax-memcg-iter-caching.patch
+mm-hugetlb-add-more-arch-defined-huge_pte-functions.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
 kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
 mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
