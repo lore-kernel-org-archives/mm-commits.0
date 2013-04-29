@@ -1,63 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memcg-add-memorypressure_level-events-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:54:19 -0700
-Message-ID: <20130429215419.B31745A41E9@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] memcg-add-memorypressure_level-events-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:54:22 -0700
+Message-ID: <20130429215422.A7D7B31C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:58943 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933202Ab3D2VyU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:54:20 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so713912qcs.5
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:54:20 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:43093 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933202Ab3D2VyX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:54:23 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r11so273848yen.3
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:54:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, anton.vorontsov@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-add-memorypressure_level-events-checkpatch-fixes
+     Subject: memcg-add-memorypressure_level-events-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-add-memorypressure_level-events-checkpatch-fixes.patch
+     memcg-add-memorypressure_level-events-fix.patch
 
 This patch was dropped because it was folded into memcg-add-memorypressure_level-events.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-add-memorypressure_level-events-checkpatch-fixes
+Subject: memcg-add-memorypressure_level-events-fix
 
-WARNING: static const char * array should probably be static const char * const
-#411: FILE: mm/vmpressure.c:100:
-+static const char *vmpressure_str_levels[] = {
+fix CONFIG_CGROPUPS=n warnings:
 
-total: 0 errors, 1 warnings, 609 lines checked
-
-./patches/memcg-add-memorypressure_level-events.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+In file included from mm/vmscan.c:22:
+include/linux/vmpressure.h:44: warning: 'struct cftype' declared inside parameter list
+include/linux/vmpressure.h:44: warning: its scope is only this definition or declaration, which is probably not what you want
+include/linux/vmpressure.h:44: warning: 'struct cgroup' declared inside parameter list
+include/linux/vmpressure.h:46: warning: 'struct cftype' declared inside parameter list
+include/linux/vmpressure.h:46: warning: 'struct cgroup' declared inside parameter list
 
 Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/vmpressure.h |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN mm/vmpressure.c~memcg-add-memorypressure_level-events-checkpatch-fixes mm/vmpressure.c
---- a/mm/vmpressure.c~memcg-add-memorypressure_level-events-checkpatch-fixes
-+++ a/mm/vmpressure.c
-@@ -97,7 +97,7 @@ enum vmpressure_levels {
- 	VMPRESSURE_NUM_LEVELS,
- };
+diff -puN include/linux/vmpressure.h~memcg-add-memorypressure_level-events-fix include/linux/vmpressure.h
+--- a/include/linux/vmpressure.h~memcg-add-memorypressure_level-events-fix
++++ a/include/linux/vmpressure.h
+@@ -28,12 +28,6 @@ struct mem_cgroup;
+ extern void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
+ 		       unsigned long scanned, unsigned long reclaimed);
+ extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
+-#else
+-static inline void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
+-			      unsigned long scanned, unsigned long reclaimed) {}
+-static inline void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg,
+-				   int prio) {}
+-#endif /* CONFIG_MEMCG */
  
--static const char *vmpressure_str_levels[] = {
-+static const char * const vmpressure_str_levels[] = {
- 	[VMPRESSURE_LOW] = "low",
- 	[VMPRESSURE_MEDIUM] = "medium",
- 	[VMPRESSURE_CRITICAL] = "critical",
+ extern void vmpressure_init(struct vmpressure *vmpr);
+ extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
+@@ -44,5 +38,10 @@ extern int vmpressure_register_event(str
+ 				     const char *args);
+ extern void vmpressure_unregister_event(struct cgroup *cg, struct cftype *cft,
+ 					struct eventfd_ctx *eventfd);
+-
++#else
++static inline void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
++			      unsigned long scanned, unsigned long reclaimed) {}
++static inline void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg,
++				   int prio) {}
++#endif /* CONFIG_MEMCG */
+ #endif /* __LINUX_VMPRESSURE_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,7 +97,6 @@ resource-add-release_mem_region_adjustable.patch
 mm-madvise-complete-input-validation-before-taking-lock.patch
 clear_refs-sanitize-accepted-commands-declaration.patch
 memcg-add-memorypressure_level-events.patch
-memcg-add-memorypressure_level-events-fix.patch
 mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
 thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
 mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
