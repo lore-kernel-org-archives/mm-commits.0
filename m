@@ -1,52 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:45:07 -0700
-Message-ID: <20130429214507.5D80B31C257@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:45:34 -0700
+Message-ID: <20130429214539.6C1F45A4034@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:52677 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758818Ab3D2VpI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:45:08 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so240446qab.5
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:45:07 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:61544 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758199Ab3D2Vpk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:45:40 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w8so107157vbf.3
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:45:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, kumagai-atsushi@mxc.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-vmalloc-export-additional-vmalloc-layer-information-fix
+     Subject: mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kexec-vmalloc-export-additional-vmalloc-layer-information-fix.patch
+     mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into kexec-vmalloc-export-additional-vmalloc-layer-information.patch
+This patch was dropped because it was folded into mm-hugetlb-include-hugepages-in-meminfo.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kexec-vmalloc-export-additional-vmalloc-layer-information-fix
+Subject: mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
 
-vmalloc.h should include list.h for list_head
+ERROR: code indent should use tabs where possible
+#64: FILE: mm/hugetlb.c:2132:
++^I^I        ^Inid,$
 
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Eric Biederman <ebiederm@xmission.com>
+WARNING: please, no space before tabs
+#64: FILE: mm/hugetlb.c:2132:
++^I^I        ^Inid,$
+
+total: 1 errors, 1 warnings, 52 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-hugetlb-include-hugepages-in-meminfo.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information-fix include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information-fix
-+++ a/include/linux/vmalloc.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/spinlock.h>
- #include <linux/init.h>
-+#include <linux/list.h>
- #include <asm/page.h>		/* pgprot_t */
- #include <linux/rbtree.h>
- 
+diff -puN mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes
++++ a/mm/hugetlb.c
+@@ -2129,7 +2129,7 @@ void hugetlb_show_meminfo(void)
+ 	for_each_node_state(nid, N_MEMORY)
+ 		for_each_hstate(h)
+ 			pr_info("Node %d hugepages_total=%u hugepages_free=%u hugepages_surp=%u hugepages_size=%lukB\n",
+-		        	nid,
++				nid,
+ 				h->nr_huge_pages_node[nid],
+ 				h->free_huge_pages_node[nid],
+ 				h->surplus_huge_pages_node[nid],
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +78,7 @@ memcg-relax-memcg-iter-caching.patch
 mm-hugetlb-add-more-arch-defined-huge_pte-functions.patch
 mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
 kexec-vmalloc-export-additional-vmalloc-layer-information.patch
-mm-hugetlb-include-hugepages-in-meminfo-checkpatch-fixes.patch
+mm-hugetlb-include-hugepages-in-meminfo.patch
 mm-speedup-in-__early_pfn_to_nid.patch
 mm-speedup-in-__early_pfn_to_nid-fix.patch
 include-linux-memoryh-implement-register_hotmemory_notifier.patch
