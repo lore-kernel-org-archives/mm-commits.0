@@ -1,54 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:56:06 -0700
-Message-ID: <20130429215606.AC65531C022@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:56:45 -0700
+Message-ID: <20130429215645.EED1C31C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:50778 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758542Ab3D2V4H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:56:07 -0400
-Received: by mail-qe0-f74.google.com with SMTP id a11so147598qen.3
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:56:07 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:36189 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757697Ab3D2V4r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:56:47 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so714635ggm.3
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:56:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, linuxram@us.ibm.com, rientjes@google.com, toshi.kani@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix
+     Subject: mem-hotunplug-fix-kfree-of-bootmem-memory-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
+     mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
 
-This patch was dropped because it was folded into mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io.patch
+This patch was dropped because it was folded into mem-hotunplug-fix-kfree-of-bootmem-memory.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix
+Subject: mem-hotunplug-fix-kfree-of-bootmem-memory-fix
 
-remove hopefully-unneeded cast
+s/get_resource/alloc_resource/
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/resource.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix mm/page_io.c
---- a/mm/page_io.c~mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix
-+++ a/mm/page_io.c
-@@ -245,7 +245,7 @@ int __swap_writepage(struct page *page,
- 			set_page_dirty(page);
- 			ClearPageReclaim(page);
- 			pr_err_ratelimited("Write error on dio swapfile (%Lu)\n",
--				(unsigned long long)page_file_offset(page));
-+				page_file_offset(page));
- 		}
- 		end_page_writeback(page);
+diff -puN kernel/resource.c~mem-hotunplug-fix-kfree-of-bootmem-memory-fix kernel/resource.c
+--- a/kernel/resource.c~mem-hotunplug-fix-kfree-of-bootmem-memory-fix
++++ a/kernel/resource.c
+@@ -175,7 +175,7 @@ static void free_resource(struct resourc
+ 	}
+ }
+ 
+-static struct resource *get_resource(gfp_t flags)
++static struct resource *alloc_resource(gfp_t flags)
+ {
+ 	struct resource *res = NULL;
+ 
+@@ -814,7 +814,7 @@ static void __init __reserve_region_with
+ {
+ 	struct resource *parent = root;
+ 	struct resource *conflict;
+-	struct resource *res = get_resource(GFP_ATOMIC);
++	struct resource *res = alloc_resource(GFP_ATOMIC);
+ 	struct resource *next_res = NULL;
+ 
+ 	if (!res)
+@@ -849,7 +849,7 @@ static void __init __reserve_region_with
+ 			end = res->end;
+ 			res->end = conflict->start - 1;
+ 			if (conflict->end < end) {
+-				next_res = get_resource(GFP_ATOMIC);
++				next_res = alloc_resource(GFP_ATOMIC);
+ 				if (!next_res) {
+ 					free_resource(res);
+ 					break;
+@@ -941,7 +941,7 @@ struct resource * __request_region(struc
+ 				   const char *name, int flags)
+ {
+ 	DECLARE_WAITQUEUE(wait, current);
+-	struct resource *res = get_resource(GFP_KERNEL);
++	struct resource *res = alloc_resource(GFP_KERNEL);
+ 
+ 	if (!res)
+ 		return NULL;
+@@ -1097,8 +1097,8 @@ int release_mem_region_adjustable(struct
+ 	if ((start < parent->start) || (end > parent->end))
  		return ret;
+ 
+-	/* The get_resource() result gets checked later */
+-	new_res = get_resource(GFP_KERNEL);
++	/* The alloc_resource() result gets checked later */
++	new_res = alloc_resource(GFP_KERNEL);
+ 
+ 	p = &parent->child;
+ 	write_lock(&resource_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,5 +119,5 @@ memcg-add-memorypressure_level-events.patch
 mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim.patch
 thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0.patch
 mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io.patch
-mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
+mem-hotunplug-fix-kfree-of-bootmem-memory.patch
 
