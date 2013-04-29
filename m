@@ -1,69 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 15:59:33 -0700
-Message-ID: <20130429225933.BED405A418D@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 16:00:33 -0700
+Message-ID: <20130429230034.32E735A418D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:60218 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752942Ab3D2W7f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 18:59:35 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so422534ves.4
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 15:59:34 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:41146 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757577Ab3D2XAf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 19:00:35 -0400
+Received: by mail-qe0-f74.google.com with SMTP id a11so153515qen.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 16:00:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.gortmaker@windriver.com, geert@linux-m68k.org, lethal@linux-sh.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, marcin.slusarz@gmail.com, swarren@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh4: make the bios early console support depend on EARLY_PRINTK
+     Subject: get_maintainer-use-filename-only-regex-match-for-tegra-fix
 has been removed from the -mm tree.  Its filename was
-     early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix.patch
+     get_maintainer-use-filename-only-regex-match-for-tegra-fix.patch
 
-This patch was dropped because it was folded into early_printk-consolidate-random-copies-of-identical-code.patch
+This patch was dropped because it was folded into get_maintainer-use-filename-only-regex-match-for-tegra.patch
 
 ------------------------------------------------------
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: sh4: make the bios early console support depend on EARLY_PRINTK
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: get_maintainer-use-filename-only-regex-match-for-tegra-fix
 
-The commit "early_printk: consolidate random copies of identical code"
-introduces a build failure for the lboxre2_defconfig because arch/sh
-unconditionally assumes that there will be an early_console struct
-present that it can populate with bios routines to drive the
-early printk support.
+fix typo in docs, per Marcin
 
-Making this whole block conditional on EARLY_PRINTK solves the
-problem and gets rid of unused runtime code for when the feature
-is disabled at the same time.
-
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Stephen Warren <swarren@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/sh_bios.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh/kernel/sh_bios.c~early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix arch/sh/kernel/sh_bios.c
---- a/arch/sh/kernel/sh_bios.c~early_printk-consolidate-random-copies-of-identical-code-v3-fix-fix
-+++ a/arch/sh/kernel/sh_bios.c
-@@ -104,6 +104,7 @@ void sh_bios_vbr_reload(void)
- 		);
- }
- 
-+#ifdef CONFIG_EARLY_PRINTK
- /*
-  *	Print a string through the BIOS
-  */
-@@ -168,3 +169,4 @@ static int __init setup_early_printk(cha
- 	return 0;
- }
- early_param("earlyprintk", setup_early_printk);
-+#endif
+diff -puN MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra-fix MAINTAINERS
+--- a/MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra-fix
++++ a/MAINTAINERS
+@@ -91,7 +91,7 @@ Descriptions of section entries:
+ 	   F:	*/net/*		all files in "any top level directory"/net
+ 	   One pattern per line.  Multiple F: lines acceptable.
+ 	N: Files and directories with regex patterns.
+-	   N:	[^a-z]tegra	all files whose patch contains the word tegra
++	   N:	[^a-z]tegra	all files whose path contains the word tegra
+ 	   One pattern per line.  Multiple N: lines acceptable.
+ 	X: Files and directories that are NOT maintained, same rules as F:
+ 	   Files exclusions are tested before file matches.
 _
 
-Patches currently in -mm which might be from paul.gortmaker@windriver.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 
