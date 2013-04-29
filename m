@@ -1,85 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-madvise-complete-input-validation-before-taking-lock-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:53:02 -0700
-Message-ID: <20130429215302.D08315A41E9@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] clear_refs-sanitize-accepted-commands-declaration-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:53:24 -0700
+Message-ID: <20130429215324.BF8CD31C1D4@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:45832 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758160Ab3D2VxE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:53:04 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f35so193583yha.0
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:53:03 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:50160 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933150Ab3D2Vx0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:53:26 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so429762vcb.2
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:53:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, linux@rasmusvillemoes.dk, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, glommer@parallels.com, kosaki.motohiro@gmail.com, mpm@selenic.com, mtosatti@redhat.com, xemul@parallels.com, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-madvise-complete-input-validation-before-taking-lock-fix
+     Subject: clear_refs-sanitize-accepted-commands-declaration-fix
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-complete-input-validation-before-taking-lock-fix.patch
+     clear_refs-sanitize-accepted-commands-declaration-fix.patch
 
-This patch was dropped because it was folded into mm-madvise-complete-input-validation-before-taking-lock.patch
+This patch was dropped because it was folded into clear_refs-sanitize-accepted-commands-declaration.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-madvise-complete-input-validation-before-taking-lock-fix
+Subject: clear_refs-sanitize-accepted-commands-declaration-fix
 
-s/out_plug/out/, per David
+don't assume that sizeof(enum clear_refs_types) == sizeof(int)
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/proc/task_mmu.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock-fix mm/madvise.c
---- a/mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock-fix
-+++ a/mm/madvise.c
-@@ -509,14 +509,14 @@ SYSCALL_DEFINE3(madvise, unsigned long,
- 		/* Still start < end. */
- 		error = -ENOMEM;
- 		if (!vma)
--			goto out_plug;
-+			goto out;
+diff -puN fs/proc/task_mmu.c~clear_refs-sanitize-accepted-commands-declaration-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~clear_refs-sanitize-accepted-commands-declaration-fix
++++ a/fs/proc/task_mmu.c
+@@ -734,6 +734,7 @@ static ssize_t clear_refs_write(struct f
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 	enum clear_refs_types type;
++	int itype;
+ 	int rv;
  
- 		/* Here start < (end|vma->vm_end). */
- 		if (start < vma->vm_start) {
- 			unmapped_error = -ENOMEM;
- 			start = vma->vm_start;
- 			if (start >= end)
--				goto out_plug;
-+				goto out;
- 		}
- 
- 		/* Here vma->vm_start <= start < (end|vma->vm_end) */
-@@ -527,19 +527,19 @@ SYSCALL_DEFINE3(madvise, unsigned long,
- 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
- 		error = madvise_vma(vma, &prev, start, tmp, behavior);
- 		if (error)
--			goto out_plug;
-+			goto out;
- 		start = tmp;
- 		if (prev && start < prev->vm_end)
- 			start = prev->vm_end;
- 		error = unmapped_error;
- 		if (start >= end)
--			goto out_plug;
-+			goto out;
- 		if (prev)
- 			vma = prev->vm_next;
- 		else	/* madvise_remove dropped mmap_sem */
- 			vma = find_vma(current->mm, start);
- 	}
--out_plug:
-+out:
- 	blk_finish_plug(&plug);
- 	if (write)
- 		up_write(&current->mm->mmap_sem);
+ 	memset(buffer, 0, sizeof(buffer));
+@@ -741,9 +742,10 @@ static ssize_t clear_refs_write(struct f
+ 		count = sizeof(buffer) - 1;
+ 	if (copy_from_user(buffer, buf, count))
+ 		return -EFAULT;
+-	rv = kstrtoint(strstrip(buffer), 10, (int *)&type);
++	rv = kstrtoint(strstrip(buffer), 10, &itype);
+ 	if (rv < 0)
+ 		return rv;
++	type = (enum clear_refs_types)itype;
+ 	if (type < CLEAR_REFS_ALL || type >= CLEAR_REFS_LAST)
+ 		return -EINVAL;
+ 	task = get_proc_task(file_inode(file));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,7 +88,7 @@ mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
 mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
 resource-add-release_mem_region_adjustable.patch
 mm-madvise-complete-input-validation-before-taking-lock.patch
-clear_refs-sanitize-accepted-commands-declaration-fix.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
 memcg-add-memorypressure_level-events-checkpatch-fixes.patch
 memcg-add-memorypressure_level-events-fix.patch
 mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
