@@ -1,72 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 15:58:07 -0700
-Message-ID: <20130429225807.AB62A31C022@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] misc-generic-on-chip-sram-allocation-driver-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 15:58:52 -0700
+Message-ID: <20130429225852.B7D8831C07C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:32987 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752942Ab3D2W6J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 18:58:09 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so719889qcr.2
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 15:58:08 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:49431 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757226Ab3D2W6x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 18:58:53 -0400
+Received: by mail-gg0-f201.google.com with SMTP id y3so475514ggc.0
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 15:58:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dong.aisheng@linaro.org, fabio.estevam@freescale.com, grant.likely@secretlab.ca, gregkh@linuxfoundation.org, javier.martin@vista-silicon.com, monstr@monstr.eu, mporter@ti.com, p.zabel@pengutronix.de, paul.gortmaker@windriver.com, rob.herring@calxeda.com, shijie8@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, p.zabel@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix
+     Subject: misc-generic-on-chip-sram-allocation-driver-fix
 has been removed from the -mm tree.  Its filename was
-     genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix.patch
+     misc-generic-on-chip-sram-allocation-driver-fix.patch
 
-This patch was dropped because it was folded into genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device.patch
+This patch was dropped because it was folded into misc-generic-on-chip-sram-allocation-driver.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix
+Subject: misc-generic-on-chip-sram-allocation-driver-fix
 
-squish "struct device declared inside parameter list" warning
+fix Kconfig text, make sram_init static
 
-Cc: Dong Aisheng <dong.aisheng@linaro.org>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huang Shijie <shijie8@gmail.com>
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Cc: Matt Porter <mporter@ti.com>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/misc/Kconfig |    6 +++---
+ drivers/misc/sram.c  |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/genalloc.h~genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-add-devres-support-allow-to-find-a-managed-pool-by-device-fix-fix
-+++ a/include/linux/genalloc.h
-@@ -29,6 +29,10 @@
+diff -puN drivers/misc/Kconfig~misc-generic-on-chip-sram-allocation-driver-fix drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~misc-generic-on-chip-sram-allocation-driver-fix
++++ a/drivers/misc/Kconfig
+@@ -523,9 +523,9 @@ config SRAM
+ 	depends on HAS_IOMEM
+ 	select GENERIC_ALLOCATOR
+ 	help
+-	  This driver allows to declare a memory region to be managed
+-	  by the genalloc API. It is supposed to be used for small
+-	  on-chip SRAM areas found on many SoCs.
++	  This driver allows you to declare a memory region to be managed by
++	  the genalloc API. It is supposed to be used for small on-chip SRAM
++	  areas found on many SoCs.
  
- #ifndef __GENALLOC_H__
- #define __GENALLOC_H__
-+
-+struct device;
-+struct device_node;
-+
- /**
-  * Allocation callback function type definition
-  * @map: Pointer to bitmap
-@@ -109,7 +113,6 @@ extern struct gen_pool *devm_gen_pool_cr
- 		int min_alloc_order, int nid);
- extern struct gen_pool *dev_get_gen_pool(struct device *dev);
+ source "drivers/misc/c2port/Kconfig"
+ source "drivers/misc/eeprom/Kconfig"
+diff -puN drivers/misc/sram.c~misc-generic-on-chip-sram-allocation-driver-fix drivers/misc/sram.c
+--- a/drivers/misc/sram.c~misc-generic-on-chip-sram-allocation-driver-fix
++++ a/drivers/misc/sram.c
+@@ -113,7 +113,7 @@ static struct platform_driver sram_drive
+ 	.remove = sram_remove,
+ };
  
--struct device_node;
- #ifdef CONFIG_OF
- extern struct gen_pool *of_get_named_gen_pool(struct device_node *np,
- 	const char *propname, int index);
+-int __init sram_init(void)
++static int __init sram_init(void)
+ {
+ 	return platform_driver_register(&sram_driver);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
