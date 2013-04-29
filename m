@@ -1,99 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] clear_refs-sanitize-accepted-commands-declaration-fix.patch removed from -mm tree
-Date: Mon, 29 Apr 2013 14:53:24 -0700
-Message-ID: <20130429215324.BF8CD31C1D4@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch removed from -mm tree
+Date: Mon, 29 Apr 2013 14:53:52 -0700
+Message-ID: <20130429215352.69D135A41E9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:50160 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933150Ab3D2Vx0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:53:26 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so429762vcb.2
-        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:53:25 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42441 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933150Ab3D2Vxx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Apr 2013 17:53:53 -0400
+Received: by mail-qa0-f74.google.com with SMTP id bs12so241929qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Apr 2013 14:53:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, glommer@parallels.com, kosaki.motohiro@gmail.com, mpm@selenic.com, mtosatti@redhat.com, xemul@parallels.com, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: xemul@parallels.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: clear_refs-sanitize-accepted-commands-declaration-fix
+     Subject: mem-soft-dirty: Reshuffle CONFIG_ options to be more Arch-friendly
 has been removed from the -mm tree.  Its filename was
-     clear_refs-sanitize-accepted-commands-declaration-fix.patch
+     mm-soft-dirty-bits-for-user-memory-changes-tracking-fix.patch
 
-This patch was dropped because it was folded into clear_refs-sanitize-accepted-commands-declaration.patch
+This patch was dropped because it was folded into mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: clear_refs-sanitize-accepted-commands-declaration-fix
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: mem-soft-dirty: Reshuffle CONFIG_ options to be more Arch-friendly
 
-don't assume that sizeof(enum clear_refs_types) == sizeof(int)
+As Stephen Rothwell pointed out, config options, that depend on
+architecture support, are better to be wrapped into a select +
+depends on scheme.
 
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Do this for CONFIG_MEM_SOFT_DIRTY, as it currently works only
+for X86.
+
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/Kconfig                   |    3 +++
+ arch/x86/Kconfig               |    1 +
+ arch/x86/include/asm/pgtable.h |    2 --
+ include/asm-generic/pgtable.h  |    2 +-
+ mm/Kconfig                     |    2 +-
+ 5 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~clear_refs-sanitize-accepted-commands-declaration-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~clear_refs-sanitize-accepted-commands-declaration-fix
-+++ a/fs/proc/task_mmu.c
-@@ -734,6 +734,7 @@ static ssize_t clear_refs_write(struct f
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
- 	enum clear_refs_types type;
-+	int itype;
- 	int rv;
+diff -puN arch/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/Kconfig
+--- a/arch/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/arch/Kconfig
+@@ -362,6 +362,9 @@ config HAVE_IRQ_TIME_ACCOUNTING
+ config HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	bool
  
- 	memset(buffer, 0, sizeof(buffer));
-@@ -741,9 +742,10 @@ static ssize_t clear_refs_write(struct f
- 		count = sizeof(buffer) - 1;
- 	if (copy_from_user(buffer, buf, count))
- 		return -EFAULT;
--	rv = kstrtoint(strstrip(buffer), 10, (int *)&type);
-+	rv = kstrtoint(strstrip(buffer), 10, &itype);
- 	if (rv < 0)
- 		return rv;
-+	type = (enum clear_refs_types)itype;
- 	if (type < CLEAR_REFS_ALL || type >= CLEAR_REFS_LAST)
- 		return -EINVAL;
- 	task = get_proc_task(file_inode(file));
++config HAVE_ARCH_SOFT_DIRTY
++	bool
++
+ config HAVE_MOD_ARCH_SPECIFIC
+ 	bool
+ 	help
+diff -puN arch/x86/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/arch/x86/Kconfig
+@@ -101,6 +101,7 @@ config X86
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select BUILDTIME_EXTABLE_SORT
+ 	select GENERIC_CMOS_UPDATE
++	select HAVE_ARCH_SOFT_DIRTY
+ 	select CLOCKSOURCE_WATCHDOG
+ 	select GENERIC_CLOCKEVENTS
+ 	select ARCH_CLOCKSOURCE_DATA if X86_64
+diff -puN arch/x86/include/asm/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/arch/x86/include/asm/pgtable.h
+@@ -294,8 +294,6 @@ static inline pmd_t pmd_mknotpresent(pmd
+ 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
+ }
+ 
+-#define __HAVE_SOFT_DIRTY
+-
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+ 	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
+diff -puN include/asm-generic/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/include/asm-generic/pgtable.h
+@@ -396,7 +396,7 @@ static inline void ptep_modify_prot_comm
+ #define arch_start_context_switch(prev)	do {} while (0)
+ #endif
+ 
+-#ifndef __HAVE_SOFT_DIRTY
++#ifndef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline int pte_soft_dirty(pte_t pte)
+ {
+ 	return 0;
+diff -puN mm/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix mm/Kconfig
+--- a/mm/Kconfig~mm-soft-dirty-bits-for-user-memory-changes-tracking-fix
++++ a/mm/Kconfig
+@@ -474,7 +474,7 @@ config FRONTSWAP
+ 
+ config MEM_SOFT_DIRTY
+ 	bool "Track memory changes"
+-	depends on CHECKPOINT_RESTORE && X86
++	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY
+ 	select PROC_PAGE_MONITOR
+ 	help
+ 	  This option enables memory changes tracking by introducing a
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xemul@parallels.com are
 
-origin.patch
-auditsc-use-kzalloc-instead-of-kmallocmemset.patch
-kernel-audit_treec-tree-will-leak-memory-when-failure-occurs-in-audit_trim_trees.patch
-mm-shmemc-remove-an-ifdef.patch
-memcg-relax-memcg-iter-caching.patch
-mm-hugetlb-add-more-arch-defined-huge_pte-functions.patch
-mm-make-snapshotting-pages-for-stable-writes-a-per-bio-operation.patch
-kexec-vmalloc-export-additional-vmalloc-layer-information.patch
-mm-hugetlb-include-hugepages-in-meminfo.patch
-mm-speedup-in-__early_pfn_to_nid.patch
-include-linux-memoryh-implement-register_hotmemory_notifier.patch
-ipc-utilc-use-register_hotmemory_notifier.patch
-mm-slubc-use-register_hotmemory_notifier.patch
-drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
-fs-proc-kcorec-use-register_hotmemory_notifier.patch
-kernel-cpusetc-use-register_hotmemory_notifier.patch
-mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
-mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
-mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
-resource-add-release_mem_region_adjustable.patch
-mm-madvise-complete-input-validation-before-taking-lock.patch
 clear_refs-sanitize-accepted-commands-declaration.patch
-memcg-add-memorypressure_level-events-checkpatch-fixes.patch
-memcg-add-memorypressure_level-events-fix.patch
-mm-thp-add-split-tail-pages-to-shrink-page-list-in-page-reclaim-fix-fix.patch
-thp-fix-huge-zero-page-logic-for-page-with-pfn-==-0-fix.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix.patch
-mm-swap-mark-swap-pages-writeback-before-queueing-for-direct-io-fix-fix.patch
-mem-hotunplug-fix-kfree-of-bootmem-memory-fix.patch
+clear_refs-introduce-private-struct-for-mm_walk.patch
+pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
+pagemap-introduce-the-proc-pid-pagemap2-file.patch
+mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
 
