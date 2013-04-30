@@ -1,102 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-lp855x-remove-duplicate-platform-data.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:53:02 -0700
-Message-ID: <20130430185302.776705A41E9@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-lp855x-move-backlight-mode-platform-data.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:52:56 -0700
+Message-ID: <20130430185256.76DA45A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:63935 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933099Ab3D3SxD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:03 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w8so86444vbf.3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:03 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:55506 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933099Ab3D3Sw5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:52:57 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so86424vbe.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:52:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Milo.Kim@ti.com, milo.kim@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: lp855x: remove duplicate platform data
+     Subject: backlight: lp855x: move backlight mode platform data
 has been removed from the -mm tree.  Its filename was
-     backlight-lp855x-remove-duplicate-platform-data.patch
+     backlight-lp855x-move-backlight-mode-platform-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: backlight: lp855x: remove duplicate platform data
+Subject: backlight: lp855x: move backlight mode platform data
 
-The 'load_new_rom_data' was used for checking whether new ROM data should
-be updated or not.
+The brightness of LP855x devices is controlled by I2C register or PWM
+input .  This mode was selected through the platform data, but it can be
+chosen by the driver internally without platform data configuration.
 
-However, we can decide it with 'size_program' data.  If the size is
-greater than 0, it means updating ROM area is required.  Otherwise, the
-default ROM data will be used.  Therefore, this duplicate platform data
-can be removed.
+How to decide the control mode:
+  If the PWM period has specific value, the mode is PWM input.
+  On the other hand, the mode is register-based.
+  This mode selection is done on the _probe().
+
+Move 'mode' from a header file to the driver private data structure,
+'lp855 x'.  And correlated code was replaced.
 
 Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/backlight/lp855x-driver.txt |    4 ----
- drivers/video/backlight/lp855x_bl.c       |    2 +-
- include/linux/platform_data/lp855x.h      |    4 ----
- 3 files changed, 1 insertion(+), 9 deletions(-)
+ Documentation/backlight/lp855x-driver.txt |    3 --
+ drivers/video/backlight/lp855x_bl.c       |   21 ++++++++++++++------
+ include/linux/platform_data/lp855x.h      |    7 ------
+ 3 files changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/backlight/lp855x-driver.txt~backlight-lp855x-remove-duplicate-platform-data Documentation/backlight/lp855x-driver.txt
---- a/Documentation/backlight/lp855x-driver.txt~backlight-lp855x-remove-duplicate-platform-data
+diff -puN Documentation/backlight/lp855x-driver.txt~backlight-lp855x-move-backlight-mode-platform-data Documentation/backlight/lp855x-driver.txt
+--- a/Documentation/backlight/lp855x-driver.txt~backlight-lp855x-move-backlight-mode-platform-data
 +++ a/Documentation/backlight/lp855x-driver.txt
-@@ -36,9 +36,6 @@ For supporting platform specific data, t
+@@ -32,7 +32,6 @@ Platform data for lp855x
+ For supporting platform specific data, the lp855x platform data can be used.
+ 
+ * name : Backlight driver name. If it is not defined, default name is set.
+-* mode : Brightness control mode. PWM or register based.
+ * device_control : Value of DEVICE CONTROL register.
  * initial_brightness : Initial value of backlight brightness.
  * period_ns : Platform specific PWM period value. unit is nano.
- 	     Only valid when brightness is pwm input mode.
--* load_new_rom_data :
--	0 : use default configuration data
--	1 : update values of eeprom or eprom registers on loading driver
- * size_program : Total size of lp855x_rom_data.
- * rom_data : List of new eeprom/eprom registers.
+@@ -54,7 +53,6 @@ static struct lp855x_rom_data lp8552_eep
  
-@@ -55,7 +52,6 @@ static struct lp855x_platform_data lp855
+ static struct lp855x_platform_data lp8552_pdata = {
  	.name = "lcd-bl",
+-	.mode = REGISTER_BASED,
  	.device_control = I2C_CONFIG(LP8552),
  	.initial_brightness = INITIAL_BRT,
--	.load_new_rom_data = 1,
- 	.size_program = ARRAY_SIZE(lp8552_eeprom_arr),
- 	.rom_data = lp8552_eeprom_arr,
- };
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-remove-duplicate-platform-data drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-remove-duplicate-platform-data
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -192,7 +192,7 @@ static int lp855x_configure(struct lp855
- 	if (ret)
- 		goto err;
+ 	.load_new_rom_data = 1,
+@@ -65,7 +63,6 @@ static struct lp855x_platform_data lp855
+ example 2) lp8556 platform data : pwm input mode with default rom data
  
--	if (pd->load_new_rom_data && pd->size_program) {
-+	if (pd->size_program > 0) {
- 		for (i = 0; i < pd->size_program; i++) {
- 			addr = pd->rom_data[i].addr;
- 			val = pd->rom_data[i].val;
-diff -puN include/linux/platform_data/lp855x.h~backlight-lp855x-remove-duplicate-platform-data include/linux/platform_data/lp855x.h
---- a/include/linux/platform_data/lp855x.h~backlight-lp855x-remove-duplicate-platform-data
+ static struct lp855x_platform_data lp8556_pdata = {
+-	.mode = PWM_BASED,
+ 	.device_control = PWM_CONFIG(LP8556),
+ 	.initial_brightness = INITIAL_BRT,
+ 	.period_ns = 1000000,
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-move-backlight-mode-platform-data drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-move-backlight-mode-platform-data
++++ a/drivers/video/backlight/lp855x_bl.c
+@@ -38,6 +38,11 @@
+ #define DEFAULT_BL_NAME		"lcd-backlight"
+ #define MAX_BRIGHTNESS		255
+ 
++enum lp855x_brightness_ctrl_mode {
++	PWM_BASED = 1,
++	REGISTER_BASED,
++};
++
+ struct lp855x;
+ 
+ /*
+@@ -57,6 +62,7 @@ struct lp855x_device_config {
+ struct lp855x {
+ 	const char *chipname;
+ 	enum lp855x_chip_id chip_id;
++	enum lp855x_brightness_ctrl_mode mode;
+ 	struct lp855x_device_config *cfg;
+ 	struct i2c_client *client;
+ 	struct backlight_device *bl;
+@@ -238,18 +244,17 @@ static void lp855x_pwm_ctrl(struct lp855
+ static int lp855x_bl_update_status(struct backlight_device *bl)
+ {
+ 	struct lp855x *lp = bl_get_data(bl);
+-	enum lp855x_brightness_ctrl_mode mode = lp->pdata->mode;
+ 
+ 	if (bl->props.state & BL_CORE_SUSPENDED)
+ 		bl->props.brightness = 0;
+ 
+-	if (mode == PWM_BASED) {
++	if (lp->mode == PWM_BASED) {
+ 		int br = bl->props.brightness;
+ 		int max_br = bl->props.max_brightness;
+ 
+ 		lp855x_pwm_ctrl(lp, br, max_br);
+ 
+-	} else if (mode == REGISTER_BASED) {
++	} else if (lp->mode == REGISTER_BASED) {
+ 		u8 val = bl->props.brightness;
+ 		lp855x_write_byte(lp, lp->cfg->reg_brightness, val);
+ 	}
+@@ -310,12 +315,11 @@ static ssize_t lp855x_get_bl_ctl_mode(st
+ 				     struct device_attribute *attr, char *buf)
+ {
+ 	struct lp855x *lp = dev_get_drvdata(dev);
+-	enum lp855x_brightness_ctrl_mode mode = lp->pdata->mode;
+ 	char *strmode = NULL;
+ 
+-	if (mode == PWM_BASED)
++	if (lp->mode == PWM_BASED)
+ 		strmode = "pwm based";
+-	else if (mode == REGISTER_BASED)
++	else if (lp->mode == REGISTER_BASED)
+ 		strmode = "register based";
+ 
+ 	return scnprintf(buf, PAGE_SIZE, "%s\n", strmode);
+@@ -352,6 +356,11 @@ static int lp855x_probe(struct i2c_clien
+ 	if (!lp)
+ 		return -ENOMEM;
+ 
++	if (pdata->period_ns > 0)
++		lp->mode = PWM_BASED;
++	else
++		lp->mode = REGISTER_BASED;
++
+ 	lp->client = cl;
+ 	lp->dev = &cl->dev;
+ 	lp->pdata = pdata;
+diff -puN include/linux/platform_data/lp855x.h~backlight-lp855x-move-backlight-mode-platform-data include/linux/platform_data/lp855x.h
+--- a/include/linux/platform_data/lp855x.h~backlight-lp855x-move-backlight-mode-platform-data
 +++ a/include/linux/platform_data/lp855x.h
-@@ -115,9 +115,6 @@ struct lp855x_rom_data {
+@@ -69,11 +69,6 @@ enum lp855x_chip_id {
+ 	LP8557,
+ };
+ 
+-enum lp855x_brightness_ctrl_mode {
+-	PWM_BASED = 1,
+-	REGISTER_BASED,
+-};
+-
+ enum lp8550_brighntess_source {
+ 	LP8550_PWM_ONLY,
+ 	LP8550_I2C_ONLY = 2,
+@@ -116,7 +111,6 @@ struct lp855x_rom_data {
+ /**
+  * struct lp855x_platform_data
+  * @name : Backlight driver name. If it is not defined, default name is set.
+- * @mode : brightness control by pwm or lp855x register
+  * @device_control : value of DEVICE CONTROL register
   * @initial_brightness : initial value of backlight brightness
   * @period_ns : platform specific pwm period value. unit is nano.
- 		Only valid when mode is PWM_BASED.
-- * @load_new_rom_data :
--	0 : use default configuration data
--	1 : update values of eeprom or eprom registers on loading driver
-  * @size_program : total size of lp855x_rom_data
-  * @rom_data : list of new eeprom/eprom registers
+@@ -129,7 +123,6 @@ struct lp855x_rom_data {
   */
-@@ -126,7 +123,6 @@ struct lp855x_platform_data {
+ struct lp855x_platform_data {
+ 	const char *name;
+-	enum lp855x_brightness_ctrl_mode mode;
  	u8 device_control;
- 	u8 initial_brightness;
+ 	int initial_brightness;
  	unsigned int period_ns;
--	u8 load_new_rom_data;
- 	int size_program;
- 	struct lp855x_rom_data *rom_data;
- };
 _
 
 Patches currently in -mm which might be from Milo.Kim@ti.com are
