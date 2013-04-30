@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:51:52 -0700
-Message-ID: <20130430185152.6FABF5A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:51:54 -0700
+Message-ID: <20130430185154.7135C31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:39811 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932551Ab3D3Svx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:53 -0400
-Received: by mail-qa0-f73.google.com with SMTP id p6so87711qad.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:52 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:52092 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932551Ab3D3Svz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:55 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so76921ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: adp8870: convert adp8870 to dev_pm_ops
+     Subject: backlight: corgi_lcd: convert corgi_lcd to dev_pm_ops
 has been removed from the -mm tree.  Its filename was
-     backlight-adp8870-convert-adp8870-to-dev_pm_ops.patch
+     backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: adp8870: convert adp8870 to dev_pm_ops
+Subject: backlight: corgi_lcd: convert corgi_lcd to dev_pm_ops
 
 Instead of using legacy suspend/resume methods, using newer dev_pm_ops
 structure allows better control over power management.
@@ -33,63 +33,64 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8870_bl.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/video/backlight/corgi_lcd.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/backlight/adp8870_bl.c~backlight-adp8870-convert-adp8870-to-dev_pm_ops drivers/video/backlight/adp8870_bl.c
---- a/drivers/video/backlight/adp8870_bl.c~backlight-adp8870-convert-adp8870-to-dev_pm_ops
-+++ a/drivers/video/backlight/adp8870_bl.c
-@@ -947,25 +947,29 @@ static int adp8870_remove(struct i2c_cli
- 	return 0;
- }
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-convert-corgi_lcd-to-dev_pm_ops
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -457,10 +457,10 @@ static const struct backlight_ops corgi_
+ 	.update_status  = corgi_bl_update_status,
+ };
  
 -#ifdef CONFIG_PM
--static int adp8870_i2c_suspend(struct i2c_client *client, pm_message_t message)
+-static int corgi_lcd_suspend(struct spi_device *spi, pm_message_t state)
 +#ifdef CONFIG_PM_SLEEP
-+static int adp8870_i2c_suspend(struct device *dev)
++static int corgi_lcd_suspend(struct device *dev)
  {
-+	struct i2c_client *client = to_i2c_client(dev);
-+
- 	adp8870_clr_bits(client, ADP8870_MDCR, NSTBY);
+-	struct corgi_lcd *lcd = spi_get_drvdata(spi);
++	struct corgi_lcd *lcd = dev_get_drvdata(dev);
  
+ 	corgibl_flags |= CORGIBL_SUSPENDED;
+ 	corgi_bl_set_intensity(lcd, 0);
+@@ -468,20 +468,19 @@ static int corgi_lcd_suspend(struct spi_
  	return 0;
  }
  
--static int adp8870_i2c_resume(struct i2c_client *client)
-+static int adp8870_i2c_resume(struct device *dev)
+-static int corgi_lcd_resume(struct spi_device *spi)
++static int corgi_lcd_resume(struct device *dev)
  {
-+	struct i2c_client *client = to_i2c_client(dev);
-+
- 	adp8870_set_bits(client, ADP8870_MDCR, NSTBY | BLEN);
+-	struct corgi_lcd *lcd = spi_get_drvdata(spi);
++	struct corgi_lcd *lcd = dev_get_drvdata(dev);
  
+ 	corgibl_flags &= ~CORGIBL_SUSPENDED;
+ 	corgi_lcd_set_power(lcd->lcd_dev, FB_BLANK_UNBLANK);
+ 	backlight_update_status(lcd->bl_dev);
  	return 0;
  }
 -#else
--#define adp8870_i2c_suspend NULL
--#define adp8870_i2c_resume NULL
+-#define corgi_lcd_suspend	NULL
+-#define corgi_lcd_resume	NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(adp8870_i2c_pm_ops, adp8870_i2c_suspend,
-+			adp8870_i2c_resume);
++static SIMPLE_DEV_PM_OPS(corgi_lcd_pm_ops, corgi_lcd_suspend, corgi_lcd_resume);
 +
- static const struct i2c_device_id adp8870_id[] = {
- 	{ "adp8870", 0 },
- 	{ }
-@@ -974,12 +978,11 @@ MODULE_DEVICE_TABLE(i2c, adp8870_id);
- 
- static struct i2c_driver adp8870_driver = {
- 	.driver = {
--		.name = KBUILD_MODNAME,
-+		.name	= KBUILD_MODNAME,
-+		.pm	= &adp8870_i2c_pm_ops,
+ static int setup_gpio_backlight(struct corgi_lcd *lcd,
+ 				struct corgi_lcd_platform_data *pdata)
+ {
+@@ -611,11 +610,10 @@ static struct spi_driver corgi_lcd_drive
+ 	.driver		= {
+ 		.name	= "corgi-lcd",
+ 		.owner	= THIS_MODULE,
++		.pm	= &corgi_lcd_pm_ops,
  	},
- 	.probe    = adp8870_probe,
- 	.remove   = adp8870_remove,
--	.suspend = adp8870_i2c_suspend,
--	.resume  = adp8870_i2c_resume,
- 	.id_table = adp8870_id,
+ 	.probe		= corgi_lcd_probe,
+ 	.remove		= corgi_lcd_remove,
+-	.suspend	= corgi_lcd_suspend,
+-	.resume		= corgi_lcd_resume,
  };
  
+ module_spi_driver(corgi_lcd_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
