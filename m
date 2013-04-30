@@ -1,75 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:52:17 -0700
-Message-ID: <20130430185217.875155A425C@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-da903x_bl-use-bl_core_suspendresume-option.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:52:23 -0700
+Message-ID: <20130430185223.738E731C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:56437 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933102Ab3D3SwS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:52:18 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m3so86437yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:52:18 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:35224 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933102Ab3D3SwY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:52:24 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w8so86385vbf.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:52:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: devendra.aaru@gmail.com, jg1.han@samsung.com, michael.hennerich@analog.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, lars@metafoo.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/adp5520_bl.c: fix compiler warning in adp5520_show()
+     Subject: backlight: da903x_bl: use BL_CORE_SUSPENDRESUME option
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show.patch
+     backlight-da903x_bl-use-bl_core_suspendresume-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: drivers/video/backlight/adp5520_bl.c: fix compiler warning in adp5520_show()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: da903x_bl: use BL_CORE_SUSPENDRESUME option
 
-While compiling with make W=1 (gcc gcc (GCC) 4.7.2 20121109 (Red Hat
-4.7.2-8)) found the following warning
+Use BL_CORE_SUSPENDRESUME option to support suspend/resume.
+It reduces code size.
 
-drivers/video/backlight/adp5520_bl.c: In function `adp5520_show':
-drivers/video/backlight/adp5520_bl.c:146:6: warning: variable `error' set but not used [-Wunused-but-set-variable]
-
-fixed by checking the return value of the variable
-
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp5520_bl.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/video/backlight/da903x_bl.c |   30 ++++----------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
 
-diff -puN drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show drivers/video/backlight/adp5520_bl.c
---- a/drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-fix-compiler-warning-in-adp5520_show
-+++ a/drivers/video/backlight/adp5520_bl.c
-@@ -143,13 +143,16 @@ static int adp5520_bl_setup(struct backl
- static ssize_t adp5520_show(struct device *dev, char *buf, int reg)
- {
- 	struct adp5520_bl *data = dev_get_drvdata(dev);
--	int error;
-+	int ret;
- 	uint8_t reg_val;
+diff -puN drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-bl_core_suspendresume-option drivers/video/backlight/da903x_bl.c
+--- a/drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-bl_core_suspendresume-option
++++ a/drivers/video/backlight/da903x_bl.c
+@@ -88,16 +88,21 @@ static int da903x_backlight_update_statu
+ 	if (bl->props.fb_blank != FB_BLANK_UNBLANK)
+ 		brightness = 0;
  
- 	mutex_lock(&data->lock);
--	error = adp5520_read(data->master, reg, &reg_val);
-+	ret = adp5520_read(data->master, reg, &reg_val);
- 	mutex_unlock(&data->lock);
- 
-+	if (ret < 0)
-+		return ret;
++	if (bl->props.state & BL_CORE_SUSPENDED)
++		brightness = 0;
 +
- 	return sprintf(buf, "%u\n", reg_val);
+ 	return da903x_backlight_set(bl, brightness);
  }
  
-_
-
-Patches currently in -mm which might be from devendra.aaru@gmail.com are
-
-origin.patch
-linux-next.patch
-
+ static int da903x_backlight_get_brightness(struct backlight_device *bl)
+ {
+ 	struct da903x_backlight_data *data = bl_get_data(bl);
++
+ 	return data->current_brightness;
+ }
+ 
+ static const struct backlight_ops da903x_backlight_ops = {
++	.options	= BL_CORE_SUSPENDRESUME,
+ 	.update_status	= da903x_backlight_update_status,
+ 	.get_brightness	= da903x_backlight_get_brightness,
+ };
+@@ -161,35 +166,10 @@ static int da903x_backlight_remove(struc
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+-static int da903x_backlight_suspend(struct device *dev)
+-{
+-	struct backlight_device *bl = dev_get_drvdata(dev);
+-
+-	return da903x_backlight_set(bl, 0);
+-}
+-
+-static int da903x_backlight_resume(struct device *dev)
+-{
+-	struct backlight_device *bl = dev_get_drvdata(dev);
+-
+-	backlight_update_status(bl);
+-	return 0;
+-}
+-
+-static const struct dev_pm_ops da903x_backlight_pm_ops = {
+-	.suspend	= da903x_backlight_suspend,
+-	.resume		= da903x_backlight_resume,
+-};
+-#endif
