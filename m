@@ -1,77 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-check-for-reuse-of-krealloc-arg.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:53:23 -0700
-Message-ID: <20130430185323.855545A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] checkpatch-prefer-seq_puts-to-seq_printf.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:53:26 -0700
+Message-ID: <20130430185326.7367031C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:64623 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933133Ab3D3SxY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:24 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so86455ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:24 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:38900 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933133Ab3D3Sx1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:27 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so86555vbe.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, dwmw2@infradead.org, khali@linux-fr.org, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: joe@perches.com, bhelgaas@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add check for reuse of krealloc arg
+     Subject: checkpatch: Prefer seq_puts to seq_printf
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-check-for-reuse-of-krealloc-arg.patch
+     checkpatch-prefer-seq_puts-to-seq_printf.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Joe Perches <joe@perches.com>
-Subject: checkpatch: add check for reuse of krealloc arg
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: Prefer seq_puts to seq_printf
 
-On Thu, 2013-03-14 at 13:30 +0000, David Woodhouse wrote:
-> If krealloc() returns NULL, it *doesn't* free the original. So any co=
-de
-> of the form 'foo =3D krealloc(foo, =E2=80=A6);' is almost certainly a=
- bug.
-
-So add a check for it to checkpatch.
+Add a check for seq_printf use with a constant format without additional
+arguments.  Suggest seq_puts instead.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Acked-by: Guenter Roeck <linux@roeck-us.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ scripts/checkpatch.pl |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-reuse-of-kreal=
-loc-arg scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-check-for-reuse-of-krealloc-=
-arg
+diff -puN scripts/checkpatch.pl~checkpatch-prefer-seq_puts-to-seq_printf scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-prefer-seq_puts-to-seq_printf
 +++ a/scripts/checkpatch.pl
-@@ -3477,6 +3477,13 @@ sub process {
- 			     "unnecessary cast may hide bugs, see http://c-faq.com/malloc/m=
-allocnocast.html\n" . $herecurr);
+@@ -628,6 +628,13 @@ sub sanitise_line {
+ 	return $res;
+ }
+ 
++sub get_quoted_string {
++	my ($line, $rawline) = @_;
++
++	return "" if ($line !~ m/(\"[X]+\")/g);
++	return substr($rawline, $-[0], $+[0] - $-[0]);
++}
++
+ sub ctx_statement_block {
+ 	my ($linenr, $remain, $off) = @_;
+ 	my $line = $linenr - 1;
+@@ -3373,6 +3380,15 @@ sub process {
+ 			     "struct spinlock should be spinlock_t\n" . $herecurr);
  		}
-=20
-+# check for krealloc arg reuse
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =3D~ /\b($Lval)\s*\=3D\s*(?:$balanced_parens)?\s*krealloc\=
-s*\(\s*\1\s*,/) {
-+			WARN("KREALLOC_ARG_REUSE",
-+			     "Reusing the krealloc arg is almost always a bug\n" . $herecur=
-r);
+ 
++# check for seq_printf uses that could be seq_puts
++		if ($line =~ /\bseq_printf\s*\(/) {
++			my $fmt = get_quoted_string($line, $rawline);
++			if ($fmt !~ /[^\\]\%/) {
++				WARN("PREFER_SEQ_PUTS",
++				     "Prefer seq_puts to seq_printf\n" . $herecurr);
++			}
 +		}
 +
- # check for alloc argument mismatch
- 		if ($line =3D~ /\b(kcalloc|kmalloc_array)\s*\(\s*sizeof\b/) {
- 			WARN("ALLOC_ARRAY_ARGS",
+ # Check for misused memsets
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    defined $stat &&
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -85,8 +83,3 @@ kexec-fix-wrong-types-of-some-local-variables.patch
 kexec-use-min_t-to-simplify-logic.patch
 kexec-use-min_t-to-simplify-logic-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
