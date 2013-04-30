@@ -1,95 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-at91rm9200c-add-dt-support.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:00 -0700
-Message-ID: <20130430185900.6705531C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-tps80031-use-devm_rtc_device_register.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:56:26 -0700
+Message-ID: <20130430185626.660C131C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:57308 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933035Ab3D3S7C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:02 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f35so86884yha.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:00 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:63150 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933302Ab3D3S41 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:56:27 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so87039vcb.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:56:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manabian@gmail.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-at91rm9200.c: add DT support
+     Subject: rtc: rtc-tps80031: use devm_rtc_device_register()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-at91rm9200c-add-dt-support.patch
+     rtc-rtc-tps80031-use-devm_rtc_device_register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joachim Eastwood <manabian@gmail.com>
-Subject: drivers/rtc/rtc-at91rm9200.c: add DT support
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-tps80031: use devm_rtc_device_register()
 
-Signed-off-by: Joachim Eastwood <manabian@gmail.com>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+devm_rtc_device_register() is device managed and makes cleanup
+paths simpler.
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt |   15 ++++++++++
- drivers/rtc/rtc-at91rm9200.c                                   |    9 ++++++
- 2 files changed, 24 insertions(+)
+ drivers/rtc/rtc-tps80031.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
-@@ -0,0 +1,15 @@
-+Atmel AT91RM9200 Real Time Clock
-+
-+Required properties:
-+- compatible: should be: "atmel,at91rm9200-rtc"
-+- reg: physical base address of the controller and length of memory mapped
-+  region.
-+- interrupts: rtc alarm/event interrupt
-+
-+Example:
-+
-+rtc@fffffe00 {
-+	compatible = "atmel,at91rm9200-rtc";
-+	reg = <0xfffffe00 0x100>;
-+	interrupts = <1 4 7>;
-+};
-diff -puN drivers/rtc/rtc-at91rm9200.c~drivers-rtc-rtc-at91rm9200c-add-dt-support drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~drivers-rtc-rtc-at91rm9200c-add-dt-support
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -28,6 +28,8 @@
- #include <linux/ioctl.h>
- #include <linux/completion.h>
- #include <linux/io.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
+diff -puN drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-use-devm_rtc_device_register drivers/rtc/rtc-tps80031.c
+--- a/drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-tps80031.c
+@@ -277,7 +277,7 @@ static int tps80031_rtc_probe(struct pla
+ 		return ret;
+ 	}
  
- #include <asm/uaccess.h>
+-	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
++	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 			       &tps80031_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rtc)) {
+ 		ret = PTR_ERR(rtc->rtc);
+@@ -292,7 +292,6 @@ static int tps80031_rtc_probe(struct pla
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "request IRQ:%d failed, err = %d\n",
+ 			 rtc->irq, ret);
+-		rtc_device_unregister(rtc->rtc);
+ 		return ret;
+ 	}
+ 	device_set_wakeup_capable(&pdev->dev, 1);
+@@ -301,9 +300,6 @@ static int tps80031_rtc_probe(struct pla
  
-@@ -373,12 +375,19 @@ static int at91_rtc_resume(struct device
- 
- static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops, at91_rtc_suspend, at91_rtc_resume);
- 
-+static const struct of_device_id at91_rtc_dt_ids[] = {
-+	{ .compatible = "atmel,at91rm9200-rtc" },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, at91_rtc_dt_ids);
-+
- static struct platform_driver at91_rtc_driver = {
- 	.remove		= __exit_p(at91_rtc_remove),
- 	.driver		= {
- 		.name	= "at91_rtc",
- 		.owner	= THIS_MODULE,
- 		.pm	= &at91_rtc_pm_ops,
-+		.of_match_table = of_match_ptr(at91_rtc_dt_ids),
- 	},
- };
- 
-_
-
-Patches currently in -mm which might be from manabian@gmail.com are
-
-origin.patch
-linux-next.patch
-
+ static int tps80031_rtc_remove(struct platform_device *pdev)
+ {
+-	struct tps80031_rtc *rtc = platform_get_drvdata(pdev);
