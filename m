@@ -1,68 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 15:17:34 -0700
-Message-ID: <20130430221735.2740D31C2AA@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] usermodehelper-export-_exec-and-_setup-functions-fix.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 15:17:56 -0700
+Message-ID: <20130430221756.CF7175A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:62164 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761294Ab3D3WRg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 18:17:36 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hr11so114263vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 15:17:35 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:56504 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933600Ab3D3WR6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 18:17:58 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so114260vcb.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 15:17:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, slava@dubeyko.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, james.l.morris@oracle.com, lucas.demarchi@profusion.mobi, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix
+     Subject: usermodehelper-export-_exec-and-_setup-functions-fix
 has been removed from the -mm tree.  Its filename was
-     hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+     usermodehelper-export-_exec-and-_setup-functions-fix.patch
 
-This patch was dropped because it was folded into hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid.patch
+This patch was dropped because it was folded into usermodehelper-export-_exec-and-_setup-functions.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix
+Subject: usermodehelper-export-_exec-and-_setup-functions-fix
 
-make the workaround more explicit
+export call_usermodehelper_setup() to modules
 
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/bfind.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/kmod.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/hfsplus/bfind.c~hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix fs/hfsplus/bfind.c
---- a/fs/hfsplus/bfind.c~hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix
-+++ a/fs/hfsplus/bfind.c
-@@ -56,8 +56,8 @@ int hfs_find_1st_rec_by_cnid(struct hfs_
- 				int *end,
- 				int *cur_rec)
- {
--	__be32 cur_cnid = 0;
--	__be32 search_cnid = 0;
-+	__be32 cur_cnid;
-+	__be32 search_cnid;
+diff -puN kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions-fix kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions-fix
++++ a/kernel/kmod.c
+@@ -541,6 +541,7 @@ struct subprocess_info *call_usermodehel
+   out:
+ 	return sub_info;
+ }
++EXPORT_SYMBOL(call_usermodehelper_setup);
  
- 	if (bnode->tree->cnid == HFSPLUS_EXT_CNID) {
- 		cur_cnid = fd->key->ext.cnid;
-@@ -68,8 +68,11 @@ int hfs_find_1st_rec_by_cnid(struct hfs_
- 	} else if (bnode->tree->cnid == HFSPLUS_ATTR_CNID) {
- 		cur_cnid = fd->key->attr.cnid;
- 		search_cnid = fd->search_key->attr.cnid;
--	} else
-+	} else {
-+		cur_cnid = 0;	/* used-uninitialized warning */
-+		search_cnid = 0;
- 		BUG();
-+	}
- 
- 	if (cur_cnid == search_cnid) {
- 		(*end) = (*cur_rec);
+ /**
+  * call_usermodehelper_exec - start a usermode application
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +68,7 @@ kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc.patch
 epoll-trim-epitem-by-one-cache-line-on-x86_64.patch
 nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption.patch
 hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
+usermodehelper-export-_exec-and-_setup-functions.patch
 kexec-use-min_t-to-simplify-logic-fix.patch
 kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
 pid_namespacec-h-simplify-defines-fix.patch
