@@ -1,61 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-pcf2123c-fix-error-return-code-in-pcf2123_probe.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:01:37 -0700
-Message-ID: <20130430190137.7A9D631C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] fat-move-fat_i_pos_read-to-fath.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:01:43 -0700
+Message-ID: <20130430190143.7FC5A5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:45407 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933552Ab3D3TBi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:01:38 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m3so87572yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:01:37 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:40171 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933289Ab3D3TBo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:01:44 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so87372ggm.5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:01:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yongjun_wei@trendmicro.com.cn, jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf2123.c: fix error return code in pcf2123_probe()
+     Subject: fat: move fat_i_pos_read to fat.h
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-pcf2123c-fix-error-return-code-in-pcf2123_probe.patch
+     fat-move-fat_i_pos_read-to-fath.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: drivers/rtc/rtc-pcf2123.c: fix error return code in pcf2123_probe()
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Subject: fat: move fat_i_pos_read to fat.h
 
-Fix to return -ENODEV in the chip not found error handling
-case instead of 0, as done elsewhere in this function.
+Move fat_i_pos_read to fat.h so that it can be called from nfs.c in the
+subsequent patches to encode the file handle.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
+Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/fat/fat.h   |   14 ++++++++++++++
+ fs/fat/inode.c |   14 --------------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-fix-error-return-code-in-pcf2123_probe drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-fix-error-return-code-in-pcf2123_probe
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -266,6 +266,7 @@ static int pcf2123_probe(struct spi_devi
+diff -puN fs/fat/fat.h~fat-move-fat_i_pos_read-to-fath fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-move-fat_i_pos_read-to-fath
++++ a/fs/fat/fat.h
+@@ -218,6 +218,20 @@ static inline sector_t fat_clus_to_blknr
+ 		+ sbi->data_start;
+ }
  
- 	if (!(rxbuf[0] & 0x20)) {
- 		dev_err(&spi->dev, "chip not found\n");
-+		ret = -ENODEV;
- 		goto kfree_exit;
- 	}
++static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
++					struct inode *inode)
++{
++	loff_t i_pos;
++#if BITS_PER_LONG == 32
++	spin_lock(&sbi->inode_hash_lock);
++#endif
++	i_pos = MSDOS_I(inode)->i_pos;
++#if BITS_PER_LONG == 32
++	spin_unlock(&sbi->inode_hash_lock);
++#endif
++	return i_pos;
++}
++
+ static inline void fat16_towchar(wchar_t *dst, const __u8 *src, size_t len)
+ {
+ #ifdef __BIG_ENDIAN
+diff -puN fs/fat/inode.c~fat-move-fat_i_pos_read-to-fath fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-move-fat_i_pos_read-to-fath
++++ a/fs/fat/inode.c
+@@ -655,20 +655,6 @@ static int fat_statfs(struct dentry *den
+ 	return 0;
+ }
  
-_
-
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
-
-origin.patch
-linux-next.patch
-drivers-w1-slaves-w1_bq27000c-fix-the-error-handling-in-w1_bq27000_add_slave.patch
-drivers-w1-slaves-w1_ds2780c-fix-the-error-handling-in-w1_ds2780_add_slave.patch
-drivers-w1-slaves-w1_ds2781c-fix-the-error-handling-in-w1_ds2781_add_slave.patch
-drivers-w1-slaves-w1_ds2760c-fix-the-error-handling-in-w1_ds2760_add_slave.patch
-
+-static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
+-				    struct inode *inode)
+-{
+-	loff_t i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_lock(&sbi->inode_hash_lock);
+-#endif
+-	i_pos = MSDOS_I(inode)->i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_unlock(&sbi->inode_hash_lock);
+-#endif
+-	return i_pos;
+-}
