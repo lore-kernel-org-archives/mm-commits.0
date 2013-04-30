@@ -1,86 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:49:10 -0700
-Message-ID: <20130430184910.7F00831C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] thp-fix-comment-about-memory-barrier.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:49:07 -0700
+Message-ID: <20130430184907.9326331C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:40470 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3StL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:11 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so85038ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:11 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:38326 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3StJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:09 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f35so84784yha.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srivatsa.bhat@linux.vnet.ibm.com, cl@linux.com, hughd@google.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: minchan@kernel.org, a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rewrite the comment over migrate_pages() more comprehensibly
+     Subject: THP: fix comment about memory barrier
 has been removed from the -mm tree.  Its filename was
-     mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly.patch
+     thp-fix-comment-about-memory-barrier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: mm: rewrite the comment over migrate_pages() more comprehensibly
+From: Minchan Kim <minchan@kernel.org>
+Subject: THP: fix comment about memory barrier
 
-The comment over migrate_pages() looks quite weird, and makes it hard
-to grasp what it is trying to say. Rewrite it more comprehensibly.
+Now, memory barrier in __do_huge_pmd_anonymous_page doesn't work.  Because
+lru_cache_add_lru uses pagevec so it could miss spinlock easily so above
+rule was broken so user might see inconsistent data.
 
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+I was not first person who pointed out the problem.  Mel and Peter pointed
+out a few months ago and Peter pointed out further that even
+spin_lock/unlock can't make sure it.  http://marc.info/?t=134333512700004
+
+	In particular:
+
+        	*A = a;
+        	LOCK
+        	UNLOCK
+        	*B = b;
+
+	may occur as:
+
+        	LOCK, STORE *B, STORE *A, UNLOCK
+
+At last, Hugh pointed out that even we don't need memory barrier in there
+because __SetPageUpdate already have done it from Nick's 0ed361dec ("mm:
+fix PageUptodate data race") explicitly.
+
+So this patch fixes comment on THP and adds same comment for
+do_anonymous_page, too because everybody except Hugh was missing that.  It
+means we need a comment about that.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |   11 +++++------
+ mm/memory.c      |    5 +++++
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/migrate.c~mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly mm/migrate.c
---- a/mm/migrate.c~mm-rewrite-the-comment-over-migrate_pages-more-comprehensibly
-+++ a/mm/migrate.c
-@@ -973,19 +973,23 @@ out:
- }
+diff -puN mm/huge_memory.c~thp-fix-comment-about-memory-barrier mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-comment-about-memory-barrier
++++ a/mm/huge_memory.c
+@@ -713,6 +713,11 @@ static int __do_huge_pmd_anonymous_page(
+ 		return VM_FAULT_OOM;
  
- /*
-- * migrate_pages
-+ * migrate_pages - migrate the pages specified in a list, to the free pages
-+ *		   supplied as the target for the page migration
-  *
-- * The function takes one list of pages to migrate and a function
-- * that determines from the page to be migrated and the private data
-- * the target of the move and allocates the page.
-+ * @from:		The list of pages to be migrated.
-+ * @get_new_page:	The function used to allocate free pages to be used
-+ *			as the target of the page migration.
-+ * @private:		Private data to be passed on to get_new_page()
-+ * @mode:		The migration mode that specifies the constraints for
-+ *			page migration, if any.
-+ * @reason:		The reason for page migration.
-  *
-- * The function returns after 10 attempts or if no pages
-- * are movable anymore because to has become empty
-- * or no retryable pages exist anymore.
-- * Caller should call putback_lru_pages to return pages to the LRU
-+ * The function returns after 10 attempts or if no pages are movable any more
-+ * because the list has become empty or no retryable pages exist any more.
-+ * The caller should call putback_lru_pages() to return pages to the LRU
-  * or free list only if ret != 0.
-  *
-- * Return: Number of pages not migrated or error code.
-+ * Returns the number of pages that were not migrated, or an error code.
-  */
- int migrate_pages(struct list_head *from, new_page_t get_new_page,
- 		unsigned long private, enum migrate_mode mode, int reason)
+ 	clear_huge_page(page, haddr, HPAGE_PMD_NR);
++	/*
++	 * The memory barrier inside __SetPageUptodate makes sure that
++	 * clear_huge_page writes become visible before the set_pmd_at()
++	 * write.
++	 */
+ 	__SetPageUptodate(page);
+ 
+ 	spin_lock(&mm->page_table_lock);
+@@ -724,12 +729,6 @@ static int __do_huge_pmd_anonymous_page(
+ 	} else {
+ 		pmd_t entry;
+ 		entry = mk_huge_pmd(page, vma);
+-		/*
+-		 * The spinlocking to take the lru_lock inside
+-		 * page_add_new_anon_rmap() acts as a full memory
+-		 * barrier to be sure clear_huge_page writes become
+-		 * visible after the set_pmd_at() write.
+-		 */
+ 		page_add_new_anon_rmap(page, vma, haddr);
+ 		set_pmd_at(mm, haddr, pmd, entry);
+ 		pgtable_trans_huge_deposit(mm, pgtable);
+diff -puN mm/memory.c~thp-fix-comment-about-memory-barrier mm/memory.c
+--- a/mm/memory.c~thp-fix-comment-about-memory-barrier
++++ a/mm/memory.c
+@@ -3244,6 +3244,11 @@ static int do_anonymous_page(struct mm_s
+ 	page = alloc_zeroed_user_highpage_movable(vma, address);
+ 	if (!page)
+ 		goto oom;
++	/*
++	 * The memory barrier inside __SetPageUptodate makes sure that
++	 * preceeding stores to the page contents become visible before
++	 * the set_pte_at() write.
++	 */
+ 	__SetPageUptodate(page);
+ 
+ 	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))
 _
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-linux-next.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+mm-frontswap-lazy-initialization-to-allow-tmem-backends-to-build-run-as-modules.patch
+frontswap-make-frontswap_init-use-a-pointer-for-the-ops.patch
+mm-frontswap-cleanup-code.patch
+frontswap-get-rid-of-swap_lock-dependency.patch
+mm-cleancache-lazy-initialization-to-allow-tmem-backends-to-build-run-as-modules.patch
+cleancache-make-cleancache_init-use-a-pointer-for-the-ops.patch
+mm-cleancache-clean-up-cleancache_enabled.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+zcache-tmem-better-error-checking-on-frontswap_register_ops-return-value.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module.patch
+staging-zcache-enable-zcache-to-be-built-loaded-as-a-module.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+debugging-keep-track-of-page-owners-fix-2.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
