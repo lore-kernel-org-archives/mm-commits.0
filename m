@@ -1,134 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-speedup-in-__early_pfn_to_nid.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:48:25 -0700
-Message-ID: <20130430184825.9296A5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] x86-64-fall-back-to-regular-page-vmemmap-on-allocation-failure.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:16 -0700
+Message-ID: <20130430184816.A166031C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:64612 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3Ss1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:27 -0400
-Received: by mail-gg0-f201.google.com with SMTP id y3so85031ggc.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:26 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:53931 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3SsS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:18 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so85161vcb.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rja@sgi.com, hpa@zytor.com, kosaki.motohiro@gmail.com, linfeng@cn.fujitsu.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, tony.luck@intel.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, Bernhard.Schmidt@lrz.de, ben@decadent.org.uk, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: speedup in __early_pfn_to_nid
+     Subject: x86-64: fall back to regular page vmemmap on allocation failure
 has been removed from the -mm tree.  Its filename was
-     mm-speedup-in-__early_pfn_to_nid.patch
+     x86-64-fall-back-to-regular-page-vmemmap-on-allocation-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Russ Anderson <rja@sgi.com>
-Subject: mm: speedup in __early_pfn_to_nid
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: x86-64: fall back to regular page vmemmap on allocation failure
 
-When booting on a large memory system, the kernel spends considerable time
-in memmap_init_zone() setting up memory zones.  Analysis shows significant
-time spent in __early_pfn_to_nid().
+Memory hotplug can happen on a machine under load, memory shortness
+and fragmentation, so huge page allocations for the vmemmap are not
+guaranteed to succeed.
 
-The routine memmap_init_zone() checks each PFN to verify the nid is valid.
- __early_pfn_to_nid() sequentially scans the list of pfn ranges to find
-the right range and returns the nid.  This does not scale well.  On a 4 TB
-(single rack) system there are 308 memory ranges to scan.  The higher the
-PFN the more time spent sequentially spinning through memory ranges.
+Try to fall back to regular pages before failing the hotplug event
+completely.
 
-Since memmap_init_zone() increments pfn, it will almost always be looking
-for the same range as the previous pfn, so check that range first.  If it
-is in the same range, return that nid.  If not, scan the list as before. 
-
-A 4 TB (single rack) UV1 system takes 512 seconds to get through the zone
-code.  This performance optimization reduces the time by 189 seconds, a
-36% improvement.
-
-A 2 TB (single rack) UV2 system goes from 212.7 seconds to 99.8 seconds, a
-112.9 second (53%) reduction.
-
-[akpm@linux-foundation.org: make the statics __meminitdata]
-[akpm@linux-foundation.org: fix comment formatting]
-[akpm@linux-foundation.org: fix ia64, per yinghai]
-[akpm@linux-foundation.org: add missing semicolon, per Tony]
-Signed-off-by: Russ Anderson <rja@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Tested-by: "Luck, Tony" <tony.luck@intel.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/numa.c |   15 ++++++++++++++-
- mm/page_alloc.c     |   15 ++++++++++++++-
- 2 files changed, 28 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c |   42 ++++++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 18 deletions(-)
 
-diff -puN arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid arch/ia64/mm/numa.c
---- a/arch/ia64/mm/numa.c~mm-speedup-in-__early_pfn_to_nid
-+++ a/arch/ia64/mm/numa.c
-@@ -61,13 +61,26 @@ paddr_to_nid(unsigned long paddr)
- int __meminit __early_pfn_to_nid(unsigned long pfn)
- {
- 	int i, section = pfn >> PFN_SECTION_SHIFT, ssec, esec;
-+	/*
-+	 * NOTE: The following SMP-unsafe globals are only used early in boot
-+	 * when the kernel is running single-threaded.
-+	 */
-+	static int __meminitdata last_ssec, last_esec;
-+	static int __meminitdata last_nid;
-+
-+	if (section >= last_ssec && section < last_esec)
-+		return last_nid;
+diff -puN arch/x86/mm/init_64.c~x86-64-fall-back-to-regular-page-vmemmap-on-allocation-failure arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~x86-64-fall-back-to-regular-page-vmemmap-on-allocation-failure
++++ a/arch/x86/mm/init_64.c
+@@ -1303,31 +1303,37 @@ static int __meminit vmemmap_populate_hu
  
- 	for (i = 0; i < num_node_memblks; i++) {
- 		ssec = node_memblk[i].start_paddr >> PA_SECTION_SHIFT;
- 		esec = (node_memblk[i].start_paddr + node_memblk[i].size +
- 			((1L << PA_SECTION_SHIFT) - 1)) >> PA_SECTION_SHIFT;
--		if (section >= ssec && section < esec)
-+		if (section >= ssec && section < esec) {
-+			last_ssec = ssec;
-+			last_esec = esec;
-+			last_nid = node_memblk[i].nid;
- 			return node_memblk[i].nid;
+ 		pmd = pmd_offset(pud, addr);
+ 		if (pmd_none(*pmd)) {
+-			pte_t entry;
+ 			void *p;
+ 
+ 			p = vmemmap_alloc_block_buf(PMD_SIZE, node);
+-			if (!p)
+-				return -ENOMEM;
++			if (p) {
++				pte_t entry;
+ 
+-			entry = pfn_pte(__pa(p) >> PAGE_SHIFT,
+-					PAGE_KERNEL_LARGE);
+-			set_pmd(pmd, __pmd(pte_val(entry)));
++				entry = pfn_pte(__pa(p) >> PAGE_SHIFT,
++						PAGE_KERNEL_LARGE);
++				set_pmd(pmd, __pmd(pte_val(entry)));
+ 
+-			/* check to see if we have contiguous blocks */
+-			if (p_end != p || node_start != node) {
+-				if (p_start)
+-					printk(KERN_DEBUG " [%lx-%lx] PMD -> [%p-%p] on node %d\n",
+-					       addr_start, addr_end-1, p_start, p_end-1, node_start);
+-				addr_start = addr;
+-				node_start = node;
+-				p_start = p;
+-			}
++				/* check to see if we have contiguous blocks */
++				if (p_end != p || node_start != node) {
++					if (p_start)
++						printk(KERN_DEBUG " [%lx-%lx] PMD -> [%p-%p] on node %d\n",
++						       addr_start, addr_end-1, p_start, p_end-1, node_start);
++					addr_start = addr;
++					node_start = node;
++					p_start = p;
++				}
+ 
+-			addr_end = addr + PMD_SIZE;
+-			p_end = p + PMD_SIZE;
+-		} else
++				addr_end = addr + PMD_SIZE;
++				p_end = p + PMD_SIZE;
++				continue;
++			}
++		} else if (pmd_large(*pmd)) {
+ 			vmemmap_verify((pte_t *)pmd, node, addr, next);
++			continue;
 +		}
++		pr_warn_once("vmemmap: falling back to regular page backing\n");
++		if (vmemmap_populate_basepages(addr, next, node))
++			return -ENOMEM;
  	}
- 
- 	return -1;
-diff -puN mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-speedup-in-__early_pfn_to_nid
-+++ a/mm/page_alloc.c
-@@ -4187,10 +4187,23 @@ int __meminit __early_pfn_to_nid(unsigne
- {
- 	unsigned long start_pfn, end_pfn;
- 	int i, nid;
-+	/*
-+	 * NOTE: The following SMP-unsafe globals are only used early in boot
-+	 * when the kernel is running single-threaded.
-+	 */
-+	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
-+	static int __meminitdata last_nid;
-+
-+	if (last_start_pfn <= pfn && pfn < last_end_pfn)
-+		return last_nid;
- 
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
--		if (start_pfn <= pfn && pfn < end_pfn)
-+		if (start_pfn <= pfn && pfn < end_pfn) {
-+			last_start_pfn = start_pfn;
-+			last_end_pfn = end_pfn;
-+			last_nid = nid;
- 			return nid;
-+		}
- 	/* This is a memory hole */
- 	return -1;
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from rja@sgi.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+mm-memmap_init_zone-performance-improvement.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
+ipc-refactor-msg-list-search-into-separate-function-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
