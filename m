@@ -1,167 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthread-kill-task_get_live_kthread.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:43:12 -0700
-Message-ID: <20130430184312.6CF605A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] audit-remove-unnecessary-if-config_audit.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:43:24 -0700
+Message-ID: <20130430184324.7E5BD31C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:47562 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932617Ab3D3SnO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:43:14 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f35so84130yha.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:43:13 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:43204 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932649Ab3D3SnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:43:25 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so75201ves.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:43:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, namhyung@kernel.org, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rusty@rustcorp.com.au, srivatsa.bhat@linux.vnet.ibm.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: gaofeng@cn.fujitsu.com, eparis@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: kill task_get_live_kthread()
+     Subject: audit: remove unnecessary #if CONFIG_AUDIT
 has been removed from the -mm tree.  Its filename was
-     kthread-kill-task_get_live_kthread.patch
+     audit-remove-unnecessary-if-config_audit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kthread: kill task_get_live_kthread()
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: audit: remove unnecessary #if CONFIG_AUDIT
 
-task_get_live_kthread() looks confusing and unneeded.  It does
-get_task_struct() but only kthread_stop() needs this, it can be called
-even if the calller doesn't have a reference when we know that this
-kthread can't exit until we do kthread_stop().
+The files which include kernel/audit.h are complied only when CONFIG_AUDIT
+is set.
 
-kthread_park() and kthread_unpark() do not need get_task_struct(), the
-callers already have the reference.  And it can not help if we can race
-with the exiting kthread anyway, kthread_park() can hang forever in this
-case.
+Just like audit_pid, there is no need to surround audit_ever_enabled with
+CONFIG_AUDIT.
 
-Change kthread_park() and kthread_unpark() to use to_live_kthread(),
-change kthread_stop() to do get_task_struct() by hand and remove
-task_get_live_kthread().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ kernel/audit.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/kthread.c~kthread-kill-task_get_live_kthread kernel/kthread.c
---- a/kernel/kthread.c~kthread-kill-task_get_live_kthread
-+++ a/kernel/kthread.c
-@@ -324,12 +324,6 @@ struct task_struct *kthread_create_on_cp
- 	return p;
- }
+diff -puN kernel/audit.h~audit-remove-unnecessary-if-config_audit kernel/audit.h
+--- a/kernel/audit.h~audit-remove-unnecessary-if-config_audit
++++ a/kernel/audit.h
+@@ -59,9 +59,7 @@ struct audit_entry {
+ 	struct audit_krule	rule;
+ };
  
--static struct kthread *task_get_live_kthread(struct task_struct *k)
--{
--	get_task_struct(k);
--	return to_live_kthread(k);
--}
--
- static void __kthread_unpark(struct task_struct *k, struct kthread *kthread)
- {
- 	clear_bit(KTHREAD_SHOULD_PARK, &kthread->flags);
-@@ -356,11 +350,10 @@ static void __kthread_unpark(struct task
-  */
- void kthread_unpark(struct task_struct *k)
- {
--	struct kthread *kthread = task_get_live_kthread(k);
-+	struct kthread *kthread = to_live_kthread(k);
+-#ifdef CONFIG_AUDIT
+ extern int audit_ever_enabled;
+-#endif
  
- 	if (kthread)
- 		__kthread_unpark(k, kthread);
--	put_task_struct(k);
- }
+ extern int audit_pid;
  
- /**
-@@ -377,7 +370,7 @@ void kthread_unpark(struct task_struct *
-  */
- int kthread_park(struct task_struct *k)
- {
--	struct kthread *kthread = task_get_live_kthread(k);
-+	struct kthread *kthread = to_live_kthread(k);
- 	int ret = -ENOSYS;
- 
- 	if (kthread) {
-@@ -390,7 +383,6 @@ int kthread_park(struct task_struct *k)
- 		}
- 		ret = 0;
- 	}
--	put_task_struct(k);
- 	return ret;
- }
- 
-@@ -411,10 +403,13 @@ int kthread_park(struct task_struct *k)
-  */
- int kthread_stop(struct task_struct *k)
- {
--	struct kthread *kthread = task_get_live_kthread(k);
-+	struct kthread *kthread;
- 	int ret;
- 
- 	trace_sched_kthread_stop(k);
-+
-+	get_task_struct(k);
-+	kthread = to_live_kthread(k);
- 	if (kthread) {
- 		set_bit(KTHREAD_SHOULD_STOP, &kthread->flags);
- 		__kthread_unpark(k, kthread);
-@@ -422,10 +417,9 @@ int kthread_stop(struct task_struct *k)
- 		wait_for_completion(&kthread->exited);
- 	}
- 	ret = k->exit_code;
--
- 	put_task_struct(k);
--	trace_sched_kthread_stop_ret(ret);
- 
-+	trace_sched_kthread_stop_ret(ret);
- 	return ret;
- }
- EXPORT_SYMBOL(kthread_stop);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from gaofeng@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-posix_cpu_timer-consolidate-expiry-time-type.patch
-posix_cpu_timers-consolidate-timer-list-cleanups.patch
-posix_cpu_timers-consolidate-expired-timers-check.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-kthread-implement-probe_kthread_data.patch
-workqueue-include-workqueue-info-when-printing-debug-dump-of-a-worker-task.patch
-writeback-set-worker-desc-to-identify-writeback-workers-in-task-dumps.patch
-kernel-smpc-use-=-for-csd_lock.patch
-kernel-smpc-remove-priv-of-call_single_data.patch
-epoll-use-rcu-to-protect-wakeup_source-in-epitem.patch
-epoll-lock-ep-mtx-in-ep_free-to-silence-lockdep.patch
-ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
-selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
-usermodehelper-export-_exec-and-_setup-functions.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kmod-split-call-to-call_usermodehelper_fns.patch
-keys-split-call-to-call_usermodehelper_fns.patch
-coredump-remove-trailling-whitespaces.patch
-split-remaining-calls-to-call_usermodehelper_fns.patch
-kmod-remove-call_usermodehelper_fns.patch
-coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
-coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
-coredump-sanitize-the-setting-of-signal-group_exit_code.patch
-coredump-introduce-dump_interrupted.patch
-coredump-factor-out-the-setting-of-pf_dumpcore.patch
-coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
-set_task_comm-kill-the-pointless-memset-wmb.patch
-exec-do-not-abuse-cred_guard_mutex-in-threadgroup_lock.patch
 
