@@ -1,86 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-suggested-by-as-a-standard-signature.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:53:38 -0700
-Message-ID: <20130430185338.7AB3831C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] init-raise-log-level.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:53:44 -0700
+Message-ID: <20130430185344.7CAC731C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:63951 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933146Ab3D3Sxj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:39 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so86639vcb.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:39 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:49491 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933146Ab3D3Sxp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:45 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so77107ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mugunthanvnm@ti.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: richard@nod.at, hpa@zytor.com, jim.cromie@gmail.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add Suggested-by as a standard signature
+     Subject: init: raise log level
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-suggested-by-as-a-standard-signature.patch
+     init-raise-log-level.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: checkpatch: add Suggested-by as a standard signature
+From: Richard Weinberger <richard@nod.at>
+Subject: init: raise log level
 
-As people started using Suggested-by as standard signature, adding
-"Suggested-by" to the standard signature so that checkpatch won't generate
-warning when Suggested-by is used in patch signature
+If the kernel was booted with the "quiet" boot option we have currently no
+chance to see why an initrd fails.  Change KERN_WARNING to KERN_ERR to see
+what is going on.
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jim Cromie <jim.cromie@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |    9 ++++++++-
- scripts/checkpatch.pl           |    1 +
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ init/main.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/SubmittingPatches~checkpatch-add-suggested-by-as-a-standard-signature Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~checkpatch-add-suggested-by-as-a-standard-signature
-+++ a/Documentation/SubmittingPatches
-@@ -420,7 +420,7 @@ person it names.  This tag documents tha
- have been included in the discussion
+diff -puN init/main.c~init-raise-log-level init/main.c
+--- a/init/main.c~init-raise-log-level
++++ a/init/main.c
+@@ -825,7 +825,7 @@ static int __ref kernel_init(void *unuse
+ 	if (ramdisk_execute_command) {
+ 		if (!run_init_process(ramdisk_execute_command))
+ 			return 0;
+-		printk(KERN_WARNING "Failed to execute %s\n",
++		printk(KERN_ERR "Failed to execute %s\n",
+ 				ramdisk_execute_command);
+ 	}
  
+@@ -838,7 +838,7 @@ static int __ref kernel_init(void *unuse
+ 	if (execute_command) {
+ 		if (!run_init_process(execute_command))
+ 			return 0;
+-		printk(KERN_WARNING "Failed to execute %s.  Attempting "
++		printk(KERN_ERR "Failed to execute %s.  Attempting "
+ 					"defaults...\n", execute_command);
+ 	}
+ 	if (!run_init_process("/sbin/init") ||
+@@ -884,7 +884,7 @@ static noinline void __init kernel_init_
  
--14) Using Reported-by:, Tested-by: and Reviewed-by:
-+14) Using Reported-by:, Tested-by:, Reviewed-by: and Suggested-by:
+ 	/* Open the /dev/console on the rootfs, this should never fail */
+ 	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+-		printk(KERN_WARNING "Warning: unable to open an initial console.\n");
++		printk(KERN_ERR "Warning: unable to open an initial console.\n");
  
- If this patch fixes a problem reported by somebody else, consider adding a
- Reported-by: tag to credit the reporter for their contribution.  Please
-@@ -468,6 +468,13 @@ done on the patch.  Reviewed-by: tags, w
- understand the subject area and to perform thorough reviews, will normally
- increase the likelihood of your patch getting into the kernel.
- 
-+A Suggested-by: tag indicates that the patch idea is suggested by the person
-+named and ensures credit to the person for the idea. Please note that this
-+tag should not be added without the reporter's permission, especially if the
-+idea was not posted in a public forum. That said, if we diligently credit our
-+idea reporters, they will, hopefully, be inspired to help us again in the
-+future.
-+
- 
- 15) The canonical patch format
- 
-diff -puN scripts/checkpatch.pl~checkpatch-add-suggested-by-as-a-standard-signature scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-suggested-by-as-a-standard-signature
-+++ a/scripts/checkpatch.pl
-@@ -281,6 +281,7 @@ our $signature_tags = qr{(?xi:
- 	Tested-by:|
- 	Reviewed-by:|
- 	Reported-by:|
-+	Suggested-by:|
- 	To:|
- 	Cc:
- )};
+ 	(void) sys_dup(0);
+ 	(void) sys_dup(0);
 _
 
-Patches currently in -mm which might be from mugunthanvnm@ti.com are
+Patches currently in -mm which might be from richard@nod.at are
 
 origin.patch
 linux-next.patch
+lib-add-lz4-compressor-module.patch
+crypto-add-lz4-cryptographic-api.patch
+crypto-add-lz4-cryptographic-api-fix.patch
 
