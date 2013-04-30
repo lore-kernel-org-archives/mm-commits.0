@@ -1,77 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:51:31 -0700
-Message-ID: <20130430185131.6F5545A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-adp8870-add-missing-braces.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:51:33 -0700
+Message-ID: <20130430185133.6E88C31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:39786 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932669Ab3D3Svc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:32 -0400
-Received: by mail-gg0-f201.google.com with SMTP id y3so86337ggc.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:31 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:35460 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932669Ab3D3Sve (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:34 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so86441vcb.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/generic_bl.c: use dev_info() instead of pr_info()
+     Subject: drivers/video/backlight/adp8870_bl.c:  add missing braces
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info.patch
+     backlight-adp8870-add-missing-braces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/generic_bl.c: use dev_info() instead of pr_info()
+Subject: drivers/video/backlight/adp8870_bl.c:  add missing braces
 
-dev_info() is preferred to pr_info().
+Add missing braces to include error message.  The error message is related
+to the return value for sysfs_create_group().  However,
+sysfs_create_group() is called when pdata->en_ambl_sens is not zero. 
+Thus, the checking return value should be included in the if statement.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/generic_bl.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/backlight/adp8870_bl.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/generic_bl.c~drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info drivers/video/backlight/generic_bl.c
---- a/drivers/video/backlight/generic_bl.c~drivers-video-backlight-generic_blc-use-dev_info-instead-of-pr_info
-+++ a/drivers/video/backlight/generic_bl.c
-@@ -9,8 +9,6 @@
-  *
-  */
+diff -puN drivers/video/backlight/adp8870_bl.c~backlight-adp8870-add-missing-braces drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~backlight-adp8870-add-missing-braces
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -895,13 +895,13 @@ static int adp8870_probe(struct i2c_clie
  
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
-@@ -108,7 +106,7 @@ static int genericbl_probe(struct platfo
+ 	data->bl = bl;
  
- 	generic_backlight_device = bd;
- 
--	pr_info("Generic Backlight Driver Initialized.\n");
-+	dev_info(&pdev->dev, "Generic Backlight Driver Initialized.\n");
- 	return 0;
- }
- 
-@@ -122,7 +120,7 @@ static int genericbl_remove(struct platf
- 
- 	backlight_device_unregister(bd);
- 
--	pr_info("Generic Backlight Driver Unloaded\n");
-+	dev_info(&pdev->dev, "Generic Backlight Driver Unloaded\n");
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-linux-next.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
-memstick-r592-make-r592_pm_ops-static.patch
-
+-	if (pdata->en_ambl_sens)
++	if (pdata->en_ambl_sens) {
+ 		ret = sysfs_create_group(&bl->dev.kobj,
+ 			&adp8870_bl_attr_group);
