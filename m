@@ -1,118 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-tracing-rework-console-tracing.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:50:51 -0700
-Message-ID: <20130430185051.7AB615A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] get_maintainer-use-filename-only-regex-match-for-tegra.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:51:02 -0700
+Message-ID: <20130430185102.822B35A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:60111 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932669Ab3D3Suw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:50:52 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so86374vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:50:52 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:53180 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932669Ab3D3SvD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:03 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z12so85910yhz.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jovi.zhangwei@huawei.com, fweisbec@gmail.com, kay@vrfy.org, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: swarren@nvidia.com, joe@perches.com, marcin.slusarz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk/tracing: rework console tracing
+     Subject: get_maintainer: use filename-only regex match for Tegra
 has been removed from the -mm tree.  Its filename was
-     printk-tracing-rework-console-tracing.patch
+     get_maintainer-use-filename-only-regex-match-for-tegra.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Subject: printk/tracing: rework console tracing
+From: Stephen Warren <swarren@nvidia.com>
+Subject: get_maintainer: use filename-only regex match for Tegra
 
-commit 7ff9554bb ("printk: convert byte-buffer to variable-length record
-buffer") removed start and end parameters in call_console_drivers, but
-those parameters still exists in include/trace/events/printk.h.
+Create a new N: entry type in MAINTAINERS which performs a regex match
+against filenames; either those extracted from patch +++ or --- lines, or
+those specified on the command-line using the -f option.
 
-Without start and end parameters handling, printk tracing became more
-simple as: trace_console(text, len);
+This provides the same benefits as using a K: regex option to match a set
+of filenames (see commit eb90d08 "get_maintainer: allow keywords to match
+filenames"), but without the disadvantage that "random" file content, such
+as comments, will ever match the regex.  Hence, revert most of that
+commit.
 
-Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Kay Sievers <kay@vrfy.org>
+Switch the Tegra entry from using K: to N:
+
+[akpm@linux-foundation.org: fix typo in docs, per Marcin]
+Reported-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Suggested-by: Joe Perches <joe@perches.com>
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/printk.h |   25 ++++++-------------------
- kernel/printk.c               |    2 +-
- 2 files changed, 7 insertions(+), 20 deletions(-)
+ MAINTAINERS               |   14 ++++++++------
+ scripts/get_maintainer.pl |    2 +-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN include/trace/events/printk.h~printk-tracing-rework-console-tracing include/trace/events/printk.h
---- a/include/trace/events/printk.h~printk-tracing-rework-console-tracing
-+++ a/include/trace/events/printk.h
-@@ -6,31 +6,18 @@
+diff -puN MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra MAINTAINERS
+--- a/MAINTAINERS~get_maintainer-use-filename-only-regex-match-for-tegra
++++ a/MAINTAINERS
+@@ -90,6 +90,9 @@ Descriptions of section entries:
+ 	   F:	drivers/net/*	all files in drivers/net, but not below
+ 	   F:	*/net/*		all files in "any top level directory"/net
+ 	   One pattern per line.  Multiple F: lines acceptable.
++	N: Files and directories with regex patterns.
++	   N:	[^a-z]tegra	all files whose path contains the word tegra
++	   One pattern per line.  Multiple N: lines acceptable.
+ 	X: Files and directories that are NOT maintained, same rules as F:
+ 	   Files exclusions are tested before file matches.
+ 	   Can be useful for excluding a specific subdirectory, for instance:
+@@ -97,13 +100,12 @@ Descriptions of section entries:
+ 	   X:	net/ipv6/
+ 	   matches all files in and below net excluding net/ipv6/
+ 	K: Keyword perl extended regex pattern to match content in a
+-	   patch or file, or an affected filename.  For instance:
++	   patch or file.  For instance:
+ 	   K: of_get_profile
+-	      matches patch or file content, or filenames, that contain
+-	      "of_get_profile"
++	      matches patches or files that contain "of_get_profile"
+ 	   K: \b(printk|pr_(info|err))\b
+-	      matches patch or file content, or filenames, that contain one or
+-	      more of the words printk, pr_info or pr_err
++	      matches patches or files that contain one or more of the words
++	      printk, pr_info or pr_err
+ 	   One regex pattern per line.  Multiple K: lines acceptable.
  
- #include <linux/tracepoint.h>
+ Note: For the hard of thinking, this list is meant to remain in alphabetical
+@@ -7896,7 +7898,7 @@ L:	linux-tegra@vger.kernel.org
+ Q:	http://patchwork.ozlabs.org/project/linux-tegra/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/swarren/linux-tegra.git
+ S:	Supported
+-K:	(?i)[^a-z]tegra
++N:	[^a-z]tegra
  
--TRACE_EVENT_CONDITION(console,
--	TP_PROTO(const char *log_buf, unsigned start, unsigned end,
--		 unsigned log_buf_len),
-+TRACE_EVENT(console,
-+	TP_PROTO(const char *text, size_t len),
- 
--	TP_ARGS(log_buf, start, end, log_buf_len),
--
--	TP_CONDITION(start != end),
-+	TP_ARGS(text, len),
- 
- 	TP_STRUCT__entry(
--		__dynamic_array(char, msg, end - start + 1)
-+		__dynamic_array(char, msg, len + 1)
- 	),
- 
- 	TP_fast_assign(
--		if ((start & (log_buf_len - 1)) > (end & (log_buf_len - 1))) {
--			memcpy(__get_dynamic_array(msg),
--			       log_buf + (start & (log_buf_len - 1)),
--			       log_buf_len - (start & (log_buf_len - 1)));
--			memcpy((char *)__get_dynamic_array(msg) +
--			       log_buf_len - (start & (log_buf_len - 1)),
--			       log_buf, end & (log_buf_len - 1));
--		} else
--			memcpy(__get_dynamic_array(msg),
--			       log_buf + (start & (log_buf_len - 1)),
--			       end - start);
--		((char *)__get_dynamic_array(msg))[end - start] = 0;
-+		memcpy(__get_dynamic_array(msg), text, len);
-+		((char *)__get_dynamic_array(msg))[len] = 0;
- 	),
- 
- 	TP_printk("%s", __get_str(msg))
-diff -puN kernel/printk.c~printk-tracing-rework-console-tracing kernel/printk.c
---- a/kernel/printk.c~printk-tracing-rework-console-tracing
-+++ a/kernel/printk.c
-@@ -1265,7 +1265,7 @@ static void call_console_drivers(int lev
- {
- 	struct console *con;
- 
--	trace_console(text, 0, len, len);
-+	trace_console(text, len);
- 
- 	if (level >= console_loglevel && !ignore_loglevel)
- 		return;
+ TEHUTI ETHERNET DRIVER
+ M:	Andy Gospodarek <andy@greyhouse.net>
+diff -puN scripts/get_maintainer.pl~get_maintainer-use-filename-only-regex-match-for-tegra scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-use-filename-only-regex-match-for-tegra
++++ a/scripts/get_maintainer.pl
+@@ -611,7 +611,7 @@ sub get_maintainers {
+ 				    $hash{$tvi} = $value_pd;
+ 				}
+ 			    }
+-			} elsif ($type eq 'K') {
++			} elsif ($type eq 'N') {
+ 			    if ($file =~ m/$value/x) {
+ 				$hash{$tvi} = 0;
+ 			    }
 _
 
-Patches currently in -mm which might be from jovi.zhangwei@huawei.com are
+Patches currently in -mm which might be from swarren@nvidia.com are
 
 origin.patch
-relay-remove-unused-function-argument-actor.patch
-relay-move-fix_size-macro-into-relayc.patch
-relay-use-macro-page_align-instead-of-fix_size.patch
-relay-fix-timer-madness.patch
-kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch
-init-kconfig-re-order-config_expert-options-to-fix-menuconfig-display.patch
-kgdb-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
-power-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
-arm-etm-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
-powerpc-xmon-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
-spare-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
-ethernet-emac-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
-documentation-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
+linux-next.patch
 
