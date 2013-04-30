@@ -1,180 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [failures] kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:11:40 -0700
-Message-ID: <20130430181145.70C9B31C07C@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:17:30 -0700
+Message-ID: <20130430181731.34B215A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:39793 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760801Ab3D3SLq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:11:46 -0400
-Received: by mail-ve0-f202.google.com with SMTP id ox1so71519veb.3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:11:46 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:45656 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760751Ab3D3SRc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:17:32 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so80944ggm.5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:17:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jwboyer@redhat.com, eparis@redhat.com, keescook@chromium.org, lists@nerdbynature.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+     Subject: linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+     linux-next-rejects.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Josh Boyer <jwboyer@redhat.com>
-Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-The dmesg_restrict sysctl currently covers the syslog method for access
-dmesg, however /dev/kmsg isn't covered by the same protections.  Most
-people haven't noticed because util-linux dmesg(1) defaults to using the
-syslog method for access in older versions.  With util-linux dmesg(1)
-defaults to reading directly from /dev/kmsg.
-
-Fix this by reworking all of the access methods to use the
-check_syslog_permissions function and adding checks to devkmsg_open and
-devkmsg_read.
-
-Addresses https://bugzilla.redhat.com/show_bug.cgi?id=903192
-
-Signed-off-by: Eric Paris <eparis@redhat.com>
-Signed-off-by: Josh Boyer <jwboyer@redhat.com>
-Reported-by: Christian Kujau <lists@nerdbynature.de>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   91 +++++++++++++++++++++++-----------------------
- 1 file changed, 47 insertions(+), 44 deletions(-)
+ include/linux/blk_types.h |    1 +
+ kernel/rcutree.c          |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg kernel/printk.c
---- a/kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
-+++ a/kernel/printk.c
-@@ -361,6 +361,46 @@ static void log_store(int facility, int
- 	log_next_seq++;
- }
+diff -puN fs/proc/internal.h~linux-next-rejects fs/proc/internal.h
+diff -puN include/linux/blk_types.h~linux-next-rejects include/linux/blk_types.h
+--- a/include/linux/blk_types.h~linux-next-rejects
++++ a/include/linux/blk_types.h
+@@ -118,6 +118,7 @@ struct bio {
+  * BIO_POOL_IDX()
+  */
+ #define BIO_RESET_BITS	13
++#define BIO_OWNS_VEC	13	/* bio_free() should free bvec */
  
-+#ifdef CONFIG_SECURITY_DMESG_RESTRICT
-+int dmesg_restrict = 1;
-+#else
-+int dmesg_restrict;
-+#endif
-+
-+static int syslog_action_restricted(int type)
-+{
-+	if (dmesg_restrict)
-+		return 1;
-+	/* Unless restricted, we allow "read all" and "get buffer size" for everybody */
-+	return type != SYSLOG_ACTION_READ_ALL && type != SYSLOG_ACTION_SIZE_BUFFER;
-+}
-+
-+static int check_syslog_permissions(int type, bool from_file)
-+{
-+	/*
-+	 * If this is from /proc/kmsg and we've already opened it, then we've
-+	 * already done the capabilities checks at open time.
-+	 */
-+	if (from_file && type != SYSLOG_ACTION_OPEN)
-+		goto ok;
-+
-+	if (syslog_action_restricted(type)) {
-+		if (capable(CAP_SYSLOG))
-+			goto ok;
-+		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
-+		if (capable(CAP_SYS_ADMIN)) {
-+			printk_once(KERN_WARNING "%s (%d): "
-+				 "Attempt to access syslog with CAP_SYS_ADMIN "
-+				 "but no CAP_SYSLOG (deprecated).\n",
-+				 current->comm, task_pid_nr(current));
-+			goto ok;
-+		}
-+		return -EPERM;
-+	}
-+ok:
-+	return security_syslog(type);
-+}
-+
- /* /dev/kmsg - userspace message inject/listen interface */
- struct devkmsg_user {
- 	u64 seq;
-@@ -436,10 +476,16 @@ static ssize_t devkmsg_read(struct file
- 	char cont = '-';
- 	size_t len;
- 	ssize_t ret;
-+	int err;
+ #define bio_flagged(bio, flag)	((bio)->bi_flags & (1 << (flag)))
  
- 	if (!user)
- 		return -EBADF;
- 
-+	err = check_syslog_permissions(SYSLOG_ACTION_READ_ALL,
-+		SYSLOG_FROM_FILE);
-+	if (err)
-+		return err;
-+
- 	ret = mutex_lock_interruptible(&user->lock);
- 	if (ret)
- 		return ret;
-@@ -618,7 +664,7 @@ static int devkmsg_open(struct inode *in
- 	if ((file->f_flags & O_ACCMODE) == O_WRONLY)
- 		return 0;
- 
--	err = security_syslog(SYSLOG_ACTION_READ_ALL);
-+	err = check_syslog_permissions(SYSLOG_ACTION_OPEN, SYSLOG_FROM_FILE);
- 	if (err)
- 		return err;
- 
-@@ -811,45 +857,6 @@ static inline void boot_delay_msec(int l
- }
- #endif
- 
--#ifdef CONFIG_SECURITY_DMESG_RESTRICT
--int dmesg_restrict = 1;
--#else
--int dmesg_restrict;
--#endif
--
--static int syslog_action_restricted(int type)
--{
--	if (dmesg_restrict)
--		return 1;
--	/* Unless restricted, we allow "read all" and "get buffer size" for everybody */
--	return type != SYSLOG_ACTION_READ_ALL && type != SYSLOG_ACTION_SIZE_BUFFER;
--}
--
--static int check_syslog_permissions(int type, bool from_file)
--{
--	/*
--	 * If this is from /proc/kmsg and we've already opened it, then we've
--	 * already done the capabilities checks at open time.
--	 */
--	if (from_file && type != SYSLOG_ACTION_OPEN)
--		return 0;
--
--	if (syslog_action_restricted(type)) {
--		if (capable(CAP_SYSLOG))
--			return 0;
--		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
--		if (capable(CAP_SYS_ADMIN)) {
--			printk_once(KERN_WARNING "%s (%d): "
--				 "Attempt to access syslog with CAP_SYS_ADMIN "
--				 "but no CAP_SYSLOG (deprecated).\n",
--				 current->comm, task_pid_nr(current));
--			return 0;
--		}
--		return -EPERM;
--	}
--	return 0;
--}
--
- #if defined(CONFIG_PRINTK_TIME)
- static bool printk_time = 1;
- #else
-@@ -1125,10 +1132,6 @@ int do_syslog(int type, char __user *buf
- 	if (error)
- 		goto out;
- 
--	error = security_syslog(type);
--	if (error)
--		return error;
+diff -puN kernel/rcutree.c~linux-next-rejects kernel/rcutree.c
+--- a/kernel/rcutree.c~linux-next-rejects
++++ a/kernel/rcutree.c
+@@ -1451,7 +1451,8 @@ static int rcu_gp_init(struct rcu_state
+ 					    rnp->grphi, rnp->qsmask);
+ 		raw_spin_unlock_irq(&rnp->lock);
+ #ifdef CONFIG_PROVE_RCU_DELAY
+-		if ((prandom_u32() % (rcu_num_nodes * 8)) == 0)
++		if ((prandom_u32() % (rcu_num_nodes * 8)) == 0 &&
++		    system_state == SYSTEM_RUNNING)
+ 			schedule_timeout_uninterruptible(2);
+ #endif /* #ifdef CONFIG_PROVE_RCU_DELAY */
+ 		cond_resched();
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-usb-storage-realtek_crc-fix-build.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+rapidio-make-enumeration-discovery-configurable-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+bpf-add-comments-explaining-the-schedule_work-operation.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
