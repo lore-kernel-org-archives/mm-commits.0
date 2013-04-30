@@ -1,90 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-pcf8563-use-devm_-functions.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:00:43 -0700
-Message-ID: <20130430190043.70D935A41E9@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:01:29 -0700
+Message-ID: <20130430190129.70E6C5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:62447 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933285Ab3D3TAo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:00:44 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so88804qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:00:43 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:53227 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933566Ab3D3TBa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:01:30 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z12so87155yhz.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:01:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-pcf8563: use devm_*() functions
+     Subject: rtc: rtc-twl: convert twl4030rtc_driver to dev_pm_ops
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-pcf8563-use-devm_-functions.patch
+     rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pcf8563: use devm_*() functions
+Subject: rtc: rtc-twl: convert twl4030rtc_driver to dev_pm_ops
 
-Use devm_*() functions to make cleanup paths simpler.
+Instead of using legacy suspend/resume methods, using newer dev_pm_ops
+structure allows better control over power management.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |   28 +++++++---------------------
- 1 file changed, 7 insertions(+), 21 deletions(-)
+ drivers/rtc/rtc-twl.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-use-devm_-functions drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-use-devm_-functions
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -245,14 +245,13 @@ static int pcf8563_probe(struct i2c_clie
- {
- 	struct pcf8563 *pcf8563;
- 
--	int err = 0;
--
- 	dev_dbg(&client->dev, "%s\n", __func__);
- 
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
- 		return -ENODEV;
- 
--	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL);
-+	pcf8563 = devm_kzalloc(&client->dev, sizeof(struct pcf8563),
-+				GFP_KERNEL);
- 	if (!pcf8563)
- 		return -ENOMEM;
- 
-@@ -260,31 +259,18 @@ static int pcf8563_probe(struct i2c_clie
- 
- 	i2c_set_clientdata(client, pcf8563);
- 
--	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name,
--				&client->dev, &pcf8563_rtc_ops, THIS_MODULE);
-+	pcf8563->rtc = devm_rtc_device_register(&client->dev,
-+				pcf8563_driver.driver.name,
-+				&pcf8563_rtc_ops, THIS_MODULE);
- 
--	if (IS_ERR(pcf8563->rtc)) {
--		err = PTR_ERR(pcf8563->rtc);
--		goto exit_kfree;
--	}
-+	if (IS_ERR(pcf8563->rtc))
-+		return PTR_ERR(pcf8563->rtc);
- 
- 	return 0;
--
--exit_kfree:
--	kfree(pcf8563);
--
--	return err;
+diff -puN drivers/rtc/rtc-twl.c~rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~rtc-rtc-twl-convert-twl4030rtc_driver-to-dev_pm_ops
++++ a/drivers/rtc/rtc-twl.c
+@@ -566,11 +566,10 @@ static void twl_rtc_shutdown(struct plat
+ 	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
  }
  
- static int pcf8563_remove(struct i2c_client *client)
+-#ifdef CONFIG_PM
+-
++#ifdef CONFIG_PM_SLEEP
+ static unsigned char irqstat;
+ 
+-static int twl_rtc_suspend(struct platform_device *pdev, pm_message_t state)
++static int twl_rtc_suspend(struct device *dev)
  {
--	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
+ 	irqstat = rtc_irq_bits;
+ 
+@@ -578,17 +577,15 @@ static int twl_rtc_suspend(struct platfo
+ 	return 0;
+ }
+ 
+-static int twl_rtc_resume(struct platform_device *pdev)
++static int twl_rtc_resume(struct device *dev)
+ {
+ 	set_rtc_irq_bit(irqstat);
+ 	return 0;
+ }
 -
--	if (pcf8563->rtc)
--		rtc_device_unregister(pcf8563->rtc);
--
--	kfree(pcf8563);
+-#else
+-#define twl_rtc_suspend NULL
+-#define twl_rtc_resume  NULL
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(twl_rtc_pm_ops, twl_rtc_suspend, twl_rtc_resume);
++
+ #ifdef CONFIG_OF
+ static const struct of_device_id twl_rtc_of_match[] = {
+ 	{.compatible = "ti,twl4030-rtc", },
+@@ -603,11 +600,10 @@ static struct platform_driver twl4030rtc
+ 	.probe		= twl_rtc_probe,
+ 	.remove		= twl_rtc_remove,
+ 	.shutdown	= twl_rtc_shutdown,
+-	.suspend	= twl_rtc_suspend,
+-	.resume		= twl_rtc_resume,
+ 	.driver		= {
+ 		.owner		= THIS_MODULE,
+ 		.name		= "twl_rtc",
++		.pm		= &twl_rtc_pm_ops,
+ 		.of_match_table = of_match_ptr(twl_rtc_of_match),
+ 	},
+ };
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+linux-next.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
+
