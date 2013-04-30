@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-mmh-complete-the-mm_walk-definition.patch added to -mm tree
-Date: Tue, 30 Apr 2013 12:42:31 -0700
-Message-ID: <20130430194231.6D53731C07C@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-rs5c372c-add-r2221t-l-variant-to-the-driver.patch added to -mm tree
+Date: Tue, 30 Apr 2013 12:44:14 -0700
+Message-ID: <20130430194414.713AA5A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:57556 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932742Ab3D3Tmc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:42:32 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hr11so92741vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:42:31 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:36520 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932553Ab3D3ToP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:44:15 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so92835vcb.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:44:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dave.hansen@intel.com
+Cc: l.stach@pengutronix.de, jlu@pengutronix.de
 
 
 The patch titled
-     Subject: include/linux/mm.h: complete the mm_walk definition
+     Subject: drivers/rtc/rtc-rs5c372.c: add R2221T/L variant to the driver
 has been added to the -mm tree.  Its filename is
-     include-linux-mmh-complete-the-mm_walk-definition.patch
+     drivers-rtc-rtc-rs5c372c-add-r2221t-l-variant-to-the-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,126 +33,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/mm.h: complete the mm_walk definition
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: drivers/rtc/rtc-rs5c372.c: add R2221T/L variant to the driver
 
-That nameless-function-arguments thing drives me batty.  Fix.
+Register layout is the same, so just add the variant to the appropriate
+places.
 
-Cc: Dave Hansen <dave.hansen@intel.com>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-rs5c372.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/mm.h~include-linux-mmh-complete-the-mm_walk-definition include/linux/mm.h
---- a/include/linux/mm.h~include-linux-mmh-complete-the-mm_walk-definition
-+++ a/include/linux/mm.h
-@@ -951,13 +951,19 @@ void unmap_vmas(struct mmu_gather *tlb,
-  * (see walk_page_range for more details)
-  */
- struct mm_walk {
--	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, struct mm_walk *);
--	int (*pud_entry)(pud_t *, unsigned long, unsigned long, struct mm_walk *);
--	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, struct mm_walk *);
--	int (*pte_entry)(pte_t *, unsigned long, unsigned long, struct mm_walk *);
--	int (*pte_hole)(unsigned long, unsigned long, struct mm_walk *);
--	int (*hugetlb_entry)(pte_t *, unsigned long,
--			     unsigned long, unsigned long, struct mm_walk *);
-+	int (*pgd_entry)(pgd_t *pgd, unsigned long addr,
-+			 unsigned long next, struct mm_walk *walk);
-+	int (*pud_entry)(pud_t *pud, unsigned long addr,
-+	                 unsigned long next, struct mm_walk *walk);
-+	int (*pmd_entry)(pmd_t *pmd, unsigned long addr,
-+			 unsigned long next, struct mm_walk *walk);
-+	int (*pte_entry)(pte_t *pte, unsigned long addr,
-+			 unsigned long next, struct mm_walk *walk);
-+	int (*pte_hole)(unsigned long addr, unsigned long next,
-+			struct mm_walk *walk);
-+	int (*hugetlb_entry)(pte_t *pte, unsigned long hmask,
-+			     unsigned long addr, unsigned long next,
-+			     struct mm_walk *walk);
- 	struct mm_struct *mm;
- 	void *private;
- };
+diff -puN drivers/rtc/rtc-rs5c372.c~drivers-rtc-rtc-rs5c372c-add-r2221t-l-variant-to-the-driver drivers/rtc/rtc-rs5c372.c
+--- a/drivers/rtc/rtc-rs5c372.c~drivers-rtc-rtc-rs5c372c-add-r2221t-l-variant-to-the-driver
++++ a/drivers/rtc/rtc-rs5c372.c
+@@ -68,6 +68,7 @@
+ enum rtc_type {
+ 	rtc_undef = 0,
+ 	rtc_r2025sd,
++	rtc_r2221tl,
+ 	rtc_rs5c372a,
+ 	rtc_rs5c372b,
+ 	rtc_rv5c386,
+@@ -76,6 +77,7 @@ enum rtc_type {
+ 
+ static const struct i2c_device_id rs5c372_id[] = {
+ 	{ "r2025sd", rtc_r2025sd },
++	{ "r2221tl", rtc_r2221tl },
+ 	{ "rs5c372a", rtc_rs5c372a },
+ 	{ "rs5c372b", rtc_rs5c372b },
+ 	{ "rv5c386", rtc_rv5c386 },
+@@ -529,6 +531,7 @@ static int rs5c_oscillator_setup(struct
+ 		rs5c372->time24 = 1;
+ 		break;
+ 	case rtc_r2025sd:
++	case rtc_r2221tl:
+ 	case rtc_rv5c386:
+ 	case rtc_rv5c387a:
+ 		buf[0] |= RV5C387_CTRL1_24;
+@@ -609,6 +612,7 @@ static int rs5c372_probe(struct i2c_clie
+ 			rs5c372->time24 = 1;
+ 		break;
+ 	case rtc_r2025sd:
++	case rtc_r2221tl:
+ 	case rtc_rv5c386:
+ 	case rtc_rv5c387a:
+ 		if (rs5c372->regs[RS5C_REG_CTRL1] & RV5C387_CTRL1_24)
+@@ -640,6 +644,7 @@ static int rs5c372_probe(struct i2c_clie
+ 	dev_info(&client->dev, "%s found, %s, driver version " DRV_VERSION "\n",
+ 			({ char *s; switch (rs5c372->type) {
+ 			case rtc_r2025sd:	s = "r2025sd"; break;
++			case rtc_r2221tl:	s = "r2221tl"; break;
+ 			case rtc_rs5c372a:	s = "rs5c372a"; break;
+ 			case rtc_rs5c372b:	s = "rs5c372b"; break;
+ 			case rtc_rv5c386:	s = "rv5c386"; break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from l.stach@pengutronix.de are
 
-origin.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
 linux-next.patch
-linux-next-git-rejects1.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-usb-storage-realtek_crc-fix-build.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-include-linux-mmh-complete-the-mm_walk-definition.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-lib-string_helpers-introduce-generic-string_unescape-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-revert-ipc_schedule_free-can-do-vfree-now.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-rapidio-make-enumeration-discovery-configurable-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-bpf-add-comments-explaining-the-schedule_work-operation.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-rtc-rtc-rs5c372c-add-r2221t-l-variant-to-the-driver.patch
 
