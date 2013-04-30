@@ -1,154 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-simplify-mem_cgroup_iter.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:47:00 -0700
-Message-ID: <20130430184700.89A1E31C2B9@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-ds1302-add-__exit-annotation.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:53:55 -0700
+Message-ID: <20130430185355.6EFA25A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:56077 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933159Ab3D3Sxx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:53 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hr11so86619vcb.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:52 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:53087 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933159Ab3D3Sx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:56 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so86507ggm.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, glommer@parallels.com, hannes@cmpxchg.org, htejun@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: simplify mem_cgroup_iter
+     Subject: rtc: rtc-ds1302: add __exit annotation
 has been removed from the -mm tree.  Its filename was
-     memcg-simplify-mem_cgroup_iter.patch
+     rtc-rtc-ds1302-add-__exit-annotation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: simplify mem_cgroup_iter
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-ds1302: add __exit annotation
 
-Current implementation of mem_cgroup_iter has to consider both css and
-memcg to find out whether no group has been found (css==NULL - aka the
-loop is completed) and that no memcg is associated with the found node
-(!memcg - aka css_tryget failed because the group is no longer alive). 
-This leads to awkward tweaks like tests for css && !memcg to skip the
-current node.
+When platform_driver_probe() is used, bind/unbind via sysfs is disabled. 
+Thus, __init/__exit annotations can be added to probe()/remove().
 
-It will be much easier if we got rid off css variable altogether and only
-rely on memcg.  In order to do that the iteration part has to skip dead
-nodes.  This sounds natural to me and as a nice side effect we will get a
-simple invariant that memcg is always alive when non-NULL and all nodes
-have been visited otherwise.
-
-We could get rid of the surrounding while loop but keep it in for now to
-make review easier. It will go away in the following patch.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Glauber Costa <glommer@parallels.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   52 ++++++++++++++++++++++------------------------
- 1 file changed, 25 insertions(+), 27 deletions(-)
+ drivers/rtc/rtc-ds1302.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-simplify-mem_cgroup_iter mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-mem_cgroup_iter
-+++ a/mm/memcontrol.c
-@@ -1116,7 +1116,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	rcu_read_lock();
- 	while (!memcg) {
- 		struct mem_cgroup_reclaim_iter *uninitialized_var(iter);
--		struct cgroup_subsys_state *css = NULL;
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-add-__exit-annotation drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-add-__exit-annotation
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -234,7 +234,7 @@ static int __init ds1302_rtc_probe(struc
+ 	return 0;
+ }
  
- 		if (reclaim) {
- 			int nid = zone_to_nid(reclaim->zone);
-@@ -1159,51 +1158,50 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		 * explicit visit.
- 		 */
- 		if (!last_visited) {
--			css = &root->css;
-+			memcg = root;
- 		} else {
- 			struct cgroup *prev_cgroup, *next_cgroup;
+-static int ds1302_rtc_remove(struct platform_device *pdev)
++static int __exit ds1302_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct rtc_device *rtc = platform_get_drvdata(pdev);
  
- 			prev_cgroup = (last_visited == root) ? NULL
- 				: last_visited->css.cgroup;
--			next_cgroup = cgroup_next_descendant_pre(prev_cgroup,
--					root->css.cgroup);
--			if (next_cgroup)
--				css = cgroup_subsys_state(next_cgroup,
--						mem_cgroup_subsys_id);
--		}
-+skip_node:
-+			next_cgroup = cgroup_next_descendant_pre(
-+					prev_cgroup, root->css.cgroup);
+@@ -249,7 +249,7 @@ static struct platform_driver ds1302_pla
+ 		.name	= DRV_NAME,
+ 		.owner	= THIS_MODULE,
+ 	},
+-	.remove		= ds1302_rtc_remove,
++	.remove		= __exit_p(ds1302_rtc_remove),
+ };
  
--		/*
--		 * Even if we found a group we have to make sure it is alive.
--		 * css && !memcg means that the groups should be skipped and
--		 * we should continue the tree walk.
--		 * last_visited css is safe to use because it is protected by
--		 * css_get and the tree walk is rcu safe.
--		 */
--		if (css == &root->css || (css && css_tryget(css)))
--			memcg = mem_cgroup_from_css(css);
-+			/*
-+			 * Even if we found a group we have to make sure it is
-+			 * alive. css && !memcg means that the groups should be
-+			 * skipped and we should continue the tree walk.
-+			 * last_visited css is safe to use because it is
-+			 * protected by css_get and the tree walk is rcu safe.
-+			 */
-+			if (next_cgroup) {
-+				struct mem_cgroup *mem = mem_cgroup_from_cont(
-+						next_cgroup);
-+				if (css_tryget(&mem->css))
-+					memcg = mem;
-+				else {
-+					prev_cgroup = next_cgroup;
-+					goto skip_node;
-+				}
-+			}
-+		}
- 
- 		if (reclaim) {
--			struct mem_cgroup *curr = memcg;
--
- 			if (last_visited)
- 				css_put(&last_visited->css);
- 
--			if (css && !memcg)
--				curr = mem_cgroup_from_css(css);
--
--			iter->last_visited = curr;
-+			iter->last_visited = memcg;
- 			smp_wmb();
- 			iter->last_dead_count = dead_count;
- 
--			if (!css)
-+			if (!memcg)
- 				iter->generation++;
- 			else if (!prev && memcg)
- 				reclaim->generation = iter->generation;
--		} else if (css && !memcg) {
--			last_visited = mem_cgroup_from_css(css);
- 		}
- 
--		if (prev && !css)
-+		if (prev && !memcg)
- 			goto out_unlock;
- 	}
- out_unlock:
+ static int __init ds1302_rtc_init(void)
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
 linux-next.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
 
