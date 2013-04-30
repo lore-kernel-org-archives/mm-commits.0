@@ -1,74 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:03:11 -0700
-Message-ID: <20130430190311.7C6CA5A42DA@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] fs-block_devc-fix-iov_shorten-criteria-in-blkdev_aio_read.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:03:14 -0700
+Message-ID: <20130430190314.7E7015A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:34579 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933600Ab3D3TDM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:03:12 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so87613ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:03:11 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:44074 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933600Ab3D3TDQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:03:16 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so78262ves.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:03:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, axboe@kernel.dk, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: guz.fnst@cn.fujitsu.com, axboe@kernel.dk, majianpeng@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/block/mg_disk.c: add CONFIG_PM_SLEEP to suspend/resume functions
+     Subject: fs/block_dev.c: fix iov_shorten() criteria in blkdev_aio_read()
 has been removed from the -mm tree.  Its filename was
-     drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions.patch
+     fs-block_devc-fix-iov_shorten-criteria-in-blkdev_aio_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/block/mg_disk.c: add CONFIG_PM_SLEEP to suspend/resume functions
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: fs/block_dev.c: fix iov_shorten() criteria in blkdev_aio_read()
 
-Add CONFIG_PM_SLEEP to suspend/resume functions to fix the following build
-warning when CONFIG_PM_SLEEP is not selected.  This is because sleep PM
-callbacks defined by SIMPLE_DEV_PM_OPS are only used when the
-CONFIG_PM_SLEEP is enabled.
+blkdev_aio_read() test 'size' to see if it is equal or greater than the
+target count we request(iocb->ki_left).  If so there is no need to call
+iov_shorten() to reduce number of segments and the iovec's length.  So the
+judgement should be changed to 'if (size < iocb->ki_left)' instead.
 
-drivers/block/mg_disk.c:783:12: warning: 'mg_suspend' defined but not used [-Wunused-function]
-drivers/block/mg_disk.c:807:12: warning: 'mg_resume' defined but not used [-Wunused-function]
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/mg_disk.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/block_dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/mg_disk.c~drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions drivers/block/mg_disk.c
---- a/drivers/block/mg_disk.c~drivers-block-mg_diskc-add-config_pm_sleep-to-suspend-resume-functions
-+++ a/drivers/block/mg_disk.c
-@@ -780,6 +780,7 @@ static const struct block_device_operati
- 	.getgeo = mg_getgeo
- };
+diff -puN fs/block_dev.c~fs-block_devc-fix-iov_shorten-criteria-in-blkdev_aio_read fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_devc-fix-iov_shorten-criteria-in-blkdev_aio_read
++++ a/fs/block_dev.c
+@@ -1559,7 +1559,7 @@ static ssize_t blkdev_aio_read(struct ki
+ 		return 0;
  
-+#ifdef CONFIG_PM_SLEEP
- static int mg_suspend(struct device *dev)
- {
- 	struct mg_drv_data *prv_data = dev->platform_data;
-@@ -824,6 +825,7 @@ static int mg_resume(struct device *dev)
- 
- 	return 0;
+ 	size -= pos;
+-	if (size < INT_MAX)
++	if (size < iocb->ki_left)
+ 		nr_segs = iov_shorten((struct iovec *)iov, nr_segs, size);
+ 	return generic_file_aio_read(iocb, iov, nr_segs, pos);
  }
-+#endif
- 
- static SIMPLE_DEV_PM_OPS(mg_pm, mg_suspend, mg_resume);
- 
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
 
-origin.patch
 linux-next.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
-memstick-r592-make-r592_pm_ops-static.patch
 
