@@ -1,57 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] usermodehelper-export-_exec-and-_setup-functions-fix.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 15:17:56 -0700
-Message-ID: <20130430221756.CF7175A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] kexec-use-min_t-to-simplify-logic-fix.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 15:18:23 -0700
+Message-ID: <20130430221823.CB58831C07C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:56504 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933600Ab3D3WR6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 18:17:58 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so114260vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 15:17:57 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:34378 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933600Ab3D3WSZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 18:18:25 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so114070qcr.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 15:18:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, james.l.morris@oracle.com, lucas.demarchi@profusion.mobi, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, horms@verge.net.au, joe@perches.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usermodehelper-export-_exec-and-_setup-functions-fix
+     Subject: kexec-use-min_t-to-simplify-logic-fix
 has been removed from the -mm tree.  Its filename was
-     usermodehelper-export-_exec-and-_setup-functions-fix.patch
+     kexec-use-min_t-to-simplify-logic-fix.patch
 
-This patch was dropped because it was folded into usermodehelper-export-_exec-and-_setup-functions.patch
+This patch was dropped because it was folded into kexec-use-min_t-to-simplify-logic.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: usermodehelper-export-_exec-and-_setup-functions-fix
+Subject: kexec-use-min_t-to-simplify-logic-fix
 
-export call_usermodehelper_setup() to modules
+replace min_t with min, remove unneeded casts
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kexec.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions-fix kernel/kmod.c
---- a/kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions-fix
-+++ a/kernel/kmod.c
-@@ -541,6 +541,7 @@ struct subprocess_info *call_usermodehel
-   out:
- 	return sub_info;
- }
-+EXPORT_SYMBOL(call_usermodehelper_setup);
+diff -puN kernel/kexec.c~kexec-use-min_t-to-simplify-logic-fix kernel/kexec.c
+--- a/kernel/kexec.c~kexec-use-min_t-to-simplify-logic-fix
++++ a/kernel/kexec.c
+@@ -820,8 +820,8 @@ static int kimage_load_normal_segment(st
+ 		clear_page(ptr);
+ 		ptr += maddr & ~PAGE_MASK;
+ 		mchunk = min_t(size_t, mbytes,
+-			       (size_t)(PAGE_SIZE - (maddr & ~PAGE_MASK)));
+-		uchunk = min_t(size_t, ubytes, mchunk);
++				PAGE_SIZE - (maddr & ~PAGE_MASK));
++		uchunk = min(ubytes, mchunk);
  
- /**
-  * call_usermodehelper_exec - start a usermode application
+ 		result = copy_from_user(ptr, buf, uchunk);
+ 		kunmap(page);
+@@ -868,8 +868,8 @@ static int kimage_load_crash_segment(str
+ 		ptr = kmap(page);
+ 		ptr += maddr & ~PAGE_MASK;
+ 		mchunk = min_t(size_t, mbytes,
+-			       (size_t)(PAGE_SIZE - (maddr & ~PAGE_MASK)));
+-		uchunk = min_t(size_t, ubytes, mchunk);
++				PAGE_SIZE - (maddr & ~PAGE_MASK));
++		uchunk = min(ubytes, mchunk);
+ 		if (mchunk > uchunk) {
+ 			/* Zero the trailing part of the page */
+ 			memset(ptr + uchunk, 0, mchunk - uchunk);
+@@ -1539,7 +1539,7 @@ void vmcoreinfo_append_str(const char *f
+ 	r = vsnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
+ 
+-	r = min_t(size_t, r, vmcoreinfo_max_size - vmcoreinfo_size);
++	r = min(r, vmcoreinfo_max_size - vmcoreinfo_size);
+ 
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +89,7 @@ epoll-trim-epitem-by-one-cache-line-on-x86_64.patch
 nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption.patch
 hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid.patch
 usermodehelper-export-_exec-and-_setup-functions.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
+kexec-use-min_t-to-simplify-logic.patch
 kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
 pid_namespacec-h-simplify-defines-fix.patch
 
