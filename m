@@ -1,181 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-remove-list-management-of-vmlist-after-initializing-vmalloc.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:47:40 -0700
-Message-ID: <20130430184740.9A6FB5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] argv_split-teach-it-to-handle-mutable-strings.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:53:17 -0700
+Message-ID: <20130430185317.7EBF55A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:49139 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933128Ab3D3SxP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:15 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m3so86559yen.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:14 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:56063 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933133Ab3D3SxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:18 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w8so86474vbf.5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, anderson@redhat.com, cmetcalf@tilera.com, ebiederm@xmission.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, iamjoonsoo.kim@lge.com, kumagai-atsushi@mxc.nes.nec.co.jp, mingo@kernel.org, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, andi@firstfloor.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmalloc: remove list management of vmlist after initializing vmalloc
+     Subject: argv_split(): teach it to handle mutable strings
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-list-management-of-vmlist-after-initializing-vmalloc.patch
+     argv_split-teach-it-to-handle-mutable-strings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm, vmalloc: remove list management of vmlist after initializing vmalloc
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: argv_split(): teach it to handle mutable strings
 
-Now, there is no need to maintain vmlist after initializing vmalloc.
-So remove related code and data structure.
+argv_split() allocates argv[count_argc(str)] array and assumes that it
+will find the same number of arguments later.  This is obviously wrong if
+this string can be changed, say, by sysctl.
 
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Dave Anderson <anderson@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+With this patch argv_split() kstrndup's the whole string and does not
+split it, we simply replace the spaces with zeroes and keep the allocated
+memory in argv[-1] for argv_free(arg).
+
+We do not use argv[0] because:
+
+	- str can be all-spaces or empty. In fact this case is fine,
+	  we could kfree() it before return, but:
+
+	- str can have a space at the start, and we can not rely on
+	  kstrndup(skip_spaces(str)) because it can equally race if
+	  this string is mutable.
+
+Also, simplify count_argc() and kill the no longer used skip_arg().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   52 +++++++++++--------------------------------------
- 1 file changed, 12 insertions(+), 40 deletions(-)
+ lib/argv_split.c |   87 ++++++++++++++++++++-------------------------
+ 1 file changed, 40 insertions(+), 47 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-remove-list-management-of-vmlist-after-initializing-vmalloc mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-remove-list-management-of-vmlist-after-initializing-vmalloc
-+++ a/mm/vmalloc.c
-@@ -273,10 +273,6 @@ static unsigned long cached_align;
+diff -puN lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings lib/argv_split.c
+--- a/lib/argv_split.c~argv_split-teach-it-to-handle-mutable-strings
++++ a/lib/argv_split.c
+@@ -8,23 +8,17 @@
+ #include <linux/slab.h>
+ #include <linux/export.h>
  
- static unsigned long vmap_area_pcpu_hole;
- 
--/*** Old vmalloc interfaces ***/
--static DEFINE_RWLOCK(vmlist_lock);
--static struct vm_struct *vmlist;
+-static const char *skip_arg(const char *cp)
+-{
+-	while (*cp && !isspace(*cp))
+-		cp++;
 -
- static struct vmap_area *__find_vmap_area(unsigned long addr)
+-	return cp;
+-}
+-
+ static int count_argc(const char *str)
  {
- 	struct rb_node *n = vmap_area_root.rb_node;
-@@ -318,7 +314,7 @@ static void __insert_vmap_area(struct vm
- 	rb_link_node(&va->rb_node, parent, p);
- 	rb_insert_color(&va->rb_node, &vmap_area_root);
+ 	int count = 0;
++	bool was_space;
  
--	/* address-sort this list so it is usable like the vmlist */
-+	/* address-sort this list */
- 	tmp = rb_prev(&va->rb_node);
- 	if (tmp) {
- 		struct vmap_area *prev;
-@@ -1130,6 +1126,7 @@ void *vm_map_ram(struct page **pages, un
- }
- EXPORT_SYMBOL(vm_map_ram);
+-	while (*str) {
+-		str = skip_spaces(str);
+-		if (*str) {
++	for (was_space = true; *str; str++) {
++		if (isspace(*str)) {
++			was_space = true;
++		} else if (was_space) {
++			was_space = false;
+ 			count++;
+-			str = skip_arg(str);
+ 		}
+ 	}
  
-+static struct vm_struct *vmlist __initdata;
- /**
-  * vm_area_add_early - add vmap area early during boot
-  * @vm: vm_struct to add
-@@ -1301,10 +1298,8 @@ static void setup_vmalloc_vm(struct vm_s
- 	spin_unlock(&vmap_area_lock);
- }
- 
--static void insert_vmalloc_vmlist(struct vm_struct *vm)
-+static void clear_vm_unlist(struct vm_struct *vm)
+@@ -39,10 +33,8 @@ static int count_argc(const char *str)
+  */
+ void argv_free(char **argv)
  {
--	struct vm_struct *tmp, **p;
+-	char **p;
+-	for (p = argv; *p; p++)
+-		kfree(*p);
 -
- 	/*
- 	 * Before removing VM_UNLIST,
- 	 * we should make sure that vm has proper values.
-@@ -1312,22 +1307,13 @@ static void insert_vmalloc_vmlist(struct
- 	 */
- 	smp_wmb();
- 	vm->flags &= ~VM_UNLIST;
--
--	write_lock(&vmlist_lock);
--	for (p = &vmlist; (tmp = *p) != NULL; p = &tmp->next) {
--		if (tmp->addr >= vm->addr)
--			break;
--	}
--	vm->next = *p;
--	*p = vm;
--	write_unlock(&vmlist_lock);
++	argv--;
++	kfree(argv[0]);
+ 	kfree(argv);
  }
- 
- static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
- 			      unsigned long flags, const void *caller)
+ EXPORT_SYMBOL(argv_free);
+@@ -59,43 +51,44 @@ EXPORT_SYMBOL(argv_free);
+  * considered to be a single argument separator.  The returned array
+  * is always NULL-terminated.  Returns NULL on memory allocation
+  * failure.
++ *
++ * The source string at `str' may be undergoing concurrent alteration via
++ * userspace sysctl activity (at least).  The argv_split() implementation
++ * attempts to handle this gracefully by taking a local copy to work on.
+  */
+ char **argv_split(gfp_t gfp, const char *str, int *argcp)
  {
- 	setup_vmalloc_vm(vm, va, flags, caller);
--	insert_vmalloc_vmlist(vm);
-+	clear_vm_unlist(vm);
- }
- 
- static struct vm_struct *__get_vm_area_node(unsigned long size,
-@@ -1370,10 +1356,9 @@ static struct vm_struct *__get_vm_area_n
- 
- 	/*
- 	 * When this function is called from __vmalloc_node_range,
--	 * we do not add vm_struct to vmlist here to avoid
--	 * accessing uninitialized members of vm_struct such as
--	 * pages and nr_pages fields. They will be set later.
--	 * To distinguish it from others, we use a VM_UNLIST flag.
-+	 * we add VM_UNLIST flag to avoid accessing uninitialized
-+	 * members of vm_struct such as pages and nr_pages fields.
-+	 * They will be set later.
- 	 */
- 	if (flags & VM_UNLIST)
- 		setup_vmalloc_vm(area, va, flags, caller);
-@@ -1462,20 +1447,6 @@ struct vm_struct *remove_vm_area(const v
- 		va->flags &= ~VM_VM_AREA;
- 		spin_unlock(&vmap_area_lock);
- 
--		if (!(vm->flags & VM_UNLIST)) {
--			struct vm_struct *tmp, **p;
--			/*
--			 * remove from list and disallow access to
--			 * this vm_struct before unmap. (address range
--			 * confliction is maintained by vmap.)
--			 */
--			write_lock(&vmlist_lock);
--			for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
--				;
--			*p = tmp->next;
--			write_unlock(&vmlist_lock);
--		}
+-	int argc = count_argc(str);
+-	char **argv = kzalloc(sizeof(*argv) * (argc+1), gfp);
+-	char **argvp;
 -
- 		vmap_debug_free_range(va->va_start, va->va_end);
- 		free_unmap_vmap_area(va);
- 		vm->size -= PAGE_SIZE;
-@@ -1695,10 +1666,11 @@ void *__vmalloc_node_range(unsigned long
- 		return NULL;
+-	if (argv == NULL)
+-		goto out;
+-
+-	if (argcp)
+-		*argcp = argc;
+-
+-	argvp = argv;
+-
+-	while (*str) {
+-		str = skip_spaces(str);
+-
+-		if (*str) {
+-			const char *p = str;
+-			char *t;
+-
+-			str = skip_arg(str);
++	char *argv_str;
++	bool was_space;
++	char **argv, **argv_ret;
++	int argc;
++
++	argv_str = kstrndup(str, KMALLOC_MAX_SIZE - 1, gfp);
++	if (!argv_str)
++		return NULL;
++
++	argc = count_argc(argv_str);
++	argv = kmalloc(sizeof(*argv) * (argc + 2), gfp);
++	if (!argv) {
++		kfree(argv_str);
++		return NULL;
++	}
  
- 	/*
--	 * In this function, newly allocated vm_struct is not added
--	 * to vmlist at __get_vm_area_node(). so, it is added here.
-+	 * In this function, newly allocated vm_struct has VM_UNLIST flag.
-+	 * It means that vm_struct is not fully initialized.
-+	 * Now, it is fully initialized, so remove this flag here.
- 	 */
--	insert_vmalloc_vmlist(area);
-+	clear_vm_unlist(area);
+-			t = kstrndup(p, str-p, gfp);
+-			if (t == NULL)
+-				goto fail;
+-			*argvp++ = t;
++	*argv = argv_str;
++	argv_ret = ++argv;
++	for (was_space = true; *argv_str; argv_str++) {
++		if (isspace(*argv_str)) {
++			was_space = true;
++			*argv_str = 0;
++		} else if (was_space) {
++			was_space = false;
++			*argv++ = argv_str;
+ 		}
+ 	}
+-	*argvp = NULL;
+-
+-  out:
+-	return argv;
++	*argv = NULL;
  
- 	/*
- 	 * A ref_count = 3 is needed because the vm_struct and vmap_area
-@@ -2594,7 +2566,7 @@ static void show_numa_info(struct seq_fi
- 		if (!counters)
- 			return;
- 
--		/* Pair with smp_wmb() in insert_vmalloc_vmlist() */
-+		/* Pair with smp_wmb() in clear_vm_unlist() */
- 		smp_rmb();
- 		if (v->flags & VM_UNLIST)
- 			return;
+-  fail:
+-	argv_free(argv);
+-	return NULL;
++	if (argcp)
++		*argcp = argc;
++	return argv_ret;
+ }
+ EXPORT_SYMBOL(argv_split);
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+kthread-implement-probe_kthread_data.patch
+workqueue-include-workqueue-info-when-printing-debug-dump-of-a-worker-task.patch
+writeback-set-worker-desc-to-identify-writeback-workers-in-task-dumps.patch
+kernel-smpc-use-=-for-csd_lock.patch
+kernel-smpc-remove-priv-of-call_single_data.patch
+epoll-use-rcu-to-protect-wakeup_source-in-epitem.patch
+epoll-lock-ep-mtx-in-ep_free-to-silence-lockdep.patch
+ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
+selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+usermodehelper-export-_exec-and-_setup-functions.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kmod-split-call-to-call_usermodehelper_fns.patch
+keys-split-call-to-call_usermodehelper_fns.patch
+coredump-remove-trailling-whitespaces.patch
+split-remaining-calls-to-call_usermodehelper_fns.patch
+kmod-remove-call_usermodehelper_fns.patch
+coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
+coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+coredump-introduce-dump_interrupted.patch
+coredump-factor-out-the-setting-of-pf_dumpcore.patch
+coredump-change-wait_for_dump_helpers-to-use-wait_event_interruptible.patch
+set_task_comm-kill-the-pointless-memset-wmb.patch
+exec-do-not-abuse-cred_guard_mutex-in-threadgroup_lock.patch
 
