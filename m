@@ -1,167 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:48:59 -0700
-Message-ID: <20130430184859.825B15A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kernel-cpusetc-use-register_hotmemory_notifier.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:50 -0700
+Message-ID: <20130430184850.737E45A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:64497 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3StA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:00 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z12so84801yhz.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:59 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:49396 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932928Ab3D3Ssv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:51 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so85027qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agshew@gmail.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lizefan@huawei.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: reinititalise user and admin reserves if memory is added or removed
+     Subject: kernel/cpuset.c: use register_hotmemory_notifier()
 has been removed from the -mm tree.  Its filename was
-     mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed.patch
+     kernel-cpusetc-use-register_hotmemory_notifier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Shewmaker <agshew@gmail.com>
-Subject: mm: reinititalise user and admin reserves if memory is added or removed
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/cpuset.c: use register_hotmemory_notifier()
 
-Alter the admin and user reserves of the previous patches in this series
-when memory is added or removed.
+Use the new interface, remove one ifdef.  No code size changes.
 
-If memory is added and the reserves have been eliminated or increased
-above the default max, then we'll trust the admin.
+We could/should have been using __meminit/__meminitdata here but there's
+now no point in doing that because all this code is elided at compile time.
 
-If memory is removed and there isn't enough free memory, then we need to
-reset the reserves.
-
-Otherwise keep the reserve set by the admin.
-
-The reserve reset code is the same as the reserve initialization code.
-
-I tested hot addition and removal by triggering it via sysfs.  The
-reserves shrunk when they were set high and memory was removed.  They were
-reset higher when memory was added again.
-
-[akpm@linux-foundation.org: use register_hotmemory_notifier()]
-[akpm@linux-foundation.org: init_user_reserve() and init_admin_reserve can no longer be __meminit]
-[fengguang.wu@intel.com: make init_reserve_notifier() static]
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Andrew Shewmaker <agshew@gmail.com>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   76 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 74 insertions(+), 2 deletions(-)
+ kernel/cpuset.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed mm/mmap.c
---- a/mm/mmap.c~mm-reinititalise-user-and-admin-reserves-if-memory-is-added-or-removed
-+++ a/mm/mmap.c
-@@ -33,6 +33,8 @@
- #include <linux/uprobes.h>
- #include <linux/rbtree_augmented.h>
- #include <linux/sched/sysctl.h>
-+#include <linux/notifier.h>
-+#include <linux/memory.h>
- 
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
-@@ -3110,7 +3112,7 @@ void __init mmap_init(void)
-  * The default value is min(3% of free memory, 128MB)
-  * 128MB is enough to recover with sshd/login, bash, and top/kill.
-  */
--static int __meminit init_user_reserve(void)
-+static int init_user_reserve(void)
- {
- 	unsigned long free_kbytes;
- 
-@@ -3131,7 +3133,7 @@ module_init(init_user_reserve)
-  * with sshd, bash, and top in OVERCOMMIT_GUESS. Smaller systems will
-  * only reserve 3% of free pages by default.
-  */
--static int __meminit init_admin_reserve(void)
-+static int init_admin_reserve(void)
- {
- 	unsigned long free_kbytes;
- 
-@@ -3141,3 +3143,73 @@ static int __meminit init_admin_reserve(
- 	return 0;
+diff -puN kernel/cpuset.c~kernel-cpusetc-use-register_hotmemory_notifier kernel/cpuset.c
+--- a/kernel/cpuset.c~kernel-cpusetc-use-register_hotmemory_notifier
++++ a/kernel/cpuset.c
+@@ -2251,7 +2251,6 @@ void cpuset_update_active_cpus(bool cpu_
+ 	schedule_work(&cpuset_hotplug_work);
  }
- module_init(init_admin_reserve)
+ 
+-#ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+  * Keep top_cpuset.mems_allowed tracking node_states[N_MEMORY].
+  * Call this routine anytime after node_states[N_MEMORY] changes.
+@@ -2263,20 +2262,23 @@ static int cpuset_track_online_nodes(str
+ 	schedule_work(&cpuset_hotplug_work);
+ 	return NOTIFY_OK;
+ }
+-#endif
 +
-+/*
-+ * Reinititalise user and admin reserves if memory is added or removed.
-+ *
-+ * The default user reserve max is 128MB, and the default max for the
-+ * admin reserve is 8MB. These are usually, but not always, enough to
-+ * enable recovery from a memory hogging process using login/sshd, a shell,
-+ * and tools like top. It may make sense to increase or even disable the
-+ * reserve depending on the existence of swap or variations in the recovery
-+ * tools. So, the admin may have changed them.
-+ *
-+ * If memory is added and the reserves have been eliminated or increased above
-+ * the default max, then we'll trust the admin.
-+ *
-+ * If memory is removed and there isn't enough free memory, then we
-+ * need to reset the reserves.
-+ *
-+ * Otherwise keep the reserve set by the admin.
-+ */
-+static int reserve_mem_notifier(struct notifier_block *nb,
-+			     unsigned long action, void *data)
-+{
-+	unsigned long tmp, free_kbytes;
-+
-+	switch (action) {
-+	case MEM_ONLINE:
-+		/* Default max is 128MB. Leave alone if modified by operator. */
-+		tmp = sysctl_user_reserve_kbytes;
-+		if (0 < tmp && tmp < (1UL << 17))
-+			init_user_reserve();
-+
-+		/* Default max is 8MB.  Leave alone if modified by operator. */
-+		tmp = sysctl_admin_reserve_kbytes;
-+		if (0 < tmp && tmp < (1UL << 13))
-+			init_admin_reserve();
-+
-+		break;
-+	case MEM_OFFLINE:
-+		free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
-+
-+		if (sysctl_user_reserve_kbytes > free_kbytes) {
-+			init_user_reserve();
-+			pr_info("vm.user_reserve_kbytes reset to %lu\n",
-+				sysctl_user_reserve_kbytes);
-+		}
-+
-+		if (sysctl_admin_reserve_kbytes > free_kbytes) {
-+			init_admin_reserve();
-+			pr_info("vm.admin_reserve_kbytes reset to %lu\n",
-+				sysctl_admin_reserve_kbytes);
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block reserve_mem_nb = {
-+	.notifier_call = reserve_mem_notifier,
++static struct notifier_block cpuset_track_online_nodes_nb = {
++	.notifier_call = cpuset_track_online_nodes,
++	.priority = 10,		/* ??! */
 +};
-+
-+static int __meminit init_reserve_notifier(void)
-+{
-+	if (register_hotmemory_notifier(&reserve_mem_nb))
-+		printk("Failed registering memory add/remove notifier for admin reserve");
-+
-+	return 0;
-+}
-+module_init(init_reserve_notifier)
+ 
+ /**
+  * cpuset_init_smp - initialize cpus_allowed
+  *
+  * Description: Finish top cpuset after cpu, node maps are initialized
+- **/
+-
++ */
+ void __init cpuset_init_smp(void)
+ {
+ 	cpumask_copy(top_cpuset.cpus_allowed, cpu_active_mask);
+ 	top_cpuset.mems_allowed = node_states[N_MEMORY];
+ 
+-	hotplug_memory_notifier(cpuset_track_online_nodes, 10);
++	register_hotmemory_notifier(&cpuset_track_online_nodes_nb);
+ 
+ 	cpuset_propagate_hotplug_wq =
+ 		alloc_ordered_workqueue("cpuset_hotplug", 0);
 _
 
-Patches currently in -mm which might be from agshew@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+linux-next.patch
+linux-next-git-rejects1.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-usb-storage-realtek_crc-fix-build.patch
+revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+kernel-smpc-cleanups.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+revert-ipc_schedule_free-can-do-vfree-now.patch
+ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
+ipcsem-open-code-and-rename-sem_lock-fix.patch
+ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
+ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+rapidio-make-enumeration-discovery-configurable-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+bpf-add-comments-explaining-the-schedule_work-operation.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
