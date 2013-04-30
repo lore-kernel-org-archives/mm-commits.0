@@ -1,73 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-ab8500-use-devm_-functions.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:52 -0700
-Message-ID: <20130430185952.6E21A31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-ds3232c-use-devm_-apis.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:59:43 -0700
+Message-ID: <20130430185943.7735E5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:46953 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933483Ab3D3S7x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:53 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 9so87146qea.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:52 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:63826 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933472Ab3D3S7o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:44 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hr11so87276vcb.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, jg1.han@samsung.com, srikanth.srinivasan@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-ab8500: use devm_*() functions
+     Subject: drivers/rtc/rtc-ds3232.c: use devm_* APIs
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-ab8500-use-devm_-functions.patch
+     drivers-rtc-rtc-ds3232c-use-devm_-apis.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ab8500: use devm_*() functions
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-ds3232.c: use devm_* APIs
 
-Use devm_*() functions to make cleanup paths simpler.
+devm_* functions are device managed and make cleanup code simpler.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Srikanth Srinivasan <srikanth.srinivasan@freescale.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-ds3232.c |   25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-diff -puN drivers/rtc/rtc-ab8500.c~rtc-rtc-ab8500-use-devm_-functions drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~rtc-rtc-ab8500-use-devm_-functions
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -422,20 +422,19 @@ static int ab8500_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-use-devm_-apis drivers/rtc/rtc-ds3232.c
+--- a/drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-use-devm_-apis
++++ a/drivers/rtc/rtc-ds3232.c
+@@ -397,7 +397,7 @@ static int ds3232_probe(struct i2c_clien
+ 	struct ds3232 *ds3232;
+ 	int ret;
  
- 	device_init_wakeup(&pdev->dev, true);
+-	ds3232 = kzalloc(sizeof(struct ds3232), GFP_KERNEL);
++	ds3232 = devm_kzalloc(&client->dev, sizeof(struct ds3232), GFP_KERNEL);
+ 	if (!ds3232)
+ 		return -ENOMEM;
  
--	rtc = rtc_device_register("ab8500-rtc", &pdev->dev, &ab8500_rtc_ops,
--			THIS_MODULE);
-+	rtc = devm_rtc_device_register(&pdev->dev, "ab8500-rtc",
-+					&ab8500_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		dev_err(&pdev->dev, "Registration failed\n");
- 		err = PTR_ERR(rtc);
- 		return err;
+@@ -409,34 +409,25 @@ static int ds3232_probe(struct i2c_clien
+ 
+ 	ret = ds3232_check_rtc_status(client);
+ 	if (ret)
+-		goto out_free;
++		return ret;
+ 
+-	ds3232->rtc = rtc_device_register(client->name, &client->dev,
++	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
+ 					  &ds3232_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(ds3232->rtc)) {
+-		ret = PTR_ERR(ds3232->rtc);
+ 		dev_err(&client->dev, "unable to register the class device\n");
+-		goto out_irq;
++		return PTR_ERR(ds3232->rtc);
  	}
  
--	err = request_threaded_irq(irq, NULL, rtc_alarm_handler,
--		IRQF_NO_SUSPEND | IRQF_ONESHOT, "ab8500-rtc", rtc);
--	if (err < 0) {
--		rtc_device_unregister(rtc);
-+	err = devm_request_threaded_irq(&pdev->dev, irq, NULL,
-+			rtc_alarm_handler, IRQF_NO_SUSPEND | IRQF_ONESHOT,
-+			"ab8500-rtc", rtc);
-+	if (err < 0)
- 		return err;
--	}
+ 	if (client->irq >= 0) {
+-		ret = request_irq(client->irq, ds3232_irq, 0,
++		ret = devm_request_irq(&client->dev, client->irq, ds3232_irq, 0,
+ 				 "ds3232", client);
+ 		if (ret) {
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+-			goto out_free;
++			return ret;
+ 		}
+ 	}
  
- 	platform_set_drvdata(pdev, rtc);
+ 	return 0;
+-
+-out_irq:
+-	if (client->irq >= 0)
+-		free_irq(client->irq, client);
+-
+-out_free:
+-	kfree(ds3232);
+-	return ret;
+ }
  
-@@ -450,13 +449,8 @@ static int ab8500_rtc_probe(struct platf
+ static int ds3232_remove(struct i2c_client *client)
+@@ -448,12 +439,10 @@ static int ds3232_remove(struct i2c_clie
+ 		ds3232->exiting = 1;
+ 		mutex_unlock(&ds3232->mutex);
  
- static int ab8500_rtc_remove(struct platform_device *pdev)
- {
--	struct rtc_device *rtc = platform_get_drvdata(pdev);
--	int irq = platform_get_irq_byname(pdev, "ALARM");
+-		free_irq(client->irq, client);
++		devm_free_irq(&client->dev, client->irq, client);
+ 		cancel_work_sync(&ds3232->work);
+ 	}
+ 
+-	rtc_device_unregister(ds3232->rtc);
+-	kfree(ds3232);
+ 	return 0;
+ }
+ 
+_
+
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
+
+origin.patch
+linux-next.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+
