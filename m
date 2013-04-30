@@ -1,96 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-max8925c-use-devm_-apis.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:49 -0700
-Message-ID: <20130430185949.7686E31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-m41t93-use-spi_set_drvdata.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:59:17 -0700
+Message-ID: <20130430185917.72EEA5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:41444 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933472Ab3D3S7v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:51 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f35so87154yha.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:50 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:42156 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933452Ab3D3S7S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:18 -0400
+Received: by mail-gg0-f201.google.com with SMTP id y3so87128ggc.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sachin.kamat@linaro.org, haojian.zhuang@linaro.org, jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max8925.c: use devm_* APIs
+     Subject: rtc: rtc-m41t93: use spi_set_drvdata()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-max8925c-use-devm_-apis.patch
+     rtc-rtc-m41t93-use-spi_set_drvdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max8925.c: use devm_* APIs
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-m41t93: use spi_set_drvdata()
 
-devm_* functions are device managed and make cleanup code simpler.
+Use the wrapper functions for getting and setting the driver data using
+spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
+can directly pass a struct spi_device.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Haojian Zhuang <haojian.zhuang@linaro.org>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max8925.c |   26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ drivers/rtc/rtc-m41t93.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-use-devm_-apis drivers/rtc/rtc-max8925.c
---- a/drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-use-devm_-apis
-+++ a/drivers/rtc/rtc-max8925.c
-@@ -253,7 +253,8 @@ static int max8925_rtc_probe(struct plat
- 	struct max8925_rtc_info *info;
- 	int ret;
+diff -puN drivers/rtc/rtc-m41t93.c~rtc-rtc-m41t93-use-spi_set_drvdata drivers/rtc/rtc-m41t93.c
+--- a/drivers/rtc/rtc-m41t93.c~rtc-rtc-m41t93-use-spi_set_drvdata
++++ a/drivers/rtc/rtc-m41t93.c
+@@ -189,7 +189,7 @@ static int m41t93_probe(struct spi_devic
+ 	if (IS_ERR(rtc))
+ 		return PTR_ERR(rtc);
  
--	info = kzalloc(sizeof(struct max8925_rtc_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct max8925_rtc_info),
-+			    GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
- 	info->chip = chip;
-@@ -261,12 +262,13 @@ static int max8925_rtc_probe(struct plat
- 	info->dev = &pdev->dev;
- 	info->irq = platform_get_irq(pdev, 0);
- 
--	ret = request_threaded_irq(info->irq, NULL, rtc_update_handler,
--				   IRQF_ONESHOT, "rtc-alarm0", info);
-+	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
-+					rtc_update_handler, IRQF_ONESHOT,
-+					"rtc-alarm0", info);
- 	if (ret < 0) {
- 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
- 			info->irq, ret);
--		goto out_irq;
-+		goto err;
- 	}
- 
- 	dev_set_drvdata(&pdev->dev, info);
-@@ -275,32 +277,22 @@ static int max8925_rtc_probe(struct plat
- 
- 	device_init_wakeup(&pdev->dev, 1);
- 
--	info->rtc_dev = rtc_device_register("max8925-rtc", &pdev->dev,
-+	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "max8925-rtc",
- 					&max8925_rtc_ops, THIS_MODULE);
- 	ret = PTR_ERR(info->rtc_dev);
- 	if (IS_ERR(info->rtc_dev)) {
- 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
--		goto out_rtc;
-+		goto err;
- 	}
+-	dev_set_drvdata(&spi->dev, rtc);
++	spi_set_drvdata(spi, rtc);
  
  	return 0;
--out_rtc:
-+err:
- 	platform_set_drvdata(pdev, NULL);
--	free_irq(info->irq, info);
--out_irq:
--	kfree(info);
- 	return ret;
  }
- 
- static int max8925_rtc_remove(struct platform_device *pdev)
- {
--	struct max8925_rtc_info *info = platform_get_drvdata(pdev);
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+linux-next.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
+
