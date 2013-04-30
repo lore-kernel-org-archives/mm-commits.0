@@ -1,50 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmap-find_vma-remove-the-warn_on_oncemm-check.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:47:46 -0700
-Message-ID: <20130430184746.7A8A25A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kexec-vmalloc-export-additional-vmalloc-layer-information.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:47:43 -0700
+Message-ID: <20130430184743.9F2C931C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:64202 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932252Ab3D3Srr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:47:47 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w8so84906vbf.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:47:47 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:44853 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760813Ab3D3Srp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:47:45 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so75733ves.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:47:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhangyanfei@cn.fujitsu.com, k80ck80c@gmail.com, walken@google.com, mm-commits@vger.kernel.org
+To: kumagai-atsushi@mxc.nes.nec.co.jp, anderson@redhat.com, cmetcalf@tilera.com, ebiederm@xmission.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, iamjoonsoo.kim@lge.com, js1304@gmail.com, mingo@kernel.org, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap: find_vma: remove the WARN_ON_ONCE(!mm) check
+     Subject: kexec, vmalloc: export additional vmalloc layer information
 has been removed from the -mm tree.  Its filename was
-     mmap-find_vma-remove-the-warn_on_oncemm-check.patch
+     kexec-vmalloc-export-additional-vmalloc-layer-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mmap: find_vma: remove the WARN_ON_ONCE(!mm) check
+From: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Subject: kexec, vmalloc: export additional vmalloc layer information
 
-Remove the WARN_ON_ONCE(!mm) check as the comment suggested.  Kernel code
-calls find_vma only when it is absolutely sure that the mm_struct arg to
-it is non-NULL.
+Now, vmap_area_list is exported as VMCOREINFO for makedumpfile to get the
+start address of vmalloc region (vmalloc_start).  The address which
+contains vmalloc_start value is represented as below:
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: k80c <k80ck80c@gmail.com>
-Cc: Michel Lespinasse <walken@google.com>
+  vmap_area_list.next - OFFSET(vmap_area.list) + OFFSET(vmap_area.va_start)
+
+However, both OFFSET(vmap_area.va_start) and OFFSET(vmap_area.list) aren't
+exported as VMCOREINFO.
+
+So this patch exports them externally with small cleanup.
+
+[akpm@linux-foundation.org: vmalloc.h should include list.h for list_head]
+Signed-off-by: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Dave Anderson <anderson@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/vmalloc.h |   13 +++++++++++++
+ kernel/kexec.c          |    3 ++-
+ mm/vmalloc.c            |   11 -----------
+ 3 files changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN mm/mmap.c~mmap-find_vma-remove-the-warn_on_oncemm-check mm/mmap.c
---- a/mm/mmap.c~mmap-find_vma-remove-the-warn_on_oncemm-check
-+++ a/mm/mmap.c
-@@ -1935,9 +1935,6 @@ struct vm_area_struct *find_vma(struct m
- {
- 	struct vm_area_struct *vma = NULL;
+diff -puN include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information
++++ a/include/linux/vmalloc.h
+@@ -3,7 +3,9 @@
  
--	if (WARN_ON_ONCE(!mm))		/* Remove this in linux-3.6 */
--		return NULL;
+ #include <linux/spinlock.h>
+ #include <linux/init.h>
++#include <linux/list.h>
+ #include <asm/page.h>		/* pgprot_t */
++#include <linux/rbtree.h>
+ 
+ struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
+ 
+@@ -35,6 +37,17 @@ struct vm_struct {
+ 	const void		*caller;
+ };
+ 
++struct vmap_area {
++	unsigned long va_start;
++	unsigned long va_end;
++	unsigned long flags;
++	struct rb_node rb_node;         /* address sorted rbtree */
++	struct list_head list;          /* address sorted list */
++	struct list_head purge_list;    /* "lazy purge" list */
++	struct vm_struct *vm;
++	struct rcu_head rcu_head;
++};
++
+ /*
+  *	Highlevel APIs for driver use
+  */
+diff -puN kernel/kexec.c~kexec-vmalloc-export-additional-vmalloc-layer-information kernel/kexec.c
+--- a/kernel/kexec.c~kexec-vmalloc-export-additional-vmalloc-layer-information
++++ a/kernel/kexec.c
+@@ -1615,7 +1615,8 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_OFFSET(free_area, free_list);
+ 	VMCOREINFO_OFFSET(list_head, next);
+ 	VMCOREINFO_OFFSET(list_head, prev);
+-	VMCOREINFO_OFFSET(vm_struct, addr);
++	VMCOREINFO_OFFSET(vmap_area, va_start);
++	VMCOREINFO_OFFSET(vmap_area, list);
+ 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
+ 	log_buf_kexec_setup();
+ 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
+diff -puN mm/vmalloc.c~kexec-vmalloc-export-additional-vmalloc-layer-information mm/vmalloc.c
+--- a/mm/vmalloc.c~kexec-vmalloc-export-additional-vmalloc-layer-information
++++ a/mm/vmalloc.c
+@@ -249,17 +249,6 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
+ #define VM_LAZY_FREEING	0x02
+ #define VM_VM_AREA	0x04
+ 
+-struct vmap_area {
+-	unsigned long va_start;
+-	unsigned long va_end;
+-	unsigned long flags;
+-	struct rb_node rb_node;		/* address sorted rbtree */
+-	struct list_head list;		/* address sorted list */
+-	struct list_head purge_list;	/* "lazy purge" list */
+-	struct vm_struct *vm;
+-	struct rcu_head rcu_head;
+-};
