@@ -1,87 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-max6902c-use-register-defines-instead-of-magic-numbers.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:01:06 -0700
-Message-ID: <20130430190106.7EEA831C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:01:14 -0700
+Message-ID: <20130430190114.715B55A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:44960 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933593Ab3D3TBH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:01:07 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z12so87199yhz.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:01:07 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:51247 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933593Ab3D3TBP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:01:15 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r11so87519yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:01:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@ingics.com, a.zummo@towertech.it, fengguang.wu@intel.com, raph@raphnet.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max6902.c: use register defines instead of magic numbers
+     Subject: rtc: rtc-coh901331: convert coh901331_driver to dev_pm_ops
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-max6902c-use-register-defines-instead-of-magic-numbers.patch
+     rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@ingics.com>
-Subject: drivers/rtc/rtc-max6902.c: use register defines instead of magic numbers
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-coh901331: convert coh901331_driver to dev_pm_ops
 
-Current code has defines for registers, use the defines rather than magic
-numbers.
+Instead of using legacy suspend/resume methods, using newer dev_pm_ops
+structure allows better control over power management.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
-Cc: Raphael Assenat <raph@raphnet.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6902.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-coh901331.c |   24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/rtc-max6902.c~drivers-rtc-rtc-max6902c-use-register-defines-instead-of-magic-numbers drivers/rtc/rtc-max6902.c
---- a/drivers/rtc/rtc-max6902.c~drivers-rtc-rtc-max6902c-use-register-defines-instead-of-magic-numbers
-+++ a/drivers/rtc/rtc-max6902.c
-@@ -93,24 +93,24 @@ static int max6902_set_time(struct devic
- 	dt->tm_year = dt->tm_year + 1900;
+diff -puN drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops drivers/rtc/rtc-coh901331.c
+--- a/drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-convert-coh901331_driver-to-dev_pm_ops
++++ a/drivers/rtc/rtc-coh901331.c
+@@ -47,7 +47,7 @@ struct coh901331_port {
+ 	u32 physize;
+ 	void __iomem *virtbase;
+ 	int irq;
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
+ 	u32 irqmaskstore;
+ #endif
+ };
+@@ -225,17 +225,17 @@ static int __init coh901331_probe(struct
+ 	return ret;
+ }
  
- 	/* Remove write protection */
--	max6902_set_reg(dev, 0xF, 0);
-+	max6902_set_reg(dev, MAX6902_REG_CONTROL, 0);
+-#ifdef CONFIG_PM
+-static int coh901331_suspend(struct platform_device *pdev, pm_message_t state)
++#ifdef CONFIG_PM_SLEEP
++static int coh901331_suspend(struct device *dev)
+ {
+-	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
++	struct coh901331_port *rtap = dev_get_drvdata(dev);
  
--	max6902_set_reg(dev, 0x01, bin2bcd(dt->tm_sec));
--	max6902_set_reg(dev, 0x03, bin2bcd(dt->tm_min));
--	max6902_set_reg(dev, 0x05, bin2bcd(dt->tm_hour));
--
--	max6902_set_reg(dev, 0x07, bin2bcd(dt->tm_mday));
--	max6902_set_reg(dev, 0x09, bin2bcd(dt->tm_mon + 1));
--	max6902_set_reg(dev, 0x0B, bin2bcd(dt->tm_wday));
--	max6902_set_reg(dev, 0x0D, bin2bcd(dt->tm_year % 100));
--	max6902_set_reg(dev, 0x13, bin2bcd(dt->tm_year / 100));
-+	max6902_set_reg(dev, MAX6902_REG_SECONDS, bin2bcd(dt->tm_sec));
-+	max6902_set_reg(dev, MAX6902_REG_MINUTES, bin2bcd(dt->tm_min));
-+	max6902_set_reg(dev, MAX6902_REG_HOURS, bin2bcd(dt->tm_hour));
-+
-+	max6902_set_reg(dev, MAX6902_REG_DATE, bin2bcd(dt->tm_mday));
-+	max6902_set_reg(dev, MAX6902_REG_MONTH, bin2bcd(dt->tm_mon + 1));
-+	max6902_set_reg(dev, MAX6902_REG_DAY, bin2bcd(dt->tm_wday));
-+	max6902_set_reg(dev, MAX6902_REG_YEAR, bin2bcd(dt->tm_year % 100));
-+	max6902_set_reg(dev, MAX6902_REG_CENTURY, bin2bcd(dt->tm_year / 100));
- 
- 	/* Compulab used a delay here. However, the datasheet
- 	 * does not mention a delay being required anywhere... */
- 	/* delay(2000); */
- 
- 	/* Write protect */
--	max6902_set_reg(dev, 0xF, 0x80);
-+	max6902_set_reg(dev, MAX6902_REG_CONTROL, 0x80);
- 
+ 	/*
+ 	 * If this RTC alarm will be used for waking the system up,
+ 	 * don't disable it of course. Else we just disable the alarm
+ 	 * and await suspension.
+ 	 */
+-	if (device_may_wakeup(&pdev->dev)) {
++	if (device_may_wakeup(dev)) {
+ 		enable_irq_wake(rtap->irq);
+ 	} else {
+ 		clk_enable(rtap->clk);
+@@ -247,12 +247,12 @@ static int coh901331_suspend(struct plat
  	return 0;
  }
+ 
+-static int coh901331_resume(struct platform_device *pdev)
++static int coh901331_resume(struct device *dev)
+ {
+-	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
++	struct coh901331_port *rtap = dev_get_drvdata(dev);
+ 
+ 	clk_prepare(rtap->clk);
+-	if (device_may_wakeup(&pdev->dev)) {
++	if (device_may_wakeup(dev)) {
+ 		disable_irq_wake(rtap->irq);
+ 	} else {
+ 		clk_enable(rtap->clk);
+@@ -261,11 +261,10 @@ static int coh901331_resume(struct platf
+ 	}
+ 	return 0;
+ }
+-#else
+-#define coh901331_suspend NULL
+-#define coh901331_resume NULL
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(coh901331_pm_ops, coh901331_suspend, coh901331_resume);
++
+ static void coh901331_shutdown(struct platform_device *pdev)
+ {
+ 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
+@@ -279,10 +278,9 @@ static struct platform_driver coh901331_
+ 	.driver = {
+ 		.name = "rtc-coh901331",
+ 		.owner = THIS_MODULE,
++		.pm = &coh901331_pm_ops,
+ 	},
+ 	.remove = __exit_p(coh901331_remove),
+-	.suspend = coh901331_suspend,
+-	.resume = coh901331_resume,
+ 	.shutdown = coh901331_shutdown,
+ };
+ 
 _
 
-Patches currently in -mm which might be from axel.lin@ingics.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
 linux-next.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
 
