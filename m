@@ -1,122 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-break-up-swap_writepage-for-frontswap-backends.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:49:35 -0700
-Message-ID: <20130430184935.873CE5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] firmware-memmap-fix-firmware_map_entry-leak.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:49:46 -0700
+Message-ID: <20130430184946.8CB7D5A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:54048 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932434Ab3D3Stg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:36 -0400
-Received: by mail-qe0-f74.google.com with SMTP id a11so85049qen.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:36 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:49205 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760747Ab3D3Str (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:47 -0400
+Received: by mail-qa0-f73.google.com with SMTP id p6so86729qad.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sjenning@linux.vnet.ibm.com, bob.liu@oracle.com, dan.magenheimer@oracle.com, konrad.wilk@oracle.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: isimatu.yasuaki@jp.fujitsu.com, greg@kroah.com, liwanp@linux.vnet.ibm.com, tangchen@cn.fujitsu.com, toshi.kani@hp.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: break up swap_writepage() for frontswap backends
+     Subject: firmware, memmap: fix firmware_map_entry leak
 has been removed from the -mm tree.  Its filename was
-     mm-break-up-swap_writepage-for-frontswap-backends.patch
+     firmware-memmap-fix-firmware_map_entry-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Subject: mm: break up swap_writepage() for frontswap backends
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: firmware, memmap: fix firmware_map_entry leak
 
-swap_writepage() is currently where frontswap hooks into the swap write
-path to capture pages with the frontswap_store() function.  However, if a
-frontswap backend wants to "resume" the writeback of a page to the swap
-device, it can't call swap_writepage() as the page will simply reenter the
-backend.
+When hot removing memory, a firmware_map_entry which has memory range of
+the memory is released by release_firmware_map_entry().  If the entry is
+allocated by bootmem, release_firmware_map_entry() adds the entry to
+map_entires_bootmem list when firmware_map_find_entry() finds the entry
+from map_entries list.  But firmware_map_find_entry never find the entry
+sicne map_entires list does not have the entry.  So the entry just leaks.
 
-This patch separates swap_writepage() into a top and bottom half, the
-bottom half named __swap_writepage() to allow a frontswap backend, like
-zswap, to resume writeback beyond the frontswap_store() hook.
+Here are steps of leaking firmware_map_entry:
+firmware_map_remove()
+-> firmware_map_find_entry()
+   Find released entry from map_entries list
+-> firmware_map_remove_entry()
+   Delete the entry from map_entries list
+-> remove_sysfs_fw_map_entry()
+   ...
+   -> release_firmware_map_entry()
+      -> firmware_map_find_entry()
+         Find the entry from map_entries list but the entry has been
+         deleted from map_entries list. So the entry is not added
+         to map_entries_bootmem. Thus the entry leaks
 
-__add_to_swap_cache() is also made non-static so that the page for
-which writeback is to be resumed can be added to the swap cache.
+release_firmware_map_entry() should not call firmware_map_find_entry()
+since releaed entry has been deleted from map_entries list.  So the patch
+delete firmware_map_find_entry() from releae_firmware_map_entry()
 
-Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Signed-off-by: Bob Liu <bob.liu@oracle.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 ++
- mm/page_io.c         |   14 +++++++++++---
- mm/swap_state.c      |    2 +-
- 3 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/firmware/memmap.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/swap.h~mm-break-up-swap_writepage-for-frontswap-backends include/linux/swap.h
---- a/include/linux/swap.h~mm-break-up-swap_writepage-for-frontswap-backends
-+++ a/include/linux/swap.h
-@@ -330,6 +330,7 @@ static inline void mem_cgroup_uncharge_s
- /* linux/mm/page_io.c */
- extern int swap_readpage(struct page *);
- extern int swap_writepage(struct page *page, struct writeback_control *wbc);
-+extern int __swap_writepage(struct page *page, struct writeback_control *wbc);
- extern int swap_set_page_dirty(struct page *page);
- extern void end_swap_bio_read(struct bio *bio, int err);
+diff -puN drivers/firmware/memmap.c~firmware-memmap-fix-firmware_map_entry-leak drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware-memmap-fix-firmware_map_entry-leak
++++ a/drivers/firmware/memmap.c
+@@ -114,12 +114,9 @@ static void __meminit release_firmware_m
+ 		 * map_entries_bootmem here, and deleted from &map_entries in
+ 		 * firmware_map_remove_entry().
+ 		 */
+-		if (firmware_map_find_entry(entry->start, entry->end,
+-		    entry->type)) {
+-			spin_lock(&map_entries_bootmem_lock);
+-			list_add(&entry->list, &map_entries_bootmem);
+-			spin_unlock(&map_entries_bootmem_lock);
+-		}
++		spin_lock(&map_entries_bootmem_lock);
++		list_add(&entry->list, &map_entries_bootmem);
++		spin_unlock(&map_entries_bootmem_lock);
  
-@@ -345,6 +346,7 @@ extern unsigned long total_swapcache_pag
- extern void show_swap_cache_info(void);
- extern int add_to_swap(struct page *);
- extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
-+extern int __add_to_swap_cache(struct page *page, swp_entry_t entry);
- extern void __delete_from_swap_cache(struct page *);
- extern void delete_from_swap_cache(struct page *);
- extern void free_page_and_swap_cache(struct page *);
-diff -puN mm/page_io.c~mm-break-up-swap_writepage-for-frontswap-backends mm/page_io.c
---- a/mm/page_io.c~mm-break-up-swap_writepage-for-frontswap-backends
-+++ a/mm/page_io.c
-@@ -185,9 +185,7 @@ bad_bmap:
-  */
- int swap_writepage(struct page *page, struct writeback_control *wbc)
- {
--	struct bio *bio;
--	int ret = 0, rw = WRITE;
--	struct swap_info_struct *sis = page_swap_info(page);
-+	int ret = 0;
- 
- 	if (try_to_free_swap(page)) {
- 		unlock_page(page);
-@@ -199,6 +197,16 @@ int swap_writepage(struct page *page, st
- 		end_page_writeback(page);
- 		goto out;
+ 		return;
  	}
-+	ret = __swap_writepage(page, wbc);
-+out:
-+	return ret;
-+}
-+
-+int __swap_writepage(struct page *page, struct writeback_control *wbc)
-+{
-+	struct bio *bio;
-+	int ret = 0, rw = WRITE;
-+	struct swap_info_struct *sis = page_swap_info(page);
- 
- 	if (sis->flags & SWP_FILE) {
- 		struct kiocb kiocb;
-diff -puN mm/swap_state.c~mm-break-up-swap_writepage-for-frontswap-backends mm/swap_state.c
---- a/mm/swap_state.c~mm-break-up-swap_writepage-for-frontswap-backends
-+++ a/mm/swap_state.c
-@@ -78,7 +78,7 @@ void show_swap_cache_info(void)
-  * __add_to_swap_cache resembles add_to_page_cache_locked on swapper_space,
-  * but sets SwapCache flag and private instead of mapping and index.
-  */
--static int __add_to_swap_cache(struct page *page, swp_entry_t entry)
-+int __add_to_swap_cache(struct page *page, swp_entry_t entry)
- {
- 	int error;
- 	struct address_space *address_space;
 _
 
-Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
 origin.patch
+linux-next.patch
+x86-make-mem=-option-to-work-for-efi-platform.patch
 
