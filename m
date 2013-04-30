@@ -1,157 +1,572 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-kcorec-use-register_hotmemory_notifier.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:48:48 -0700
-Message-ID: <20130430184848.6AADD5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:53 -0700
+Message-ID: <20130430184854.10AEB5A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:54494 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3Sst (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:49 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so84968qcr.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:48 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64942 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3Ssz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:55 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so84990qcs.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: agshew@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
+     Subject: mm: limit growth of 3% hardcoded other user reserve
 has been removed from the -mm tree.  Its filename was
-     fs-proc-kcorec-use-register_hotmemory_notifier.patch
+     mm-limit-growth-of-3%-hardcoded-other-user-reserve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
+From: Andrew Shewmaker <agshew@gmail.com>
+Subject: mm: limit growth of 3% hardcoded other user reserve
 
-Saves an ifdef, no code size changes
+Add user_reserve_kbytes knob.
 
+Limit the growth of the memory reserved for other user processes to min(3%
+current process size, user_reserve_pages).  Only about 8MB is necessary to
+enable recovery in the default mode, and only a few hundred MB are
+required even when overcommit is disabled.
+
+user_reserve_pages defaults to min(3% free pages, 128MB)
+
+I arrived at 128MB by taking the max VSZ of sshd, login, bash, and top ...
+ then adding the RSS of each.
+
+This only affects OVERCOMMIT_NEVER mode.
+
+Background
+
+1. user reserve
+
+__vm_enough_memory reserves a hardcoded 3% of the current process size for
+other applications when overcommit is disabled.  This was done so that a
+user could recover if they launched a memory hogging process.  Without the
+reserve, a user would easily run into a message such as:
+
+bash: fork: Cannot allocate memory
+
+2. admin reserve
+
+Additionally, a hardcoded 3% of free memory is reserved for root in both
+overcommit 'guess' and 'never' modes.  This was intended to prevent a
+scenario where root-cant-log-in and perform recovery operations.
+
+Note that this reserve shrinks, and doesn't guarantee a useful reserve.
+
+Motivation
+
+The two hardcoded memory reserves should be updated to account for current
+memory sizes.
+
+Also, the admin reserve would be more useful if it didn't shrink too much.
+
+When the current code was originally written, 1GB was considered
+"enterprise".  Now the 3% reserve can grow to multiple GB on large memory
+systems, and it only needs to be a few hundred MB at most to enable a user
+or admin to recover a system with an unwanted memory hogging process.
+
+I've found that reducing these reserves is especially beneficial for a
+specific type of application load:
+
+ * single application system
+ * one or few processes (e.g. one per core)
+ * allocating all available memory
+ * not initializing every page immediately
+ * long running
+
+I've run scientific clusters with this sort of load.  A long running job
+sometimes failed many hours (weeks of CPU time) into a calculation.  They
+weren't initializing all of their memory immediately, and they weren't
+using calloc, so I put systems into overcommit 'never' mode.  These
+clusters run diskless and have no swap.
+
+However, with the current reserves, a user wishing to allocate as much
+memory as possible to one process may be prevented from using, for
+example, almost 2GB out of 32GB.
+
+The effect is less, but still significant when a user starts a job with
+one process per core.  I have repeatedly seen a set of processes
+requesting the same amount of memory fail because one of them could not
+allocate the amount of memory a user would expect to be able to allocate. 
+For example, Message Passing Interfce (MPI) processes, one per core.  And
+it is similar for other parallel programming frameworks.
+
+Changing this reserve code will make the overcommit never mode more useful
+by allowing applications to allocate nearly all of the available memory.
+
+Also, the new admin_reserve_kbytes will be safer than the current behavior
+since the hardcoded 3% of available memory reserve can shrink to something
+useless in the case where applications have grabbed all available memory.
+
+Risks
+
+* "bash: fork: Cannot allocate memory"
+
+  The downside of the first patch-- which creates a tunable user reserve
+  that is only used in overcommit 'never' mode--is that an admin can set
+  it so low that a user may not be able to kill their process, even if
+  they already have a shell prompt.
+
+  Of course, a user can get in the same predicament with the current 3%
+  reserve--they just have to launch processes until 3% becomes negligible.
+
+* root-cant-log-in problem
+
+  The second patch, adding the tunable rootuser_reserve_pages, allows
+  the admin to shoot themselves in the foot by setting it too small.  They
+  can easily get the system into a state where root-can't-log-in.
+
+  However, the new admin_reserve_kbytes will be safer than the current
+  behavior since the hardcoded 3% of available memory reserve can shrink
+  to something useless in the case where applications have grabbed all
+  available memory.
+
+Alternatives
+
+ * Memory cgroups provide a more flexible way to limit application memory.
+
+   Not everyone wants to set up cgroups or deal with their overhead.
+
+ * We could create a fourth overcommit mode which provides smaller reserves.
+
+   The size of useful reserves may be drastically different depending
+   on the whether the system is embedded or enterprise.
+
+ * Force users to initialize all of their memory or use calloc.
+
+   Some users don't want/expect the system to overcommit when they malloc.
+   Overcommit 'never' mode is for this scenario, and it should work well.
+
+The new user and admin reserve tunables are simple to use, with low
+overhead compared to cgroups.  The patches preserve current behavior where
+3% of memory is less than 128MB, except that the admin reserve doesn't
+shrink to an unusable size under pressure.  The code allows admins to tune
+for embedded and enterprise usage.
+
+FAQ
+
+ * How is the root-cant-login problem addressed?
+   What happens if admin_reserve_pages is set to 0?
+
+   Root is free to shoot themselves in the foot by setting
+   admin_reserve_kbytes too low.
+
+   On x86_64, the minimum useful reserve is:
+     8MB for overcommit 'guess'
+   128MB for overcommit 'never'
+
+   admin_reserve_pages defaults to min(3% free memory, 8MB)
+
+   So, anyone switching to 'never' mode needs to adjust
+   admin_reserve_pages.
+
+ * How do you calculate a minimum useful reserve?
+
+   A user or the admin needs enough memory to login and perform
+   recovery operations, which includes, at a minimum:
+
+   sshd or login + bash (or some other shell) + top (or ps, kill, etc.)
+
+   For overcommit 'guess', we can sum resident set sizes (RSS)
+   because we only need enough memory to handle what the recovery
+   programs will typically use. On x86_64 this is about 8MB.
+
+   For overcommit 'never', we can take the max of their virtual sizes (VSZ)
+   and add the sum of their RSS. We use VSZ instead of RSS because mode
+   forces us to ensure we can fulfill all of the requested memory allocations--
+   even if the programs only use a fraction of what they ask for.
+   On x86_64 this is about 128MB.
+
+   When swap is enabled, reserves are useful even when they are as 
+   small as 10MB, regardless of overcommit mode.
+
+   When both swap and overcommit are disabled, then the admin should 
+   tune the reserves higher to be absolutley safe. Over 230MB each 
+   was safest in my testing.
+
+ * What happens if user_reserve_pages is set to 0?
+
+   Note, this only affects overcomitt 'never' mode.
+
+   Then a user will be able to allocate all available memory minus
+   admin_reserve_kbytes.
+
+   However, they will easily see a message such as:
+
+   "bash: fork: Cannot allocate memory"
+
+   And they won't be able to recover/kill their application.
+   The admin should be able to recover the system if
+   admin_reserve_kbytes is set appropriately.
+
+ * What's the difference between overcommit 'guess' and 'never'?
+
+   "Guess" allows an allocation if there are enough free + reclaimable
+   pages. It has a hardcoded 3% of free pages reserved for root.
+
+   "Never" allows an allocation if there is enough swap + a configurable
+   percentage (default is 50) of physical RAM. It has a hardcoded 3% of
+   free pages reserved for root, like "Guess" mode. It also has a
+   hardcoded 3% of the current process size reserved for additional
+   applications.
+
+ * Why is overcommit 'guess' not suitable even when an app eventually
+   writes to every page? It takes free pages, file pages, available
+   swap pages, reclaimable slab pages into consideration. In other words,
+   these are all pages available, then why isn't overcommit suitable?
+
+   Because it only looks at the present state of the system. It
+   does not take into account the memory that other applications have
+   malloced, but haven't initialized yet. It overcommits the system.
+
+Test Summary
+
+There was little change in behavior in the default overcommit 'guess'
+mode with swap enabled before and after the patch. This was expected.
+
+Systems run most predictably (i.e. no oom kills) in overcommit 'never'
+mode with swap enabled. This also allowed the most memory to be allocated
+to a user application.
+
+Overcommit 'guess' mode without swap is a bad idea. It is easy to
+crash the system. None of the other tested combinations crashed.
+This matches my experience on the Roadrunner supercomputer.
+
+Without the tunable user reserve, a system in overcommit 'never' mode
+and without swap does not allow the admin to recover, although the
+admin can.
+
+With the new tunable reserves, a system in overcommit 'never' mode
+and without swap can be configured to:
+
+1. maximize user-allocatable memory, running close to the edge of
+recoverability
+
+2. maximize recoverability, sacrificing allocatable memory to
+ensure that a user cannot take down a system
+
+Test Description
+
+Fedora 18 VM - 4 x86_64 cores, 5725MB RAM, 4GB Swap
+
+System is booted into multiuser console mode, with unnecessary services
+turned off. Caches were dropped before each test.
+
+Hogs are user memtester processes that attempt to allocate all free memory
+as reported by /proc/meminfo
+
+In overcommit 'never' mode, memory_ratio=100
+
+Test Results
+
+3.9.0-rc1-mm1
+
+Overcommit | Swap | Hogs | MB Got/Wanted | OOMs | User Recovery | Admin Recovery
+----------   ----   ----   -------------   ----   -------------   --------------
+guess        yes    1      5432/5432       no     yes             yes
+guess        yes    4      5444/5444       1      yes             yes
+guess        no     1      5302/5449       no     yes             yes
+guess        no     4      -               crash  no              no
+
+never        yes    1      5460/5460       1      yes             yes
+never        yes    4      5460/5460       1      yes             yes
+never        no     1      5218/5432       no     no              yes
+never        no     4      5203/5448       no     no              yes
+
+3.9.0-rc1-mm1-tunablereserves
+
+User and Admin Recovery show their respective reserves, if applicable.
+
+Overcommit | Swap | Hogs | MB Got/Wanted | OOMs | User Recovery | Admin Recovery
+----------   ----   ----   -------------   ----   -------------   --------------
+guess        yes    1      5419/5419       no     - yes           8MB yes
+guess        yes    4      5436/5436       1      - yes           8MB yes
+guess        no     1      5440/5440       *      - yes           8MB yes
+guess        no     4      -               crash  - no            8MB no
+
+* process would successfully mlock, then the oom killer would pick it
+
+never        yes    1      5446/5446       no     10MB yes        20MB yes
+never        yes    4      5456/5456       no     10MB yes        20MB yes
+never        no     1      5387/5429       no     128MB no        8MB barely
+never        no     1      5323/5428       no     226MB barely    8MB barely
+never        no     1      5323/5428       no     226MB barely    8MB barely
+
+never        no     1      5359/5448       no     10MB no         10MB barely
+
+never        no     1      5323/5428       no     0MB no          10MB barely
+never        no     1      5332/5428       no     0MB no          50MB yes
+never        no     1      5293/5429       no     0MB no          90MB yes
+
+never        no     1      5001/5427       no     230MB yes       338MB yes
+never        no     4*     4998/5424       no     230MB yes       338MB yes
+
+* more memtesters were launched, able to allocate approximately another 100MB
+
+Future Work
+
+ - Test larger memory systems.
+
+ - Test an embedded image.
+
+ - Test other architectures.
+
+ - Time malloc microbenchmarks.
+
+ - Would it be useful to be able to set overcommit policy for
+   each memory cgroup?
+
+ - Some lines are slightly above 80 chars.
+   Perhaps define a macro to convert between pages and kb?
+   Other places in the kernel do this.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: make init_user_reserve() static]
+Signed-off-by: Andrew Shewmaker <agshew@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ Documentation/sysctl/vm.txt            |   20 +++++++++++++
+ Documentation/vm/overcommit-accounting |    8 ++++-
+ include/linux/mm.h                     |    2 +
+ kernel/sysctl.c                        |    7 ++++
+ mm/mmap.c                              |   35 +++++++++++++++++++----
+ mm/nommu.c                             |   35 +++++++++++++++++++----
+ 6 files changed, 96 insertions(+), 11 deletions(-)
 
-diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier fs/proc/kcore.c
---- a/fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier
-+++ a/fs/proc/kcore.c
-@@ -15,6 +15,7 @@
- #include <linux/capability.h>
- #include <linux/elf.h>
- #include <linux/elfcore.h>
-+#include <linux/notifier.h>
- #include <linux/vmalloc.h>
- #include <linux/highmem.h>
- #include <linux/printk.h>
-@@ -564,7 +565,6 @@ static const struct file_operations proc
- 	.llseek		= default_llseek,
+diff -puN Documentation/sysctl/vm.txt~mm-limit-growth-of-3%-hardcoded-other-user-reserve Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-limit-growth-of-3%-hardcoded-other-user-reserve
++++ a/Documentation/sysctl/vm.txt
+@@ -53,6 +53,7 @@ Currently, these files are in /proc/sys/
+ - percpu_pagelist_fraction
+ - stat_interval
+ - swappiness
++- user_reserve_kbytes
+ - vfs_cache_pressure
+ - zone_reclaim_mode
+ 
+@@ -542,6 +543,7 @@ memory until it actually runs out.
+ 
+ When this flag is 2, the kernel uses a "never overcommit"
+ policy that attempts to prevent any overcommit of memory.
++Note that user_reserve_kbytes affects this policy.
+ 
+ This feature can be very useful because there are a lot of
+ programs that malloc() huge amounts of memory "just-in-case"
+@@ -645,6 +647,24 @@ The default value is 60.
+ 
+ ==============================================================
+ 
++- user_reserve_kbytes
++
++When overcommit_memory is set to 2, "never overommit" mode, reserve
++min(3% of current process size, user_reserve_kbytes) of free memory.
++This is intended to prevent a user from starting a single memory hogging
++process, such that they cannot recover (kill the hog).
++
++user_reserve_kbytes defaults to min(3% of the current process size, 128MB).
++
++If this is reduced to zero, then the user will be allowed to allocate
++all free memory with a single process, minus admin_reserve_kbytes.
++Any subsequent attempts to execute a command will result in
++"fork: Cannot allocate memory".
++
++Changing this takes effect whenever an application requests memory.
++
++==============================================================
++
+ vfs_cache_pressure
+ ------------------
+ 
+diff -puN Documentation/vm/overcommit-accounting~mm-limit-growth-of-3%-hardcoded-other-user-reserve Documentation/vm/overcommit-accounting
+--- a/Documentation/vm/overcommit-accounting~mm-limit-growth-of-3%-hardcoded-other-user-reserve
++++ a/Documentation/vm/overcommit-accounting
+@@ -8,7 +8,9 @@ The Linux kernel supports the following
+ 		default.
+ 
+ 1	-	Always overcommit. Appropriate for some scientific
+-		applications.
++		applications. Classic example is code using sparse arrays
++		and just relying on the virtual memory consisting almost
++		entirely of zero pages.
+ 
+ 2	-	Don't overcommit. The total address space commit
+ 		for the system is not permitted to exceed swap + a
+@@ -18,6 +20,10 @@ The Linux kernel supports the following
+ 		pages but will receive errors on memory allocation as
+ 		appropriate.
+ 
++		Useful for applications that want to guarantee their
++		memory allocations will be available in the future
++		without having to initialize every page.
++
+ The overcommit policy is set via the sysctl `vm.overcommit_memory'.
+ 
+ The overcommit percentage is set via `vm.overcommit_ratio'.
+diff -puN include/linux/mm.h~mm-limit-growth-of-3%-hardcoded-other-user-reserve include/linux/mm.h
+--- a/include/linux/mm.h~mm-limit-growth-of-3%-hardcoded-other-user-reserve
++++ a/include/linux/mm.h
+@@ -44,6 +44,8 @@ extern int sysctl_legacy_va_layout;
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+ 
++extern unsigned long sysctl_user_reserve_kbytes;
++
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+ /* to align the pointer to the (next) page boundary */
+diff -puN kernel/sysctl.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve
++++ a/kernel/sysctl.c
+@@ -1429,6 +1429,13 @@ static struct ctl_table vm_table[] = {
+ 		.extra2		= &one,
+ 	},
+ #endif
++	{
++		.procname	= "user_reserve_kbytes",
++		.data		= &sysctl_user_reserve_kbytes,
++		.maxlen		= sizeof(sysctl_user_reserve_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
+ 	{ }
  };
  
--#ifdef CONFIG_MEMORY_HOTPLUG
- /* just remember that we have to update kcore */
- static int __meminit kcore_callback(struct notifier_block *self,
- 				    unsigned long action, void *arg)
-@@ -578,8 +578,11 @@ static int __meminit kcore_callback(stru
- 	}
- 	return NOTIFY_OK;
+diff -puN mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve mm/mmap.c
+--- a/mm/mmap.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve
++++ a/mm/mmap.c
+@@ -84,6 +84,7 @@ EXPORT_SYMBOL(vm_get_page_prot);
+ int sysctl_overcommit_memory __read_mostly = OVERCOMMIT_GUESS;  /* heuristic overcommit */
+ int sysctl_overcommit_ratio __read_mostly = 50;	/* default is 50% */
+ int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
++unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
+ /*
+  * Make sure vm_committed_as in one cacheline and not cacheline shared with
+  * other variables. It can be updated by several CPUs frequently.
+@@ -122,7 +123,7 @@ EXPORT_SYMBOL_GPL(vm_memory_committed);
+  */
+ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
+ {
+-	unsigned long free, allowed;
++	unsigned long free, allowed, reserve;
+ 
+ 	vm_acct_memory(pages);
+ 
+@@ -183,10 +184,13 @@ int __vm_enough_memory(struct mm_struct
+ 		allowed -= allowed / 32;
+ 	allowed += total_swap_pages;
+ 
+-	/* Don't let a single process grow too big:
+-	   leave 3% of the size of this process for other processes */
+-	if (mm)
+-		allowed -= mm->total_vm / 32;
++	/*
++	 * Don't let a single process grow so big a user can't recover
++	 */
++	if (mm) {
++		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
++		allowed -= min(mm->total_vm / 32, reserve);
++	}
+ 
+ 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 		return 0;
+@@ -3094,3 +3098,24 @@ void __init mmap_init(void)
+ 	ret = percpu_counter_init(&vm_committed_as, 0);
+ 	VM_BUG_ON(ret);
  }
--#endif
++
++/*
++ * Initialise sysctl_user_reserve_kbytes.
++ *
++ * This is intended to prevent a user from starting a single memory hogging
++ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER
++ * mode.
++ *
++ * The default value is min(3% of free memory, 128MB)
++ * 128MB is enough to recover with sshd/login, bash, and top/kill.
++ */
++static int __meminit init_user_reserve(void)
++{
++	unsigned long free_kbytes;
++
++	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++
++	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
++	return 0;
++}
++module_init(init_user_reserve)
+diff -puN mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve mm/nommu.c
+--- a/mm/nommu.c~mm-limit-growth-of-3%-hardcoded-other-user-reserve
++++ a/mm/nommu.c
+@@ -63,6 +63,7 @@ int sysctl_overcommit_memory = OVERCOMMI
+ int sysctl_overcommit_ratio = 50; /* default is 50% */
+ int sysctl_max_map_count = DEFAULT_MAX_MAP_COUNT;
+ int sysctl_nr_trim_pages = CONFIG_NOMMU_INITIAL_TRIM_EXCESS;
++unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
+ int heap_stack_gap = 0;
  
-+static struct notifier_block kcore_callback_nb __meminitdata = {
-+	.notifier_call = kcore_callback,
-+	.priority = 0,
-+};
+ atomic_long_t mmap_pages_allocated;
+@@ -1897,7 +1898,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
+  */
+ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
+ {
+-	unsigned long free, allowed;
++	unsigned long free, allowed, reserve;
  
- static struct kcore_list kcore_vmalloc;
+ 	vm_acct_memory(pages);
  
-@@ -631,7 +634,7 @@ static int __init proc_kcore_init(void)
- 	add_modules_range();
- 	/* Store direct-map area from physical memory map */
- 	kcore_update_ram();
--	hotplug_memory_notifier(kcore_callback, 0);
-+	register_hotmemory_notifier(&kcore_callback_nb);
+@@ -1957,10 +1958,13 @@ int __vm_enough_memory(struct mm_struct
+ 		allowed -= allowed / 32;
+ 	allowed += total_swap_pages;
  
+-	/* Don't let a single process grow too big:
+-	   leave 3% of the size of this process for other processes */
+-	if (mm)
+-		allowed -= mm->total_vm / 32;
++	/*
++	 * Don't let a single process grow so big a user can't recover
++	 */
++	if (mm) {
++		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
++		allowed -= min(mm->total_vm / 32, reserve);
++	}
+ 
+ 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 		return 0;
+@@ -2122,3 +2126,24 @@ int nommu_shrink_inode_mappings(struct i
+ 	up_write(&nommu_region_sem);
  	return 0;
  }
++
++/*
++ * Initialise sysctl_user_reserve_kbytes.
++ *
++ * This is intended to prevent a user from starting a single memory hogging
++ * process, such that they cannot recover (kill the hog) in OVERCOMMIT_NEVER
++ * mode.
++ *
++ * The default value is min(3% of free memory, 128MB)
++ * 128MB is enough to recover with sshd/login, bash, and top/kill.
++ */
++static int __meminit init_user_reserve(void)
++{
++	unsigned long free_kbytes;
++
++	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++
++	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
++	return 0;
++}
++module_init(init_user_reserve)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from agshew@gmail.com are
 
 origin.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-linux-next.patch
-linux-next-git-rejects1.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-usb-storage-realtek_crc-fix-build.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-lib-string_helpers-introduce-generic-string_unescape-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-revert-ipc_schedule_free-can-do-vfree-now.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-rapidio-make-enumeration-discovery-configurable-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-bpf-add-comments-explaining-the-schedule_work-operation.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
