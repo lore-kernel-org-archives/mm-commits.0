@@ -1,59 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:28 -0700
-Message-ID: <20130430185928.7197631C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-s3cc-use-clk_prepare_enable-and-clk_disable_unprepare.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:59:25 -0700
+Message-ID: <20130430185925.75E9A5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:56764 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933303Ab3D3S73 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:29 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so87278vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:28 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:45037 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933302Ab3D3S70 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:26 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z12so86922yhz.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sachin.kamat@linaro.org, woong.byun@samsung.com, mm-commits@vger.kernel.org
+To: thomas.abraham@linaro.org, gautam.vivek@samsung.com, jg1.han@samsung.com, kgene.kim@samsung.com, s.nawrocki@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max77686.c: use devm_regmap_init_i2c()
+     Subject: drivers/rtc/rtc-s3c.c: use clk_prepare_enable and clk_disable_unprepare
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c.patch
+     drivers-rtc-rtc-s3cc-use-clk_prepare_enable-and-clk_disable_unprepare.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max77686.c: use devm_regmap_init_i2c()
+From: Thomas Abraham <thomas.abraham@linaro.org>
+Subject: drivers/rtc/rtc-s3c.c: use clk_prepare_enable and clk_disable_unprepare
 
-This driver already uses other devm_* APIs.
-Convert regmap_init_i2c too.
+Convert clk_enable/clk_disable to clk_prepare_enable/clk_disable_unprepare
+calls as required by common clock framework.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Chiwoong Byun <woong.byun@samsung.com>
+Signed-off-by: Thomas Abraham <thomas.abraham@linaro.org>
+Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Reviewed-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-s3c.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-use-devm_regmap_init_i2c
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -514,7 +514,7 @@ static int max77686_rtc_probe(struct pla
- 	info->dev = &pdev->dev;
- 	info->max77686 = max77686;
- 	info->rtc = max77686->rtc;
--	info->max77686->rtc_regmap = regmap_init_i2c(info->max77686->rtc,
-+	info->max77686->rtc_regmap = devm_regmap_init_i2c(info->max77686->rtc,
- 					 &max77686_rtc_regmap_config);
- 	if (IS_ERR(info->max77686->rtc_regmap)) {
- 		ret = PTR_ERR(info->max77686->rtc_regmap);
+diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-use-clk_prepare_enable-and-clk_disable_unprepare drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-use-clk_prepare_enable-and-clk_disable_unprepare
++++ a/drivers/rtc/rtc-s3c.c
+@@ -426,6 +426,7 @@ static int s3c_rtc_remove(struct platfor
+ 
+ 	s3c_rtc_setaie(&dev->dev, 0);
+ 
++	clk_unprepare(rtc_clk);
+ 	rtc_clk = NULL;
+ 
+ 	return 0;
+@@ -494,7 +495,7 @@ static int s3c_rtc_probe(struct platform
+ 		return ret;
+ 	}
+ 
+-	clk_enable(rtc_clk);
++	clk_prepare_enable(rtc_clk);
+ 
+ 	/* check to see if everything is setup correctly */
+ 
+@@ -573,7 +574,7 @@ static int s3c_rtc_probe(struct platform
+ 
+  err_nortc:
+ 	s3c_rtc_enable(pdev, 0);
+-	clk_disable(rtc_clk);
++	clk_disable_unprepare(rtc_clk);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from thomas.abraham@linaro.org are
 
 origin.patch
 linux-next.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
 
