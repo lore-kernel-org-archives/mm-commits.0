@@ -1,181 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-lp855x-move-backlight-mode-platform-data.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:52:56 -0700
-Message-ID: <20130430185256.76DA45A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] backlight-lp855x-add-a-device-tree-structure.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:53:05 -0700
+Message-ID: <20130430185305.725575A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:55506 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933099Ab3D3Sw5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:52:57 -0400
-Received: by mail-vb0-f73.google.com with SMTP id p12so86424vbe.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:52:56 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:49650 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933099Ab3D3SxG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:53:06 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hr11so86593vcb.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:53:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Milo.Kim@ti.com, milo.kim@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: lp855x: move backlight mode platform data
+     Subject: backlight: lp855x: add a device tree structure
 has been removed from the -mm tree.  Its filename was
-     backlight-lp855x-move-backlight-mode-platform-data.patch
+     backlight-lp855x-add-a-device-tree-structure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: backlight: lp855x: move backlight mode platform data
+Subject: backlight: lp855x: add a device tree structure
 
-The brightness of LP855x devices is controlled by I2C register or PWM
-input .  This mode was selected through the platform data, but it can be
-chosen by the driver internally without platform data configuration.
-
-How to decide the control mode:
-  If the PWM period has specific value, the mode is PWM input.
-  On the other hand, the mode is register-based.
-  This mode selection is done on the _probe().
-
-Move 'mode' from a header file to the driver private data structure,
-'lp855 x'.  And correlated code was replaced.
+Enable supporting the DT structure of LP855x family devices.  If the
+platform data is NULL, the driver tries to parse a DT structure.  Then,
+the platform data is copied from the DT.  Documentation is added as well.
 
 Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/backlight/lp855x-driver.txt |    3 --
- drivers/video/backlight/lp855x_bl.c       |   21 ++++++++++++++------
- include/linux/platform_data/lp855x.h      |    7 ------
- 3 files changed, 15 insertions(+), 16 deletions(-)
+ Documentation/devicetree/bindings/video/backlight/lp855x.txt |   41 +++++
+ drivers/video/backlight/lp855x_bl.c                          |   73 +++++++++-
+ 2 files changed, 112 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/backlight/lp855x-driver.txt~backlight-lp855x-move-backlight-mode-platform-data Documentation/backlight/lp855x-driver.txt
---- a/Documentation/backlight/lp855x-driver.txt~backlight-lp855x-move-backlight-mode-platform-data
-+++ a/Documentation/backlight/lp855x-driver.txt
-@@ -32,7 +32,6 @@ Platform data for lp855x
- For supporting platform specific data, the lp855x platform data can be used.
- 
- * name : Backlight driver name. If it is not defined, default name is set.
--* mode : Brightness control mode. PWM or register based.
- * device_control : Value of DEVICE CONTROL register.
- * initial_brightness : Initial value of backlight brightness.
- * period_ns : Platform specific PWM period value. unit is nano.
-@@ -54,7 +53,6 @@ static struct lp855x_rom_data lp8552_eep
- 
- static struct lp855x_platform_data lp8552_pdata = {
- 	.name = "lcd-bl",
--	.mode = REGISTER_BASED,
- 	.device_control = I2C_CONFIG(LP8552),
- 	.initial_brightness = INITIAL_BRT,
- 	.load_new_rom_data = 1,
-@@ -65,7 +63,6 @@ static struct lp855x_platform_data lp855
- example 2) lp8556 platform data : pwm input mode with default rom data
- 
- static struct lp855x_platform_data lp8556_pdata = {
--	.mode = PWM_BASED,
- 	.device_control = PWM_CONFIG(LP8556),
- 	.initial_brightness = INITIAL_BRT,
- 	.period_ns = 1000000,
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-move-backlight-mode-platform-data drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-move-backlight-mode-platform-data
+diff -puN /dev/null Documentation/devicetree/bindings/video/backlight/lp855x.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/video/backlight/lp855x.txt
+@@ -0,0 +1,41 @@
++lp855x bindings
++
++Required properties:
++  - compatible: "ti,lp8550", "ti,lp8551", "ti,lp8552", "ti,lp8553",
++                "ti,lp8556", "ti,lp8557"
++  - reg: I2C slave address (u8)
++  - dev-ctrl: Value of DEVICE CONTROL register (u8). It depends on the device.
++
++Optional properties:
++  - bl-name: Backlight device name (string)
++  - init-brt: Initial value of backlight brightness (u8)
++  - pwm-period: PWM period value. Set only PWM input mode used (u32)
++  - rom-addr: Register address of ROM area to be updated (u8)
++  - rom-val: Register value to be updated (u8)
++
++Example:
++
++	/* LP8556 */
++	backlight@2c {
++		compatible = "ti,lp8556";
++		reg = <0x2c>;
++
++		bl-name = "lcd-bl";
++		dev-ctrl = /bits/ 8 <0x85>;
++		init-brt = /bits/ 8 <0x10>;
++	};
++
++	/* LP8557 */
++	backlight@2c {
++		compatible = "ti,lp8557";
++		reg = <0x2c>;
++
++		dev-ctrl = /bits/ 8 <0x41>;
++		init-brt = /bits/ 8 <0x0a>;
++
++		/* 4V OV, 4 output LED string enabled */
++		rom_14h {
++			rom-addr = /bits/ 8 <0x14>;
++			rom-val = /bits/ 8 <0xcf>;
++		};
++	};
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-add-a-device-tree-structure drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-add-a-device-tree-structure
 +++ a/drivers/video/backlight/lp855x_bl.c
-@@ -38,6 +38,11 @@
- #define DEFAULT_BL_NAME		"lcd-backlight"
- #define MAX_BRIGHTNESS		255
+@@ -14,6 +14,7 @@
+ #include <linux/i2c.h>
+ #include <linux/backlight.h>
+ #include <linux/err.h>
++#include <linux/of.h>
+ #include <linux/platform_data/lp855x.h>
+ #include <linux/pwm.h>
  
-+enum lp855x_brightness_ctrl_mode {
-+	PWM_BASED = 1,
-+	REGISTER_BASED,
-+};
-+
- struct lp855x;
- 
- /*
-@@ -57,6 +62,7 @@ struct lp855x_device_config {
- struct lp855x {
- 	const char *chipname;
- 	enum lp855x_chip_id chip_id;
-+	enum lp855x_brightness_ctrl_mode mode;
- 	struct lp855x_device_config *cfg;
- 	struct i2c_client *client;
- 	struct backlight_device *bl;
-@@ -238,18 +244,17 @@ static void lp855x_pwm_ctrl(struct lp855
- static int lp855x_bl_update_status(struct backlight_device *bl)
- {
- 	struct lp855x *lp = bl_get_data(bl);
--	enum lp855x_brightness_ctrl_mode mode = lp->pdata->mode;
- 
- 	if (bl->props.state & BL_CORE_SUSPENDED)
- 		bl->props.brightness = 0;
- 
--	if (mode == PWM_BASED) {
-+	if (lp->mode == PWM_BASED) {
- 		int br = bl->props.brightness;
- 		int max_br = bl->props.max_brightness;
- 
- 		lp855x_pwm_ctrl(lp, br, max_br);
- 
--	} else if (mode == REGISTER_BASED) {
-+	} else if (lp->mode == REGISTER_BASED) {
- 		u8 val = bl->props.brightness;
- 		lp855x_write_byte(lp, lp->cfg->reg_brightness, val);
- 	}
-@@ -310,12 +315,11 @@ static ssize_t lp855x_get_bl_ctl_mode(st
- 				     struct device_attribute *attr, char *buf)
- {
- 	struct lp855x *lp = dev_get_drvdata(dev);
--	enum lp855x_brightness_ctrl_mode mode = lp->pdata->mode;
- 	char *strmode = NULL;
- 
--	if (mode == PWM_BASED)
-+	if (lp->mode == PWM_BASED)
- 		strmode = "pwm based";
--	else if (mode == REGISTER_BASED)
-+	else if (lp->mode == REGISTER_BASED)
- 		strmode = "register based";
- 
- 	return scnprintf(buf, PAGE_SIZE, "%s\n", strmode);
-@@ -352,6 +356,11 @@ static int lp855x_probe(struct i2c_clien
- 	if (!lp)
- 		return -ENOMEM;
- 
-+	if (pdata->period_ns > 0)
-+		lp->mode = PWM_BASED;
-+	else
-+		lp->mode = REGISTER_BASED;
-+
- 	lp->client = cl;
- 	lp->dev = &cl->dev;
- 	lp->pdata = pdata;
-diff -puN include/linux/platform_data/lp855x.h~backlight-lp855x-move-backlight-mode-platform-data include/linux/platform_data/lp855x.h
---- a/include/linux/platform_data/lp855x.h~backlight-lp855x-move-backlight-mode-platform-data
-+++ a/include/linux/platform_data/lp855x.h
-@@ -69,11 +69,6 @@ enum lp855x_chip_id {
- 	LP8557,
+@@ -338,15 +339,71 @@ static const struct attribute_group lp85
+ 	.attrs = lp855x_attributes,
  };
  
--enum lp855x_brightness_ctrl_mode {
--	PWM_BASED = 1,
--	REGISTER_BASED,
--};
--
- enum lp8550_brighntess_source {
- 	LP8550_PWM_ONLY,
- 	LP8550_I2C_ONLY = 2,
-@@ -116,7 +111,6 @@ struct lp855x_rom_data {
- /**
-  * struct lp855x_platform_data
-  * @name : Backlight driver name. If it is not defined, default name is set.
-- * @mode : brightness control by pwm or lp855x register
-  * @device_control : value of DEVICE CONTROL register
-  * @initial_brightness : initial value of backlight brightness
-  * @period_ns : platform specific pwm period value. unit is nano.
-@@ -129,7 +123,6 @@ struct lp855x_rom_data {
-  */
- struct lp855x_platform_data {
- 	const char *name;
--	enum lp855x_brightness_ctrl_mode mode;
- 	u8 device_control;
- 	int initial_brightness;
- 	unsigned int period_ns;
++#ifdef CONFIG_OF
++static int lp855x_parse_dt(struct device *dev, struct device_node *node)
++{
++	struct lp855x_platform_data *pdata;
++	int rom_length;
++
++	if (!node) {
++		dev_err(dev, "no platform data\n");
++		return -EINVAL;
++	}
++
++	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return -ENOMEM;
++
++	of_property_read_string(node, "bl-name", &pdata->name);
++	of_property_read_u8(node, "dev-ctrl", &pdata->device_control);
++	of_property_read_u8(node, "init-brt", &pdata->initial_brightness);
++	of_property_read_u32(node, "pwm-period", &pdata->period_ns);
++
++	/* Fill ROM platform data if defined */
++	rom_length = of_get_child_count(node);
++	if (rom_length > 0) {
++		struct lp855x_rom_data *rom;
++		struct device_node *child;
++		int i = 0;
++
++		rom = devm_kzalloc(dev, sizeof(*rom) * rom_length, GFP_KERNEL);
++		if (!rom)
++			return -ENOMEM;
++
++		for_each_child_of_node(node, child) {
++			of_property_read_u8(child, "rom-addr", &rom[i].addr);
++			of_property_read_u8(child, "rom-val", &rom[i].val);
++			i++;
++		}
++
++		pdata->size_program = rom_length;
++		pdata->rom_data = &rom[0];
++	}
++
++	dev->platform_data = pdata;
++
++	return 0;
++}
++#else
++static int lp855x_parse_dt(struct device *dev, struct device_node *node)
++{
++	return -EINVAL;
++}
++#endif
++
+ static int lp855x_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ {
+ 	struct lp855x *lp;
+ 	struct lp855x_platform_data *pdata = cl->dev.platform_data;
++	struct device_node *node = cl->dev.of_node;
+ 	int ret;
+ 
+ 	if (!pdata) {
+-		dev_err(&cl->dev, "no platform data supplied\n");
+-		return -EINVAL;
++		ret = lp855x_parse_dt(&cl->dev, node);
++		if (ret < 0)
++			return ret;
++
++		pdata = cl->dev.platform_data;
+ 	}
+ 
+ 	if (!i2c_check_functionality(cl->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+@@ -408,6 +465,17 @@ static int lp855x_remove(struct i2c_clie
+ 	return 0;
+ }
+ 
++static const struct of_device_id lp855x_dt_ids[] = {
++	{ .compatible = "ti,lp8550", },
++	{ .compatible = "ti,lp8551", },
++	{ .compatible = "ti,lp8552", },
++	{ .compatible = "ti,lp8553", },
++	{ .compatible = "ti,lp8556", },
++	{ .compatible = "ti,lp8557", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, lp855x_dt_ids);
++
+ static const struct i2c_device_id lp855x_ids[] = {
+ 	{"lp8550", LP8550},
+ 	{"lp8551", LP8551},
+@@ -422,6 +490,7 @@ MODULE_DEVICE_TABLE(i2c, lp855x_ids);
+ static struct i2c_driver lp855x_driver = {
+ 	.driver = {
+ 		   .name = "lp855x",
++		   .of_match_table = of_match_ptr(lp855x_dt_ids),
+ 		   },
+ 	.probe = lp855x_probe,
+ 	.remove = lp855x_remove,
 _
 
 Patches currently in -mm which might be from Milo.Kim@ti.com are
