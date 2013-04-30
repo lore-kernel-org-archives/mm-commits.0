@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch added to -mm tree
-Date: Tue, 30 Apr 2013 13:15:02 -0700
-Message-ID: <20130430201502.BFD1631C2DD@corp2gmr1-1.hot.corp.google.com>
+Subject: + lib-string_helpers-introduce-generic-string_unescape-fix-fix.patch added to -mm tree
+Date: Tue, 30 Apr 2013 14:08:16 -0700
+Message-ID: <20130430210816.BF3A15A4278@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:50575 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932742Ab3D3UPE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 16:15:04 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m3so97125yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 13:15:03 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:33865 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932561Ab3D3VIR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 17:08:17 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so106074vcb.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 14:08:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: n-horiguchi@ah.jp.nec.com, hannes@cmpxchg.org, hughd@google.com, iceman_dvd@yahoo.com, stable@vger.kernel.org, steven.truelove@utoronto.ca
+Cc: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com
 
 
 The patch titled
-     Subject: hugetlbfs: fix mmap failure in unaligned size request
+     Subject: lib-string_helpers-introduce-generic-string_unescape-fix-fix
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
+     lib-string_helpers-introduce-generic-string_unescape-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,204 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: hugetlbfs: fix mmap failure in unaligned size request
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-string_helpers-introduce-generic-string_unescape-fix-fix
 
-The current kernel returns -EINVAL unless a given mmap length is "almost"
-hugepage aligned.  This is because in sys_mmap_pgoff() the given length is
-passed to vm_mmap_pgoff() as it is without being aligned with hugepage
-boundary.
+export get_random_int() to modules
 
-This is a regression introduced in commit 40716e29243d ("hugetlbfs: fix
-alignment of huge page requests"), where alignment code is pushed into
-hugetlb_file_setup() and the variable len in caller side is not changed.
-
-To fix this, this patch partially reverts that commit, and adds alignment
-code in caller side. And it also introduces hstate_sizelog() in order to
-get proper hstate to specified hugepage size.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=56881
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: <iceman_dvd@yahoo.com>
-Cc: Steven Truelove <steven.truelove@utoronto.ca>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   24 ++++++++++--------------
- include/linux/hugetlb.h |   19 +++++++++++++------
- ipc/shm.c               |    6 +++++-
- mm/mmap.c               |    7 ++++++-
- 4 files changed, 34 insertions(+), 22 deletions(-)
+ drivers/char/random.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request
-+++ a/fs/hugetlbfs/inode.c
-@@ -909,11 +909,8 @@ static int can_do_hugetlb_shm(void)
+diff -puN drivers/char/random.c~lib-string_helpers-introduce-generic-string_unescape-fix-fix drivers/char/random.c
+--- a/drivers/char/random.c~lib-string_helpers-introduce-generic-string_unescape-fix-fix
++++ a/drivers/char/random.c
+@@ -1485,6 +1485,7 @@ unsigned int get_random_int(void)
  
- static int get_hstate_idx(int page_size_log)
- {
--	struct hstate *h;
-+	struct hstate *h = hstate_sizelog(page_size_log);
- 
--	if (!page_size_log)
--		return default_hstate_idx;
--	h = size_to_hstate(1 << page_size_log);
- 	if (!h)
- 		return -1;
- 	return h - hstates;
-@@ -929,9 +926,12 @@ static struct dentry_operations anon_ops
- 	.d_dname = hugetlb_dname
- };
- 
--struct file *hugetlb_file_setup(const char *name, unsigned long addr,
--				size_t size, vm_flags_t acctflag,
--				struct user_struct **user,
-+/*
-+ * Note that size should be aligned to proper hugepage size in caller side,
-+ * otherwise hugetlb_reserve_pages reserves one less hugepages than intended.
-+ */
-+struct file *hugetlb_file_setup(const char *name, size_t size,
-+				vm_flags_t acctflag, struct user_struct **user,
- 				int creat_flags, int page_size_log)
- {
- 	struct file *file = ERR_PTR(-ENOMEM);
-@@ -939,8 +939,6 @@ struct file *hugetlb_file_setup(const ch
- 	struct path path;
- 	struct super_block *sb;
- 	struct qstr quick_string;
--	struct hstate *hstate;
--	unsigned long num_pages;
- 	int hstate_idx;
- 
- 	hstate_idx = get_hstate_idx(page_size_log);
-@@ -980,12 +978,10 @@ struct file *hugetlb_file_setup(const ch
- 	if (!inode)
- 		goto out_dentry;
- 
--	hstate = hstate_inode(inode);
--	size += addr & ~huge_page_mask(hstate);
--	num_pages = ALIGN(size, huge_page_size(hstate)) >>
--			huge_page_shift(hstate);
- 	file = ERR_PTR(-ENOMEM);
--	if (hugetlb_reserve_pages(inode, 0, num_pages, NULL, acctflag))
-+	if (hugetlb_reserve_pages(inode, 0,
-+			size >> huge_page_shift(hstate_inode(inode)), NULL,
-+			acctflag))
- 		goto out_inode;
- 
- 	d_instantiate(path.dentry, inode);
-diff -puN include/linux/hugetlb.h~hugetlbfs-fix-mmap-failure-in-unaligned-size-request include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-fix-mmap-failure-in-unaligned-size-request
-+++ a/include/linux/hugetlb.h
-@@ -189,8 +189,7 @@ static inline struct hugetlbfs_sb_info *
- 
- extern const struct file_operations hugetlbfs_file_operations;
- extern const struct vm_operations_struct hugetlb_vm_ops;
--struct file *hugetlb_file_setup(const char *name, unsigned long addr,
--				size_t size, vm_flags_t acct,
-+struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
- 				struct user_struct **user, int creat_flags,
- 				int page_size_log);
- 
-@@ -209,8 +208,8 @@ static inline int is_file_hugepages(stru
- 
- #define is_file_hugepages(file)			0
- static inline struct file *
--hugetlb_file_setup(const char *name, unsigned long addr, size_t size,
--		vm_flags_t acctflag, struct user_struct **user, int creat_flags,
-+hugetlb_file_setup(const char *name, size_t size, vm_flags_t acctflag,
-+		struct user_struct **user, int creat_flags,
- 		int page_size_log)
- {
- 	return ERR_PTR(-ENOSYS);
-@@ -288,6 +287,13 @@ static inline struct hstate *hstate_file
- 	return hstate_inode(file_inode(f));
+ 	return ret;
  }
++EXPORT_SYMBOL(get_random_int);
  
-+static inline struct hstate *hstate_sizelog(int page_size_log)
-+{
-+	if (!page_size_log)
-+		return &default_hstate;
-+	return size_to_hstate(1 << page_size_log);
-+}
-+
- static inline struct hstate *hstate_vma(struct vm_area_struct *vma)
- {
- 	return hstate_file(vma->vm_file);
-@@ -352,11 +358,12 @@ static inline int hstate_index(struct hs
- 	return h - hstates;
- }
- 
--#else
-+#else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- #define alloc_huge_page_node(h, nid) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
-+#define hstate_sizelog(s) NULL
- #define hstate_vma(v) NULL
- #define hstate_inode(i) NULL
- #define huge_page_size(h) PAGE_SIZE
-@@ -371,6 +378,6 @@ static inline unsigned int pages_per_hug
- }
- #define hstate_index_to_shift(index) 0
- #define hstate_index(h) 0
--#endif
-+#endif	/* CONFIG_HUGETLB_PAGE */
- 
- #endif /* _LINUX_HUGETLB_H */
-diff -puN ipc/shm.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request ipc/shm.c
---- a/ipc/shm.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request
-+++ a/ipc/shm.c
-@@ -491,10 +491,14 @@ static int newseg(struct ipc_namespace *
- 
- 	sprintf (name, "SYSV%08x", key);
- 	if (shmflg & SHM_HUGETLB) {
-+		struct hstate *hs = hstate_sizelog((shmflg >> SHM_HUGE_SHIFT)
-+						& SHM_HUGE_MASK);
-+		size_t hugesize = ALIGN(size, huge_page_size(hs));
-+
- 		/* hugetlb_file_setup applies strict accounting */
- 		if (shmflg & SHM_NORESERVE)
- 			acctflag = VM_NORESERVE;
--		file = hugetlb_file_setup(name, 0, size, acctflag,
-+		file = hugetlb_file_setup(name, hugesize, acctflag,
- 				  &shp->mlock_user, HUGETLB_SHMFS_INODE,
- 				(shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
- 	} else {
-diff -puN mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request mm/mmap.c
---- a/mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request
-+++ a/mm/mmap.c
-@@ -1363,15 +1363,20 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 		file = fget(fd);
- 		if (!file)
- 			goto out;
-+		if (is_file_hugepages(file))
-+			len = ALIGN(len, huge_page_size(hstate_file(file)));
- 	} else if (flags & MAP_HUGETLB) {
- 		struct user_struct *user = NULL;
-+		struct hstate *hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT)
-+						& MAP_HUGE_MASK);
-+		len = ALIGN(len, huge_page_size(hs));
- 		/*
- 		 * VM_NORESERVE is used because the reservations will be
- 		 * taken when vm_ops->mmap() is called
- 		 * A dummy user value is used because we are not locking
- 		 * memory so no accounting is necessary
- 		 */
--		file = hugetlb_file_setup(HUGETLB_ANON_FILE, addr, len,
-+		file = hugetlb_file_setup(HUGETLB_ANON_FILE, len,
- 				VM_NORESERVE,
- 				&user, HUGETLB_ANONHUGE_INODE,
- 				(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
+ /*
+  * randomize_range() returns a start address such that
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
+inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
+xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
+staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+kernel-smpc-cleanups.patch
+lib-string_helpers-introduce-generic-string_unescape-fix.patch
+lib-string_helpers-introduce-generic-string_unescape-fix-fix.patch
+kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
+epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
+nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
+hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
+usermodehelper-export-_exec-and-_setup-functions-fix.patch
+kexec-use-min_t-to-simplify-logic-fix.patch
+kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
+pid_namespacec-h-simplify-defines-fix.patch
+lib-add-weak-__clzsi2-__clzdi2-functions-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
 
