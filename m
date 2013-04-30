@@ -1,100 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:51:10 -0700
-Message-ID: <20130430185110.6F1A931C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] backlight-platform_lcd-remove-unnecessary-ifdefs.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:51:13 -0700
+Message-ID: <20130430185113.6EADE31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:61698 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932669Ab3D3SvL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:11 -0400
-Received: by mail-vb0-f73.google.com with SMTP id p12so86313vbe.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:10 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:44428 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932669Ab3D3SvO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:14 -0400
+Received: by mail-qe0-f74.google.com with SMTP id a11so86290qen.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/ams369fg06.c: convert ams369fg06 to dev_pm_ops
+     Subject: drivers/video/backlight/platform_lcd.c: remove unnecessary ifdefs
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops.patch
+     backlight-platform_lcd-remove-unnecessary-ifdefs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/ams369fg06.c: convert ams369fg06 to dev_pm_ops
+Subject: drivers/video/backlight/platform_lcd.c: remove unnecessary ifdefs
 
-Instead of using legacy suspend/resume methods, using newer dev_pm_ops
-structure allows better control over power management.
+When the macro such as SIMPLE_DEV_PM_OPS is used, there is no need to use
+'#ifdef CONFIG_PM' to prevent build error.  Thus, this patch removes
+unnecessary ifdefs.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/video/backlight/platform_lcd.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~drivers-video-backlight-ams369fg06c-convert-ams369fg06-to-dev_pm_ops
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -533,12 +533,12 @@ static int ams369fg06_remove(struct spi_
+diff -puN drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-remove-unnecessary-ifdefs drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-remove-unnecessary-ifdefs
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -121,7 +121,7 @@ static int platform_lcd_remove(struct pl
  	return 0;
  }
  
--#if defined(CONFIG_PM)
--static int ams369fg06_suspend(struct spi_device *spi, pm_message_t mesg)
+-#ifdef CONFIG_PM
 +#ifdef CONFIG_PM_SLEEP
-+static int ams369fg06_suspend(struct device *dev)
+ static int platform_lcd_suspend(struct device *dev)
  {
--	struct ams369fg06 *lcd = spi_get_drvdata(spi);
-+	struct ams369fg06 *lcd = dev_get_drvdata(dev);
+ 	struct platform_lcd *plcd = dev_get_drvdata(dev);
+@@ -141,10 +141,10 @@ static int platform_lcd_resume(struct de
  
--	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
-+	dev_dbg(dev, "lcd->power = %d\n", lcd->power);
- 
- 	/*
- 	 * when lcd panel is suspend, lcd panel becomes off
-@@ -547,19 +547,19 @@ static int ams369fg06_suspend(struct spi
- 	return ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
+ 	return 0;
  }
++#endif
  
--static int ams369fg06_resume(struct spi_device *spi)
-+static int ams369fg06_resume(struct device *dev)
- {
--	struct ams369fg06 *lcd = spi_get_drvdata(spi);
-+	struct ams369fg06 *lcd = dev_get_drvdata(dev);
+ static SIMPLE_DEV_PM_OPS(platform_lcd_pm_ops, platform_lcd_suspend,
+ 			platform_lcd_resume);
+-#endif
  
- 	lcd->power = FB_BLANK_POWERDOWN;
- 
- 	return ams369fg06_power(lcd, FB_BLANK_UNBLANK);
- }
--#else
--#define ams369fg06_suspend	NULL
--#define ams369fg06_resume	NULL
- #endif
- 
-+static SIMPLE_DEV_PM_OPS(ams369fg06_pm_ops, ams369fg06_suspend,
-+			ams369fg06_resume);
-+
- static void ams369fg06_shutdown(struct spi_device *spi)
- {
- 	struct ams369fg06 *lcd = spi_get_drvdata(spi);
-@@ -571,12 +571,11 @@ static struct spi_driver ams369fg06_driv
- 	.driver = {
- 		.name	= "ams369fg06",
+ #ifdef CONFIG_OF
+ static const struct of_device_id platform_lcd_of_match[] = {
+@@ -158,9 +158,7 @@ static struct platform_driver platform_l
+ 	.driver		= {
+ 		.name	= "platform-lcd",
  		.owner	= THIS_MODULE,
-+		.pm	= &ams369fg06_pm_ops,
+-#ifdef CONFIG_PM
+ 		.pm	= &platform_lcd_pm_ops,
+-#endif
+ 		.of_match_table = of_match_ptr(platform_lcd_of_match),
  	},
- 	.probe		= ams369fg06_probe,
- 	.remove		= ams369fg06_remove,
- 	.shutdown	= ams369fg06_shutdown,
--	.suspend	= ams369fg06_suspend,
--	.resume		= ams369fg06_resume,
- };
- 
- module_spi_driver(ams369fg06_driver);
+ 	.probe		= platform_lcd_probe,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
