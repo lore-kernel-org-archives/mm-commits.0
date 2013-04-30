@@ -1,96 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-utilc-use-register_hotmemory_notifier.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:48:39 -0700
-Message-ID: <20130430184839.6EA055A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] fs-proc-kcorec-use-register_hotmemory_notifier.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:48 -0700
+Message-ID: <20130430184848.6AADD5A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:43441 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3Ssk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:40 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m3so85058yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:39 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:54494 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3Sst (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:49 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so84968qcr.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/util.c: use register_hotmemory_notifier()
+     Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
 has been removed from the -mm tree.  Its filename was
-     ipc-utilc-use-register_hotmemory_notifier.patch
+     fs-proc-kcorec-use-register_hotmemory_notifier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc/util.c: use register_hotmemory_notifier()
+Subject: fs/proc/kcore.c: use register_hotmemory_notifier()
 
-Squishes a statement-with-no-effect warning, removes some ifdefs and
-shrinks .text by one byte!
-
-Note that this code fails to check for blocking_notifier_chain_register()
-failures.
-
+Saves an ifdef, no code size changes
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ fs/proc/kcore.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN ipc/util.c~ipc-utilc-use-register_hotmemory_notifier ipc/util.c
---- a/ipc/util.c~ipc-utilc-use-register_hotmemory_notifier
-+++ a/ipc/util.c
-@@ -23,6 +23,7 @@
- #include <linux/msg.h>
- #include <linux/vmalloc.h>
- #include <linux/slab.h>
-+#include <linux/notifier.h>
+diff -puN fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-proc-kcorec-use-register_hotmemory_notifier
++++ a/fs/proc/kcore.c
+@@ -15,6 +15,7 @@
  #include <linux/capability.h>
- #include <linux/highuid.h>
- #include <linux/security.h>
-@@ -47,19 +48,16 @@ struct ipc_proc_iface {
- 	int (*show)(struct seq_file *, void *);
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
++#include <linux/notifier.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
+ #include <linux/printk.h>
+@@ -564,7 +565,6 @@ static const struct file_operations proc
+ 	.llseek		= default_llseek,
  };
  
 -#ifdef CONFIG_MEMORY_HOTPLUG
--
- static void ipc_memory_notifier(struct work_struct *work)
- {
- 	ipcns_notify(IPCNS_MEMCHANGED);
- }
- 
--static DECLARE_WORK(ipc_memory_wq, ipc_memory_notifier);
--
--
- static int ipc_memory_callback(struct notifier_block *self,
- 				unsigned long action, void *arg)
- {
-+	static DECLARE_WORK(ipc_memory_wq, ipc_memory_notifier);
-+
- 	switch (action) {
- 	case MEM_ONLINE:    /* memory successfully brought online */
- 	case MEM_OFFLINE:   /* or offline: it's time to recompute msgmni */
-@@ -85,7 +83,10 @@ static int ipc_memory_callback(struct no
+ /* just remember that we have to update kcore */
+ static int __meminit kcore_callback(struct notifier_block *self,
+ 				    unsigned long action, void *arg)
+@@ -578,8 +578,11 @@ static int __meminit kcore_callback(stru
+ 	}
  	return NOTIFY_OK;
  }
+-#endif
  
--#endif /* CONFIG_MEMORY_HOTPLUG */
-+static struct notifier_block ipc_memory_nb = {
-+	.notifier_call = ipc_memory_callback,
-+	.priority = IPC_CALLBACK_PRI,
++static struct notifier_block kcore_callback_nb __meminitdata = {
++	.notifier_call = kcore_callback,
++	.priority = 0,
 +};
  
- /**
-  *	ipc_init	-	initialise IPC subsystem
-@@ -102,7 +103,7 @@ static int __init ipc_init(void)
- 	sem_init();
- 	msg_init();
- 	shm_init();
--	hotplug_memory_notifier(ipc_memory_callback, IPC_CALLBACK_PRI);
-+	register_hotmemory_notifier(&ipc_memory_nb);
- 	register_ipcns_notifier(&init_ipc_ns);
+ static struct kcore_list kcore_vmalloc;
+ 
+@@ -631,7 +634,7 @@ static int __init proc_kcore_init(void)
+ 	add_modules_range();
+ 	/* Store direct-map area from physical memory map */
+ 	kcore_update_ram();
+-	hotplug_memory_notifier(kcore_callback, 0);
++	register_hotmemory_notifier(&kcore_callback_nb);
+ 
  	return 0;
  }
 _
