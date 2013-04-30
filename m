@@ -1,121 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-vmalloc-export-additional-vmalloc-layer-information.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:47:43 -0700
-Message-ID: <20130430184743.9F2C931C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] arm-set-the-page-table-freeing-ceiling-to-task_size.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:47:55 -0700
+Message-ID: <20130430184755.8648F5A4082__6616.75768574259$1367347685$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:44853 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760813Ab3D3Srp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:47:45 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so75733ves.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:47:44 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:36250 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932820Ab3D3Sr4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:47:56 -0400
+Received: by mail-vc0-f201.google.com with SMTP id gf12so85123vcb.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:47:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kumagai-atsushi@mxc.nes.nec.co.jp, anderson@redhat.com, cmetcalf@tilera.com, ebiederm@xmission.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, iamjoonsoo.kim@lge.com, js1304@gmail.com, mingo@kernel.org, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, hughd@google.com, linux@arm.linux.org.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec, vmalloc: export additional vmalloc layer information
+     Subject: arm: set the page table freeing ceiling to TASK_SIZE
 has been removed from the -mm tree.  Its filename was
-     kexec-vmalloc-export-additional-vmalloc-layer-information.patch
+     arm-set-the-page-table-freeing-ceiling-to-task_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Subject: kexec, vmalloc: export additional vmalloc layer information
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: arm: set the page table freeing ceiling to TASK_SIZE
 
-Now, vmap_area_list is exported as VMCOREINFO for makedumpfile to get the
-start address of vmalloc region (vmalloc_start).  The address which
-contains vmalloc_start value is represented as below:
+ARM processors with LPAE enabled use 3 levels of page tables, with an
+entry in the top level (pgd) covering 1GB of virtual space.  Because of
+the branch relocation limitations on ARM, the loadable modules are mapped
+16MB below PAGE_OFFSET, making the corresponding 1GB pgd shared between
+kernel modules and user space.
 
-  vmap_area_list.next - OFFSET(vmap_area.list) + OFFSET(vmap_area.va_start)
+If free_pgtables() is called with the default ceiling 0, free_pgd_range()
+(and subsequently called functions) also frees the page table shared
+between user space and kernel modules (which is normally handled by the
+ARM-specific pgd_free() function).  This patch changes defines the ARM
+USER_PGTABLES_CEILING to TASK_SIZE when CONFIG_ARM_LPAE is enabled.
 
-However, both OFFSET(vmap_area.va_start) and OFFSET(vmap_area.list) aren't
-exported as VMCOREINFO.
+Note that the pgd_free() function already checks the presence of the
+shared pmd page allocated by pgd_alloc() and frees it, though with ceiling
+0 this wasn't necessary.
 
-So this patch exports them externally with small cleanup.
-
-[akpm@linux-foundation.org: vmalloc.h should include list.h for list_head]
-Signed-off-by: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Dave Anderson <anderson@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[3.3+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   13 +++++++++++++
- kernel/kexec.c          |    3 ++-
- mm/vmalloc.c            |   11 -----------
- 3 files changed, 15 insertions(+), 12 deletions(-)
+ arch/arm/include/asm/pgtable.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~kexec-vmalloc-export-additional-vmalloc-layer-information
-+++ a/include/linux/vmalloc.h
-@@ -3,7 +3,9 @@
+diff -puN arch/arm/include/asm/pgtable.h~arm-set-the-page-table-freeing-ceiling-to-task_size arch/arm/include/asm/pgtable.h
+--- a/arch/arm/include/asm/pgtable.h~arm-set-the-page-table-freeing-ceiling-to-task_size
++++ a/arch/arm/include/asm/pgtable.h
+@@ -61,6 +61,15 @@ extern void __pgd_error(const char *file
+ #define FIRST_USER_ADDRESS	PAGE_SIZE
  
- #include <linux/spinlock.h>
- #include <linux/init.h>
-+#include <linux/list.h>
- #include <asm/page.h>		/* pgprot_t */
-+#include <linux/rbtree.h>
- 
- struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
- 
-@@ -35,6 +37,17 @@ struct vm_struct {
- 	const void		*caller;
- };
- 
-+struct vmap_area {
-+	unsigned long va_start;
-+	unsigned long va_end;
-+	unsigned long flags;
-+	struct rb_node rb_node;         /* address sorted rbtree */
-+	struct list_head list;          /* address sorted list */
-+	struct list_head purge_list;    /* "lazy purge" list */
-+	struct vm_struct *vm;
-+	struct rcu_head rcu_head;
-+};
-+
  /*
-  *	Highlevel APIs for driver use
-  */
-diff -puN kernel/kexec.c~kexec-vmalloc-export-additional-vmalloc-layer-information kernel/kexec.c
---- a/kernel/kexec.c~kexec-vmalloc-export-additional-vmalloc-layer-information
-+++ a/kernel/kexec.c
-@@ -1615,7 +1615,8 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_OFFSET(free_area, free_list);
- 	VMCOREINFO_OFFSET(list_head, next);
- 	VMCOREINFO_OFFSET(list_head, prev);
--	VMCOREINFO_OFFSET(vm_struct, addr);
-+	VMCOREINFO_OFFSET(vmap_area, va_start);
-+	VMCOREINFO_OFFSET(vmap_area, list);
- 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
- 	log_buf_kexec_setup();
- 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
-diff -puN mm/vmalloc.c~kexec-vmalloc-export-additional-vmalloc-layer-information mm/vmalloc.c
---- a/mm/vmalloc.c~kexec-vmalloc-export-additional-vmalloc-layer-information
-+++ a/mm/vmalloc.c
-@@ -249,17 +249,6 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
- #define VM_LAZY_FREEING	0x02
- #define VM_VM_AREA	0x04
- 
--struct vmap_area {
--	unsigned long va_start;
--	unsigned long va_end;
--	unsigned long flags;
--	struct rb_node rb_node;		/* address sorted rbtree */
--	struct list_head list;		/* address sorted list */
--	struct list_head purge_list;	/* "lazy purge" list */
--	struct vm_struct *vm;
--	struct rcu_head rcu_head;
--};
++ * Use TASK_SIZE as the ceiling argument for free_pgtables() and
++ * free_pgd_range() to avoid freeing the modules pmd when LPAE is enabled (pmd
++ * page shared between user and kernel).
++ */
++#ifdef CONFIG_ARM_LPAE
++#define USER_PGTABLES_CEILING	TASK_SIZE
++#endif
++
++/*
+  * The pgprot_* and protection_map entries will be fixed up in runtime
+  * to include the cachable and bufferable bits based on memory policy,
+  * as well as any architecture dependent bits like global/ASID and SMP
+_
+
+Patches currently in -mm which might be from catalin.marinas@arm.com are
+
+origin.patch
+linux-next.patch
+
