@@ -1,51 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-adp8870-add-missing-braces.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:51:33 -0700
-Message-ID: <20130430185133.6E88C31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:51:35 -0700
+Message-ID: <20130430185135.7279231C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:35460 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932669Ab3D3Sve (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:34 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so86441vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:33 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:41106 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932551Ab3D3Svg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:36 -0400
+Received: by mail-gg0-f201.google.com with SMTP id y3so86256ggc.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/adp8870_bl.c:  add missing braces
+     Subject: drivers/video/backlight/l4f00242t03.c: check return value of regulator_enable()
 has been removed from the -mm tree.  Its filename was
-     backlight-adp8870-add-missing-braces.patch
+     drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/adp8870_bl.c:  add missing braces
+Subject: drivers/video/backlight/l4f00242t03.c: check return value of regulator_enable()
 
-Add missing braces to include error message.  The error message is related
-to the return value for sysfs_create_group().  However,
-sysfs_create_group() is called when pdata->en_ambl_sens is not zero. 
-Thus, the checking return value should be included in the if statement.
+regulator_enable() is marked as as __must_check.  Therefore the return
+value of regulator_enable() should be checked.  Also, this patch checks
+return value of regulator_set_voltage().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8870_bl.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/l4f00242t03.c |   27 ++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/adp8870_bl.c~backlight-adp8870-add-missing-braces drivers/video/backlight/adp8870_bl.c
---- a/drivers/video/backlight/adp8870_bl.c~backlight-adp8870-add-missing-braces
-+++ a/drivers/video/backlight/adp8870_bl.c
-@@ -895,13 +895,13 @@ static int adp8870_probe(struct i2c_clie
+diff -puN drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable drivers/video/backlight/l4f00242t03.c
+--- a/drivers/video/backlight/l4f00242t03.c~drivers-video-backlight-l4f00242t03c-check-return-value-of-regulator_enable
++++ a/drivers/video/backlight/l4f00242t03.c
+@@ -51,14 +51,33 @@ static void l4f00242t03_lcd_init(struct
+ 	struct l4f00242t03_pdata *pdata = spi->dev.platform_data;
+ 	struct l4f00242t03_priv *priv = spi_get_drvdata(spi);
+ 	const u16 cmd[] = { 0x36, param(0), 0x3A, param(0x60) };
++	int ret;
  
- 	data->bl = bl;
+ 	dev_dbg(&spi->dev, "initializing LCD\n");
  
--	if (pdata->en_ambl_sens)
-+	if (pdata->en_ambl_sens) {
- 		ret = sysfs_create_group(&bl->dev.kobj,
- 			&adp8870_bl_attr_group);
+-	regulator_set_voltage(priv->io_reg, 1800000, 1800000);
+-	regulator_enable(priv->io_reg);
++	ret = regulator_set_voltage(priv->io_reg, 1800000, 1800000);
++	if (ret) {
++		dev_err(&spi->dev, "failed to set the IO regulator voltage.\n");
++		return;
++	}
++	ret = regulator_enable(priv->io_reg);
++	if (ret) {
++		dev_err(&spi->dev, "failed to enable the IO regulator.\n");
++		return;
++	}
+ 
+-	regulator_set_voltage(priv->core_reg, 2800000, 2800000);
+-	regulator_enable(priv->core_reg);
++	ret = regulator_set_voltage(priv->core_reg, 2800000, 2800000);
++	if (ret) {
++		dev_err(&spi->dev, "failed to set the core regulator voltage.\n");
++		regulator_disable(priv->io_reg);
++		return;
++	}
++	ret = regulator_enable(priv->core_reg);
++	if (ret) {
++		dev_err(&spi->dev, "failed to enable the core regulator.\n");
++		regulator_disable(priv->io_reg);
++		return;
++	}
+ 
+ 	l4f00242t03_reset(pdata->reset_gpio);
+ 
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+linux-next.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
+
