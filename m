@@ -1,58 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-metag-use-common-help-functions-to-free-reserved-pages.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:46:13 -0700
-Message-ID: <20130430184613.76BC95A4088@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:46:27 -0700
+Message-ID: <20130430184627.7DBBD31C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:60452 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932267Ab3D3SqP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:46:15 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so84938vcb.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:46:14 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:43180 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932840Ab3D3Sq2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:46:28 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f35so84539yha.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:46:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liuj97@gmail.com, james.hogan@imgtec.com, jiang.liu@huawei.com, mm-commits@vger.kernel.org
+To: liuj97@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, jiang.liu@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/metag: use common help functions to free reserved pages
+     Subject: mm/FRV: use free_highmem_page() to free highmem pages into buddy system
 has been removed from the -mm tree.  Its filename was
-     mm-metag-use-common-help-functions-to-free-reserved-pages.patch
+     mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/metag: use common help functions to free reserved pages
+Subject: mm/FRV: use free_highmem_page() to free highmem pages into buddy system
 
-Use common help functions to free reserved pages.
+Use helper function free_highmem_page() to free highmem pages into
+the buddy system.
+
+Also fix a bug that totalhigh_pages should be increased when freeing
+a highmem page into the buddy system.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: James Hogan <james.hogan@imgtec.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/metag/mm/init.c |   21 ++-------------------
- 1 file changed, 2 insertions(+), 19 deletions(-)
+ arch/frv/mm/init.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/metag/mm/init.c~mm-metag-use-common-help-functions-to-free-reserved-pages arch/metag/mm/init.c
---- a/arch/metag/mm/init.c~mm-metag-use-common-help-functions-to-free-reserved-pages
-+++ a/arch/metag/mm/init.c
-@@ -412,32 +412,15 @@ void __init mem_init(void)
- 	return;
- }
+diff -puN arch/frv/mm/init.c~mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system arch/frv/mm/init.c
+--- a/arch/frv/mm/init.c~mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system
++++ a/arch/frv/mm/init.c
+@@ -131,10 +131,8 @@ void __init mem_init(void)
+ 			datapages++;
  
--static void free_init_pages(char *what, unsigned long begin, unsigned long end)
--{
--	unsigned long addr;
--
--	for (addr = begin; addr < end; addr += PAGE_SIZE) {
--		ClearPageReserved(virt_to_page(addr));
--		init_page_count(virt_to_page(addr));
--		memset((void *)addr, POISON_FREE_INITMEM, PAGE_SIZE);
--		free_page(addr);
+ #ifdef CONFIG_HIGHMEM
+-	for (pfn = num_physpages - 1; pfn >= num_mappedpages; pfn--) {
+-		__free_reserved_page(&mem_map[pfn]);
 -		totalram_pages++;
 -	}
--	pr_info("Freeing %s: %luk freed\n", what, (end - begin) >> 10);
--}
++	for (pfn = num_physpages - 1; pfn >= num_mappedpages; pfn--)
++		free_highmem_page(&mem_map[pfn]);
+ #endif
+ 
+ 	codek = ((unsigned long) &_etext - (unsigned long) &_stext) >> 10;
+_
+
+Patches currently in -mm which might be from liuj97@gmail.com are
+
+origin.patch
+mm-sparc-use-common-help-functions-to-free-reserved-pages.patch
+
