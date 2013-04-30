@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-ds1390-use-spi_set_drvdata.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:15 -0700
-Message-ID: <20130430185915.6F9B531C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-max6902-use-spi_set_drvdata.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:59:19 -0700
+Message-ID: <20130430185919.7106E31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:64473 "EHLO
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:50912 "EHLO
 	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933466Ab3D3S7Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:16 -0400
-Received: by mail-qa0-f73.google.com with SMTP id p6so88428qad.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:15 -0700 (PDT)
+	with ESMTP id S933472Ab3D3S7U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:20 -0400
+Received: by mail-qa0-f73.google.com with SMTP id p6so88526qad.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-ds1390: use spi_set_drvdata()
+     Subject: rtc: rtc-max6902: use spi_set_drvdata()
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-ds1390-use-spi_set_drvdata.patch
+     rtc-rtc-max6902-use-spi_set_drvdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1390: use spi_set_drvdata()
+Subject: rtc: rtc-max6902: use spi_set_drvdata()
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -34,21 +34,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1390.c |    2 +-
+ drivers/rtc/rtc-max6902.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1390.c~rtc-rtc-ds1390-use-spi_set_drvdata drivers/rtc/rtc-ds1390.c
---- a/drivers/rtc/rtc-ds1390.c~rtc-rtc-ds1390-use-spi_set_drvdata
-+++ a/drivers/rtc/rtc-ds1390.c
-@@ -136,7 +136,7 @@ static int ds1390_probe(struct spi_devic
- 		dev_err(&spi->dev, "unable to allocate device memory\n");
- 		return -ENOMEM;
- 	}
--	dev_set_drvdata(&spi->dev, chip);
-+	spi_set_drvdata(spi, chip);
+diff -puN drivers/rtc/rtc-max6902.c~rtc-rtc-max6902-use-spi_set_drvdata drivers/rtc/rtc-max6902.c
+--- a/drivers/rtc/rtc-max6902.c~rtc-rtc-max6902-use-spi_set_drvdata
++++ a/drivers/rtc/rtc-max6902.c
+@@ -139,7 +139,7 @@ static int max6902_probe(struct spi_devi
+ 	if (IS_ERR(rtc))
+ 		return PTR_ERR(rtc);
  
- 	res = ds1390_get_reg(&spi->dev, DS1390_REG_SECONDS, &tmp);
- 	if (res != 0) {
+-	dev_set_drvdata(&spi->dev, rtc);
++	spi_set_drvdata(spi, rtc);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
