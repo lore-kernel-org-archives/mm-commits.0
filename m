@@ -1,70 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-unused-parameter-of-pages_correctly_reserved.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:49:49 -0700
-Message-ID: <20130430184949.7C7A95A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] memcg-avoid-accessing-memcg-after-releasing-reference.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:49:57 -0700
+Message-ID: <20130430184957.83D175A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:53992 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760747Ab3D3Stu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:50 -0400
-Received: by mail-gg0-f201.google.com with SMTP id y3so85334ggc.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:50 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:48821 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758617Ab3D3St7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:59 -0400
+Received: by mail-qe0-f74.google.com with SMTP id a11so85609qen.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, gregkh@linuxfoundation.org, wangsl-fnst@cn.fujitsu.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: lizefan@huawei.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: Remove unused parameter of pages_correctly_reserved()
+     Subject: memcg: avoid accessing memcg after releasing reference
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-parameter-of-pages_correctly_reserved.patch
+     memcg-avoid-accessing-memcg-after-releasing-reference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm: Remove unused parameter of pages_correctly_reserved()
+From: Li Zefan <lizefan@huawei.com>
+Subject: memcg: avoid accessing memcg after releasing reference
 
-nr_pages is not used in pages_correctly_reserved().
-So remove it.
+This might cause a use-after-free bug.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wang Shilong <wangsl-fnst@cn.fujitsu.com>
-Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Li Zefan <lizefan@huawei.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~mm-remove-unused-parameter-of-pages_correctly_reserved drivers/base/memory.c
---- a/drivers/base/memory.c~mm-remove-unused-parameter-of-pages_correctly_reserved
-+++ a/drivers/base/memory.c
-@@ -207,8 +207,7 @@ int memory_isolate_notify(unsigned long
-  * The probe routines leave the pages reserved, just as the bootmem code does.
-  * Make sure they're still that way.
-  */
--static bool pages_correctly_reserved(unsigned long start_pfn,
--					unsigned long nr_pages)
-+static bool pages_correctly_reserved(unsigned long start_pfn)
- {
- 	int i, j;
- 	struct page *page;
-@@ -256,7 +255,7 @@ memory_block_action(unsigned long phys_i
+diff -puN mm/memcontrol.c~memcg-avoid-accessing-memcg-after-releasing-reference mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-accessing-memcg-after-releasing-reference
++++ a/mm/memcontrol.c
+@@ -3215,12 +3215,12 @@ void memcg_release_cache(struct kmem_cac
  
- 	switch (action) {
- 		case MEM_ONLINE:
--			if (!pages_correctly_reserved(start_pfn, nr_pages))
-+			if (!pages_correctly_reserved(start_pfn))
- 				return -EBUSY;
+ 	root = s->memcg_params->root_cache;
+ 	root->memcg_params->memcg_caches[id] = NULL;
+-	mem_cgroup_put(memcg);
  
- 			ret = online_pages(start_pfn, nr_pages, online_type);
+ 	mutex_lock(&memcg->slab_caches_mutex);
+ 	list_del(&s->memcg_params->list);
+ 	mutex_unlock(&memcg->slab_caches_mutex);
+ 
++	mem_cgroup_put(memcg);
+ out:
+ 	kfree(s->memcg_params);
+ }
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from lizefan@huawei.com are
 
 origin.patch
 linux-next.patch
+exec-do-not-abuse-cred_guard_mutex-in-threadgroup_lock.patch
 
