@@ -1,55 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-coh901331-use-module_platform_driver_probe.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:54:35 -0700
-Message-ID: <20130430185435.72C235A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-max77686-fix-indentation-of-bit-definitions.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:54:18 -0700
+Message-ID: <20130430185418.6FFCE5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:52650 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932691Ab3D3Syg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:54:36 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f35so86407yha.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:54:35 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:34816 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933177Ab3D3SyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:54:19 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so86583vbe.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:54:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, linus.walleij@linaro.org, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-coh901331: use module_platform_driver_probe()
+     Subject: drivers/rtc/rtc-max77686.c: fix indentation of bit definitions
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-coh901331-use-module_platform_driver_probe.patch
+     rtc-max77686-fix-indentation-of-bit-definitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-coh901331: use module_platform_driver_probe()
+Subject: drivers/rtc/rtc-max77686.c: fix indentation of bit definitions
 
-Use module_platform_driver_probe() macro which makes the code smaller and
-simpler.
+Fix indentation of bit definitions to enhance the readability.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/rtc/rtc-max77686.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-use-module_platform_driver_probe drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-use-module_platform_driver_probe
-+++ a/drivers/rtc/rtc-coh901331.c
-@@ -287,18 +287,7 @@ static struct platform_driver coh901331_
- 	.shutdown = coh901331_shutdown,
- };
+diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-fix-indentation-of-bit-definitions drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-max77686-fix-indentation-of-bit-definitions
++++ a/drivers/rtc/rtc-max77686.c
+@@ -24,7 +24,7 @@
  
--static int __init coh901331_init(void)
--{
--	return platform_driver_probe(&coh901331_driver, coh901331_probe);
--}
--
--static void __exit coh901331_exit(void)
--{
--	platform_driver_unregister(&coh901331_driver);
--}
+ /* RTC Control Register */
+ #define BCD_EN_SHIFT			0
+-#define BCD_EN_MASK				(1 << BCD_EN_SHIFT)
++#define BCD_EN_MASK			(1 << BCD_EN_SHIFT)
+ #define MODEL24_SHIFT			1
+ #define MODEL24_MASK			(1 << MODEL24_SHIFT)
+ /* RTC Update Register1 */
+@@ -33,12 +33,12 @@
+ #define RTC_RBUDR_SHIFT			4
+ #define RTC_RBUDR_MASK			(1 << RTC_RBUDR_SHIFT)
+ /* WTSR and SMPL Register */
+-#define WTSRT_SHIFT				0
+-#define SMPLT_SHIFT				2
++#define WTSRT_SHIFT			0
++#define SMPLT_SHIFT			2
+ #define WTSR_EN_SHIFT			6
+ #define SMPL_EN_SHIFT			7
+-#define WTSRT_MASK				(3 << WTSRT_SHIFT)
+-#define SMPLT_MASK				(3 << SMPLT_SHIFT)
++#define WTSRT_MASK			(3 << WTSRT_SHIFT)
++#define SMPLT_MASK			(3 << SMPLT_SHIFT)
+ #define WTSR_EN_MASK			(1 << WTSR_EN_SHIFT)
+ #define SMPL_EN_MASK			(1 << SMPL_EN_SHIFT)
+ /* RTC Hour register */
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+linux-next.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
+
