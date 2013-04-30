@@ -1,81 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-nobootmem-clean-up-of-free_low_memory_core_early.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:50:21 -0700
-Message-ID: <20130430185021.760155A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mmkconfig-add-an-option-to-disable-bounce.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:50:27 -0700
+Message-ID: <20130430185027.836AB31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:36461 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758953Ab3D3SuW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:50:22 -0400
-Received: by mail-qe0-f73.google.com with SMTP id 9so86213qea.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:50:22 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:46421 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758953Ab3D3Su2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:50:28 -0400
+Received: by mail-qa0-f74.google.com with SMTP id bs12so87546qab.5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:50:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, liuj97@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: vinayakm.list@gmail.com, axboe@kernel.dk, rdunlap@infradead.org, rientjes@google.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, nobootmem: clean-up of free_low_memory_core_early()
+     Subject: mmKconfig: add an option to disable bounce
 has been removed from the -mm tree.  Its filename was
-     mm-nobootmem-clean-up-of-free_low_memory_core_early.patch
+     mmkconfig-add-an-option-to-disable-bounce.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, nobootmem: clean-up of free_low_memory_core_early()
+From: Vinayak Menon <vinayakm.list@gmail.com>
+Subject: mmKconfig: add an option to disable bounce
 
-Remove unused argument and make function static, because there is no user
-outside of nobootmem.c
+There are times when HIGHMEM is enabled, but we don't prefer CONFIG_BOUNCE
+to be enabled.  CONFIG_BOUNCE can reduce the block device throughput, and
+this is not ideal for machines where we don't gain much by enabling it. 
+So provide an option to deselect CONFIG_BOUNCE.  The observation was made
+while measuring eMMC throughput using iozone on an ARM device with 1GB
+RAM.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jiang Liu <liuj97@gmail.com>
+Signed-off-by: Vinayak Menon <vinayakm.list@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 -
- mm/nobootmem.c          |    4 ++--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ mm/Kconfig |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/bootmem.h~mm-nobootmem-clean-up-of-free_low_memory_core_early include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-nobootmem-clean-up-of-free_low_memory_core_early
-+++ a/include/linux/bootmem.h
-@@ -44,7 +44,6 @@ extern unsigned long init_bootmem_node(p
- 				       unsigned long endpfn);
- extern unsigned long init_bootmem(unsigned long addr, unsigned long memend);
+diff -puN mm/Kconfig~mmkconfig-add-an-option-to-disable-bounce mm/Kconfig
+--- a/mm/Kconfig~mmkconfig-add-an-option-to-disable-bounce
++++ a/mm/Kconfig
+@@ -263,8 +263,14 @@ config ZONE_DMA_FLAG
+ 	default "1"
  
--extern unsigned long free_low_memory_core_early(int nodeid);
- extern unsigned long free_all_bootmem_node(pg_data_t *pgdat);
- extern unsigned long free_all_bootmem(void);
+ config BOUNCE
+-	def_bool y
++	bool "Enable bounce buffers"
++	default y
+ 	depends on BLOCK && MMU && (ZONE_DMA || HIGHMEM)
++	help
++	  Enable bounce buffers for devices that cannot access
++	  the full range of memory available to the CPU. Enabled
++	  by default when ZONE_DMA or HIGHMEM is selected, but you
++	  may say n to override this.
  
-diff -puN mm/nobootmem.c~mm-nobootmem-clean-up-of-free_low_memory_core_early mm/nobootmem.c
---- a/mm/nobootmem.c~mm-nobootmem-clean-up-of-free_low_memory_core_early
-+++ a/mm/nobootmem.c
-@@ -120,7 +120,7 @@ static unsigned long __init __free_memor
- 	return end_pfn - start_pfn;
- }
- 
--unsigned long __init free_low_memory_core_early(int nodeid)
-+static unsigned long __init free_low_memory_core_early(void)
- {
- 	unsigned long count = 0;
- 	phys_addr_t start, end, size;
-@@ -170,7 +170,7 @@ unsigned long __init free_all_bootmem(vo
- 	 *  because in some case like Node0 doesn't have RAM installed
- 	 *  low ram will be on Node1
- 	 */
--	return free_low_memory_core_early(MAX_NUMNODES);
-+	return free_low_memory_core_early();
- }
- 
- /**
+ # On the 'tile' arch, USB OHCI needs the bounce pool since tilegx will often
+ # have more than 4GB of memory, but we don't currently use the IOTLB to present
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from vinayakm.list@gmail.com are
 
 origin.patch
-linux-next.patch
 
