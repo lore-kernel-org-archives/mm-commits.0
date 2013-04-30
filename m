@@ -1,140 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:31 -0700
-Message-ID: <20130430185931.791615A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-rtc-ds1390-use-spi_set_drvdata.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:59:15 -0700
+Message-ID: <20130430185915.6F9B531C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:45886 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933406Ab3D3S7e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:34 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so87282vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:32 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:64473 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933466Ab3D3S7Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:16 -0400
+Received: by mail-qa0-f73.google.com with SMTP id p6so88428qad.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sachin.kamat@linaro.org, haojian.zhuang@linaro.org, jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-88pm860x.c: use devm_* APIs
+     Subject: rtc: rtc-ds1390: use spi_set_drvdata()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-88pm860xc-use-devm_-apis.patch
+     rtc-rtc-ds1390-use-spi_set_drvdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-88pm860x.c: use devm_* APIs
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-ds1390: use spi_set_drvdata()
 
-devm_* functions are device managed and make cleanup code simpler.
+Use the wrapper functions for getting and setting the driver data using
+spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
+can directly pass a struct spi_device.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Haojian Zhuang <haojian.zhuang@linaro.org>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm860x.c |   29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ drivers/rtc/rtc-ds1390.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-devm_-apis drivers/rtc/rtc-88pm860x.c
---- a/drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-use-devm_-apis
-+++ a/drivers/rtc/rtc-88pm860x.c
-@@ -318,14 +318,14 @@ static int pm860x_rtc_probe(struct platf
- 
- 	pdata = pdev->dev.platform_data;
- 
--	info = kzalloc(sizeof(struct pm860x_rtc_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct pm860x_rtc_info),
-+			    GFP_KERNEL);
- 	if (!info)
+diff -puN drivers/rtc/rtc-ds1390.c~rtc-rtc-ds1390-use-spi_set_drvdata drivers/rtc/rtc-ds1390.c
+--- a/drivers/rtc/rtc-ds1390.c~rtc-rtc-ds1390-use-spi_set_drvdata
++++ a/drivers/rtc/rtc-ds1390.c
+@@ -136,7 +136,7 @@ static int ds1390_probe(struct spi_devic
+ 		dev_err(&spi->dev, "unable to allocate device memory\n");
  		return -ENOMEM;
- 	info->irq = platform_get_irq(pdev, 0);
- 	if (info->irq < 0) {
- 		dev_err(&pdev->dev, "No IRQ resource!\n");
--		ret = -EINVAL;
--		goto out;
-+		return info->irq;
  	}
+-	dev_set_drvdata(&spi->dev, chip);
++	spi_set_drvdata(spi, chip);
  
- 	info->chip = chip;
-@@ -333,12 +333,13 @@ static int pm860x_rtc_probe(struct platf
- 	info->dev = &pdev->dev;
- 	dev_set_drvdata(&pdev->dev, info);
- 
--	ret = request_threaded_irq(info->irq, NULL, rtc_update_handler,
--				   IRQF_ONESHOT, "rtc", info);
-+	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
-+					rtc_update_handler, IRQF_ONESHOT, "rtc",
-+					info);
- 	if (ret < 0) {
- 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
- 			info->irq, ret);
--		goto out;
-+		return ret;
- 	}
- 
- 	/* set addresses of 32-bit base value for RTC time */
-@@ -350,7 +351,7 @@ static int pm860x_rtc_probe(struct platf
- 	ret = pm860x_rtc_read_time(&pdev->dev, &tm);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Failed to read initial time.\n");
--		goto out_rtc;
-+		return ret;
- 	}
- 	if ((tm.tm_year < 70) || (tm.tm_year > 138)) {
- 		tm.tm_year = 70;
-@@ -362,7 +363,7 @@ static int pm860x_rtc_probe(struct platf
- 		ret = pm860x_rtc_set_time(&pdev->dev, &tm);
- 		if (ret < 0) {
- 			dev_err(&pdev->dev, "Failed to set initial time.\n");
--			goto out_rtc;
-+			return ret;
- 		}
- 	}
- 	rtc_tm_to_time(&tm, &ticks);
-@@ -373,12 +374,12 @@ static int pm860x_rtc_probe(struct platf
- 		}
- 	}
- 
--	info->rtc_dev = rtc_device_register("88pm860x-rtc", &pdev->dev,
-+	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "88pm860x-rtc",
- 					    &pm860x_rtc_ops, THIS_MODULE);
- 	ret = PTR_ERR(info->rtc_dev);
- 	if (IS_ERR(info->rtc_dev)) {
- 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
--		goto out_rtc;
-+		return ret;
- 	}
- 
- 	/*
-@@ -405,11 +406,6 @@ static int pm860x_rtc_probe(struct platf
- 	device_init_wakeup(&pdev->dev, 1);
- 
- 	return 0;
--out_rtc:
--	free_irq(info->irq, info);
--out:
--	kfree(info);
--	return ret;
- }
- 
- static int pm860x_rtc_remove(struct platform_device *pdev)
-@@ -423,9 +419,6 @@ static int pm860x_rtc_remove(struct plat
- #endif	/* VRTC_CALIBRATION */
- 
- 	platform_set_drvdata(pdev, NULL);
--	rtc_device_unregister(info->rtc_dev);
--	free_irq(info->irq, info);
--	kfree(info);
- 	return 0;
- }
- 
+ 	res = ds1390_get_reg(&spi->dev, DS1390_REG_SECONDS, &tmp);
+ 	if (res != 0) {
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
 linux-next.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
 drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
 
