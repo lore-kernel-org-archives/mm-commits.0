@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:58:30 -0700
-Message-ID: <20130430185830.72F785A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:58:40 -0700
+Message-ID: <20130430185840.711CF31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:60606 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933275Ab3D3S6b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:31 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z12so86719yhz.3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:30 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:47785 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933355Ab3D3S6l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:41 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so77679ves.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-tps65910: switch to using SIMPLE_DEV_PM_OPS
+     Subject: drivers/rtc/rtc-ds1374.c: add CONFIG_PM_SLEEP to suspend/resume functions
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops.patch
+     drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tps65910: switch to using SIMPLE_DEV_PM_OPS
+Subject: drivers/rtc/rtc-ds1374.c: add CONFIG_PM_SLEEP to suspend/resume functions
 
-Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
-pm_ops.  It reduces code size.
+Add CONFIG_PM_SLEEP to suspend/resume functions to fix the following build
+warning when CONFIG_PM_SLEEP is not selected.  This is because sleep PM
+callbacks defined by SIMPLE_DEV_PM_OPS are only used when the
+CONFIG_PM_SLEEP is enabled.
+
+drivers/rtc/rtc-ds1374.c:413:12: warning: 'ds1374_suspend' defined but not used [-Wunused-function]
+drivers/rtc/rtc-ds1374.c:422:12: warning: 'ds1374_resume' defined but not used [-Wunused-function]
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps65910.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-ds1374.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps65910.c~rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-tps65910.c
---- a/drivers/rtc/rtc-tps65910.c~rtc-rtc-tps65910-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-tps65910.c
-@@ -320,9 +320,8 @@ static int tps65910_rtc_resume(struct de
+diff -puN drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-add-config_pm_sleep-to-suspend-resume-functions
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -409,7 +409,7 @@ static int ds1374_remove(struct i2c_clie
+ 	return 0;
  }
- #endif
  
--static const struct dev_pm_ops tps65910_rtc_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(tps65910_rtc_suspend, tps65910_rtc_resume)
--};
-+static SIMPLE_DEV_PM_OPS(tps65910_rtc_pm_ops, tps65910_rtc_suspend,
-+			tps65910_rtc_resume);
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
+ static int ds1374_suspend(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -427,19 +427,15 @@ static int ds1374_resume(struct device *
+ 		disable_irq_wake(client->irq);
+ 	return 0;
+ }
++#endif
  
- static struct platform_driver tps65910_rtc_driver = {
- 	.probe		= tps65910_rtc_probe,
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-linux-next.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
-memstick-r592-make-r592_pm_ops-static.patch
-
+ static SIMPLE_DEV_PM_OPS(ds1374_pm, ds1374_suspend, ds1374_resume);
+ 
+-#define DS1374_PM (&ds1374_pm)
+-#else
+-#define DS1374_PM NULL
+-#endif
