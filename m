@@ -1,88 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-m32r-use-common-help-functions-to-free-reserved-pages.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:45:25 -0700
-Message-ID: <20130430184525.7678E5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-m68k-use-common-help-functions-to-free-reserved-pages.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:45:28 -0700
+Message-ID: <20130430184528.779C631C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:45278 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760813Ab3D3Sp0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:45:26 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so86184qab.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:45:26 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:63867 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760813Ab3D3Sp3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:45:29 -0400
+Received: by mail-qe0-f74.google.com with SMTP id a11so84701qen.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:45:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liuj97@gmail.com, jiang.liu@huawei.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: liuj97@gmail.com, geert@linux-m68k.org, jiang.liu@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/m32r: use common help functions to free reserved pages
+     Subject: mm/m68k: use common help functions to free reserved pages
 has been removed from the -mm tree.  Its filename was
-     mm-m32r-use-common-help-functions-to-free-reserved-pages.patch
+     mm-m68k-use-common-help-functions-to-free-reserved-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/m32r: use common help functions to free reserved pages
+Subject: mm/m68k: use common help functions to free reserved pages
 
 Use common help functions to free reserved pages.
-Also include <asm/sections.h> to avoid local declarations.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/mm/init.c |   26 +++-----------------------
- 1 file changed, 3 insertions(+), 23 deletions(-)
+ arch/m68k/mm/init.c |   24 ++----------------------
+ 1 file changed, 2 insertions(+), 22 deletions(-)
 
-diff -puN arch/m32r/mm/init.c~mm-m32r-use-common-help-functions-to-free-reserved-pages arch/m32r/mm/init.c
---- a/arch/m32r/mm/init.c~mm-m32r-use-common-help-functions-to-free-reserved-pages
-+++ a/arch/m32r/mm/init.c
-@@ -28,10 +28,7 @@
- #include <asm/mmu_context.h>
- #include <asm/setup.h>
- #include <asm/tlb.h>
--
--/* References to section boundaries */
--extern char _text, _etext, _edata;
--extern char __init_begin, __init_end;
-+#include <asm/sections.h>
- 
- pgd_t swapper_pg_dir[1024];
- 
-@@ -184,17 +181,7 @@ void __init mem_init(void)
-  *======================================================================*/
+diff -puN arch/m68k/mm/init.c~mm-m68k-use-common-help-functions-to-free-reserved-pages arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~mm-m68k-use-common-help-functions-to-free-reserved-pages
++++ a/arch/m68k/mm/init.c
+@@ -110,18 +110,7 @@ void __init paging_init(void)
  void free_initmem(void)
  {
+ #ifndef CONFIG_MMU_SUN3
 -	unsigned long addr;
 -
--	addr = (unsigned long)(&__init_begin);
--	for (; addr < (unsigned long)(&__init_end); addr += PAGE_SIZE) {
+-	addr = (unsigned long) __init_begin;
+-	for (; addr < ((unsigned long) __init_end); addr += PAGE_SIZE) {
 -		ClearPageReserved(virt_to_page(addr));
 -		init_page_count(virt_to_page(addr));
 -		free_page(addr);
 -		totalram_pages++;
 -	}
--	printk (KERN_INFO "Freeing unused kernel memory: %dk freed\n", \
--	  (int)(&__init_end - &__init_begin) >> 10);
+-	pr_notice("Freeing unused kernel memory: %luk freed (0x%x - 0x%x)\n",
+-		(addr - (unsigned long) __init_begin) >> 10,
+-		(unsigned int) __init_begin, (unsigned int) __init_end);
 +	free_initmem_default(0);
+ #endif /* CONFIG_MMU_SUN3 */
  }
  
+@@ -213,15 +202,6 @@ void __init mem_init(void)
  #ifdef CONFIG_BLK_DEV_INITRD
-@@ -204,13 +191,6 @@ void free_initmem(void)
-  *======================================================================*/
  void free_initrd_mem(unsigned long start, unsigned long end)
  {
--	unsigned long p;
--	for (p = start; p < end; p += PAGE_SIZE) {
--		ClearPageReserved(virt_to_page(p));
--		init_page_count(virt_to_page(p));
--		free_page(p);
+-	int pages = 0;
+-	for (; start < end; start += PAGE_SIZE) {
+-		ClearPageReserved(virt_to_page(start));
+-		init_page_count(virt_to_page(start));
+-		free_page(start);
 -		totalram_pages++;
+-		pages++;
 -	}
--	printk (KERN_INFO "Freeing initrd memory: %ldk freed\n", (end - start) >> 10);
+-	pr_notice("Freeing initrd memory: %dk freed\n",
+-		pages << (PAGE_SHIFT - 10));
 +	free_reserved_area(start, end, 0, "initrd");
  }
  #endif
