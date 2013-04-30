@@ -1,76 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-tx4939-use-devm_rtc_device_register.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:56:28 -0700
-Message-ID: <20130430185628.6F4695A41E9@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-ds1307-long-block-operations-bugfix.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:56:50 -0700
+Message-ID: <20130430185650.751745A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:39327 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933309Ab3D3S43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:56:29 -0400
-Received: by mail-yh0-f74.google.com with SMTP id z12so86636yhz.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:56:28 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:44084 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933347Ab3D3S4v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:56:51 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so86833vbe.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:56:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: ba@cykian.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-tx4939: use devm_rtc_device_register()
+     Subject: drivers/rtc/rtc-ds1307.c: long block operations bugfix
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-tx4939-use-devm_rtc_device_register.patch
+     rtc-ds1307-long-block-operations-bugfix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tx4939: use devm_rtc_device_register()
+From: "Bertrand Achard" <ba@cykian.net>
+Subject: drivers/rtc/rtc-ds1307.c: long block operations bugfix
 
-devm_rtc_device_register() is device managed and makes cleanup
-paths simpler.
+The rtc-ds1307 driver does not properly handle block operations bigger
+than 32 bytes in either of the two modes supported (SMbus native, or
+emulated if not supported by the SMbus platform driver).
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+It also does not properly handle userland-supplied input (block operation
+length) through sysfs and may suffer a type of buffer overrun.
+
+The driver has been modified with proper input validation, buffer sizes,
+and now splits block transfers bigger than 32 bytes into separate
+transfers.
+
+Explanation : Buffer size allocated is I2C_SMBUS_BLOCK_MAX which equals to
+32 as per the SMbus spec.  Reads and write may be up to 56 bytes (to the
+NVRAM).  This patch allocated a 255 byte buffer, the maximum allowable
+(address is an u8).  It's not only a buffer problem, SMbus only supports
+up to 32 bytes transfer at once, so it's needed to split bigger transfers.
+
+Patch successfully tested on 3.2.27; cleanly applies on 3.7-rc4.
+
+[akpm@linux-foundation.org: rework code to avoid 80-column overflows]
+Signed-off-by: Bertrand Achard <ba@cykian.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tx4939.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-ds1307.c |   60 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 56 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-devm_rtc_device_register drivers/rtc/rtc-tx4939.c
---- a/drivers/rtc/rtc-tx4939.c~rtc-rtc-tx4939-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-tx4939.c
-@@ -268,14 +268,13 @@ static int __init tx4939_rtc_probe(struc
- 	if (devm_request_irq(&pdev->dev, irq, tx4939_rtc_interrupt,
- 			     0, pdev->name, &pdev->dev) < 0)
- 		return -EBUSY;
--	rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				  &tx4939_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
- 		return PTR_ERR(rtc);
- 	pdata->rtc = rtc;
- 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
--	if (ret)
--		rtc_device_unregister(rtc);
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-long-block-operations-bugfix drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-long-block-operations-bugfix
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -4,6 +4,7 @@
+  *  Copyright (C) 2005 James Chapman (ds1337 core)
+  *  Copyright (C) 2006 David Brownell
+  *  Copyright (C) 2009 Matthias Fuchs (rx8025 support)
++ *  Copyright (C) 2012 Bertrand Achard (nvram access fixes)
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -196,7 +197,7 @@ static s32 ds1307_read_block_data_once(c
+ static s32 ds1307_read_block_data(const struct i2c_client *client, u8 command,
+ 				  u8 length, u8 *values)
+ {
+-	u8 oldvalues[I2C_SMBUS_BLOCK_MAX];
++	u8 oldvalues[255];
+ 	s32 ret;
+ 	int tries = 0;
+ 
+@@ -222,7 +223,7 @@ static s32 ds1307_read_block_data(const
+ static s32 ds1307_write_block_data(const struct i2c_client *client, u8 command,
+ 				   u8 length, const u8 *values)
+ {
+-	u8 currvalues[I2C_SMBUS_BLOCK_MAX];
++	u8 currvalues[255];
+ 	int tries = 0;
+ 
+ 	dev_dbg(&client->dev, "ds1307_write_block_data (length=%d)\n", length);
+@@ -250,6 +251,57 @@ static s32 ds1307_write_block_data(const
+ 
+ /*----------------------------------------------------------------------*/
+ 
++/* These RTC devices are not designed to be connected to a SMbus adapter.
++   SMbus limits block operations length to 32 bytes, whereas it's not
++   limited on I2C buses. As a result, accesses may exceed 32 bytes;
++   in that case, split them into smaller blocks */
 +
- 	return ret;
- }
++static s32 ds1307_native_smbus_write_block_data(const struct i2c_client *client,
++				u8 command, u8 length, const u8 *values)
++{
++	u8 suboffset = 0;
++
++	if (length <= I2C_SMBUS_BLOCK_MAX)
++		return i2c_smbus_write_i2c_block_data(client,
++					command, length, values);
++
++	while (suboffset < length) {
++		s32 retval = i2c_smbus_write_i2c_block_data(client,
++				command + suboffset,
++				min(I2C_SMBUS_BLOCK_MAX, length - suboffset),
++				values + suboffset);
++		if (retval < 0)
++			return retval;
++
++		suboffset += I2C_SMBUS_BLOCK_MAX;
++	}
++	return length;
++}
++
++static s32 ds1307_native_smbus_read_block_data(const struct i2c_client *client,
++				u8 command, u8 length, u8 *values)
++{
++	u8 suboffset = 0;
++
++	if (length <= I2C_SMBUS_BLOCK_MAX)
++		return i2c_smbus_read_i2c_block_data(client,
++					command, length, values);
++
++	while (suboffset < length) {
++		s32 retval = i2c_smbus_read_i2c_block_data(client,
++				command + suboffset,
++				min(I2C_SMBUS_BLOCK_MAX, length - suboffset),
++				values + suboffset);
++		if (retval < 0)
++			return retval;
++
++		suboffset += I2C_SMBUS_BLOCK_MAX;
++	}
++	return length;
++}
++
++/*----------------------------------------------------------------------*/
++
+ /*
+  * The IRQ logic includes a "real" handler running in IRQ context just
+  * long enough to schedule this workqueue entry.   We need a task context
+@@ -646,8 +698,8 @@ static int ds1307_probe(struct i2c_clien
  
-@@ -284,7 +283,6 @@ static int __exit tx4939_rtc_remove(stru
- 	struct tx4939rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 
- 	sysfs_remove_bin_file(&pdev->dev.kobj, &tx4939_rtc_nvram_attr);
--	rtc_device_unregister(pdata->rtc);
- 	spin_lock_irq(&pdata->lock);
- 	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
- 	spin_unlock_irq(&pdata->lock);
+ 	buf = ds1307->regs;
+ 	if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK)) {
+-		ds1307->read_block_data = i2c_smbus_read_i2c_block_data;
+-		ds1307->write_block_data = i2c_smbus_write_i2c_block_data;
++		ds1307->read_block_data = ds1307_native_smbus_read_block_data;
++		ds1307->write_block_data = ds1307_native_smbus_write_block_data;
+ 	} else {
+ 		ds1307->read_block_data = ds1307_read_block_data;
+ 		ds1307->write_block_data = ds1307_write_block_data;
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from ba@cykian.net are
 
 origin.patch
-linux-next.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
-memstick-r592-make-r592_pm_ops-static.patch
 
