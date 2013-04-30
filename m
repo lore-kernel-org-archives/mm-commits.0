@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uwb-rename-random32-to-prandom_u32.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:02:44 -0700
-Message-ID: <20130430190244.7353C31C07C@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] net-sched-rename-random32-to-prandom_u32.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:02:56 -0700
+Message-ID: <20130430190256.7EC1F31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:45017 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933507Ab3D3TCq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:02:46 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so78129ves.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:02:44 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:38065 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933566Ab3D3TC6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:02:58 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so87591vbe.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:02:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, davem@davemloft.net, jhs@mojatatu.com, shemminger@vyatta.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uwb: rename random32() to prandom_u32()
+     Subject: net/sched: rename random32() to prandom_u32()
 has been removed from the -mm tree.  Its filename was
-     uwb-rename-random32-to-prandom_u32.patch
+     net-sched-rename-random32-to-prandom_u32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: uwb: rename random32() to prandom_u32()
+Subject: net/sched: rename random32() to prandom_u32()
 
 Use preferable function name which implies using a pseudo-random
 number generator.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Jamal Hadi Salim <jhs@mojatatu.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/rsv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sched/sch_choke.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/uwb/rsv.c~uwb-rename-random32-to-prandom_u32 drivers/uwb/rsv.c
---- a/drivers/uwb/rsv.c~uwb-rename-random32-to-prandom_u32
-+++ a/drivers/uwb/rsv.c
-@@ -231,7 +231,7 @@ void uwb_rsv_backoff_win_increment(struc
- 		return;
+diff -puN net/sched/sch_choke.c~net-sched-rename-random32-to-prandom_u32 net/sched/sch_choke.c
+--- a/net/sched/sch_choke.c~net-sched-rename-random32-to-prandom_u32
++++ a/net/sched/sch_choke.c
+@@ -80,7 +80,7 @@ struct choke_sched_data {
+ /* deliver a random number between 0 and N - 1 */
+ static u32 random_N(unsigned int N)
+ {
+-	return reciprocal_divide(random32(), N);
++	return reciprocal_divide(prandom_u32(), N);
+ }
  
- 	bow->window <<= 1;
--	bow->n = random32() & (bow->window - 1);
-+	bow->n = prandom_u32() & (bow->window - 1);
- 	dev_dbg(dev, "new_window=%d, n=%d\n: ", bow->window, bow->n);
- 
- 	/* reset the timer associated variables */
-@@ -557,7 +557,7 @@ int uwb_rsv_establish(struct uwb_rsv *rs
- 	if (ret)
- 		goto out;
- 
--	rsv->tiebreaker = random32() & 1;
-+	rsv->tiebreaker = prandom_u32() & 1;
- 	/* get available mas bitmap */
- 	uwb_drp_available(rc, &available);
- 
+ /* number of elements in queue including holes */
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
