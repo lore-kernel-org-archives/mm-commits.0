@@ -1,37 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-move-get_vmalloc_info-to-vmallocc.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:47:22 -0700
-Message-ID: <20130430184722.98CDF5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-vmalloc-protect-va-vm-by-vmap_area_lock.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:47:25 -0700
+Message-ID: <20130430184725.94B5231C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:62042 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932778Ab3D3SrY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:47:24 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hr11so84972vcb.3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:47:23 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:65193 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932595Ab3D3Sr1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:47:27 -0400
+Received: by mail-qa0-f73.google.com with SMTP id p6so86453qad.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:47:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, anderson@redhat.com, cmetcalf@tilera.com, ebiederm@xmission.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, iamjoonsoo.kim@lge.com, kumagai-atsushi@mxc.nes.nec.co.jp, mingo@kernel.org, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmalloc: move get_vmalloc_info() to vmalloc.c
+     Subject: mm, vmalloc: protect va->vm by vmap_area_lock
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-move-get_vmalloc_info-to-vmallocc.patch
+     mm-vmalloc-protect-va-vm-by-vmap_area_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm, vmalloc: move get_vmalloc_info() to vmalloc.c
+Subject: mm, vmalloc: protect va->vm by vmap_area_lock
 
-Now get_vmalloc_info() is in fs/proc/mmu.c.  There is no reason that this
-code must be here and it's implementation needs vmlist_lock and it iterate
-a vmlist which may be internal data structure for vmalloc.
+Inserting and removing an entry to vmlist is linear time complexity, so it
+is inefficient.  Following patches will try to remove vmlist entirely. 
+This patch is preparing step for it.
 
-It is preferable that vmlist_lock and vmlist is only used in vmalloc.c
-for maintainability. So move the code to vmalloc.c
+For removing vmlist, iterating vmlist codes should be changed to iterating
+a vmap_area_list.  Before implementing that, we should make sure that when
+we iterate a vmap_area_list, accessing to va->vm doesn't cause a race
+condition.  This patch ensure that when iterating a vmap_area_list, there
+is no race condition for accessing to vm_struct.
 
 Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -47,208 +50,39 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/Makefile        |    2 -
- fs/proc/internal.h      |   18 -----------
- fs/proc/meminfo.c       |    1 
- fs/proc/mmu.c           |   60 --------------------------------------
- include/linux/vmalloc.h |   18 +++++++++++
- mm/vmalloc.c            |   44 +++++++++++++++++++++++++++
- 6 files changed, 64 insertions(+), 79 deletions(-)
+ mm/vmalloc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/proc/Makefile~mm-vmalloc-move-get_vmalloc_info-to-vmallocc fs/proc/Makefile
---- a/fs/proc/Makefile~mm-vmalloc-move-get_vmalloc_info-to-vmallocc
-+++ a/fs/proc/Makefile
-@@ -5,7 +5,7 @@
- obj-y   += proc.o
- 
- proc-y			:= nommu.o task_nommu.o
--proc-$(CONFIG_MMU)	:= mmu.o task_mmu.o
-+proc-$(CONFIG_MMU)	:= task_mmu.o
- 
- proc-y       += inode.o root.o base.o generic.o array.o \
- 		fd.o
-diff -puN fs/proc/internal.h~mm-vmalloc-move-get_vmalloc_info-to-vmallocc fs/proc/internal.h
---- a/fs/proc/internal.h~mm-vmalloc-move-get_vmalloc_info-to-vmallocc
-+++ a/fs/proc/internal.h
-@@ -30,24 +30,6 @@ extern int proc_net_init(void);
- static inline int proc_net_init(void) { return 0; }
- #endif
- 
--struct vmalloc_info {
--	unsigned long	used;
--	unsigned long	largest_chunk;
--};
--
--#ifdef CONFIG_MMU
--#define VMALLOC_TOTAL (VMALLOC_END - VMALLOC_START)
--extern void get_vmalloc_info(struct vmalloc_info *vmi);
--#else
--
--#define VMALLOC_TOTAL 0UL
--#define get_vmalloc_info(vmi)			\
--do {						\
--	(vmi)->used = 0;			\
--	(vmi)->largest_chunk = 0;		\
--} while(0)
--#endif
--
- extern int proc_tid_stat(struct seq_file *m, struct pid_namespace *ns,
- 				struct pid *pid, struct task_struct *task);
- extern int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
-diff -puN fs/proc/meminfo.c~mm-vmalloc-move-get_vmalloc_info-to-vmallocc fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~mm-vmalloc-move-get_vmalloc_info-to-vmallocc
-+++ a/fs/proc/meminfo.c
-@@ -11,6 +11,7 @@
- #include <linux/swap.h>
- #include <linux/vmstat.h>
- #include <linux/atomic.h>
-+#include <linux/vmalloc.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include "internal.h"
-diff -puN fs/proc/mmu.c~mm-vmalloc-move-get_vmalloc_info-to-vmallocc /dev/null
---- a/fs/proc/mmu.c
-+++ /dev/null
-@@ -1,60 +0,0 @@
--/* mmu.c: mmu memory info files
-- *
-- * Copyright (C) 2004 Red Hat, Inc. All Rights Reserved.
-- * Written by David Howells (dhowells@redhat.com)
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; either version
-- * 2 of the License, or (at your option) any later version.
-- */
--#include <linux/spinlock.h>
--#include <linux/vmalloc.h>
--#include <linux/highmem.h>
--#include <asm/pgtable.h>
--#include "internal.h"
--
--void get_vmalloc_info(struct vmalloc_info *vmi)
--{
--	struct vm_struct *vma;
--	unsigned long free_area_size;
--	unsigned long prev_end;
--
--	vmi->used = 0;
--
--	if (!vmlist) {
--		vmi->largest_chunk = VMALLOC_TOTAL;
--	}
--	else {
--		vmi->largest_chunk = 0;
--
--		prev_end = VMALLOC_START;
--
--		read_lock(&vmlist_lock);
--
--		for (vma = vmlist; vma; vma = vma->next) {
--			unsigned long addr = (unsigned long) vma->addr;
--
--			/*
--			 * Some archs keep another range for modules in vmlist
--			 */
--			if (addr < VMALLOC_START)
--				continue;
--			if (addr >= VMALLOC_END)
--				break;
--
--			vmi->used += vma->size;
--
--			free_area_size = addr - prev_end;
--			if (vmi->largest_chunk < free_area_size)
--				vmi->largest_chunk = free_area_size;
--
--			prev_end = vma->size + addr;
--		}
--
--		if (VMALLOC_END - prev_end > vmi->largest_chunk)
--			vmi->largest_chunk = VMALLOC_END - prev_end;
--
--		read_unlock(&vmlist_lock);
--	}
--}
-diff -puN include/linux/vmalloc.h~mm-vmalloc-move-get_vmalloc_info-to-vmallocc include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-move-get_vmalloc_info-to-vmallocc
-+++ a/include/linux/vmalloc.h
-@@ -158,4 +158,22 @@ pcpu_free_vm_areas(struct vm_struct **vm
- # endif
- #endif
- 
-+struct vmalloc_info {
-+	unsigned long   used;
-+	unsigned long   largest_chunk;
-+};
-+
-+#ifdef CONFIG_MMU
-+#define VMALLOC_TOTAL (VMALLOC_END - VMALLOC_START)
-+extern void get_vmalloc_info(struct vmalloc_info *vmi);
-+#else
-+
-+#define VMALLOC_TOTAL 0UL
-+#define get_vmalloc_info(vmi)			\
-+do {						\
-+	(vmi)->used = 0;			\
-+	(vmi)->largest_chunk = 0;		\
-+} while (0)
-+#endif
-+
- #endif /* _LINUX_VMALLOC_H */
-diff -puN mm/vmalloc.c~mm-vmalloc-move-get_vmalloc_info-to-vmallocc mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-move-get_vmalloc_info-to-vmallocc
+diff -puN mm/vmalloc.c~mm-vmalloc-protect-va-vm-by-vmap_area_lock mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-protect-va-vm-by-vmap_area_lock
 +++ a/mm/vmalloc.c
-@@ -2645,5 +2645,49 @@ static int __init proc_vmalloc_init(void
- 	return 0;
+@@ -1290,12 +1290,14 @@ struct vm_struct *vmlist;
+ static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
+ 			      unsigned long flags, const void *caller)
+ {
++	spin_lock(&vmap_area_lock);
+ 	vm->flags = flags;
+ 	vm->addr = (void *)va->va_start;
+ 	vm->size = va->va_end - va->va_start;
+ 	vm->caller = caller;
+ 	va->vm = vm;
+ 	va->flags |= VM_VM_AREA;
++	spin_unlock(&vmap_area_lock);
  }
- module_init(proc_vmalloc_init);
-+
-+void get_vmalloc_info(struct vmalloc_info *vmi)
-+{
-+	struct vm_struct *vma;
-+	unsigned long free_area_size;
-+	unsigned long prev_end;
-+
-+	vmi->used = 0;
-+
-+	if (!vmlist) {
-+		vmi->largest_chunk = VMALLOC_TOTAL;
-+	} else {
-+		vmi->largest_chunk = 0;
-+
-+		prev_end = VMALLOC_START;
-+
-+		read_lock(&vmlist_lock);
-+
-+		for (vma = vmlist; vma; vma = vma->next) {
-+			unsigned long addr = (unsigned long) vma->addr;
-+
-+			/*
-+			 * Some archs keep another range for modules in vmlist
-+			 */
-+			if (addr < VMALLOC_START)
-+				continue;
-+			if (addr >= VMALLOC_END)
-+				break;
-+
-+			vmi->used += vma->size;
-+
-+			free_area_size = addr - prev_end;
-+			if (vmi->largest_chunk < free_area_size)
-+				vmi->largest_chunk = free_area_size;
-+
-+			prev_end = vma->size + addr;
-+		}
-+
-+		if (VMALLOC_END - prev_end > vmi->largest_chunk)
-+			vmi->largest_chunk = VMALLOC_END - prev_end;
-+
-+		read_unlock(&vmlist_lock);
-+	}
-+}
- #endif
  
+ static void insert_vmalloc_vmlist(struct vm_struct *vm)
+@@ -1447,6 +1449,11 @@ struct vm_struct *remove_vm_area(const v
+ 	if (va && va->flags & VM_VM_AREA) {
+ 		struct vm_struct *vm = va->vm;
+ 
++		spin_lock(&vmap_area_lock);
++		va->vm = NULL;
++		va->flags &= ~VM_VM_AREA;
++		spin_unlock(&vmap_area_lock);
++
+ 		if (!(vm->flags & VM_UNLIST)) {
+ 			struct vm_struct *tmp, **p;
+ 			/*
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
