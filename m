@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:58:18 -0700
-Message-ID: <20130430185818.7226131C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:58:20 -0700
+Message-ID: <20130430185820.7216F31C27C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:46243 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933319Ab3D3S6T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:19 -0400
-Received: by mail-vc0-f202.google.com with SMTP id hr11so87124vcb.3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:18 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:51853 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933319Ab3D3S6V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:21 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r11so86979yen.5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-rc5t583: switch to using SIMPLE_DEV_PM_OPS
+     Subject: rtc: rtc-sa1100: switch to using SIMPLE_DEV_PM_OPS
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops.patch
+     rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rc5t583: switch to using SIMPLE_DEV_PM_OPS
+Subject: rtc: rtc-sa1100: switch to using SIMPLE_DEV_PM_OPS
 
 Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
 pm_ops.  It reduces code size.
@@ -33,49 +33,48 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rc5t583.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-sa1100.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-rc5t583.c
---- a/drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-rc5t583.c
-@@ -280,7 +280,6 @@ static int rc5t583_rtc_remove(struct pla
+diff -puN drivers/rtc/rtc-sa1100.c~rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-sa1100.c
+--- a/drivers/rtc/rtc-sa1100.c~rtc-rtc-sa1100-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-sa1100.c
+@@ -327,7 +327,7 @@ static int sa1100_rtc_remove(struct plat
+ 	return 0;
  }
  
- #ifdef CONFIG_PM_SLEEP
--
- static int rc5t583_rtc_suspend(struct device *dev)
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
+ static int sa1100_rtc_suspend(struct device *dev)
  {
- 	struct rc5t583 *rc5t583 = dev_get_drvdata(dev->parent);
-@@ -302,24 +301,18 @@ static int rc5t583_rtc_resume(struct dev
- 	return regmap_write(rc5t583->regmap, RC5T583_RTC_CTL1,
- 		rc5t583_rtc->irqen);
+ 	struct sa1100_rtc *info = dev_get_drvdata(dev);
+@@ -343,13 +343,11 @@ static int sa1100_rtc_resume(struct devi
+ 		disable_irq_wake(info->irq_alarm);
+ 	return 0;
  }
 -
--static const struct dev_pm_ops rc5t583_rtc_pm_ops = {
--	.suspend	= rc5t583_rtc_suspend,
--	.resume		= rc5t583_rtc_resume,
+-static const struct dev_pm_ops sa1100_rtc_pm_ops = {
+-	.suspend	= sa1100_rtc_suspend,
+-	.resume		= sa1100_rtc_resume,
 -};
--
--#define DEV_PM_OPS     (&rc5t583_rtc_pm_ops)
--#else
--#define DEV_PM_OPS     NULL
  #endif
  
-+static SIMPLE_DEV_PM_OPS(rc5t583_rtc_pm_ops, rc5t583_rtc_suspend,
-+			rc5t583_rtc_resume);
++static SIMPLE_DEV_PM_OPS(sa1100_rtc_pm_ops, sa1100_rtc_suspend,
++			sa1100_rtc_resume);
 +
- static struct platform_driver rc5t583_rtc_driver = {
- 	.probe		= rc5t583_rtc_probe,
- 	.remove		= rc5t583_rtc_remove,
+ #ifdef CONFIG_OF
+ static struct of_device_id sa1100_rtc_dt_ids[] = {
+ 	{ .compatible = "mrvl,sa1100-rtc", },
+@@ -364,9 +362,7 @@ static struct platform_driver sa1100_rtc
+ 	.remove		= sa1100_rtc_remove,
  	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "rtc-rc5t583",
--		.pm	= DEV_PM_OPS,
-+		.pm	= &rc5t583_rtc_pm_ops,
+ 		.name	= "sa1100-rtc",
+-#ifdef CONFIG_PM
+ 		.pm	= &sa1100_rtc_pm_ops,
+-#endif
+ 		.of_match_table = of_match_ptr(sa1100_rtc_dt_ids),
  	},
  };
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
