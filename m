@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-isl12022-use-devm_-functions.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:00:17 -0700
-Message-ID: <20130430190017.72A0A5A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-rtc-ds2404-use-devm_-functions.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:00:13 -0700
+Message-ID: <20130430190013.6EC1931C27C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:38207 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933291Ab3D3TAS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:00:18 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so87284qcs.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:00:17 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:40151 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933503Ab3D3TAO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:00:14 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r11so87285yen.5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:00:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-isl12022: use devm_*() functions
+     Subject: rtc: rtc-ds2404: use devm_*() functions
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-isl12022-use-devm_-functions.patch
+     rtc-rtc-ds2404-use-devm_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-isl12022: use devm_*() functions
+Subject: rtc: rtc-ds2404: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -32,57 +32,41 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl12022.c |   29 +++++++----------------------
- 1 file changed, 7 insertions(+), 22 deletions(-)
+ drivers/rtc/rtc-ds2404.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl12022.c~rtc-rtc-isl12022-use-devm_-functions drivers/rtc/rtc-isl12022.c
---- a/drivers/rtc/rtc-isl12022.c~rtc-rtc-isl12022-use-devm_-functions
-+++ a/drivers/rtc/rtc-isl12022.c
-@@ -252,12 +252,11 @@ static int isl12022_probe(struct i2c_cli
- {
- 	struct isl12022 *isl12022;
+diff -puN drivers/rtc/rtc-ds2404.c~rtc-rtc-ds2404-use-devm_-functions drivers/rtc/rtc-ds2404.c
+--- a/drivers/rtc/rtc-ds2404.c~rtc-rtc-ds2404-use-devm_-functions
++++ a/drivers/rtc/rtc-ds2404.c
+@@ -228,7 +228,7 @@ static int rtc_probe(struct platform_dev
+ 	struct ds2404 *chip;
+ 	int retval = -EBUSY;
  
--	int ret = 0;
--
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
- 		return -ENODEV;
- 
--	isl12022 = kzalloc(sizeof(struct isl12022), GFP_KERNEL);
-+	isl12022 = devm_kzalloc(&client->dev, sizeof(struct isl12022),
-+				GFP_KERNEL);
- 	if (!isl12022)
+-	chip = kzalloc(sizeof(struct ds2404), GFP_KERNEL);
++	chip = devm_kzalloc(&pdev->dev, sizeof(struct ds2404), GFP_KERNEL);
+ 	if (!chip)
  		return -ENOMEM;
  
-@@ -265,31 +264,17 @@ static int isl12022_probe(struct i2c_cli
+@@ -244,8 +244,8 @@ static int rtc_probe(struct platform_dev
  
- 	i2c_set_clientdata(client, isl12022);
+ 	platform_set_drvdata(pdev, chip);
  
--	isl12022->rtc = rtc_device_register(isl12022_driver.driver.name,
--					    &client->dev,
--					    &isl12022_rtc_ops,
--					    THIS_MODULE);
--
--	if (IS_ERR(isl12022->rtc)) {
--		ret = PTR_ERR(isl12022->rtc);
--		goto exit_kfree;
--	}
-+	isl12022->rtc = devm_rtc_device_register(&client->dev,
-+					isl12022_driver.driver.name,
-+					&isl12022_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(isl12022->rtc))
-+		return PTR_ERR(isl12022->rtc);
- 
- 	return 0;
--
--exit_kfree:
--	kfree(isl12022);
--
--	return ret;
+-	chip->rtc = rtc_device_register("ds2404",
+-				&pdev->dev, &ds2404_rtc_ops, THIS_MODULE);
++	chip->rtc = devm_rtc_device_register(&pdev->dev, "ds2404",
++					&ds2404_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(chip->rtc)) {
+ 		retval = PTR_ERR(chip->rtc);
+ 		goto err_io;
+@@ -257,20 +257,14 @@ static int rtc_probe(struct platform_dev
+ err_io:
+ 	chip->ops->unmap_io(chip);
+ err_chip:
+-	kfree(chip);
+ 	return retval;
  }
  
- static int isl12022_remove(struct i2c_client *client)
+ static int rtc_remove(struct platform_device *dev)
  {
--	struct isl12022 *isl12022 = i2c_get_clientdata(client);
--
--	rtc_device_unregister(isl12022->rtc);
--	kfree(isl12022);
+ 	struct ds2404 *chip = platform_get_drvdata(dev);
+-	struct rtc_device *rtc = chip->rtc;
