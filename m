@@ -1,104 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:01:23 -0700
-Message-ID: <20130430190123.730495A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-rtc-pcf8563-use-devm_-functions.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:00:43 -0700
+Message-ID: <20130430190043.70D935A41E9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:47741 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933600Ab3D3TBY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:01:24 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so87676vcb.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:01:23 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:62447 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933285Ab3D3TAo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:00:44 -0400
+Received: by mail-qa0-f74.google.com with SMTP id bs12so88804qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:00:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-spear: convert spear_rtc_driver to dev_pm_ops
+     Subject: rtc: rtc-pcf8563: use devm_*() functions
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops.patch
+     rtc-rtc-pcf8563-use-devm_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-spear: convert spear_rtc_driver to dev_pm_ops
+Subject: rtc: rtc-pcf8563: use devm_*() functions
 
-Instead of using legacy suspend/resume methods, using newer dev_pm_ops
-structure allows better control over power management.
+Use devm_*() functions to make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-spear.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |   28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
 
-diff -puN drivers/rtc/rtc-spear.c~rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops drivers/rtc/rtc-spear.c
---- a/drivers/rtc/rtc-spear.c~rtc-rtc-spear-convert-spear_rtc_driver-to-dev_pm_ops
-+++ a/drivers/rtc/rtc-spear.c
-@@ -434,10 +434,10 @@ static int spear_rtc_remove(struct platf
- 	return 0;
- }
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-use-devm_-functions drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-rtc-pcf8563-use-devm_-functions
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -245,14 +245,13 @@ static int pcf8563_probe(struct i2c_clie
+ {
+ 	struct pcf8563 *pcf8563;
  
--#ifdef CONFIG_PM
+-	int err = 0;
 -
--static int spear_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int spear_rtc_suspend(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct spear_rtc_config *config = platform_get_drvdata(pdev);
- 	int irq;
+ 	dev_dbg(&client->dev, "%s\n", __func__);
  
-@@ -453,8 +453,9 @@ static int spear_rtc_suspend(struct plat
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 		return -ENODEV;
+ 
+-	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL);
++	pcf8563 = devm_kzalloc(&client->dev, sizeof(struct pcf8563),
++				GFP_KERNEL);
+ 	if (!pcf8563)
+ 		return -ENOMEM;
+ 
+@@ -260,31 +259,18 @@ static int pcf8563_probe(struct i2c_clie
+ 
+ 	i2c_set_clientdata(client, pcf8563);
+ 
+-	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name,
+-				&client->dev, &pcf8563_rtc_ops, THIS_MODULE);
++	pcf8563->rtc = devm_rtc_device_register(&client->dev,
++				pcf8563_driver.driver.name,
++				&pcf8563_rtc_ops, THIS_MODULE);
+ 
+-	if (IS_ERR(pcf8563->rtc)) {
+-		err = PTR_ERR(pcf8563->rtc);
+-		goto exit_kfree;
+-	}
++	if (IS_ERR(pcf8563->rtc))
++		return PTR_ERR(pcf8563->rtc);
+ 
  	return 0;
- }
- 
--static int spear_rtc_resume(struct platform_device *pdev)
-+static int spear_rtc_resume(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct spear_rtc_config *config = platform_get_drvdata(pdev);
- 	int irq;
- 
-@@ -472,12 +473,10 @@ static int spear_rtc_resume(struct platf
- 
- 	return 0;
- }
 -
--#else
--#define spear_rtc_suspend	NULL
--#define spear_rtc_resume	NULL
- #endif
+-exit_kfree:
+-	kfree(pcf8563);
+-
+-	return err;
+ }
  
-+static SIMPLE_DEV_PM_OPS(spear_rtc_pm_ops, spear_rtc_suspend, spear_rtc_resume);
-+
- static void spear_rtc_shutdown(struct platform_device *pdev)
+ static int pcf8563_remove(struct i2c_client *client)
  {
- 	struct spear_rtc_config *config = platform_get_drvdata(pdev);
-@@ -497,11 +496,10 @@ MODULE_DEVICE_TABLE(of, spear_rtc_id_tab
- static struct platform_driver spear_rtc_driver = {
- 	.probe = spear_rtc_probe,
- 	.remove = spear_rtc_remove,
--	.suspend = spear_rtc_suspend,
--	.resume = spear_rtc_resume,
- 	.shutdown = spear_rtc_shutdown,
- 	.driver = {
- 		.name = "rtc-spear",
-+		.pm = &spear_rtc_pm_ops,
- 		.of_match_table = of_match_ptr(spear_rtc_id_table),
- 	},
- };
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-linux-next.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
-memstick-r592-make-r592_pm_ops-static.patch
-
+-	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
+-
+-	if (pcf8563->rtc)
+-		rtc_device_unregister(pcf8563->rtc);
+-
+-	kfree(pcf8563);
