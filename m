@@ -1,160 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-cpusetc-use-register_hotmemory_notifier.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:48:50 -0700
-Message-ID: <20130430184850.737E45A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:56 -0700
+Message-ID: <20130430184856.7851331C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:49396 "EHLO
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:65185 "EHLO
 	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932928Ab3D3Ssv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:51 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so85027qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:51 -0700 (PDT)
+	with ESMTP id S932871Ab3D3Ss5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:57 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so84994qcs.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lizefan@huawei.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: agshew@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/cpuset.c: use register_hotmemory_notifier()
+     Subject: mm: replace hardcoded 3% with admin_reserve_pages knob
 has been removed from the -mm tree.  Its filename was
-     kernel-cpusetc-use-register_hotmemory_notifier.patch
+     mm-replace-hardcoded-3%-with-admin_reserve_pages-knob.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/cpuset.c: use register_hotmemory_notifier()
+From: Andrew Shewmaker <agshew@gmail.com>
+Subject: mm: replace hardcoded 3% with admin_reserve_pages knob
 
-Use the new interface, remove one ifdef.  No code size changes.
+Add an admin_reserve_kbytes knob to allow admins to change the
+hardcoded memory reserve to something other than 3%, which
+may be multiple gigabytes on large memory systems. Only about
+8MB is necessary to enable recovery in the default mode, and
+only a few hundred MB are required even when overcommit is
+disabled.
 
-We could/should have been using __meminit/__meminitdata here but there's
-now no point in doing that because all this code is elided at compile time.
+This affects OVERCOMMIT_GUESS and OVERCOMMIT_NEVER.
 
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Tejun Heo <tj@kernel.org>
+admin_reserve_kbytes is initialized to min(3% free pages, 8MB)
+
+I arrived at 8MB by summing the RSS of sshd or login,
+bash, and top.
+
+Please see first patch in this series for full background,
+motivation, testing, and full changelog.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: make init_admin_reserve() static]
+Signed-off-by: Andrew Shewmaker <agshew@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ Documentation/sysctl/vm.txt |   30 ++++++++++++++++++++++++++++++
+ include/linux/mm.h          |    1 +
+ kernel/sysctl.c             |    7 +++++++
+ mm/mmap.c                   |   30 ++++++++++++++++++++++++++----
+ mm/nommu.c                  |   30 ++++++++++++++++++++++++++----
+ 5 files changed, 90 insertions(+), 8 deletions(-)
 
-diff -puN kernel/cpuset.c~kernel-cpusetc-use-register_hotmemory_notifier kernel/cpuset.c
---- a/kernel/cpuset.c~kernel-cpusetc-use-register_hotmemory_notifier
-+++ a/kernel/cpuset.c
-@@ -2251,7 +2251,6 @@ void cpuset_update_active_cpus(bool cpu_
- 	schedule_work(&cpuset_hotplug_work);
- }
+diff -puN Documentation/sysctl/vm.txt~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob
++++ a/Documentation/sysctl/vm.txt
+@@ -18,6 +18,7 @@ files can be found in mm/swap.c.
  
--#ifdef CONFIG_MEMORY_HOTPLUG
- /*
-  * Keep top_cpuset.mems_allowed tracking node_states[N_MEMORY].
-  * Call this routine anytime after node_states[N_MEMORY] changes.
-@@ -2263,20 +2262,23 @@ static int cpuset_track_online_nodes(str
- 	schedule_work(&cpuset_hotplug_work);
- 	return NOTIFY_OK;
- }
--#endif
+ Currently, these files are in /proc/sys/vm:
+ 
++- admin_reserve_kbytes
+ - block_dump
+ - compact_memory
+ - dirty_background_bytes
+@@ -59,6 +60,35 @@ Currently, these files are in /proc/sys/
+ 
+ ==============================================================
+ 
++admin_reserve_kbytes
 +
-+static struct notifier_block cpuset_track_online_nodes_nb = {
-+	.notifier_call = cpuset_track_online_nodes,
-+	.priority = 10,		/* ??! */
-+};
++The amount of free memory in the system that should be reserved for users
++with the capability cap_sys_admin.
++
++admin_reserve_kbytes defaults to min(3% of free pages, 8MB)
++
++That should provide enough for the admin to log in and kill a process,
++if necessary, under the default overcommit 'guess' mode.
++
++Systems running under overcommit 'never' should increase this to account
++for the full Virtual Memory Size of programs used to recover. Otherwise,
++root may not be able to log in to recover the system.
++
++How do you calculate a minimum useful reserve?
++
++sshd or login + bash (or some other shell) + top (or ps, kill, etc.)
++
++For overcommit 'guess', we can sum resident set sizes (RSS).
++On x86_64 this is about 8MB.
++
++For overcommit 'never', we can take the max of their virtual sizes (VSZ)
++and add the sum of their RSS.
++On x86_64 this is about 128MB.
++
++Changing this takes effect whenever an application requests memory.
++
++==============================================================
++
+ block_dump
  
- /**
-  * cpuset_init_smp - initialize cpus_allowed
-  *
-  * Description: Finish top cpuset after cpu, node maps are initialized
-- **/
--
+ block_dump enables block I/O debugging when set to a nonzero value. More
+diff -puN include/linux/mm.h~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob include/linux/mm.h
+--- a/include/linux/mm.h~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob
++++ a/include/linux/mm.h
+@@ -45,6 +45,7 @@ extern int sysctl_legacy_va_layout;
+ #include <asm/processor.h>
+ 
+ extern unsigned long sysctl_user_reserve_kbytes;
++extern unsigned long sysctl_admin_reserve_kbytes;
+ 
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+diff -puN kernel/sysctl.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob
++++ a/kernel/sysctl.c
+@@ -1436,6 +1436,13 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_doulongvec_minmax,
+ 	},
++	{
++		.procname	= "admin_reserve_kbytes",
++		.data		= &sysctl_admin_reserve_kbytes,
++		.maxlen		= sizeof(sysctl_admin_reserve_kbytes),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
+ 	{ }
+ };
+ 
+diff -puN mm/mmap.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob mm/mmap.c
+--- a/mm/mmap.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob
++++ a/mm/mmap.c
+@@ -85,6 +85,7 @@ int sysctl_overcommit_memory __read_most
+ int sysctl_overcommit_ratio __read_mostly = 50;	/* default is 50% */
+ int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
+ unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
++unsigned long sysctl_admin_reserve_kbytes __read_mostly = 1UL << 13; /* 8MB */
+ /*
+  * Make sure vm_committed_as in one cacheline and not cacheline shared with
+  * other variables. It can be updated by several CPUs frequently.
+@@ -164,10 +165,10 @@ int __vm_enough_memory(struct mm_struct
+ 			free -= totalreserve_pages;
+ 
+ 		/*
+-		 * Leave the last 3% for root
++		 * Reserve some for root
+ 		 */
+ 		if (!cap_sys_admin)
+-			free -= free / 32;
++			free -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+ 
+ 		if (free > pages)
+ 			return 0;
+@@ -178,10 +179,10 @@ int __vm_enough_memory(struct mm_struct
+ 	allowed = (totalram_pages - hugetlb_total_pages())
+ 	       	* sysctl_overcommit_ratio / 100;
+ 	/*
+-	 * Leave the last 3% for root
++	 * Reserve some for root
+ 	 */
+ 	if (!cap_sys_admin)
+-		allowed -= allowed / 32;
++		allowed -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+ 	allowed += total_swap_pages;
+ 
+ 	/*
+@@ -3119,3 +3120,24 @@ static int __meminit init_user_reserve(v
+ 	return 0;
+ }
+ module_init(init_user_reserve)
++
++/*
++ * Initialise sysctl_admin_reserve_kbytes.
++ *
++ * The purpose of sysctl_admin_reserve_kbytes is to allow the sys admin
++ * to log in and kill a memory hogging process.
++ *
++ * Systems with more than 256MB will reserve 8MB, enough to recover
++ * with sshd, bash, and top in OVERCOMMIT_GUESS. Smaller systems will
++ * only reserve 3% of free pages by default.
 + */
- void __init cpuset_init_smp(void)
- {
- 	cpumask_copy(top_cpuset.cpus_allowed, cpu_active_mask);
- 	top_cpuset.mems_allowed = node_states[N_MEMORY];
++static int __meminit init_admin_reserve(void)
++{
++	unsigned long free_kbytes;
++
++	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++
++	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
++	return 0;
++}
++module_init(init_admin_reserve)
+diff -puN mm/nommu.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob mm/nommu.c
+--- a/mm/nommu.c~mm-replace-hardcoded-3%-with-admin_reserve_pages-knob
++++ a/mm/nommu.c
+@@ -64,6 +64,7 @@ int sysctl_overcommit_ratio = 50; /* def
+ int sysctl_max_map_count = DEFAULT_MAX_MAP_COUNT;
+ int sysctl_nr_trim_pages = CONFIG_NOMMU_INITIAL_TRIM_EXCESS;
+ unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
++unsigned long sysctl_admin_reserve_kbytes __read_mostly = 1UL << 13; /* 8MB */
+ int heap_stack_gap = 0;
  
--	hotplug_memory_notifier(cpuset_track_online_nodes, 10);
-+	register_hotmemory_notifier(&cpuset_track_online_nodes_nb);
+ atomic_long_t mmap_pages_allocated;
+@@ -1939,10 +1940,10 @@ int __vm_enough_memory(struct mm_struct
+ 			free -= totalreserve_pages;
  
- 	cpuset_propagate_hotplug_wq =
- 		alloc_ordered_workqueue("cpuset_hotplug", 0);
+ 		/*
+-		 * Leave the last 3% for root
++		 * Reserve some for root
+ 		 */
+ 		if (!cap_sys_admin)
+-			free -= free / 32;
++			free -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+ 
+ 		if (free > pages)
+ 			return 0;
+@@ -1952,10 +1953,10 @@ int __vm_enough_memory(struct mm_struct
+ 
+ 	allowed = totalram_pages * sysctl_overcommit_ratio / 100;
+ 	/*
+-	 * Leave the last 3% for root
++	 * Reserve some 3% for root
+ 	 */
+ 	if (!cap_sys_admin)
+-		allowed -= allowed / 32;
++		allowed -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+ 	allowed += total_swap_pages;
+ 
+ 	/*
+@@ -2147,3 +2148,24 @@ static int __meminit init_user_reserve(v
+ 	return 0;
+ }
+ module_init(init_user_reserve)
++
++/*
++ * Initialise sysctl_admin_reserve_kbytes.
++ *
++ * The purpose of sysctl_admin_reserve_kbytes is to allow the sys admin
++ * to log in and kill a memory hogging process.
++ *
++ * Systems with more than 256MB will reserve 8MB, enough to recover
++ * with sshd, bash, and top in OVERCOMMIT_GUESS. Smaller systems will
++ * only reserve 3% of free pages by default.
++ */
++static int __meminit init_admin_reserve(void)
++{
++	unsigned long free_kbytes;
++
++	free_kbytes = global_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
++
++	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
++	return 0;
++}
++module_init(init_admin_reserve)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from agshew@gmail.com are
 
 origin.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-linux-next.patch
-linux-next-git-rejects1.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-usb-storage-realtek_crc-fix-build.patch
-revert-ipc-dont-allocate-a-copy-larger-than-max.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-kernel-smpc-cleanups.patch
-lib-string_helpers-introduce-generic-string_unescape-fix.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc-checkpatch-fixes.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption-fix.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-usermodehelper-export-_exec-and-_setup-functions-fix.patch
-kexec-use-min_t-to-simplify-logic-fix.patch
-revert-ipc_schedule_free-can-do-vfree-now.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
-rapidio-make-enumeration-discovery-configurable-fix.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
-pid_namespacec-h-simplify-defines-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless-checkpatch-fixes.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-checkpatch-fixes.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-bpf-add-comments-explaining-the-schedule_work-operation.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
