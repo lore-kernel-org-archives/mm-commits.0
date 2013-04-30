@@ -1,80 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-set-the-page-table-freeing-ceiling-to-task_size.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:47:55 -0700
-Message-ID: <20130430184755.8648F5A4082__6616.75768574259$1367347685$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] mm-try-harder-to-allocate-vmemmap-blocks.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:04 -0700
+Message-ID: <20130430184804.9B8D85A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:36250 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932820Ab3D3Sr4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:47:56 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so85123vcb.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:47:56 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:35251 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932820Ab3D3SsG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:06 -0400
+Received: by mail-qa0-f73.google.com with SMTP id p6so86531qad.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, hughd@google.com, linux@arm.linux.org.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ben@decadent.org.uk, Bernhard.Schmidt@lrz.de, benh@kernel.crashing.org, davem@davemloft.net, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: set the page table freeing ceiling to TASK_SIZE
+     Subject: mm: try harder to allocate vmemmap blocks
 has been removed from the -mm tree.  Its filename was
-     arm-set-the-page-table-freeing-ceiling-to-task_size.patch
+     mm-try-harder-to-allocate-vmemmap-blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: arm: set the page table freeing ceiling to TASK_SIZE
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: mm: try harder to allocate vmemmap blocks
 
-ARM processors with LPAE enabled use 3 levels of page tables, with an
-entry in the top level (pgd) covering 1GB of virtual space.  Because of
-the branch relocation limitations on ARM, the loadable modules are mapped
-16MB below PAGE_OFFSET, making the corresponding 1GB pgd shared between
-kernel modules and user space.
+Hot-adding memory on x86_64 normally requires huge page allocation.  When
+this is done to a VM guest, it's usually because the system is already
+tight on memory, so the request tends to fail.  Try to avoid this by
+adding __GFP_REPEAT to the allocation flags.
 
-If free_pgtables() is called with the default ceiling 0, free_pgd_range()
-(and subsequently called functions) also frees the page table shared
-between user space and kernel modules (which is normally handled by the
-ARM-specific pgd_free() function).  This patch changes defines the ARM
-USER_PGTABLES_CEILING to TASK_SIZE when CONFIG_ARM_LPAE is enabled.
+Addresses http://bugs.debian.org/699913
 
-Note that the pgd_free() function already checks the presence of the
-shared pmd page allocated by pgd_alloc() and frees it, though with ceiling
-0 this wasn't necessary.
-
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[3.3+]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
+Tested-by: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/pgtable.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/sparse-vmemmap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/include/asm/pgtable.h~arm-set-the-page-table-freeing-ceiling-to-task_size arch/arm/include/asm/pgtable.h
---- a/arch/arm/include/asm/pgtable.h~arm-set-the-page-table-freeing-ceiling-to-task_size
-+++ a/arch/arm/include/asm/pgtable.h
-@@ -61,6 +61,15 @@ extern void __pgd_error(const char *file
- #define FIRST_USER_ADDRESS	PAGE_SIZE
+diff -puN mm/sparse-vmemmap.c~mm-try-harder-to-allocate-vmemmap-blocks mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~mm-try-harder-to-allocate-vmemmap-blocks
++++ a/mm/sparse-vmemmap.c
+@@ -53,10 +53,12 @@ void * __meminit vmemmap_alloc_block(uns
+ 		struct page *page;
  
- /*
-+ * Use TASK_SIZE as the ceiling argument for free_pgtables() and
-+ * free_pgd_range() to avoid freeing the modules pmd when LPAE is enabled (pmd
-+ * page shared between user and kernel).
-+ */
-+#ifdef CONFIG_ARM_LPAE
-+#define USER_PGTABLES_CEILING	TASK_SIZE
-+#endif
-+
-+/*
-  * The pgprot_* and protection_map entries will be fixed up in runtime
-  * to include the cachable and bufferable bits based on memory policy,
-  * as well as any architecture dependent bits like global/ASID and SMP
+ 		if (node_state(node, N_HIGH_MEMORY))
+-			page = alloc_pages_node(node,
+-				GFP_KERNEL | __GFP_ZERO, get_order(size));
++			page = alloc_pages_node(
++				node, GFP_KERNEL | __GFP_ZERO | __GFP_REPEAT,
++				get_order(size));
+ 		else
+-			page = alloc_pages(GFP_KERNEL | __GFP_ZERO,
++			page = alloc_pages(
++				GFP_KERNEL | __GFP_ZERO | __GFP_REPEAT,
+ 				get_order(size));
+ 		if (page)
+ 			return page_address(page);
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
 origin.patch
 linux-next.patch
+dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
+dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix.patch
 
