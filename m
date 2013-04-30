@@ -1,62 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:51:15 -0700
-Message-ID: <20130430185115.7703931C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:51:18 -0700
+Message-ID: <20130430185118.729E831C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:33689 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932669Ab3D3SvQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:16 -0400
-Received: by mail-ve0-f202.google.com with SMTP id ox1so76873veb.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:15 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:35105 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932669Ab3D3SvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:51:19 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so86277qcr.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:51:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, rmallon@gmail.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/ep93xx_bl.c: remove incorrect __init annotation
+     Subject: drivers/video/backlight/atmel-pwm-bl.c: use module_platform_driver_probe()
 has been removed from the -mm tree.  Its filename was
-     backlight-ep93xx_bl-remove-incorrect-__init-annotation.patch
+     drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/ep93xx_bl.c: remove incorrect __init annotation
+Subject: drivers/video/backlight/atmel-pwm-bl.c: use module_platform_driver_probe()
 
-When platform_driver_probe() is not used, bind/unbind via sysfs is
-enabled.  Thus, __init/__exit annotations should be removed from
-probe()/remove().
+Use the module_platform_driver_probe() macro which makes the code smaller
+and simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Ryan Mallon <rmallon@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ep93xx_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/atmel-pwm-bl.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx_bl-remove-incorrect-__init-annotation drivers/video/backlight/ep93xx_bl.c
---- a/drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx_bl-remove-incorrect-__init-annotation
-+++ a/drivers/video/backlight/ep93xx_bl.c
-@@ -60,7 +60,7 @@ static const struct backlight_ops ep93xx
- 	.get_brightness	= ep93xxbl_get_brightness,
+diff -puN drivers/video/backlight/atmel-pwm-bl.c~drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe drivers/video/backlight/atmel-pwm-bl.c
+--- a/drivers/video/backlight/atmel-pwm-bl.c~drivers-video-backlight-atmel-pwm-blc-use-module_platform_driver_probe
++++ a/drivers/video/backlight/atmel-pwm-bl.c
+@@ -225,17 +225,7 @@ static struct platform_driver atmel_pwm_
+ 	.remove = __exit_p(atmel_pwm_bl_remove),
  };
  
--static int __init ep93xxbl_probe(struct platform_device *dev)
-+static int ep93xxbl_probe(struct platform_device *dev)
- {
- 	struct ep93xxbl *ep93xxbl;
- 	struct backlight_device *bl;
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-linux-next.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
-memstick-r592-make-r592_pm_ops-static.patch
-
+-static int __init atmel_pwm_bl_init(void)
+-{
+-	return platform_driver_probe(&atmel_pwm_bl_driver, atmel_pwm_bl_probe);
+-}
+-module_init(atmel_pwm_bl_init);
