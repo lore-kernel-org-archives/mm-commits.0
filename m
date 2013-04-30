@@ -1,76 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-add-cciss_allow_hpsa-module-parameter.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:03:17 -0700
-Message-ID: <20130430190317.770C45A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] pagemap-introduce-the-proc-pid-pagemap2-file.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:18:40 -0700
+Message-ID: <20130430191840.6B5575A4394@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:61029 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933600Ab3D3TDS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:03:18 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so87619qcs.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:03:17 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:43440 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932723Ab3D3TSl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:18:41 -0400
+Received: by mail-qa0-f73.google.com with SMTP id p6so90608qad.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:18:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: xemul@parallels.com, glommer@parallels.com, kosaki.motohiro@gmail.com, mpm@selenic.com, mtosatti@redhat.com, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cciss: add cciss_allow_hpsa module parameter
+     Subject: pagemap: introduce the /proc/PID/pagemap2 file
 has been removed from the -mm tree.  Its filename was
-     cciss-add-cciss_allow_hpsa-module-parameter.patch
+     pagemap-introduce-the-proc-pid-pagemap2-file.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mike Miller <mike.miller@hp.com>
-Subject: cciss: add cciss_allow_hpsa module parameter
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: pagemap: introduce the /proc/PID/pagemap2 file
 
-Add the cciss_allow_hpsa modules parameter.  This allows users to use the
-hpsa driver instead of cciss for older controllers.
+This file is the same as the pagemap one, but shows entries with bits
+55-60 being zero (reserved for future use). Next patch will occupy one
+of them.
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |    2 ++
+ Documentation/vm/pagemap.txt       |    3 +++
+ fs/proc/base.c                     |    2 ++
+ fs/proc/internal.h                 |    1 +
+ fs/proc/task_mmu.c                 |   11 +++++++++++
+ 5 files changed, 19 insertions(+)
 
-diff -puN drivers/block/cciss.c~cciss-add-cciss_allow_hpsa-module-parameter drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-add-cciss_allow_hpsa-module-parameter
-+++ a/drivers/block/cciss.c
-@@ -75,6 +75,12 @@ module_param(cciss_simple_mode, int, S_I
- MODULE_PARM_DESC(cciss_simple_mode,
- 	"Use 'simple mode' rather than 'performant mode'");
+diff -puN Documentation/filesystems/proc.txt~pagemap-introduce-the-proc-pid-pagemap2-file Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~pagemap-introduce-the-proc-pid-pagemap2-file
++++ a/Documentation/filesystems/proc.txt
+@@ -492,6 +492,8 @@ Any other value written to /proc/PID/cle
+ The /proc/pid/pagemap gives the PFN, which can be used to find the pageflags
+ using /proc/kpageflags and number of times a page is mapped using
+ /proc/kpagecount. For detailed explanation, see Documentation/vm/pagemap.txt.
++(There's also a /proc/pid/pagemap2 file which is the 2nd version of the
++ pagemap one).
  
-+static int cciss_allow_hpsa;
-+module_param(cciss_allow_hpsa, int, S_IRUGO|S_IWUSR);
-+MODULE_PARM_DESC(cciss_allow_hpsa,
-+	"Prevent cciss driver from accessing hardware known to be "
-+	" supported by the hpsa driver");
+ 1.2 Kernel data
+ ---------------
+diff -puN Documentation/vm/pagemap.txt~pagemap-introduce-the-proc-pid-pagemap2-file Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-introduce-the-proc-pid-pagemap2-file
++++ a/Documentation/vm/pagemap.txt
+@@ -30,6 +30,9 @@ There are three components to pagemap:
+    determine which areas of memory are actually mapped and llseek to
+    skip over unmapped regions.
+ 
++ * /proc/pid/pagemap2.  This file provides the same info as the pagemap
++   does, but bits 55-60 are reserved for future use and thus zero
 +
- static DEFINE_MUTEX(cciss_mutex);
- static struct proc_dir_entry *proc_cciss;
+  * /proc/kpagecount.  This file contains a 64-bit count of the number of
+    times each page is mapped, indexed by PFN.
  
-@@ -4116,9 +4122,13 @@ static int cciss_lookup_board_id(struct
- 	*board_id = ((subsystem_device_id << 16) & 0xffff0000) |
- 			subsystem_vendor_id;
+diff -puN fs/proc/base.c~pagemap-introduce-the-proc-pid-pagemap2-file fs/proc/base.c
+--- a/fs/proc/base.c~pagemap-introduce-the-proc-pid-pagemap2-file
++++ a/fs/proc/base.c
+@@ -2634,6 +2634,7 @@ static const struct pid_entry tgid_base_
+ 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
+ 	REG("smaps",      S_IRUGO, proc_pid_smaps_operations),
+ 	REG("pagemap",    S_IRUGO, proc_pagemap_operations),
++	REG("pagemap2",   S_IRUGO, proc_pagemap2_operations),
+ #endif
+ #ifdef CONFIG_SECURITY
+ 	DIR("attr",       S_IRUGO|S_IXUGO, proc_attr_dir_inode_operations, proc_attr_dir_operations),
+@@ -2982,6 +2983,7 @@ static const struct pid_entry tid_base_s
+ 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
+ 	REG("smaps",     S_IRUGO, proc_tid_smaps_operations),
+ 	REG("pagemap",    S_IRUGO, proc_pagemap_operations),
++	REG("pagemap2",   S_IRUGO, proc_pagemap2_operations),
+ #endif
+ #ifdef CONFIG_SECURITY
+ 	DIR("attr",      S_IRUGO|S_IXUGO, proc_attr_dir_inode_operations, proc_attr_dir_operations),
+diff -puN fs/proc/internal.h~pagemap-introduce-the-proc-pid-pagemap2-file fs/proc/internal.h
+--- a/fs/proc/internal.h~pagemap-introduce-the-proc-pid-pagemap2-file
++++ a/fs/proc/internal.h
+@@ -49,6 +49,7 @@ extern const struct file_operations proc
+ extern const struct file_operations proc_tid_smaps_operations;
+ extern const struct file_operations proc_clear_refs_operations;
+ extern const struct file_operations proc_pagemap_operations;
++extern const struct file_operations proc_pagemap2_operations;
+ extern const struct file_operations proc_net_operations;
+ extern const struct inode_operations proc_net_inode_operations;
+ extern const struct inode_operations proc_pid_link_inode_operations;
+diff -puN fs/proc/task_mmu.c~pagemap-introduce-the-proc-pid-pagemap2-file fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-introduce-the-proc-pid-pagemap2-file
++++ a/fs/proc/task_mmu.c
+@@ -1163,6 +1163,17 @@ const struct file_operations proc_pagema
+ 	.llseek		= mem_lseek, /* borrow this */
+ 	.read		= pagemap_read,
+ };
++
++static ssize_t pagemap2_read(struct file *file, char __user *buf,
++			    size_t count, loff_t *ppos)
++{
++	return do_pagemap_read(file, buf, count, ppos, true);
++}
++
++const struct file_operations proc_pagemap2_operations = {
++	.llseek		= mem_lseek, /* borrow this */
++	.read		= pagemap2_read,
++};
+ #endif /* CONFIG_PROC_PAGE_MONITOR */
  
--	for (i = 0; i < ARRAY_SIZE(products); i++)
-+	for (i = 0; i < ARRAY_SIZE(products); i++) {
-+		/* Stand aside for hpsa driver on request */
-+		if (cciss_allow_hpsa)
-+			return -ENODEV;
- 		if (*board_id == products[i].board_id)
- 			return i;
-+	}
- 	dev_warn(&pdev->dev, "unrecognized board ID: 0x%08x, ignoring.\n",
- 		*board_id);
- 	return -ENODEV;
+ #ifdef CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from xemul@parallels.com are
 
+origin.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+clear_refs-introduce-private-struct-for-mm_walk.patch
+pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
+pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch
+mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
 linux-next.patch
+selftest-add-simple-test-for-soft-dirty-bit.patch
+ptrace-add-ability-to-retrieve-signals-without-removing-from-a-queue-v4.patch
+selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+kernel-sysc-make-prctlpr_set_mm-generally-available.patch
 
