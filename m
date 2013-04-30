@@ -1,56 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-walk_memory_range-fix-typo-in-comment.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:44:41 -0700
-Message-ID: <20130430184441.67ED731C0F7@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] vmscan-minor-cleanup-for-kswapd.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:44:49 -0700
+Message-ID: <20130430184449.6FFCA31C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:38160 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932463Ab3D3Som (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:44:42 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so84680vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:44:41 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:45322 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932751Ab3D3Sou (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:44:50 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so75326ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:44:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, mm-commits@vger.kernel.org
+To: dhillf@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: walk_memory_range(): fix typo in comment
+     Subject: mm/vmscan.c: minor cleanup for kswapd
 has been removed from the -mm tree.  Its filename was
-     mm-walk_memory_range-fix-typo-in-comment.patch
+     vmscan-minor-cleanup-for-kswapd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: walk_memory_range(): fix typo in comment
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm/vmscan.c: minor cleanup for kswapd
 
-Fix a typo "end_pft" in the comment of walk_memory_range().
+Local variable total_scanned is no longer used.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-walk_memory_range-fix-typo-in-comment mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-walk_memory_range-fix-typo-in-comment
-+++ a/mm/memory_hotplug.c
-@@ -1613,7 +1613,7 @@ int offline_pages(unsigned long start_pf
- /**
-  * walk_memory_range - walks through all mem sections in [start_pfn, end_pfn)
-  * @start_pfn: start pfn of the memory range
-- * @end_pfn: end pft of the memory range
-+ * @end_pfn: end pfn of the memory range
-  * @arg: argument passed to func
-  * @func: callback for each memory section walked
-  *
+diff -puN mm/vmscan.c~vmscan-minor-cleanup-for-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-minor-cleanup-for-kswapd
++++ a/mm/vmscan.c
+@@ -2619,7 +2619,6 @@ static unsigned long balance_pgdat(pg_da
+ 	bool pgdat_is_balanced = false;
+ 	int i;
+ 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
+-	unsigned long total_scanned;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+@@ -2639,7 +2638,6 @@ static unsigned long balance_pgdat(pg_da
+ 		.gfp_mask = sc.gfp_mask,
+ 	};
+ loop_again:
+-	total_scanned = 0;
+ 	sc.priority = DEF_PRIORITY;
+ 	sc.nr_reclaimed = 0;
+ 	sc.may_writepage = !laptop_mode;
+@@ -2730,7 +2728,6 @@ loop_again:
+ 							order, sc.gfp_mask,
+ 							&nr_soft_scanned);
+ 			sc.nr_reclaimed += nr_soft_reclaimed;
+-			total_scanned += nr_soft_scanned;
+ 
+ 			/*
+ 			 * We put equal pressure on every zone, unless
+@@ -2765,7 +2762,6 @@ loop_again:
+ 				reclaim_state->reclaimed_slab = 0;
+ 				nr_slab = shrink_slab(&shrink, sc.nr_scanned, lru_pages);
+ 				sc.nr_reclaimed += reclaim_state->reclaimed_slab;
+-				total_scanned += sc.nr_scanned;
+ 
+ 				if (nr_slab == 0 && !zone_reclaimable(zone))
+ 					zone->all_unreclaimable = 1;
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
 origin.patch
-linux-next.patch
 
