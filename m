@@ -1,63 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-tps80031-use-devm_rtc_device_register.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:56:26 -0700
-Message-ID: <20130430185626.660C131C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-max8907c-remove-redundant-code.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:58:57 -0700
+Message-ID: <20130430185857.83C7131C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:63150 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933302Ab3D3S41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:56:27 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so87039vcb.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:56:26 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:63281 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933317Ab3D3S66 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:58 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w8so87072vbf.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, jg1.han@samsung.com, jonghwa3.lee@samsung.com, ldewangan@nvidia.com, vbyravarasu@nvidia.com, woong.byun@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-tps80031: use devm_rtc_device_register()
+     Subject: drivers/rtc/rtc-max8907.c: remove redundant code
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-tps80031-use-devm_rtc_device_register.patch
+     drivers-rtc-rtc-max8907c-remove-redundant-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-tps80031: use devm_rtc_device_register()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-max8907.c: remove redundant code
 
-devm_rtc_device_register() is device managed and makes cleanup
-paths simpler.
+Remove unnecessary goto statements to simplify the code. 
+devm_request_threaded_irq returns 0 upon success, hence explicit return 0
+is not necessary.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Chiwoong Byun <woong.byun@samsung.com>
+Cc: Jonghwa Lee <jonghwa3.lee@samsung.com>
+Cc: Laxman dewangan <ldewangan@nvidia.com>
+Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps80031.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/rtc/rtc-max8907.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-use-devm_rtc_device_register drivers/rtc/rtc-tps80031.c
---- a/drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-use-devm_rtc_device_register
-+++ a/drivers/rtc/rtc-tps80031.c
-@@ -277,7 +277,7 @@ static int tps80031_rtc_probe(struct pla
- 		return ret;
- 	}
+diff -puN drivers/rtc/rtc-max8907.c~drivers-rtc-rtc-max8907c-remove-redundant-code drivers/rtc/rtc-max8907.c
+--- a/drivers/rtc/rtc-max8907.c~drivers-rtc-rtc-max8907c-remove-redundant-code
++++ a/drivers/rtc/rtc-max8907.c
+@@ -200,23 +200,16 @@ static int max8907_rtc_probe(struct plat
  
--	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 			       &tps80031_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc)) {
- 		ret = PTR_ERR(rtc->rtc);
-@@ -292,7 +292,6 @@ static int tps80031_rtc_probe(struct pla
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "request IRQ:%d failed, err = %d\n",
- 			 rtc->irq, ret);
--		rtc_device_unregister(rtc->rtc);
- 		return ret;
- 	}
- 	device_set_wakeup_capable(&pdev->dev, 1);
-@@ -301,9 +300,6 @@ static int tps80031_rtc_probe(struct pla
+ 	rtc->irq = regmap_irq_get_virq(max8907->irqc_rtc,
+ 				       MAX8907_IRQ_RTC_ALARM0);
+-	if (rtc->irq < 0) {
+-		ret = rtc->irq;
+-		goto err_unregister;
+-	}
++	if (rtc->irq < 0)
++		return rtc->irq;
  
- static int tps80031_rtc_remove(struct platform_device *pdev)
- {
--	struct tps80031_rtc *rtc = platform_get_drvdata(pdev);
+ 	ret = devm_request_threaded_irq(&pdev->dev, rtc->irq, NULL,
+ 				max8907_irq_handler,
+ 				IRQF_ONESHOT, "max8907-alarm0", rtc);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		dev_err(&pdev->dev, "Failed to request IRQ%d: %d\n",
+ 			rtc->irq, ret);
+-		goto err_unregister;
+-	}
+ 
+-	return 0;
