@@ -1,60 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:58:45 -0700
-Message-ID: <20130430185845.750BD31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:58:32 -0700
+Message-ID: <20130430185832.7157E5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:62735 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933312Ab3D3S6q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:46 -0400
-Received: by mail-qe0-f74.google.com with SMTP id a11so87094qen.3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:46 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:40439 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933453Ab3D3S6d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:33 -0400
+Received: by mail-ve0-f202.google.com with SMTP id ox1so77563veb.5
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sachin.kamat@linaro.org, jg1.han@samsung.com, jonghwa3.lee@samsung.com, ldewangan@nvidia.com, vbyravarasu@nvidia.com, woong.byun@samsung.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tps6586x.c: remove incorrect use of rtc_device_unregister
+     Subject: rtc: rtc-tps80031: switch to using SIMPLE_DEV_PM_OPS
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister.patch
+     rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-tps6586x.c: remove incorrect use of rtc_device_unregister
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-tps80031: switch to using SIMPLE_DEV_PM_OPS
 
-Device managed functions do not need explicit freeing/unregistering. 
-Moreover in this case it was done using non-device managed function which
-is incorrect.  Hence remove it.
+Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
+pm_ops.  It reduces code size.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Laxman dewangan <ldewangan@nvidia.com>
-Cc: Chiwoong Byun <woong.byun@samsung.com>
-Cc: Jonghwa Lee <jonghwa3.lee@samsung.com>
-Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps6586x.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/rtc/rtc-tps80031.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps6586x.c~drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister drivers/rtc/rtc-tps6586x.c
---- a/drivers/rtc/rtc-tps6586x.c~drivers-rtc-rtc-tps6586xc-remove-incorrect-use-of-rtc_device_unregister
-+++ a/drivers/rtc/rtc-tps6586x.c
-@@ -289,15 +289,12 @@ static int tps6586x_rtc_probe(struct pla
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "request IRQ(%d) failed with ret %d\n",
- 				rtc->irq, ret);
--		goto fail_req_irq;
-+		goto fail_rtc_register;
- 	}
- 	disable_irq(rtc->irq);
- 	device_set_wakeup_capable(&pdev->dev, 1);
- 	return 0;
+diff -puN drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-tps80031.c
+--- a/drivers/rtc/rtc-tps80031.c~rtc-rtc-tps80031-switch-to-using-simple_dev_pm_ops
++++ a/drivers/rtc/rtc-tps80031.c
+@@ -323,9 +323,8 @@ static int tps80031_rtc_resume(struct de
+ };
+ #endif
  
--fail_req_irq:
--	rtc_device_unregister(rtc->rtc);
+-static const struct dev_pm_ops tps80031_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(tps80031_rtc_suspend, tps80031_rtc_resume)
+-};
++static SIMPLE_DEV_PM_OPS(tps80031_pm_ops, tps80031_rtc_suspend,
++			tps80031_rtc_resume);
+ 
+ static struct platform_driver tps80031_rtc_driver = {
+ 	.driver	= {
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+linux-next.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
+memstick-r592-make-r592_pm_ops-static.patch
+
