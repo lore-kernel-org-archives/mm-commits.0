@@ -1,60 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] lib-add-weak-__clzsi2-__clzdi2-functions-fix.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 14:46:22 -0700
-Message-ID: <20130430214622.8B88A31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 15:13:03 -0700
+Message-ID: <20130430221304.4100931C2C5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:47002 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933579Ab3D3VqX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 17:46:23 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so110096ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 14:46:23 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:37565 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753781Ab3D3WNG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 18:13:06 -0400
+Received: by mail-yh0-f73.google.com with SMTP id f35so113488yha.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 15:13:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chanho.min@lge.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Jim.Somerville@windriver.com, eparis@parisplace.org, jmarchan@redhat.com, paul.gortmaker@windriver.com, zhaohongjiang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-add-weak-__clzsi2-__clzdi2-functions-fix
+     Subject: inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix
 has been removed from the -mm tree.  Its filename was
-     lib-add-weak-__clzsi2-__clzdi2-functions-fix.patch
+     inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into inotify-invalid-mask-should-return-a-error-number-but-not-set-it.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-add-weak-__clzsi2-__clzdi2-functions-fix
+Subject: inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix
 
-fix typo __clzdi2i -> __clzdi2
+fix build
 
-Cc: Chanho Min <chanho.min@lge.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Jim Somerville <Jim.Somerville@windriver.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Zhao Hongjiang <zhaohongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/clz.c |    2 +-
+ fs/notify/inotify/inotify_user.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/clz.c~lib-add-weak-__clzsi2-__clzdi2-functions-fix lib/clz.c
---- a/lib/clz.c~lib-add-weak-__clzsi2-__clzdi2-functions-fix
-+++ a/lib/clz.c
-@@ -26,7 +26,7 @@ int __weak __clzdi2(long val)
- }
- EXPORT_SYMBOL(__clzdi2);
- #elif BITS_PER_LONG == 64
--int __weak __clzdi2i(long val)
-+int __weak __clzdi2(long val)
- {
- 	return BITS_PER_LONG - fls64((u64)val);
- }
+diff -puN fs/notify/inotify/inotify_user.c~inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix
++++ a/fs/notify/inotify/inotify_user.c
+@@ -750,7 +750,7 @@ SYSCALL_DEFINE3(inotify_add_watch, int,
+ 	unsigned flags = 0;
+ 
+ 	/* don't allow invalid bits: we don't want flags set */
+-	if (unlikely(!(arg & ALL_INOTIFY_BITS)))
++	if (unlikely(!(mask & ALL_INOTIFY_BITS)))
+ 		return -EINVAL;
+ 
+ 	f = fdget(fd);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 drivers-usb-storage-realtek_crc-fix-build.patch
-inotify-invalid-mask-should-return-a-error-number-but-not-set-it-fix.patch
+inotify-invalid-mask-should-return-a-error-number-but-not-set-it.patch
 xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
 staging-zcache-enable-ramster-to-be-built-loaded-as-a-module-fix.patch
 selftest-add-simple-test-for-soft-dirty-bit.patch
@@ -69,6 +72,4 @@ usermodehelper-export-_exec-and-_setup-functions-fix.patch
 kexec-use-min_t-to-simplify-logic-fix.patch
 kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap-fix.patch
 pid_namespacec-h-simplify-defines-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
 
