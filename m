@@ -1,140 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-devm_rtc_device_registerunregister.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:54:09 -0700
-Message-ID: <20130430185409.6D33F31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-max77686-use-devm_kzalloc.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:54:16 -0700
+Message-ID: <20130430185416.6E63C31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:33194 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933163Ab3D3SyK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:54:10 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so87916qab.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:54:10 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:50056 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933171Ab3D3SyR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:54:17 -0400
+Received: by mail-ve0-f202.google.com with SMTP id ox1so77168veb.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:54:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: add devm_rtc_device_{register,unregister}()
+     Subject: drivers/rtc/rtc-max77686.c: use devm_kzalloc()
 has been removed from the -mm tree.  Its filename was
-     rtc-add-devm_rtc_device_registerunregister.patch
+     rtc-max77686-use-devm_kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: add devm_rtc_device_{register,unregister}()
+Subject: drivers/rtc/rtc-max77686.c: use devm_kzalloc()
 
-These functions allow the driver core to automatically clean up any
-allocation made by rtc drivers.  Thus it simplifies the error paths.
+Use devm_kzalloc() to make cleanup paths more simple.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |   70 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/rtc.h |    6 +++
- 2 files changed, 76 insertions(+)
+ drivers/rtc/rtc-max77686.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-add-devm_rtc_device_registerunregister drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-add-devm_rtc_device_registerunregister
-+++ a/drivers/rtc/class.c
-@@ -259,6 +259,76 @@ void rtc_device_unregister(struct rtc_de
+diff -puN drivers/rtc/rtc-max77686.c~rtc-max77686-use-devm_kzalloc drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~rtc-max77686-use-devm_kzalloc
++++ a/drivers/rtc/rtc-max77686.c
+@@ -505,7 +505,8 @@ static int max77686_rtc_probe(struct pla
+ 
+ 	dev_info(&pdev->dev, "%s\n", __func__);
+ 
+-	info = kzalloc(sizeof(struct max77686_rtc_info), GFP_KERNEL);
++	info = devm_kzalloc(&pdev->dev, sizeof(struct max77686_rtc_info),
++				GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+@@ -519,7 +520,6 @@ static int max77686_rtc_probe(struct pla
+ 		ret = PTR_ERR(info->max77686->rtc_regmap);
+ 		dev_err(info->max77686->dev, "Failed to allocate register map: %d\n",
+ 				ret);
+-		kfree(info);
+ 		return ret;
+ 	}
+ 	platform_set_drvdata(pdev, info);
+@@ -563,11 +563,7 @@ static int max77686_rtc_probe(struct pla
+ 		goto err_rtc;
+ 	}
+ 
+-	goto out;
+ err_rtc:
+-	kfree(info);
+-	return ret;
+-out:
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(rtc_device_unregister);
  
-+static void devm_rtc_device_release(struct device *dev, void *res)
-+{
-+	struct rtc_device *rtc = *(struct rtc_device **)res;
-+
-+	rtc_device_unregister(rtc);
-+}
-+
-+static int devm_rtc_device_match(struct device *dev, void *res, void *data)
-+{
-+	struct rtc **r = res;
-+
-+	return *r == data;
-+}
-+
-+/**
-+ * devm_rtc_device_register - resource managed rtc_device_register()
-+ * @name: the name of the device
-+ * @dev: the device to register
-+ * @ops: the rtc operations structure
-+ * @owner: the module owner
-+ *
-+ * @return a struct rtc on success, or an ERR_PTR on error
-+ *
-+ * Managed rtc_device_register(). The rtc_device returned from this function
-+ * are automatically freed on driver detach. See rtc_device_register()
-+ * for more information.
-+ */
-+
-+struct rtc_device *devm_rtc_device_register(const char *name,
-+					struct device *dev,
-+					const struct rtc_class_ops *ops,
-+					struct module *owner)
-+{
-+	struct rtc_device **ptr, *rtc;
-+
-+	ptr = devres_alloc(devm_rtc_device_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	rtc = rtc_device_register(name, dev, ops, owner);
-+	if (!IS_ERR(rtc)) {
-+		*ptr = rtc;
-+		devres_add(dev, ptr);
-+	} else {
-+		devres_free(ptr);
-+	}
-+
-+	return rtc;
-+}
-+EXPORT_SYMBOL_GPL(devm_rtc_device_register);
-+
-+/**
-+ * devm_rtc_device_unregister - resource managed devm_rtc_device_unregister()
-+ * @dev: the device to unregister
-+ * @rtc: the RTC class device to unregister
-+ *
-+ * Deallocated a rtc allocated with devm_rtc_device_register(). Normally this
-+ * function will not need to be called and the resource management code will
-+ * ensure that the resource is freed.
-+ */
-+void devm_rtc_device_unregister(struct device *dev, struct rtc_device *rtc)
-+{
-+	int rc;
-+
-+	rc = devres_release(dev, devm_rtc_device_release,
-+				devm_rtc_device_match, rtc);
-+	WARN_ON(rc);
-+}
-+EXPORT_SYMBOL_GPL(devm_rtc_device_unregister);
-+
- static int __init rtc_init(void)
- {
- 	rtc_class = class_create(THIS_MODULE, "rtc");
-diff -puN include/linux/rtc.h~rtc-add-devm_rtc_device_registerunregister include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-add-devm_rtc_device_registerunregister
-+++ a/include/linux/rtc.h
-@@ -133,7 +133,13 @@ extern struct rtc_device *rtc_device_reg
- 					struct device *dev,
- 					const struct rtc_class_ops *ops,
- 					struct module *owner);
-+extern struct rtc_device *devm_rtc_device_register(const char *name,
-+					struct device *dev,
-+					const struct rtc_class_ops *ops,
-+					struct module *owner);
- extern void rtc_device_unregister(struct rtc_device *rtc);
-+extern void devm_rtc_device_unregister(struct device *dev,
-+					struct rtc_device *rtc);
+@@ -578,7 +574,6 @@ static int max77686_rtc_remove(struct pl
+ 	if (info) {
+ 		free_irq(info->virq, info);
+ 		rtc_device_unregister(info->rtc_dev);
+-		kfree(info);
+ 	}
  
- extern int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm);
- extern int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
