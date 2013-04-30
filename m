@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-r9701-use-spi_set_drvdata.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:10 -0700
-Message-ID: <20130430185910.6FE905A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-rtc-ds3234-use-spi_set_drvdata.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:59:13 -0700
+Message-ID: <20130430185913.689E831C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:57113 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933452Ab3D3S7L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:11 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r11so87171yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:10 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:42039 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933454Ab3D3S7O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:14 -0400
+Received: by mail-yh0-f74.google.com with SMTP id z12so86791yhz.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-r9701: use spi_set_drvdata()
+     Subject: rtc: rtc-ds3234: use spi_set_drvdata()
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-r9701-use-spi_set_drvdata.patch
+     rtc-rtc-ds3234-use-spi_set_drvdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-r9701: use spi_set_drvdata()
+Subject: rtc: rtc-ds3234: use spi_set_drvdata()
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -34,13 +34,13 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-r9701.c |    2 +-
+ drivers/rtc/rtc-ds3234.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-r9701.c~rtc-rtc-r9701-use-spi_set_drvdata drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~rtc-rtc-r9701-use-spi_set_drvdata
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -159,7 +159,7 @@ static int r9701_probe(struct spi_device
+diff -puN drivers/rtc/rtc-ds3234.c~rtc-rtc-ds3234-use-spi_set_drvdata drivers/rtc/rtc-ds3234.c
+--- a/drivers/rtc/rtc-ds3234.c~rtc-rtc-ds3234-use-spi_set_drvdata
++++ a/drivers/rtc/rtc-ds3234.c
+@@ -151,7 +151,7 @@ static int ds3234_probe(struct spi_devic
  	if (IS_ERR(rtc))
  		return PTR_ERR(rtc);
  
