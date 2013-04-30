@@ -1,62 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:46:27 -0700
-Message-ID: <20130430184627.7DBBD31C0F7@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:46:24 -0700
+Message-ID: <20130430184624.853425A4088@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:43180 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932840Ab3D3Sq2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:46:28 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f35so84539yha.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:46:28 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:35144 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761311Ab3D3SqZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:46:25 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r11so84767yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:46:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liuj97@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, jiang.liu@huawei.com, mm-commits@vger.kernel.org
+To: liuj97@gmail.com, jiang.liu@huawei.com, linus.walleij@linaro.org, linux@arm.linux.org.uk, m.szyprowski@samsung.com, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/FRV: use free_highmem_page() to free highmem pages into buddy system
+     Subject: mm/ARM: use free_highmem_page() to free highmem pages into buddy system
 has been removed from the -mm tree.  Its filename was
-     mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
+     mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/FRV: use free_highmem_page() to free highmem pages into buddy system
+Subject: mm/ARM: use free_highmem_page() to free highmem pages into buddy system
 
 Use helper function free_highmem_page() to free highmem pages into
 the buddy system.
 
-Also fix a bug that totalhigh_pages should be increased when freeing
-a highmem page into the buddy system.
-
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/init.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/mm/init.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/mm/init.c~mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system arch/frv/mm/init.c
---- a/arch/frv/mm/init.c~mm-frv-use-free_highmem_page-to-free-highmem-pages-into-buddy-system
-+++ a/arch/frv/mm/init.c
-@@ -131,10 +131,8 @@ void __init mem_init(void)
- 			datapages++;
- 
+diff -puN arch/arm/mm/init.c~mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~mm-arm-use-free_highmem_page-to-free-highmem-pages-into-buddy-system
++++ a/arch/arm/mm/init.c
+@@ -522,10 +522,8 @@ static void __init free_unused_memmap(st
  #ifdef CONFIG_HIGHMEM
--	for (pfn = num_physpages - 1; pfn >= num_mappedpages; pfn--) {
--		__free_reserved_page(&mem_map[pfn]);
--		totalram_pages++;
+ static inline void free_area_high(unsigned long pfn, unsigned long end)
+ {
+-	for (; pfn < end; pfn++) {
+-		__free_reserved_page(pfn_to_page(pfn));
+-		totalhigh_pages++;
 -	}
-+	for (pfn = num_physpages - 1; pfn >= num_mappedpages; pfn--)
-+		free_highmem_page(&mem_map[pfn]);
++	for (; pfn < end; pfn++)
++		free_highmem_page(pfn_to_page(pfn));
+ }
  #endif
  
- 	codek = ((unsigned long) &_etext - (unsigned long) &_stext) >> 10;
+@@ -574,7 +572,6 @@ static void __init free_highpages(void)
+ 		if (start < end)
+ 			free_area_high(start, end);
+ 	}
+-	totalram_pages += totalhigh_pages;
+ #endif
+ }
+ 
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
