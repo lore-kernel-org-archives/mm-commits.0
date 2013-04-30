@@ -1,62 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-tegra-set-irq-name-as-device-name.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:56:44 -0700
-Message-ID: <20130430185644.7CE4B31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-ds1302-use-devm_rtc_device_register.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:57:10 -0700
+Message-ID: <20130430185710.6BF6531C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61043 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933309Ab3D3S4q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:56:46 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so88229qab.3
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:56:45 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:61065 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933369Ab3D3S5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:57:11 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 9so86865qea.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:57:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ldewangan@nvidia.com, jg1.han@samsung.com, swarren@nvidia.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tegra.c: set irq name as device name
+     Subject: rtc: rtc-ds1302: use devm_rtc_device_register()
 has been removed from the -mm tree.  Its filename was
-     rtc-tegra-set-irq-name-as-device-name.patch
+     rtc-rtc-ds1302-use-devm_rtc_device_register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: drivers/rtc/rtc-tegra.c: set irq name as device name
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-ds1302: use devm_rtc_device_register()
 
-The irq name of tegra rtc shows as "rtc alarm" which actually does not
-reflect the name related to driver.
+devm_rtc_device_register() is device managed and makes cleanup paths
+simpler.
 
-Passing the device name to have the irq names with driver name.
-
-Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Reviewed-by: Stephen Warren <swarren@nvidia.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tegra.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-ds1302.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-tegra.c~rtc-tegra-set-irq-name-as-device-name drivers/rtc/rtc-tegra.c
---- a/drivers/rtc/rtc-tegra.c~rtc-tegra-set-irq-name-as-device-name
-+++ a/drivers/rtc/rtc-tegra.c
-@@ -362,7 +362,7 @@ static int __init tegra_rtc_probe(struct
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-use-devm_rtc_device_register drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-use-devm_rtc_device_register
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -224,7 +224,7 @@ static int __init ds1302_rtc_probe(struc
+ 		return -ENODEV;
+ 	}
  
- 	ret = devm_request_irq(&pdev->dev, info->tegra_rtc_irq,
- 			tegra_rtc_irq_handler, IRQF_TRIGGER_HIGH,
--			"rtc alarm", &pdev->dev);
-+			dev_name(&pdev->dev), &pdev->dev);
- 	if (ret) {
- 		dev_err(&pdev->dev,
- 			"Unable to request interrupt for device (err=%d).\n",
-_
-
-Patches currently in -mm which might be from ldewangan@nvidia.com are
-
-origin.patch
-linux-next.patch
-
+-	rtc = rtc_device_register("ds1302", &pdev->dev,
++	rtc = devm_rtc_device_register(&pdev->dev, "ds1302",
+ 					   &ds1302_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc))
+ 		return PTR_ERR(rtc);
+@@ -236,9 +236,6 @@ static int __init ds1302_rtc_probe(struc
+ 
+ static int __exit ds1302_rtc_remove(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc = platform_get_drvdata(pdev);
