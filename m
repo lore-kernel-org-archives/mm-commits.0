@@ -1,166 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mkcapflagspl-convert-to-mkcapflagssh.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:43:54 -0700
-Message-ID: <20130430184354.7617531C0F7@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:43:45 -0700
+Message-ID: <20130430184345.7D20131C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:47603 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932720Ab3D3Sn4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:43:56 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so75337ves.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:43:55 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:64155 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932614Ab3D3Snq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:43:46 -0400
+Received: by mail-vb0-f74.google.com with SMTP id w8so84425vbf.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:43:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, dhowell@redhat.com, jwboyer@redhat.com, mmarek@suse.cz, paulmck@linux.vnet.ibm.com, sam@ravnborg.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: hartleys@visionengravers.com, FlorianSchandinat@gmx.de, hsweeten@visionengravers.com, rmallon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mkcapflags.pl: convert to mkcapflags.sh
+     Subject: drivers/video/ep93xx-fb.c: fix section mismatch and use module_platform_driver
 has been removed from the -mm tree.  Its filename was
-     mkcapflagspl-convert-to-mkcapflagssh.patch
+     video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rob Landley <rob@landley.net>
-Subject: mkcapflags.pl: convert to mkcapflags.sh
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: drivers/video/ep93xx-fb.c: fix section mismatch and use module_platform_driver
 
-Generate asm-x86/cpufeature.h with posix-2008 commands instead of perl.
+Remove the __init tags from the ep93xxfb_calc_fbsize() and
+ep93xxfb_alloc_videomem() functions to fix the section mismatch warnings.
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: David Howells <dhowell@redhat.com>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Use module_platform_driver() to remove the init/exit boilerplate.
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Ryan Mallon <rmallon@gmail.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/Makefile      |    4 +-
- arch/x86/kernel/cpu/mkcapflags.pl |   48 ----------------------------
- arch/x86/kernel/cpu/mkcapflags.sh |   41 +++++++++++++++++++++++
- 3 files changed, 43 insertions(+), 50 deletions(-)
+ drivers/video/ep93xx-fb.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/Makefile~mkcapflagspl-convert-to-mkcapflagssh arch/x86/kernel/cpu/Makefile
---- a/arch/x86/kernel/cpu/Makefile~mkcapflagspl-convert-to-mkcapflagssh
-+++ a/arch/x86/kernel/cpu/Makefile
-@@ -43,10 +43,10 @@ obj-$(CONFIG_MTRR)			+= mtrr/
- obj-$(CONFIG_X86_LOCAL_APIC)		+= perfctr-watchdog.o perf_event_amd_ibs.o
+diff -puN drivers/video/ep93xx-fb.c~video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver drivers/video/ep93xx-fb.c
+--- a/drivers/video/ep93xx-fb.c~video-ep93xx-fbc-fix-section-mismatch-and-use-module_platform_driver
++++ a/drivers/video/ep93xx-fb.c
+@@ -419,7 +419,7 @@ static struct fb_ops ep93xxfb_ops = {
+ 	.fb_mmap	= ep93xxfb_mmap,
+ };
  
- quiet_cmd_mkcapflags = MKCAP   $@
--      cmd_mkcapflags = $(PERL) $(srctree)/$(src)/mkcapflags.pl $< $@
-+      cmd_mkcapflags = $(CONFIG_SHELL) $(srctree)/$(src)/mkcapflags.sh $< $@
+-static int __init ep93xxfb_calc_fbsize(struct ep93xxfb_mach_info *mach_info)
++static int ep93xxfb_calc_fbsize(struct ep93xxfb_mach_info *mach_info)
+ {
+ 	int i, fb_size = 0;
  
- cpufeature = $(src)/../../include/asm/cpufeature.h
+@@ -441,7 +441,7 @@ static int __init ep93xxfb_calc_fbsize(s
+ 	return fb_size;
+ }
  
- targets += capflags.c
--$(obj)/capflags.c: $(cpufeature) $(src)/mkcapflags.pl FORCE
-+$(obj)/capflags.c: $(cpufeature) $(src)/mkcapflags.sh FORCE
- 	$(call if_changed,mkcapflags)
-diff -puN arch/x86/kernel/cpu/mkcapflags.pl~mkcapflagspl-convert-to-mkcapflagssh /dev/null
---- a/arch/x86/kernel/cpu/mkcapflags.pl
-+++ /dev/null
-@@ -1,48 +0,0 @@
--#!/usr/bin/perl -w
--#
--# Generate the x86_cap_flags[] array from include/asm-x86/cpufeature.h
--#
+-static int __init ep93xxfb_alloc_videomem(struct fb_info *info)
++static int ep93xxfb_alloc_videomem(struct fb_info *info)
+ {
+ 	struct ep93xx_fbi *fbi = info->par;
+ 	char __iomem *virt_addr;
+@@ -627,19 +627,7 @@ static struct platform_driver ep93xxfb_d
+ 		.owner	= THIS_MODULE,
+ 	},
+ };
 -
--($in, $out) = @ARGV;
--
--open(IN, "< $in\0")   or die "$0: cannot open: $in: $!\n";
--open(OUT, "> $out\0") or die "$0: cannot create: $out: $!\n";
--
--print OUT "#ifndef _ASM_X86_CPUFEATURE_H\n";
--print OUT "#include <asm/cpufeature.h>\n";
--print OUT "#endif\n";
--print OUT "\n";
--print OUT "const char * const x86_cap_flags[NCAPINTS*32] = {\n";
--
--%features = ();
--$err = 0;
--
--while (defined($line = <IN>)) {
--	if ($line =~ /^\s*\#\s*define\s+(X86_FEATURE_(\S+))\s+(.*)$/) {
--		$macro = $1;
--		$feature = "\L$2";
--		$tail = $3;
--		if ($tail =~ /\/\*\s*\"([^"]*)\".*\*\//) {
--			$feature = "\L$1";
--		}
--
--		next if ($feature eq '');
--
--		if ($features{$feature}++) {
--			print STDERR "$in: duplicate feature name: $feature\n";
--			$err++;
--		}
--		printf OUT "\t%-32s = \"%s\",\n", "[$macro]", $feature;
--	}
--}
--print OUT "};\n";
--
--close(IN);
--close(OUT);
--
--if ($err) {
--	unlink($out);
--	exit(1);
+-static int ep93xxfb_init(void)
+-{
+-	return platform_driver_register(&ep93xxfb_driver);
 -}
 -
--exit(0);
-diff -puN /dev/null arch/x86/kernel/cpu/mkcapflags.sh
---- /dev/null
-+++ a/arch/x86/kernel/cpu/mkcapflags.sh
-@@ -0,0 +1,41 @@
-+#!/bin/sh
-+#
-+# Generate the x86_cap_flags[] array from include/asm/cpufeature.h
-+#
-+
-+IN=$1
-+OUT=$2
-+
-+TABS="$(printf '\t\t\t\t\t')"
-+trap 'rm "$OUT"' EXIT
-+
-+(
-+	echo "#ifndef _ASM_X86_CPUFEATURE_H"
-+	echo "#include <asm/cpufeature.h>"
-+	echo "#endif"
-+	echo ""
-+	echo "const char * const x86_cap_flags[NCAPINTS*32] = {"
-+
-+	# Iterate through any input lines starting with #define X86_FEATURE_
-+	sed -n -e 's/\t/ /g' -e 's/^ *# *define *X86_FEATURE_//p' $IN |
-+	while read i
-+	do
-+		# Name is everything up to the first whitespace
-+		NAME="$(echo "$i" | sed 's/ .*//')"
-+
-+		# If the /* comment */ starts with a quote string, grab that.
-+		VALUE="$(echo "$i" | sed -n 's@.*/\* *\("[^"]*"\).*\*/@\1@p')"
-+		[ -z "$VALUE" ] && VALUE="\"$NAME\""
-+		[ "$VALUE" == '""' ] && continue
-+
-+		# Name is uppercase, VALUE is all lowercase
-+		VALUE="$(echo "$VALUE" | tr A-Z a-z)"
-+
-+		TABCOUNT=$(( ( 5*8 - 14 - $(echo "$NAME" | wc -c) ) / 8 ))
-+		printf "\t[%s]%.*s = %s,\n" \
-+			"X86_FEATURE_$NAME" "$TABCOUNT" "$TABS" "$VALUE"
-+	done
-+	echo "};"
-+) > $OUT
-+
-+trap - EXIT
-_
-
-Patches currently in -mm which might be from rob@landley.net are
-
-origin.patch
-linux-next.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
-
+-static void __exit ep93xxfb_exit(void)
+-{
+-	platform_driver_unregister(&ep93xxfb_driver);
+-}
