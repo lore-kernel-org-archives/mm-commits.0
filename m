@@ -1,84 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slubc-use-register_hotmemory_notifier.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:48:42 -0700
-Message-ID: <20130430184842.6AB2231C27C@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-base-nodec-switch-to-register_hotmemory_notifier.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:45 -0700
+Message-ID: <20130430184845.72E0031C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:59228 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3Ssn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:43 -0400
-Received: by mail-qe0-f74.google.com with SMTP id a11so85015qen.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:42 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:35718 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3Ssq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:46 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so75712ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, penberg@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: use register_hotmemory_notifier()
+     Subject: drivers/base/node.c: switch to register_hotmemory_notifier()
 has been removed from the -mm tree.  Its filename was
-     mm-slubc-use-register_hotmemory_notifier.patch
+     drivers-base-nodec-switch-to-register_hotmemory_notifier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/slub.c: use register_hotmemory_notifier()
+Subject: drivers/base/node.c: switch to register_hotmemory_notifier()
 
-Squishes a statement-with-no-effect warning, removes some ifdefs and
-shrinks .text by 2 bytes.
+Squishes a warning which my change to hotplug_memory_notifier() added.
 
-Note that this code fails to check for blocking_notifier_chain_register()
-failures.
+I want to keep that warning, because it is punishment for failnig to check
+the hotplug_memory_notifier() return value.
 
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/base/node.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~mm-slubc-use-register_hotmemory_notifier mm/slub.c
---- a/mm/slub.c~mm-slubc-use-register_hotmemory_notifier
-+++ a/mm/slub.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include "slab.h"
- #include <linux/proc_fs.h>
+diff -puN drivers/base/node.c~drivers-base-nodec-switch-to-register_hotmemory_notifier drivers/base/node.c
+--- a/drivers/base/node.c~drivers-base-nodec-switch-to-register_hotmemory_notifier
++++ a/drivers/base/node.c
+@@ -7,6 +7,7 @@
+ #include <linux/mm.h>
+ #include <linux/memory.h>
+ #include <linux/vmstat.h>
 +#include <linux/notifier.h>
- #include <linux/seq_file.h>
- #include <linux/kmemcheck.h>
- #include <linux/cpu.h>
-@@ -3483,7 +3484,6 @@ int kmem_cache_shrink(struct kmem_cache
- }
- EXPORT_SYMBOL(kmem_cache_shrink);
+ #include <linux/node.h>
+ #include <linux/hugetlb.h>
+ #include <linux/compaction.h>
+@@ -683,8 +684,11 @@ static int __init register_node_type(voi
  
--#if defined(CONFIG_MEMORY_HOTPLUG)
- static int slab_mem_going_offline_callback(void *arg)
- {
- 	struct kmem_cache *s;
-@@ -3598,7 +3598,10 @@ static int slab_memory_callback(struct n
- 	return ret;
- }
+ 	ret = subsys_system_register(&node_subsys, cpu_root_attr_groups);
+ 	if (!ret) {
+-		hotplug_memory_notifier(node_memory_callback,
+-					NODE_CALLBACK_PRI);
++		static struct notifier_block node_memory_callback_nb = {
++			.notifier_call = node_memory_callback,
++			.priority = NODE_CALLBACK_PRI,
++		};
++		register_hotmemory_notifier(&node_memory_callback_nb);
+ 	}
  
--#endif /* CONFIG_MEMORY_HOTPLUG */
-+static struct notifier_block slab_memory_callback_nb = {
-+	.notifier_call = slab_memory_callback,
-+	.priority = SLAB_CALLBACK_PRI,
-+};
- 
- /********************************************************************
-  *			Basic setup of slabs
-@@ -3651,7 +3654,7 @@ void __init kmem_cache_init(void)
- 	create_boot_cache(kmem_cache_node, "kmem_cache_node",
- 		sizeof(struct kmem_cache_node), SLAB_HWCACHE_ALIGN);
- 
--	hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI);
-+	register_hotmemory_notifier(&slab_memory_callback_nb);
- 
- 	/* Able to allocate the per node structures */
- 	slab_state = PARTIAL;
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
