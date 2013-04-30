@@ -1,64 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memblock-fix-missing-comment-of-memblock_insert_region.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:49:52 -0700
-Message-ID: <20130430184952.7009E5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] fs-fix-fsync-error-reporting.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:49:54 -0700
+Message-ID: <20130430184954.7D0F431C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:62064 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932247Ab3D3Stx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:53 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m3so85458yen.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:52 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:44812 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932247Ab3D3Stz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:55 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 9so85522qea.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: dmonakhov@openvz.org, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: fix missing comment of memblock_insert_region()
+     Subject: fs: fix fsync() error reporting
 has been removed from the -mm tree.  Its filename was
-     memblock-fix-missing-comment-of-memblock_insert_region.patch
+     fs-fix-fsync-error-reporting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: memblock: fix missing comment of memblock_insert_region()
+From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: fs: fix fsync() error reporting
 
-There is no comment for parameter nid of memblock_insert_region().
-This patch adds comment for it.
+There are two convenient ways to report errors to userspace
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+1) retun error to original syscall for example write(2)
+2) mark mapping with error flag and return it on later fsync(2)
+
+Second one is broken if (mapping->nrpages == 0) This is real-life
+situation because after error pages are likey to be truncated or
+invalidated.
+
+We have to return an error regardless to number of pages in the mapping.
+
+#Original testcase: git@github.com:dmonakhov/xfstests.git
+MOUNT_OPTIONS="-b1024"
+./check shared/305
+
+Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/filemap.c |   29 +++++++++++++++++++++--------
+ 1 file changed, 21 insertions(+), 8 deletions(-)
 
-diff -puN mm/memblock.c~memblock-fix-missing-comment-of-memblock_insert_region mm/memblock.c
---- a/mm/memblock.c~memblock-fix-missing-comment-of-memblock_insert_region
-+++ a/mm/memblock.c
-@@ -322,10 +322,11 @@ static void __init_memblock memblock_mer
+diff -puN mm/filemap.c~fs-fix-fsync-error-reporting mm/filemap.c
+--- a/mm/filemap.c~fs-fix-fsync-error-reporting
++++ a/mm/filemap.c
+@@ -188,6 +188,17 @@ static int sleep_on_page_killable(void *
+ 	return fatal_signal_pending(current) ? -EINTR : 0;
+ }
  
++static int filemap_check_errors(struct address_space *mapping)
++{
++	int ret = 0;
++	/* Check for outstanding write errors */
++	if (test_and_clear_bit(AS_ENOSPC, &mapping->flags))
++		ret = -ENOSPC;
++	if (test_and_clear_bit(AS_EIO, &mapping->flags))
++		ret = -EIO;
++	return ret;
++}
++
  /**
-  * memblock_insert_region - insert new memblock region
-- * @type: memblock type to insert into
-- * @idx: index for the insertion point
-- * @base: base address of the new region
-- * @size: size of the new region
-+ * @type:	memblock type to insert into
-+ * @idx:	index for the insertion point
-+ * @base:	base address of the new region
-+ * @size:	size of the new region
-+ * @nid:	node id of the new region
-  *
-  * Insert new memblock region [@base,@base+@size) into @type at @idx.
-  * @type must already have extra room to accomodate the new region.
+  * __filemap_fdatawrite_range - start writeback on mapping dirty pages in range
+  * @mapping:	address space structure to write
+@@ -269,10 +280,10 @@ int filemap_fdatawait_range(struct addre
+ 	pgoff_t end = end_byte >> PAGE_CACHE_SHIFT;
+ 	struct pagevec pvec;
+ 	int nr_pages;
+-	int ret = 0;
++	int ret2, ret = 0;
+ 
+ 	if (end_byte < start_byte)
+-		return 0;
++		goto out;
+ 
+ 	pagevec_init(&pvec, 0);
+ 	while ((index <= end) &&
+@@ -295,12 +306,10 @@ int filemap_fdatawait_range(struct addre
+ 		pagevec_release(&pvec);
+ 		cond_resched();
+ 	}
+-
+-	/* Check for outstanding write errors */
+-	if (test_and_clear_bit(AS_ENOSPC, &mapping->flags))
+-		ret = -ENOSPC;
+-	if (test_and_clear_bit(AS_EIO, &mapping->flags))
+-		ret = -EIO;
++out:
++	ret2 = filemap_check_errors(mapping);
++	if (!ret)
++		ret = ret2;
+ 
+ 	return ret;
+ }
+@@ -341,6 +350,8 @@ int filemap_write_and_wait(struct addres
+ 			if (!err)
+ 				err = err2;
+ 		}
++	} else {
++		err = filemap_check_errors(mapping);
+ 	}
+ 	return err;
+ }
+@@ -372,6 +383,8 @@ int filemap_write_and_wait_range(struct
+ 			if (!err)
+ 				err = err2;
+ 		}
++	} else {
++		err = filemap_check_errors(mapping);
+ 	}
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
 origin.patch
 linux-next.patch
+kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch
 
