@@ -1,42 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-try-harder-to-allocate-vmemmap-blocks.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:48:04 -0700
-Message-ID: <20130430184804.9B8D85A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] sparse-vmemmap-specify-vmemmap-population-range-in-bytes.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:48:07 -0700
+Message-ID: <20130430184807.8D6BB31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:35251 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932820Ab3D3SsG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:06 -0400
-Received: by mail-qa0-f73.google.com with SMTP id p6so86531qad.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:05 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:35927 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3SsJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:48:09 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 9so85011qea.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:48:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben@decadent.org.uk, Bernhard.Schmidt@lrz.de, benh@kernel.crashing.org, davem@davemloft.net, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, Bernhard.Schmidt@lrz.de, ben@decadent.org.uk, benh@kernel.crashing.org, davem@davemloft.net, fengguang.wu@intel.com, heiko.carstens@de.ibm.com, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: try harder to allocate vmemmap blocks
+     Subject: sparse-vmemmap: specify vmemmap population range in bytes
 has been removed from the -mm tree.  Its filename was
-     mm-try-harder-to-allocate-vmemmap-blocks.patch
+     sparse-vmemmap-specify-vmemmap-population-range-in-bytes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: mm: try harder to allocate vmemmap blocks
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: sparse-vmemmap: specify vmemmap population range in bytes
 
-Hot-adding memory on x86_64 normally requires huge page allocation.  When
-this is done to a VM guest, it's usually because the system is already
-tight on memory, so the request tends to fail.  Try to avoid this by
-adding __GFP_REPEAT to the allocation flags.
+The sparse code, when asking the architecture to populate the vmemmap,
+specifies the section range as a starting page and a number of pages.
 
-Addresses http://bugs.debian.org/699913
+This is an awkward interface, because none of the arch-specific code
+actually thinks of the range in terms of 'struct page' units and always
+translates it to bytes first.
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+In addition, later patches mix huge page and regular page backing for the
+vmemmap.  For this, they need to call vmemmap_populate_basepages() on
+sub-section ranges with PAGE_SIZE and PMD_SIZE in mind.  But these are not
+necessarily multiples of the 'struct page' size and so this unit is too
+coarse.
+
+Just translate the section range into bytes once in the generic sparse
+code, then pass byte ranges down the stack.
+
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
-Tested-by: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Bernhard Schmidt <Bernhard.Schmidt@lrz.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -44,38 +53,313 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: David Miller <davem@davemloft.net>
+Acked-by: David S. Miller <davem@davemloft.net>
+Tested-by: David S. Miller <davem@davemloft.net>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/arm64/mm/mmu.c       |   13 +++++--------
+ arch/ia64/mm/discontig.c  |    7 +++----
+ arch/powerpc/mm/init_64.c |   11 +++--------
+ arch/s390/mm/vmem.c       |   15 ++++++---------
+ arch/sparc/mm/init_64.c   |    7 +++----
+ arch/x86/mm/init_64.c     |   15 +++++----------
+ include/linux/mm.h        |    8 ++++----
+ mm/sparse-vmemmap.c       |   19 ++++++++++++-------
+ mm/sparse.c               |   10 ++++++++--
+ 9 files changed, 49 insertions(+), 56 deletions(-)
 
-diff -puN mm/sparse-vmemmap.c~mm-try-harder-to-allocate-vmemmap-blocks mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-try-harder-to-allocate-vmemmap-blocks
-+++ a/mm/sparse-vmemmap.c
-@@ -53,10 +53,12 @@ void * __meminit vmemmap_alloc_block(uns
- 		struct page *page;
+diff -puN arch/arm64/mm/mmu.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes arch/arm64/mm/mmu.c
+--- a/arch/arm64/mm/mmu.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/arch/arm64/mm/mmu.c
+@@ -391,17 +391,14 @@ int kern_addr_valid(unsigned long addr)
+ }
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ #ifdef CONFIG_ARM64_64K_PAGES
+-int __meminit vmemmap_populate(struct page *start_page,
+-			       unsigned long size, int node)
++int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ {
+-	return vmemmap_populate_basepages(start_page, size, node);
++	return vmemmap_populate_basepages(start, end, node);
+ }
+ #else	/* !CONFIG_ARM64_64K_PAGES */
+-int __meminit vmemmap_populate(struct page *start_page,
+-			       unsigned long size, int node)
++int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ {
+-	unsigned long addr = (unsigned long)start_page;
+-	unsigned long end = (unsigned long)(start_page + size);
++	unsigned long addr = start;
+ 	unsigned long next;
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -434,7 +431,7 @@ int __meminit vmemmap_populate(struct pa
+ 	return 0;
+ }
+ #endif	/* CONFIG_ARM64_64K_PAGES */
+-void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++void vmemmap_free(unsigned long start, unsigned long end)
+ {
+ }
+ #endif	/* CONFIG_SPARSEMEM_VMEMMAP */
+diff -puN arch/ia64/mm/discontig.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/arch/ia64/mm/discontig.c
+@@ -819,13 +819,12 @@ void arch_refresh_nodedata(int update_no
+ #endif
  
- 		if (node_state(node, N_HIGH_MEMORY))
--			page = alloc_pages_node(node,
--				GFP_KERNEL | __GFP_ZERO, get_order(size));
-+			page = alloc_pages_node(
-+				node, GFP_KERNEL | __GFP_ZERO | __GFP_REPEAT,
-+				get_order(size));
- 		else
--			page = alloc_pages(GFP_KERNEL | __GFP_ZERO,
-+			page = alloc_pages(
-+				GFP_KERNEL | __GFP_ZERO | __GFP_REPEAT,
- 				get_order(size));
- 		if (page)
- 			return page_address(page);
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-int __meminit vmemmap_populate(struct page *start_page,
+-						unsigned long size, int node)
++int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ {
+-	return vmemmap_populate_basepages(start_page, size, node);
++	return vmemmap_populate_basepages(start, end, node);
+ }
+ 
+-void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++void vmemmap_free(unsigned long start, unsigned long end)
+ {
+ }
+ #endif
+diff -puN arch/powerpc/mm/init_64.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes arch/powerpc/mm/init_64.c
+--- a/arch/powerpc/mm/init_64.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/arch/powerpc/mm/init_64.c
+@@ -263,19 +263,14 @@ static __meminit void vmemmap_list_popul
+ 	vmemmap_list = vmem_back;
+ }
+ 
+-int __meminit vmemmap_populate(struct page *start_page,
+-			       unsigned long nr_pages, int node)
++int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ {
+-	unsigned long start = (unsigned long)start_page;
+-	unsigned long end = (unsigned long)(start_page + nr_pages);
+ 	unsigned long page_size = 1 << mmu_psize_defs[mmu_vmemmap_psize].shift;
+ 
+ 	/* Align to the page size of the linear mapping. */
+ 	start = _ALIGN_DOWN(start, page_size);
+ 
+-	pr_debug("vmemmap_populate page %p, %ld pages, node %d\n",
+-		 start_page, nr_pages, node);
+-	pr_debug(" -> map %lx..%lx\n", start, end);
++	pr_debug("vmemmap_populate %lx..%lx, node %d\n", start, end, node);
+ 
+ 	for (; start < end; start += page_size) {
+ 		void *p;
+@@ -298,7 +293,7 @@ int __meminit vmemmap_populate(struct pa
+ 	return 0;
+ }
+ 
+-void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++void vmemmap_free(unsigned long start, unsigned long end)
+ {
+ }
+ 
+diff -puN arch/s390/mm/vmem.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes arch/s390/mm/vmem.c
+--- a/arch/s390/mm/vmem.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/arch/s390/mm/vmem.c
+@@ -191,19 +191,16 @@ static void vmem_remove_range(unsigned l
+ /*
+  * Add a backed mem_map array to the virtual mem_map array.
+  */
+-int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
++int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ {
+-	unsigned long address, start_addr, end_addr;
++	unsigned long address = start;
+ 	pgd_t *pg_dir;
+ 	pud_t *pu_dir;
+ 	pmd_t *pm_dir;
+ 	pte_t *pt_dir;
+ 	int ret = -ENOMEM;
+ 
+-	start_addr = (unsigned long) start;
+-	end_addr = (unsigned long) (start + nr);
+-
+-	for (address = start_addr; address < end_addr;) {
++	for (address = start; address < end;) {
+ 		pg_dir = pgd_offset_k(address);
+ 		if (pgd_none(*pg_dir)) {
+ 			pu_dir = vmem_pud_alloc();
+@@ -262,14 +259,14 @@ int __meminit vmemmap_populate(struct pa
+ 		}
+ 		address += PAGE_SIZE;
+ 	}
+-	memset(start, 0, nr * sizeof(struct page));
++	memset((void *)start, 0, end - start);
+ 	ret = 0;
+ out:
+-	flush_tlb_kernel_range(start_addr, end_addr);
++	flush_tlb_kernel_range(start, end);
+ 	return ret;
+ }
+ 
+-void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++void vmemmap_free(unsigned long start, unsigned long end)
+ {
+ }
+ 
+diff -puN arch/sparc/mm/init_64.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes arch/sparc/mm/init_64.c
+--- a/arch/sparc/mm/init_64.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/arch/sparc/mm/init_64.c
+@@ -2181,10 +2181,9 @@ unsigned long vmemmap_table[VMEMMAP_SIZE
+ static long __meminitdata addr_start, addr_end;
+ static int __meminitdata node_start;
+ 
+-int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
++int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
++			       int node)
+ {
+-	unsigned long vstart = (unsigned long) start;
+-	unsigned long vend = (unsigned long) (start + nr);
+ 	unsigned long phys_start = (vstart - VMEMMAP_BASE);
+ 	unsigned long phys_end = (vend - VMEMMAP_BASE);
+ 	unsigned long addr = phys_start & VMEMMAP_CHUNK_MASK;
+@@ -2236,7 +2235,7 @@ void __meminit vmemmap_populate_print_la
+ 	}
+ }
+ 
+-void vmemmap_free(struct page *memmap, unsigned long nr_pages)
++void vmemmap_free(unsigned long start, unsigned long end)
+ {
+ }
+ 
+diff -puN arch/x86/mm/init_64.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/arch/x86/mm/init_64.c
+@@ -1011,11 +1011,8 @@ remove_pagetable(unsigned long start, un
+ 	flush_tlb_all();
+ }
+ 
+-void __ref vmemmap_free(struct page *memmap, unsigned long nr_pages)
++void __ref vmemmap_free(unsigned long start, unsigned long end)
+ {
+-	unsigned long start = (unsigned long)memmap;
+-	unsigned long end = (unsigned long)(memmap + nr_pages);
+-
+ 	remove_pagetable(start, end, false);
+ }
+ 
+@@ -1284,17 +1281,15 @@ static long __meminitdata addr_start, ad
+ static void __meminitdata *p_start, *p_end;
+ static int __meminitdata node_start;
+ 
+-int __meminit
+-vmemmap_populate(struct page *start_page, unsigned long size, int node)
++int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ {
+-	unsigned long addr = (unsigned long)start_page;
+-	unsigned long end = (unsigned long)(start_page + size);
++	unsigned long addr;
+ 	unsigned long next;
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 
+-	for (; addr < end; addr = next) {
++	for (addr = start; addr < end; addr = next) {
+ 		void *p = NULL;
+ 
+ 		pgd = vmemmap_pgd_populate(addr, node);
+@@ -1351,7 +1346,7 @@ vmemmap_populate(struct page *start_page
+ 		}
+ 
+ 	}
+-	sync_global_pgds((unsigned long)start_page, end - 1);
++	sync_global_pgds(start, end - 1);
+ 	return 0;
+ }
+ 
+diff -puN include/linux/mm.h~sparse-vmemmap-specify-vmemmap-population-range-in-bytes include/linux/mm.h
+--- a/include/linux/mm.h~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/include/linux/mm.h
+@@ -1764,12 +1764,12 @@ pte_t *vmemmap_pte_populate(pmd_t *pmd,
+ void *vmemmap_alloc_block(unsigned long size, int node);
+ void *vmemmap_alloc_block_buf(unsigned long size, int node);
+ void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
+-int vmemmap_populate_basepages(struct page *start_page,
+-						unsigned long pages, int node);
+-int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
++int vmemmap_populate_basepages(unsigned long start, unsigned long end,
++			       int node);
++int vmemmap_populate(unsigned long start, unsigned long end, int node);
+ void vmemmap_populate_print_last(void);
+ #ifdef CONFIG_MEMORY_HOTPLUG
+-void vmemmap_free(struct page *memmap, unsigned long nr_pages);
++void vmemmap_free(unsigned long start, unsigned long end);
+ #endif
+ void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+ 				  unsigned long size);
+diff -puN mm/sparse-vmemmap.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/mm/sparse-vmemmap.c
+@@ -147,11 +147,10 @@ pgd_t * __meminit vmemmap_pgd_populate(u
+ 	return pgd;
+ }
+ 
+-int __meminit vmemmap_populate_basepages(struct page *start_page,
+-						unsigned long size, int node)
++int __meminit vmemmap_populate_basepages(unsigned long start,
++					 unsigned long end, int node)
+ {
+-	unsigned long addr = (unsigned long)start_page;
+-	unsigned long end = (unsigned long)(start_page + size);
++	unsigned long addr = start;
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+@@ -178,9 +177,15 @@ int __meminit vmemmap_populate_basepages
+ 
+ struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
+ {
+-	struct page *map = pfn_to_page(pnum * PAGES_PER_SECTION);
+-	int error = vmemmap_populate(map, PAGES_PER_SECTION, nid);
+-	if (error)
++	unsigned long start;
++	unsigned long end;
++	struct page *map;
++
++	map = pfn_to_page(pnum * PAGES_PER_SECTION);
++	start = (unsigned long)map;
++	end = (unsigned long)(map + PAGES_PER_SECTION);
++
++	if (vmemmap_populate(start, end, nid))
+ 		return NULL;
+ 
+ 	return map;
+diff -puN mm/sparse.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes mm/sparse.c
+--- a/mm/sparse.c~sparse-vmemmap-specify-vmemmap-population-range-in-bytes
++++ a/mm/sparse.c
+@@ -615,11 +615,17 @@ static inline struct page *kmalloc_secti
+ }
+ static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+ {
+-	vmemmap_free(memmap, nr_pages);
++	unsigned long start = (unsigned long)memmap;
++	unsigned long end = (unsigned long)(memmap + nr_pages);
++
++	vmemmap_free(start, end);
+ }
+ static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
+ {
+-	vmemmap_free(memmap, nr_pages);
++	unsigned long start = (unsigned long)memmap;
++	unsigned long end = (unsigned long)(memmap + nr_pages);
++
++	vmemmap_free(start, end);
+ }
+ #else
+ static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
 _
 
-Patches currently in -mm which might be from ben@decadent.org.uk are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-linux-next.patch
-dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present.patch
-dmi_scan-refactor-dmi_scan_machine-smbiosdmi_present-fix.patch
+mm-memmap_init_zone-performance-improvement.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
+ipc-refactor-msg-list-search-into-separate-function-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
