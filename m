@@ -1,95 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-omap1-convert-omapbl-to-dev_pm_ops.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:52:45 -0700
-Message-ID: <20130430185245.7270931C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] backlight-ili9320-use-spi_set_drvdata.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:52:38 -0700
+Message-ID: <20130430185238.6F05D5A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:60466 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933102Ab3D3Swq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:52:46 -0400
-Received: by mail-qa0-f74.google.com with SMTP id bs12so87785qab.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:52:45 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:44106 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933102Ab3D3Swj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:52:39 -0400
+Received: by mail-qc0-f201.google.com with SMTP id o22so86477qcr.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:52:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: omap1: convert omapbl to dev_pm_ops
+     Subject: backlight: ili9320: use spi_set_drvdata()
 has been removed from the -mm tree.  Its filename was
-     backlight-omap1-convert-omapbl-to-dev_pm_ops.patch
+     backlight-ili9320-use-spi_set_drvdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: omap1: convert omapbl to dev_pm_ops
+Subject: backlight: ili9320: use spi_set_drvdata()
 
-Instead of using legacy suspend/resume methods, using newer dev_pm_ops
-structure allows better control over power management.
+Use the wrapper functions for getting and setting the driver data using
+spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
+can directly pass a struct spi_device.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/omap1_bl.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/video/backlight/ili9320.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-convert-omapbl-to-dev_pm_ops drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-convert-omapbl-to-dev_pm_ops
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -71,27 +71,24 @@ static void omapbl_blank(struct omap_bac
- 	}
- }
+diff -puN drivers/video/backlight/ili9320.c~backlight-ili9320-use-spi_set_drvdata drivers/video/backlight/ili9320.c
+--- a/drivers/video/backlight/ili9320.c~backlight-ili9320-use-spi_set_drvdata
++++ a/drivers/video/backlight/ili9320.c
+@@ -231,7 +231,7 @@ int ili9320_probe_spi(struct spi_device
+ 	ili->power = FB_BLANK_POWERDOWN;
+ 	ili->platdata = cfg;
  
--#ifdef CONFIG_PM
--static int omapbl_suspend(struct platform_device *pdev, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int omapbl_suspend(struct device *dev)
- {
--	struct backlight_device *dev = platform_get_drvdata(pdev);
--	struct omap_backlight *bl = bl_get_data(dev);
-+	struct backlight_device *bl_dev = dev_get_drvdata(dev);
-+	struct omap_backlight *bl = bl_get_data(bl_dev);
+-	dev_set_drvdata(&spi->dev, ili);
++	spi_set_drvdata(spi, ili);
  
- 	omapbl_blank(bl, FB_BLANK_POWERDOWN);
- 	return 0;
- }
- 
--static int omapbl_resume(struct platform_device *pdev)
-+static int omapbl_resume(struct device *dev)
- {
--	struct backlight_device *dev = platform_get_drvdata(pdev);
--	struct omap_backlight *bl = bl_get_data(dev);
-+	struct backlight_device *bl_dev = dev_get_drvdata(dev);
-+	struct omap_backlight *bl = bl_get_data(bl_dev);
- 
- 	omapbl_blank(bl, bl->powermode);
- 	return 0;
- }
--#else
--#define omapbl_suspend	NULL
--#define omapbl_resume	NULL
- #endif
- 
- static int omapbl_set_power(struct backlight_device *dev, int state)
-@@ -182,13 +179,14 @@ static int omapbl_remove(struct platform
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(omapbl_pm_ops, omapbl_suspend, omapbl_resume);
-+
- static struct platform_driver omapbl_driver = {
- 	.probe		= omapbl_probe,
- 	.remove		= omapbl_remove,
--	.suspend	= omapbl_suspend,
--	.resume		= omapbl_resume,
- 	.driver		= {
- 		.name	= "omap-bl",
-+		.pm	= &omapbl_pm_ops,
- 	},
- };
+ 	ili9320_setup_spi(ili, spi);
  
 _
 
