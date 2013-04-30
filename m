@@ -1,157 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:17:39 -0700
-Message-ID: <20130430181739.B03D75A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: + revert-ipc_schedule_free-can-do-vfree-now.patch added to -mm tree
+Date: Tue, 30 Apr 2013 11:33:56 -0700
+Message-ID: <20130430183356.B828431C0F7@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:34616 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760751Ab3D3SRn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:17:43 -0400
-Received: by mail-vb0-f74.google.com with SMTP id w8so81039vbf.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:17:40 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:50615 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761301Ab3D3Sd7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:33:59 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so83386qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:33:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: revert "ipc_schedule_free() can do vfree() now"
+has been added to the -mm tree.  Its filename is
+     revert-ipc_schedule_free-can-do-vfree-now.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: revert "ipc_schedule_free() can do vfree() now"
 
+This massively screws up pending IPC patches.
+
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/scan.c               |    3 ---
- drivers/gpio/gpio-pl061.c         |    3 ---
- drivers/pinctrl/Makefile          |    3 ---
- drivers/pinctrl/pinctrl-samsung.c |    3 ---
- drivers/pinctrl/pinctrl-samsung.h |    3 ---
- drivers/video/Kconfig             |   13 -------------
- include/linux/pci.h               |    3 ---
- 7 files changed, 31 deletions(-)
+ ipc/util.c |   66 ++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 55 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/scan.c~linux-next-git-rejects drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~linux-next-git-rejects
-+++ a/drivers/acpi/scan.c
-@@ -2044,10 +2044,7 @@ int __init acpi_scan_init(void)
- 	acpi_lpss_init();
- 	acpi_csrt_init();
- 	acpi_container_init();
--<<<<<<< HEAD
--=======
- 	acpi_memory_hotplug_init();
-->>>>>>> linux-next/akpm-base
+diff -puN ipc/util.c~revert-ipc_schedule_free-can-do-vfree-now ipc/util.c
+--- a/ipc/util.c~revert-ipc_schedule_free-can-do-vfree-now
++++ a/ipc/util.c
+@@ -468,9 +468,10 @@ void ipc_free(void* ptr, int size)
  
- 	mutex_lock(&acpi_scan_lock);
- 	/*
-diff -puN drivers/gpio/gpio-pl061.c~linux-next-git-rejects drivers/gpio/gpio-pl061.c
---- a/drivers/gpio/gpio-pl061.c~linux-next-git-rejects
-+++ a/drivers/gpio/gpio-pl061.c
-@@ -15,10 +15,7 @@
- #include <linux/io.h>
- #include <linux/ioport.h>
- #include <linux/irq.h>
--<<<<<<< HEAD
--=======
- #include <linux/irqchip/chained_irq.h>
-->>>>>>> linux-next/akpm-base
- #include <linux/irqdomain.h>
- #include <linux/bitops.h>
- #include <linux/workqueue.h>
-diff -puN drivers/pinctrl/Makefile~linux-next-git-rejects drivers/pinctrl/Makefile
---- a/drivers/pinctrl/Makefile~linux-next-git-rejects
-+++ a/drivers/pinctrl/Makefile
-@@ -21,10 +21,7 @@ obj-$(CONFIG_PINCTRL_IMX35)	+= pinctrl-i
- obj-$(CONFIG_PINCTRL_IMX51)	+= pinctrl-imx51.o
- obj-$(CONFIG_PINCTRL_IMX53)	+= pinctrl-imx53.o
- obj-$(CONFIG_PINCTRL_IMX6Q)	+= pinctrl-imx6q.o
--<<<<<<< HEAD
--=======
- obj-$(CONFIG_PINCTRL_IMX6Q)	+= pinctrl-imx6dl.o
-->>>>>>> linux-next/akpm-base
- obj-$(CONFIG_PINCTRL_FALCON)	+= pinctrl-falcon.o
- obj-$(CONFIG_PINCTRL_MXS)	+= pinctrl-mxs.o
- obj-$(CONFIG_PINCTRL_IMX23)	+= pinctrl-imx23.o
-diff -puN drivers/pinctrl/pinctrl-samsung.c~linux-next-git-rejects drivers/pinctrl/pinctrl-samsung.c
---- a/drivers/pinctrl/pinctrl-samsung.c~linux-next-git-rejects
-+++ a/drivers/pinctrl/pinctrl-samsung.c
-@@ -975,11 +975,8 @@ static const struct of_device_id samsung
- 	{ .compatible = "samsung,s3c64xx-pinctrl",
- 		.data = s3c64xx_pin_ctrl },
- #endif
--<<<<<<< HEAD
--=======
- 	{ .compatible = "samsung,exynos5250-pinctrl",
- 		.data = (void *)exynos5250_pin_ctrl },
-->>>>>>> linux-next/akpm-base
- 	{},
+ /*
+  * rcu allocations:
+- * There are two headers that are prepended to the actual allocation:
++ * There are three headers that are prepended to the actual allocation:
+  * - during use: ipc_rcu_hdr.
+  * - during the rcu grace period: ipc_rcu_grace.
++ * - [only if vmalloc]: ipc_rcu_sched.
+  * Their lifetime doesn't overlap, thus the headers share the same memory.
+  * Unlike a normal union, they are right-aligned, thus some container_of
+  * forward/backward casting is necessary:
+@@ -478,6 +479,7 @@ void ipc_free(void* ptr, int size)
+ struct ipc_rcu_hdr
+ {
+ 	int refcount;
++	int is_vmalloc;
+ 	void *data[0];
  };
- MODULE_DEVICE_TABLE(of, samsung_pinctrl_dt_match);
-diff -puN drivers/pinctrl/pinctrl-samsung.h~linux-next-git-rejects drivers/pinctrl/pinctrl-samsung.h
---- a/drivers/pinctrl/pinctrl-samsung.h~linux-next-git-rejects
-+++ a/drivers/pinctrl/pinctrl-samsung.h
-@@ -245,9 +245,6 @@ struct samsung_pmx_func {
- extern struct samsung_pin_ctrl exynos4210_pin_ctrl[];
- extern struct samsung_pin_ctrl exynos4x12_pin_ctrl[];
- extern struct samsung_pin_ctrl s3c64xx_pin_ctrl[];
--<<<<<<< HEAD
--=======
- extern struct samsung_pin_ctrl exynos5250_pin_ctrl[];
-->>>>>>> linux-next/akpm-base
  
- #endif /* __PINCTRL_SAMSUNG_H */
-diff -puN drivers/video/Kconfig~linux-next-git-rejects drivers/video/Kconfig
---- a/drivers/video/Kconfig~linux-next-git-rejects
-+++ a/drivers/video/Kconfig
-@@ -1792,7 +1792,6 @@ config FB_WM8505
- 	select FB_SYS_IMAGEBLIT
- 	select FB_MODE_HELPERS
- 	select VIDEOMODE_HELPERS
--<<<<<<< HEAD
- 	help
- 	  This is the framebuffer driver for WonderMedia WM8xxx-series
- 	  integrated LCD controller. This driver covers the WM8505, WM8650
-@@ -1803,18 +1802,6 @@ config FB_WMT_GE_ROPS
- 	depends on (FB = y) && (FB_VT8500 || FB_WM8505)
- 	default n
- 	help
--=======
--	help
--	  This is the framebuffer driver for WonderMedia WM8xxx-series
--	  integrated LCD controller. This driver covers the WM8505, WM8650
--	  and WM8850 SoCs.
--
--config FB_WMT_GE_ROPS
--	bool "VT8500/WM8xxx accelerated raster ops support"
--	depends on (FB = y) && (FB_VT8500 || FB_WM8505)
--	default n
--	help
-->>>>>>> linux-next/akpm-base
- 	  This adds support for accelerated raster operations on the
- 	  VIA VT8500 and Wondermedia 85xx series SoCs.
+@@ -489,8 +491,25 @@ struct ipc_rcu_grace
+ 	void *data[0];
+ };
  
-diff -puN include/linux/pci.h~linux-next-git-rejects include/linux/pci.h
---- a/include/linux/pci.h~linux-next-git-rejects
-+++ a/include/linux/pci.h
-@@ -1661,10 +1661,7 @@ int pci_enable_sriov(struct pci_dev *dev
- void pci_disable_sriov(struct pci_dev *dev);
- irqreturn_t pci_sriov_migration(struct pci_dev *dev);
- int pci_num_vf(struct pci_dev *dev);
--<<<<<<< HEAD
--=======
- int pci_vfs_assigned(struct pci_dev *dev);
-->>>>>>> linux-next/akpm-base
- int pci_sriov_set_totalvfs(struct pci_dev *dev, u16 numvfs);
- int pci_sriov_get_totalvfs(struct pci_dev *dev);
- #else
+-#define HDRLEN		(sizeof(struct ipc_rcu_grace) > sizeof(struct ipc_rcu_hdr) ? \
++struct ipc_rcu_sched
++{
++	struct work_struct work;
++	/* "void *" makes sure alignment of following data is sane. */
++	void *data[0];
++};
++
++#define HDRLEN_KMALLOC		(sizeof(struct ipc_rcu_grace) > sizeof(struct ipc_rcu_hdr) ? \
+ 					sizeof(struct ipc_rcu_grace) : sizeof(struct ipc_rcu_hdr))
++#define HDRLEN_VMALLOC		(sizeof(struct ipc_rcu_sched) > HDRLEN_KMALLOC ? \
++					sizeof(struct ipc_rcu_sched) : HDRLEN_KMALLOC)
++
++static inline int rcu_use_vmalloc(int size)
++{
++	/* Too big for a single page? */
++	if (HDRLEN_KMALLOC + size > PAGE_SIZE)
++		return 1;
++	return 0;
++}
+ 
+ /**
+  *	ipc_rcu_alloc	-	allocate ipc and rcu space 
+@@ -503,16 +522,27 @@ struct ipc_rcu_grace
+  
+ void* ipc_rcu_alloc(int size)
+ {
+-	size_t len = size + HDRLEN;
+-	void *out;
++	void* out;
+ 	/* 
+-	 * We prepend the allocation with the rcu struct
++	 * We prepend the allocation with the rcu struct, and
++	 * workqueue if necessary (for vmalloc).
+ 	 */
+-	out = (len > PAGE_SIZE) ? vmalloc(len) : kmalloc(len, GFP_KERNEL);
+-	if (out) {
+-		out += HDRLEN;
+-		container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
++	if (rcu_use_vmalloc(size)) {
++		out = vmalloc(HDRLEN_VMALLOC + size);
++		if (out) {
++			out += HDRLEN_VMALLOC;
++			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
++			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
++		}
++	} else {
++		out = kmalloc(HDRLEN_KMALLOC + size, GFP_KERNEL);
++		if (out) {
++			out += HDRLEN_KMALLOC;
++			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
++			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
++		}
+ 	}
++
+ 	return out;
+ }
+ 
+@@ -521,15 +551,29 @@ void ipc_rcu_getref(void *ptr)
+ 	container_of(ptr, struct ipc_rcu_hdr, data)->refcount++;
+ }
+ 
++static void ipc_do_vfree(struct work_struct *work)
++{
++	vfree(container_of(work, struct ipc_rcu_sched, work));
++}
++
+ /**
+  * ipc_schedule_free - free ipc + rcu space
+  * @head: RCU callback structure for queued work
++ *
++ * Since RCU callback function is called in bh,
++ * we need to defer the vfree to schedule_work().
+  */
+ static void ipc_schedule_free(struct rcu_head *head)
+ {
+ 	struct ipc_rcu_grace *grace;
++	struct ipc_rcu_sched *sched;
++
+ 	grace = container_of(head, struct ipc_rcu_grace, rcu);
+-	vfree(grace);
++	sched = container_of(&(grace->data[0]), struct ipc_rcu_sched,
++				data[0]);
++
++	INIT_WORK(&sched->work, ipc_do_vfree);
++	schedule_work(&sched->work);
+ }
+ 
+ void ipc_rcu_putref(void *ptr)
+@@ -537,7 +581,7 @@ void ipc_rcu_putref(void *ptr)
+ 	if (--container_of(ptr, struct ipc_rcu_hdr, data)->refcount > 0)
+ 		return;
+ 
+-	if (is_vmalloc_addr(ptr)) {
++	if (container_of(ptr, struct ipc_rcu_hdr, data)->is_vmalloc) {
+ 		call_rcu(&container_of(ptr, struct ipc_rcu_grace, data)->rcu,
+ 				ipc_schedule_free);
+ 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -185,6 +203,7 @@ hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid-f
 fat-additions-to-support-fat_fallocate-fix.patch
 usermodehelper-export-_exec-and-_setup-functions-fix.patch
 kexec-use-min_t-to-simplify-logic-fix.patch
+revert-ipc_schedule_free-can-do-vfree-now.patch
 ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
 ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
 ipcsem-open-code-and-rename-sem_lock-fix.patch
