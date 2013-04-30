@@ -1,92 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] firmware-memmap-fix-firmware_map_entry-leak.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:49:46 -0700
-Message-ID: <20130430184946.8CB7D5A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] memblock-fix-missing-comment-of-memblock_insert_region.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:49:52 -0700
+Message-ID: <20130430184952.7009E5A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:49205 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760747Ab3D3Str (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:47 -0400
-Received: by mail-qa0-f73.google.com with SMTP id p6so86729qad.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:47 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:62064 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932247Ab3D3Stx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:53 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m3so85458yen.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, greg@kroah.com, liwanp@linux.vnet.ibm.com, tangchen@cn.fujitsu.com, toshi.kani@hp.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firmware, memmap: fix firmware_map_entry leak
+     Subject: memblock: fix missing comment of memblock_insert_region()
 has been removed from the -mm tree.  Its filename was
-     firmware-memmap-fix-firmware_map_entry-leak.patch
+     memblock-fix-missing-comment-of-memblock_insert_region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: firmware, memmap: fix firmware_map_entry leak
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: memblock: fix missing comment of memblock_insert_region()
 
-When hot removing memory, a firmware_map_entry which has memory range of
-the memory is released by release_firmware_map_entry().  If the entry is
-allocated by bootmem, release_firmware_map_entry() adds the entry to
-map_entires_bootmem list when firmware_map_find_entry() finds the entry
-from map_entries list.  But firmware_map_find_entry never find the entry
-sicne map_entires list does not have the entry.  So the entry just leaks.
+There is no comment for parameter nid of memblock_insert_region().
+This patch adds comment for it.
 
-Here are steps of leaking firmware_map_entry:
-firmware_map_remove()
--> firmware_map_find_entry()
-   Find released entry from map_entries list
--> firmware_map_remove_entry()
-   Delete the entry from map_entries list
--> remove_sysfs_fw_map_entry()
-   ...
-   -> release_firmware_map_entry()
-      -> firmware_map_find_entry()
-         Find the entry from map_entries list but the entry has been
-         deleted from map_entries list. So the entry is not added
-         to map_entries_bootmem. Thus the entry leaks
-
-release_firmware_map_entry() should not call firmware_map_find_entry()
-since releaed entry has been deleted from map_entries list.  So the patch
-delete firmware_map_find_entry() from releae_firmware_map_entry()
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/memblock.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~firmware-memmap-fix-firmware_map_entry-leak drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware-memmap-fix-firmware_map_entry-leak
-+++ a/drivers/firmware/memmap.c
-@@ -114,12 +114,9 @@ static void __meminit release_firmware_m
- 		 * map_entries_bootmem here, and deleted from &map_entries in
- 		 * firmware_map_remove_entry().
- 		 */
--		if (firmware_map_find_entry(entry->start, entry->end,
--		    entry->type)) {
--			spin_lock(&map_entries_bootmem_lock);
--			list_add(&entry->list, &map_entries_bootmem);
--			spin_unlock(&map_entries_bootmem_lock);
--		}
-+		spin_lock(&map_entries_bootmem_lock);
-+		list_add(&entry->list, &map_entries_bootmem);
-+		spin_unlock(&map_entries_bootmem_lock);
+diff -puN mm/memblock.c~memblock-fix-missing-comment-of-memblock_insert_region mm/memblock.c
+--- a/mm/memblock.c~memblock-fix-missing-comment-of-memblock_insert_region
++++ a/mm/memblock.c
+@@ -322,10 +322,11 @@ static void __init_memblock memblock_mer
  
- 		return;
- 	}
+ /**
+  * memblock_insert_region - insert new memblock region
+- * @type: memblock type to insert into
+- * @idx: index for the insertion point
+- * @base: base address of the new region
+- * @size: size of the new region
++ * @type:	memblock type to insert into
++ * @idx:	index for the insertion point
++ * @base:	base address of the new region
++ * @size:	size of the new region
++ * @nid:	node id of the new region
+  *
+  * Insert new memblock region [@base,@base+@size) into @type at @idx.
+  * @type must already have extra room to accomodate the new region.
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
 
