@@ -1,69 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-pageattr-test-remove-srandom32-call.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:02:23 -0700
-Message-ID: <20130430190223.85F4D5A41E9@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] raid6test-use-prandom_bytes.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:02:17 -0700
+Message-ID: <20130430190217.7700A31C27C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:55512 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933507Ab3D3TCY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:02:24 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so87439ggm.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:02:24 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:54781 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932638Ab3D3TCS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:02:18 -0400
+Received: by mail-ve0-f202.google.com with SMTP id ox1so78098veb.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:02:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, djbw@fb.com, vinod.koul@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: pageattr-test: remove srandom32 call
+     Subject: raid6test: use prandom_bytes()
 has been removed from the -mm tree.  Its filename was
-     x86-pageattr-test-remove-srandom32-call.patch
+     raid6test-use-prandom_bytes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: x86: pageattr-test: remove srandom32 call
+Subject: raid6test: use prandom_bytes()
 
-pageattr-test calls srandom32() once every test iteration.  But calling
-srandom32() after late_initcalls is not meaningfull.  Because the random
-states for random32() is mixed by good random numbers in late_initcall
-prandom_reseed().
-
-So this removes the call to srandom32().
+Use prandom_bytes() to generate random bytes for test data.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dan Williams <djbw@fb.com>
+Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pageattr-test.c |    1 -
- 1 file changed, 1 deletion(-)
+ crypto/async_tx/raid6test.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/mm/pageattr-test.c~x86-pageattr-test-remove-srandom32-call arch/x86/mm/pageattr-test.c
---- a/arch/x86/mm/pageattr-test.c~x86-pageattr-test-remove-srandom32-call
-+++ a/arch/x86/mm/pageattr-test.c
-@@ -130,7 +130,6 @@ static int pageattr_test(void)
- 	}
+diff -puN crypto/async_tx/raid6test.c~raid6test-use-prandom_bytes crypto/async_tx/raid6test.c
+--- a/crypto/async_tx/raid6test.c~raid6test-use-prandom_bytes
++++ a/crypto/async_tx/raid6test.c
+@@ -46,15 +46,10 @@ static void callback(void *param)
  
- 	failed += print_split(&sa);
--	srandom32(100);
+ static void makedata(int disks)
+ {
+-	int i, j;
++	int i;
  
- 	for (i = 0; i < NTEST; i++) {
- 		unsigned long pfn = random32() % max_pfn_mapped;
-_
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-origin.patch
-linux-next.patch
-drivers-net-rename-random32-to-prandom_u32.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
-drivers-net-rename-random32-to-prandom_u32-fix-fix.patch
-remove-unused-random32-and-srandom32.patch
-notifier-error-inject-fix-module-names-in-kconfig.patch
-
+ 	for (i = 0; i < disks; i++) {
+-		for (j = 0; j < PAGE_SIZE/sizeof(u32); j += sizeof(u32)) {
+-			u32 *p = page_address(data[i]) + j;
+-
+-			*p = random32();
+-		}
