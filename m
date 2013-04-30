@@ -1,70 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:02:02 -0700
-Message-ID: <20130430190202.7BA425A405D@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] rtc-rtc-pcf2123-use-devm_-functions.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:00:37 -0700
+Message-ID: <20130430190037.6F3ED31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:62822 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933542Ab3D3TCE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:02:04 -0400
-Received: by mail-qc0-f201.google.com with SMTP id o22so87469qcr.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:02:03 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:42727 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933483Ab3D3TAi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:00:38 -0400
+Received: by mail-qc0-f202.google.com with SMTP id k26so87340qcs.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:00:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@redhat.com, swise@opengridcomputing.com, tj@kernel.org, tom@opengridcomputing.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/infiniband/hw/amso1100: convert to using idr_alloc_cyclic
+     Subject: rtc: rtc-pcf2123: use devm_*() functions
 has been removed from the -mm tree.  Its filename was
-     drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic.patch
+     rtc-rtc-pcf2123-use-devm_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@redhat.com>
-Subject: drivers/infiniband/hw/amso1100: convert to using idr_alloc_cyclic
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-pcf2123: use devm_*() functions
 
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Tom Tucker <tom@opengridcomputing.com>
+Use devm_*() functions to make cleanup paths simpler.
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/amso1100/c2.h    |    1 -
- drivers/infiniband/hw/amso1100/c2_qp.c |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/rtc/rtc-pcf2123.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/infiniband/hw/amso1100/c2.h~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic drivers/infiniband/hw/amso1100/c2.h
---- a/drivers/infiniband/hw/amso1100/c2.h~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic
-+++ a/drivers/infiniband/hw/amso1100/c2.h
-@@ -265,7 +265,6 @@ struct c2_pd_table {
- struct c2_qp_table {
- 	struct idr idr;
- 	spinlock_t lock;
--	int last;
- };
+diff -puN drivers/rtc/rtc-pcf2123.c~rtc-rtc-pcf2123-use-devm_-functions drivers/rtc/rtc-pcf2123.c
+--- a/drivers/rtc/rtc-pcf2123.c~rtc-rtc-pcf2123-use-devm_-functions
++++ a/drivers/rtc/rtc-pcf2123.c
+@@ -226,7 +226,8 @@ static int pcf2123_probe(struct spi_devi
+ 	u8 txbuf[2], rxbuf[2];
+ 	int ret, i;
  
- struct c2_element {
-diff -puN drivers/infiniband/hw/amso1100/c2_qp.c~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic drivers/infiniband/hw/amso1100/c2_qp.c
---- a/drivers/infiniband/hw/amso1100/c2_qp.c~drivers-infiniband-hw-amso1100-convert-to-using-idr_alloc_cyclic
-+++ a/drivers/infiniband/hw/amso1100/c2_qp.c
-@@ -385,8 +385,7 @@ static int c2_alloc_qpn(struct c2_dev *c
- 	idr_preload(GFP_KERNEL);
- 	spin_lock_irq(&c2dev->qp_table.lock);
+-	pdata = kzalloc(sizeof(struct pcf2123_plat_data), GFP_KERNEL);
++	pdata = devm_kzalloc(&spi->dev, sizeof(struct pcf2123_plat_data),
++				GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+ 	spi->dev.platform_data = pdata;
+@@ -281,7 +282,7 @@ static int pcf2123_probe(struct spi_devi
+ 	pcf2123_delay_trec();
  
--	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
--			GFP_NOWAIT);
-+	ret = idr_alloc_cyclic(&c2dev->qp_table.idr, qp, 0, 0, GFP_NOWAIT);
- 	if (ret >= 0)
- 		qp->qpn = ret;
+ 	/* Finalize the initialization */
+-	rtc = rtc_device_register(pcf2123_driver.driver.name, &spi->dev,
++	rtc = devm_rtc_device_register(&spi->dev, pcf2123_driver.driver.name,
+ 			&pcf2123_rtc_ops, THIS_MODULE);
  
-_
-
-Patches currently in -mm which might be from jlayton@redhat.com are
-
-origin.patch
-linux-next.patch
-
+ 	if (IS_ERR(rtc)) {
+@@ -314,7 +315,6 @@ sysfs_exit:
+ 		device_remove_file(&spi->dev, &pdata->regs[i].attr);
+ 
+ kfree_exit:
+-	kfree(pdata);
+ 	spi->dev.platform_data = NULL;
+ 	return ret;
+ }
+@@ -325,15 +325,10 @@ static int pcf2123_remove(struct spi_dev
+ 	int i;
+ 
+ 	if (pdata) {
+-		struct rtc_device *rtc = pdata->rtc;
