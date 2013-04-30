@@ -1,135 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-fix-comment-about-memory-barrier.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:49:07 -0700
-Message-ID: <20130430184907.9326331C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] resource-add-release_mem_region_adjustable.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:49:16 -0700
+Message-ID: <20130430184916.91FB15A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:38326 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3StJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:09 -0400
-Received: by mail-yh0-f73.google.com with SMTP id f35so84784yha.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:08 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:58793 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3StS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:18 -0400
+Received: by mail-qe0-f73.google.com with SMTP id 9so85118qea.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
+To: toshi.kani@hp.com, jiang.liu@huawei.com, linuxram@us.ibm.com, rientjes@google.com, tangchen@cn.fujitsu.com, tmac@hp.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: THP: fix comment about memory barrier
+     Subject: resource: add release_mem_region_adjustable()
 has been removed from the -mm tree.  Its filename was
-     thp-fix-comment-about-memory-barrier.patch
+     resource-add-release_mem_region_adjustable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: THP: fix comment about memory barrier
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: resource: add release_mem_region_adjustable()
 
-Now, memory barrier in __do_huge_pmd_anonymous_page doesn't work.  Because
-lru_cache_add_lru uses pagevec so it could miss spinlock easily so above
-rule was broken so user might see inconsistent data.
+Add release_mem_region_adjustable(), which releases a requested region
+from a currently busy memory resource.  This interface adjusts the matched
+memory resource accordingly even if the requested region does not match
+exactly but still fits into.
 
-I was not first person who pointed out the problem.  Mel and Peter pointed
-out a few months ago and Peter pointed out further that even
-spin_lock/unlock can't make sure it.  http://marc.info/?t=134333512700004
+This new interface is intended for memory hot-delete.  During bootup,
+memory resources are inserted from the boot descriptor table, such as EFI
+Memory Table and e820.  Each memory resource entry usually covers the
+whole contigous memory range.  Memory hot-delete request, on the other
+hand, may target to a particular range of memory resource, and its size
+can be much smaller than the whole contiguous memory.  Since the existing
+release interfaces like __release_region() require a requested region to
+be exactly matched to a resource entry, they do not allow a partial
+resource to be released.
 
-	In particular:
+This new interface is restrictive (i.e.  release under certain
+conditions), which is consistent with other release interfaces,
+__release_region() and __release_resource().  Additional release
+conditions, such as an overlapping region to a resource entry, can be
+supported after they are confirmed as valid cases.
 
-        	*A = a;
-        	LOCK
-        	UNLOCK
-        	*B = b;
+There is no change to the existing interfaces since their restriction
+is valid for I/O resources.
 
-	may occur as:
-
-        	LOCK, STORE *B, STORE *A, UNLOCK
-
-At last, Hugh pointed out that even we don't need memory barrier in there
-because __SetPageUpdate already have done it from Nick's 0ed361dec ("mm:
-fix PageUptodate data race") explicitly.
-
-So this patch fixes comment on THP and adds same comment for
-do_anonymous_page, too because everybody except Hugh was missing that.  It
-means we need a comment about that.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+[akpm@linux-foundation.org: use GFP_ATOMIC under write_lock()]
+[akpm@linux-foundation.org: switch back to GFP_KERNEL, less buggily]
+[akpm@linux-foundation.org: remove unneeded and wrong kfree(), per Toshi]
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Reviewed-by: Ram Pai <linuxram@us.ibm.com>
+Cc: T Makphaibulchoke <tmac@hp.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 +++++------
- mm/memory.c      |    5 +++++
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ include/linux/ioport.h |    4 +
+ kernel/resource.c      |  103 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 107 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-fix-comment-about-memory-barrier mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-comment-about-memory-barrier
-+++ a/mm/huge_memory.c
-@@ -713,6 +713,11 @@ static int __do_huge_pmd_anonymous_page(
- 		return VM_FAULT_OOM;
+diff -puN include/linux/ioport.h~resource-add-release_mem_region_adjustable include/linux/ioport.h
+--- a/include/linux/ioport.h~resource-add-release_mem_region_adjustable
++++ a/include/linux/ioport.h
+@@ -192,6 +192,10 @@ extern struct resource * __request_regio
+ extern int __check_region(struct resource *, resource_size_t, resource_size_t);
+ extern void __release_region(struct resource *, resource_size_t,
+ 				resource_size_t);
++#ifdef CONFIG_MEMORY_HOTREMOVE
++extern int release_mem_region_adjustable(struct resource *, resource_size_t,
++				resource_size_t);
++#endif
  
- 	clear_huge_page(page, haddr, HPAGE_PMD_NR);
-+	/*
-+	 * The memory barrier inside __SetPageUptodate makes sure that
-+	 * clear_huge_page writes become visible before the set_pmd_at()
-+	 * write.
-+	 */
- 	__SetPageUptodate(page);
+ static inline int __deprecated check_region(resource_size_t s,
+ 						resource_size_t n)
+diff -puN kernel/resource.c~resource-add-release_mem_region_adjustable kernel/resource.c
+--- a/kernel/resource.c~resource-add-release_mem_region_adjustable
++++ a/kernel/resource.c
+@@ -1021,6 +1021,109 @@ void __release_region(struct resource *p
+ }
+ EXPORT_SYMBOL(__release_region);
  
- 	spin_lock(&mm->page_table_lock);
-@@ -724,12 +729,6 @@ static int __do_huge_pmd_anonymous_page(
- 	} else {
- 		pmd_t entry;
- 		entry = mk_huge_pmd(page, vma);
--		/*
--		 * The spinlocking to take the lru_lock inside
--		 * page_add_new_anon_rmap() acts as a full memory
--		 * barrier to be sure clear_huge_page writes become
--		 * visible after the set_pmd_at() write.
--		 */
- 		page_add_new_anon_rmap(page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
- 		pgtable_trans_huge_deposit(mm, pgtable);
-diff -puN mm/memory.c~thp-fix-comment-about-memory-barrier mm/memory.c
---- a/mm/memory.c~thp-fix-comment-about-memory-barrier
-+++ a/mm/memory.c
-@@ -3244,6 +3244,11 @@ static int do_anonymous_page(struct mm_s
- 	page = alloc_zeroed_user_highpage_movable(vma, address);
- 	if (!page)
- 		goto oom;
-+	/*
-+	 * The memory barrier inside __SetPageUptodate makes sure that
-+	 * preceeding stores to the page contents become visible before
-+	 * the set_pte_at() write.
-+	 */
- 	__SetPageUptodate(page);
- 
- 	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))
++#ifdef CONFIG_MEMORY_HOTREMOVE
++/**
++ * release_mem_region_adjustable - release a previously reserved memory region
++ * @parent: parent resource descriptor
++ * @start: resource start address
++ * @size: resource region size
++ *
++ * This interface is intended for memory hot-delete.  The requested region
++ * is released from a currently busy memory resource.  The requested region
++ * must either match exactly or fit into a single busy resource entry.  In
++ * the latter case, the remaining resource is adjusted accordingly.
++ * Existing children of the busy memory resource must be immutable in the
++ * request.
++ *
++ * Note:
++ * - Additional release conditions, such as overlapping region, can be
++ *   supported after they are confirmed as valid cases.
++ * - When a busy memory resource gets split into two entries, the code
++ *   assumes that all children remain in the lower address entry for
++ *   simplicity.  Enhance this logic when necessary.
++ */
++int release_mem_region_adjustable(struct resource *parent,
++			resource_size_t start, resource_size_t size)
++{
++	struct resource **p;
++	struct resource *res;
++	struct resource *new_res;
++	resource_size_t end;
++	int ret = -EINVAL;
++
++	end = start + size - 1;
++	if ((start < parent->start) || (end > parent->end))
++		return ret;
++
++	/* The kzalloc() result gets checked later */
++	new_res = kzalloc(sizeof(struct resource), GFP_KERNEL);
++
++	p = &parent->child;
++	write_lock(&resource_lock);
++
++	while ((res = *p)) {
++		if (res->start >= end)
++			break;
++
++		/* look for the next resource if it does not fit into */
++		if (res->start > start || res->end < end) {
++			p = &res->sibling;
++			continue;
++		}
++
++		if (!(res->flags & IORESOURCE_MEM))
++			break;
++
++		if (!(res->flags & IORESOURCE_BUSY)) {
++			p = &res->child;
++			continue;
++		}
++
++		/* found the target resource; let's adjust accordingly */
++		if (res->start == start && res->end == end) {
++			/* free the whole entry */
++			*p = res->sibling;
++			kfree(res);
++			ret = 0;
++		} else if (res->start == start && res->end != end) {
++			/* adjust the start */
++			ret = __adjust_resource(res, end + 1,
++						res->end - end);
++		} else if (res->start != start && res->end == end) {
++			/* adjust the end */
++			ret = __adjust_resource(res, res->start,
++						start - res->start);
++		} else {
++			/* split into two entries */
++			if (!new_res) {
++				ret = -ENOMEM;
++				break;
++			}
++			new_res->name = res->name;
++			new_res->start = end + 1;
++			new_res->end = res->end;
++			new_res->flags = res->flags;
++			new_res->parent = res->parent;
++			new_res->sibling = res->sibling;
++			new_res->child = NULL;
++
++			ret = __adjust_resource(res, res->start,
++						start - res->start);
++			if (ret)
++				break;
++			res->sibling = new_res;
++			new_res = NULL;
++		}
++
++		break;
++	}
++
++	write_unlock(&resource_lock);
++	kfree(new_res);
++	return ret;
++}
++#endif	/* CONFIG_MEMORY_HOTREMOVE */
++
+ /*
+  * Managed region resource
+  */
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
 origin.patch
-mm-frontswap-lazy-initialization-to-allow-tmem-backends-to-build-run-as-modules.patch
-frontswap-make-frontswap_init-use-a-pointer-for-the-ops.patch
-mm-frontswap-cleanup-code.patch
-frontswap-get-rid-of-swap_lock-dependency.patch
-mm-cleancache-lazy-initialization-to-allow-tmem-backends-to-build-run-as-modules.patch
-cleancache-make-cleancache_init-use-a-pointer-for-the-ops.patch
-mm-cleancache-clean-up-cleancache_enabled.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module-fix.patch
-zcache-tmem-better-error-checking-on-frontswap_register_ops-return-value.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module.patch
-staging-zcache-enable-zcache-to-be-built-loaded-as-a-module.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-debugging-keep-track-of-page-owners-fix-2.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
+linux-next.patch
 
