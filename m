@@ -1,84 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:58:25 -0700
-Message-ID: <20130430185825.71DD331C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:58:48 -0700
+Message-ID: <20130430185848.84E8D31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:63832 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933319Ab3D3S60 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:26 -0400
-Received: by mail-gg0-f201.google.com with SMTP id y3so86952ggc.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:25 -0700 (PDT)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:39464 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933370Ab3D3S6u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:58:50 -0400
+Received: by mail-vb0-f73.google.com with SMTP id p12so87038vbe.4
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:58:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, jg1.han@samsung.com, jonghwa3.lee@samsung.com, ldewangan@nvidia.com, vbyravarasu@nvidia.com, woong.byun@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-wm8350: switch to using SIMPLE_DEV_PM_OPS
+     Subject: drivers/rtc/rtc-tps65910.c: fix incorrect return value on error
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops.patch
+     drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-wm8350: switch to using SIMPLE_DEV_PM_OPS
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-tps65910.c: fix incorrect return value on error
 
-Switch to using the SIMPLE_DEV_PM_OPS macro to declare the driver's
-pm_ops.  It reduces code size.
+'ret' was not initialized to correct error value before returning.  Since
+'irq' is also being tested for 0, we cannot return irq itself as it means
+function is success even though we are returning before completing the
+probe.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: Chiwoong Byun <woong.byun@samsung.com>
+Cc: Jonghwa Lee <jonghwa3.lee@samsung.com>
+Cc: Laxman dewangan <ldewangan@nvidia.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-wm8350.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/rtc/rtc-tps65910.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops drivers/rtc/rtc-wm8350.c
---- a/drivers/rtc/rtc-wm8350.c~rtc-rtc-wm8350-switch-to-using-simple_dev_pm_ops
-+++ a/drivers/rtc/rtc-wm8350.c
-@@ -339,7 +339,7 @@ static const struct rtc_class_ops wm8350
- 	.alarm_irq_enable = wm8350_rtc_alarm_irq_enable,
- };
+diff -puN drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error drivers/rtc/rtc-tps65910.c
+--- a/drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-fix-incorrect-return-value-on-error
++++ a/drivers/rtc/rtc-tps65910.c
+@@ -263,7 +263,7 @@ static int tps65910_rtc_probe(struct pla
+ 	if (irq <= 0) {
+ 		dev_warn(&pdev->dev, "Wake up is not possible as irq = %d\n",
+ 			irq);
+-		return ret;
++		return -ENXIO;
+ 	}
  
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int wm8350_rtc_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
-@@ -375,10 +375,6 @@ static int wm8350_rtc_resume(struct devi
- 
- 	return 0;
- }
--
--#else
--#define wm8350_rtc_suspend NULL
--#define wm8350_rtc_resume NULL
- #endif
- 
- static int wm8350_rtc_probe(struct platform_device *pdev)
-@@ -469,10 +465,8 @@ static int wm8350_rtc_remove(struct plat
- 	return 0;
- }
- 
--static struct dev_pm_ops wm8350_rtc_pm_ops = {
--	.suspend = wm8350_rtc_suspend,
--	.resume = wm8350_rtc_resume,
--};
-+static SIMPLE_DEV_PM_OPS(wm8350_rtc_pm_ops, wm8350_rtc_suspend,
-+			wm8350_rtc_resume);
- 
- static struct platform_driver wm8350_rtc_driver = {
- 	.probe = wm8350_rtc_probe,
+ 	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 origin.patch
 linux-next.patch
-rtc-rtc-v3020-use-gpio_request_array.patch
 drivers-rtc-rtc-pxac-use-devm_-apis.patch
-memstick-r592-make-r592_pm_ops-static.patch
 
