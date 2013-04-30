@@ -1,74 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-pcf50633-use-devm_-functions.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 12:00:40 -0700
-Message-ID: <20130430190040.727EB31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] fat-introduce-2-new-values-for-the-o-nfs-mount-option.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:01:40 -0700
+Message-ID: <20130430190140.8651331C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:62353 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289Ab3D3TAl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:00:41 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so87512vcb.2
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:00:40 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:49486 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933296Ab3D3TBl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:01:41 -0400
+Received: by mail-qe0-f74.google.com with SMTP id a11so87516qen.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:01:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-pcf50633: use devm_*() functions
+     Subject: fat: introduce 2 new values for the -o nfs mount option
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-pcf50633-use-devm_-functions.patch
+     fat-introduce-2-new-values-for-the-o-nfs-mount-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pcf50633: use devm_*() functions
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Subject: fat: introduce 2 new values for the -o nfs mount option
 
-Use devm_*() functions to make cleanup paths simpler.
+This patchset eliminates the client side ESTALE errors when a FAT
+partition exported over NFS has its dentries evicted from the cache.  The
+idea is to find the on-disk location_'i_pos' of the dirent of the inode
+that has been evicted and use it to rebuild the inode.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+This patch:
+
+Provide two possible values 'stale_rw' and 'nostale_ro' for the -o nfs
+mount option.The first one allows all file operations but does not reduce
+ESTALE errors on memory constrained systems.  The second one eliminates
+ESTALE errors but mounts the filesystem as read-only.  Not specifying a
+value defaults to 'stale_rw'.
+
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
+Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf50633.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ fs/fat/fat.h   |    7 +++++--
+ fs/fat/inode.c |   23 ++++++++++++++++-------
+ 2 files changed, 21 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf50633.c~rtc-rtc-pcf50633-use-devm_-functions drivers/rtc/rtc-pcf50633.c
---- a/drivers/rtc/rtc-pcf50633.c~rtc-rtc-pcf50633-use-devm_-functions
-+++ a/drivers/rtc/rtc-pcf50633.c
-@@ -252,20 +252,17 @@ static int pcf50633_rtc_probe(struct pla
- {
- 	struct pcf50633_rtc *rtc;
+diff -puN fs/fat/fat.h~fat-introduce-2-new-values-for-the-o-nfs-mount-option fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-introduce-2-new-values-for-the-o-nfs-mount-option
++++ a/fs/fat/fat.h
+@@ -23,6 +23,9 @@
+ #define FAT_ERRORS_PANIC	2      /* panic on error */
+ #define FAT_ERRORS_RO		3      /* remount r/o on error */
  
--	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
- 		return -ENOMEM;
++#define FAT_NFS_STALE_RW	1      /* NFS RW support, can cause ESTALE */
++#define FAT_NFS_NOSTALE_RO	2      /* NFS RO support, no ESTALE issue */
++
+ struct fat_mount_options {
+ 	kuid_t fs_uid;
+ 	kgid_t fs_gid;
+@@ -34,6 +37,7 @@ struct fat_mount_options {
+ 	unsigned short shortname;  /* flags for shortname display/create rule */
+ 	unsigned char name_check;  /* r = relaxed, n = normal, s = strict */
+ 	unsigned char errors;	   /* On error: continue, panic, remount-ro */
++	unsigned char nfs;	  /* NFS support: nostale_ro, stale_rw */
+ 	unsigned short allow_utime;/* permission for setting the [am]time */
+ 	unsigned quiet:1,          /* set = fake successful chmods and chowns */
+ 		 showexec:1,       /* set = only set x bit for com/exe/bat */
+@@ -48,8 +52,7 @@ struct fat_mount_options {
+ 		 usefree:1,	   /* Use free_clusters for FAT32 */
+ 		 tz_set:1,	   /* Filesystem timestamps' offset set */
+ 		 rodir:1,	   /* allow ATTR_RO for directory */
+-		 discard:1,	   /* Issue discard requests on deletions */
+-		 nfs:1;		   /* Do extra work needed for NFS export */
++		 discard:1;	   /* Issue discard requests on deletions */
+ };
  
- 	rtc->pcf = dev_to_pcf50633(pdev->dev.parent);
- 	platform_set_drvdata(pdev, rtc);
--	rtc->rtc_dev = rtc_device_register("pcf50633-rtc", &pdev->dev,
-+	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, "pcf50633-rtc",
- 				&pcf50633_rtc_ops, THIS_MODULE);
+ #define FAT_HASH_BITS	8
+diff -puN fs/fat/inode.c~fat-introduce-2-new-values-for-the-o-nfs-mount-option fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-introduce-2-new-values-for-the-o-nfs-mount-option
++++ a/fs/fat/inode.c
+@@ -814,8 +814,6 @@ static int fat_show_options(struct seq_f
+ 		seq_puts(m, ",usefree");
+ 	if (opts->quiet)
+ 		seq_puts(m, ",quiet");
+-	if (opts->nfs)
+-		seq_puts(m, ",nfs");
+ 	if (opts->showexec)
+ 		seq_puts(m, ",showexec");
+ 	if (opts->sys_immutable)
+@@ -849,6 +847,10 @@ static int fat_show_options(struct seq_f
+ 		seq_puts(m, ",errors=panic");
+ 	else
+ 		seq_puts(m, ",errors=remount-ro");
++	if (opts->nfs == FAT_NFS_NOSTALE_RO)
++		seq_puts(m, ",nfs=nostale_ro");
++	else if (opts->nfs)
++		seq_puts(m, ",nfs=stale_rw");
+ 	if (opts->discard)
+ 		seq_puts(m, ",discard");
  
--	if (IS_ERR(rtc->rtc_dev)) {
--		int ret =  PTR_ERR(rtc->rtc_dev);
--		kfree(rtc);
--		return ret;
--	}
-+	if (IS_ERR(rtc->rtc_dev))
-+		return PTR_ERR(rtc->rtc_dev);
+@@ -865,7 +867,7 @@ enum {
+ 	Opt_uni_xl_no, Opt_uni_xl_yes, Opt_nonumtail_no, Opt_nonumtail_yes,
+ 	Opt_obsolete, Opt_flush, Opt_tz_utc, Opt_rodir, Opt_err_cont,
+ 	Opt_err_panic, Opt_err_ro, Opt_discard, Opt_nfs, Opt_time_offset,
+-	Opt_err,
++	Opt_nfs_stale_rw, Opt_nfs_nostale_ro, Opt_err,
+ };
  
- 	pcf50633_register_irq(rtc->pcf, PCF50633_IRQ_ALARM,
- 					pcf50633_rtc_irq, rtc);
-@@ -277,12 +274,8 @@ static int pcf50633_rtc_remove(struct pl
- 	struct pcf50633_rtc *rtc;
+ static const match_table_t fat_tokens = {
+@@ -895,7 +897,9 @@ static const match_table_t fat_tokens =
+ 	{Opt_err_panic, "errors=panic"},
+ 	{Opt_err_ro, "errors=remount-ro"},
+ 	{Opt_discard, "discard"},
+-	{Opt_nfs, "nfs"},
++	{Opt_nfs_stale_rw, "nfs"},
++	{Opt_nfs_stale_rw, "nfs=stale_rw"},
++	{Opt_nfs_nostale_ro, "nfs=nostale_ro"},
+ 	{Opt_obsolete, "conv=binary"},
+ 	{Opt_obsolete, "conv=text"},
+ 	{Opt_obsolete, "conv=auto"},
+@@ -1092,6 +1096,12 @@ static int parse_options(struct super_bl
+ 		case Opt_err_ro:
+ 			opts->errors = FAT_ERRORS_RO;
+ 			break;
++		case Opt_nfs_stale_rw:
++			opts->nfs = FAT_NFS_STALE_RW;
++			break;
++		case Opt_nfs_nostale_ro:
++			opts->nfs = FAT_NFS_NOSTALE_RO;
++			break;
  
- 	rtc = platform_get_drvdata(pdev);
--
- 	pcf50633_free_irq(rtc->pcf, PCF50633_IRQ_ALARM);
+ 		/* msdos specific */
+ 		case Opt_dots:
+@@ -1150,9 +1160,6 @@ static int parse_options(struct super_bl
+ 		case Opt_discard:
+ 			opts->discard = 1;
+ 			break;
+-		case Opt_nfs:
+-			opts->nfs = 1;
+-			break;
  
--	rtc_device_unregister(rtc->rtc_dev);
--	kfree(rtc);
+ 		/* obsolete mount options */
+ 		case Opt_obsolete:
+@@ -1183,6 +1190,8 @@ out:
+ 		opts->allow_utime = ~opts->fs_dmask & (S_IWGRP | S_IWOTH);
+ 	if (opts->unicode_xlate)
+ 		opts->utf8 = 0;
++	if (opts->nfs == FAT_NFS_NOSTALE_RO)
++		sb->s_flags |= MS_RDONLY;
+ 
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from namjae.jeon@samsung.com are
+
+origin.patch
+linux-next.patch
+fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+
