@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-at91sam9-use-devm_-functions.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:59:55 -0700
-Message-ID: <20130430185955.719BB31C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-ds1286-use-devm_-functions.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 12:00:07 -0700
+Message-ID: <20130430190007.702935A405D@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:52391 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933233Ab3D3S74 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:59:56 -0400
-Received: by mail-vc0-f201.google.com with SMTP id gf12so87333vcb.4
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:59:55 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:49656 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933458Ab3D3TAI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 15:00:08 -0400
+Received: by mail-vc0-f202.google.com with SMTP id hr11so87395vcb.3
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 12:00:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-at91sam9: use devm_*() functions
+     Subject: rtc: rtc-ds1286: use devm_*() functions
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-at91sam9-use-devm_-functions.patch
+     rtc-rtc-ds1286-use-devm_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-at91sam9: use devm_*() functions
+Subject: rtc: rtc-ds1286: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -32,95 +32,76 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91sam9.c |   34 ++++++++++++----------------------
- 1 file changed, 12 insertions(+), 22 deletions(-)
+ drivers/rtc/rtc-ds1286.c |   46 +++++++------------------------------
+ 1 file changed, 9 insertions(+), 37 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91sam9.c~rtc-rtc-at91sam9-use-devm_-functions drivers/rtc/rtc-at91sam9.c
---- a/drivers/rtc/rtc-at91sam9.c~rtc-rtc-at91sam9-use-devm_-functions
-+++ a/drivers/rtc/rtc-at91sam9.c
-@@ -20,6 +20,7 @@
- #include <linux/ioctl.h>
- #include <linux/slab.h>
- #include <linux/platform_data/atmel.h>
-+#include <linux/io.h>
+diff -puN drivers/rtc/rtc-ds1286.c~rtc-rtc-ds1286-use-devm_-functions drivers/rtc/rtc-ds1286.c
+--- a/drivers/rtc/rtc-ds1286.c~rtc-rtc-ds1286-use-devm_-functions
++++ a/drivers/rtc/rtc-ds1286.c
+@@ -25,8 +25,6 @@
+ struct ds1286_priv {
+ 	struct rtc_device *rtc;
+ 	u32 __iomem *rtcregs;
+-	size_t size;
+-	unsigned long baseaddr;
+ 	spinlock_t lock;
+ };
  
- #include <mach/at91_rtt.h>
- #include <mach/cpu.h>
-@@ -309,7 +310,7 @@ static int at91_rtc_probe(struct platfor
- 		return irq;
- 	}
+@@ -333,56 +331,30 @@ static int ds1286_probe(struct platform_
+ 	struct rtc_device *rtc;
+ 	struct resource *res;
+ 	struct ds1286_priv *priv;
+-	int ret = 0;
  
--	rtc = kzalloc(sizeof *rtc, GFP_KERNEL);
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res)
+ 		return -ENODEV;
+-	priv = kzalloc(sizeof(struct ds1286_priv), GFP_KERNEL);
++	priv = devm_kzalloc(&pdev->dev, sizeof(struct ds1286_priv), GFP_KERNEL);
+ 	if (!priv)
  		return -ENOMEM;
  
-@@ -320,18 +321,19 @@ static int at91_rtc_probe(struct platfor
- 		device_init_wakeup(&pdev->dev, 1);
- 
- 	platform_set_drvdata(pdev, rtc);
--	rtc->rtt = ioremap(r->start, resource_size(r));
-+	rtc->rtt = devm_ioremap(&pdev->dev, r->start, resource_size(r));
- 	if (!rtc->rtt) {
- 		dev_err(&pdev->dev, "failed to map registers, aborting.\n");
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
- 
--	rtc->gpbr = ioremap(r_gpbr->start, resource_size(r_gpbr));
-+	rtc->gpbr = devm_ioremap(&pdev->dev, r_gpbr->start,
-+				resource_size(r_gpbr));
- 	if (!rtc->gpbr) {
- 		dev_err(&pdev->dev, "failed to map gpbr registers, aborting.\n");
- 		ret = -ENOMEM;
--		goto fail_gpbr;
-+		goto fail;
- 	}
- 
- 	mr = rtt_readl(rtc, MR);
-@@ -346,20 +348,19 @@ static int at91_rtc_probe(struct platfor
- 	mr &= ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
- 	rtt_writel(rtc, MR, mr);
- 
--	rtc->rtcdev = rtc_device_register(pdev->name, &pdev->dev,
--				&at91_rtc_ops, THIS_MODULE);
-+	rtc->rtcdev = devm_rtc_device_register(&pdev->dev, pdev->name,
-+					&at91_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtcdev)) {
- 		ret = PTR_ERR(rtc->rtcdev);
--		goto fail_register;
-+		goto fail;
- 	}
- 
- 	/* register irq handler after we know what name we'll use */
--	ret = request_irq(rtc->irq, at91_rtc_interrupt, IRQF_SHARED,
--				dev_name(&rtc->rtcdev->dev), rtc);
-+	ret = devm_request_irq(&pdev->dev, rtc->irq, at91_rtc_interrupt,
-+				IRQF_SHARED, dev_name(&rtc->rtcdev->dev), rtc);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "can't share IRQ %d?\n", rtc->irq);
--		rtc_device_unregister(rtc->rtcdev);
--		goto fail_register;
-+		goto fail;
- 	}
- 
- 	/* NOTE:  sam9260 rev A silicon has a ROM bug which resets the
-@@ -374,13 +375,8 @@ static int at91_rtc_probe(struct platfor
- 
+-	priv->size = resource_size(res);
+-	if (!request_mem_region(res->start, priv->size, pdev->name)) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-	priv->baseaddr = res->start;
+-	priv->rtcregs = ioremap(priv->baseaddr, priv->size);
+-	if (!priv->rtcregs) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
++	priv->rtcregs = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(priv->rtcregs))
++		return PTR_ERR(priv->rtcregs);
++
+ 	spin_lock_init(&priv->lock);
+ 	platform_set_drvdata(pdev, priv);
+-	rtc = rtc_device_register("ds1286", &pdev->dev,
+-				  &ds1286_ops, THIS_MODULE);
+-	if (IS_ERR(rtc)) {
+-		ret = PTR_ERR(rtc);
+-		goto out;
+-	}
++	rtc = devm_rtc_device_register(&pdev->dev, "ds1286", &ds1286_ops,
++					THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
+ 	priv->rtc = rtc;
  	return 0;
- 
--fail_register:
--	iounmap(rtc->gpbr);
--fail_gpbr:
--	iounmap(rtc->rtt);
- fail:
- 	platform_set_drvdata(pdev, NULL);
--	kfree(rtc);
- 	return ret;
+-
+-out:
+-	if (priv->rtc)
+-		rtc_device_unregister(priv->rtc);
+-	if (priv->rtcregs)
+-		iounmap(priv->rtcregs);
+-	if (priv->baseaddr)
+-		release_mem_region(priv->baseaddr, priv->size);
+-	kfree(priv);
+-	return ret;
  }
  
-@@ -394,14 +390,8 @@ static int at91_rtc_remove(struct platfo
- 
- 	/* disable all interrupts */
- 	rtt_writel(rtc, MR, mr & ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN));
--	free_irq(rtc->irq, rtc);
+ static int ds1286_remove(struct platform_device *pdev)
+ {
+-	struct ds1286_priv *priv = platform_get_drvdata(pdev);
