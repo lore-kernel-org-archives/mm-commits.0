@@ -1,91 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch removed from -mm tree
-Date: Tue, 30 Apr 2013 11:49:19 -0700
-Message-ID: <20130430184919.8E0B831C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-madvise-complete-input-validation-before-taking-lock.patch removed from -mm tree
+Date: Tue, 30 Apr 2013 11:49:25 -0700
+Message-ID: <20130430184925.7930F31C22F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:54639 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871Ab3D3StV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:21 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so85081qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:20 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:33707 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab3D3St0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 14:49:26 -0400
+Received: by mail-qa0-f73.google.com with SMTP id p6so86656qad.0
+        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 11:49:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, jiang.liu@huawei.com, linuxram@us.ibm.com, rientjes@google.com, tangchen@cn.fujitsu.com, tmac@hp.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change __remove_pages() to call release_mem_region_adjustable()
+     Subject: mm: madvise: complete input validation before taking lock
 has been removed from the -mm tree.  Its filename was
-     mm-change-__remove_pages-to-call-release_mem_region_adjustable.patch
+     mm-madvise-complete-input-validation-before-taking-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: change __remove_pages() to call release_mem_region_adjustable()
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm: madvise: complete input validation before taking lock
 
-Chang __remove_pages() to call release_mem_region_adjustable().  This
-allows a requested memory range to be released from the iomem_resource
-table even if it does not match exactly to an resource entry but still
-fits into.  The resource entries initialized at bootup usually cover the
-whole contiguous memory ranges and may not necessarily match with the size
-of memory hot-delete requests.
+In madvise(), there doesn't seem to be any reason for taking the
+&current->mm->mmap_sem before start and len_in have been validated. 
+Incidentally, this removes the need for the out: label.
 
-If release_mem_region_adjustable() failed, __remove_pages() emits a
-warning message and continues to proceed as it was the case with
-release_mem_region().  release_mem_region(), which is defined to
-__release_region(), emits a warning message and returns no error since a
-void function.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+[akpm@linux-foundation.org: s/out_plug/out/, per David]
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: David Rientjes <rientjes@google.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: T Makphaibulchoke <tmac@hp.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/madvise.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-change-__remove_pages-to-call-release_mem_region_adjustable mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-change-__remove_pages-to-call-release_mem_region_adjustable
-+++ a/mm/memory_hotplug.c
-@@ -705,8 +705,10 @@ EXPORT_SYMBOL_GPL(__add_pages);
- int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
- 		 unsigned long nr_pages)
- {
--	unsigned long i, ret = 0;
-+	unsigned long i;
- 	int sections_to_remove;
-+	resource_size_t start, size;
-+	int ret = 0;
+diff -puN mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-complete-input-validation-before-taking-lock
++++ a/mm/madvise.c
+@@ -473,27 +473,27 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 	if (!madvise_behavior_valid(behavior))
+ 		return error;
+ 
+-	write = madvise_need_mmap_write(behavior);
+-	if (write)
+-		down_write(&current->mm->mmap_sem);
+-	else
+-		down_read(&current->mm->mmap_sem);
+-
+ 	if (start & ~PAGE_MASK)
+-		goto out;
++		return error;
+ 	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
+ 
+ 	/* Check to see whether len was rounded up from small -ve to zero */
+ 	if (len_in && !len)
+-		goto out;
++		return error;
+ 
+ 	end = start + len;
+ 	if (end < start)
+-		goto out;
++		return error;
+ 
+ 	error = 0;
+ 	if (end == start)
+-		goto out;
++		return error;
++
++	write = madvise_need_mmap_write(behavior);
++	if (write)
++		down_write(&current->mm->mmap_sem);
++	else
++		down_read(&current->mm->mmap_sem);
  
  	/*
- 	 * We can only remove entire sections
-@@ -714,7 +716,12 @@ int __remove_pages(struct zone *zone, un
- 	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
- 	BUG_ON(nr_pages % PAGES_PER_SECTION);
+ 	 * If the interval [start,end) covers some unmapped address
+@@ -509,14 +509,14 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 		/* Still start < end. */
+ 		error = -ENOMEM;
+ 		if (!vma)
+-			goto out_plug;
++			goto out;
  
--	release_mem_region(phys_start_pfn << PAGE_SHIFT, nr_pages * PAGE_SIZE);
-+	start = phys_start_pfn << PAGE_SHIFT;
-+	size = nr_pages * PAGE_SIZE;
-+	ret = release_mem_region_adjustable(&iomem_resource, start, size);
-+	if (ret)
-+		pr_warn("Unable to release resource <%016llx-%016llx> (%d)\n",
-+				start, start + size - 1, ret);
+ 		/* Here start < (end|vma->vm_end). */
+ 		if (start < vma->vm_start) {
+ 			unmapped_error = -ENOMEM;
+ 			start = vma->vm_start;
+ 			if (start >= end)
+-				goto out_plug;
++				goto out;
+ 		}
  
- 	sections_to_remove = nr_pages / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
+ 		/* Here vma->vm_start <= start < (end|vma->vm_end) */
+@@ -527,21 +527,20 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+ 		error = madvise_vma(vma, &prev, start, tmp, behavior);
+ 		if (error)
+-			goto out_plug;
++			goto out;
+ 		start = tmp;
+ 		if (prev && start < prev->vm_end)
+ 			start = prev->vm_end;
+ 		error = unmapped_error;
+ 		if (start >= end)
+-			goto out_plug;
++			goto out;
+ 		if (prev)
+ 			vma = prev->vm_next;
+ 		else	/* madvise_remove dropped mmap_sem */
+ 			vma = find_vma(current->mm, start);
+ 	}
+-out_plug:
+-	blk_finish_plug(&plug);
+ out:
++	blk_finish_plug(&plug);
+ 	if (write)
+ 		up_write(&current->mm->mmap_sem);
+ 	else
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
-linux-next.patch
 
