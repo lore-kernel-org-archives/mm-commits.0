@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-bq4802-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:05 -0700
-Message-ID: <20130507224905.C5C3531C145@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-bfin-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:03 -0700
+Message-ID: <20130507224903.C205D31C145@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:53424 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab3EGWtH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:07 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so121952ves.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:06 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:50752 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796Ab3EGWtF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:05 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so121782qen.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-bq4802: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-bfin: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-bq4802-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-bfin-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-bq4802: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-bfin: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,21 +45,20 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bq4802.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-bfin.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-bq4802.c~rtc-rtc-bq4802-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-bq4802.c
---- a/drivers/rtc/rtc-bq4802.c~rtc-rtc-bq4802-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-bq4802.c
-@@ -188,8 +188,6 @@ out:
+diff -puN drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~rtc-rtc-bfin-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-bfin.c
+@@ -391,7 +391,6 @@ static int bfin_rtc_remove(struct platfo
+ 	struct device *dev = &pdev->dev;
  
- static int bq4802_remove(struct platform_device *pdev)
- {
+ 	bfin_rtc_reset(dev, 0);
 -	platform_set_drvdata(pdev, NULL);
--
+ 
  	return 0;
  }
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
