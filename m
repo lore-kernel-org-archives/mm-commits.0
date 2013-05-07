@@ -1,93 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dynamic_debug-reuse-generic-string_unescape-function.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:47:50 -0700
-Message-ID: <20130507174750.75E9D5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] binfmt_misc-reuse-string_unescape_inplace.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:47:53 -0700
+Message-ID: <20130507174753.77AE531C1EC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:54037 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759295Ab3EGRrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:47:51 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 1so85135qec.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:47:50 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:57868 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759351Ab3EGRry (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:47:54 -0400
+Received: by mail-qc0-f202.google.com with SMTP id d1so85132qcz.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:47:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, jbaron@redhat.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dynamic_debug: reuse generic string_unescape function
+     Subject: binfmt_misc: reuse string_unescape_inplace()
 has been removed from the -mm tree.  Its filename was
-     dynamic_debug-reuse-generic-string_unescape-function.patch
+     binfmt_misc-reuse-string_unescape_inplace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: dynamic_debug: reuse generic string_unescape function
+Subject: binfmt_misc: reuse string_unescape_inplace()
 
-There is kernel function to do the job in generic way. Let's use it.
+There is string_unescape_inplace() function which decodes strings in generic
+way. Let's use it.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jason Baron <jbaron@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+---
+ 1 file changed, 4 insertions(+), 20 deletions(-)
+
+index 751df5e..1c740e1 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_debug.c |   48 ++++--------------------------------------
- 1 file changed, 5 insertions(+), 43 deletions(-)
+ fs/binfmt_misc.c |   24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
 
-diff -puN lib/dynamic_debug.c~dynamic_debug-reuse-generic-string_unescape-function lib/dynamic_debug.c
---- a/lib/dynamic_debug.c~dynamic_debug-reuse-generic-string_unescape-function
-+++ a/lib/dynamic_debug.c
-@@ -24,6 +24,7 @@
- #include <linux/sysctl.h>
+diff -puN fs/binfmt_misc.c~binfmt_misc-reuse-string_unescape_inplace fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~binfmt_misc-reuse-string_unescape_inplace
++++ a/fs/binfmt_misc.c
+@@ -23,6 +23,7 @@
+ #include <linux/binfmts.h>
+ #include <linux/slab.h>
  #include <linux/ctype.h>
- #include <linux/string.h>
 +#include <linux/string_helpers.h>
- #include <linux/uaccess.h>
- #include <linux/dynamic_debug.h>
- #include <linux/debugfs.h>
-@@ -276,47 +277,6 @@ static inline int parse_lineno(const cha
- 	return 0;
+ #include <linux/file.h>
+ #include <linux/pagemap.h>
+ #include <linux/namei.h>
+@@ -234,24 +235,6 @@ static char *scanarg(char *s, char del)
+ 	return s;
  }
  
--/*
-- * Undo octal escaping in a string, inplace.  This is useful to
-- * allow the user to express a query which matches a format
-- * containing embedded spaces.
-- */
--static char *unescape(char *str)
+-static int unquote(char *from)
 -{
--	char *in = str;
--	char *out = str;
+-	char c = 0, *s = from, *p = from;
 -
--	while (*in) {
--		if (*in == '\\') {
--			if (in[1] == '\\') {
--				*out++ = '\\';
--				in += 2;
--				continue;
--			} else if (in[1] == 't') {
--				*out++ = '\t';
--				in += 2;
--				continue;
--			} else if (in[1] == 'n') {
--				*out++ = '\n';
--				in += 2;
--				continue;
--			} else if (isodigit(in[1]) &&
--				   isodigit(in[2]) &&
--				   isodigit(in[3])) {
--				*out++ = (((in[1] - '0') << 6) |
--					  ((in[2] - '0') << 3) |
--					  (in[3] - '0'));
--				in += 4;
--				continue;
--			}
+-	while ((c = *s++) != '\0') {
+-		if (c == '\\' && *s == 'x') {
+-			s++;
+-			c = toupper(*s++);
+-			*p = (c - (isdigit(c) ? '0' : 'A' - 10)) << 4;
+-			c = toupper(*s++);
+-			*p++ |= c - (isdigit(c) ? '0' : 'A' - 10);
+-			continue;
 -		}
--		*out++ = *in++;
+-		*p++ = c;
 -	}
--	*out = '\0';
--
--	return str;
+-	return p - from;
 -}
