@@ -1,38 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-refcounting-cleanup-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 07 May 2013 12:42:09 -0700
-Message-ID: <20130507194209.B93225A4111@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 07 May 2013 12:42:30 -0700
+Message-ID: <20130507194230.8B6505A419E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:60673 "EHLO
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:39813 "EHLO
 	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746Ab3EGTmK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:42:10 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so99999ggl.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:42:10 -0700 (PDT)
+	with ESMTP id S1753857Ab3EGTmb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:42:31 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so99967ggl.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:42:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-refcounting-cleanup-checkpatch-fixes
+     Subject: aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     aio-refcounting-cleanup-checkpatch-fixes.patch
+     aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into aio-refcounting-cleanup.patch
+This patch was dropped because it was folded into aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-refcounting-cleanup-checkpatch-fixes
+Subject: aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes
 
-ERROR: space required before the open brace '{'
-#330: FILE: fs/aio.c:632:
-+		if (ctx->user_id == ctx_id){
+WARNING: line over 80 characters
+#97: FILE: fs/aio.c:775:
++		long avail = (head <= info->tail ? info->tail : info->nr) - head;
 
-total: 1 errors, 0 warnings, 395 lines checked
+WARNING: line over 80 characters
+#106: FILE: fs/aio.c:784:
++			      ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
 
-./patches/aio-refcounting-cleanup.patch has style problems, please review.
+WARNING: line over 80 characters
+#113: FILE: fs/aio.c:791:
++		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * avail);
+
+total: 0 errors, 3 warnings, 288 lines checked
+
+./patches/aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -43,21 +51,41 @@ Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/aio.c~aio-refcounting-cleanup-checkpatch-fixes fs/aio.c
---- a/fs/aio.c~aio-refcounting-cleanup-checkpatch-fixes
+diff -puN fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes fs/aio.c
+--- a/fs/aio.c~aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes
 +++ a/fs/aio.c
-@@ -630,7 +630,7 @@ static struct kioctx *lookup_ioctx(unsig
- 	rcu_read_lock();
+@@ -773,23 +773,25 @@ static long aio_read_events_ring(struct
+ 		goto out;
  
- 	hlist_for_each_entry_rcu(ctx, &mm->ioctx_list, list) {
--		if (ctx->user_id == ctx_id){
-+		if (ctx->user_id == ctx_id) {
- 			atomic_inc(&ctx->users);
- 			ret = ctx;
+ 	while (ret < nr) {
+-		long avail = (head <= info->tail ? info->tail : info->nr) - head;
++		long avail;
+ 		struct io_event *ev;
+ 		struct page *page;
+ 
++		avail = (head <= info->tail ? info->tail : info->nr) - head;
+ 		if (head == info->tail)
  			break;
+ 
+ 		avail = min(avail, nr - ret);
+ 		avail = min_t(long, avail, AIO_EVENTS_PER_PAGE -
+-			      ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
++			    ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
+ 
+ 		pos = head + AIO_EVENTS_OFFSET;
+ 		page = info->ring_pages[pos / AIO_EVENTS_PER_PAGE];
+ 		pos %= AIO_EVENTS_PER_PAGE;
+ 
+ 		ev = kmap(page);
+-		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * avail);
++		copy_ret = copy_to_user(event + ret, ev + pos,
++					sizeof(*ev) * avail);
+ 		kunmap(page);
+ 
+ 		if (unlikely(copy_ret)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +102,7 @@ aio-add-kiocb_cancel.patch
 aio-make-aio_put_req-lockless.patch
 aio-refcounting-cleanup.patch
 wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
 aio-use-cancellation-list-lazily.patch
 aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting.patch
