@@ -1,308 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] rapidio-add-enumeration-discovery-start-from-user-space.patch removed from -mm tree
-Date: Tue, 07 May 2013 13:08:57 -0700
-Message-ID: <20130507200857.879965A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] rapidio-make-enumeration-discovery-configurable-fix.patch removed from -mm tree
+Date: Tue, 07 May 2013 13:08:53 -0700
+Message-ID: <20130507200854.2E98131C26F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:47954 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923Ab3EGUI7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 16:08:59 -0400
-Received: by mail-vb0-f74.google.com with SMTP id q16so103714vbe.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 13:08:58 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:64724 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751923Ab3EGUIz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 16:08:55 -0400
+Received: by mail-ve0-f202.google.com with SMTP id 15so103706vea.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 13:08:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, andre.van.herk@Prodrive.nl, galak@kernel.crashing.org, leoli@freescale.com, micha.nelissen@Prodrive.nl, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alexandre.bounine@idt.com, andre.van.herk@Prodrive.nl, galak@kernel.crashing.org, leoli@freescale.com, micha.nelissen@Prodrive.nl, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add enumeration/discovery start from user space
+     Subject: rapidio-make-enumeration-discovery-configurable-fix
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-enumeration-discovery-start-from-user-space.patch
+     rapidio-make-enumeration-discovery-configurable-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add enumeration/discovery start from user space
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rapidio-make-enumeration-discovery-configurable-fix
 
-Add RapidIO enumeration/discovery start from user space.  User space start
-allows to defer RapidIO fabric scan until the moment when all
-participating endpoints are initialized avoiding mandatory synchronized
-start of all endpoints (which may be challenging in systems with large
-number of RapidIO endpoints).
+work around weird kbuild failure
 
-For compatibility with the existing RapidIO subsystem implementation,
-automatic boot time enumeration/discovery start can be configured in by
-selecting CONFIG_RAPIDIO_ENUM_AUTO option.
-
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Andre van Herk <andre.van.herk@Prodrive.nl>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Cc: Micha Nelissen <micha.nelissen@Prodrive.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/Kconfig      |    9 ++++++
- drivers/rapidio/rio-driver.c |    1 
- drivers/rapidio/rio-scan.c   |   24 +++++++++++++++--
- drivers/rapidio/rio-sysfs.c  |   45 +++++++++++++++++++++++++++++++++
- drivers/rapidio/rio.c        |   26 +++++++++++++++++--
- drivers/rapidio/rio.h        |    2 +
- include/linux/rio.h          |    9 +++++-
- 7 files changed, 109 insertions(+), 7 deletions(-)
+ drivers/rapidio/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/Kconfig~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/Kconfig
---- a/drivers/rapidio/Kconfig~rapidio-add-enumeration-discovery-start-from-user-space
+diff -puN drivers/rapidio/Kconfig~rapidio-make-enumeration-discovery-configurable-fix drivers/rapidio/Kconfig
+--- a/drivers/rapidio/Kconfig~rapidio-make-enumeration-discovery-configurable-fix
 +++ a/drivers/rapidio/Kconfig
-@@ -66,4 +66,13 @@ config RAPIDIO_ENUM_BASIC
+@@ -59,7 +59,7 @@ choice
+ 	  If unsure, select Basic built-in.
  
- endchoice
- 
-+config RAPIDIO_ENUM_AUTO
-+	bool "Automatic RapidIO enumeration/discovery start"
-+	depends on RAPIDIO && RAPIDIO_ENUM_BASIC = y
-+	help
-+	  Say Y if you want RapidIO subsystem to start fabric enumeration and
-+	  discovery automatically during kernel initialization time.
-+	  If you are unsure, say N here. You will be able to start RapidIO
-+	  fabric enumeration or discovery later by a user request.
-+
- source "drivers/rapidio/switches/Kconfig"
-diff -puN drivers/rapidio/rio-driver.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio-driver.c
---- a/drivers/rapidio/rio-driver.c~rapidio-add-enumeration-discovery-start-from-user-space
-+++ a/drivers/rapidio/rio-driver.c
-@@ -207,6 +207,7 @@ struct bus_type rio_bus_type = {
- 	.name = "rapidio",
- 	.match = rio_match_bus,
- 	.dev_attrs = rio_dev_attrs,
-+	.bus_attrs = rio_bus_attrs,
- 	.probe = rio_device_probe,
- 	.remove = rio_device_remove,
- };
-diff -puN drivers/rapidio/rio-scan.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-add-enumeration-discovery-start-from-user-space
-+++ a/drivers/rapidio/rio-scan.c
-@@ -1134,19 +1134,30 @@ static void rio_pw_enable(struct rio_mpo
- /**
-  * rio_enum_mport- Start enumeration through a master port
-  * @mport: Master port to send transactions
-+ * @flags: Enumeration control flags
-  *
-  * Starts the enumeration process. If somebody has enumerated our
-  * master port device, then give up. If not and we have an active
-  * link, then start recursive peer enumeration. Returns %0 if
-  * enumeration succeeds or %-EBUSY if enumeration fails.
-  */
--int rio_enum_mport(struct rio_mport *mport)
-+int rio_enum_mport(struct rio_mport *mport, u32 flags)
- {
- 	struct rio_net *net = NULL;
- 	int rc = 0;
- 
- 	printk(KERN_INFO "RIO: enumerate master port %d, %s\n", mport->id,
- 	       mport->name);
-+
-+	/*
-+	 * To avoid multiple start requests (repeat enumeration is not supported
-+	 * by this method) check if enumeration/discovery was performed for this
-+	 * mport: if mport was added into the list of mports for a net exit
-+	 * with error.
-+	 */
-+	if (mport->nnode.next || mport->nnode.prev)
-+		return -EBUSY;
-+
- 	/* If somebody else enumerated our master port device, bail. */
- 	if (rio_enum_host(mport) < 0) {
- 		printk(KERN_INFO
-@@ -1236,14 +1247,16 @@ static void rio_build_route_tables(struc
- /**
-  * rio_disc_mport- Start discovery through a master port
-  * @mport: Master port to send transactions
-+ * @flags: discovery control flags
-  *
-  * Starts the discovery process. If we have an active link,
-- * then wait for the signal that enumeration is complete.
-+ * then wait for the signal that enumeration is complete (if wait
-+ * is allowed).
-  * When enumeration completion is signaled, start recursive
-  * peer discovery. Returns %0 if discovery succeeds or %-EBUSY
-  * on failure.
-  */
--int rio_disc_mport(struct rio_mport *mport)
-+int rio_disc_mport(struct rio_mport *mport, u32 flags)
- {
- 	struct rio_net *net = NULL;
- 	unsigned long to_end;
-@@ -1253,6 +1266,11 @@ int rio_disc_mport(struct rio_mport *mpo
- 
- 	/* If master port has an active link, allocate net and discover peers */
- 	if (rio_mport_is_active(mport)) {
-+		if (rio_enum_complete(mport))
-+			goto enum_done;
-+		else if (flags & RIO_SCAN_ENUM_NO_WAIT)
-+			return -EAGAIN;
-+
- 		pr_debug("RIO: wait for enumeration to complete...\n");
- 
- 		to_end = jiffies + CONFIG_RAPIDIO_DISC_TIMEOUT * HZ;
-diff -puN drivers/rapidio/rio-sysfs.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rapidio-add-enumeration-discovery-start-from-user-space
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -285,3 +285,48 @@ void rio_remove_sysfs_dev_files(struct r
- 			rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_REMOVE);
- 	}
- }
-+
-+static ssize_t bus_scan_store(struct bus_type *bus, const char *buf,
-+				size_t count)
-+{
-+	long val;
-+	struct rio_mport *port = NULL;
-+	int rc;
-+
-+	if (kstrtol(buf, 0, &val) < 0)
-+		return -EINVAL;
-+
-+	if (val == RIO_MPORT_ANY) {
-+		rc = rio_init_mports();
-+		goto exit;
-+	}
-+
-+	if (val < 0 || val >= RIO_MAX_MPORTS)
-+		return -EINVAL;
-+
-+	port = rio_find_mport((int)val);
-+
-+	if (!port) {
-+		pr_debug("RIO: %s: mport_%d not available\n",
-+			 __func__, (int)val);
-+		return -EINVAL;
-+	}
-+
-+	if (!port->nscan)
-+		return -EINVAL;
-+
-+	if (port->host_deviceid >= 0)
-+		rc = port->nscan->enumerate(port, 0);
-+	else
-+		rc = port->nscan->discover(port, RIO_SCAN_ENUM_NO_WAIT);
-+exit:
-+	if (!rc)
-+		rc = count;
-+
-+	return rc;
-+}
-+
-+struct bus_attribute rio_bus_attrs[] = {
-+	__ATTR(scan, (S_IWUSR|S_IWGRP), NULL, bus_scan_store),
-+	__ATTR_NULL
-+};
-diff -puN drivers/rapidio/rio.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-enumeration-discovery-start-from-user-space
-+++ a/drivers/rapidio/rio.c
-@@ -1382,6 +1382,26 @@ EXPORT_SYMBOL_GPL(rio_dma_prep_slave_sg)
- #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
- 
- /**
-+ * rio_find_mport - find RIO mport by its ID
-+ * @mport_id: number (ID) of mport device
-+ *
-+ * Given a RIO mport number, the desired mport is located
-+ * in the global list of mports. If the mport is found, a pointer to its
-+ * data structure is returned.  If no mport is found, %NULL is returned.
-+ */
-+struct rio_mport *rio_find_mport(int mport_id)
-+{
-+	struct rio_mport *port = NULL;
-+
-+	list_for_each_entry(port, &rio_mports, node) {
-+		if (port->id == mport_id)
-+			return port;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-  * rio_register_scan - enumeration/discovery method registration interface
-  * @mport_id: mport device ID for which fabric scan routine has to be set
-  *            (RIO_MPORT_ANY = set for all available mports)
-@@ -1470,7 +1490,7 @@ static void disc_work_handler(struct wor
- 	work = container_of(_work, struct rio_disc_work, work);
- 	pr_debug("RIO: discovery work for mport %d %s\n",
- 		 work->mport->id, work->mport->name);
--	work->mport->nscan->discover(work->mport);
-+	work->mport->nscan->discover(work->mport, 0);
- }
- 
- int rio_init_mports(void)
-@@ -1489,7 +1509,7 @@ int rio_init_mports(void)
- 	list_for_each_entry(port, &rio_mports, node) {
- 		if (port->host_deviceid >= 0) {
- 			if (port->nscan)
--				port->nscan->enumerate(port);
-+				port->nscan->enumerate(port, 0);
- 		} else
- 			n++;
- 	}
-@@ -1539,7 +1559,9 @@ no_disc:
- 	return 0;
- }
- 
-+#ifdef CONFIG_RAPIDIO_ENUM_AUTO
- device_initcall_sync(rio_init_mports);
-+#endif
- 
- static int hdids[RIO_MAX_MPORTS + 1];
- 
-diff -puN drivers/rapidio/rio.h~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio.h
---- a/drivers/rapidio/rio.h~rapidio-add-enumeration-discovery-start-from-user-space
-+++ a/drivers/rapidio/rio.h
-@@ -45,9 +45,11 @@ extern int rio_enable_rx_tx_port(struct
- extern int rio_register_scan(int mport_id, struct rio_scan *scan_ops);
- extern int rio_unregister_scan(int mport_id);
- extern void rio_attach_device(struct rio_dev *rdev);
-+extern struct rio_mport *rio_find_mport(int mport_id);
- 
- /* Structures internal to the RIO core code */
- extern struct device_attribute rio_dev_attrs[];
-+extern struct bus_attribute rio_bus_attrs[];
- extern spinlock_t rio_global_list_lock;
- 
- extern struct rio_switch_ops __start_rio_switch_ops[];
-diff -puN include/linux/rio.h~rapidio-add-enumeration-discovery-start-from-user-space include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-enumeration-discovery-start-from-user-space
-+++ a/include/linux/rio.h
-@@ -266,6 +266,11 @@ struct rio_mport {
- 	struct rio_scan *nscan;
- };
- 
-+/*
-+ * Enumeration/discovery control flags
-+ */
-+#define RIO_SCAN_ENUM_NO_WAIT	0x00000001 /* Do not wait for enum completed */
-+
- struct rio_id_table {
- 	u16 start;	/* logical minimal id */
- 	u32 max;	/* max number of IDs in table */
-@@ -468,8 +473,8 @@ static inline struct rio_mport *dma_to_m
-  * @discover: Callback to perform RapidIO fabric discovery.
-  */
- struct rio_scan {
--	int (*enumerate)(struct rio_mport *mport);
--	int (*discover)(struct rio_mport *mport);
-+	int (*enumerate)(struct rio_mport *mport, u32 flags);
-+	int (*discover)(struct rio_mport *mport, u32 flags);
- };
- 
- /* Architecture and hardware-specific functions */
+ config RAPIDIO_ENUM_BASIC
+-	tristate "Basic"
++	bool "Basic"
+ 	help
+ 	  This option includes basic RapidIO fabric enumeration and discovery
+ 	  mechanism similar to one described in RapidIO specification Annex 1.
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rapidio-make-enumeration-discovery-configurable.patch
-rapidio-documentation-update-for-enumeration-changes.patch
+origin.patch
+include-linux-mmh-complete-the-mm_walk-definition.patch
+hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
+drivers-net-rename-random32-to-prandom_u32.patch
+drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch
+mm-vmallocc-add-vfree-comment.patch
+gadget-remove-only-user-of-aio-retry.patch
+aio-remove-retry-based-aio.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless.patch
+aio-refcounting-cleanup.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_retry.patch
+block-prep-work-for-batch-completion.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+bpf-add-comments-explaining-the-schedule_work-operation.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
