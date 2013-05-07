@@ -1,71 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch added to -mm tree
-Date: Tue, 07 May 2013 11:21:27 -0700
-Message-ID: <20130507182127.6B96731C078@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch removed from -mm tree
+Date: Tue, 07 May 2013 12:39:27 -0700
+Message-ID: <20130507193927.C87BC5A4111@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:57487 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753396Ab3EGSV2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 14:21:28 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so90176ves.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 11:21:27 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39225 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752033Ab3EGTj3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:39:29 -0400
+Received: by mail-vb0-f74.google.com with SMTP id q16so99723vbe.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:39:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, iceman_dvd@yahoo.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, steven.truelove@utoronto.ca, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/infiniband/hw/mlx4/mad.c: rename random32() to prandom_u32()
-has been added to the -mm tree.  Its filename is
-     drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch
+     Subject: hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
+has been removed from the -mm tree.  Its filename was
+     hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/infiniband/hw/mlx4/mad.c: rename random32() to prandom_u32()
+Subject: hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
 
-Use preferable function name which implies using a pseudo-random
-number generator.
+Fix warning when CONFIG_HUGETLB_PAGE=n
 
+mm/mmap.c: In function 'SYSC_mmap_pgoff':
+mm/mmap.c:1370: warning: unused variable 'hs'
 
+Cc: <iceman_dvd@yahoo.com>
+Cc: <stable@vger.kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Steven Truelove <steven.truelove@utoronto.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/mlx4/mad.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/infiniband/hw/mlx4/mad.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32 drivers/infiniband/hw/mlx4/mad.c
---- a/drivers/infiniband/hw/mlx4/mad.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32
-+++ a/drivers/infiniband/hw/mlx4/mad.c
-@@ -93,7 +93,7 @@ static void __propagate_pkey_ev(struct m
- __be64 mlx4_ib_gen_node_guid(void)
- {
- #define NODE_GUID_HI	((u64) (((u64)IB_OPENIB_OUI) << 40))
--	return cpu_to_be64(NODE_GUID_HI | random32());
-+	return cpu_to_be64(NODE_GUID_HI | prandom_u32());
- }
- 
- __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
+diff -puN mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix mm/mmap.c
+--- a/mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
++++ a/mm/mmap.c
+@@ -1367,9 +1367,9 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+ 			len = ALIGN(len, huge_page_size(hstate_file(file)));
+ 	} else if (flags & MAP_HUGETLB) {
+ 		struct user_struct *user = NULL;
+-		struct hstate *hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT)
+-						& MAP_HUGE_MASK);
+-		len = ALIGN(len, huge_page_size(hs));
++
++		len = ALIGN(len, huge_page_size(hstate_sizelog(
++			(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK)));
+ 		/*
+ 		 * VM_NORESERVE is used because the reservations will be
+ 		 * taken when vm_ops->mmap() is called
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
 include-linux-mmh-complete-the-mm_walk-definition.patch
-hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch
+hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
 drivers-net-rename-random32-to-prandom_u32-fix.patch
 drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch
 mm-vmallocc-add-vfree-comment.patch
@@ -101,6 +102,7 @@ sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 drivers-video-implement-a-simple-framebuffer-driver.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
 mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
