@@ -1,105 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-sanitize-the-setting-of-signal-group_exit_code.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:30 -0700
-Message-ID: <20130507174930.910DB31C2D0@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] coredump-introduce-dump_interrupted.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:33 -0700
+Message-ID: <20130507174933.89D5A31C324@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:50565 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759445Ab3EGRtb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:31 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so85305yen.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:31 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:37519 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759445Ab3EGRte (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:34 -0400
+Received: by mail-qc0-f202.google.com with SMTP id d1so85382qcz.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, mingo@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, roland@hack.frob.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: sanitize the setting of signal->group_exit_code
+     Subject: coredump: introduce dump_interrupted()
 has been removed from the -mm tree.  Its filename was
-     coredump-sanitize-the-setting-of-signal-group_exit_code.patch
+     coredump-introduce-dump_interrupted.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: sanitize the setting of signal->group_exit_code
+Subject: coredump: introduce dump_interrupted()
 
-Now that the coredumping process can be SIGKILL'ed, the setting of
-->group_exit_code in do_coredump() can race with complete_signal() and
-SIGKILL or 0x80 can be "lost", or wait(status) can report status ==
-SIGKILL | 0x80.
+By discussion with Mandeep.
 
-But the main problem is that it is not clear to me what should we do if
-binfmt->core_dump() succeeds but SIGKILL was sent, that is why this patch
-comes as a separate change.
+Change dump_write(), dump_seek() and do_coredump() to check
+signal_pending() and abort if it is true.  dump_seek() does this only
+before f_op->llseek(), otherwise it relies on dump_write().
 
-This patch adds 0x80 if ->core_dump() succeeds and the process was not
-killed.  But perhaps we can (should?) re-set ->group_exit_code changed by
-SIGKILL back to "siginfo->si_signo |= 0x80" in case when core_dumped == T.
+We need this change to ensure that the coredump won't delay suspend, and
+to ensure it reacts to SIGKILL "quickly enough", a core dump can take a
+lot of time.  In particular this can help oom-killer.
+
+We add the new trivial helper, dump_interrupted() to add the comments and
+to simplify the potential freezer changes.  Perhaps it will have more
+callers.
+
+Ideally it should do try_to_freeze() but then we need the unpleasant
+changes in dump_write() and wait_for_dump_helpers().  It is not trivial to
+change dump_write() to restart if f_op->write() fails because of
+freezing().  We need to handle the short writes, we need to clear
+TIF_SIGPENDING (and we can't rely on recalc_sigpending() unless we change
+it to check PF_DUMPCORE).  And if the buggy f_op->write() sets
+TIF_SIGPENDING we can not distinguish this case from the race with
+freeze_task() + __thaw_task().
+
+So we simply accept the fact that the freezer can truncate a core-dump but
+at least you can reliably suspend.  Hopefully we can tolerate this
+unlikely case and the necessary complications doesn't worth a trouble. 
+But if we decide to make the coredumping freezable later we can do this on
+top of this change.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Tested-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+Acked-by: Mandeep Singh Baines <msb@chromium.org>
 Cc: Neil Horman <nhorman@redhat.com>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Roland McGrath <roland@hack.frob.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/coredump.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN fs/coredump.c~coredump-sanitize-the-setting-of-signal-group_exit_code fs/coredump.c
---- a/fs/coredump.c~coredump-sanitize-the-setting-of-signal-group_exit_code
+diff -puN fs/coredump.c~coredump-introduce-dump_interrupted fs/coredump.c
+--- a/fs/coredump.c~coredump-introduce-dump_interrupted
 +++ a/fs/coredump.c
-@@ -390,12 +390,14 @@ static int coredump_wait(int exit_code,
- 	return core_waiters;
+@@ -418,6 +418,17 @@ static void coredump_finish(struct mm_st
+ 	mm->core_state = NULL;
  }
  
--static void coredump_finish(struct mm_struct *mm)
-+static void coredump_finish(struct mm_struct *mm, bool core_dumped)
++static bool dump_interrupted(void)
++{
++	/*
++	 * SIGKILL or freezing() interrupt the coredumping. Perhaps we
++	 * can do try_to_freeze() and check __fatal_signal_pending(),
++	 * but then we need to teach dump_write() to restart and clear
++	 * TIF_SIGPENDING.
++	 */
++	return signal_pending(current);
++}
++
+ static void wait_for_dump_helpers(struct file *file)
  {
- 	struct core_thread *curr, *next;
- 	struct task_struct *task;
- 
- 	spin_lock_irq(&current->sighand->siglock);
-+	if (core_dumped && !__fatal_signal_pending(current))
-+		current->signal->group_exit_code |= 0x80;
- 	current->signal->group_exit_task = NULL;
- 	current->signal->flags = SIGNAL_GROUP_EXIT;
- 	spin_unlock_irq(&current->sighand->siglock);
-@@ -480,6 +482,7 @@ void do_coredump(siginfo_t *siginfo)
- 	int ispipe;
- 	struct files_struct *displaced;
- 	bool need_nonrelative = false;
-+	bool core_dumped = false;
- 	static atomic_t core_dump_count = ATOMIC_INIT(0);
- 	struct coredump_params cprm = {
- 		.siginfo = siginfo,
-@@ -638,9 +641,7 @@ void do_coredump(siginfo_t *siginfo)
+ 	struct pipe_inode_info *pipe;
+@@ -641,7 +652,7 @@ void do_coredump(siginfo_t *siginfo)
  		goto close_fail;
  	if (displaced)
  		put_files_struct(displaced);
--	retval = binfmt->core_dump(&cprm);
--	if (retval)
--		current->signal->group_exit_code |= 0x80;
-+	core_dumped = binfmt->core_dump(&cprm);
+-	core_dumped = binfmt->core_dump(&cprm);
++	core_dumped = !dump_interrupted() && binfmt->core_dump(&cprm);
  
  	if (ispipe && core_pipe_limit)
  		wait_for_dump_helpers(cprm.file);
-@@ -653,7 +654,7 @@ fail_dropcount:
- fail_unlock:
- 	kfree(cn.corename);
- fail_corename:
--	coredump_finish(mm);
-+	coredump_finish(mm, core_dumped);
- 	revert_creds(old_cred);
- fail_creds:
- 	put_cred(cred);
+@@ -669,7 +680,9 @@ fail:
+  */
+ int dump_write(struct file *file, const void *addr, int nr)
+ {
+-	return access_ok(VERIFY_READ, addr, nr) && file->f_op->write(file, addr, nr, &file->f_pos) == nr;
++	return !dump_interrupted() &&
++		access_ok(VERIFY_READ, addr, nr) &&
++		file->f_op->write(file, addr, nr, &file->f_pos) == nr;
+ }
+ EXPORT_SYMBOL(dump_write);
+ 
+@@ -678,7 +691,8 @@ int dump_seek(struct file *file, loff_t
+ 	int ret = 1;
+ 
+ 	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
+-		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
++		if (dump_interrupted() ||
++		    file->f_op->llseek(file, off, SEEK_CUR) < 0)
+ 			return 0;
+ 	} else {
+ 		char *buf = (char *)get_zeroed_page(GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
