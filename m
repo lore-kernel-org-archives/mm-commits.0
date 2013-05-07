@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-kill-ki_retry-fix.patch removed from -mm tree
-Date: Tue, 07 May 2013 12:43:48 -0700
-Message-ID: <20130507194349.15A375A4111@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] aio-kill-ki_retry-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 07 May 2013 12:43:50 -0700
+Message-ID: <20130507194350.E332731C15F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:47619 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752454Ab3EGTnu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:43:50 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so100216vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:43:49 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:65421 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752454Ab3EGTny (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:43:54 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c10so100324qcz.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:43:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, koverstreet@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-kill-ki_retry-fix
+     Subject: aio-kill-ki_retry-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     aio-kill-ki_retry-fix.patch
+     aio-kill-ki_retry-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into aio-kill-ki_retry.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-kill-ki_retry-fix
+Subject: aio-kill-ki_retry-checkpatch-fixes
 
-fix file_start_write/file_end_write tests
+WARNING: line over 80 characters
+#307: FILE: fs/aio.c:1164:
++			     ret == -ERESTARTNOHAND || ret == -ERESTART_RESTARTBLOCK))
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+total: 0 errors, 1 warnings, 344 lines checked
+
+./patches/aio-kill-ki_retry.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/aio.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-kill-ki_retry-fix fs/aio.c
---- a/fs/aio.c~aio-kill-ki_retry-fix
+diff -puN fs/aio.c~aio-kill-ki_retry-checkpatch-fixes fs/aio.c
+--- a/fs/aio.c~aio-kill-ki_retry-checkpatch-fixes
 +++ a/fs/aio.c
-@@ -1021,7 +1021,7 @@ static ssize_t aio_rw_vect_retry(struct
- 	if (iocb->ki_pos < 0)
- 		return -EINVAL;
- 
--	if (opcode == IOCB_CMD_PWRITEV)
-+	if (rw == WRITE)
- 		file_start_write(file);
- 	do {
- 		ret = rw_op(iocb, &iocb->ki_iovec[iocb->ki_cur_seg],
-@@ -1035,7 +1035,7 @@ static ssize_t aio_rw_vect_retry(struct
- 	} while (ret > 0 && iocb->ki_left > 0 &&
- 		 (rw == WRITE ||
- 		  (!S_ISFIFO(inode->i_mode) && !S_ISSOCK(inode->i_mode))));
--	if (opcode == IOCB_CMD_PWRITEV)
-+	if (rw == WRITE)
- 		file_end_write(file);
- 
- 	/* This means we must have transferred all that we could */
+@@ -1167,7 +1167,8 @@ rw_common:
+ 		 * may be already running. Just fail this IO with EINTR.
+ 		 */
+ 		if (unlikely(ret == -ERESTARTSYS || ret == -ERESTARTNOINTR ||
+-			     ret == -ERESTARTNOHAND || ret == -ERESTART_RESTARTBLOCK))
++			     ret == -ERESTARTNOHAND ||
++			     ret == -ERESTART_RESTARTBLOCK))
+ 			ret = -EINTR;
+ 		aio_complete(req, ret, 0);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +81,6 @@ aio-give-shared-kioctx-fields-their-own-cachelines.patch
 generic-dynamic-per-cpu-refcounting.patch
 aio-dont-include-aioh-in-schedh.patch
 aio-kill-ki_retry.patch
-aio-kill-ki_retry-checkpatch-fixes.patch
 block-prep-work-for-batch-completion-checkpatch-fixes.patch
 block-prep-work-for-batch-completion-fix-4.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
