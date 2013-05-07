@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-mxc-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:39 -0700
-Message-ID: <20130507224939.C3FFA31C034@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-nuc900-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:41 -0700
+Message-ID: <20130507224941.C8DC831C034@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:39522 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752700Ab3EGWtk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:40 -0400
-Received: by mail-ve0-f202.google.com with SMTP id 15so121916vea.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:40 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:61372 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754053Ab3EGWtm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:42 -0400
+Received: by mail-qa0-f73.google.com with SMTP id bs12so146445qab.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: jg1.han@samsung.com, mcuos.com@gmail.com
 
 
 The patch titled
-     Subject: rtc: rtc-mxc: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-nuc900: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-mxc-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-nuc900-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-mxc: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-nuc900: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -42,40 +42,25 @@ NULL when no driver is bound").  Thus, it is not needed to manually clear
 the device driver data to NULL.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Wan Zongshun <mcuos.com@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/rtc/rtc-nuc900.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -443,15 +443,13 @@ static int mxc_rtc_probe(struct platform
- 				  THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		ret = PTR_ERR(rtc);
--		goto exit_clr_drvdata;
-+		goto exit_put_clk;
- 	}
+diff -puN drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-nuc900.c
+@@ -267,8 +267,6 @@ static int __init nuc900_rtc_probe(struc
  
- 	pdata->rtc = rtc;
- 
- 	return 0;
- 
--exit_clr_drvdata:
+ static int __exit nuc900_rtc_remove(struct platform_device *pdev)
+ {
 -	platform_set_drvdata(pdev, NULL);
- exit_put_clk:
- 	clk_disable_unprepare(pdata->clk);
- 
-@@ -465,7 +463,6 @@ static int mxc_rtc_remove(struct platfor
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 
- 	clk_disable_unprepare(pdata->clk);
--	platform_set_drvdata(pdev, NULL);
- 
+-
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
