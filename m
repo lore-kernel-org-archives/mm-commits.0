@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:24 -0700
-Message-ID: <20130507223924.CBE5331C145@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:26 -0700
+Message-ID: <20130507223926.CCFD031C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:64102 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab3EGWjZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:25 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so120957yen.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:25 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:43287 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153Ab3EGWj1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:27 -0400
+Received: by mail-qc0-f202.google.com with SMTP id d1so121301qcz.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
+Cc: sachin.kamat@linaro.org, gdavis@mvista.com, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-mxc.c: fix checkpatch error
+     Subject: drivers/rtc/rtc-omap.c: include <linux/io.h> instead of <asm/io.h>
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
+     drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-mxc.c: fix checkpatch error
+Subject: drivers/rtc/rtc-omap.c: include <linux/io.h> instead of <asm/io.h>
 
-Fixes the following error:
-ERROR: spaces required around that '>=' (ctx:WxV)
+Use #include <linux/io.h> instead of <asm/io.h> as pointed out by
+checkpatch.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: George G. Davis <gdavis@mvista.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-omap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-checkpatch-error drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-checkpatch-error
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -436,7 +436,7 @@ static int mxc_rtc_probe(struct platform
- 		pdata->irq = -1;
- 	}
+diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh
++++ a/drivers/rtc/rtc-omap.c
+@@ -23,9 +23,7 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
+-
+-#include <asm/io.h>
+-
++#include <linux/io.h>
  
--	if (pdata->irq >=0)
-+	if (pdata->irq >= 0)
- 		device_init_wakeup(&pdev->dev, 1);
- 
- 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &mxc_rtc_ops,
+ /* The OMAP1 RTC is a year/month/day/hours/minutes/seconds BCD clock
+  * with century-range alarm matching, driven by the 32kHz clock.
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
