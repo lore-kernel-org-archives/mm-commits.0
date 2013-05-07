@@ -1,83 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-fix-wrong-types-of-some-local-variables.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:51 -0700
-Message-ID: <20130507174951.889EE31C39C@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] rbtree_test-add-extra-rbtree-integrity-check.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:57 -0700
+Message-ID: <20130507174957.7470331C3C9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:50067 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759457Ab3EGRtw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:52 -0400
-Received: by mail-qa0-f74.google.com with SMTP id i13so109919qae.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:52 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:48243 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752298Ab3EGRt6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:58 -0400
+Received: by mail-vb0-f74.google.com with SMTP id q16so85798vbe.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhangyanfei@cn.fujitsu.com, ebiederm@xmission.com, horms@verge.net.au, joe@perches.com, mm-commits@vger.kernel.org
+To: davidlohr.bueso@hp.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: fix wrong types of some local variables
+     Subject: rbtree_test: add extra rbtree integrity check
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-wrong-types-of-some-local-variables.patch
+     rbtree_test-add-extra-rbtree-integrity-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: kexec: fix wrong types of some local variables
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: rbtree_test: add extra rbtree integrity check
 
-The types of the following local variables:
+Account for the rbtree having  2**bh(v)-1 internal nodes.
 
-- ubytes/mbytes in kimage_load_crash_segment()/kimage_load_normal_segment()
+While this can be seen as a consequence of other checks, Michel states
+that it nicely sums up what the other properties are for.
 
-- r in vmcoreinfo_append_str()
-
-are wrong, so fix them.
-
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Reviewed-by: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/rbtree_test.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-fix-wrong-types-of-some-local-variables kernel/kexec.c
---- a/kernel/kexec.c~kexec-fix-wrong-types-of-some-local-variables
-+++ a/kernel/kexec.c
-@@ -786,7 +786,7 @@ static int kimage_load_normal_segment(st
- 					 struct kexec_segment *segment)
+diff -puN lib/rbtree_test.c~rbtree_test-add-extra-rbtree-integrity-check lib/rbtree_test.c
+--- a/lib/rbtree_test.c~rbtree_test-add-extra-rbtree-integrity-check
++++ a/lib/rbtree_test.c
+@@ -117,8 +117,7 @@ static int black_path_count(struct rb_no
+ static void check(int nr_nodes)
  {
- 	unsigned long maddr;
--	unsigned long ubytes, mbytes;
-+	size_t ubytes, mbytes;
- 	int result;
- 	unsigned char __user *buf;
+ 	struct rb_node *rb;
+-	int count = 0;
+-	int blacks = 0;
++	int count = 0, blacks = 0;
+ 	u32 prev_key = 0;
  
-@@ -850,7 +850,7 @@ static int kimage_load_crash_segment(str
- 	 * We do things a page at a time for the sake of kmap.
- 	 */
- 	unsigned long maddr;
--	unsigned long ubytes, mbytes;
-+	size_t ubytes, mbytes;
- 	int result;
- 	unsigned char __user *buf;
+ 	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
+@@ -134,7 +133,9 @@ static void check(int nr_nodes)
+ 		prev_key = node->key;
+ 		count++;
+ 	}
++
+ 	WARN_ON_ONCE(count != nr_nodes);
++	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
+ }
  
-@@ -1540,7 +1540,7 @@ void vmcoreinfo_append_str(const char *f
- {
- 	va_list args;
- 	char buf[0x50];
--	int r;
-+	size_t r;
- 
- 	va_start(args, fmt);
- 	r = vsnprintf(buf, sizeof(buf), fmt, args);
+ static void check_augmented(int nr_nodes)
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
 origin.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
 
