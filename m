@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:02 -0700
-Message-ID: <20130507223902.C6BBB5A4016@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:04 -0700
+Message-ID: <20130507223904.D54465A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:63792 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934Ab3EGWjD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:03 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 1so121042qec.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:03 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:39713 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753274Ab3EGWjG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:06 -0400
+Received: by mail-qa0-f73.google.com with SMTP id bs12so145612qab.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1305.c: add missing braces around sizeof
+     Subject: drivers/rtc/rtc-ds1374.c: fix spacing related issues
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch
+     drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ds1305.c: add missing braces around sizeof
+Subject: drivers/rtc/rtc-ds1374.c: fix spacing related issues
 
-Silences the following type of warnings:
-WARNING: sizeof buf should be sizeof(buf)
+Fixes the following types of issues:
+ERROR: code indent should use tabs where possible
+WARNING: please, no spaces at the start of a line
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1305.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ drivers/rtc/rtc-ds1374.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1305.c~drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof drivers/rtc/rtc-ds1305.c
---- a/drivers/rtc/rtc-ds1305.c~drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof
-+++ a/drivers/rtc/rtc-ds1305.c
-@@ -158,7 +158,7 @@ static int ds1305_alarm_irq_enable(struc
- 			goto done;
- 		buf[1] &= ~DS1305_AEI0;
- 	}
--	err = spi_write_then_read(ds1305->spi, buf, sizeof buf, NULL, 0);
-+	err = spi_write_then_read(ds1305->spi, buf, sizeof(buf), NULL, 0);
- 	if (err >= 0)
- 		ds1305->ctrl[0] = buf[1];
- done:
-@@ -181,8 +181,8 @@ static int ds1305_get_time(struct device
- 	/* Use write-then-read to get all the date/time registers
- 	 * since dma from stack is nonportable
- 	 */
--	status = spi_write_then_read(ds1305->spi, &addr, sizeof addr,
--			buf, sizeof buf);
-+	status = spi_write_then_read(ds1305->spi, &addr, sizeof(addr),
-+			buf, sizeof(buf));
- 	if (status < 0)
- 		return status;
+diff -puN drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-fix-spacing-related-issues drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-fix-spacing-related-issues
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -65,7 +65,7 @@ struct ds1374 {
+ static struct i2c_driver ds1374_driver;
  
-@@ -237,7 +237,7 @@ static int ds1305_set_time(struct device
- 		buf[4], buf[5], buf[6], buf[7]);
- 
- 	/* use write-then-read since dma from stack is nonportable */
--	return spi_write_then_read(ds1305->spi, buf, sizeof buf,
-+	return spi_write_then_read(ds1305->spi, buf, sizeof(buf),
- 			NULL, 0);
+ static int ds1374_read_rtc(struct i2c_client *client, u32 *time,
+-                           int reg, int nbytes)
++			   int reg, int nbytes)
+ {
+ 	u8 buf[4];
+ 	int ret;
+@@ -90,7 +90,7 @@ static int ds1374_read_rtc(struct i2c_cl
  }
  
-@@ -286,8 +286,8 @@ static int ds1305_get_alarm(struct devic
- 	 * of EFI status is at best fragile anyway (given IRQ handlers).
- 	 */
- 	addr = DS1305_CONTROL;
--	status = spi_write_then_read(spi, &addr, sizeof addr,
--			ds1305->ctrl, sizeof ds1305->ctrl);
-+	status = spi_write_then_read(spi, &addr, sizeof(addr),
-+			ds1305->ctrl, sizeof(ds1305->ctrl));
- 	if (status < 0)
- 		return status;
+ static int ds1374_write_rtc(struct i2c_client *client, u32 time,
+-                            int reg, int nbytes)
++			    int reg, int nbytes)
+ {
+ 	u8 buf[4];
+ 	int i;
+@@ -119,8 +119,7 @@ static int ds1374_check_rtc_status(struc
  
-@@ -296,8 +296,8 @@ static int ds1305_get_alarm(struct devic
+ 	if (stat & DS1374_REG_SR_OSF)
+ 		dev_warn(&client->dev,
+-		         "oscillator discontinuity flagged, "
+-		         "time unreliable\n");
++			 "oscillator discontinuity flagged, time unreliable\n");
  
- 	/* get and check ALM0 registers */
- 	addr = DS1305_ALM0(DS1305_SEC);
--	status = spi_write_then_read(spi, &addr, sizeof addr,
--			buf, sizeof buf);
-+	status = spi_write_then_read(spi, &addr, sizeof(addr),
-+			buf, sizeof(buf));
- 	if (status < 0)
- 		return status;
+ 	stat &= ~(DS1374_REG_SR_OSF | DS1374_REG_SR_AF);
  
-@@ -381,7 +381,7 @@ static int ds1305_set_alarm(struct devic
- 		"alm0 write", buf[1 + DS1305_SEC], buf[1 + DS1305_MIN],
- 		buf[1 + DS1305_HOUR], buf[1 + DS1305_WDAY]);
+@@ -363,7 +362,7 @@ static int ds1374_probe(struct i2c_clien
  
--	status = spi_write_then_read(spi, buf, sizeof buf, NULL, 0);
-+	status = spi_write_then_read(spi, buf, sizeof(buf), NULL, 0);
- 	if (status < 0)
- 		return status;
+ 	if (client->irq > 0) {
+ 		ret = devm_request_irq(&client->dev, client->irq, ds1374_irq, 0,
+-		                  "ds1374", client);
++					"ds1374", client);
+ 		if (ret) {
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+ 			return ret;
+@@ -373,7 +372,7 @@ static int ds1374_probe(struct i2c_clien
+ 	}
  
-@@ -474,7 +474,7 @@ static void ds1305_work(struct work_stru
- 	buf[1] = ds1305->ctrl[0];
- 	buf[2] = 0;
- 
--	status = spi_write_then_read(spi, buf, sizeof buf,
-+	status = spi_write_then_read(spi, buf, sizeof(buf),
- 			NULL, 0);
- 	if (status < 0)
- 		dev_dbg(&spi->dev, "clear irq --> %d\n", status);
-@@ -627,8 +627,8 @@ static int ds1305_probe(struct spi_devic
- 
- 	/* read and cache control registers */
- 	addr = DS1305_CONTROL;
--	status = spi_write_then_read(spi, &addr, sizeof addr,
--			ds1305->ctrl, sizeof ds1305->ctrl);
-+	status = spi_write_then_read(spi, &addr, sizeof(addr),
-+			ds1305->ctrl, sizeof(ds1305->ctrl));
- 	if (status < 0) {
- 		dev_dbg(&spi->dev, "can't %s, %d\n",
- 				"read", status);
-@@ -659,7 +659,7 @@ static int ds1305_probe(struct spi_devic
- 
- 		buf[0] = DS1305_WRITE | DS1305_CONTROL;
- 		buf[1] = ds1305->ctrl[0];
--		status = spi_write_then_read(spi, buf, sizeof buf, NULL, 0);
-+		status = spi_write_then_read(spi, buf, sizeof(buf), NULL, 0);
- 
- 		dev_dbg(&spi->dev, "clear WP --> %d\n", status);
- 		if (status < 0)
-@@ -713,7 +713,7 @@ static int ds1305_probe(struct spi_devic
- 		buf[1] = ds1305->ctrl[0];
- 		buf[2] = ds1305->ctrl[1];
- 		buf[3] = ds1305->ctrl[2];
--		status = spi_write_then_read(spi, buf, sizeof buf, NULL, 0);
-+		status = spi_write_then_read(spi, buf, sizeof(buf), NULL, 0);
- 		if (status < 0) {
- 			dev_dbg(&spi->dev, "can't %s, %d\n",
- 					"write", status);
-@@ -725,8 +725,8 @@ static int ds1305_probe(struct spi_devic
- 
- 	/* see if non-Linux software set up AM/PM mode */
- 	addr = DS1305_HOUR;
--	status = spi_write_then_read(spi, &addr, sizeof addr,
--				&value, sizeof value);
-+	status = spi_write_then_read(spi, &addr, sizeof(addr),
-+				&value, sizeof(value));
- 	if (status < 0) {
- 		dev_dbg(&spi->dev, "read HOUR --> %d\n", status);
- 		return status;
+ 	ds1374->rtc = devm_rtc_device_register(&client->dev, client->name,
+-	                                  &ds1374_rtc_ops, THIS_MODULE);
++						&ds1374_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(ds1374->rtc)) {
+ 		dev_err(&client->dev, "unable to register the class device\n");
+ 		return PTR_ERR(ds1374->rtc);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
