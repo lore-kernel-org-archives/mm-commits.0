@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-spear-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:53 -0700
-Message-ID: <20130507224953.C641C5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:55 -0700
+Message-ID: <20130507224955.ADC1E5A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:63268 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755492Ab3EGWty (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:54 -0400
-Received: by mail-qa0-f74.google.com with SMTP id i13so146428qae.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:54 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:33243 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755485Ab3EGWt4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:56 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so122140yho.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, viresh.kumar@linaro.org
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-spear: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-stmp3xxx: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-spear-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-spear: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-stmp3xxx: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -42,24 +42,52 @@ NULL when no driver is bound").  Thus, it is not needed to manually clear
 the device driver data to NULL.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-spear.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/rtc/rtc-stmp3xxx.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-spear.c~rtc-rtc-spear-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-spear.c
---- a/drivers/rtc/rtc-spear.c~rtc-rtc-spear-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-spear.c
-@@ -417,7 +417,6 @@ static int spear_rtc_probe(struct platfo
- 	return 0;
+diff -puN drivers/rtc/rtc-stmp3xxx.c~rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-stmp3xxx.c
+--- a/drivers/rtc/rtc-stmp3xxx.c~rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-stmp3xxx.c
+@@ -225,7 +225,6 @@ static int stmp3xxx_rtc_remove(struct pl
  
- err_disable_clock:
+ 	writel(STMP3XXX_RTC_CTRL_ALARM_IRQ_EN,
+ 			rtc_data->io + STMP3XXX_RTC_CTRL_CLR);
 -	platform_set_drvdata(pdev, NULL);
- 	clk_disable_unprepare(config->clk);
  
- 	return status;
+ 	return 0;
+ }
+@@ -274,25 +273,19 @@ static int stmp3xxx_rtc_probe(struct pla
+ 
+ 	rtc_data->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				&stmp3xxx_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtc_data->rtc)) {
+-		err = PTR_ERR(rtc_data->rtc);
+-		goto out;
+-	}
++	if (IS_ERR(rtc_data->rtc))
++		return PTR_ERR(rtc_data->rtc);
+ 
+ 	err = devm_request_irq(&pdev->dev, rtc_data->irq_alarm,
+ 			stmp3xxx_rtc_interrupt, 0, "RTC alarm", &pdev->dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "Cannot claim IRQ%d\n",
+ 			rtc_data->irq_alarm);
+-		goto out;
++		return err;
+ 	}
+ 
+ 	stmp3xxx_wdt_register(pdev);
+ 	return 0;
+-
+-out:
+-	platform_set_drvdata(pdev, NULL);
+-	return err;
+ }
+ 
+ #ifdef CONFIG_PM_SLEEP
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
