@@ -1,768 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipcsem-fine-grained-locking-for-semtimedop.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:52:27 -0700
-Message-ID: <20130507175227.A54A731C4F8@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ipc-sysv-shared-memory-limited-to-8tib.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:52:33 -0700
+Message-ID: <20130507175233.7CCE35A4111__6056.01750216937$1367949175$gmane$org@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:51011 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759617Ab3EGRw3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:52:29 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so86576ggl.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:52:28 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:45352 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759623Ab3EGRwe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:52:34 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 1so86573qec.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:52:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@surriel.com, benisty.e@gmail.com, chegu_vinod@hp.com, davidlohr.bueso@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, sedat.dilek@gmail.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, athorlton@sgi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc,sem: fine grained locking for semtimedop
+     Subject: ipc: sysv shared memory limited to 8TiB
 has been removed from the -mm tree.  Its filename was
-     ipcsem-fine-grained-locking-for-semtimedop.patch
+     ipc-sysv-shared-memory-limited-to-8tib.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: ipc,sem: fine grained locking for semtimedop
+From: Robin Holt <holt@sgi.com>
+Subject: ipc: sysv shared memory limited to 8TiB
 
-Introduce finer grained locking for semtimedop, to handle the common case
-of a program wanting to manipulate one semaphore from an array with
-multiple semaphores.
+Trying to run an application which was trying to put data into half of
+memory using shmget(), we found that having a shmall value below 8EiB-8TiB
+would prevent us from using anything more than 8TiB.  By setting
+kernel.shmall greater than 8EiB-8TiB would make the job work.
 
-If the call is a semop manipulating just one semaphore in an array with
-multiple semaphores, only take the lock for that semaphore itself.
+In the newseg() function, ns->shm_tot which, at 8TiB is INT_MAX.
 
-If the call needs to manipulate multiple semaphores, or another caller is
-in a transaction that manipulates multiple semaphores, the sem_array lock
-is taken, as well as all the locks for the individual semaphores.
+ipc/shm.c:
+ 458 static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
+ 459 {
+...
+ 465         int numpages = (size + PAGE_SIZE -1) >> PAGE_SHIFT;
+...
+ 474         if (ns->shm_tot + numpages > ns->shm_ctlall)
+ 475                 return -ENOSPC;
 
-On a 24 CPU system, performance numbers with the semop-multi
-test with N threads and N semaphores, look like this:
-
-	vanilla		Davidlohr's	Davidlohr's +	Davidlohr's +
-threads			patches		rwlock patches	v3 patches
-10	610652		726325		1783589		2142206
-20	341570		365699		1520453		1977878
-30	288102		307037		1498167		2037995
-40	290714		305955		1612665		2256484
-50	288620		312890		1733453		2650292
-60	289987		306043		1649360		2388008
-70	291298		306347		1723167		2717486
-80	290948		305662		1729545		2763582
-90	290996		306680		1736021		2757524
-100	292243		306700		1773700		3059159
-
-[davidlohr.bueso@hp.com: do not call sem_lock when bogus sma]
-[davidlohr.bueso@hp.com: make refcounter atomic]
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Acked-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Chegu Vinod <chegu_vinod@hp.com>
-Cc: Jason Low <jason.low2@hp.com>
-Reviewed-by: Michel Lespinasse <walken@google.com>
-Cc: Peter Hurley <peter@hurleysoftware.com>
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Tested-by: Emmanuel Benisty <benisty.e@gmail.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+[akpm@linux-foundation.org: make ipc/shm.c:newseg()'s numpages size_t, not int]
+Signed-off-by: Robin Holt <holt@sgi.com>
+Reported-by: Alex Thorlton <athorlton@sgi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    7 +
- ipc/sem.c  |  271 ++++++++++++++++++++++++++++++++-------------------
- ipc/util.c |   46 ++++----
- ipc/util.h |    2 
- 4 files changed, 202 insertions(+), 124 deletions(-)
+ include/linux/ipc_namespace.h |    2 +-
+ ipc/shm.c                     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/msg.c~ipcsem-fine-grained-locking-for-semtimedop ipc/msg.c
---- a/ipc/msg.c~ipcsem-fine-grained-locking-for-semtimedop
-+++ a/ipc/msg.c
-@@ -687,7 +687,12 @@ long do_msgsnd(int msqid, long mtype, vo
- 			goto out_unlock_free;
- 		}
- 		ss_add(msq, &s);
--		ipc_rcu_getref(msq);
-+
-+		if (!ipc_rcu_getref(msq)) {
-+			err = -EIDRM;
-+			goto out_unlock_free;
-+		}
-+
- 		msg_unlock(msq);
- 		schedule();
+diff -puN include/linux/ipc_namespace.h~ipc-sysv-shared-memory-limited-to-8tib include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-sysv-shared-memory-limited-to-8tib
++++ a/include/linux/ipc_namespace.h
+@@ -43,8 +43,8 @@ struct ipc_namespace {
  
-diff -puN ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop ipc/sem.c
---- a/ipc/sem.c~ipcsem-fine-grained-locking-for-semtimedop
-+++ a/ipc/sem.c
-@@ -94,6 +94,7 @@
- struct sem {
- 	int	semval;		/* current value */
- 	int	sempid;		/* pid of last operation */
-+	spinlock_t	lock;	/* spinlock for fine-grained semtimedop */
- 	struct list_head sem_pending; /* pending single-sop operations */
- };
- 
-@@ -137,7 +138,6 @@ struct sem_undo_list {
- 
- #define sem_ids(ns)	((ns)->ids[IPC_SEM_IDS])
- 
--#define sem_unlock(sma)		ipc_unlock(&(sma)->sem_perm)
- #define sem_checkid(sma, semid)	ipc_checkid(&sma->sem_perm, semid)
- 
- static int newary(struct ipc_namespace *, struct ipc_params *);
-@@ -190,10 +190,89 @@ void __init sem_init (void)
- }
- 
- /*
-+ * If the request contains only one semaphore operation, and there are
-+ * no complex transactions pending, lock only the semaphore involved.
-+ * Otherwise, lock the entire semaphore array, since we either have
-+ * multiple semaphores in our own semops, or we need to look at
-+ * semaphores from other pending complex operations.
-+ *
-+ * Carefully guard against sma->complex_count changing between zero
-+ * and non-zero while we are spinning for the lock. The value of
-+ * sma->complex_count cannot change while we are holding the lock,
-+ * so sem_unlock should be fine.
-+ *
-+ * The global lock path checks that all the local locks have been released,
-+ * checking each local lock once. This means that the local lock paths
-+ * cannot start their critical sections while the global lock is held.
-+ */
-+static inline int sem_lock(struct sem_array *sma, struct sembuf *sops,
-+			      int nsops)
-+{
-+	int locknum;
-+ again:
-+	if (nsops == 1 && !sma->complex_count) {
-+		struct sem *sem = sma->sem_base + sops->sem_num;
-+
-+		/* Lock just the semaphore we are interested in. */
-+		spin_lock(&sem->lock);
-+
-+		/*
-+		 * If sma->complex_count was set while we were spinning,
-+		 * we may need to look at things we did not lock here.
-+		 */
-+		if (unlikely(sma->complex_count)) {
-+			spin_unlock(&sem->lock);
-+			goto lock_array;
-+		}
-+
-+		/*
-+		 * Another process is holding the global lock on the
-+		 * sem_array; we cannot enter our critical section,
-+		 * but have to wait for the global lock to be released.
-+		 */
-+		if (unlikely(spin_is_locked(&sma->sem_perm.lock))) {
-+			spin_unlock(&sem->lock);
-+			spin_unlock_wait(&sma->sem_perm.lock);
-+			goto again;
-+		}
-+
-+		locknum = sops->sem_num;
-+	} else {
-+		int i;
-+		/*
-+		 * Lock the semaphore array, and wait for all of the
-+		 * individual semaphore locks to go away.  The code
-+		 * above ensures no new single-lock holders will enter
-+		 * their critical section while the array lock is held.
-+		 */
-+ lock_array:
-+		spin_lock(&sma->sem_perm.lock);
-+		for (i = 0; i < sma->sem_nsems; i++) {
-+			struct sem *sem = sma->sem_base + i;
-+			spin_unlock_wait(&sem->lock);
-+		}
-+		locknum = -1;
-+	}
-+	return locknum;
-+}
-+
-+static inline void sem_unlock(struct sem_array *sma, int locknum)
-+{
-+	if (locknum == -1) {
-+		spin_unlock(&sma->sem_perm.lock);
-+	} else {
-+		struct sem *sem = sma->sem_base + locknum;
-+		spin_unlock(&sem->lock);
-+	}
-+	rcu_read_unlock();
-+}
-+
-+/*
-  * sem_lock_(check_) routines are called in the paths where the rw_mutex
-  * is not held.
-  */
--static inline struct sem_array *sem_obtain_lock(struct ipc_namespace *ns, int id)
-+static inline struct sem_array *sem_obtain_lock(struct ipc_namespace *ns,
-+			int id, struct sembuf *sops, int nsops, int *locknum)
- {
- 	struct kern_ipc_perm *ipcp;
- 	struct sem_array *sma;
-@@ -205,7 +284,8 @@ static inline struct sem_array *sem_obta
- 		goto err;
- 	}
- 
--	spin_lock(&ipcp->lock);
-+	sma = container_of(ipcp, struct sem_array, sem_perm);
-+	*locknum = sem_lock(sma, sops, nsops);
- 
- 	/* ipc_rmid() may have already freed the ID while sem_lock
- 	 * was spinning: verify that the structure is still valid
-@@ -213,7 +293,7 @@ static inline struct sem_array *sem_obta
- 	if (!ipcp->deleted)
- 		return container_of(ipcp, struct sem_array, sem_perm);
- 
--	spin_unlock(&ipcp->lock);
-+	sem_unlock(sma, *locknum);
- 	sma = ERR_PTR(-EINVAL);
- err:
- 	rcu_read_unlock();
-@@ -230,17 +310,6 @@ static inline struct sem_array *sem_obta
- 	return container_of(ipcp, struct sem_array, sem_perm);
- }
- 
--static inline struct sem_array *sem_lock_check(struct ipc_namespace *ns,
--						int id)
--{
--	struct kern_ipc_perm *ipcp = ipc_lock_check(&sem_ids(ns), id);
--
--	if (IS_ERR(ipcp))
--		return ERR_CAST(ipcp);
--
--	return container_of(ipcp, struct sem_array, sem_perm);
--}
--
- static inline struct sem_array *sem_obtain_object_check(struct ipc_namespace *ns,
- 							int id)
- {
-@@ -254,21 +323,21 @@ static inline struct sem_array *sem_obta
- 
- static inline void sem_lock_and_putref(struct sem_array *sma)
- {
--	ipc_lock_by_ptr(&sma->sem_perm);
-+	rcu_read_lock();
-+	sem_lock(sma, NULL, -1);
- 	ipc_rcu_putref(sma);
- }
- 
- static inline void sem_getref_and_unlock(struct sem_array *sma)
- {
--	ipc_rcu_getref(sma);
--	ipc_unlock(&(sma)->sem_perm);
-+	WARN_ON_ONCE(!ipc_rcu_getref(sma));
-+	sem_unlock(sma, -1);
- }
- 
- static inline void sem_putref(struct sem_array *sma)
- {
--	ipc_lock_by_ptr(&sma->sem_perm);
--	ipc_rcu_putref(sma);
--	ipc_unlock(&(sma)->sem_perm);
-+	sem_lock_and_putref(sma);
-+	sem_unlock(sma, -1);
- }
- 
- /*
-@@ -276,9 +345,9 @@ static inline void sem_putref(struct sem
-  */
- static inline void sem_getref(struct sem_array *sma)
- {
--	spin_lock(&(sma)->sem_perm.lock);
--	ipc_rcu_getref(sma);
--	ipc_unlock(&(sma)->sem_perm);
-+	sem_lock(sma, NULL, -1);
-+	WARN_ON_ONCE(!ipc_rcu_getref(sma));
-+	sem_unlock(sma, -1);
- }
- 
- static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
-@@ -371,15 +440,17 @@ static int newary(struct ipc_namespace *
- 
- 	sma->sem_base = (struct sem *) &sma[1];
- 
--	for (i = 0; i < nsems; i++)
-+	for (i = 0; i < nsems; i++) {
- 		INIT_LIST_HEAD(&sma->sem_base[i].sem_pending);
-+		spin_lock_init(&sma->sem_base[i].lock);
-+	}
- 
- 	sma->complex_count = 0;
- 	INIT_LIST_HEAD(&sma->sem_pending);
- 	INIT_LIST_HEAD(&sma->list_id);
- 	sma->sem_nsems = nsems;
- 	sma->sem_ctime = get_seconds();
--	sem_unlock(sma);
-+	sem_unlock(sma, -1);
- 
- 	return sma->sem_perm.id;
- }
-@@ -818,7 +889,7 @@ static void freeary(struct ipc_namespace
- 
- 	/* Remove the semaphore set from the IDR */
- 	sem_rmid(ns, sma);
--	sem_unlock(sma);
-+	sem_unlock(sma, -1);
- 
- 	wake_up_sem_queue_do(&tasks);
- 	ns->used_sems -= sma->sem_nsems;
-@@ -947,7 +1018,6 @@ static int semctl_setval(struct ipc_name
- 	struct sem_array *sma;
- 	struct sem* curr;
- 	int err;
--	int nsems;
- 	struct list_head tasks;
- 	int val;
- #if defined(CONFIG_64BIT) && defined(__BIG_ENDIAN)
-@@ -958,31 +1028,39 @@ static int semctl_setval(struct ipc_name
- 	val = arg;
- #endif
- 
--	sma = sem_lock_check(ns, semid);
--	if (IS_ERR(sma))
--		return PTR_ERR(sma);
-+	if (val > SEMVMX || val < 0)
-+		return -ERANGE;
- 
- 	INIT_LIST_HEAD(&tasks);
--	nsems = sma->sem_nsems;
- 
--	err = -EACCES;
--	if (ipcperms(ns, &sma->sem_perm, S_IWUGO))
--		goto out_unlock;
-+	rcu_read_lock();
-+	sma = sem_obtain_object_check(ns, semid);
-+	if (IS_ERR(sma)) {
-+		rcu_read_unlock();
-+		return PTR_ERR(sma);
-+	}
-+
-+	if (semnum < 0 || semnum >= sma->sem_nsems) {
-+		rcu_read_unlock();
-+		return -EINVAL;
-+	}
-+
-+
-+	if (ipcperms(ns, &sma->sem_perm, S_IWUGO)) {
-+		rcu_read_unlock();
-+		return -EACCES;
-+	}
- 
- 	err = security_sem_semctl(sma, SETVAL);
--	if (err)
--		goto out_unlock;
-+	if (err) {
-+		rcu_read_unlock();
-+		return -EACCES;
-+	}
- 
--	err = -EINVAL;
--	if(semnum < 0 || semnum >= nsems)
--		goto out_unlock;
-+	sem_lock(sma, NULL, -1);
- 
- 	curr = &sma->sem_base[semnum];
- 
--	err = -ERANGE;
--	if (val > SEMVMX || val < 0)
--		goto out_unlock;
--
- 	assert_spin_locked(&sma->sem_perm.lock);
- 	list_for_each_entry(un, &sma->list_id, list_id)
- 		un->semadj[semnum] = 0;
-@@ -992,11 +1070,9 @@ static int semctl_setval(struct ipc_name
- 	sma->sem_ctime = get_seconds();
- 	/* maybe some queued-up processes were waiting for this */
- 	do_smart_update(sma, NULL, 0, 0, &tasks);
--	err = 0;
--out_unlock:
--	sem_unlock(sma);
-+	sem_unlock(sma, -1);
- 	wake_up_sem_queue_do(&tasks);
--	return err;
-+	return 0;
- }
- 
- static int semctl_main(struct ipc_namespace *ns, int semid, int semnum,
-@@ -1051,16 +1127,16 @@ static int semctl_main(struct ipc_namesp
- 
- 			sem_lock_and_putref(sma);
- 			if (sma->sem_perm.deleted) {
--				sem_unlock(sma);
-+				sem_unlock(sma, -1);
- 				err = -EIDRM;
- 				goto out_free;
- 			}
--		}
-+		} else
-+			sem_lock(sma, NULL, -1);
- 
--		spin_lock(&sma->sem_perm.lock);
- 		for (i = 0; i < sma->sem_nsems; i++)
- 			sem_io[i] = sma->sem_base[i].semval;
--		sem_unlock(sma);
-+		sem_unlock(sma, -1);
- 		err = 0;
- 		if(copy_to_user(array, sem_io, nsems*sizeof(ushort)))
- 			err = -EFAULT;
-@@ -1071,7 +1147,10 @@ static int semctl_main(struct ipc_namesp
- 		int i;
- 		struct sem_undo *un;
- 
--		ipc_rcu_getref(sma);
-+		if (!ipc_rcu_getref(sma)) {
-+			rcu_read_unlock();
-+			return -EIDRM;
-+		}
- 		rcu_read_unlock();
- 
- 		if(nsems > SEMMSL_FAST) {
-@@ -1097,7 +1176,7 @@ static int semctl_main(struct ipc_namesp
- 		}
- 		sem_lock_and_putref(sma);
- 		if (sma->sem_perm.deleted) {
--			sem_unlock(sma);
-+			sem_unlock(sma, -1);
- 			err = -EIDRM;
- 			goto out_free;
- 		}
-@@ -1124,7 +1203,7 @@ static int semctl_main(struct ipc_namesp
- 		goto out_wakeup;
- 	}
- 
--	spin_lock(&sma->sem_perm.lock);
-+	sem_lock(sma, NULL, -1);
- 	curr = &sma->sem_base[semnum];
- 
- 	switch (cmd) {
-@@ -1143,7 +1222,7 @@ static int semctl_main(struct ipc_namesp
- 	}
- 
- out_unlock:
--	sem_unlock(sma);
-+	sem_unlock(sma, -1);
- out_wakeup:
- 	wake_up_sem_queue_do(&tasks);
- out_free:
-@@ -1211,11 +1290,11 @@ static int semctl_down(struct ipc_namesp
- 
- 	switch(cmd){
- 	case IPC_RMID:
--		ipc_lock_object(&sma->sem_perm);
-+		sem_lock(sma, NULL, -1);
- 		freeary(ns, ipcp);
- 		goto out_up;
- 	case IPC_SET:
--		ipc_lock_object(&sma->sem_perm);
-+		sem_lock(sma, NULL, -1);
- 		err = ipc_update_perm(&semid64.sem_perm, ipcp);
- 		if (err)
- 			goto out_unlock;
-@@ -1228,7 +1307,7 @@ static int semctl_down(struct ipc_namesp
- 	}
- 
- out_unlock:
--	sem_unlock(sma);
-+	sem_unlock(sma, -1);
- out_up:
- 	up_write(&sem_ids(ns).rw_mutex);
- 	return err;
-@@ -1340,8 +1419,7 @@ static struct sem_undo *find_alloc_undo(
- 	struct sem_array *sma;
- 	struct sem_undo_list *ulp;
- 	struct sem_undo *un, *new;
--	int nsems;
--	int error;
-+	int nsems, error;
- 
- 	error = get_undo_list(&ulp);
- 	if (error)
-@@ -1363,7 +1441,11 @@ static struct sem_undo *find_alloc_undo(
- 	}
- 
- 	nsems = sma->sem_nsems;
--	ipc_rcu_getref(sma);
-+	if (!ipc_rcu_getref(sma)) {
-+		rcu_read_unlock();
-+		un = ERR_PTR(-EIDRM);
-+		goto out;
-+	}
- 	rcu_read_unlock();
- 
- 	/* step 2: allocate new undo structure */
-@@ -1376,7 +1458,7 @@ static struct sem_undo *find_alloc_undo(
- 	/* step 3: Acquire the lock on semaphore array */
- 	sem_lock_and_putref(sma);
- 	if (sma->sem_perm.deleted) {
--		sem_unlock(sma);
-+		sem_unlock(sma, -1);
- 		kfree(new);
- 		un = ERR_PTR(-EIDRM);
- 		goto out;
-@@ -1404,7 +1486,7 @@ static struct sem_undo *find_alloc_undo(
- success:
- 	spin_unlock(&ulp->lock);
- 	rcu_read_lock();
--	sem_unlock(sma);
-+	sem_unlock(sma, -1);
- out:
- 	return un;
- }
-@@ -1444,7 +1526,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 	struct sembuf fast_sops[SEMOPM_FAST];
- 	struct sembuf* sops = fast_sops, *sop;
- 	struct sem_undo *un;
--	int undos = 0, alter = 0, max;
-+	int undos = 0, alter = 0, max, locknum;
- 	struct sem_queue queue;
- 	unsigned long jiffies_left = 0;
- 	struct ipc_namespace *ns;
-@@ -1488,22 +1570,23 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 			alter = 1;
- 	}
- 
-+	INIT_LIST_HEAD(&tasks);
-+
- 	if (undos) {
-+		/* On success, find_alloc_undo takes the rcu_read_lock */
- 		un = find_alloc_undo(ns, semid);
- 		if (IS_ERR(un)) {
- 			error = PTR_ERR(un);
- 			goto out_free;
- 		}
--	} else
-+	} else {
- 		un = NULL;
-+		rcu_read_lock();
-+	}
- 
--	INIT_LIST_HEAD(&tasks);
--
--	rcu_read_lock();
- 	sma = sem_obtain_object_check(ns, semid);
- 	if (IS_ERR(sma)) {
--		if (un)
--			rcu_read_unlock();
-+		rcu_read_unlock();
- 		error = PTR_ERR(sma);
- 		goto out_free;
- 	}
-@@ -1534,23 +1617,9 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 	 * "un" itself is guaranteed by rcu.
- 	 */
- 	error = -EIDRM;
--	ipc_lock_object(&sma->sem_perm);
--	if (un) {
--		if (un->semid == -1) {
--			rcu_read_unlock();
--			goto out_unlock_free;
--		} else {
--			/*
--			 * rcu lock can be released, "un" cannot disappear:
--			 * - sem_lock is acquired, thus IPC_RMID is
--			 *   impossible.
--			 * - exit_sem is impossible, it always operates on
--			 *   current (or a dead task).
--			 */
--
--			rcu_read_unlock();
--		}
--	}
-+	locknum = sem_lock(sma, sops, nsops);
-+	if (un && un->semid == -1)
-+		goto out_unlock_free;
- 
- 	error = try_atomic_semop (sma, sops, nsops, un, task_tgid_vnr(current));
- 	if (error <= 0) {
-@@ -1591,7 +1660,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 
- sleep_again:
- 	current->state = TASK_INTERRUPTIBLE;
--	sem_unlock(sma);
-+	sem_unlock(sma, locknum);
- 
- 	if (timeout)
- 		jiffies_left = schedule_timeout(jiffies_left);
-@@ -1613,7 +1682,7 @@ sleep_again:
- 		goto out_free;
- 	}
- 
--	sma = sem_obtain_lock(ns, semid);
-+	sma = sem_obtain_lock(ns, semid, sops, nsops, &locknum);
- 
+ 	size_t		shm_ctlmax;
+ 	size_t		shm_ctlall;
++	unsigned long	shm_tot;
+ 	int		shm_ctlmni;
+-	int		shm_tot;
  	/*
- 	 * Wait until it's guaranteed that no wakeup_sem_queue_do() is ongoing.
-@@ -1652,7 +1721,7 @@ sleep_again:
- 	unlink_queue(sma, &queue);
- 
- out_unlock_free:
--	sem_unlock(sma);
-+	sem_unlock(sma, locknum);
- out_wakeup:
- 	wake_up_sem_queue_do(&tasks);
- out_free:
-@@ -1716,8 +1785,7 @@ void exit_sem(struct task_struct *tsk)
- 		struct sem_array *sma;
- 		struct sem_undo *un;
- 		struct list_head tasks;
--		int semid;
--		int i;
-+		int semid, i;
- 
- 		rcu_read_lock();
- 		un = list_entry_rcu(ulp->list_proc.next,
-@@ -1726,23 +1794,26 @@ void exit_sem(struct task_struct *tsk)
- 			semid = -1;
- 		 else
- 			semid = un->semid;
--		rcu_read_unlock();
- 
--		if (semid == -1)
-+		if (semid == -1) {
-+			rcu_read_unlock();
- 			break;
-+		}
- 
--		sma = sem_lock_check(tsk->nsproxy->ipc_ns, un->semid);
--
-+		sma = sem_obtain_object_check(tsk->nsproxy->ipc_ns, un->semid);
- 		/* exit_sem raced with IPC_RMID, nothing to do */
--		if (IS_ERR(sma))
-+		if (IS_ERR(sma)) {
-+			rcu_read_unlock();
- 			continue;
-+		}
- 
-+		sem_lock(sma, NULL, -1);
- 		un = __lookup_undo(ulp, semid);
- 		if (un == NULL) {
- 			/* exit_sem raced with IPC_RMID+semget() that created
- 			 * exactly the same semid. Nothing to do.
- 			 */
--			sem_unlock(sma);
-+			sem_unlock(sma, -1);
- 			continue;
- 		}
- 
-@@ -1782,7 +1853,7 @@ void exit_sem(struct task_struct *tsk)
- 		/* maybe some queued-up processes were waiting for this */
- 		INIT_LIST_HEAD(&tasks);
- 		do_smart_update(sma, NULL, 0, 1, &tasks);
--		sem_unlock(sma);
-+		sem_unlock(sma, -1);
- 		wake_up_sem_queue_do(&tasks);
- 
- 		kfree_rcu(un, rcu);
-diff -puN ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop ipc/util.c
---- a/ipc/util.c~ipcsem-fine-grained-locking-for-semtimedop
-+++ a/ipc/util.c
-@@ -439,9 +439,9 @@ void ipc_rmid(struct ipc_ids *ids, struc
-  *	NULL is returned if the allocation fails
-  */
-  
--void* ipc_alloc(int size)
-+void *ipc_alloc(int size)
- {
--	void* out;
-+	void *out;
- 	if(size > PAGE_SIZE)
- 		out = vmalloc(size);
- 	else
-@@ -478,7 +478,7 @@ void ipc_free(void* ptr, int size)
-  */
- struct ipc_rcu_hdr
- {
--	int refcount;
-+	atomic_t refcount;
- 	int is_vmalloc;
- 	void *data[0];
- };
-@@ -516,39 +516,41 @@ static inline int rcu_use_vmalloc(int si
-  *	@size: size desired
-  *
-  *	Allocate memory for the rcu header structure +  the object.
-- *	Returns the pointer to the object.
-- *	NULL is returned if the allocation fails. 
-+ *	Returns the pointer to the object or NULL upon failure.
-  */
-- 
--void* ipc_rcu_alloc(int size)
-+void *ipc_rcu_alloc(int size)
- {
--	void* out;
--	/* 
-+	void *out;
-+
-+	/*
- 	 * We prepend the allocation with the rcu struct, and
- 	 * workqueue if necessary (for vmalloc).
- 	 */
- 	if (rcu_use_vmalloc(size)) {
- 		out = vmalloc(HDRLEN_VMALLOC + size);
--		if (out) {
--			out += HDRLEN_VMALLOC;
--			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
--			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
--		}
-+		if (!out)
-+			goto done;
-+
-+		out += HDRLEN_VMALLOC;
-+		container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
- 	} else {
- 		out = kmalloc(HDRLEN_KMALLOC + size, GFP_KERNEL);
--		if (out) {
--			out += HDRLEN_KMALLOC;
--			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
--			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
--		}
-+		if (!out)
-+			goto done;
-+
-+		out += HDRLEN_KMALLOC;
-+		container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
- 	}
- 
-+	/* set reference counter no matter what kind of allocation was done */
-+	atomic_set(&container_of(out, struct ipc_rcu_hdr, data)->refcount, 1);
-+done:
- 	return out;
- }
- 
--void ipc_rcu_getref(void *ptr)
-+int ipc_rcu_getref(void *ptr)
- {
--	container_of(ptr, struct ipc_rcu_hdr, data)->refcount++;
-+	return atomic_inc_not_zero(&container_of(ptr, struct ipc_rcu_hdr, data)->refcount);
- }
- 
- static void ipc_do_vfree(struct work_struct *work)
-@@ -578,7 +580,7 @@ static void ipc_schedule_free(struct rcu
- 
- void ipc_rcu_putref(void *ptr)
- {
--	if (--container_of(ptr, struct ipc_rcu_hdr, data)->refcount > 0)
-+	if (!atomic_dec_and_test(&container_of(ptr, struct ipc_rcu_hdr, data)->refcount))
- 		return;
- 
- 	if (container_of(ptr, struct ipc_rcu_hdr, data)->is_vmalloc) {
-diff -puN ipc/util.h~ipcsem-fine-grained-locking-for-semtimedop ipc/util.h
---- a/ipc/util.h~ipcsem-fine-grained-locking-for-semtimedop
-+++ a/ipc/util.h
-@@ -119,7 +119,7 @@ void ipc_free(void* ptr, int size);
-  * to 0 schedules the rcu destruction. Caller must guarantee locking.
-  */
- void* ipc_rcu_alloc(int size);
--void ipc_rcu_getref(void *ptr);
-+int ipc_rcu_getref(void *ptr);
- void ipc_rcu_putref(void *ptr);
- 
- struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
+ 	 * Defines whether IPC_RMID is forced for _all_ shm segments regardless
+ 	 * of shmctl()
+diff -puN ipc/shm.c~ipc-sysv-shared-memory-limited-to-8tib ipc/shm.c
+--- a/ipc/shm.c~ipc-sysv-shared-memory-limited-to-8tib
++++ a/ipc/shm.c
+@@ -462,7 +462,7 @@ static int newseg(struct ipc_namespace *
+ 	size_t size = params->u.size;
+ 	int error;
+ 	struct shmid_kernel *shp;
+-	int numpages = (size + PAGE_SIZE -1) >> PAGE_SHIFT;
++	size_t numpages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	struct file * file;
+ 	char name[13];
+ 	int id;
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
 
