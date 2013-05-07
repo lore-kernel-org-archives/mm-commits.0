@@ -1,67 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] revert-ipc-dont-allocate-a-copy-larger-than-max.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:43:58 -0700
-Message-ID: <20130507174358.EEF965A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: [obsolete] revert-ipc_schedule_free-can-do-vfree-now.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:44:28 -0700
+Message-ID: <20130507174428.AECD75A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:50011 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753822Ab3EGRoA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:44:00 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so84711yen.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:43:59 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:38262 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753580Ab3EGRoa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:44:30 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c10so84830qcz.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:44:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@redhat.com, peter@hurleysoftware.com, skinsbursky@parallels.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "ipc: don't allocate a copy larger than max"
+     Subject: revert "ipc_schedule_free() can do vfree() now"
 has been removed from the -mm tree.  Its filename was
-     revert-ipc-dont-allocate-a-copy-larger-than-max.patch
+     revert-ipc_schedule_free-can-do-vfree-now.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "ipc: don't allocate a copy larger than max"
+Subject: revert "ipc_schedule_free() can do vfree() now"
 
-Revert 88b9e456b164.  Dave has confirmed that this was causing oopses
-during trinity testing.
+This massively screws up pending IPC patches.
 
-Cc: Peter Hurley <peter@hurleysoftware.com>
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ ipc/util.c |   66 ++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 55 insertions(+), 11 deletions(-)
 
-diff -puN ipc/msg.c~revert-ipc-dont-allocate-a-copy-larger-than-max ipc/msg.c
---- a/ipc/msg.c~revert-ipc-dont-allocate-a-copy-larger-than-max
-+++ a/ipc/msg.c
-@@ -820,17 +820,15 @@ long do_msgrcv(int msqid, void __user *b
- 	struct msg_msg *copy = NULL;
- 	unsigned long copy_number = 0;
+diff -puN ipc/util.c~revert-ipc_schedule_free-can-do-vfree-now ipc/util.c
+--- a/ipc/util.c~revert-ipc_schedule_free-can-do-vfree-now
++++ a/ipc/util.c
+@@ -468,9 +468,10 @@ void ipc_free(void* ptr, int size)
  
--	ns = current->nsproxy->ipc_ns;
--
- 	if (msqid < 0 || (long) bufsz < 0)
- 		return -EINVAL;
- 	if (msgflg & MSG_COPY) {
--		copy = prepare_copy(buf, min_t(size_t, bufsz, ns->msg_ctlmax),
--				    msgflg, &msgtyp, &copy_number);
-+		copy = prepare_copy(buf, bufsz, msgflg, &msgtyp, &copy_number);
- 		if (IS_ERR(copy))
- 			return PTR_ERR(copy);
+ /*
+  * rcu allocations:
+- * There are two headers that are prepended to the actual allocation:
++ * There are three headers that are prepended to the actual allocation:
+  * - during use: ipc_rcu_hdr.
+  * - during the rcu grace period: ipc_rcu_grace.
++ * - [only if vmalloc]: ipc_rcu_sched.
+  * Their lifetime doesn't overlap, thus the headers share the same memory.
+  * Unlike a normal union, they are right-aligned, thus some container_of
+  * forward/backward casting is necessary:
+@@ -478,6 +479,7 @@ void ipc_free(void* ptr, int size)
+ struct ipc_rcu_hdr
+ {
+ 	int refcount;
++	int is_vmalloc;
+ 	void *data[0];
+ };
+ 
+@@ -489,8 +491,25 @@ struct ipc_rcu_grace
+ 	void *data[0];
+ };
+ 
+-#define HDRLEN		(sizeof(struct ipc_rcu_grace) > sizeof(struct ipc_rcu_hdr) ? \
++struct ipc_rcu_sched
++{
++	struct work_struct work;
++	/* "void *" makes sure alignment of following data is sane. */
++	void *data[0];
++};
++
++#define HDRLEN_KMALLOC		(sizeof(struct ipc_rcu_grace) > sizeof(struct ipc_rcu_hdr) ? \
+ 					sizeof(struct ipc_rcu_grace) : sizeof(struct ipc_rcu_hdr))
++#define HDRLEN_VMALLOC		(sizeof(struct ipc_rcu_sched) > HDRLEN_KMALLOC ? \
++					sizeof(struct ipc_rcu_sched) : HDRLEN_KMALLOC)
++
++static inline int rcu_use_vmalloc(int size)
++{
++	/* Too big for a single page? */
++	if (HDRLEN_KMALLOC + size > PAGE_SIZE)
++		return 1;
++	return 0;
++}
+ 
+ /**
+  *	ipc_rcu_alloc	-	allocate ipc and rcu space 
+@@ -503,16 +522,27 @@ struct ipc_rcu_grace
+  
+ void* ipc_rcu_alloc(int size)
+ {
+-	size_t len = size + HDRLEN;
+-	void *out;
++	void* out;
+ 	/* 
+-	 * We prepend the allocation with the rcu struct
++	 * We prepend the allocation with the rcu struct, and
++	 * workqueue if necessary (for vmalloc).
+ 	 */
+-	out = (len > PAGE_SIZE) ? vmalloc(len) : kmalloc(len, GFP_KERNEL);
+-	if (out) {
+-		out += HDRLEN;
+-		container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
++	if (rcu_use_vmalloc(size)) {
++		out = vmalloc(HDRLEN_VMALLOC + size);
++		if (out) {
++			out += HDRLEN_VMALLOC;
++			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
++			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
++		}
++	} else {
++		out = kmalloc(HDRLEN_KMALLOC + size, GFP_KERNEL);
++		if (out) {
++			out += HDRLEN_KMALLOC;
++			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
++			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
++		}
  	}
- 	mode = convert_mode(&msgtyp, msgflg);
-+	ns = current->nsproxy->ipc_ns;
++
+ 	return out;
+ }
  
- 	msq = msg_lock_check(ns, msqid);
- 	if (IS_ERR(msq)) {
+@@ -521,15 +551,29 @@ void ipc_rcu_getref(void *ptr)
+ 	container_of(ptr, struct ipc_rcu_hdr, data)->refcount++;
+ }
+ 
++static void ipc_do_vfree(struct work_struct *work)
++{
++	vfree(container_of(work, struct ipc_rcu_sched, work));
++}
++
+ /**
+  * ipc_schedule_free - free ipc + rcu space
+  * @head: RCU callback structure for queued work
++ *
++ * Since RCU callback function is called in bh,
++ * we need to defer the vfree to schedule_work().
+  */
+ static void ipc_schedule_free(struct rcu_head *head)
+ {
+ 	struct ipc_rcu_grace *grace;
++	struct ipc_rcu_sched *sched;
++
+ 	grace = container_of(head, struct ipc_rcu_grace, rcu);
+-	vfree(grace);
++	sched = container_of(&(grace->data[0]), struct ipc_rcu_sched,
++				data[0]);
++
++	INIT_WORK(&sched->work, ipc_do_vfree);
++	schedule_work(&sched->work);
+ }
+ 
+ void ipc_rcu_putref(void *ptr)
+@@ -537,7 +581,7 @@ void ipc_rcu_putref(void *ptr)
+ 	if (--container_of(ptr, struct ipc_rcu_hdr, data)->refcount > 0)
+ 		return;
+ 
+-	if (is_vmalloc_addr(ptr)) {
++	if (container_of(ptr, struct ipc_rcu_hdr, data)->is_vmalloc) {
+ 		call_rcu(&container_of(ptr, struct ipc_rcu_grace, data)->rcu,
+ 				ipc_schedule_free);
+ 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +182,6 @@ drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate-fix.patch
-revert-ipc_schedule_free-can-do-vfree-now.patch
 ipc-introduce-obtaining-a-lockless-ipc-object.patch
 ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
 ipcsem-open-code-and-rename-sem_lock.patch
