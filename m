@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:14 -0700
-Message-ID: <20130507223914.CEB795A4016@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:16 -0700
+Message-ID: <20130507223916.CBAC631C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:38017 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750989Ab3EGWjP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:15 -0400
-Received: by mail-qa0-f73.google.com with SMTP id bs12so145476qab.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:15 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:47743 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab3EGWjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:17 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r14so109258ghr.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max6902.c: remove unwanted spaces
+     Subject: drivers/rtc/rtc-max77686.c: remove space before semicolon
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch
+     drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max6902.c: remove unwanted spaces
+Subject: drivers/rtc/rtc-max77686.c: remove space before semicolon
 
-Silences the following type of warnings:
-WARNING: space prohibited between function name and open parenthesis '('
+Fixes the following warning:
+WARNING: space prohibited before semicolon
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6902.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-max77686.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-max6902.c~drivers-rtc-rtc-max6902c-remove-unwanted-spaces drivers/rtc/rtc-max6902.c
---- a/drivers/rtc/rtc-max6902.c~drivers-rtc-rtc-max6902c-remove-unwanted-spaces
-+++ a/drivers/rtc/rtc-max6902.c
-@@ -159,7 +159,7 @@ static struct spi_driver max6902_driver
+diff -puN drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-remove-space-before-semicolon drivers/rtc/rtc-max77686.c
+--- a/drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-remove-space-before-semicolon
++++ a/drivers/rtc/rtc-max77686.c
+@@ -119,7 +119,7 @@ static int max77686_rtc_tm_to_data(struc
+ 	data[RTC_WEEKDAY] = 1 << tm->tm_wday;
+ 	data[RTC_DATE] = tm->tm_mday;
+ 	data[RTC_MONTH] = tm->tm_mon + 1;
+-	data[RTC_YEAR] = tm->tm_year > 100 ? (tm->tm_year - 100) : 0 ;
++	data[RTC_YEAR] = tm->tm_year > 100 ? (tm->tm_year - 100) : 0;
  
- module_spi_driver(max6902_driver);
- 
--MODULE_DESCRIPTION ("max6902 spi RTC driver");
--MODULE_AUTHOR ("Raphael Assenat");
--MODULE_LICENSE ("GPL");
-+MODULE_DESCRIPTION("max6902 spi RTC driver");
-+MODULE_AUTHOR("Raphael Assenat");
-+MODULE_LICENSE("GPL");
- MODULE_ALIAS("spi:rtc-max6902");
+ 	if (tm->tm_year < 100) {
+ 		pr_warn("%s: MAX77686 RTC cannot handle the year %d."
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
