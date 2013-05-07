@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:50:07 -0700
-Message-ID: <20130507225007.C38C25A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + lib-add-weak-clz-ctz-functions.patch added to -mm tree
+Date: Tue, 07 May 2013 15:56:03 -0700
+Message-ID: <20130507225603.8C07231C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:43643 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755748Ab3EGWuI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:50:08 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 1so122234qec.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:50:08 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:60989 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725Ab3EGW4F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:56:05 -0400
+Received: by mail-qc0-f202.google.com with SMTP id d1so122994qcz.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:56:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: chanho.min@lge.com, djwong@us.ibm.com, geert@linux-m68k.org, herbert@gondor.hengli.com.au, kyungsik.lee@lge.com, richard@nod.at, rpearson@systemfabricworks.com, yann.collet.73@gmail.com
 
 
 The patch titled
-     Subject: rtc: rtc-rp5c01: remove unnecessary platform_set_drvdata()
+     Subject: lib: add weak clz/ctz functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata.patch
+     lib-add-weak-clz-ctz-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,126 +33,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rp5c01: remove unnecessary platform_set_drvdata()
+From: Chanho Min <chanho.min@lge.com>
+Subject: lib: add weak clz/ctz functions
 
-The driver core clears the driver data to NULL after device_release or on
-probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
-NULL when no driver is bound").  Thus, it is not needed to manually clear
-the device driver data to NULL.
+Some architectures need __c[lt]z[sd]i2() for __builtin_c[lt]z[ll] and It
+causes build failure.  They can be implemented using the fls()/__ffs() and
+overridden by linking arch-specific versions may not be implemented yet.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+This is required by "lib: add lz4 compressor module".
+
+Reference: https://lkml.org/lkml/2013/4/18/603
+
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>
+Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rp5c01.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ lib/Makefile  |    2 -
+ lib/clz_ctz.c |   58 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-rp5c01.c~rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-rp5c01.c
---- a/drivers/rtc/rtc-rp5c01.c~rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-rp5c01.c
-@@ -251,21 +251,15 @@ static int __init rp5c01_rtc_probe(struc
+diff -puN lib/Makefile~lib-add-weak-clz-ctz-functions lib/Makefile
+--- a/lib/Makefile~lib-add-weak-clz-ctz-functions
++++ a/lib/Makefile
+@@ -23,7 +23,7 @@ lib-y	+= kobject.o klist.o
  
- 	rtc = devm_rtc_device_register(&dev->dev, "rtc-rp5c01", &rp5c01_rtc_ops,
- 				  THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		error = PTR_ERR(rtc);
--		goto out;
--	}
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 	priv->rtc = rtc;
- 
- 	error = sysfs_create_bin_file(&dev->dev.kobj, &priv->nvram_attr);
- 	if (error)
--		goto out;
-+		return error;
- 
- 	return 0;
--
--out:
--	platform_set_drvdata(dev, NULL);
--	return error;
- }
- 
- static int __exit rp5c01_rtc_remove(struct platform_device *dev)
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 gcd.o lcm.o list_sort.o uuid.o flex_array.o \
++	 gcd.o lcm.o list_sort.o uuid.o flex_array.o clz_ctz.o\
+ 	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o kfifo.o
+ obj-y += string_helpers.o
+ obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
+diff -puN /dev/null lib/clz_ctz.c
+--- /dev/null
++++ a/lib/clz_ctz.c
+@@ -0,0 +1,58 @@
++/*
++ * lib/clz_ctz.c
++ *
++ * Copyright (C) 2013 Chanho Min <chanho.min@lge.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * __c[lt]z[sd]i2 can be overridden by linking arch-specific versions.
++ */
++
++#include <linux/export.h>
++#include <linux/kernel.h>
++
++int __weak __ctzsi2(int val)
++{
++	return __ffs(val);
++}
++EXPORT_SYMBOL(__ctzsi2);
++
++int __weak __clzsi2(int val)
++{
++	return 32 - fls(val);
++}
++EXPORT_SYMBOL(__clzsi2);
++
++#if BITS_PER_LONG == 32
++
++int __weak __clzdi2(long val)
++{
++	return 32 - fls((int)val);
++}
++EXPORT_SYMBOL(__clzdi2);
++
++int __weak __ctzdi2(long val)
++{
++	return __ffs((u32)val);
++}
++EXPORT_SYMBOL(__ctzdi2);
++
++#elif BITS_PER_LONG == 64
++
++int __weak __clzdi2(long val)
++{
++	return 64 - fls64((u64)val);
++}
++EXPORT_SYMBOL(__clzdi2);
++
++int __weak __ctzdi2(long val)
++{
++	return __ffs64((u64)val);
++}
++EXPORT_SYMBOL(__ctzdi2);
++
++#else
++#error BITS_PER_LONG not 32 or 64
++#endif
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from chanho.min@lge.com are
 
 origin.patch
-linux-next.patch
-backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata.patch
-backlight-ep93xx-remove-unnecessary-platform_set_drvdata.patch
-backlight-lp8788-remove-unnecessary-platform_set_drvdata.patch
-backlight-pcf50633-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-88pm80x-remove-unnecessary-platform_set_drvdata.patch
-drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
-drivers-rtc-interfacec-fix-checkpatch-errors.patch
-drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
-drivers-rtc-rtc-at91rm9200c-include-linux-uaccessh.patch
-drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch
-drivers-rtc-rtc-davincic-fix-whitespace-warning.patch
-drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch
-drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
-drivers-rtc-rtc-ds1511c-fix-issues-related-to-spaces-and-braces.patch
-drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch
-drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch
-drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch
-drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch
-drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
-drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch
-drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
-drivers-rtc-rtc-msm6242c-use-pr_warn.patch
-drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
-drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
-drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch
-drivers-rtc-rtc-pcf8583c-move-assignment-outside-if-condition.patch
-drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
-drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
-drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
-drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
-drivers-rtc-rtc-x1205c-fix-checkpatch-issues.patch
-rtc-rtc-88pm860x-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ab3100-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ab8500-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-at32ap700x-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-at91rm9200-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-at91sam9-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-au1xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-bfin-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-bq4802-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-coh901331-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-da9052-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-davinci-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-dm355evm-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ep93xx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-jz4740-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-lp8788-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-lpc32xx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ls1x-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-m48t59-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-max8925-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-max8998-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-mc13xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-msm6242-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-mxc-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-nuc900-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-pcap-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-pm8xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-s3c-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-sa1100-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-sh-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-spear-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-twl-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-vr41xx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-vt8500-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-m48t86-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-puv3-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-tile-remove-unnecessary-platform_set_drvdata.patch
-drivers-rtc-rtc-pxac-use-devm_-apis.patch
+lib-add-weak-clz-ctz-functions.patch
+lib-add-lz4-compressor-module.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api.patch
+crypto-add-lz4-cryptographic-api-fix.patch
 
