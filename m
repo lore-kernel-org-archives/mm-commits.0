@@ -1,59 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-introduce-dump_interrupted.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:33 -0700
-Message-ID: <20130507174933.89D5A31C324@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] coredump-factor-out-the-setting-of-pf_dumpcore.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:36 -0700
+Message-ID: <20130507174936.80C6A5A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:37519 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759445Ab3EGRte (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:34 -0400
-Received: by mail-qc0-f202.google.com with SMTP id d1so85382qcz.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:34 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:33508 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758406Ab3EGRti (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:38 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so85405ves.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: introduce dump_interrupted()
+     Subject: coredump: factor out the setting of PF_DUMPCORE
 has been removed from the -mm tree.  Its filename was
-     coredump-introduce-dump_interrupted.patch
+     coredump-factor-out-the-setting-of-pf_dumpcore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: introduce dump_interrupted()
+Subject: coredump: factor out the setting of PF_DUMPCORE
 
-By discussion with Mandeep.
-
-Change dump_write(), dump_seek() and do_coredump() to check
-signal_pending() and abort if it is true.  dump_seek() does this only
-before f_op->llseek(), otherwise it relies on dump_write().
-
-We need this change to ensure that the coredump won't delay suspend, and
-to ensure it reacts to SIGKILL "quickly enough", a core dump can take a
-lot of time.  In particular this can help oom-killer.
-
-We add the new trivial helper, dump_interrupted() to add the comments and
-to simplify the potential freezer changes.  Perhaps it will have more
-callers.
-
-Ideally it should do try_to_freeze() but then we need the unpleasant
-changes in dump_write() and wait_for_dump_helpers().  It is not trivial to
-change dump_write() to restart if f_op->write() fails because of
-freezing().  We need to handle the short writes, we need to clear
-TIF_SIGPENDING (and we can't rely on recalc_sigpending() unless we change
-it to check PF_DUMPCORE).  And if the buggy f_op->write() sets
-TIF_SIGPENDING we can not distinguish this case from the race with
-freeze_task() + __thaw_task().
-
-So we simply accept the fact that the freezer can truncate a core-dump but
-at least you can reliably suspend.  Hopefully we can tolerate this
-unlikely case and the necessary complications doesn't worth a trouble. 
-But if we decide to make the coredumping freezable later we can do this on
-top of this change.
+Cleanup.  Every linux_binfmt->core_dump() sets PF_DUMPCORE, move this into
+zap_threads() called by do_coredump().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Mandeep Singh Baines <msb@chromium.org>
@@ -63,60 +37,71 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ arch/x86/ia32/ia32_aout.c |    1 -
+ fs/binfmt_aout.c          |    1 -
+ fs/binfmt_elf.c           |    3 +--
+ fs/binfmt_elf_fdpic.c     |    2 --
+ fs/coredump.c             |    1 +
+ 5 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/coredump.c~coredump-introduce-dump_interrupted fs/coredump.c
---- a/fs/coredump.c~coredump-introduce-dump_interrupted
-+++ a/fs/coredump.c
-@@ -418,6 +418,17 @@ static void coredump_finish(struct mm_st
- 	mm->core_state = NULL;
- }
+diff -puN arch/x86/ia32/ia32_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore arch/x86/ia32/ia32_aout.c
+--- a/arch/x86/ia32/ia32_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/arch/x86/ia32/ia32_aout.c
+@@ -162,7 +162,6 @@ static int aout_core_dump(long signr, st
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+ 	strncpy(dump.u_comm, current->comm, sizeof(current->comm));
+ 	dump.u_ar0 = offsetof(struct user32, regs);
+ 	dump.signal = signr;
+diff -puN fs/binfmt_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/binfmt_aout.c
+@@ -62,7 +62,6 @@ static int aout_core_dump(struct coredum
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+        	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
+ 	dump.u_ar0 = offsetof(struct user, regs);
+ 	dump.signal = cprm->siginfo->si_signo;
+diff -puN fs/binfmt_elf.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/binfmt_elf.c
+@@ -2092,8 +2092,7 @@ static int elf_core_dump(struct coredump
+ 		goto cleanup;
  
-+static bool dump_interrupted(void)
-+{
-+	/*
-+	 * SIGKILL or freezing() interrupt the coredumping. Perhaps we
-+	 * can do try_to_freeze() and check __fatal_signal_pending(),
-+	 * but then we need to teach dump_write() to restart and clear
-+	 * TIF_SIGPENDING.
-+	 */
-+	return signal_pending(current);
-+}
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+-  
 +
- static void wait_for_dump_helpers(struct file *file)
- {
- 	struct pipe_inode_info *pipe;
-@@ -641,7 +652,7 @@ void do_coredump(siginfo_t *siginfo)
- 		goto close_fail;
- 	if (displaced)
- 		put_files_struct(displaced);
--	core_dumped = binfmt->core_dump(&cprm);
-+	core_dumped = !dump_interrupted() && binfmt->core_dump(&cprm);
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
  
- 	if (ispipe && core_pipe_limit)
- 		wait_for_dump_helpers(cprm.file);
-@@ -669,7 +680,9 @@ fail:
-  */
- int dump_write(struct file *file, const void *addr, int nr)
- {
--	return access_ok(VERIFY_READ, addr, nr) && file->f_op->write(file, addr, nr, &file->f_pos) == nr;
-+	return !dump_interrupted() &&
-+		access_ok(VERIFY_READ, addr, nr) &&
-+		file->f_op->write(file, addr, nr, &file->f_pos) == nr;
- }
- EXPORT_SYMBOL(dump_write);
+diff -puN fs/binfmt_elf_fdpic.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1687,8 +1687,6 @@ static int elf_fdpic_core_dump(struct co
+ 	fill_elf_fdpic_header(elf, e_phnum);
  
-@@ -678,7 +691,8 @@ int dump_seek(struct file *file, loff_t
- 	int ret = 1;
+ 	has_dumped = 1;
+-	current->flags |= PF_DUMPCORE;
+-
+ 	/*
+ 	 * Set up the notes in similar form to SVR4 core dumps made
+ 	 * with info from their /proc.
+diff -puN fs/coredump.c~coredump-factor-out-the-setting-of-pf_dumpcore fs/coredump.c
+--- a/fs/coredump.c~coredump-factor-out-the-setting-of-pf_dumpcore
++++ a/fs/coredump.c
+@@ -299,6 +299,7 @@ static int zap_threads(struct task_struc
+ 	if (unlikely(nr < 0))
+ 		return nr;
  
- 	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
--		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
-+		if (dump_interrupted() ||
-+		    file->f_op->llseek(file, off, SEEK_CUR) < 0)
- 			return 0;
- 	} else {
- 		char *buf = (char *)get_zeroed_page(GFP_KERNEL);
++	tsk->flags = PF_DUMPCORE;
+ 	if (atomic_read(&mm->mm_users) == nr + 1)
+ 		goto done;
+ 	/*
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
