@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ab8500-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:48:53 -0700
-Message-ID: <20130507224853.C901D5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-at32ap700x-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:48:55 -0700
+Message-ID: <20130507224855.C86475A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:51969 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754767Ab3EGWsy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:48:54 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so121874yho.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:48:54 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:56723 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796Ab3EGWs4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:48:56 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so121779yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:48:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, srinidhi.kasagar@stericsson.com
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ab8500: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-at32ap700x: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ab8500-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-at32ap700x-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ab8500: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-at32ap700x: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -42,19 +42,74 @@ NULL when no driver is bound").  Thus, it is not needed to manually clear
 the device driver data to NULL.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-at32ap700x.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN drivers/rtc/rtc-ab8500.c~rtc-rtc-ab8500-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~rtc-rtc-ab8500-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -451,8 +451,6 @@ static int ab8500_rtc_remove(struct plat
+diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -212,23 +212,20 @@ static int __init at32_rtc_probe(struct
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!regs) {
+ 		dev_dbg(&pdev->dev, "no mmio resource defined\n");
+-		ret = -ENXIO;
+-		goto out;
++		return -ENXIO;
+ 	}
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq <= 0) {
+ 		dev_dbg(&pdev->dev, "could not get irq\n");
+-		ret = -ENXIO;
+-		goto out;
++		return -ENXIO;
+ 	}
+ 
+ 	rtc->irq = irq;
+ 	rtc->regs = devm_ioremap(&pdev->dev, regs->start, resource_size(regs));
+ 	if (!rtc->regs) {
+-		ret = -ENOMEM;
+ 		dev_dbg(&pdev->dev, "could not map I/O memory\n");
+-		goto out;
++		return -ENOMEM;
+ 	}
+ 	spin_lock_init(&rtc->lock);
+ 
+@@ -249,7 +246,7 @@ static int __init at32_rtc_probe(struct
+ 				"rtc", rtc);
+ 	if (ret) {
+ 		dev_dbg(&pdev->dev, "could not request irq %d\n", irq);
+-		goto out;
++		return ret;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, rtc);
+@@ -258,8 +255,7 @@ static int __init at32_rtc_probe(struct
+ 				&at32_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc->rtc)) {
+ 		dev_dbg(&pdev->dev, "could not register rtc device\n");
+-		ret = PTR_ERR(rtc->rtc);
+-		goto out;
++		return PTR_ERR(rtc->rtc);
+ 	}
+ 
+ 	device_init_wakeup(&pdev->dev, 1);
+@@ -268,18 +264,12 @@ static int __init at32_rtc_probe(struct
+ 			(unsigned long)rtc->regs, rtc->irq);
+ 
+ 	return 0;
+-
+-out:
+-	platform_set_drvdata(pdev, NULL);
+-	return ret;
+ }
+ 
+ static int __exit at32_rtc_remove(struct platform_device *pdev)
  {
- 	ab8500_sysfs_rtc_unregister(&pdev->dev);
+ 	device_init_wakeup(&pdev->dev, 0);
  
 -	platform_set_drvdata(pdev, NULL);
 -
