@@ -1,165 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] revert-ipc_schedule_free-can-do-vfree-now.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:44:28 -0700
-Message-ID: <20130507174428.AECD75A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] drivers-usb-storage-realtek_crc-fix-build.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:46:06 -0700
+Message-ID: <20130507174607.0A5E531C284@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:38262 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753580Ab3EGRoa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:44:30 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c10so84830qcz.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:44:29 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:56882 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754028Ab3EGRqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:46:08 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so84935yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:46:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, joe@perches.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "ipc_schedule_free() can do vfree() now"
+     Subject: drivers/usb/storage/realtek_cr.c: fix build
 has been removed from the -mm tree.  Its filename was
-     revert-ipc_schedule_free-can-do-vfree-now.patch
+     drivers-usb-storage-realtek_crc-fix-build.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "ipc_schedule_free() can do vfree() now"
+Subject: drivers/usb/storage/realtek_cr.c: fix build
 
-This massively screws up pending IPC patches.
+Remove unused local `us', which broke the build.  Also nuke an unneeded
+cast.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Repairs 191648d03d20 ("usb: storage: Convert US_DEBUGP to usb_stor_dbg").
+
+Cc: Joe Perches <joe@perches.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   66 ++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 55 insertions(+), 11 deletions(-)
+ drivers/usb/storage/realtek_cr.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN ipc/util.c~revert-ipc_schedule_free-can-do-vfree-now ipc/util.c
---- a/ipc/util.c~revert-ipc_schedule_free-can-do-vfree-now
-+++ a/ipc/util.c
-@@ -468,9 +468,10 @@ void ipc_free(void* ptr, int size)
+diff -puN drivers/usb/storage/realtek_cr.c~drivers-usb-storage-realtek_crc-fix-build drivers/usb/storage/realtek_cr.c
+--- a/drivers/usb/storage/realtek_cr.c~drivers-usb-storage-realtek_crc-fix-build
++++ a/drivers/usb/storage/realtek_cr.c
+@@ -933,14 +933,11 @@ static int realtek_cr_autosuspend_setup(
  
- /*
-  * rcu allocations:
-- * There are two headers that are prepended to the actual allocation:
-+ * There are three headers that are prepended to the actual allocation:
-  * - during use: ipc_rcu_hdr.
-  * - during the rcu grace period: ipc_rcu_grace.
-+ * - [only if vmalloc]: ipc_rcu_sched.
-  * Their lifetime doesn't overlap, thus the headers share the same memory.
-  * Unlike a normal union, they are right-aligned, thus some container_of
-  * forward/backward casting is necessary:
-@@ -478,6 +479,7 @@ void ipc_free(void* ptr, int size)
- struct ipc_rcu_hdr
+ static void realtek_cr_destructor(void *extra)
  {
- 	int refcount;
-+	int is_vmalloc;
- 	void *data[0];
- };
+-	struct rts51x_chip *chip = (struct rts51x_chip *)extra;
+-	struct us_data *us;
++	struct rts51x_chip *chip = extra;
  
-@@ -489,8 +491,25 @@ struct ipc_rcu_grace
- 	void *data[0];
- };
- 
--#define HDRLEN		(sizeof(struct ipc_rcu_grace) > sizeof(struct ipc_rcu_hdr) ? \
-+struct ipc_rcu_sched
-+{
-+	struct work_struct work;
-+	/* "void *" makes sure alignment of following data is sane. */
-+	void *data[0];
-+};
-+
-+#define HDRLEN_KMALLOC		(sizeof(struct ipc_rcu_grace) > sizeof(struct ipc_rcu_hdr) ? \
- 					sizeof(struct ipc_rcu_grace) : sizeof(struct ipc_rcu_hdr))
-+#define HDRLEN_VMALLOC		(sizeof(struct ipc_rcu_sched) > HDRLEN_KMALLOC ? \
-+					sizeof(struct ipc_rcu_sched) : HDRLEN_KMALLOC)
-+
-+static inline int rcu_use_vmalloc(int size)
-+{
-+	/* Too big for a single page? */
-+	if (HDRLEN_KMALLOC + size > PAGE_SIZE)
-+		return 1;
-+	return 0;
-+}
- 
- /**
-  *	ipc_rcu_alloc	-	allocate ipc and rcu space 
-@@ -503,16 +522,27 @@ struct ipc_rcu_grace
-  
- void* ipc_rcu_alloc(int size)
- {
--	size_t len = size + HDRLEN;
--	void *out;
-+	void* out;
- 	/* 
--	 * We prepend the allocation with the rcu struct
-+	 * We prepend the allocation with the rcu struct, and
-+	 * workqueue if necessary (for vmalloc).
- 	 */
--	out = (len > PAGE_SIZE) ? vmalloc(len) : kmalloc(len, GFP_KERNEL);
--	if (out) {
--		out += HDRLEN;
--		container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
-+	if (rcu_use_vmalloc(size)) {
-+		out = vmalloc(HDRLEN_VMALLOC + size);
-+		if (out) {
-+			out += HDRLEN_VMALLOC;
-+			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 1;
-+			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
-+		}
-+	} else {
-+		out = kmalloc(HDRLEN_KMALLOC + size, GFP_KERNEL);
-+		if (out) {
-+			out += HDRLEN_KMALLOC;
-+			container_of(out, struct ipc_rcu_hdr, data)->is_vmalloc = 0;
-+			container_of(out, struct ipc_rcu_hdr, data)->refcount = 1;
-+		}
- 	}
-+
- 	return out;
- }
- 
-@@ -521,15 +551,29 @@ void ipc_rcu_getref(void *ptr)
- 	container_of(ptr, struct ipc_rcu_hdr, data)->refcount++;
- }
- 
-+static void ipc_do_vfree(struct work_struct *work)
-+{
-+	vfree(container_of(work, struct ipc_rcu_sched, work));
-+}
-+
- /**
-  * ipc_schedule_free - free ipc + rcu space
-  * @head: RCU callback structure for queued work
-+ *
-+ * Since RCU callback function is called in bh,
-+ * we need to defer the vfree to schedule_work().
-  */
- static void ipc_schedule_free(struct rcu_head *head)
- {
- 	struct ipc_rcu_grace *grace;
-+	struct ipc_rcu_sched *sched;
-+
- 	grace = container_of(head, struct ipc_rcu_grace, rcu);
--	vfree(grace);
-+	sched = container_of(&(grace->data[0]), struct ipc_rcu_sched,
-+				data[0]);
-+
-+	INIT_WORK(&sched->work, ipc_do_vfree);
-+	schedule_work(&sched->work);
- }
- 
- void ipc_rcu_putref(void *ptr)
-@@ -537,7 +581,7 @@ void ipc_rcu_putref(void *ptr)
- 	if (--container_of(ptr, struct ipc_rcu_hdr, data)->refcount > 0)
+ 	if (!chip)
  		return;
  
--	if (is_vmalloc_addr(ptr)) {
-+	if (container_of(ptr, struct ipc_rcu_hdr, data)->is_vmalloc) {
- 		call_rcu(&container_of(ptr, struct ipc_rcu_grace, data)->rcu,
- 				ipc_schedule_free);
- 	} else {
+-	us = chip->us;
+-
+ #ifdef CONFIG_REALTEK_AUTOPM
+ 	if (ss_en) {
+ 		del_timer(&chip->rts51x_suspend_timer);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,10 +81,6 @@ drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate-fix.patch
-ipc-introduce-obtaining-a-lockless-ipc-object.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
-ipcsem-open-code-and-rename-sem_lock.patch
-ipc-sysv-shared-memory-limited-to-8tib.patch
 rapidio-make-enumeration-discovery-configurable-fix.patch
 gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
 aio-remove-retry-based-aio-checkpatch-fixes.patch
