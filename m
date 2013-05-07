@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Tue, 30 Apr 2013 15:36:47 -0700
-Message-ID: <20130430223647.6464831C22F@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:43:37 -0700
+Message-ID: <20130507174338.30C1C31C284@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:57199 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933772Ab3D3Wgs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Apr 2013 18:36:48 -0400
-Received: by mail-qc0-f202.google.com with SMTP id k26so115936qcs.5
-        for <mm-commits@vger.kernel.org>; Tue, 30 Apr 2013 15:36:47 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:56977 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483Ab3EGRnj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:43:39 -0400
+Received: by mail-gh0-f202.google.com with SMTP id g24so72887ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:43:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -105,24 +95,7 @@ _
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-usb-storage-realtek_crc-fix-build.patch
-inotify-invalid-mask-should-return-a-error-number-but-not-set-it.patch
-xen-tmem-enable-xen-tmem-shim-to-be-built-loaded-as-a-module.patch
-staging-zcache-enable-ramster-to-be-built-loaded-as-a-module.patch
-selftest-add-simple-test-for-soft-dirty-bit.patch
-kernel-smpc-cleanups.patch
-lib-string_helpers-introduce-generic-string_unescape.patch
-kernel-timerc-ove-some-non-timer-related-syscalls-to-kernel-sysc.patch
-epoll-trim-epitem-by-one-cache-line-on-x86_64.patch
-nilfs2-fix-issue-with-flush-kernel-thread-after-remount-in-ro-mode-because-of-drivers-internal-error-or-metadata-corruption.patch
-hfsplus-fix-warnings-in-fs-hfsplus-bfindc-in-function-hfs_find_1st_rec_by_cnid.patch
-usermodehelper-export-_exec-and-_setup-functions.patch
-kexec-use-min_t-to-simplify-logic.patch
-kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch
-pid_namespacec-h-simplify-defines.patch
-revert-1.patch
 linux-next.patch
-linux-next-rejects.patch
 linux-next-git-rejects1.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
@@ -130,6 +103,7 @@ revert-ipc-dont-allocate-a-copy-larger-than-max.patch
 clear_refs-sanitize-accepted-commands-declaration.patch
 include-linux-mmh-complete-the-mm_walk-definition.patch
 drivers-net-rename-random32-to-prandom_u32-fix.patch
+mm-vmallocc-add-vfree-comment.patch
 sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 drivers-video-implement-a-simple-framebuffer-driver.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
@@ -141,11 +115,10 @@ memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate-fix.patch
 revert-ipc_schedule_free-can-do-vfree-now.patch
-ipc-introduce-obtaining-a-lockless-ipc-object-fix.patch
-ipcsem-do-not-hold-ipc-lock-more-than-necessary-fix-checkpatch-fixes.patch
-ipcsem-open-code-and-rename-sem_lock-fix.patch
-ipcsem-fine-grained-locking-for-semtimedop-ipc-make-refcounter-atomic-fix.patch
-ipc-sysv-shared-memory-limited-to-8tib-fix.patch
+ipc-introduce-obtaining-a-lockless-ipc-object.patch
+ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
+ipcsem-open-code-and-rename-sem_lock.patch
+ipc-sysv-shared-memory-limited-to-8tib.patch
 rapidio-make-enumeration-discovery-configurable-fix.patch
 gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
 aio-remove-retry-based-aio-checkpatch-fixes.patch
