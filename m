@@ -1,42 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 07 May 2013 12:40:58 -0700
-Message-ID: <20130507194058.749B731C15F@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] aio-remove-retry-based-aio-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 07 May 2013 12:41:18 -0700
+Message-ID: <20130507194119.3582D5A4111@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:62555 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849Ab3EGTk7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:40:59 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so99816yho.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:40:58 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:38224 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753746Ab3EGTlU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:41:20 -0400
+Received: by mail-vb0-f74.google.com with SMTP id q16so99852vbe.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:41:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gadget-remove-only-user-of-aio-retry-checkpatch-fixes
+     Subject: aio-remove-retry-based-aio-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+     aio-remove-retry-based-aio-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into gadget-remove-only-user-of-aio-retry.patch
+This patch was dropped because it was folded into aio-remove-retry-based-aio.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: gadget-remove-only-user-of-aio-retry-checkpatch-fixes
+Subject: aio-remove-retry-based-aio-checkpatch-fixes
 
-WARNING: please, no space before tabs
-#50: FILE: drivers/usb/gadget/inode.c:517:
-+^Istruct kiocb ^I^I*iocb;$
+WARNING: Avoid CamelCase: <kiocbIsCancelled>
+#527: FILE: fs/aio.c:1289:
++	if (unlikely(kiocbIsCancelled(req))) {
 
-WARNING: please, no space before tabs
-#51: FILE: drivers/usb/gadget/inode.c:518:
-+^Istruct mm_struct ^I*mm;$
+WARNING: braces {} are not necessary for any arm of this statement
+#527: FILE: fs/aio.c:1289:
++	if (unlikely(kiocbIsCancelled(req))) {
+[...]
++	} else {
+[...]
 
-total: 0 errors, 2 warnings, 107 lines checked
+WARNING: line over 80 characters
+#543: FILE: fs/aio.c:1300:
++			     ret == -ERESTARTNOHAND || ret == -ERESTART_RESTARTBLOCK))
 
-./patches/gadget-remove-only-user-of-aio-retry.patch has style problems, please review.
+total: 0 errors, 3 warnings, 628 lines checked
+
+./patches/aio-remove-retry-based-aio.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -47,23 +54,36 @@ Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/aio.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry-checkpatch-fixes drivers/usb/gadget/inode.c
---- a/drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry-checkpatch-fixes
-+++ a/drivers/usb/gadget/inode.c
-@@ -514,8 +514,8 @@ static long ep_ioctl(struct file *fd, un
- struct kiocb_priv {
- 	struct usb_request	*req;
- 	struct ep_data		*epdata;
--	struct kiocb 		*iocb;
--	struct mm_struct 	*mm;
-+	struct kiocb		*iocb;
-+	struct mm_struct	*mm;
- 	struct work_struct	work;
- 	void			*buf;
- 	const struct iovec	*iv;
+diff -puN fs/aio.c~aio-remove-retry-based-aio-checkpatch-fixes fs/aio.c
+--- a/fs/aio.c~aio-remove-retry-based-aio-checkpatch-fixes
++++ a/fs/aio.c
+@@ -1290,18 +1290,19 @@ static int io_submit_one(struct kioctx *
+ 	if (ret)
+ 		goto out_put_req;
+ 
+-	if (unlikely(kiocbIsCancelled(req))) {
++	if (unlikely(kiocbIsCancelled(req)))
+ 		ret = -EINTR;
+-	} else {
++	else
+ 		ret = req->ki_retry(req);
+-	}
++
+ 	if (ret != -EIOCBQUEUED) {
+ 		/*
+ 		 * There's no easy way to restart the syscall since other AIO's
+ 		 * may be already running. Just fail this IO with EINTR.
+ 		 */
+ 		if (unlikely(ret == -ERESTARTSYS || ret == -ERESTARTNOINTR ||
+-			     ret == -ERESTARTNOHAND || ret == -ERESTART_RESTARTBLOCK))
++			     ret == -ERESTARTNOHAND ||
++			     ret == -ERESTART_RESTARTBLOCK))
+ 			ret = -EINTR;
+ 		aio_complete(req, ret, 0);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +95,7 @@ drivers-net-rename-random32-to-prandom_u32.patch
 drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch
 mm-vmallocc-add-vfree-comment.patch
 gadget-remove-only-user-of-aio-retry.patch
-aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-remove-retry-based-aio.patch
 aio-add-kiocb_cancel.patch
 aio-make-aio_put_req-lockless-checkpatch-fixes.patch
 aio-refcounting-cleanup-checkpatch-fixes.patch
