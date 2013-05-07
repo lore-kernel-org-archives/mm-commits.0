@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-da9052-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:09 -0700
-Message-ID: <20130507224909.C4D805A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:11 -0700
+Message-ID: <20130507224911.C42C65A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:37371 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab3EGWtK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:10 -0400
-Received: by mail-qa0-f73.google.com with SMTP id bs12so146254qab.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:10 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:54686 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796Ab3EGWtN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:13 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz10so122070vcb.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-da9052: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-da9055: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-da9052-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-da9052: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-da9055: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,15 +45,15 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9052.c |    2 --
+ drivers/rtc/rtc-da9055.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-da9052.c
---- a/drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-da9052.c
-@@ -257,8 +257,6 @@ static int da9052_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-da9055.c
+--- a/drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-da9055.c
+@@ -317,8 +317,6 @@ err_rtc:
  
- static int da9052_rtc_remove(struct platform_device *pdev)
+ static int da9055_rtc_remove(struct platform_device *pdev)
  {
 -	platform_set_drvdata(pdev, NULL);
 -
