@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at91rm9200-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:48:57 -0700
-Message-ID: <20130507224857.C6F6C5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-at91sam9-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:48:59 -0700
+Message-ID: <20130507224859.C1AE05A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:38784 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab3EGWs6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:48:58 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so121814qen.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:48:58 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:40746 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796Ab3EGWtA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:00 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so121911yho.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-at91rm9200: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-at91sam9: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at91rm9200-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-at91sam9-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-at91rm9200: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-at91sam9: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,20 +45,71 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/rtc/rtc-at91sam9.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-rtc-at91rm9200-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -341,7 +341,6 @@ static int __exit at91_rtc_remove(struct
+diff -puN drivers/rtc/rtc-at91sam9.c~rtc-rtc-at91sam9-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-at91sam9.c
+--- a/drivers/rtc/rtc-at91sam9.c~rtc-rtc-at91sam9-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-at91sam9.c
+@@ -324,16 +324,14 @@ static int at91_rtc_probe(struct platfor
+ 	rtc->rtt = devm_ioremap(&pdev->dev, r->start, resource_size(r));
+ 	if (!rtc->rtt) {
+ 		dev_err(&pdev->dev, "failed to map registers, aborting.\n");
+-		ret = -ENOMEM;
+-		goto fail;
++		return -ENOMEM;
+ 	}
  
- 	rtc_device_unregister(rtc);
- 	iounmap(at91_rtc_regs);
--	platform_set_drvdata(pdev, NULL);
+ 	rtc->gpbr = devm_ioremap(&pdev->dev, r_gpbr->start,
+ 				resource_size(r_gpbr));
+ 	if (!rtc->gpbr) {
+ 		dev_err(&pdev->dev, "failed to map gpbr registers, aborting.\n");
+-		ret = -ENOMEM;
+-		goto fail;
++		return -ENOMEM;
+ 	}
+ 
+ 	mr = rtt_readl(rtc, MR);
+@@ -350,17 +348,15 @@ static int at91_rtc_probe(struct platfor
+ 
+ 	rtc->rtcdev = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 					&at91_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtc->rtcdev)) {
+-		ret = PTR_ERR(rtc->rtcdev);
+-		goto fail;
+-	}
++	if (IS_ERR(rtc->rtcdev))
++		return PTR_ERR(rtc->rtcdev);
+ 
+ 	/* register irq handler after we know what name we'll use */
+ 	ret = devm_request_irq(&pdev->dev, rtc->irq, at91_rtc_interrupt,
+ 				IRQF_SHARED, dev_name(&rtc->rtcdev->dev), rtc);
+ 	if (ret) {
+ 		dev_dbg(&pdev->dev, "can't share IRQ %d?\n", rtc->irq);
+-		goto fail;
++		return ret;
+ 	}
+ 
+ 	/* NOTE:  sam9260 rev A silicon has a ROM bug which resets the
+@@ -374,10 +370,6 @@ static int at91_rtc_probe(struct platfor
+ 				dev_name(&rtc->rtcdev->dev));
  
  	return 0;
+-
+-fail:
+-	platform_set_drvdata(pdev, NULL);
+-	return ret;
  }
+ 
+ /*
+@@ -391,7 +383,6 @@ static int at91_rtc_remove(struct platfo
+ 	/* disable all interrupts */
+ 	rtt_writel(rtc, MR, mr & ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN));
+ 
+-	platform_set_drvdata(pdev, NULL);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
