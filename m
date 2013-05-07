@@ -1,149 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] block-prep-work-for-batch-completion-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 07 May 2013 12:44:25 -0700
-Message-ID: <20130507194425.AB0FE5A4111@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] block-prep-work-for-batch-completion-fix-4.patch removed from -mm tree
+Date: Tue, 07 May 2013 12:44:31 -0700
+Message-ID: <20130507194431.9CF465A4111@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:50231 "EHLO
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:37457 "EHLO
 	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752339Ab3EGTo0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:44:26 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz10so100301vcb.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:44:26 -0700 (PDT)
+	with ESMTP id S1752339Ab3EGToc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:44:32 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz10so100215vcb.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:44:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-prep-work-for-batch-completion-checkpatch-fixes
+     Subject: block-prep-work-for-batch-completion-fix-4
 has been removed from the -mm tree.  Its filename was
-     block-prep-work-for-batch-completion-checkpatch-fixes.patch
+     block-prep-work-for-batch-completion-fix-4.patch
 
 This patch was dropped because it was folded into block-prep-work-for-batch-completion.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prep-work-for-batch-completion-checkpatch-fixes
+Subject: block-prep-work-for-batch-completion-fix-4
 
-WARNING: line over 80 characters
-#116: FILE: drivers/block/drbd/drbd_bitmap.c:940:
-+static void bm_async_io_complete(struct bio *bio, int error, struct batch_complete *batch)
-
-WARNING: line over 80 characters
-#128: FILE: drivers/block/drbd/drbd_worker.c:67:
-+void drbd_md_io_complete(struct bio *bio, int error, struct batch_complete *batch)
-
-WARNING: line over 80 characters
-#137: FILE: drivers/block/drbd/drbd_worker.c:169:
-+void drbd_peer_request_endio(struct bio *bio, int error, struct batch_complete *batch)
-
-WARNING: line over 80 characters
-#146: FILE: drivers/block/drbd/drbd_worker.c:205:
-+void drbd_request_endio(struct bio *bio, int error, struct batch_complete *batch)
-
-ERROR: "foo * bar" should be "foo *bar"
-#562: FILE: drivers/md/raid5.c:1743:
-+static void raid5_end_read_request(struct bio * bi, int error,
-
-WARNING: line over 80 characters
-#946: FILE: fs/btrfs/volumes.c:5021:
-+static void btrfs_end_bio(struct bio *bio, int err, struct batch_complete *batch)
-
-WARNING: Avoid CamelCase: <lbmIODone>
-#1087: FILE: fs/jfs/jfs_logmgr.c:2157:
-+		lbmIODone(bio, 0, NULL);
-
-total: 1 errors, 6 warnings, 1037 lines checked
-
-./patches/block-prep-work-for-batch-completion.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+fix it for mm-allow-for-outstanding-swap-writeback-accounting.patch
 
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_bitmap.c |    3 ++-
- drivers/block/drbd/drbd_worker.c |    9 ++++++---
- drivers/md/raid5.c               |    2 +-
- fs/btrfs/volumes.c               |    3 ++-
- 4 files changed, 11 insertions(+), 6 deletions(-)
+ include/linux/swap.h |    6 ++++--
+ mm/page_io.c         |    3 ++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_bitmap.c~block-prep-work-for-batch-completion-checkpatch-fixes drivers/block/drbd/drbd_bitmap.c
---- a/drivers/block/drbd/drbd_bitmap.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/drivers/block/drbd/drbd_bitmap.c
-@@ -948,7 +948,8 @@ static void bm_aio_ctx_destroy(struct kr
+diff -puN include/linux/swap.h~block-prep-work-for-batch-completion-fix-4 include/linux/swap.h
+--- a/include/linux/swap.h~block-prep-work-for-batch-completion-fix-4
++++ a/include/linux/swap.h
+@@ -330,9 +330,11 @@ static inline void mem_cgroup_uncharge_s
+ /* linux/mm/page_io.c */
+ extern int swap_readpage(struct page *);
+ extern int swap_writepage(struct page *page, struct writeback_control *wbc);
+-extern void end_swap_bio_write(struct bio *bio, int err);
++extern void end_swap_bio_write(struct bio *bio, int err,
++			       struct batch_complete *batch);
+ extern int __swap_writepage(struct page *page, struct writeback_control *wbc,
+-	void (*end_write_func)(struct bio *, int));
++	void (*end_write_func)(struct bio *bio, int err,
++			       struct batch_complete *batch));
+ extern int swap_set_page_dirty(struct page *page);
+ extern void end_swap_bio_read(struct bio *bio, int err,
+ 			      struct batch_complete *batch);
+diff -puN mm/page_io.c~block-prep-work-for-batch-completion-fix-4 mm/page_io.c
+--- a/mm/page_io.c~block-prep-work-for-batch-completion-fix-4
++++ a/mm/page_io.c
+@@ -204,7 +204,8 @@ out:
  }
  
- /* bv_page may be a copy, or may be the original */
--static void bm_async_io_complete(struct bio *bio, int error, struct batch_complete *batch)
-+static void bm_async_io_complete(struct bio *bio, int error,
-+				 struct batch_complete *batch)
+ int __swap_writepage(struct page *page, struct writeback_control *wbc,
+-	void (*end_write_func)(struct bio *, int))
++	void (*end_write_func)(struct bio *bio, int err,
++			       struct batch_complete *batch))
  {
- 	struct bm_aio_ctx *ctx = bio->bi_private;
- 	struct drbd_conf *mdev = ctx->mdev;
-diff -puN drivers/block/drbd/drbd_worker.c~block-prep-work-for-batch-completion-checkpatch-fixes drivers/block/drbd/drbd_worker.c
---- a/drivers/block/drbd/drbd_worker.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/drivers/block/drbd/drbd_worker.c
-@@ -64,7 +64,8 @@ rwlock_t global_state_lock;
- /* used for synchronous meta data and bitmap IO
-  * submitted by drbd_md_sync_page_io()
-  */
--void drbd_md_io_complete(struct bio *bio, int error, struct batch_complete *batch)
-+void drbd_md_io_complete(struct bio *bio, int error,
-+			 struct batch_complete *batch)
- {
- 	struct drbd_md_io *md_io;
- 	struct drbd_conf *mdev;
-@@ -167,7 +168,8 @@ static void drbd_endio_write_sec_final(s
- /* writes on behalf of the partner, or resync writes,
-  * "submitted" by the receiver.
-  */
--void drbd_peer_request_endio(struct bio *bio, int error, struct batch_complete *batch)
-+void drbd_peer_request_endio(struct bio *bio, int error,
-+			     struct batch_complete *batch)
- {
- 	struct drbd_peer_request *peer_req = bio->bi_private;
- 	struct drbd_conf *mdev = peer_req->w.mdev;
-@@ -203,7 +205,8 @@ void drbd_peer_request_endio(struct bio
- 
- /* read, readA or write requests on R_PRIMARY coming from drbd_make_request
-  */
--void drbd_request_endio(struct bio *bio, int error, struct batch_complete *batch)
-+void drbd_request_endio(struct bio *bio, int error,
-+			struct batch_complete *batch)
- {
- 	unsigned long flags;
- 	struct drbd_request *req = bio->bi_private;
-diff -puN drivers/md/raid5.c~block-prep-work-for-batch-completion-checkpatch-fixes drivers/md/raid5.c
---- a/drivers/md/raid5.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/drivers/md/raid5.c
-@@ -1776,7 +1776,7 @@ static void shrink_stripes(struct r5conf
- 	conf->slab_cache = NULL;
- }
- 
--static void raid5_end_read_request(struct bio * bi, int error,
-+static void raid5_end_read_request(struct bio *bi, int error,
- 				   struct batch_complete *batch)
- {
- 	struct stripe_head *sh = bi->bi_private;
-diff -puN fs/btrfs/volumes.c~block-prep-work-for-batch-completion-checkpatch-fixes fs/btrfs/volumes.c
---- a/fs/btrfs/volumes.c~block-prep-work-for-batch-completion-checkpatch-fixes
-+++ a/fs/btrfs/volumes.c
-@@ -5029,7 +5029,8 @@ static unsigned int extract_stripe_index
- 	return (unsigned int)((uintptr_t)bi_private) & 3;
- }
- 
--static void btrfs_end_bio(struct bio *bio, int err, struct batch_complete *batch)
-+static void btrfs_end_bio(struct bio *bio, int err,
-+			  struct batch_complete *batch)
- {
- 	struct btrfs_bio *bbio = extract_bbio_from_bio_private(bio->bi_private);
- 	int is_orig_bio = 0;
+ 	struct bio *bio;
+ 	int ret = 0, rw = WRITE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -167,7 +89,6 @@ generic-dynamic-per-cpu-refcounting.patch
 aio-dont-include-aioh-in-schedh.patch
 aio-kill-ki_retry.patch
 block-prep-work-for-batch-completion.patch
-block-prep-work-for-batch-completion-fix-4.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
 block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
 linux-next.patch
