@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-sh-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:51 -0700
-Message-ID: <20130507224951.C40845A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-sa1100-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:49 -0700
+Message-ID: <20130507224949.C631A5A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:63013 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755485Ab3EGWtw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:52 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so121950ves.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:52 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:59559 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755485Ab3EGWtu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:50 -0400
+Received: by mail-vb0-f74.google.com with SMTP id q16so121959vbe.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-sh: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-sa1100: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-sh-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-sa1100-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-sh: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-sa1100: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,21 +45,42 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sh.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-sa1100.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-sh.c~rtc-rtc-sh-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-rtc-sh-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-sh.c
-@@ -770,8 +770,6 @@ static int __exit sh_rtc_remove(struct p
- 	clk_disable(rtc->clk);
- 	clk_put(rtc->clk);
+diff -puN drivers/rtc/rtc-sa1100.c~rtc-rtc-sa1100-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-sa1100.c
+--- a/drivers/rtc/rtc-sa1100.c~rtc-rtc-sa1100-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-sa1100.c
+@@ -249,7 +249,7 @@ static int sa1100_rtc_probe(struct platf
  
+ 	ret = clk_prepare_enable(info->clk);
+ 	if (ret)
+-		goto err_enable_clk;
++		return ret;
+ 	/*
+ 	 * According to the manual we should be able to let RTTR be zero
+ 	 * and then a default diviser for a 32.768KHz clock is used.
+@@ -303,8 +303,6 @@ static int sa1100_rtc_probe(struct platf
+ 	return 0;
+ err_dev:
+ 	clk_disable_unprepare(info->clk);
+-err_enable_clk:
 -	platform_set_drvdata(pdev, NULL);
--
- 	kfree(rtc);
+ 	return ret;
+ }
+ 
+@@ -312,10 +310,8 @@ static int sa1100_rtc_remove(struct plat
+ {
+ 	struct sa1100_rtc *info = platform_get_drvdata(pdev);
+ 
+-	if (info) {
++	if (info)
+ 		clk_disable_unprepare(info->clk);
+-		platform_set_drvdata(pdev, NULL);
+-	}
  
  	return 0;
+ }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
