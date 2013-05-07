@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-msm6242c-use-pr_warn.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:22 -0700
-Message-ID: <20130507223922.C745F5A4016@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:20 -0700
+Message-ID: <20130507223920.CB7DD5A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:42527 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab3EGWjX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:23 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c10so121302qcz.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:23 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:37845 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab3EGWjV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:21 -0400
+Received: by mail-yh0-f73.google.com with SMTP id a41so121204yho.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-msm6242.c: use pr_warn
+     Subject: drivers/rtc/rtc-mpc5121.c: remove space before tab
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-msm6242c-use-pr_warn.patch
+     drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-msm6242.c: use pr_warn
+Subject: drivers/rtc/rtc-mpc5121.c: remove space before tab
 
-pr_warn is preferred to pr_warning.
+WARNING: please, no space before tabs
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-msm6242.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-mpc5121.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-msm6242.c~drivers-rtc-rtc-msm6242c-use-pr_warn drivers/rtc/rtc-msm6242.c
---- a/drivers/rtc/rtc-msm6242.c~drivers-rtc-rtc-msm6242c-use-pr_warn
-+++ a/drivers/rtc/rtc-msm6242.c
-@@ -111,8 +111,8 @@ static void msm6242_lock(struct msm6242_
- 	}
- 
- 	if (!cnt)
--		pr_warning("msm6242: timed out waiting for RTC (0x%x)\n",
--			   msm6242_read(priv, MSM6242_CD));
-+		pr_warn("msm6242: timed out waiting for RTC (0x%x)\n",
-+			msm6242_read(priv, MSM6242_CD));
- }
- 
- static void msm6242_unlock(struct msm6242_priv *priv)
+diff -puN drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-remove-space-before-tab drivers/rtc/rtc-mpc5121.c
+--- a/drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-remove-space-before-tab
++++ a/drivers/rtc/rtc-mpc5121.c
+@@ -68,7 +68,7 @@ struct mpc5121_rtc_regs {
+ 	u32 target_time;	/* RTC + 0x20 */
+ 	/*
+ 	 * actual_time:
+-	 * 	readonly time since VBAT_RTC was last connected
++	 *	readonly time since VBAT_RTC was last connected
+ 	 */
+ 	u32 actual_time;	/* RTC + 0x24 */
+ 	u32 keep_alive;		/* RTC + 0x28 */
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
