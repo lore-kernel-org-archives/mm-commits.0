@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:17 -0700
-Message-ID: <20130507224917.C611531C145@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-jz4740-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:21 -0700
+Message-ID: <20130507224921.C39A45A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:39773 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755309Ab3EGWtS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:18 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so121808yen.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:18 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:54488 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754323Ab3EGWtX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:23 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so121807ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ds1302: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-jz4740: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-jz4740-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ds1302: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-jz4740: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,16 +45,24 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1302.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-jz4740.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-ds1302.c
---- a/drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-ds1302.c
-@@ -236,8 +236,6 @@ static int __init ds1302_rtc_probe(struc
+diff -puN drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-jz4740.c
+--- a/drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-jz4740.c
+@@ -287,7 +287,6 @@ err_free_irq:
+ err_unregister_rtc:
+ 	rtc_device_unregister(rtc->rtc);
+ err_iounmap:
+-	platform_set_drvdata(pdev, NULL);
+ 	iounmap(rtc->base);
+ err_release_mem_region:
+ 	release_mem_region(rtc->mem->start, resource_size(rtc->mem));
+@@ -310,8 +309,6 @@ static int jz4740_rtc_remove(struct plat
  
- static int __exit ds1302_rtc_remove(struct platform_device *pdev)
- {
+ 	kfree(rtc);
+ 
 -	platform_set_drvdata(pdev, NULL);
 -
  	return 0;
