@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:16 -0700
-Message-ID: <20130507223916.CBAC631C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:18 -0700
+Message-ID: <20130507223918.CB1EE31C145@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:47743 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab3EGWjR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:17 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r14so109258ghr.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:17 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:45493 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab3EGWjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:19 -0400
+Received: by mail-yh0-f73.google.com with SMTP id a41so121095yho.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max77686.c: remove space before semicolon
+     Subject: drivers/rtc/rtc-max8997.c: remove space before semicolon
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
+     drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max77686.c: remove space before semicolon
+Subject: drivers/rtc/rtc-max8997.c: remove space before semicolon
 
 Fixes the following warning:
 WARNING: space prohibited before semicolon
@@ -44,13 +44,13 @@ Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |    2 +-
+ drivers/rtc/rtc-max8997.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-remove-space-before-semicolon drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-remove-space-before-semicolon
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -119,7 +119,7 @@ static int max77686_rtc_tm_to_data(struc
+diff -puN drivers/rtc/rtc-max8997.c~drivers-rtc-rtc-max8997c-remove-space-before-semicolon drivers/rtc/rtc-max8997.c
+--- a/drivers/rtc/rtc-max8997.c~drivers-rtc-rtc-max8997c-remove-space-before-semicolon
++++ a/drivers/rtc/rtc-max8997.c
+@@ -104,7 +104,7 @@ static int max8997_rtc_tm_to_data(struct
  	data[RTC_WEEKDAY] = 1 << tm->tm_wday;
  	data[RTC_DATE] = tm->tm_mday;
  	data[RTC_MONTH] = tm->tm_mon + 1;
@@ -58,7 +58,7 @@ diff -puN drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-remove-space-befo
 +	data[RTC_YEAR] = tm->tm_year > 100 ? (tm->tm_year - 100) : 0;
  
  	if (tm->tm_year < 100) {
- 		pr_warn("%s: MAX77686 RTC cannot handle the year %d."
+ 		pr_warn("%s: MAX8997 RTC cannot handle the year %d."
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
