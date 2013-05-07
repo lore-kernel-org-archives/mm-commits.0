@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic.patch added to -mm tree
-Date: Tue, 07 May 2013 14:20:13 -0700
-Message-ID: <20130507212013.75FBF5A429A@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-block-xsysacec-fix-id-with-missing-port-number.patch added to -mm tree
+Date: Tue, 07 May 2013 14:40:43 -0700
+Message-ID: <20130507214043.7B3B55A42DC@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:65067 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759566Ab3EGVUO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 17:20:14 -0400
-Received: by mail-gh0-f202.google.com with SMTP id g24so101148ghb.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 14:20:14 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:59287 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759852Ab3EGVko (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 17:40:44 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so114759ggl.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 14:40:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhaohongjiang@huawei.com, roland@kernel.org, sean.hefty@intel.com, tj@kernel.org
+Cc: gvormayr@gmail.com, axboe@kernel.dk, grant.likely@linaro.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com
 
 
 The patch titled
-     Subject: drivers/infiniband/core/cm.c: convert to using idr_alloc_cyclic()
+     Subject: drivers/block/xsysace.c: fix id with missing port-number
 has been added to the -mm tree.  Its filename is
-     drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic.patch
+     drivers-block-xsysacec-fix-id-with-missing-port-number.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhao Hongjiang <zhaohongjiang@huawei.com>
-Subject: drivers/infiniband/core/cm.c: convert to using idr_alloc_cyclic()
+From: Gernot Vormayr <gvormayr@gmail.com>
+Subject: drivers/block/xsysace.c: fix id with missing port-number
 
-commit 3e6628c4b347 ("idr: introduce idr_alloc_cyclic()") adds a new
-idr_alloc_cyclic routine and converts several of these users to it.  This
-is just a missed one - add it.
+If the port number is missing from the device-tree the device gets named
+xs` instead of xsa.  This fixes the check for missing ids.
 
-Signed-off-by: Zhao Hongjiang <zhaohongjiang@huawei.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
+Tested on ml507 board.
+
+Signed-off-by: Gernot Vormayr <gvormayr@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/cm.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/block/xsysace.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/infiniband/core/cm.c~drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic drivers/infiniband/core/cm.c
---- a/drivers/infiniband/core/cm.c~drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic
-+++ a/drivers/infiniband/core/cm.c
-@@ -383,14 +383,11 @@ static int cm_alloc_id(struct cm_id_priv
- {
- 	unsigned long flags;
- 	int id;
--	static int next_id;
+diff -puN drivers/block/xsysace.c~drivers-block-xsysacec-fix-id-with-missing-port-number drivers/block/xsysace.c
+--- a/drivers/block/xsysace.c~drivers-block-xsysacec-fix-id-with-missing-port-number
++++ a/drivers/block/xsysace.c
+@@ -1161,8 +1161,7 @@ static int ace_probe(struct platform_dev
+ 	dev_dbg(&dev->dev, "ace_probe(%p)\n", dev);
  
- 	idr_preload(GFP_KERNEL);
- 	spin_lock_irqsave(&cm.lock, flags);
- 
--	id = idr_alloc(&cm.local_id_table, cm_id_priv, next_id, 0, GFP_NOWAIT);
--	if (id >= 0)
--		next_id = max(id + 1, 0);
-+	id = idr_alloc_cyclic(&cm.local_id_table, cm_id_priv, 0, 0, GFP_NOWAIT);
- 
- 	spin_unlock_irqrestore(&cm.lock, flags);
- 	idr_preload_end();
+ 	/* device id and bus width */
+-	of_property_read_u32(dev->dev.of_node, "port-number", &id);
+-	if (id < 0)
++	if (of_property_read_u32(dev->dev.of_node, "port-number", &id))
+ 		id = 0;
+ 	if (of_find_property(dev->dev.of_node, "8-bit", NULL))
+ 		bus_width = ACE_BUS_WIDTH_8;
 _
 
-Patches currently in -mm which might be from zhaohongjiang@huawei.com are
+Patches currently in -mm which might be from gvormayr@gmail.com are
 
-origin.patch
-parisc-remove-the-second-argument-of-kmap_atomic.patch
-drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic.patch
+drivers-block-xsysacec-fix-id-with-missing-port-number.patch
 
