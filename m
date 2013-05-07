@@ -1,63 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-only-sigkill-should-interrupt-the-coredumping-task.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:24 -0700
-Message-ID: <20130507174924.A13C631C2FD@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] coredump-sanitize-the-setting-of-signal-group_exit_code.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:30 -0700
+Message-ID: <20130507174930.910DB31C2D0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:63619 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759445Ab3EGRt0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:26 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so85331yho.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:25 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:50565 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759445Ab3EGRtb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:31 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so85305yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, mingo@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, roland@hack.frob.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: only SIGKILL should interrupt the coredumping task
+     Subject: coredump: sanitize the setting of signal->group_exit_code
 has been removed from the -mm tree.  Its filename was
-     coredump-only-sigkill-should-interrupt-the-coredumping-task.patch
+     coredump-sanitize-the-setting-of-signal-group_exit_code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: only SIGKILL should interrupt the coredumping task
+Subject: coredump: sanitize the setting of signal->group_exit_code
 
-There are 2 well known and ancient problems with coredump/signals, and a
-lot of related bug reports:
+Now that the coredumping process can be SIGKILL'ed, the setting of
+->group_exit_code in do_coredump() can race with complete_signal() and
+SIGKILL or 0x80 can be "lost", or wait(status) can report status ==
+SIGKILL | 0x80.
 
-- do_coredump() clears TIF_SIGPENDING but of course this can't help
-  if, say, SIGCHLD comes after that.
+But the main problem is that it is not clear to me what should we do if
+binfmt->core_dump() succeeds but SIGKILL was sent, that is why this patch
+comes as a separate change.
 
-  In this case the coredump can fail unexpectedly. See for example
-  wait_for_dump_helper()->signal_pending() check but there are other
-  reasons.
-
-- At the same time, dumping a huge core on the slow media can take a
-  lot of time/resources and there is no way to kill the coredumping
-  task reliably. In particular this is not oom_kill-friendly.
-
-This patch tries to fix the 1st problem, and makes the preparation for the
-next changes.
-
-We add the new SIGNAL_GROUP_COREDUMP flag set by zap_threads() to indicate
-that this process dumps the core.  prepare_signal() checks this flag and
-nacks any signal except SIGKILL.
-
-Note that this check tries to be conservative, in the long term we should
-probably treat the SIGNAL_GROUP_EXIT case equally but this needs more
-discussion.  See marc.info/?l=linux-kernel&m=120508897917439
-
-Notes:
-	- recalc_sigpending() doesn't check SIGNAL_GROUP_COREDUMP.
-	  The patch assumes that dump_write/etc paths should never
-	  call it, but we can change it as well.
-
-	- There is another source of TIF_SIGPENDING, freezer. This
-	  will be addressed separately.
+This patch adds 0x80 if ->core_dump() succeeds and the process was not
+killed.  But perhaps we can (should?) re-set ->group_exit_code changed by
+SIGKILL back to "siginfo->si_signo |= 0x80" in case when core_dumped == T.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Tested-by: Mandeep Singh Baines <msb@chromium.org>
@@ -70,79 +50,56 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c         |   13 +++++--------
- include/linux/sched.h |    1 +
- kernel/signal.c       |    6 ++++--
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ fs/coredump.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/coredump.c~coredump-only-sigkill-should-interrupt-the-coredumping-task fs/coredump.c
---- a/fs/coredump.c~coredump-only-sigkill-should-interrupt-the-coredumping-task
+diff -puN fs/coredump.c~coredump-sanitize-the-setting-of-signal-group_exit_code fs/coredump.c
+--- a/fs/coredump.c~coredump-sanitize-the-setting-of-signal-group_exit_code
 +++ a/fs/coredump.c
-@@ -280,8 +280,8 @@ static int zap_process(struct task_struc
- 	return nr;
+@@ -390,12 +390,14 @@ static int coredump_wait(int exit_code,
+ 	return core_waiters;
  }
  
--static inline int zap_threads(struct task_struct *tsk, struct mm_struct *mm,
--				struct core_state *core_state, int exit_code)
-+static int zap_threads(struct task_struct *tsk, struct mm_struct *mm,
-+			struct core_state *core_state, int exit_code)
+-static void coredump_finish(struct mm_struct *mm)
++static void coredump_finish(struct mm_struct *mm, bool core_dumped)
  {
- 	struct task_struct *g, *p;
- 	unsigned long flags;
-@@ -291,6 +291,9 @@ static inline int zap_threads(struct tas
- 	if (!signal_group_exit(tsk->signal)) {
- 		mm->core_state = core_state;
- 		nr = zap_process(tsk, exit_code);
-+		/* ignore all signals except SIGKILL, see prepare_signal() */
-+		tsk->signal->flags |= SIGNAL_GROUP_COREDUMP;
-+		clear_tsk_thread_flag(tsk, TIF_SIGPENDING);
- 	}
- 	spin_unlock_irq(&tsk->sighand->siglock);
- 	if (unlikely(nr < 0))
-@@ -514,12 +517,6 @@ void do_coredump(siginfo_t *siginfo)
+ 	struct core_thread *curr, *next;
+ 	struct task_struct *task;
  
- 	old_cred = override_creds(cred);
+ 	spin_lock_irq(&current->sighand->siglock);
++	if (core_dumped && !__fatal_signal_pending(current))
++		current->signal->group_exit_code |= 0x80;
+ 	current->signal->group_exit_task = NULL;
+ 	current->signal->flags = SIGNAL_GROUP_EXIT;
+ 	spin_unlock_irq(&current->sighand->siglock);
+@@ -480,6 +482,7 @@ void do_coredump(siginfo_t *siginfo)
+ 	int ispipe;
+ 	struct files_struct *displaced;
+ 	bool need_nonrelative = false;
++	bool core_dumped = false;
+ 	static atomic_t core_dump_count = ATOMIC_INIT(0);
+ 	struct coredump_params cprm = {
+ 		.siginfo = siginfo,
+@@ -638,9 +641,7 @@ void do_coredump(siginfo_t *siginfo)
+ 		goto close_fail;
+ 	if (displaced)
+ 		put_files_struct(displaced);
+-	retval = binfmt->core_dump(&cprm);
+-	if (retval)
+-		current->signal->group_exit_code |= 0x80;
++	core_dumped = binfmt->core_dump(&cprm);
  
--	/*
--	 * Clear any false indication of pending signals that might
--	 * be seen by the filesystem code called to write the core file.
--	 */
--	clear_thread_flag(TIF_SIGPENDING);
--
- 	ispipe = format_corename(&cn, &cprm);
- 
- 	if (ispipe) {
-diff -puN include/linux/sched.h~coredump-only-sigkill-should-interrupt-the-coredumping-task include/linux/sched.h
---- a/include/linux/sched.h~coredump-only-sigkill-should-interrupt-the-coredumping-task
-+++ a/include/linux/sched.h
-@@ -626,6 +626,7 @@ struct signal_struct {
- #define SIGNAL_STOP_STOPPED	0x00000001 /* job control stop in effect */
- #define SIGNAL_STOP_CONTINUED	0x00000002 /* SIGCONT since WCONTINUED reap */
- #define SIGNAL_GROUP_EXIT	0x00000004 /* group exit in progress */
-+#define SIGNAL_GROUP_COREDUMP	0x00000008 /* coredump in progress */
- /*
-  * Pending notifications to parent.
-  */
-diff -puN kernel/signal.c~coredump-only-sigkill-should-interrupt-the-coredumping-task kernel/signal.c
---- a/kernel/signal.c~coredump-only-sigkill-should-interrupt-the-coredumping-task
-+++ a/kernel/signal.c
-@@ -854,12 +854,14 @@ static void ptrace_trap_notify(struct ta
-  * Returns true if the signal should be actually delivered, otherwise
-  * it should be dropped.
-  */
--static int prepare_signal(int sig, struct task_struct *p, bool force)
-+static bool prepare_signal(int sig, struct task_struct *p, bool force)
- {
- 	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
- 
--	if (unlikely(signal->flags & SIGNAL_GROUP_EXIT)) {
-+	if (signal->flags & (SIGNAL_GROUP_EXIT | SIGNAL_GROUP_COREDUMP)) {
-+		if (signal->flags & SIGNAL_GROUP_COREDUMP)
-+			return sig == SIGKILL;
- 		/*
- 		 * The process is in the middle of dying, nothing to do.
- 		 */
+ 	if (ispipe && core_pipe_limit)
+ 		wait_for_dump_helpers(cprm.file);
+@@ -653,7 +654,7 @@ fail_dropcount:
+ fail_unlock:
+ 	kfree(cn.corename);
+ fail_corename:
+-	coredump_finish(mm);
++	coredump_finish(mm, core_dumped);
+ 	revert_creds(old_cred);
+ fail_creds:
+ 	put_cred(cred);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
