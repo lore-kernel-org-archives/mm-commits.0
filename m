@@ -1,81 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:50:03 -0700
-Message-ID: <20130507175004.0E68E31C3ED@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] nbd-increase-default-and-max-request-sizes.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:50:09 -0700
+Message-ID: <20130507175009.7AFB131C42F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:37029 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190Ab3EGRuF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:50:05 -0400
-Received: by mail-qa0-f74.google.com with SMTP id i13so110390qae.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:50:04 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:34730 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759468Ab3EGRuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:50:10 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so86093ves.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:50:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raphael.scarv@gmail.com, ebiederm@xmission.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: belczyk@bsd.krakow.pl, axboe@kernel.dk, paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/pid.c: improve flow of a loop inside alloc_pidmap.
+     Subject: nbd: increase default and max request sizes
 has been removed from the -mm tree.  Its filename was
-     kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch
+     nbd-increase-default-and-max-request-sizes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Raphael S. Carvalho <raphael.scarv@gmail.com>
-Subject: kernel/pid.c: improve flow of a loop inside alloc_pidmap.
+From: Michal Belczyk <belczyk@bsd.krakow.pl>
+Subject: nbd: increase default and max request sizes
 
-find_next_offset() searches for an available "cleaned bit" in the
-respective pid bitmap (page), so returns the offset if found, otherwise it
-returns a value equals to BITS_PER_PAGE.
+Raise the default max request size for nbd to 128KB (from 127KB) to get it
+4KB aligned.  This patch also allows the max request size to be increased
+(via /sys/block/nbd<x>/queue/max_sectors_kb) to 32MB.
 
-For example, suppose find_next_offset didn't find any available bit, so
-there's no purpose to call mk_pid (Wasteful Cpu Cycles).
+The patch makes nbd network traffic more efficient by:
+- reducing request fragmentation (4KB alignment)
+- reducing the number of requests (fewer round trips, less network overhead)
 
-Therefore, I found it could be better to call mk_pid after the checking
-(offset < BITS_PER_PAGE) returned sucessfully!  Another point: If (offset
-< BITS_PER_PAGE) results in a "failure", then mk_pid would be called again
-afterwards.
+Especially in high latency networks, larger request size can make a dramatic
 
-[akpm@linux-foundation.org: simplify code]
-Signed-off-by: Raphael S. Carvalho <raphael.scarv@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Signed-off-by: Michal Belczyk <belczyk@bsd.krakow.pl>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/pid.c~kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap kernel/pid.c
---- a/kernel/pid.c~kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap
-+++ a/kernel/pid.c
-@@ -183,15 +183,19 @@ static int alloc_pidmap(struct pid_names
- 				break;
- 		}
- 		if (likely(atomic_read(&map->nr_free))) {
--			do {
-+			for ( ; ; ) {
- 				if (!test_and_set_bit(offset, map->page)) {
- 					atomic_dec(&map->nr_free);
- 					set_last_pid(pid_ns, last, pid);
- 					return pid;
- 				}
- 				offset = find_next_offset(map, offset);
-+				if (offset >= BITS_PER_PAGE)
-+					break;
- 				pid = mk_pid(pid_ns, map, offset);
--			} while (offset < BITS_PER_PAGE && pid < pid_max);
-+				if (pid >= pid_max)
-+					break;
-+			}
- 		}
- 		if (map < &pid_ns->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
- 			++map;
+diff -puN drivers/block/nbd.c~nbd-increase-default-and-max-request-sizes drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-increase-default-and-max-request-sizes
++++ a/drivers/block/nbd.c
+@@ -856,6 +856,8 @@ static int __init nbd_init(void)
+ 		disk->queue->limits.discard_granularity = 512;
+ 		disk->queue->limits.max_discard_sectors = UINT_MAX;
+ 		disk->queue->limits.discard_zeroes_data = 0;
++		blk_queue_max_hw_sectors(disk->queue, 65536);
++		disk->queue->limits.max_sectors = 256;
+ 	}
+ 
+ 	if (register_blkdev(NBD_MAJOR, "nbd")) {
 _
 
-Patches currently in -mm which might be from raphael.scarv@gmail.com are
+Patches currently in -mm which might be from belczyk@bsd.krakow.pl are
 
 origin.patch
 
