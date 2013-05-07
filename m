@@ -1,65 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch removed from -mm tree
-Date: Tue, 07 May 2013 12:39:27 -0700
-Message-ID: <20130507193927.C87BC5A4111@corp2gmr1-2.hot.corp.google.com>
+Subject: [folded-merged] drivers-net-rename-random32-to-prandom_u32-fix.patch removed from -mm tree
+Date: Tue, 07 May 2013 12:39:58 -0700
+Message-ID: <20130507193958.9E6A55A4111@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:39225 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752033Ab3EGTj3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:39:29 -0400
-Received: by mail-vb0-f74.google.com with SMTP id q16so99723vbe.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:39:28 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:34586 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752033Ab3EGTkA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:40:00 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so99790yho.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:39:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, iceman_dvd@yahoo.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, steven.truelove@utoronto.ca, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akinobu.mita@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
+     Subject: drivers-net-rename-random32-to-prandom_u32-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch
+     drivers-net-rename-random32-to-prandom_u32-fix.patch
 
-This patch was dropped because it was folded into hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
+This patch was dropped because it was folded into drivers-net-rename-random32-to-prandom_u32.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
+Subject: drivers-net-rename-random32-to-prandom_u32-fix
 
-Fix warning when CONFIG_HUGETLB_PAGE=n
-
-mm/mmap.c: In function 'SYSC_mmap_pgoff':
-mm/mmap.c:1370: warning: unused variable 'hs'
-
-Cc: <iceman_dvd@yahoo.com>
-Cc: <stable@vger.kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Steven Truelove <steven.truelove@utoronto.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/team/team_mode_random.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix mm/mmap.c
---- a/mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
-+++ a/mm/mmap.c
-@@ -1367,9 +1367,9 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 			len = ALIGN(len, huge_page_size(hstate_file(file)));
- 	} else if (flags & MAP_HUGETLB) {
- 		struct user_struct *user = NULL;
--		struct hstate *hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT)
--						& MAP_HUGE_MASK);
--		len = ALIGN(len, huge_page_size(hs));
-+
-+		len = ALIGN(len, huge_page_size(hstate_sizelog(
-+			(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK)));
- 		/*
- 		 * VM_NORESERVE is used because the reservations will be
- 		 * taken when vm_ops->mmap() is called
+diff -puN drivers/net/team/team_mode_random.c~drivers-net-rename-random32-to-prandom_u32-fix drivers/net/team/team_mode_random.c
+--- a/drivers/net/team/team_mode_random.c~drivers-net-rename-random32-to-prandom_u32-fix
++++ a/drivers/net/team/team_mode_random.c
+@@ -18,7 +18,7 @@
+ 
+ static u32 random_N(unsigned int N)
+ {
+-	return reciprocal_divide(random32(), N);
++	return reciprocal_divide(prandom_u32(), N);
+ }
+ 
+ static bool rnd_transmit(struct team *team, struct sk_buff *skb)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +53,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 include-linux-mmh-complete-the-mm_walk-definition.patch
 hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
-drivers-net-rename-random32-to-prandom_u32-fix.patch
+drivers-net-rename-random32-to-prandom_u32.patch
 drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch
 mm-vmallocc-add-vfree-comment.patch
 gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
