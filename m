@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-s3c-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:47 -0700
-Message-ID: <20130507224947.C58F05A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-sh-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:51 -0700
+Message-ID: <20130507224951.C40845A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:50132 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053Ab3EGWts (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:48 -0400
-Received: by mail-gh0-f202.google.com with SMTP id g24so110134ghb.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:48 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:63013 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755485Ab3EGWtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:52 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so121950ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-s3c: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-sh: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-s3c-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-sh-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-s3c: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-sh: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,47 +45,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-sh.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -421,8 +421,6 @@ static void s3c_rtc_enable(struct platfo
+diff -puN drivers/rtc/rtc-sh.c~rtc-rtc-sh-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-rtc-sh-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-sh.c
+@@ -770,8 +770,6 @@ static int __exit sh_rtc_remove(struct p
+ 	clk_disable(rtc->clk);
+ 	clk_put(rtc->clk);
  
- static int s3c_rtc_remove(struct platform_device *dev)
- {
--	platform_set_drvdata(dev, NULL);
--
- 	s3c_rtc_setaie(&dev->dev, 0);
- 
- 	clk_unprepare(rtc_clk);
-@@ -554,23 +552,20 @@ static int s3c_rtc_probe(struct platform
- 			  0,  "s3c2410-rtc alarm", rtc);
- 	if (ret) {
- 		dev_err(&pdev->dev, "IRQ%d error %d\n", s3c_rtc_alarmno, ret);
--		goto err_alarm_irq;
-+		goto err_nortc;
- 	}
- 
- 	ret = devm_request_irq(&pdev->dev, s3c_rtc_tickno, s3c_rtc_tickirq,
- 			  0,  "s3c2410-rtc tick", rtc);
- 	if (ret) {
- 		dev_err(&pdev->dev, "IRQ%d error %d\n", s3c_rtc_tickno, ret);
--		goto err_alarm_irq;
-+		goto err_nortc;
- 	}
- 
- 	clk_disable(rtc_clk);
- 
- 	return 0;
- 
-- err_alarm_irq:
 -	platform_set_drvdata(pdev, NULL);
 -
-  err_nortc:
- 	s3c_rtc_enable(pdev, 0);
- 	clk_disable_unprepare(rtc_clk);
+ 	kfree(rtc);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
