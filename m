@@ -1,63 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rbtree_test-add-__init-__exit-annotations.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:50:00 -0700
-Message-ID: <20130507175000.77A9B5A43FE@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] pid_namespacec-h-simplify-defines.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:50:06 -0700
+Message-ID: <20130507175006.6F8BE5A445B@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:63619 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298Ab3EGRuB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:50:01 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c10so85930qcz.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:50:00 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:47404 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753190Ab3EGRuH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:50:07 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so86048ggl.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:50:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidlohr.bueso@hp.com, walken@google.com, mm-commits@vger.kernel.org
+To: raphael.scarv@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree_test: add __init/__exit annotations
+     Subject: pid_namespace.c/.h: simplify defines
 has been removed from the -mm tree.  Its filename was
-     rbtree_test-add-__init-__exit-annotations.patch
+     pid_namespacec-h-simplify-defines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: rbtree_test: add __init/__exit annotations
+From: "Raphael S.Carvalho" <raphael.scarv@gmail.com>
+Subject: pid_namespace.c/.h: simplify defines
 
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Reviewed-by: Michel Lespinasse <walken@google.com>
+Move BITS_PER_PAGE from pid_namespace.c to pid_namespace.h, since we can
+simplify the define PID_MAP_ENTRIES by using the BITS_PER_PAGE.
+
+[akpm@linux-foundation.org: kernel/pid.c:54:1: warning: "BITS_PER_PAGE" redefined]
+Signed-off-by: Raphael S.Carvalho <raphael.scarv@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree_test.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pid_namespace.h |    4 +++-
+ kernel/pid.c                  |    3 ---
+ kernel/pid_namespace.c        |    2 --
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN lib/rbtree_test.c~rbtree_test-add-__init-__exit-annotations lib/rbtree_test.c
---- a/lib/rbtree_test.c~rbtree_test-add-__init-__exit-annotations
-+++ a/lib/rbtree_test.c
-@@ -149,7 +149,7 @@ static void check_augmented(int nr_nodes
- 	}
- }
+diff -puN include/linux/pid_namespace.h~pid_namespacec-h-simplify-defines include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pid_namespacec-h-simplify-defines
++++ a/include/linux/pid_namespace.h
+@@ -13,7 +13,9 @@ struct pidmap {
+        void *page;
+ };
  
--static int rbtree_test_init(void)
-+static int __init rbtree_test_init(void)
- {
- 	int i, j;
- 	cycles_t time1, time2, time;
-@@ -222,7 +222,7 @@ static int rbtree_test_init(void)
- 	return -EAGAIN; /* Fail will directly unload the module */
- }
+-#define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
++#define BITS_PER_PAGE		(PAGE_SIZE * 8)
++#define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
++#define PIDMAP_ENTRIES		((PID_MAX_LIMIT+BITS_PER_PAGE-1)/BITS_PER_PAGE)
  
--static void rbtree_test_exit(void)
-+static void __exit rbtree_test_exit(void)
+ struct bsd_acct_struct;
+ 
+diff -puN kernel/pid.c~pid_namespacec-h-simplify-defines kernel/pid.c
+--- a/kernel/pid.c~pid_namespacec-h-simplify-defines
++++ a/kernel/pid.c
+@@ -51,9 +51,6 @@ int pid_max = PID_MAX_DEFAULT;
+ int pid_max_min = RESERVED_PIDS + 1;
+ int pid_max_max = PID_MAX_LIMIT;
+ 
+-#define BITS_PER_PAGE		(PAGE_SIZE*8)
+-#define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
+-
+ static inline int mk_pid(struct pid_namespace *pid_ns,
+ 		struct pidmap *map, int off)
  {
- 	printk(KERN_ALERT "test exit\n");
- }
-_
-
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
-
-origin.patch
-
+diff -puN kernel/pid_namespace.c~pid_namespacec-h-simplify-defines kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pid_namespacec-h-simplify-defines
++++ a/kernel/pid_namespace.c
+@@ -19,8 +19,6 @@
+ #include <linux/reboot.h>
+ #include <linux/export.h>
+ 
+-#define BITS_PER_PAGE		(PAGE_SIZE*8)
