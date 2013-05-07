@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:21:21 -0700
-Message-ID: <20130507222121.C494331C145@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-ep93xx-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:21:23 -0700
+Message-ID: <20130507222123.C5E595A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:42259 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190Ab3EGWVW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:21:22 -0400
-Received: by mail-yh0-f74.google.com with SMTP id t59so119639yho.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:21:22 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:62533 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597Ab3EGWVZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:21:25 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so119639yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:21:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: atmel-pwm-bl: remove unnecessary platform_set_drvdata()
+     Subject: backlight: ep93xx: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata.patch
+     backlight-ep93xx-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: atmel-pwm-bl: remove unnecessary platform_set_drvdata()
+Subject: backlight: ep93xx: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
-probe failure, since commit 0998d06310 ("device-core: Ensure drvdata =
+probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
 NULL when no driver is bound").  Thus, it is not needed to manually clear
 the device driver data to NULL.
 
@@ -45,28 +45,20 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/atmel-pwm-bl.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/backlight/ep93xx_bl.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata drivers/video/backlight/atmel-pwm-bl.c
---- a/drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/video/backlight/atmel-pwm-bl.c
-@@ -195,7 +195,6 @@ static int __init atmel_pwm_bl_probe(str
- 	return 0;
+diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-remove-unnecessary-platform_set_drvdata drivers/video/backlight/ep93xx_bl.c
+--- a/drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-remove-unnecessary-platform_set_drvdata
++++ a/drivers/video/backlight/ep93xx_bl.c
+@@ -111,7 +111,6 @@ static int ep93xxbl_remove(struct platfo
+ 	struct backlight_device *bl = platform_get_drvdata(dev);
  
- err_free_bl_dev:
--	platform_set_drvdata(pdev, NULL);
- 	backlight_device_unregister(bldev);
- err_free_pwm:
- 	pwm_channel_free(&pwmbl->pwmc);
-@@ -212,7 +211,6 @@ static int __exit atmel_pwm_bl_remove(st
- 	pwm_channel_disable(&pwmbl->pwmc);
- 	pwm_channel_free(&pwmbl->pwmc);
- 	backlight_device_unregister(pwmbl->bldev);
--	platform_set_drvdata(pdev, NULL);
- 
+ 	backlight_device_unregister(bl);
+-	platform_set_drvdata(dev, NULL);
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
