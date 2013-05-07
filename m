@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:26 -0700
-Message-ID: <20130507223926.CCFD031C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:28 -0700
+Message-ID: <20130507223928.CC7C95A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43287 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab3EGWj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:27 -0400
-Received: by mail-qc0-f202.google.com with SMTP id d1so121301qcz.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:27 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:36188 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752395Ab3EGWj3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:29 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so121057yho.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, gdavis@mvista.com, jg1.han@samsung.com
+Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-omap.c: include <linux/io.h> instead of <asm/io.h>
+     Subject: drivers/rtc/rtc-pcf2123.c: remove space before tabs
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
+     drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-omap.c: include <linux/io.h> instead of <asm/io.h>
+Subject: drivers/rtc/rtc-pcf2123.c: remove space before tabs
 
-Use #include <linux/io.h> instead of <asm/io.h> as pointed out by
-checkpatch.
+Silences the following checkpatch warning:
+WARNING: please, no space before tabs
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: George G. Davis <gdavis@mvista.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/rtc/rtc-pcf2123.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh
-+++ a/drivers/rtc/rtc-omap.c
-@@ -23,9 +23,7 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
--
--#include <asm/io.h>
--
-+#include <linux/io.h>
- 
- /* The OMAP1 RTC is a year/month/day/hours/minutes/seconds BCD clock
-  * with century-range alarm matching, driven by the 32kHz clock.
+diff -puN drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-remove-space-before-tabs drivers/rtc/rtc-pcf2123.c
+--- a/drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-remove-space-before-tabs
++++ a/drivers/rtc/rtc-pcf2123.c
+@@ -18,11 +18,11 @@
+  * should look something like:
+  *
+  * static struct spi_board_info ek_spi_devices[] = {
+- * 	...
+- * 	{
+- * 		.modalias		= "rtc-pcf2123",
+- * 		.chip_select		= 1,
+- * 		.controller_data	= (void *)AT91_PIN_PA10,
++ *	...
++ *	{
++ *		.modalias		= "rtc-pcf2123",
++ *		.chip_select		= 1,
++ *		.controller_data	= (void *)AT91_PIN_PA10,
+  *		.max_speed_hz		= 1000 * 1000,
+  *		.mode			= SPI_CS_HIGH,
+  *		.bus_num		= 0,
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
