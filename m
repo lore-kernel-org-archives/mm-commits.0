@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:34 -0700
-Message-ID: <20130507223934.DE85A31C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-v3020c-fix-spacing-issues.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:36 -0700
+Message-ID: <20130507223936.BC97B31C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:33932 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752395Ab3EGWjf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:35 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m14so121139yen.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:35 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:40271 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752395Ab3EGWji (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:38 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c10so121339qcz.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rs5c313.c: fix spacing related issues
+     Subject: drivers/rtc/rtc-v3020.c: fix spacing issues
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
+     drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-rs5c313.c: fix spacing related issues
+Subject: drivers/rtc/rtc-v3020.c: fix spacing issues
 
-Fixes the following types of checkpatch issues:
+Fixes the following type of issues:
 WARNING: please, no space before tabs
-ERROR: space prohibited after that open parenthesis '('
-ERROR: space prohibited before that close parenthesis ')'
-ERROR: need consistent spacing around '>>' (ctx:VxW)
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c313.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-v3020.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c313.c~drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -50,7 +50,7 @@
- #include <linux/io.h>
+diff -puN drivers/rtc/rtc-v3020.c~drivers-rtc-rtc-v3020c-fix-spacing-issues drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~drivers-rtc-rtc-v3020c-fix-spacing-issues
++++ a/drivers/rtc/rtc-v3020.c
+@@ -16,7 +16,7 @@
+  *				- Use the generic rtc class
+  *
+  *  ??-???-2004: Someone at Compulab
+- *  			- Initial driver creation.
++ *			- Initial driver creation.
+  *
+  */
+ #include <linux/platform_device.h>
+@@ -278,13 +278,13 @@ static int v3020_set_time(struct device
+ 	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
  
- #define DRV_NAME	"rs5c313"
--#define DRV_VERSION 	"1.13"
-+#define DRV_VERSION	"1.13"
+ 	/* Write all the values to ram... */
+-	v3020_set_reg(chip, V3020_SECONDS, 	bin2bcd(dt->tm_sec));
+-	v3020_set_reg(chip, V3020_MINUTES, 	bin2bcd(dt->tm_min));
+-	v3020_set_reg(chip, V3020_HOURS, 	bin2bcd(dt->tm_hour));
++	v3020_set_reg(chip, V3020_SECONDS,	bin2bcd(dt->tm_sec));
++	v3020_set_reg(chip, V3020_MINUTES,	bin2bcd(dt->tm_min));
++	v3020_set_reg(chip, V3020_HOURS,	bin2bcd(dt->tm_hour));
+ 	v3020_set_reg(chip, V3020_MONTH_DAY,	bin2bcd(dt->tm_mday));
+-	v3020_set_reg(chip, V3020_MONTH,     bin2bcd(dt->tm_mon + 1));
+-	v3020_set_reg(chip, V3020_WEEK_DAY, 	bin2bcd(dt->tm_wday));
+-	v3020_set_reg(chip, V3020_YEAR, 	bin2bcd(dt->tm_year % 100));
++	v3020_set_reg(chip, V3020_MONTH,	bin2bcd(dt->tm_mon + 1));
++	v3020_set_reg(chip, V3020_WEEK_DAY,	bin2bcd(dt->tm_wday));
++	v3020_set_reg(chip, V3020_YEAR,		bin2bcd(dt->tm_year % 100));
  
- #ifdef CONFIG_SH_LANDISK
- /*****************************************************/
-@@ -301,7 +301,7 @@ static int rs5c313_rtc_set_time(struct d
- 	rs5c313_write_reg(RS5C313_ADDR_SEC10, (data >> 4));
- 
- 	data = bin2bcd(tm->tm_min);
--	rs5c313_write_reg(RS5C313_ADDR_MIN, data );
-+	rs5c313_write_reg(RS5C313_ADDR_MIN, data);
- 	rs5c313_write_reg(RS5C313_ADDR_MIN10, (data >> 4));
- 
- 	data = bin2bcd(tm->tm_hour);
-@@ -310,7 +310,7 @@ static int rs5c313_rtc_set_time(struct d
- 
- 	data = bin2bcd(tm->tm_mday);
- 	rs5c313_write_reg(RS5C313_ADDR_DAY, data);
--	rs5c313_write_reg(RS5C313_ADDR_DAY10, (data>> 4));
-+	rs5c313_write_reg(RS5C313_ADDR_DAY10, (data >> 4));
- 
- 	data = bin2bcd(tm->tm_mon + 1);
- 	rs5c313_write_reg(RS5C313_ADDR_MON, data);
-@@ -349,9 +349,9 @@ static void rs5c313_check_xstp_bit(void)
- 		}
- 
- 		memset(&tm, 0, sizeof(struct rtc_time));
--		tm.tm_mday 	= 1;
--		tm.tm_mon 	= 1 - 1;
--		tm.tm_year 	= 2000 - 1900;
-+		tm.tm_mday	= 1;
-+		tm.tm_mon	= 1 - 1;
-+		tm.tm_year	= 2000 - 1900;
- 
- 		rs5c313_rtc_set_time(NULL, &tm);
- 		pr_err("invalid value, resetting to 1 Jan 2000\n");
-@@ -388,7 +388,7 @@ static struct platform_driver rs5c313_rt
- 		.name   = DRV_NAME,
- 		.owner  = THIS_MODULE,
- 	},
--	.probe 	= rs5c313_rtc_probe,
-+	.probe	= rs5c313_rtc_probe,
- 	.remove = rs5c313_rtc_remove,
- };
- 
-@@ -408,7 +408,7 @@ static int __init rs5c313_rtc_init(void)
- 
- static void __exit rs5c313_rtc_exit(void)
- {
--	platform_driver_unregister( &rs5c313_rtc_platform_driver );
-+	platform_driver_unregister(&rs5c313_rtc_platform_driver);
- }
- 
- module_init(rs5c313_rtc_init);
+ 	/* ...and set the clock. */
+ 	v3020_set_reg(chip, V3020_CMD_RAM2CLOCK, 0);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
