@@ -1,143 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-dont-show-trace-beyond-show_stacknull-null.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:46:59 -0700
-Message-ID: <20130507174700.042F831C2DA@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:47:10 -0700
+Message-ID: <20130507174710.9C4DB31C284@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:54224 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759177Ab3EGRrB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:47:01 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m14so85038yen.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:47:00 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:46464 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759209Ab3EGRrM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:47:12 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 1so85067qec.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:47:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tj@kernel.org, bhelgaas@google.com, davem@davemloft.net, fengguang.wu@intel.com, heiko.carstens@de.ibm.com, jesper.nilsson@axis.com, sam@ravnborg.org, schwidefsky@de.ibm.com, vapier@gentoo.org, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: don't show trace beyond show_stack(NULL, NULL)
+     Subject: dmi: morph dmi_dump_ids() into dmi_format_ids() which formats into a buffer
 has been removed from the -mm tree.  Its filename was
-     x86-dont-show-trace-beyond-show_stacknull-null.patch
+     dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: x86: don't show trace beyond show_stack(NULL, NULL)
+Subject: dmi: morph dmi_dump_ids() into dmi_format_ids() which formats into a buffer
 
-There are multiple ways a task can be dumped - explicit call to
-dump_stack(), triggering WARN() or BUG(), through sysrq-t and so on.  Most
-of what gets printed is upto each architecture and the current state is
-not particularly pretty.  Different pieces of information are presented
-differently depending on which path the dump takes and which architecture
-it's running on.  This is messy for no good reason and makes it
-exceedingly difficult to add or modify debug information to task dumps.
+We're gonna use DMI identification for other purposes too.  Morph
+dmi_dump_ids() which is used to print DMI identification as a debug
+message during boot into dmi_format_ids() which formats the same
+information sans the leading "DMI:" tag into a string buffer.
 
-In all archs except for s390, there's nothing arch-specific about the
-printed debug information.  This patchset updates all those archs to use
-the same helpers to consistently print out the same debug information.
-
-An example WARN dump after this patchset.
-
- WARNING: at kernel/workqueue.c:4841 init_workqueues+0x35/0x505()
- Modules linked in:
- CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.9.0-rc1-work+ #3
- Hardware name: empty empty/S3992, BIOS 080011  10/26/2007
-  0000000000000009 ffff88007c861e08 ffffffff81c614dc ffff88007c861e48
-  ffffffff8108f500 ffffffff82228240 0000000000000040 ffffffff8234a08e
-  0000000000000000 0000000000000000 0000000000000000 ffff88007c861e58
- Call Trace:
-  [<ffffffff81c614dc>] dump_stack+0x19/0x1b
-  [<ffffffff8108f500>] warn_slowpath_common+0x70/0xa0
-  [<ffffffff8108f54a>] warn_slowpath_null+0x1a/0x20
-  [<ffffffff8234a0c3>] init_workqueues+0x35/0x505
-  ...
-
-And BUG dump.
-
- kernel BUG at kernel/workqueue.c:4841!
- invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
- Modules linked in:
- CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.9.0-rc1-work+ #7
- Hardware name: empty empty/S3992, BIOS 080011  10/26/2007
- task: ffff88007c85e040 ti: ffff88007c860000 task.ti: ffff88007c860000
- RIP: 0010:[<ffffffff8234a07e>]  [<ffffffff8234a07e>] init_workqueues+0x4/0x6
- RSP: 0000:ffff88007c861ec8  EFLAGS: 00010246
- RAX: ffff88007c861fd8 RBX: ffffffff824466a8 RCX: 0000000000000001
- RDX: 0000000000000046 RSI: 0000000000000001 RDI: ffffffff8234a07a
- RBP: ffff88007c861ec8 R08: 0000000000000000 R09: 0000000000000000
- R10: 0000000000000001 R11: 0000000000000000 R12: ffffffff8234a07a
- R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
- FS:  0000000000000000(0000) GS:ffff88007dc00000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
- CR2: ffff88015f7ff000 CR3: 00000000021f1000 CR4: 00000000000007f0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
- Stack:
-  ffff88007c861ef8 ffffffff81000312 ffffffff824466a8 ffff88007c85e650
-  0000000000000003 0000000000000000 ffff88007c861f38 ffffffff82335e5d
-  ffff88007c862080 ffffffff8223d8c0 ffff88007c862080 ffffffff81c47760
- Call Trace:
-  [<ffffffff81000312>] do_one_initcall+0x122/0x170
-  [<ffffffff82335e5d>] kernel_init_freeable+0x9b/0x1c8
-  [<ffffffff81c47760>] ? rest_init+0x140/0x140
-  [<ffffffff81c4776e>] kernel_init+0xe/0xf0
-  [<ffffffff81c6be9c>] ret_from_fork+0x7c/0xb0
-  [<ffffffff81c47760>] ? rest_init+0x140/0x140
-  ...
-
-This patchset contains the following seven patches.
-
- 0001-x86-don-t-show-trace-beyond-show_stack-NULL-NULL.patch
- 0002-sparc32-make-show_stack-acquire-fp-if-_ksp-is-not-sp.patch
- 0003-dump_stack-consolidate-dump_stack-implementations-an.patch
- 0004-dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-for.patch
- 0005-dump_stack-implement-arch-specific-hardware-descript.patch
- 0006-dump_stack-unify-debug-information-printed-by-show_r.patch
- 0007-arc-print-fatal-signals-reduce-duplicated-informatio.patch
-
-0001-0002 update stack dumping functions in x86 and sparc32 in
-preparation.
-
-0003 makes all arches except blackfin use generic dump_stack().
-blackfin still uses the generic helper to print the same info.
-
-0004-0005 properly abstract DMI identifier printing in WARN() and
-show_regs() so that all dumps print out the information.  This enables
-show_regs() to use the same debug info message.
-
-0006 updates show_regs() of all arches to use a common generic helper
-to print debug info.
-
-0007 removes somem duplicate information from arc dumps.
-
-While this patchset changes how debug info is printed on some archs,
-the printed information is always superset of what used to be there.
-
-This patchset makes task dump debug messages consistent and enables
-adding more information.  Workqueue is scheduled to add worker
-information including the workqueue in use and work item specific
-description.
-
-While this patch touches a lot of archs, it isn't too likely to cause
-non-trivial conflicts with arch-specfic changes and would probably be
-best to route together either through -mm.
-
-x86 is tested but other archs are either only compile tested or not
-tested at all.  Changes to most archs are generally trivial.
-
-
-
-This patch:
-
-show_stack(current or NULL, NULL) is used to print the backtrace of the
-current task.  As trace beyond the function itself isn't of much interest
-to anyone, don't show it by determining sp and bp in show_stack()'s frame
-and passing them to show_stack_log_lvl().
-
-This brings show_stack(NULL, NULL)'s behavior in line with
-dump_stack().
+dmi_present() is updated to format the information into dmi_ids_string[]
+using the new function and print it with "DMI:" prefix.  dmi_ids_string[]
+will be used for another purpose by a future patch.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
@@ -152,33 +48,93 @@ Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/dumpstack.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/firmware/dmi_scan.c |   44 ++++++++++++++++++++--------------
+ 1 file changed, 27 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86/kernel/dumpstack.c~x86-dont-show-trace-beyond-show_stacknull-null arch/x86/kernel/dumpstack.c
---- a/arch/x86/kernel/dumpstack.c~x86-dont-show-trace-beyond-show_stacknull-null
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -176,7 +176,19 @@ void show_trace(struct task_struct *task
+diff -puN drivers/firmware/dmi_scan.c~dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-formats-into-a-buffer
++++ a/drivers/firmware/dmi_scan.c
+@@ -22,6 +22,9 @@ static u16 __initdata dmi_ver;
+  */
+ static int dmi_initialized;
  
- void show_stack(struct task_struct *task, unsigned long *sp)
++/* DMI system identification string used during boot */
++static char dmi_ids_string[128] __initdata;
++
+ static const char * __init dmi_string_nosave(const struct dmi_header *dm, u8 s)
  {
--	show_stack_log_lvl(task, NULL, sp, 0, "");
-+	unsigned long bp = 0;
-+	unsigned long stack;
-+
-+	/*
-+	 * Stack frames below this one aren't interesting.  Don't show them
-+	 * if we're printing for %current.
-+	 */
-+	if (!sp && (!task || task == current)) {
-+		sp = &stack;
-+		bp = stack_frame(current, NULL);
-+	}
-+
-+	show_stack_log_lvl(task, NULL, sp, bp, "");
+ 	const u8 *bp = ((u8 *) dm) + dm->length;
+@@ -376,38 +379,44 @@ static void __init dmi_decode(const stru
+ 	}
  }
  
- /*
+-static void __init print_filtered(const char *info)
++static int __init print_filtered(char *buf, size_t len, const char *info)
+ {
++	int c = 0;
+ 	const char *p;
+ 
+ 	if (!info)
+-		return;
++		return c;
+ 
+ 	for (p = info; *p; p++)
+ 		if (isprint(*p))
+-			printk(KERN_CONT "%c", *p);
++			c += scnprintf(buf + c, len - c, "%c", *p);
+ 		else
+-			printk(KERN_CONT "\\x%02x", *p & 0xff);
++			c += scnprintf(buf + c, len - c, "\\x%02x", *p & 0xff);
++	return c;
+ }
+ 
+-static void __init dmi_dump_ids(void)
++static void __init dmi_format_ids(char *buf, size_t len)
+ {
++	int c = 0;
+ 	const char *board;	/* Board Name is optional */
+ 
+-	printk(KERN_DEBUG "DMI: ");
+-	print_filtered(dmi_get_system_info(DMI_SYS_VENDOR));
+-	printk(KERN_CONT " ");
+-	print_filtered(dmi_get_system_info(DMI_PRODUCT_NAME));
++	c += print_filtered(buf + c, len - c,
++			    dmi_get_system_info(DMI_SYS_VENDOR));
++	c += scnprintf(buf + c, len - c, " ");
++	c += print_filtered(buf + c, len - c,
++			    dmi_get_system_info(DMI_PRODUCT_NAME));
++
+ 	board = dmi_get_system_info(DMI_BOARD_NAME);
+ 	if (board) {
+-		printk(KERN_CONT "/");
+-		print_filtered(board);
++		c += scnprintf(buf + c, len - c, "/");
++		c += print_filtered(buf + c, len - c, board);
+ 	}
+-	printk(KERN_CONT ", BIOS ");
+-	print_filtered(dmi_get_system_info(DMI_BIOS_VERSION));
+-	printk(KERN_CONT " ");
+-	print_filtered(dmi_get_system_info(DMI_BIOS_DATE));
+-	printk(KERN_CONT "\n");
++	c += scnprintf(buf + c, len - c, ", BIOS ");
++	c += print_filtered(buf + c, len - c,
++			    dmi_get_system_info(DMI_BIOS_VERSION));
++	c += scnprintf(buf + c, len - c, " ");
++	c += print_filtered(buf + c, len - c,
++			    dmi_get_system_info(DMI_BIOS_DATE));
+ }
+ 
+ static int __init dmi_present(const char __iomem *p)
+@@ -431,7 +440,8 @@ static int __init dmi_present(const char
+ 				pr_info("Legacy DMI %d.%d present.\n",
+ 				       dmi_ver >> 8, dmi_ver & 0xFF);
+ 			}
+-			dmi_dump_ids();
++			dmi_format_ids(dmi_ids_string, sizeof(dmi_ids_string));
++			printk(KERN_DEBUG "DMI: %s\n", dmi_ids_string);
+ 			return 0;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
