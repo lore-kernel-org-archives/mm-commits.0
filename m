@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-m48t86-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:50:03 -0700
-Message-ID: <20130507225003.AF4DB5A41F6@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:50:07 -0700
+Message-ID: <20130507225007.C38C25A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:47209 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755642Ab3EGWuE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:50:04 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c10so122429qcz.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:50:04 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:43643 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755748Ab3EGWuI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:50:08 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 1so122234qec.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:50:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-m48t86: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-rp5c01: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-m48t86-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-m48t86: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-rp5c01: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,21 +45,37 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t86.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-rp5c01.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-m48t86.c~rtc-rtc-m48t86-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-m48t86.c
---- a/drivers/rtc/rtc-m48t86.c~rtc-rtc-m48t86-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-m48t86.c
-@@ -168,8 +168,6 @@ static int m48t86_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-rp5c01.c~rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-rp5c01.c
+--- a/drivers/rtc/rtc-rp5c01.c~rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-rp5c01.c
+@@ -251,21 +251,15 @@ static int __init rp5c01_rtc_probe(struc
  
- static int m48t86_rtc_remove(struct platform_device *dev)
- {
--	platform_set_drvdata(dev, NULL);
--
+ 	rtc = devm_rtc_device_register(&dev->dev, "rtc-rp5c01", &rp5c01_rtc_ops,
+ 				  THIS_MODULE);
+-	if (IS_ERR(rtc)) {
+-		error = PTR_ERR(rtc);
+-		goto out;
+-	}
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
+ 	priv->rtc = rtc;
+ 
+ 	error = sysfs_create_bin_file(&dev->dev.kobj, &priv->nvram_attr);
+ 	if (error)
+-		goto out;
++		return error;
+ 
  	return 0;
+-
+-out:
+-	platform_set_drvdata(dev, NULL);
+-	return error;
  }
  
+ static int __exit rp5c01_rtc_remove(struct platform_device *dev)
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
