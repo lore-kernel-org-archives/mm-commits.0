@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-max8925-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:31 -0700
-Message-ID: <20130507224931.C493831C034@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-max8998-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:33 -0700
+Message-ID: <20130507224933.C48C65A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:32961 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754735Ab3EGWtc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:32 -0400
-Received: by mail-qa0-f73.google.com with SMTP id bs12so146351qab.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:32 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:42286 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754735Ab3EGWte (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:34 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so122087vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-max8925: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-max8998: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-max8925-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-max8998-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-max8925: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-max8998: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,36 +45,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max8925.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-max8998.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-max8925.c~rtc-rtc-max8925-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-max8925.c
---- a/drivers/rtc/rtc-max8925.c~rtc-rtc-max8925-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-max8925.c
-@@ -268,7 +268,7 @@ static int max8925_rtc_probe(struct plat
- 	if (ret < 0) {
- 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
- 			info->irq, ret);
--		goto err;
+diff -puN drivers/rtc/rtc-max8998.c~rtc-rtc-max8998-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-max8998.c
+--- a/drivers/rtc/rtc-max8998.c~rtc-rtc-max8998-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-max8998.c
+@@ -274,7 +274,7 @@ static int max8998_rtc_probe(struct plat
+ 	if (IS_ERR(info->rtc_dev)) {
+ 		ret = PTR_ERR(info->rtc_dev);
+ 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
+-		goto out_rtc;
 +		return ret;
  	}
  
- 	dev_set_drvdata(&pdev->dev, info);
-@@ -282,13 +282,10 @@ static int max8925_rtc_probe(struct plat
- 	ret = PTR_ERR(info->rtc_dev);
- 	if (IS_ERR(info->rtc_dev)) {
- 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
--		goto err;
-+		return ret;
+ 	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
+@@ -292,10 +292,6 @@ static int max8998_rtc_probe(struct plat
  	}
  
  	return 0;
--err:
+-
+-out_rtc:
 -	platform_set_drvdata(pdev, NULL);
 -	return ret;
  }
  
- static int max8925_rtc_remove(struct platform_device *pdev)
+ static int max8998_rtc_remove(struct platform_device *pdev)
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
