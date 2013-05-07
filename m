@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-v3020c-fix-spacing-issues.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:36 -0700
-Message-ID: <20130507223936.BC97B31C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:32 -0700
+Message-ID: <20130507223932.CCB595A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:40271 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752395Ab3EGWji (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:38 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c10so121339qcz.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:37 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:40652 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752395Ab3EGWje (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:34 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz10so121191vcb.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
+Cc: sachin.kamat@linaro.org, iwamatsu@nigauri.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-v3020.c: fix spacing issues
+     Subject: drivers/rtc/rtc-rs5c313.c: include <linux/io.h> instead of <asm/io.h>
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
+     drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-v3020.c: fix spacing issues
+Subject: drivers/rtc/rtc-rs5c313.c: include <linux/io.h> instead of <asm/io.h>
 
-Fixes the following type of issues:
-WARNING: please, no space before tabs
+Use #include <linux/io.h> instead of <asm/io.h> as pointed out by
+checkpatch.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-v3020.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-rs5c313.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-v3020.c~drivers-rtc-rtc-v3020c-fix-spacing-issues drivers/rtc/rtc-v3020.c
---- a/drivers/rtc/rtc-v3020.c~drivers-rtc-rtc-v3020c-fix-spacing-issues
-+++ a/drivers/rtc/rtc-v3020.c
-@@ -16,7 +16,7 @@
-  *				- Use the generic rtc class
-  *
-  *  ??-???-2004: Someone at Compulab
-- *  			- Initial driver creation.
-+ *			- Initial driver creation.
-  *
-  */
+diff -puN drivers/rtc/rtc-rs5c313.c~drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh
++++ a/drivers/rtc/rtc-rs5c313.c
+@@ -47,7 +47,7 @@
  #include <linux/platform_device.h>
-@@ -278,13 +278,13 @@ static int v3020_set_time(struct device
- 	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
+ #include <linux/bcd.h>
+ #include <linux/delay.h>
+-#include <asm/io.h>
++#include <linux/io.h>
  
- 	/* Write all the values to ram... */
--	v3020_set_reg(chip, V3020_SECONDS, 	bin2bcd(dt->tm_sec));
--	v3020_set_reg(chip, V3020_MINUTES, 	bin2bcd(dt->tm_min));
--	v3020_set_reg(chip, V3020_HOURS, 	bin2bcd(dt->tm_hour));
-+	v3020_set_reg(chip, V3020_SECONDS,	bin2bcd(dt->tm_sec));
-+	v3020_set_reg(chip, V3020_MINUTES,	bin2bcd(dt->tm_min));
-+	v3020_set_reg(chip, V3020_HOURS,	bin2bcd(dt->tm_hour));
- 	v3020_set_reg(chip, V3020_MONTH_DAY,	bin2bcd(dt->tm_mday));
--	v3020_set_reg(chip, V3020_MONTH,     bin2bcd(dt->tm_mon + 1));
--	v3020_set_reg(chip, V3020_WEEK_DAY, 	bin2bcd(dt->tm_wday));
--	v3020_set_reg(chip, V3020_YEAR, 	bin2bcd(dt->tm_year % 100));
-+	v3020_set_reg(chip, V3020_MONTH,	bin2bcd(dt->tm_mon + 1));
-+	v3020_set_reg(chip, V3020_WEEK_DAY,	bin2bcd(dt->tm_wday));
-+	v3020_set_reg(chip, V3020_YEAR,		bin2bcd(dt->tm_year % 100));
- 
- 	/* ...and set the clock. */
- 	v3020_set_reg(chip, V3020_CMD_RAM2CLOCK, 0);
+ #define DRV_NAME	"rs5c313"
+ #define DRV_VERSION 	"1.13"
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
