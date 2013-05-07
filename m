@@ -1,76 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pid_namespacec-h-simplify-defines.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:50:06 -0700
-Message-ID: <20130507175006.6F8BE5A445B@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:50:03 -0700
+Message-ID: <20130507175004.0E68E31C3ED@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:47404 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190Ab3EGRuH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:50:07 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so86048ggl.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:50:06 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:37029 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753190Ab3EGRuF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:50:05 -0400
+Received: by mail-qa0-f74.google.com with SMTP id i13so110390qae.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:50:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raphael.scarv@gmail.com, mm-commits@vger.kernel.org
+To: raphael.scarv@gmail.com, ebiederm@xmission.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pid_namespace.c/.h: simplify defines
+     Subject: kernel/pid.c: improve flow of a loop inside alloc_pidmap.
 has been removed from the -mm tree.  Its filename was
-     pid_namespacec-h-simplify-defines.patch
+     kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Raphael S.Carvalho" <raphael.scarv@gmail.com>
-Subject: pid_namespace.c/.h: simplify defines
+From: Raphael S. Carvalho <raphael.scarv@gmail.com>
+Subject: kernel/pid.c: improve flow of a loop inside alloc_pidmap.
 
-Move BITS_PER_PAGE from pid_namespace.c to pid_namespace.h, since we can
-simplify the define PID_MAP_ENTRIES by using the BITS_PER_PAGE.
+find_next_offset() searches for an available "cleaned bit" in the
+respective pid bitmap (page), so returns the offset if found, otherwise it
+returns a value equals to BITS_PER_PAGE.
 
-[akpm@linux-foundation.org: kernel/pid.c:54:1: warning: "BITS_PER_PAGE" redefined]
-Signed-off-by: Raphael S.Carvalho <raphael.scarv@gmail.com>
+For example, suppose find_next_offset didn't find any available bit, so
+there's no purpose to call mk_pid (Wasteful Cpu Cycles).
+
+Therefore, I found it could be better to call mk_pid after the checking
+(offset < BITS_PER_PAGE) returned sucessfully!  Another point: If (offset
+< BITS_PER_PAGE) results in a "failure", then mk_pid would be called again
+afterwards.
+
+[akpm@linux-foundation.org: simplify code]
+Signed-off-by: Raphael S. Carvalho <raphael.scarv@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |    4 +++-
- kernel/pid.c                  |    3 ---
- kernel/pid_namespace.c        |    2 --
- 3 files changed, 3 insertions(+), 6 deletions(-)
+ kernel/pid.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pid_namespace.h~pid_namespacec-h-simplify-defines include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~pid_namespacec-h-simplify-defines
-+++ a/include/linux/pid_namespace.h
-@@ -13,7 +13,9 @@ struct pidmap {
-        void *page;
- };
- 
--#define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
-+#define BITS_PER_PAGE		(PAGE_SIZE * 8)
-+#define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
-+#define PIDMAP_ENTRIES		((PID_MAX_LIMIT+BITS_PER_PAGE-1)/BITS_PER_PAGE)
- 
- struct bsd_acct_struct;
- 
-diff -puN kernel/pid.c~pid_namespacec-h-simplify-defines kernel/pid.c
---- a/kernel/pid.c~pid_namespacec-h-simplify-defines
+diff -puN kernel/pid.c~kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap kernel/pid.c
+--- a/kernel/pid.c~kernel-pidc-improve-flow-of-a-loop-inside-alloc_pidmap
 +++ a/kernel/pid.c
-@@ -51,9 +51,6 @@ int pid_max = PID_MAX_DEFAULT;
- int pid_max_min = RESERVED_PIDS + 1;
- int pid_max_max = PID_MAX_LIMIT;
- 
--#define BITS_PER_PAGE		(PAGE_SIZE*8)
--#define BITS_PER_PAGE_MASK	(BITS_PER_PAGE-1)
--
- static inline int mk_pid(struct pid_namespace *pid_ns,
- 		struct pidmap *map, int off)
- {
-diff -puN kernel/pid_namespace.c~pid_namespacec-h-simplify-defines kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pid_namespacec-h-simplify-defines
-+++ a/kernel/pid_namespace.c
-@@ -19,8 +19,6 @@
- #include <linux/reboot.h>
- #include <linux/export.h>
- 
--#define BITS_PER_PAGE		(PAGE_SIZE*8)
+@@ -183,15 +183,19 @@ static int alloc_pidmap(struct pid_names
+ 				break;
+ 		}
+ 		if (likely(atomic_read(&map->nr_free))) {
+-			do {
++			for ( ; ; ) {
+ 				if (!test_and_set_bit(offset, map->page)) {
+ 					atomic_dec(&map->nr_free);
+ 					set_last_pid(pid_ns, last, pid);
+ 					return pid;
+ 				}
+ 				offset = find_next_offset(map, offset);
++				if (offset >= BITS_PER_PAGE)
++					break;
+ 				pid = mk_pid(pid_ns, map, offset);
+-			} while (offset < BITS_PER_PAGE && pid < pid_max);
++				if (pid >= pid_max)
++					break;
++			}
+ 		}
+ 		if (map < &pid_ns->pidmap[(pid_max-1)/BITS_PER_PAGE]) {
+ 			++map;
+_
+
+Patches currently in -mm which might be from raphael.scarv@gmail.com are
+
+origin.patch
+
