@@ -1,85 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] epoll-lock-ep-mtx-in-ep_free-to-silence-lockdep.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:48:11 -0700
-Message-ID: <20130507174811.8F8E35A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:48:24 -0700
+Message-ID: <20130507174824.7775A31C1EC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:48088 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759293Ab3EGRsN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:48:13 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz10so85336vcb.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:48:13 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:37986 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757701Ab3EGRs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:48:26 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 1so85184qec.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:48:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: normalperson@yhbt.net, arve@android.com, davidel@xmailserver.org, eric.dumazet@gmail.com, neilb@suse.de, oleg@redhat.com, rjw@sisk.pl, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: lock ep->mtx in ep_free to silence lockdep
+     Subject: binfmt_elf: PIE: make PF_RANDOMIZE check comment more accurate
 has been removed from the -mm tree.  Its filename was
-     epoll-lock-ep-mtx-in-ep_free-to-silence-lockdep.patch
+     binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Eric Wong <normalperson@yhbt.net>
-Subject: epoll: lock ep->mtx in ep_free to silence lockdep
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: binfmt_elf: PIE: make PF_RANDOMIZE check comment more accurate
 
-Technically we do not need to hold ep->mtx during ep_free since we are
-certain there are no other users of ep at that point.  However, lockdep
-complains with a "suspicious rcu_dereference_check() usage!" message; s=
-o
-lock the mutex before ep_remove to silence the warning.
+The comment I originally added in a3defbe5c337db ("binfmt_elf: fix PIE
+execution with randomization disabled") is not really 100% accurate --
+sysctl is not the only way how PF_RANDOMIZE could be forcibly unset in
+runtime.
 
-Signed-off-by: Eric Wong <normalperson@yhbt.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arve Hj=F8nnev=E5g <arve@android.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: NeilBrown <neilb@suse.de>,
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Another option of course is direct modification of personality flags (i.e.
+running through setarch wrapper).
+
+Make the comment more explicit and accurate.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/binfmt_elf.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~epoll-lock-ep-mtx-in-ep_free-to-silence-lockde=
-p fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-lock-ep-mtx-in-ep_free-to-silence-lockdep
-+++ a/fs/eventpoll.c
-@@ -745,11 +745,15 @@ static void ep_free(struct eventpoll *ep
- 	 * point we are sure no poll callbacks will be lingering around, and =
-also by
- 	 * holding "epmutex" we can be sure that no file cleanup code will hi=
-t
- 	 * us during this operation. So we can avoid the lock on "ep->lock".
-+	 * We do not need to lock ep->mtx, either, we only do it to prevent
-+	 * a lockdep warning.
- 	 */
-+	mutex_lock(&ep->mtx);
- 	while ((rbp =3D rb_first(&ep->rbr)) !=3D NULL) {
- 		epi =3D rb_entry(rbp, struct epitem, rbn);
- 		ep_remove(ep, epi);
- 	}
-+	mutex_unlock(&ep->mtx);
-=20
- 	mutex_unlock(&epmutex);
- 	mutex_destroy(&ep->mtx);
+diff -puN fs/binfmt_elf.c~binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-pie-make-pf_randomize-check-comment-more-accurate
++++ a/fs/binfmt_elf.c
+@@ -803,7 +803,8 @@ static int load_elf_binary(struct linux_
+ 			 * follow the loader, and is not movable.  */
+ #ifdef CONFIG_ARCH_BINFMT_ELF_RANDOMIZE_PIE
+ 			/* Memory randomization might have been switched off
+-			 * in runtime via sysctl.
++			 * in runtime via sysctl or explicit setting of
++			 * personality flags.
+ 			 * If that is the case, retain the original non-zero
+ 			 * load_bias value in order to establish proper
+ 			 * non-randomized mappings.
 _
 
-Patches currently in -mm which might be from normalperson@yhbt.net are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
+linux-next.patch
+mwave-fix-info-leak-in-mwave_ioctl.patch
+random-fix-accounting-race-condition-with-lockless-irq-entropy_count-update.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
