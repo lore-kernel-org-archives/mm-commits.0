@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:55 -0700
-Message-ID: <20130507224955.ADC1E5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-twl-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:57 -0700
+Message-ID: <20130507224957.A954E5A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:33243 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755485Ab3EGWt4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:56 -0400
-Received: by mail-yh0-f74.google.com with SMTP id t59so122140yho.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:56 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:60590 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755485Ab3EGWt6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:58 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so122049ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-stmp3xxx: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-twl: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-twl-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-stmp3xxx: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-twl: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,49 +45,20 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-stmp3xxx.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-twl.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-stmp3xxx.c~rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-stmp3xxx.c
---- a/drivers/rtc/rtc-stmp3xxx.c~rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-stmp3xxx.c
-@@ -225,7 +225,6 @@ static int stmp3xxx_rtc_remove(struct pl
+diff -puN drivers/rtc/rtc-twl.c~rtc-rtc-twl-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~rtc-rtc-twl-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-twl.c
+@@ -555,7 +555,6 @@ static int twl_rtc_remove(struct platfor
+ 	free_irq(irq, rtc);
  
- 	writel(STMP3XXX_RTC_CTRL_ALARM_IRQ_EN,
- 			rtc_data->io + STMP3XXX_RTC_CTRL_CLR);
+ 	rtc_device_unregister(rtc);
 -	platform_set_drvdata(pdev, NULL);
- 
  	return 0;
  }
-@@ -274,25 +273,19 @@ static int stmp3xxx_rtc_probe(struct pla
  
- 	rtc_data->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				&stmp3xxx_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc_data->rtc)) {
--		err = PTR_ERR(rtc_data->rtc);
--		goto out;
--	}
-+	if (IS_ERR(rtc_data->rtc))
-+		return PTR_ERR(rtc_data->rtc);
- 
- 	err = devm_request_irq(&pdev->dev, rtc_data->irq_alarm,
- 			stmp3xxx_rtc_interrupt, 0, "RTC alarm", &pdev->dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "Cannot claim IRQ%d\n",
- 			rtc_data->irq_alarm);
--		goto out;
-+		return err;
- 	}
- 
- 	stmp3xxx_wdt_register(pdev);
- 	return 0;
--
--out:
--	platform_set_drvdata(pdev, NULL);
--	return err;
- }
- 
- #ifdef CONFIG_PM_SLEEP
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
