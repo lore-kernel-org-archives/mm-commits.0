@@ -1,69 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] power-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:51:19 -0700
-Message-ID: <20130507175119.7C4C25A451C@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kernel-sysc-make-prctlpr_set_mm-generally-available.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:51:08 -0700
+Message-ID: <20130507175108.81D7F31C4FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:51450 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753993Ab3EGRvU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:51:20 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so86399yho.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:51:19 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:51034 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753993Ab3EGRvJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:51:09 -0400
+Received: by mail-qa0-f73.google.com with SMTP id bs12so110856qab.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:51:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jovi.zhangwei@huawei.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: u3557@miso.sublimeip.com, gorcunov@openvz.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power/sysrq: fix inconstistent help message of sysrq key
+     Subject: kernel/sys.c: make prctl(PR_SET_MM) generally available
 has been removed from the -mm tree.  Its filename was
-     power-sysrq-fix-inconstistent-help-message-of-sysrq-key.patch
+     kernel-sysc-make-prctlpr_set_mm-generally-available.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Subject: power/sysrq: fix inconstistent help message of sysrq key
+From: Amnon Shiloh <u3557@miso.sublimeip.com>
+Subject: kernel/sys.c: make prctl(PR_SET_MM) generally available
 
-Currently help message of /proc/sysrq-trigger highlight its
-upper-case characters, like below:
+The purpose of this patch is to allow privileged processes to set
+their own per-memory memory-region fields:
 
-      SysRq : HELP : loglevel(0-9) reBoot Crash terminate-all-tasks(E)
-      memory-full-oom-kill(F) kill-all-tasks(I) ...
+      start_code, end_code, start_data, end_data, start_brk, brk,
+      start_stack, arg_start, arg_end, env_start, env_end.
 
-this would confuse user trigger sysrq by upper-case character, which is
-inconsistent with the real lower-case character registed key.
+This functionality is needed by any application or package that needs to
+reconstruct Linux processes, that is, to start them in any way other than
+by means of an "execve()" from an executable file.  This includes:
 
-This inconsistent help message will also lead more confused when
-26 upper-case letters put into use in future.
+1. Restoring processes from a checkpoint-file (by all potential
+   user-level checkpointing packages, not only CRIU's).
+2. Restarting processes on another node after process migration.
+3. Starting duplicated copies of a running process (for reliability
+   and high-availablity).
+4. Starting a process from an executable format that is not supported
+   by Linux, thus requiring a "manual execve" by a user-level utility.
+5. Similarly, starting a process from a networked and/or crypted
+   executable that, for confidentiality, licensing or other reasons,
+   may not be written to the local file-systems.
 
-This patch fix power off sysrq key: "poweroff(o)"
+The code that does that was already included in the Linux kernel by the
+CRIU group, in the form of "prctl(PR_SET_MM)", but prior to this was
+enclosed within their private "#ifdef CONFIG_CHECKPOINT_RESTORE", which is
+normally disabled.  The patch removes those ifdefs.
 
-Signed-off-by: zhangwei(Jovi) <jovi.zhangwei@huawei.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Amnon Shiloh <u3557@miso.sublimeip.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/poweroff.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN kernel/power/poweroff.c~power-sysrq-fix-inconstistent-help-message-of-sysrq-key kernel/power/poweroff.c
---- a/kernel/power/poweroff.c~power-sysrq-fix-inconstistent-help-message-of-sysrq-key
-+++ a/kernel/power/poweroff.c
-@@ -32,7 +32,7 @@ static void handle_poweroff(int key)
+diff -puN kernel/sys.c~kernel-sysc-make-prctlpr_set_mm-generally-available kernel/sys.c
+--- a/kernel/sys.c~kernel-sysc-make-prctlpr_set_mm-generally-available
++++ a/kernel/sys.c
+@@ -1857,7 +1857,6 @@ SYSCALL_DEFINE1(umask, int, mask)
+ 	return mask;
+ }
  
- static struct sysrq_key_op	sysrq_poweroff_op = {
- 	.handler        = handle_poweroff,
--	.help_msg       = "powerOff",
-+	.help_msg       = "poweroff(o)",
- 	.action_msg     = "Power Off",
- 	.enable_mask	= SYSRQ_ENABLE_BOOT,
- };
-_
-
-Patches currently in -mm which might be from jovi.zhangwei@huawei.com are
-
-origin.patch
-relay-fix-timer-madness.patch
-
+-#ifdef CONFIG_CHECKPOINT_RESTORE
+ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+ {
+ 	struct fd exe;
+@@ -2051,17 +2050,12 @@ out:
+ 	return error;
+ }
+ 
++#ifdef CONFIG_CHECKPOINT_RESTORE
+ static int prctl_get_tid_address(struct task_struct *me, int __user **tid_addr)
+ {
+ 	return put_user(me->clear_child_tid, tid_addr);
+ }
