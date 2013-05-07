@@ -1,266 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frontswap-make-frontswap_init-use-a-pointer-for-the-ops.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:46:24 -0700
-Message-ID: <20130507174624.90D3631C284@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-frontswap-cleanup-code.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:46:27 -0700
+Message-ID: <20130507174627.8C2C35A42A7@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:37558 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757648Ab3EGRq1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:46:27 -0400
-Received: by mail-vb0-f73.google.com with SMTP id e13so84990vbg.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:46:26 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:43714 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754309Ab3EGRq2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:46:28 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so85017yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:46:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konrad.wilk@oracle.com, andor.daam@googlemail.com, dan.magenheimer@oracle.com, fschmaus@gmail.com, ilendir@googlemail.com, liwanp@linux.vnet.ibm.com, lliubbo@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: lliubbo@gmail.com, andor.daam@googlemail.com, dan.magenheimer@oracle.com, fschmaus@gmail.com, ilendir@googlemail.com, konrad.wilk@oracle.com, liwanp@linux.vnet.ibm.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frontswap: make frontswap_init use a pointer for the ops
+     Subject: mm: frontswap: cleanup code
 has been removed from the -mm tree.  Its filename was
-     frontswap-make-frontswap_init-use-a-pointer-for-the-ops.patch
+     mm-frontswap-cleanup-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: frontswap: make frontswap_init use a pointer for the ops
+From: Bob Liu <lliubbo@gmail.com>
+Subject: mm: frontswap: cleanup code
 
-This simplifies the code in the frontswap - we can get rid of the
-'backend_registered' test and instead check against frontswap_ops.
+After allowing tmem backends to build/run as modules, frontswap_enabled
+always true if defined CONFIG_FRONTSWAP.  But frontswap_test() depends on
+whether backend is registered, mv it into frontswap.c using fronstswap_ops
+to make the decision.
 
-[v1: Rebase on top of 703ba7fe5e0 (ramster->zcache move]
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+frontswap_set/clear are not used outside frontswap, so don't export them.
+
 Signed-off-by: Bob Liu <lliubbo@gmail.com>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Andor Daam <andor.daam@googlemail.com>
 Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
 Cc: Florian Schmaus <fschmaus@gmail.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Stefan Hengelein <ilendir@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zcache/zcache-main.c |    8 ++---
- drivers/xen/tmem.c                   |    6 +--
- include/linux/frontswap.h            |    2 -
- mm/frontswap.c                       |   38 +++++++++++--------------
- 4 files changed, 26 insertions(+), 28 deletions(-)
+ include/linux/frontswap.h |   28 +----------------
+ mm/frontswap.c            |   57 ++++++++++++++++++------------------
+ 2 files changed, 33 insertions(+), 52 deletions(-)
 
-diff -puN drivers/staging/zcache/zcache-main.c~frontswap-make-frontswap_init-use-a-pointer-for-the-ops drivers/staging/zcache/zcache-main.c
---- a/drivers/staging/zcache/zcache-main.c~frontswap-make-frontswap_init-use-a-pointer-for-the-ops
-+++ a/drivers/staging/zcache/zcache-main.c
-@@ -1707,9 +1707,9 @@ static struct frontswap_ops zcache_front
- 	.init = zcache_frontswap_init
- };
- 
--struct frontswap_ops zcache_frontswap_register_ops(void)
-+struct frontswap_ops *zcache_frontswap_register_ops(void)
- {
--	struct frontswap_ops old_ops =
-+	struct frontswap_ops *old_ops =
- 		frontswap_register_ops(&zcache_frontswap_ops);
- 
- 	return old_ops;
-@@ -1874,7 +1874,7 @@ static int __init zcache_init(void)
- 			pr_warn("%s: cleancache_ops overridden\n", namestr);
- 	}
- 	if (zcache_enabled && !disable_frontswap) {
--		struct frontswap_ops old_ops;
-+		struct frontswap_ops *old_ops;
- 
- 		old_ops = zcache_frontswap_register_ops();
- 		if (frontswap_has_exclusive_gets)
-@@ -1886,7 +1886,7 @@ static int __init zcache_init(void)
- 			namestr, frontswap_has_exclusive_gets,
- 			!disable_frontswap_ignore_nonactive);
- #endif
--		if (old_ops.init != NULL)
-+		if (old_ops != NULL)
- 			pr_warn("%s: frontswap_ops overridden\n", namestr);
- 	}
- 	if (ramster_enabled)
-diff -puN drivers/xen/tmem.c~frontswap-make-frontswap_init-use-a-pointer-for-the-ops drivers/xen/tmem.c
---- a/drivers/xen/tmem.c~frontswap-make-frontswap_init-use-a-pointer-for-the-ops
-+++ a/drivers/xen/tmem.c
-@@ -362,7 +362,7 @@ static int __init no_frontswap(char *s)
- }
- __setup("nofrontswap", no_frontswap);
- 
--static struct frontswap_ops __initdata tmem_frontswap_ops = {
-+static struct frontswap_ops tmem_frontswap_ops = {
- 	.store = tmem_frontswap_store,
- 	.load = tmem_frontswap_load,
- 	.invalidate_page = tmem_frontswap_flush_page,
-@@ -378,11 +378,11 @@ static int __init xen_tmem_init(void)
- #ifdef CONFIG_FRONTSWAP
- 	if (tmem_enabled && use_frontswap) {
- 		char *s = "";
--		struct frontswap_ops old_ops =
-+		struct frontswap_ops *old_ops =
- 			frontswap_register_ops(&tmem_frontswap_ops);
- 
- 		tmem_frontswap_poolid = -1;
--		if (old_ops.init != NULL)
-+		if (old_ops)
- 			s = " (WARNING: frontswap_ops overridden)";
- 		printk(KERN_INFO "frontswap enabled, RAM provided by "
- 				 "Xen Transcendent Memory%s\n", s);
-diff -puN include/linux/frontswap.h~frontswap-make-frontswap_init-use-a-pointer-for-the-ops include/linux/frontswap.h
---- a/include/linux/frontswap.h~frontswap-make-frontswap_init-use-a-pointer-for-the-ops
+diff -puN include/linux/frontswap.h~mm-frontswap-cleanup-code include/linux/frontswap.h
+--- a/include/linux/frontswap.h~mm-frontswap-cleanup-code
 +++ a/include/linux/frontswap.h
-@@ -14,7 +14,7 @@ struct frontswap_ops {
- };
+@@ -22,6 +22,7 @@ extern void frontswap_writethrough(bool)
+ #define FRONTSWAP_HAS_EXCLUSIVE_GETS
+ extern void frontswap_tmem_exclusive_gets(bool);
  
- extern bool frontswap_enabled;
--extern struct frontswap_ops
-+extern struct frontswap_ops *
- 	frontswap_register_ops(struct frontswap_ops *ops);
- extern void frontswap_shrink(unsigned long);
- extern unsigned long frontswap_curr_pages(void);
-diff -puN mm/frontswap.c~frontswap-make-frontswap_init-use-a-pointer-for-the-ops mm/frontswap.c
---- a/mm/frontswap.c~frontswap-make-frontswap_init-use-a-pointer-for-the-ops
-+++ a/mm/frontswap.c
-@@ -24,7 +24,7 @@
-  * frontswap_ops is set by frontswap_register_ops to contain the pointers
-  * to the frontswap "backend" implementation functions.
-  */
--static struct frontswap_ops frontswap_ops __read_mostly;
-+static struct frontswap_ops *frontswap_ops __read_mostly;
++extern bool __frontswap_test(struct swap_info_struct *, pgoff_t);
+ extern void __frontswap_init(unsigned type);
+ extern int __frontswap_store(struct page *page);
+ extern int __frontswap_load(struct page *page);
+@@ -29,26 +30,11 @@ extern void __frontswap_invalidate_page(
+ extern void __frontswap_invalidate_area(unsigned);
  
- /*
-  * This global enablement flag reduces overhead on systems where frontswap_ops
-@@ -108,41 +108,39 @@ static inline void inc_frontswap_invalid
-  *
-  * The time between the backend being registered and the swap file system
-  * calling the backend (via the frontswap_* functions) is indeterminate as
-- * backend_registered is not atomic_t (or a value guarded by a spinlock).
-+ * frontswap_ops is not atomic_t (or a value guarded by a spinlock).
-  * That is OK as we are comfortable missing some of these calls to the newly
-  * registered backend.
-  *
-  * Obviously the opposite (unloading the backend) must be done after all
-  * the frontswap_[store|load|invalidate_area|invalidate_page] start
-- * ignorning or failing the requests - at which point backend_registered
-+ * ignorning or failing the requests - at which point frontswap_ops
-  * would have to be made in some fashion atomic.
-  */
- static DECLARE_BITMAP(need_init, MAX_SWAPFILES);
--static bool backend_registered __read_mostly;
+ #ifdef CONFIG_FRONTSWAP
++#define frontswap_enabled (1)
  
- /*
-  * Register operations for frontswap, returning previous thus allowing
-  * detection of multiple backends and possible nesting.
-  */
--struct frontswap_ops frontswap_register_ops(struct frontswap_ops *ops)
-+struct frontswap_ops *frontswap_register_ops(struct frontswap_ops *ops)
+ static inline bool frontswap_test(struct swap_info_struct *sis, pgoff_t offset)
  {
--	struct frontswap_ops old = frontswap_ops;
-+	struct frontswap_ops *old = frontswap_ops;
+-	bool ret = false;
+-
+-	if (frontswap_enabled && sis->frontswap_map)
+-		ret = test_bit(offset, sis->frontswap_map);
+-	return ret;
+-}
+-
+-static inline void frontswap_set(struct swap_info_struct *sis, pgoff_t offset)
+-{
+-	if (frontswap_enabled && sis->frontswap_map)
+-		set_bit(offset, sis->frontswap_map);
+-}
+-
+-static inline void frontswap_clear(struct swap_info_struct *sis, pgoff_t offset)
+-{
+-	if (frontswap_enabled && sis->frontswap_map)
+-		clear_bit(offset, sis->frontswap_map);
++	return __frontswap_test(sis, offset);
+ }
+ 
+ static inline void frontswap_map_set(struct swap_info_struct *p,
+@@ -71,14 +57,6 @@ static inline bool frontswap_test(struct
+ 	return false;
+ }
+ 
+-static inline void frontswap_set(struct swap_info_struct *sis, pgoff_t offset)
+-{
+-}
+-
+-static inline void frontswap_clear(struct swap_info_struct *sis, pgoff_t offset)
+-{
+-}
+-
+ static inline void frontswap_map_set(struct swap_info_struct *p,
+ 				     unsigned long *map)
+ {
+diff -puN mm/frontswap.c~mm-frontswap-cleanup-code mm/frontswap.c
+--- a/mm/frontswap.c~mm-frontswap-cleanup-code
++++ a/mm/frontswap.c
+@@ -27,14 +27,6 @@
+ static struct frontswap_ops *frontswap_ops __read_mostly;
+ 
+ /*
+- * This global enablement flag reduces overhead on systems where frontswap_ops
+- * has not been registered, so is preferred to the slower alternative: a
+- * function call that checks a non-global.
+- */
+-bool frontswap_enabled __read_mostly;
+-EXPORT_SYMBOL(frontswap_enabled);
+-
+-/*
+  * If enabled, frontswap_store will return failure even on success.  As
+  * a result, the swap subsystem will always write the page to swap, in
+  * effect converting frontswap into a writethrough cache.  In this mode,
+@@ -128,8 +120,6 @@ struct frontswap_ops *frontswap_register
+ 	struct frontswap_ops *old = frontswap_ops;
  	int i;
  
--	frontswap_ops = *ops;
- 	frontswap_enabled = true;
- 
+-	frontswap_enabled = true;
+-
  	for (i = 0; i < MAX_SWAPFILES; i++) {
  		if (test_and_clear_bit(i, need_init))
--			(*frontswap_ops.init)(i);
-+			ops->init(i);
- 	}
- 	/*
--	 * We MUST have backend_registered set _after_ the frontswap_init's
-+	 * We MUST have frontswap_ops set _after_ the frontswap_init's
- 	 * have been called. Otherwise __frontswap_store might fail. Hence
- 	 * the barrier to make sure compiler does not re-order us.
- 	 */
- 	barrier();
--	backend_registered = true;
-+	frontswap_ops = ops;
- 	return old;
+ 			ops->init(i);
+@@ -183,9 +173,21 @@ void __frontswap_init(unsigned type)
  }
- EXPORT_SYMBOL(frontswap_register_ops);
-@@ -172,11 +170,11 @@ void __frontswap_init(unsigned type)
+ EXPORT_SYMBOL(__frontswap_init);
+ 
+-static inline void __frontswap_clear(struct swap_info_struct *sis, pgoff_t offset)
++bool __frontswap_test(struct swap_info_struct *sis,
++				pgoff_t offset)
++{
++	bool ret = false;
++
++	if (frontswap_ops && sis->frontswap_map)
++		ret = test_bit(offset, sis->frontswap_map);
++	return ret;
++}
++EXPORT_SYMBOL(__frontswap_test);
++
++static inline void __frontswap_clear(struct swap_info_struct *sis,
++				pgoff_t offset)
  {
- 	struct swap_info_struct *sis = swap_info[type];
+-	frontswap_clear(sis, offset);
++	clear_bit(offset, sis->frontswap_map);
+ 	atomic_dec(&sis->frontswap_pages);
+ }
  
--	if (backend_registered) {
-+	if (frontswap_ops) {
- 		BUG_ON(sis == NULL);
- 		if (sis->frontswap_map == NULL)
- 			return;
--		(*frontswap_ops.init)(type);
-+		frontswap_ops->init(type);
- 	} else {
- 		BUG_ON(type > MAX_SWAPFILES);
- 		set_bit(type, need_init);
-@@ -206,7 +204,7 @@ int __frontswap_store(struct page *page)
+@@ -204,18 +206,20 @@ int __frontswap_store(struct page *page)
  	struct swap_info_struct *sis = swap_info[type];
  	pgoff_t offset = swp_offset(entry);
  
--	if (!backend_registered) {
-+	if (!frontswap_ops) {
- 		inc_frontswap_failed_stores();
- 		return ret;
- 	}
-@@ -215,7 +213,7 @@ int __frontswap_store(struct page *page)
- 	BUG_ON(sis == NULL);
- 	if (frontswap_test(sis, offset))
- 		dup = 1;
--	ret = frontswap_ops.store(type, offset, page);
-+	ret = frontswap_ops->store(type, offset, page);
- 	if (ret == 0) {
- 		frontswap_set(sis, offset);
- 		inc_frontswap_succ_stores();
-@@ -250,13 +248,13 @@ int __frontswap_load(struct page *page)
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
- 
--	if (!backend_registered)
+-	if (!frontswap_ops) {
+-		inc_frontswap_failed_stores();
++	/*
++	 * Return if no backend registed.
++	 * Don't need to inc frontswap_failed_stores here.
++	 */
 +	if (!frontswap_ops)
  		return ret;
+-	}
  
  	BUG_ON(!PageLocked(page));
  	BUG_ON(sis == NULL);
- 	if (frontswap_test(sis, offset))
--		ret = frontswap_ops.load(type, offset, page);
-+		ret = frontswap_ops->load(type, offset, page);
+-	if (frontswap_test(sis, offset))
++	if (__frontswap_test(sis, offset))
+ 		dup = 1;
+ 	ret = frontswap_ops->store(type, offset, page);
+ 	if (ret == 0) {
+-		frontswap_set(sis, offset);
++		set_bit(offset, sis->frontswap_map);
+ 		inc_frontswap_succ_stores();
+ 		if (!dup)
+ 			atomic_inc(&sis->frontswap_pages);
+@@ -248,18 +252,18 @@ int __frontswap_load(struct page *page)
+ 	struct swap_info_struct *sis = swap_info[type];
+ 	pgoff_t offset = swp_offset(entry);
+ 
+-	if (!frontswap_ops)
+-		return ret;
+-
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(sis == NULL);
+-	if (frontswap_test(sis, offset))
++	/*
++	 * __frontswap_test() will check whether there is backend registered
++	 */
++	if (__frontswap_test(sis, offset))
+ 		ret = frontswap_ops->load(type, offset, page);
  	if (ret == 0) {
  		inc_frontswap_loads();
  		if (frontswap_tmem_exclusive_gets_enabled) {
-@@ -276,12 +274,12 @@ void __frontswap_invalidate_page(unsigne
+ 			SetPageDirty(page);
+-			frontswap_clear(sis, offset);
++			__frontswap_clear(sis, offset);
+ 		}
+ 	}
+ 	return ret;
+@@ -274,11 +278,11 @@ void __frontswap_invalidate_page(unsigne
  {
  	struct swap_info_struct *sis = swap_info[type];
  
--	if (!backend_registered)
-+	if (!frontswap_ops)
- 		return;
- 
- 	BUG_ON(sis == NULL);
- 	if (frontswap_test(sis, offset)) {
--		frontswap_ops.invalidate_page(type, offset);
-+		frontswap_ops->invalidate_page(type, offset);
- 		__frontswap_clear(sis, offset);
- 		inc_frontswap_invalidates();
- 	}
-@@ -296,11 +294,11 @@ void __frontswap_invalidate_area(unsigne
- {
- 	struct swap_info_struct *sis = swap_info[type];
- 
--	if (backend_registered) {
-+	if (frontswap_ops) {
- 		BUG_ON(sis == NULL);
- 		if (sis->frontswap_map == NULL)
- 			return;
--		(*frontswap_ops.invalidate_area)(type);
-+		frontswap_ops->invalidate_area(type);
- 		atomic_set(&sis->frontswap_pages, 0);
- 		memset(sis->frontswap_map, 0, sis->max / sizeof(long));
- 	}
-_
-
-Patches currently in -mm which might be from konrad.wilk@oracle.com are
-
-origin.patch
-linux-next.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
-
+-	if (!frontswap_ops)
+-		return;
