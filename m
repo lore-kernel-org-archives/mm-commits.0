@@ -1,102 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:52:39 -0700
-Message-ID: <20130507175239.A8E845A4111@corp2gmr1-2.hot.corp.google.com>
+Subject: + hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch added to -mm tree
+Date: Tue, 07 May 2013 11:10:28 -0700
+Message-ID: <20130507181028.D97E831C078__44650.1517006711$1367950266$gmane$org@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:53748 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759621Ab3EGRwk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:52:40 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so86596ggl.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:52:40 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:43291 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757657Ab3EGSKa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 14:10:30 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz10so88757vcb.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 11:10:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, axboe@kernel.dk, edumazet@google.com, jovi.zhangwei@huawei.com, mingo@elte.hu, rostedt@goodmis.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, iceman_dvd@yahoo.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, steven.truelove@utoronto.ca, wujianguo@huawei.com
 
 
 The patch titled
-     Subject: kernel/relay.c: move remove_buf_file inside relay_close_buf()
-has been removed from the -mm tree.  Its filename was
-     kernel-relayc-move-remove_buf_file-inside-relay_close_buf.patch
+     Subject: hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
+has been added to the -mm tree.  Its filename is
+     hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Monakhov <dmonakhov@openvz.org>
-Subject: kernel/relay.c: move remove_buf_file inside relay_close_buf()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
 
-Currently remove_buf_file callback is called from from kobject
-release method. This result in follow issue:
-# blktrace -d /dev/sda1 -d /dev/sda -o test
+Fix warning when CONFIG_HUGETLB_PAGE=n
 
-blktrace_setup()
- dir = create_dir()
- rchan = relay_open(dir,...)
- ->create_buf_file_callback
-    buf_file  = debugfs_create_file(dir, )
+mm/mmap.c: In function 'SYSC_mmap_pgoff':
+mm/mmap.c:1370: warning: unused variable 'hs'
 
-Userspace will open buf_file.
-Later we make a decision to stop tracing
-blktrace_down()
-  relay_close(rhcan)  /* just decrement kobj reference  */
-                      /* since it is not zero then callback not called */
-  debugfs_remove(dir) /* FAIL due to non empty dir   */
-
-Later user space will close the file and file will be deleted,
-but directory still exist.
-user_space_close()
- ->file_release
-   ->release_buf_file_callback
-     ->debugfs_remove(buf_file
-## TESTCASE:
-# blktrace -d /dev/sda1 -d /dev/sda -o test
-# After that blktrace infrastructure will remain broken in
-# an unusable state so: blktrace -d /dev/sda1 will not work.
-
-In fact this is general issue, blktrace is just one of examples.
-We can not reliably remove parent dir until all users close the
-buf_file.
-
-Solution: We don't have to wait that long. File should be deleted inside
-relay_close_buf().
-
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Acked-by: Jens Axboe <axboe@kernel.dk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Dumazet <edumazet@google.com>
+Cc: <iceman_dvd@yahoo.com>
+Cc: <stable@vger.kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Steven Truelove <steven.truelove@utoronto.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/relay.c~kernel-relayc-move-remove_buf_file-inside-relay_close_buf kernel/relay.c
---- a/kernel/relay.c~kernel-relayc-move-remove_buf_file-inside-relay_close_buf
-+++ a/kernel/relay.c
-@@ -234,7 +234,6 @@ static void relay_destroy_buf(struct rch
- static void relay_remove_buf(struct kref *kref)
- {
- 	struct rchan_buf *buf = container_of(kref, struct rchan_buf, kref);
--	buf->chan->cb->remove_buf_file(buf->dentry);
- 	relay_destroy_buf(buf);
- }
- 
-@@ -489,6 +488,7 @@ static void relay_close_buf(struct rchan
- {
- 	buf->finalized = 1;
- 	del_timer_sync(&buf->timer);
-+	buf->chan->cb->remove_buf_file(buf->dentry);
- 	kref_put(&buf->kref, relay_remove_buf);
- }
- 
+diff -puN mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix mm/mmap.c
+--- a/mm/mmap.c~hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix
++++ a/mm/mmap.c
+@@ -1367,9 +1367,9 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+ 			len = ALIGN(len, huge_page_size(hstate_file(file)));
+ 	} else if (flags & MAP_HUGETLB) {
+ 		struct user_struct *user = NULL;
+-		struct hstate *hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT)
+-						& MAP_HUGE_MASK);
+-		len = ALIGN(len, huge_page_size(hs));
++
++		len = ALIGN(len, huge_page_size(hstate_sizelog(
++			(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK)));
+ 		/*
+ 		 * VM_NORESERVE is used because the reservations will be
+ 		 * taken when vm_ops->mmap() is called
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+include-linux-mmh-complete-the-mm_walk-definition.patch
+hugetlbfs-fix-mmap-failure-in-unaligned-size-request-fix.patch
+drivers-net-rename-random32-to-prandom_u32-fix.patch
+mm-vmallocc-add-vfree-comment.patch
+gadget-remove-only-user-of-aio-retry-checkpatch-fixes.patch
+aio-remove-retry-based-aio-checkpatch-fixes.patch
+aio-add-kiocb_cancel.patch
+aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+aio-refcounting-cleanup-checkpatch-fixes.patch
+wait-add-wait_event_hrtimeout.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
+aio-use-cancellation-list-lazily.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
+generic-dynamic-per-cpu-refcounting.patch
+generic-dynamic-per-cpu-refcounting-checkpatch-fixes.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-kill-ki_retry.patch
+aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-checkpatch-fixes.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-checkpatch-fixes.patch
 linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+rapidio-make-enumeration-discovery-configurable-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+bpf-add-comments-explaining-the-schedule_work-operation.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
