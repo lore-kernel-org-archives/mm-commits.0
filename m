@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-vt8500-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:50:01 -0700
-Message-ID: <20130507225001.A848231C1AE@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-puv3-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:50:05 -0700
+Message-ID: <20130507225005.BE8665A41D5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:48396 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755622Ab3EGWuC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:50:02 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r14so110316ghr.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:50:02 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:33095 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755711Ab3EGWuG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:50:06 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so122184yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:50:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, linux@prisktech.co.nz
+Cc: jg1.han@samsung.com, gxt@mprc.pku.edu.cn
 
 
 The patch titled
-     Subject: rtc: rtc-vt8500: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-puv3: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-vt8500-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-puv3-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-vt8500: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-puv3: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -42,25 +42,24 @@ NULL when no driver is bound").  Thus, it is not needed to manually clear
 the device driver data to NULL.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Tony Prisk <linux@prisktech.co.nz>
+Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vt8500.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-puv3.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-vt8500.c
---- a/drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-vt8500.c
-@@ -282,8 +282,6 @@ static int vt8500_rtc_remove(struct plat
- 	/* Disable alarm matching */
- 	writel(0, vt8500_rtc->regbase + VT8500_RTC_IS);
+diff -puN drivers/rtc/rtc-puv3.c~rtc-rtc-puv3-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-puv3.c
+--- a/drivers/rtc/rtc-puv3.c~rtc-rtc-puv3-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-puv3.c
+@@ -224,7 +224,6 @@ static int puv3_rtc_remove(struct platfo
+ {
+ 	struct rtc_device *rtc = platform_get_drvdata(dev);
  
--	platform_set_drvdata(pdev, NULL);
--
- 	return 0;
- }
+-	platform_set_drvdata(dev, NULL);
+ 	rtc_device_unregister(rtc);
  
+ 	puv3_rtc_setpie(&dev->dev, 0);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
