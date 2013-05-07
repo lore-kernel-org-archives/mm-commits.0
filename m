@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:10 -0700
-Message-ID: <20130507223910.CE92E31C15D@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:12 -0700
+Message-ID: <20130507223912.CB5F85A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:61303 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753757Ab3EGWjM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:12 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so121191ves.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:11 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:47006 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753757Ab3EGWjO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:14 -0400
+Received: by mail-qc0-f202.google.com with SMTP id d1so121286qcz.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-fm3130.c: fix whitespace related issue
+     Subject: drivers/rtc/rtc-m41t80.c: fix spacing related issue
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch
+     drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-fm3130.c: fix whitespace related issue
+Subject: drivers/rtc/rtc-m41t80.c: fix spacing related issue
 
 Silences the following checkpatch warning:
-WARNING: please, no space before tabs
+WARNING: space prohibited before semicolon
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-fm3130.c |    2 +-
+ drivers/rtc/rtc-m41t80.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-fm3130.c~drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue drivers/rtc/rtc-fm3130.c
---- a/drivers/rtc/rtc-fm3130.c~drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue
-+++ a/drivers/rtc/rtc-fm3130.c
-@@ -47,7 +47,7 @@
- 
- struct fm3130 {
- 	u8			reg_addr_time;
--	u8 			reg_addr_alarm;
-+	u8			reg_addr_alarm;
- 	u8			regs[15];
- 	struct i2c_msg		msg[4];
- 	struct i2c_client	*client;
+diff -puN drivers/rtc/rtc-m41t80.c~drivers-rtc-rtc-m41t80c-fix-spacing-related-issue drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~drivers-rtc-rtc-m41t80c-fix-spacing-related-issue
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -168,7 +168,7 @@ static int m41t80_set_datetime(struct i2
+ 	buf[M41T80_REG_MIN] =
+ 		bin2bcd(tm->tm_min) | (buf[M41T80_REG_MIN] & ~0x7f);
+ 	buf[M41T80_REG_HOUR] =
+-		bin2bcd(tm->tm_hour) | (buf[M41T80_REG_HOUR] & ~0x3f) ;
++		bin2bcd(tm->tm_hour) | (buf[M41T80_REG_HOUR] & ~0x3f);
+ 	buf[M41T80_REG_WDAY] =
+ 		(tm->tm_wday & 0x07) | (buf[M41T80_REG_WDAY] & ~0x07);
+ 	buf[M41T80_REG_DAY] =
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
