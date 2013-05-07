@@ -1,88 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:41 -0700
-Message-ID: <20130507174941.804EA5A4343@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] kexec-fix-wrong-types-of-some-local-variables.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:51 -0700
+Message-ID: <20130507174951.889EE31C39C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:44958 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406Ab3EGRtm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:42 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 1so85375qec.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:41 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:50067 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759457Ab3EGRtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:52 -0400
+Received: by mail-qa0-f74.google.com with SMTP id i13so109919qae.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, john.stultz@linaro.org, mm-commits@vger.kernel.org
+To: zhangyanfei@cn.fujitsu.com, ebiederm@xmission.com, horms@verge.net.au, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, proc: truncate /proc/pid/comm writes to first TASK_COMM_LEN bytes
+     Subject: kexec: fix wrong types of some local variables
 has been removed from the -mm tree.  Its filename was
-     fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes.patch
+     kexec-fix-wrong-types-of-some-local-variables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: fs, proc: truncate /proc/pid/comm writes to first TASK_COMM_LEN bytes
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: kexec: fix wrong types of some local variables
 
-Currently, a write to a procfs file will return the number of bytes
-successfully written.  If the actual string is longer than this, the
-remainder of the string will not be be written and userspace will complete
-the operation by issuing additional write()s.
+The types of the following local variables:
 
-Hence
+- ubytes/mbytes in kimage_load_crash_segment()/kimage_load_normal_segment()
 
-	$ echo -n "abcdefghijklmnopqrs" > /proc/self/comm
+- r in vmcoreinfo_append_str()
 
-results in
+are wrong, so fix them.
 
-	$ cat /proc/$$/comm
-	pqrs
-
-since the final four bytes were written with a second write() since
-TASK_COMM_LEN == 16.  This is obviously an undesired result and not
-equivalent to prctl(PR_SET_NAME).  The implementation should not need to
-know the definition of TASK_COMM_LEN.
-
-This patch truncates the string to the first TASK_COMM_LEN bytes and
-returns the bytes written as the length of the string written so the
-second write() is suppressed.
-
-	$ cat /proc/$$/comm
-	abcdefghijklmno
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/kexec.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/base.c~fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes fs/proc/base.c
---- a/fs/proc/base.c~fs-proc-truncate-proc-pid-comm-writes-to-first-task_comm_len-bytes
-+++ a/fs/proc/base.c
-@@ -1348,11 +1348,10 @@ static ssize_t comm_write(struct file *f
- 	struct inode *inode = file_inode(file);
- 	struct task_struct *p;
- 	char buffer[TASK_COMM_LEN];
-+	const size_t maxlen = sizeof(buffer) - 1;
+diff -puN kernel/kexec.c~kexec-fix-wrong-types-of-some-local-variables kernel/kexec.c
+--- a/kernel/kexec.c~kexec-fix-wrong-types-of-some-local-variables
++++ a/kernel/kexec.c
+@@ -786,7 +786,7 @@ static int kimage_load_normal_segment(st
+ 					 struct kexec_segment *segment)
+ {
+ 	unsigned long maddr;
+-	unsigned long ubytes, mbytes;
++	size_t ubytes, mbytes;
+ 	int result;
+ 	unsigned char __user *buf;
  
- 	memset(buffer, 0, sizeof(buffer));
--	if (count > sizeof(buffer) - 1)
--		count = sizeof(buffer) - 1;
--	if (copy_from_user(buffer, buf, count))
-+	if (copy_from_user(buffer, buf, count > maxlen ? maxlen : count))
- 		return -EFAULT;
+@@ -850,7 +850,7 @@ static int kimage_load_crash_segment(str
+ 	 * We do things a page at a time for the sake of kmap.
+ 	 */
+ 	unsigned long maddr;
+-	unsigned long ubytes, mbytes;
++	size_t ubytes, mbytes;
+ 	int result;
+ 	unsigned char __user *buf;
  
- 	p = get_proc_task(inode);
+@@ -1540,7 +1540,7 @@ void vmcoreinfo_append_str(const char *f
+ {
+ 	va_list args;
+ 	char buf[0x50];
+-	int r;
++	size_t r;
+ 
+ 	va_start(args, fmt);
+ 	r = vsnprintf(buf, sizeof(buf), fmt, args);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-mm-memcg-add-rss_huge-stat-to-memorystat.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
 
