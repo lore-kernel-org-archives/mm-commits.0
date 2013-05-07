@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-xsysacec-fix-id-with-missing-port-number.patch added to -mm tree
-Date: Tue, 07 May 2013 14:40:43 -0700
-Message-ID: <20130507214043.7B3B55A42DC@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:21:21 -0700
+Message-ID: <20130507222121.C494331C145@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:59287 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759852Ab3EGVko (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 17:40:44 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so114759ggl.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 14:40:44 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:42259 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751190Ab3EGWVW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:21:22 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so119639yho.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:21:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gvormayr@gmail.com, axboe@kernel.dk, grant.likely@linaro.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/block/xsysace.c: fix id with missing port-number
+     Subject: backlight: atmel-pwm-bl: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     drivers-block-xsysacec-fix-id-with-missing-port-number.patch
+     backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gernot Vormayr <gvormayr@gmail.com>
-Subject: drivers/block/xsysace.c: fix id with missing port-number
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: atmel-pwm-bl: remove unnecessary platform_set_drvdata()
 
-If the port number is missing from the device-tree the device gets named
-xs` instead of xsa.  This fixes the check for missing ids.
+The driver core clears the driver data to NULL after device_release or on
+probe failure, since commit 0998d06310 ("device-core: Ensure drvdata =
+NULL when no driver is bound").  Thus, it is not needed to manually clear
+the device driver data to NULL.
 
-Tested on ml507 board.
-
-Signed-off-by: Gernot Vormayr <gvormayr@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <rob.herring@calxeda.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/xsysace.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/backlight/atmel-pwm-bl.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/block/xsysace.c~drivers-block-xsysacec-fix-id-with-missing-port-number drivers/block/xsysace.c
---- a/drivers/block/xsysace.c~drivers-block-xsysacec-fix-id-with-missing-port-number
-+++ a/drivers/block/xsysace.c
-@@ -1161,8 +1161,7 @@ static int ace_probe(struct platform_dev
- 	dev_dbg(&dev->dev, "ace_probe(%p)\n", dev);
+diff -puN drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata drivers/video/backlight/atmel-pwm-bl.c
+--- a/drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata
++++ a/drivers/video/backlight/atmel-pwm-bl.c
+@@ -195,7 +195,6 @@ static int __init atmel_pwm_bl_probe(str
+ 	return 0;
  
- 	/* device id and bus width */
--	of_property_read_u32(dev->dev.of_node, "port-number", &id);
--	if (id < 0)
-+	if (of_property_read_u32(dev->dev.of_node, "port-number", &id))
- 		id = 0;
- 	if (of_find_property(dev->dev.of_node, "8-bit", NULL))
- 		bus_width = ACE_BUS_WIDTH_8;
+ err_free_bl_dev:
+-	platform_set_drvdata(pdev, NULL);
+ 	backlight_device_unregister(bldev);
+ err_free_pwm:
+ 	pwm_channel_free(&pwmbl->pwmc);
+@@ -212,7 +211,6 @@ static int __exit atmel_pwm_bl_remove(st
+ 	pwm_channel_disable(&pwmbl->pwmc);
+ 	pwm_channel_free(&pwmbl->pwmc);
+ 	backlight_device_unregister(pwmbl->bldev);
+-	platform_set_drvdata(pdev, NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from gvormayr@gmail.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-drivers-block-xsysacec-fix-id-with-missing-port-number.patch
+origin.patch
+linux-next.patch
+backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata.patch
+backlight-ep93xx-remove-unnecessary-platform_set_drvdata.patch
+backlight-lp8788-remove-unnecessary-platform_set_drvdata.patch
+backlight-pcf50633-remove-unnecessary-platform_set_drvdata.patch
+rtc-rtc-v3020-use-gpio_request_array.patch
+drivers-rtc-rtc-pxac-use-devm_-apis.patch
 
