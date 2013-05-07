@@ -1,70 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rbtree_test-add-extra-rbtree-integrity-check.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:57 -0700
-Message-ID: <20130507174957.7470331C3C9@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] kexec-use-min_t-to-simplify-logic.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:54 -0700
+Message-ID: <20130507174954.8C45E5A43B1@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:48243 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298Ab3EGRt6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:58 -0400
-Received: by mail-vb0-f74.google.com with SMTP id q16so85798vbe.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:58 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:41258 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752298Ab3EGRt4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:56 -0400
+Received: by mail-qa0-f73.google.com with SMTP id bs12so110277qab.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidlohr.bueso@hp.com, walken@google.com, mm-commits@vger.kernel.org
+To: zhangyanfei@cn.fujitsu.com, ebiederm@xmission.com, horms@verge.net.au, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree_test: add extra rbtree integrity check
+     Subject: kexec: Use min() and min_t() to simplify logic
 has been removed from the -mm tree.  Its filename was
-     rbtree_test-add-extra-rbtree-integrity-check.patch
+     kexec-use-min_t-to-simplify-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: rbtree_test: add extra rbtree integrity check
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: kexec: Use min() and min_t() to simplify logic
 
-Account for the rbtree having  2**bh(v)-1 internal nodes.
+Simplify the logic of variable assignments.
 
-While this can be seen as a consequence of other checks, Michel states
-that it nicely sums up what the other properties are for.
-
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Reviewed-by: Michel Lespinasse <walken@google.com>
+[akpm@linux-foundation.org: replace min_t with min, remove unneeded casts]
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Reviewed-by: Simon Horman <horms@verge.net.au>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree_test.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/kexec.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN lib/rbtree_test.c~rbtree_test-add-extra-rbtree-integrity-check lib/rbtree_test.c
---- a/lib/rbtree_test.c~rbtree_test-add-extra-rbtree-integrity-check
-+++ a/lib/rbtree_test.c
-@@ -117,8 +117,7 @@ static int black_path_count(struct rb_no
- static void check(int nr_nodes)
- {
- 	struct rb_node *rb;
--	int count = 0;
--	int blacks = 0;
-+	int count = 0, blacks = 0;
- 	u32 prev_key = 0;
+diff -puN kernel/kexec.c~kexec-use-min_t-to-simplify-logic kernel/kexec.c
+--- a/kernel/kexec.c~kexec-use-min_t-to-simplify-logic
++++ a/kernel/kexec.c
+@@ -819,13 +819,9 @@ static int kimage_load_normal_segment(st
+ 		/* Start with a clear page */
+ 		clear_page(ptr);
+ 		ptr += maddr & ~PAGE_MASK;
+-		mchunk = PAGE_SIZE - (maddr & ~PAGE_MASK);
+-		if (mchunk > mbytes)
+-			mchunk = mbytes;
+-
+-		uchunk = mchunk;
+-		if (uchunk > ubytes)
+-			uchunk = ubytes;
++		mchunk = min_t(size_t, mbytes,
++				PAGE_SIZE - (maddr & ~PAGE_MASK));
++		uchunk = min(ubytes, mchunk);
  
- 	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-@@ -134,7 +133,9 @@ static void check(int nr_nodes)
- 		prev_key = node->key;
- 		count++;
- 	}
-+
- 	WARN_ON_ONCE(count != nr_nodes);
-+	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
- }
+ 		result = copy_from_user(ptr, buf, uchunk);
+ 		kunmap(page);
+@@ -871,13 +867,10 @@ static int kimage_load_crash_segment(str
+ 		}
+ 		ptr = kmap(page);
+ 		ptr += maddr & ~PAGE_MASK;
+-		mchunk = PAGE_SIZE - (maddr & ~PAGE_MASK);
+-		if (mchunk > mbytes)
+-			mchunk = mbytes;
+-
+-		uchunk = mchunk;
+-		if (uchunk > ubytes) {
+-			uchunk = ubytes;
++		mchunk = min_t(size_t, mbytes,
++				PAGE_SIZE - (maddr & ~PAGE_MASK));
++		uchunk = min(ubytes, mchunk);
++		if (mchunk > uchunk) {
+ 			/* Zero the trailing part of the page */
+ 			memset(ptr + uchunk, 0, mchunk - uchunk);
+ 		}
+@@ -1546,8 +1539,7 @@ void vmcoreinfo_append_str(const char *f
+ 	r = vsnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
  
- static void check_augmented(int nr_nodes)
+-	if (r + vmcoreinfo_size > vmcoreinfo_max_size)
+-		r = vmcoreinfo_max_size - vmcoreinfo_size;
++	r = min(r, vmcoreinfo_max_size - vmcoreinfo_size);
+ 
+ 	memcpy(&vmcoreinfo_data[vmcoreinfo_size], buf, r);
+ 
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
 origin.patch
+ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
 
