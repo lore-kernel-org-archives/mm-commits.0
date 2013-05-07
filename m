@@ -1,121 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kmod-remove-call_usermodehelper_fns.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:21 -0700
-Message-ID: <20130507174921.8C21F5A429A@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:27 -0700
+Message-ID: <20130507174927.9D8D731C26F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:37989 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756103Ab3EGRtX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:23 -0400
-Received: by mail-vb0-f73.google.com with SMTP id e13so85308vbg.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:22 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:41636 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759445Ab3EGRt3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:29 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so85346ggl.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lucas.demarchi@profusion.mobi, dhowells@redhat.com, james.l.morris@oracle.com, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mingo@redhat.com, msb@chromium.org, nhorman@redhat.com, rjw@sisk.pl, roland@hack.frob.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: remove call_usermodehelper_fns()
+     Subject: coredump: ensure that SIGKILL always kills the dumping thread
 has been removed from the -mm tree.  Its filename was
-     kmod-remove-call_usermodehelper_fns.patch
+     coredump-ensure-that-sigkill-always-kills-the-dumping-thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Subject: kmod: remove call_usermodehelper_fns()
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: ensure that SIGKILL always kills the dumping thread
 
-This function suffers from not being able to determine if the cleanup is
-called in case it returns -ENOMEM.  Nobody is using it anymore, so let's
-remove it.
+prepare_signal() blesses SIGKILL sent to the dumping process but this
+signal can be "lost" anyway.  The problems is, complete_signal() sees
+SIGNAL_GROUP_EXIT and skips the "kill them all" logic.  And even if the
+dumping process is single-threaded (so the target is always "correct"),
+the group-wide SIGKILL is not recorded in task->pending and thus
+__fatal_signal_pending() won't be true.  A multi-threaded case has even
+more problems.
 
-Signed-off-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Tejun Heo <tj@kernel.org>
+And even ignoring all technical details, SIGNAL_GROUP_EXIT doesn't look
+right to me.  This coredumping process is not exiting yet, it can do a lot
+of work dumping the core.
+
+With this patch the dumping process doesn't have SIGNAL_GROUP_EXIT, we set
+signal->group_exit_task instead.  This makes signal_group_exit() true and
+thus this should equally close the races with exit/exec/stop but allows to
+kill the dumping thread reliably.
+
+Notes:
+	- It is not clear what should we do with ->group_exit_code
+	  if the dumper was killed, see the next change.
+
+	- we need more (hopefully straightforward) changes to ensure
+	  that SIGKILL actually interrupts the coredump. Basically we
+	  need to check __fatal_signal_pending() in dump_write() and
+	  dump_seek().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Tested-by: Mandeep Singh Baines <msb@chromium.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Neil Horman <nhorman@redhat.com>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Roland McGrath <roland@hack.frob.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |   11 +----------
- kernel/kmod.c        |   31 +++++++++++++++++--------------
- 2 files changed, 18 insertions(+), 24 deletions(-)
+ fs/coredump.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kmod.h~kmod-remove-call_usermodehelper_fns include/linux/kmod.h
---- a/include/linux/kmod.h~kmod-remove-call_usermodehelper_fns
-+++ a/include/linux/kmod.h
-@@ -67,9 +67,7 @@ struct subprocess_info {
- };
+diff -puN fs/coredump.c~coredump-ensure-that-sigkill-always-kills-the-dumping-thread fs/coredump.c
+--- a/fs/coredump.c~coredump-ensure-that-sigkill-always-kills-the-dumping-thread
++++ a/fs/coredump.c
+@@ -263,7 +263,6 @@ static int zap_process(struct task_struc
+ 	struct task_struct *t;
+ 	int nr = 0;
  
- extern int
--call_usermodehelper_fns(char *path, char **argv, char **envp, int wait,
--			int (*init)(struct subprocess_info *info, struct cred *new),
--			void (*cleanup)(struct subprocess_info *), void *data);
-+call_usermodehelper(char *path, char **argv, char **envp, int wait);
+-	start->signal->flags = SIGNAL_GROUP_EXIT;
+ 	start->signal->group_exit_code = exit_code;
+ 	start->signal->group_stop_count = 0;
  
- extern struct subprocess_info *
- call_usermodehelper_setup(char *path, char **argv, char **envp, gfp_t gfp_mask,
-@@ -79,13 +77,6 @@ call_usermodehelper_setup(char *path, ch
- extern int
- call_usermodehelper_exec(struct subprocess_info *info, int wait);
+@@ -291,8 +290,9 @@ static int zap_threads(struct task_struc
+ 	if (!signal_group_exit(tsk->signal)) {
+ 		mm->core_state = core_state;
+ 		nr = zap_process(tsk, exit_code);
++		tsk->signal->group_exit_task = tsk;
+ 		/* ignore all signals except SIGKILL, see prepare_signal() */
+-		tsk->signal->flags |= SIGNAL_GROUP_COREDUMP;
++		tsk->signal->flags = SIGNAL_GROUP_COREDUMP;
+ 		clear_tsk_thread_flag(tsk, TIF_SIGPENDING);
+ 	}
+ 	spin_unlock_irq(&tsk->sighand->siglock);
+@@ -343,6 +343,7 @@ static int zap_threads(struct task_struc
+ 				if (unlikely(p->mm == mm)) {
+ 					lock_task_sighand(p, &flags);
+ 					nr += zap_process(p, exit_code);
++					p->signal->flags = SIGNAL_GROUP_EXIT;
+ 					unlock_task_sighand(p, &flags);
+ 				}
+ 				break;
+@@ -394,6 +395,11 @@ static void coredump_finish(struct mm_st
+ 	struct core_thread *curr, *next;
+ 	struct task_struct *task;
  
--static inline int
--call_usermodehelper(char *path, char **argv, char **envp, int wait)
--{
--	return call_usermodehelper_fns(path, argv, envp, wait,
--				       NULL, NULL, NULL);
--}
--
- extern struct ctl_table usermodehelper_table[];
- 
- enum umh_disable_depth {
-diff -puN kernel/kmod.c~kmod-remove-call_usermodehelper_fns kernel/kmod.c
---- a/kernel/kmod.c~kmod-remove-call_usermodehelper_fns
-+++ a/kernel/kmod.c
-@@ -555,8 +555,8 @@ EXPORT_SYMBOL(call_usermodehelper_setup)
-  * call_usermodehelper_exec - start a usermode application
-  * @sub_info: information about the subprocessa
-  * @wait: wait for the application to finish and return status.
-- *        when -1 don't wait at all, but you get no useful error back when
-- *        the program couldn't be exec'ed. This makes it safe to call
-+ *        when UMH_NO_WAIT don't wait at all, but you get no useful error back
-+ *        when the program couldn't be exec'ed. This makes it safe to call
-  *        from interrupt context.
-  *
-  * Runs a user-space application.  The application is started
-@@ -616,29 +616,32 @@ unlock:
- }
- EXPORT_SYMBOL(call_usermodehelper_exec);
- 
--/*
-- * call_usermodehelper_fns() will not run the caller-provided cleanup function
-- * if a memory allocation failure is experienced.  So the caller might need to
-- * check the call_usermodehelper_fns() return value: if it is -ENOMEM, perform
-- * the necessaary cleanup within the caller.
-+/**
-+ * call_usermodehelper() - prepare and start a usermode application
-+ * @path: path to usermode executable
-+ * @argv: arg vector for process
-+ * @envp: environment for process
-+ * @wait: wait for the application to finish and return status.
-+ *        when UMH_NO_WAIT don't wait at all, but you get no useful error back
-+ *        when the program couldn't be exec'ed. This makes it safe to call
-+ *        from interrupt context.
-+ *
-+ * This function is the equivalent to use call_usermodehelper_setup() and
-+ * call_usermodehelper_exec().
-  */
--int call_usermodehelper_fns(
--	char *path, char **argv, char **envp, int wait,
--	int (*init)(struct subprocess_info *info, struct cred *new),
--	void (*cleanup)(struct subprocess_info *), void *data)
-+int call_usermodehelper(char *path, char **argv, char **envp, int wait)
- {
- 	struct subprocess_info *info;
- 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
- 
- 	info = call_usermodehelper_setup(path, argv, envp, gfp_mask,
--					 init, cleanup, data);
++	spin_lock_irq(&current->sighand->siglock);
++	current->signal->group_exit_task = NULL;
++	current->signal->flags = SIGNAL_GROUP_EXIT;
++	spin_unlock_irq(&current->sighand->siglock);
++
+ 	next = mm->core_state->dumper.next;
+ 	while ((curr = next) != NULL) {
+ 		next = curr->next;
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+origin.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+
