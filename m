@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-weak-clz-ctz-functions.patch added to -mm tree
-Date: Tue, 07 May 2013 15:56:03 -0700
-Message-ID: <20130507225603.8C07231C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + wait-fix-false-timeouts-when-using-wait_event_timeout.patch added to -mm tree
+Date: Tue, 07 May 2013 16:13:10 -0700
+Message-ID: <20130507231310.7D52D5A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:60989 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725Ab3EGW4F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:56:05 -0400
-Received: by mail-qc0-f202.google.com with SMTP id d1so122994qcz.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:56:04 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:47864 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753495Ab3EGXNL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 19:13:11 -0400
+Received: by mail-gh0-f202.google.com with SMTP id g24so112270ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 16:13:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chanho.min@lge.com, djwong@us.ibm.com, geert@linux-m68k.org, herbert@gondor.hengli.com.au, kyungsik.lee@lge.com, richard@nod.at, rpearson@systemfabricworks.com, yann.collet.73@gmail.com
+Cc: imre.deak@intel.com, axboe@kernel.dk, daniel.vetter@ffwll.ch, davej@redhat.com, dhowells@redhat.com, lczerner@redhat.com, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: lib: add weak clz/ctz functions
+     Subject: wait: fix false timeouts when using wait_event_timeout()
 has been added to the -mm tree.  Its filename is
-     lib-add-weak-clz-ctz-functions.patch
+     wait-fix-false-timeouts-when-using-wait_event_timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chanho Min <chanho.min@lge.com>
-Subject: lib: add weak clz/ctz functions
+From: Imre Deak <imre.deak@intel.com>
+Subject: wait: fix false timeouts when using wait_event_timeout()
 
-Some architectures need __c[lt]z[sd]i2() for __builtin_c[lt]z[ll] and It
-causes build failure.  They can be implemented using the fls()/__ffs() and
-overridden by linking arch-specific versions may not be implemented yet.
+Many callers of the wait_event_timeout() and
+wait_event_interruptible_timeout() expect that the return value will be
+positive if the specified condition becomes true before the timeout
+elapses.  However, at the moment this isn't guaranteed.  If the wake-up
+handler is delayed enough, the time remaining until timeout will be
+calculated as 0 - and passed back as a return value - even if the
+condition became true before the timeout has passed.
 
-This is required by "lib: add lz4 compressor module".
+Fix this by returning at least 1 if the condition becomes true.  This
+semantic is in line with what wait_for_condition_timeout() does; see
+commit bb10ed09 ("sched: fix wait_for_completion_timeout() spurious
+failure under heavy load").
 
-Reference: https://lkml.org/lkml/2013/4/18/603
+Daniel said "We have 3 instances of this bug in drm/i915.  One case even
+where we switch between the interruptible and not interruptible
+wait_event_timeout variants, foolishly presuming they have the same
+semantics.  I very much like this."
 
-Signed-off-by: Chanho Min <chanho.min@lge.com>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Bob Pearson <rpearson@systemfabricworks.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Herbert Xu <herbert@gondor.hengli.com.au>
-Cc: Yann Collet <yann.collet.73@gmail.com>
-Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Signed-off-by: Imre Deak <imre.deak@intel.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Acked-by: David Howells <dhowells@redhat.com>
+Acked-by: Jens Axboe <axboe@kernel.dk>
+Cc: "Paul E.  McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Lukas Czerner <lczerner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile  |    2 -
- lib/clz_ctz.c |   58 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+), 1 deletion(-)
+ include/linux/wait.h |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN lib/Makefile~lib-add-weak-clz-ctz-functions lib/Makefile
---- a/lib/Makefile~lib-add-weak-clz-ctz-functions
-+++ a/lib/Makefile
-@@ -23,7 +23,7 @@ lib-y	+= kobject.o klist.o
+diff -puN include/linux/wait.h~wait-fix-false-timeouts-when-using-wait_event_timeout include/linux/wait.h
+--- a/include/linux/wait.h~wait-fix-false-timeouts-when-using-wait_event_timeout
++++ a/include/linux/wait.h
+@@ -217,6 +217,8 @@ do {									\
+ 		if (!ret)						\
+ 			break;						\
+ 	}								\
++	if (!ret && (condition))					\
++		ret = 1;						\
+ 	finish_wait(&wq, &__wait);					\
+ } while (0)
  
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
--	 gcd.o lcm.o list_sort.o uuid.o flex_array.o \
-+	 gcd.o lcm.o list_sort.o uuid.o flex_array.o clz_ctz.o\
- 	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o kfifo.o
- obj-y += string_helpers.o
- obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
-diff -puN /dev/null lib/clz_ctz.c
---- /dev/null
-+++ a/lib/clz_ctz.c
-@@ -0,0 +1,58 @@
-+/*
-+ * lib/clz_ctz.c
-+ *
-+ * Copyright (C) 2013 Chanho Min <chanho.min@lge.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * __c[lt]z[sd]i2 can be overridden by linking arch-specific versions.
-+ */
-+
-+#include <linux/export.h>
-+#include <linux/kernel.h>
-+
-+int __weak __ctzsi2(int val)
-+{
-+	return __ffs(val);
-+}
-+EXPORT_SYMBOL(__ctzsi2);
-+
-+int __weak __clzsi2(int val)
-+{
-+	return 32 - fls(val);
-+}
-+EXPORT_SYMBOL(__clzsi2);
-+
-+#if BITS_PER_LONG == 32
-+
-+int __weak __clzdi2(long val)
-+{
-+	return 32 - fls((int)val);
-+}
-+EXPORT_SYMBOL(__clzdi2);
-+
-+int __weak __ctzdi2(long val)
-+{
-+	return __ffs((u32)val);
-+}
-+EXPORT_SYMBOL(__ctzdi2);
-+
-+#elif BITS_PER_LONG == 64
-+
-+int __weak __clzdi2(long val)
-+{
-+	return 64 - fls64((u64)val);
-+}
-+EXPORT_SYMBOL(__clzdi2);
-+
-+int __weak __ctzdi2(long val)
-+{
-+	return __ffs64((u64)val);
-+}
-+EXPORT_SYMBOL(__ctzdi2);
-+
-+#else
-+#error BITS_PER_LONG not 32 or 64
-+#endif
+@@ -233,8 +235,9 @@ do {									\
+  * wake_up() has to be called after changing any variable that could
+  * change the result of the wait condition.
+  *
+- * The function returns 0 if the @timeout elapsed, and the remaining
+- * jiffies if the condition evaluated to true before the timeout elapsed.
++ * The function returns 0 if the @timeout elapsed, or the remaining
++ * jiffies (at least 1) if the @condition evaluated to %true before
++ * the @timeout elapsed.
+  */
+ #define wait_event_timeout(wq, condition, timeout)			\
+ ({									\
+@@ -302,6 +305,8 @@ do {									\
+ 		ret = -ERESTARTSYS;					\
+ 		break;							\
+ 	}								\
++	if (!ret && (condition))					\
++		ret = 1;						\
+ 	finish_wait(&wq, &__wait);					\
+ } while (0)
+ 
+@@ -318,9 +323,10 @@ do {									\
+  * wake_up() has to be called after changing any variable that could
+  * change the result of the wait condition.
+  *
+- * The function returns 0 if the @timeout elapsed, -ERESTARTSYS if it
+- * was interrupted by a signal, and the remaining jiffies otherwise
+- * if the condition evaluated to true before the timeout elapsed.
++ * Returns:
++ * 0 if the @timeout elapsed, -%ERESTARTSYS if it was interrupted by
++ * a signal, or the remaining jiffies (at least 1) if the @condition
++ * evaluated to %true before the @timeout elapsed.
+  */
+ #define wait_event_interruptible_timeout(wq, condition, timeout)	\
+ ({									\
 _
 
-Patches currently in -mm which might be from chanho.min@lge.com are
+Patches currently in -mm which might be from imre.deak@intel.com are
 
 origin.patch
-lib-add-weak-clz-ctz-functions.patch
-lib-add-lz4-compressor-module.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api.patch
-crypto-add-lz4-cryptographic-api-fix.patch
+linux-next.patch
+wait-fix-false-timeouts-when-using-wait_event_timeout.patch
 
