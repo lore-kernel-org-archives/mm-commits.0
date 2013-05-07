@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-88pm860x-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:48:49 -0700
-Message-ID: <20130507224849.CB09531C034@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-rtc-ab3100-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:48:51 -0700
+Message-ID: <20130507224851.C72315A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:44360 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab3EGWsu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:48:50 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so121862ves.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:48:50 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:46544 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753150Ab3EGWsw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:48:52 -0400
+Received: by mail-gh0-f202.google.com with SMTP id g24so110000ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:48:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: jg1.han@samsung.com, lars@metafoo.de
 
 
 The patch titled
-     Subject: rtc: rtc-88pm860x: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-ab3100: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-88pm860x-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-ab3100-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-88pm860x: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-ab3100: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -42,19 +42,20 @@ NULL when no driver is bound").  Thus, it is not needed to manually clear
 the device driver data to NULL.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm860x.c |    1 -
+ drivers/rtc/rtc-ab3100.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-88pm860x.c~rtc-rtc-88pm860x-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-88pm860x.c
---- a/drivers/rtc/rtc-88pm860x.c~rtc-rtc-88pm860x-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-88pm860x.c
-@@ -418,7 +418,6 @@ static int pm860x_rtc_remove(struct plat
- 	pm860x_set_bits(info->i2c, PM8607_MEAS_EN2, MEAS2_VRTC, 0);
- #endif	/* VRTC_CALIBRATION */
+diff -puN drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-ab3100.c
+--- a/drivers/rtc/rtc-ab3100.c~rtc-rtc-ab3100-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-ab3100.c
+@@ -242,7 +242,6 @@ static int __init ab3100_rtc_probe(struc
  
+ static int __exit ab3100_rtc_remove(struct platform_device *pdev)
+ {
 -	platform_set_drvdata(pdev, NULL);
  	return 0;
  }
