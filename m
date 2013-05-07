@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch added to -mm tree
-Date: Tue, 07 May 2013 15:38:54 -0700
-Message-ID: <20130507223854.CEAFA31C145@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch added to -mm tree
+Date: Tue, 07 May 2013 15:38:58 -0700
+Message-ID: <20130507223858.D66DC5A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:47403 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470Ab3EGWi4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:38:56 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so121202vcb.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:38:55 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:49617 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753111Ab3EGWi7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:38:59 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m14so121031yen.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:38:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-at32ap700x.c: fix checkpatch error
+     Subject: drivers/rtc/rtc-cmos.c: fix whitespace related errors
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
+     drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-at32ap700x.c: fix checkpatch error
+Subject: drivers/rtc/rtc-cmos.c: fix whitespace related errors
 
-Fixes the following error:
-ERROR: space required before the open parenthesis '('
+Fixes the following types of issues:
+
+ERROR: space required after that ',' (ctx:VxV)
+WARNING: please, no spaces at the start of a line
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at32ap700x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-cmos.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-at32ap700x.c~drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error drivers/rtc/rtc-at32ap700x.c
---- a/drivers/rtc/rtc-at32ap700x.c~drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error
-+++ a/drivers/rtc/rtc-at32ap700x.c
-@@ -141,7 +141,7 @@ static int at32_rtc_alarm_irq_enable(str
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-whitespace-related-errors drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-whitespace-related-errors
++++ a/drivers/rtc/rtc-cmos.c
+@@ -326,7 +326,7 @@ static void cmos_irq_disable(struct cmos
+ static int cmos_set_alarm(struct device *dev, struct rtc_wkalrm *t)
+ {
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+-       unsigned char   mon, mday, hrs, min, sec, rtc_control;
++	unsigned char mon, mday, hrs, min, sec, rtc_control;
  
- 	spin_lock_irq(&rtc->lock);
+ 	if (!is_valid_irq(cmos->irq))
+ 		return -EIO;
+@@ -691,7 +691,7 @@ cmos_do_probe(struct device *dev, struct
+ 	/* FIXME:
+ 	 * <asm-generic/rtc.h> doesn't know 12-hour mode either.
+ 	 */
+-       if (is_valid_irq(rtc_irq) && !(rtc_control & RTC_24H)) {
++	if (is_valid_irq(rtc_irq) && !(rtc_control & RTC_24H)) {
+ 		dev_warn(dev, "only 24-hr supported\n");
+ 		retval = -ENXIO;
+ 		goto cleanup1;
+@@ -989,7 +989,7 @@ static int cmos_pnp_probe(struct pnp_dev
+ {
+ 	cmos_wake_setup(&pnp->dev);
  
--	if(enabled) {
-+	if (enabled) {
- 		if (rtc_readl(rtc, VAL) > rtc->alarm_time) {
- 			ret = -EINVAL;
- 			goto out;
+-	if (pnp_port_start(pnp,0) == 0x70 && !pnp_irq_valid(pnp,0))
++	if (pnp_port_start(pnp, 0) == 0x70 && !pnp_irq_valid(pnp, 0))
+ 		/* Some machines contain a PNP entry for the RTC, but
+ 		 * don't define the IRQ. It should always be safe to
+ 		 * hardcode it in these cases
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
