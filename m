@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:20 -0700
-Message-ID: <20130507223920.CB7DD5A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:24 -0700
+Message-ID: <20130507223924.CBE5331C145@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:37845 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab3EGWjV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:21 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so121204yho.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:21 -0700 (PDT)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:64102 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153Ab3EGWjZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:25 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so120957yen.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-mpc5121.c: remove space before tab
+     Subject: drivers/rtc/rtc-mxc.c: fix checkpatch error
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
+     drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-mpc5121.c: remove space before tab
+Subject: drivers/rtc/rtc-mxc.c: fix checkpatch error
 
-WARNING: please, no space before tabs
+Fixes the following error:
+ERROR: spaces required around that '>=' (ctx:WxV)
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mpc5121.c |    2 +-
+ drivers/rtc/rtc-mxc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-remove-space-before-tab drivers/rtc/rtc-mpc5121.c
---- a/drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-remove-space-before-tab
-+++ a/drivers/rtc/rtc-mpc5121.c
-@@ -68,7 +68,7 @@ struct mpc5121_rtc_regs {
- 	u32 target_time;	/* RTC + 0x20 */
- 	/*
- 	 * actual_time:
--	 * 	readonly time since VBAT_RTC was last connected
-+	 *	readonly time since VBAT_RTC was last connected
- 	 */
- 	u32 actual_time;	/* RTC + 0x24 */
- 	u32 keep_alive;		/* RTC + 0x28 */
+diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-checkpatch-error drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-checkpatch-error
++++ a/drivers/rtc/rtc-mxc.c
+@@ -436,7 +436,7 @@ static int mxc_rtc_probe(struct platform
+ 		pdata->irq = -1;
+ 	}
+ 
+-	if (pdata->irq >=0)
++	if (pdata->irq >= 0)
+ 		device_init_wakeup(&pdev->dev, 1);
+ 
+ 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &mxc_rtc_ops,
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
