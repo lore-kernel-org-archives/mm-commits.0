@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aio-make-aio_put_req-lockless-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 07 May 2013 12:41:49 -0700
-Message-ID: <20130507194149.EF0BF31C15F@corp2gmr1-1.hot.corp.google.com>
+Subject: [folded-merged] aio-refcounting-cleanup-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 07 May 2013 12:42:09 -0700
+Message-ID: <20130507194209.B93225A4111@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:43814 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746Ab3EGTlv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:41:51 -0400
-Received: by mail-gh0-f202.google.com with SMTP id g24so88139ghb.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:41:50 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:60673 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753746Ab3EGTmK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 15:42:10 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so99999ggl.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 12:42:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, koverstreet@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-make-aio_put_req-lockless-checkpatch-fixes
+     Subject: aio-refcounting-cleanup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     aio-make-aio_put_req-lockless-checkpatch-fixes.patch
+     aio-refcounting-cleanup-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into aio-make-aio_put_req-lockless.patch
+This patch was dropped because it was folded into aio-refcounting-cleanup.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-make-aio_put_req-lockless-checkpatch-fixes
+Subject: aio-refcounting-cleanup-checkpatch-fixes
 
-WARNING: line over 80 characters
-#160: FILE: fs/aio.c:548:
-+	avail = aio_ring_avail(&ctx->ring_info, ring) - atomic_read(&ctx->reqs_active);
+ERROR: space required before the open brace '{'
+#330: FILE: fs/aio.c:632:
++		if (ctx->user_id == ctx_id){
 
-total: 0 errors, 1 warnings, 224 lines checked
+total: 1 errors, 0 warnings, 395 lines checked
 
-./patches/aio-make-aio_put_req-lockless.patch has style problems, please review.
+./patches/aio-refcounting-cleanup.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -43,22 +43,21 @@ Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/aio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-make-aio_put_req-lockless-checkpatch-fixes fs/aio.c
---- a/fs/aio.c~aio-make-aio_put_req-lockless-checkpatch-fixes
+diff -puN fs/aio.c~aio-refcounting-cleanup-checkpatch-fixes fs/aio.c
+--- a/fs/aio.c~aio-refcounting-cleanup-checkpatch-fixes
 +++ a/fs/aio.c
-@@ -545,7 +545,8 @@ static int kiocb_batch_refill(struct kio
- 	spin_lock_irq(&ctx->ctx_lock);
- 	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
+@@ -630,7 +630,7 @@ static struct kioctx *lookup_ioctx(unsig
+ 	rcu_read_lock();
  
--	avail = aio_ring_avail(&ctx->ring_info, ring) - atomic_read(&ctx->reqs_active);
-+	avail = aio_ring_avail(&ctx->ring_info, ring) -
-+				atomic_read(&ctx->reqs_active);
- 	BUG_ON(avail < 0);
- 	if (avail < allocated) {
- 		/* Trim back the number of requests. */
+ 	hlist_for_each_entry_rcu(ctx, &mm->ioctx_list, list) {
+-		if (ctx->user_id == ctx_id){
++		if (ctx->user_id == ctx_id) {
+ 			atomic_inc(&ctx->users);
+ 			ret = ctx;
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +72,7 @@ gadget-remove-only-user-of-aio-retry.patch
 aio-remove-retry-based-aio.patch
 aio-add-kiocb_cancel.patch
 aio-make-aio_put_req-lockless.patch
-aio-refcounting-cleanup-checkpatch-fixes.patch
+aio-refcounting-cleanup.patch
 wait-add-wait_event_hrtimeout.patch
 aio-make-aio_read_evt-more-efficient-convert-to-hrtimers-checkpatch-fixes.patch
 aio-use-cancellation-list-lazily.patch
