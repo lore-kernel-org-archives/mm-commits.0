@@ -1,120 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-clamp-with-min.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:51:43 -0700
-Message-ID: <20130507175143.72C7C5A451C@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] ipc-set-efault-as-default-error-in-load_msg.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:51:52 -0700
+Message-ID: <20130507175152.73B3C31C4F8@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:62077 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753993Ab3EGRvo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:51:44 -0400
-Received: by mail-qa0-f73.google.com with SMTP id bs12so110895qab.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:51:44 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:48826 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753993Ab3EGRvx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:51:53 -0400
+Received: by mail-yh0-f73.google.com with SMTP id a41so86546yho.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:51:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: peter@hurleysoftware.com, skinsbursky@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: clamp with min()
+     Subject: ipc: set EFAULT as default error in load_msg()
 has been removed from the -mm tree.  Its filename was
-     ipc-clamp-with-min.patch
+     ipc-set-efault-as-default-error-in-load_msg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Hurley <peter@hurleysoftware.com>
-Subject: ipc: clamp with min()
+Subject: ipc: set EFAULT as default error in load_msg()
 
 Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
 Acked-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msgutil.c |   30 ++++++++----------------------
- 1 file changed, 8 insertions(+), 22 deletions(-)
+ ipc/msgutil.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN ipc/msgutil.c~ipc-clamp-with-min ipc/msgutil.c
---- a/ipc/msgutil.c~ipc-clamp-with-min
+diff -puN ipc/msgutil.c~ipc-set-efault-as-default-error-in-load_msg ipc/msgutil.c
+--- a/ipc/msgutil.c~ipc-set-efault-as-default-error-in-load_msg
 +++ a/ipc/msgutil.c
-@@ -41,8 +41,8 @@ struct msg_msgseg {
- 	/* the next part of the message follows immediately */
- };
- 
--#define DATALEN_MSG	(PAGE_SIZE-sizeof(struct msg_msg))
--#define DATALEN_SEG	(PAGE_SIZE-sizeof(struct msg_msgseg))
-+#define DATALEN_MSG	(int)(PAGE_SIZE-sizeof(struct msg_msg))
-+#define DATALEN_SEG	(int)(PAGE_SIZE-sizeof(struct msg_msgseg))
- 
- struct msg_msg *load_msg(const void __user *src, int len)
+@@ -84,7 +84,7 @@ struct msg_msg *load_msg(const void __us
  {
-@@ -51,10 +51,7 @@ struct msg_msg *load_msg(const void __us
- 	int err;
- 	int alen;
- 
--	alen = len;
--	if (alen > DATALEN_MSG)
--		alen = DATALEN_MSG;
--
-+	alen = min(len, DATALEN_MSG);
- 	msg = kmalloc(sizeof(*msg) + alen, GFP_KERNEL);
- 	if (msg == NULL)
- 		return ERR_PTR(-ENOMEM);
-@@ -72,9 +69,7 @@ struct msg_msg *load_msg(const void __us
- 	pseg = &msg->next;
- 	while (len > 0) {
- 		struct msg_msgseg *seg;
--		alen = len;
--		if (alen > DATALEN_SEG)
--			alen = DATALEN_SEG;
-+		alen = min(len, DATALEN_SEG);
- 		seg = kmalloc(sizeof(*seg) + alen,
- 						 GFP_KERNEL);
- 		if (seg == NULL) {
-@@ -113,19 +108,14 @@ struct msg_msg *copy_msg(struct msg_msg 
- 	if (src->m_ts > dst->m_ts)
- 		return ERR_PTR(-EINVAL);
- 
--	alen = len;
--	if (alen > DATALEN_MSG)
--		alen = DATALEN_MSG;
--
-+	alen = min(len, DATALEN_MSG);
- 	memcpy(dst + 1, src + 1, alen);
- 
- 	len -= alen;
- 	dst_pseg = dst->next;
- 	src_pseg = src->next;
- 	while (len > 0) {
--		alen = len;
--		if (alen > DATALEN_SEG)
--			alen = DATALEN_SEG;
-+		alen = min(len, DATALEN_SEG);
- 		memcpy(dst_pseg + 1, src_pseg + 1, alen);
- 		dst_pseg = dst_pseg->next;
- 		len -= alen;
-@@ -148,9 +138,7 @@ int store_msg(void __user *dest, struct 
- 	int alen;
+ 	struct msg_msg *msg;
  	struct msg_msgseg *seg;
+-	int err;
++	int err = -EFAULT;
+ 	int alen;
  
--	alen = len;
--	if (alen > DATALEN_MSG)
--		alen = DATALEN_MSG;
-+	alen = min(len, DATALEN_MSG);
- 	if (copy_to_user(dest, msg + 1, alen))
- 		return -1;
+ 	msg = alloc_msg(len);
+@@ -92,19 +92,15 @@ struct msg_msg *load_msg(const void __us
+ 		return ERR_PTR(-ENOMEM);
  
-@@ -158,9 +146,7 @@ int store_msg(void __user *dest, struct 
- 	dest = ((char __user *)dest) + alen;
- 	seg = msg->next;
- 	while (len > 0) {
--		alen = len;
--		if (alen > DATALEN_SEG)
--			alen = DATALEN_SEG;
-+		alen = min(len, DATALEN_SEG);
- 		if (copy_to_user(dest, seg + 1, alen))
- 			return -1;
+ 	alen = min(len, DATALEN_MSG);
+-	if (copy_from_user(msg + 1, src, alen)) {
+-		err = -EFAULT;
++	if (copy_from_user(msg + 1, src, alen))
+ 		goto out_err;
+-	}
+ 
+ 	for (seg = msg->next; seg != NULL; seg = seg->next) {
  		len -= alen;
+ 		src = (char __user *)src + alen;
+ 		alen = min(len, DATALEN_SEG);
+-		if (copy_from_user(seg + 1, src, alen)) {
+-			err = -EFAULT;
++		if (copy_from_user(seg + 1, src, alen))
+ 			goto out_err;
+-		}
+ 	}
+ 
+ 	err = security_msg_msg_alloc(msg);
 _
 
 Patches currently in -mm which might be from peter@hurleysoftware.com are
