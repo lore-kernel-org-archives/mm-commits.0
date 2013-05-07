@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:11 -0700
-Message-ID: <20130507224911.C42C65A41B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-davinci-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:13 -0700
+Message-ID: <20130507224913.C513E5A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:54686 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab3EGWtN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:13 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz10so122070vcb.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:12 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:33105 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796Ab3EGWtO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:14 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m14so121878yen.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-da9055: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-davinci: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-davinci-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-da9055: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-davinci: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,16 +45,48 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9055.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-davinci.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-da9055.c
---- a/drivers/rtc/rtc-da9055.c~rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-da9055.c
-@@ -317,8 +317,6 @@ err_rtc:
+diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-davinci.c
+--- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-davinci.c
+@@ -526,10 +526,9 @@ static int __init davinci_rtc_probe(stru
+ 	davinci_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				    &davinci_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(davinci_rtc->rtc)) {
+-		ret = PTR_ERR(davinci_rtc->rtc);
+ 		dev_err(dev, "unable to register RTC device, err %d\n",
+ 				ret);
+-		goto fail1;
++		return PTR_ERR(davinci_rtc->rtc);
+ 	}
  
- static int da9055_rtc_remove(struct platform_device *pdev)
- {
+ 	rtcif_write(davinci_rtc, PRTCIF_INTFLG_RTCSS, PRTCIF_INTFLG);
+@@ -543,7 +542,7 @@ static int __init davinci_rtc_probe(stru
+ 			  0, "davinci_rtc", davinci_rtc);
+ 	if (ret < 0) {
+ 		dev_err(dev, "unable to register davinci RTC interrupt\n");
+-		goto fail1;
++		return ret;
+ 	}
+ 
+ 	/* Enable interrupts */
+@@ -556,10 +555,6 @@ static int __init davinci_rtc_probe(stru
+ 	device_init_wakeup(&pdev->dev, 0);
+ 
+ 	return 0;
+-
+-fail1:
+-	platform_set_drvdata(pdev, NULL);
+-	return ret;
+ }
+ 
+ static int __exit davinci_rtc_remove(struct platform_device *pdev)
+@@ -570,8 +565,6 @@ static int __exit davinci_rtc_remove(str
+ 
+ 	rtcif_write(davinci_rtc, 0, PRTCIF_INTEN);
+ 
 -	platform_set_drvdata(pdev, NULL);
 -
  	return 0;
