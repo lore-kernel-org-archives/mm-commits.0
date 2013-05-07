@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:32 -0700
-Message-ID: <20130507223932.CCB595A4016@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:38 -0700
+Message-ID: <20130507223938.BF26631C082@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:40652 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752395Ab3EGWje (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:34 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz10so121191vcb.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:33 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:48922 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752395Ab3EGWjj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:39 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so121171vcb.5
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, iwamatsu@nigauri.org, jg1.han@samsung.com
+Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rs5c313.c: include <linux/io.h> instead of <asm/io.h>
+     Subject: drivers/rtc/rtc-vr41xx.c: fix spacing issues
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
+     drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-rs5c313.c: include <linux/io.h> instead of <asm/io.h>
+Subject: drivers/rtc/rtc-vr41xx.c: fix spacing issues
 
-Use #include <linux/io.h> instead of <asm/io.h> as pointed out by
-checkpatch.
+Fixes the following types of issues:
+ERROR: code indent should use tabs where possible
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c313.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-vr41xx.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c313.c~drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -47,7 +47,7 @@
- #include <linux/platform_device.h>
- #include <linux/bcd.h>
- #include <linux/delay.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+diff -puN drivers/rtc/rtc-vr41xx.c~drivers-rtc-rtc-vr41xxc-fix-spacing-issues drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~drivers-rtc-rtc-vr41xxc-fix-spacing-issues
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -103,7 +103,7 @@ static inline unsigned long read_elapsed
+ 		second_mid = rtc1_read(ETIMEMREG);
+ 		second_high = rtc1_read(ETIMEHREG);
+ 	} while (first_low != second_low || first_mid != second_mid ||
+-	         first_high != second_high);
++		 first_high != second_high);
  
- #define DRV_NAME	"rs5c313"
- #define DRV_VERSION 	"1.13"
+ 	return (first_high << 17) | (first_mid << 1) | (first_low >> 15);
+ }
+@@ -154,7 +154,7 @@ static int vr41xx_rtc_set_time(struct de
+ 
+ 	epoch_sec = mktime(epoch, 1, 1, 0, 0, 0);
+ 	current_sec = mktime(time->tm_year + 1900, time->tm_mon + 1, time->tm_mday,
+-	                     time->tm_hour, time->tm_min, time->tm_sec);
++			     time->tm_hour, time->tm_min, time->tm_sec);
+ 
+ 	write_elapsed_second(current_sec - epoch_sec);
+ 
+@@ -186,7 +186,7 @@ static int vr41xx_rtc_set_alarm(struct d
+ 	struct rtc_time *time = &wkalrm->time;
+ 
+ 	alarm_sec = mktime(time->tm_year + 1900, time->tm_mon + 1, time->tm_mday,
+-	                   time->tm_hour, time->tm_min, time->tm_sec);
++			   time->tm_hour, time->tm_min, time->tm_sec);
+ 
+ 	spin_lock_irq(&rtc_lock);
+ 
+@@ -334,7 +334,7 @@ static int rtc_probe(struct platform_dev
+ 	}
+ 
+ 	retval = request_irq(aie_irq, elapsedtime_interrupt, 0,
+-	                     "elapsed_time", pdev);
++			     "elapsed_time", pdev);
+ 	if (retval < 0)
+ 		goto err_device_unregister;
+ 
+@@ -343,7 +343,7 @@ static int rtc_probe(struct platform_dev
+ 		goto err_free_irq;
+ 
+ 	retval = request_irq(pie_irq, rtclong1_interrupt, 0,
+-		             "rtclong1", pdev);
++			     "rtclong1", pdev);
+ 	if (retval < 0)
+ 		goto err_free_irq;
+ 
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
