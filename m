@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch added to -mm tree
-Date: Tue, 07 May 2013 15:39:04 -0700
-Message-ID: <20130507223904.D54465A4016@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch added to -mm tree
+Date: Tue, 07 May 2013 15:39:08 -0700
+Message-ID: <20130507223908.CBC4B5A4016@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:39713 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753274Ab3EGWjG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:06 -0400
-Received: by mail-qa0-f73.google.com with SMTP id bs12so145612qab.0
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:05 -0700 (PDT)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:54139 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753689Ab3EGWjK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:39:10 -0400
+Received: by mail-vc0-f201.google.com with SMTP id hz10so121222vcb.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:39:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1374.c: fix spacing related issues
+     Subject: drivers/rtc/rtc-ds3234.c: fix whitespace issue
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
+     drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ds1374.c: fix spacing related issues
+Subject: drivers/rtc/rtc-ds3234.c: fix whitespace issue
 
-Fixes the following types of issues:
-ERROR: code indent should use tabs where possible
-WARNING: please, no spaces at the start of a line
+Fixes the following warning:
+WARNING: please, no space before tabs
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-ds3234.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-fix-spacing-related-issues drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~drivers-rtc-rtc-ds1374c-fix-spacing-related-issues
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -65,7 +65,7 @@ struct ds1374 {
- static struct i2c_driver ds1374_driver;
+diff -puN drivers/rtc/rtc-ds3234.c~drivers-rtc-rtc-ds3234c-fix-whitespace-issue drivers/rtc/rtc-ds3234.c
+--- a/drivers/rtc/rtc-ds3234.c~drivers-rtc-rtc-ds3234c-fix-whitespace-issue
++++ a/drivers/rtc/rtc-ds3234.c
+@@ -73,7 +73,7 @@ static int ds3234_read_time(struct devic
+ 	dt->tm_wday	= bcd2bin(buf[3]) - 1; /* 0 = Sun */
+ 	dt->tm_mday	= bcd2bin(buf[4]);
+ 	dt->tm_mon	= bcd2bin(buf[5] & 0x1f) - 1; /* 0 = Jan */
+-	dt->tm_year 	= bcd2bin(buf[6] & 0xff) + 100; /* Assume 20YY */
++	dt->tm_year	= bcd2bin(buf[6] & 0xff) + 100; /* Assume 20YY */
  
- static int ds1374_read_rtc(struct i2c_client *client, u32 *time,
--                           int reg, int nbytes)
-+			   int reg, int nbytes)
- {
- 	u8 buf[4];
- 	int ret;
-@@ -90,7 +90,7 @@ static int ds1374_read_rtc(struct i2c_cl
+ 	return rtc_valid_tm(dt);
  }
- 
- static int ds1374_write_rtc(struct i2c_client *client, u32 time,
--                            int reg, int nbytes)
-+			    int reg, int nbytes)
- {
- 	u8 buf[4];
- 	int i;
-@@ -119,8 +119,7 @@ static int ds1374_check_rtc_status(struc
- 
- 	if (stat & DS1374_REG_SR_OSF)
- 		dev_warn(&client->dev,
--		         "oscillator discontinuity flagged, "
--		         "time unreliable\n");
-+			 "oscillator discontinuity flagged, time unreliable\n");
- 
- 	stat &= ~(DS1374_REG_SR_OSF | DS1374_REG_SR_AF);
- 
-@@ -363,7 +362,7 @@ static int ds1374_probe(struct i2c_clien
- 
- 	if (client->irq > 0) {
- 		ret = devm_request_irq(&client->dev, client->irq, ds1374_irq, 0,
--		                  "ds1374", client);
-+					"ds1374", client);
- 		if (ret) {
- 			dev_err(&client->dev, "unable to request IRQ\n");
- 			return ret;
-@@ -373,7 +372,7 @@ static int ds1374_probe(struct i2c_clien
- 	}
- 
- 	ds1374->rtc = devm_rtc_device_register(&client->dev, client->name,
--	                                  &ds1374_rtc_ops, THIS_MODULE);
-+						&ds1374_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(ds1374->rtc)) {
- 		dev_err(&client->dev, "unable to register the class device\n");
- 		return PTR_ERR(ds1374->rtc);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
