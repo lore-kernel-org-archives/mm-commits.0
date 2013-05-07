@@ -1,93 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] inotify-invalid-mask-should-return-a-error-number-but-not-set-it.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:46:12 -0700
-Message-ID: <20130507174612.880F35A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:46:18 -0700
+Message-ID: <20130507174618.9C7A15A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:62089 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273Ab3EGRqN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:46:13 -0400
-Received: by mail-gh0-f201.google.com with SMTP id r14so73165ghr.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:46:13 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:40030 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754273Ab3EGRqU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:46:20 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m14so84987yen.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:46:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhaohongjiang@huawei.com, Jim.Somerville@windriver.com, eparis@parisplace.org, jmarchan@redhat.com, paul.gortmaker@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: gthelen@google.com, david@fromorbit.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: inotify: invalid mask should return a error number but not set it
+     Subject: fs/dcache.c: add cond_resched() to shrink_dcache_parent()
 has been removed from the -mm tree.  Its filename was
-     inotify-invalid-mask-should-return-a-error-number-but-not-set-it.patch
+     fs-dcachec-add-cond_resched-to-shrink_dcache_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhao Hongjiang <zhaohongjiang@huawei.com>
-Subject: inotify: invalid mask should return a error number but not set it
+From: Greg Thelen <gthelen@google.com>
+Subject: fs/dcache.c: add cond_resched() to shrink_dcache_parent()
 
-When we run the crackerjack testsuite, the inotify_add_watch test is
-stalled.
+Call cond_resched() in shrink_dcache_parent() to maintain interactivity.
 
-This is caused by the invalid mask 0 - the task is waiting for the event
-but it never comes.  inotify_add_watch() should return -EINVAL as it did
-before commit 676a0675cf9200 ("inotify: remove broken mask checks causing
-unmount to be EINVAL").  That commit removes the invalid mask check, but
-that check is needed.
+Before this patch:
 
-Check the mask's ALL_INOTIFY_BITS before the inotify_arg_to_mask() call. 
-If none are set, just return -EINVAL.
+void shrink_dcache_parent(struct dentry * parent)
+{
+	while ((found = select_parent(parent, &dispose)) != 0)
+		shrink_dentry_list(&dispose);
+}
 
-Because IN_UNMOUNT is in ALL_INOTIFY_BITS, this change will not trigger
-the problem that above commit fixed.
+select_parent() populates the dispose list with dentries which
+shrink_dentry_list() then deletes.  select_parent() carefully uses
+need_resched() to avoid doing too much work at once.  But neither
+shrink_dcache_parent() nor its called functions call cond_resched().  So
+once need_resched() is set select_parent() will return single dentry
+dispose list which is then deleted by shrink_dentry_list().  This is
+inefficient when there are a lot of dentry to process.  This can cause
+softlockup and hurts interactivity on non preemptable kernels.
 
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: Zhao Hongjiang <zhaohongjiang@huawei.com>
-Acked-by: Jim Somerville <Jim.Somerville@windriver.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: <stable@vger.kernel.org>
+This change adds cond_resched() in shrink_dcache_parent().  The benefit of
+this is that need_resched() is quickly cleared so that future calls to
+select_parent() are able to efficiently return a big batch of dentry.
+
+These additional cond_resched() do not seem to impact performance, at
+least for the workload below.
+
+Here is a program which can cause soft lockup if other system activity
+sets need_resched().
+
+	int main()
+	{
+	        struct rlimit rlim;
+	        int i;
+	        int f[100000];
+	        char buf[20];
+	        struct timeval t1, t2;
+	        double diff;
+
+	        /* cleanup past run */
+	        system("rm -rf x");
+
+	        /* boost nfile rlimit */
+	        rlim.rlim_cur = 200000;
+	        rlim.rlim_max = 200000;
+	        if (setrlimit(RLIMIT_NOFILE, &rlim))
+	                err(1, "setrlimit");
+
+	        /* make directory for files */
+	        if (mkdir("x", 0700))
+	                err(1, "mkdir");
+
+	        if (gettimeofday(&t1, NULL))
+	                err(1, "gettimeofday");
+
+	        /* populate directory with open files */
+	        for (i = 0; i < 100000; i++) {
+	                snprintf(buf, sizeof(buf), "x/%d", i);
+	                f[i] = open(buf, O_CREAT);
+	                if (f[i] == -1)
+	                        err(1, "open");
+	        }
+
+	        /* close some of the files */
+	        for (i = 0; i < 85000; i++)
+	                close(f[i]);
+
+	        /* unlink all files, even open ones */
+	        system("rm -rf x");
+
+	        if (gettimeofday(&t2, NULL))
+	                err(1, "gettimeofday");
+
+	        diff = (((double)t2.tv_sec * 1000000 + t2.tv_usec) -
+	                ((double)t1.tv_sec * 1000000 + t1.tv_usec));
+
+	        printf("done: %g elapsed\n", diff/1e6);
+	        return 0;
+	}
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Signed-off-by: Dave Chinner <david@fromorbit.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/dcache.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-invalid-mask-should-return-a-error-number-but-not-set-it fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-invalid-mask-should-return-a-error-number-but-not-set-it
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -570,7 +570,6 @@ static int inotify_update_existing_watch
- 	int add = (arg & IN_MASK_ADD);
- 	int ret;
+diff -puN fs/dcache.c~fs-dcachec-add-cond_resched-to-shrink_dcache_parent fs/dcache.c
+--- a/fs/dcache.c~fs-dcachec-add-cond_resched-to-shrink_dcache_parent
++++ a/fs/dcache.c
+@@ -1230,8 +1230,10 @@ void shrink_dcache_parent(struct dentry
+ 	LIST_HEAD(dispose);
+ 	int found;
  
--	/* don't allow invalid bits: we don't want flags set */
- 	mask = inotify_arg_to_mask(arg);
+-	while ((found = select_parent(parent, &dispose)) != 0)
++	while ((found = select_parent(parent, &dispose)) != 0) {
+ 		shrink_dentry_list(&dispose);
++		cond_resched();
++	}
+ }
+ EXPORT_SYMBOL(shrink_dcache_parent);
  
- 	fsn_mark = fsnotify_find_inode_mark(group, inode);
-@@ -621,7 +620,6 @@ static int inotify_new_watch(struct fsno
- 	struct idr *idr = &group->inotify_data.idr;
- 	spinlock_t *idr_lock = &group->inotify_data.idr_lock;
- 
--	/* don't allow invalid bits: we don't want flags set */
- 	mask = inotify_arg_to_mask(arg);
- 
- 	tmp_i_mark = kmem_cache_alloc(inotify_inode_mark_cachep, GFP_KERNEL);
-@@ -747,6 +745,10 @@ SYSCALL_DEFINE3(inotify_add_watch, int,
- 	int ret;
- 	unsigned flags = 0;
- 
-+	/* don't allow invalid bits: we don't want flags set */
-+	if (unlikely(!(mask & ALL_INOTIFY_BITS)))
-+		return -EINVAL;
-+
- 	f = fdget(fd);
- 	if (unlikely(!f.file))
- 		return -EBADF;
 _
 
-Patches currently in -mm which might be from zhaohongjiang@huawei.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-parisc-remove-the-second-argument-of-kmap_atomic.patch
 
