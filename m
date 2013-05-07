@@ -1,62 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-msgutilc-use-linux-uaccessh.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:52:07 -0700
-Message-ID: <20130507175207.6EE3631C4F8@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ipc-remove-bogus-lock-comment-for-ipc_checkid.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:52:09 -0700
+Message-ID: <20130507175209.A219A31C4F8@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:59835 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756434Ab3EGRwI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:52:08 -0400
-Received: by mail-qa0-f74.google.com with SMTP id i13so110883qae.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:52:07 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:61745 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756434Ab3EGRwM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:52:12 -0400
+Received: by mail-ve0-f201.google.com with SMTP id m1so86427ves.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:52:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rain6557@gmail.com, mm-commits@vger.kernel.org
+To: davidlohr.bueso@hp.com, benisty.e@gmail.com, chegu_vinod@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, sedat.dilek@gmail.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/msgutil.c: use linux/uaccess.h
+     Subject: ipc: remove bogus lock comment for ipc_checkid
 has been removed from the -mm tree.  Its filename was
-     ipc-msgutilc-use-linux-uaccessh.patch
+     ipc-remove-bogus-lock-comment-for-ipc_checkid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: HoSung Jung <rain6557@gmail.com>
-Subject: ipc/msgutil.c: use linux/uaccess.h
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: ipc: remove bogus lock comment for ipc_checkid
 
-Signed-off-by: HoSung Jung <rain6557@gmail.com>
+This series makes the sysv semaphore code more scalable, by reducing the
+time the semaphore lock is held, and making the locking more scalable for
+semaphore arrays with multiple semaphores.
+
+The first four patches were written by Davidlohr Buesso, and reduce the
+hold time of the semaphore lock.
+
+The last three patches change the sysv semaphore code locking to be more
+fine grained, providing a performance boost when multiple semaphores in a
+semaphore array are being manipulated simultaneously.
+
+On a 24 CPU system, performance numbers with the semop-multi
+test with N threads and N semaphores, look like this:
+
+	vanilla		Davidlohr's	Davidlohr's +	Davidlohr's +
+	threads			patches		rwlock patches	v3 patches
+	10	610652		726325		1783589		2142206
+	20	341570		365699		1520453		1977878
+	30	288102		307037		1498167		2037995
+	40	290714		305955		1612665		2256484
+	50	288620		312890		1733453		2650292
+	60	289987		306043		1649360		2388008
+	70	291298		306347		1723167		2717486
+	80	290948		305662		1729545		2763582
+	90	290996		306680		1736021		2757524
+	100	292243		306700		1773700		3059159
+
+
+
+This patch:
+
+There is no reason to be holding the ipc lock while reading ipcp->seq,
+hence remove misleading comment.
+
+Also simplify the return value for the function.
+
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Chegu Vinod <chegu_vinod@hp.com>
+Cc: Emmanuel Benisty <benisty.e@gmail.com>
+Cc: Jason Low <jason.low2@hp.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Peter Hurley <peter@hurleysoftware.com>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msgutil.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/util.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN ipc/msgutil.c~ipc-msgutilc-use-linux-uaccessh ipc/msgutil.c
---- a/ipc/msgutil.c~ipc-msgutilc-use-linux-uaccessh
-+++ a/ipc/msgutil.c
-@@ -17,7 +17,7 @@
- #include <linux/ipc_namespace.h>
- #include <linux/utsname.h>
- #include <linux/proc_ns.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+diff -puN ipc/util.h~ipc-remove-bogus-lock-comment-for-ipc_checkid ipc/util.h
+--- a/ipc/util.h~ipc-remove-bogus-lock-comment-for-ipc_checkid
++++ a/ipc/util.h
+@@ -150,14 +150,9 @@ static inline int ipc_buildid(int id, in
+ 	return SEQ_MULTIPLIER * seq + id;
+ }
  
- #include "util.h"
+-/*
+- * Must be called with ipcp locked
+- */
+ static inline int ipc_checkid(struct kern_ipc_perm *ipcp, int uid)
+ {
+-	if (uid / SEQ_MULTIPLIER != ipcp->seq)
+-		return 1;
+-	return 0;
++	return uid / SEQ_MULTIPLIER != ipcp->seq;
+ }
  
-@@ -37,7 +37,7 @@ struct ipc_namespace init_ipc_ns = {
- atomic_t nr_ipc_ns = ATOMIC_INIT(1);
- 
- struct msg_msgseg {
--	struct msg_msgseg* next;
-+	struct msg_msgseg *next;
- 	/* the next part of the message follows immediately */
- };
- 
+ static inline void ipc_lock_by_ptr(struct kern_ipc_perm *perm)
 _
 
-Patches currently in -mm which might be from rain6557@gmail.com are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
 origin.patch
 
