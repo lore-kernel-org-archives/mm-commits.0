@@ -1,458 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:52:18 -0700
-Message-ID: <20130507175218.AEC8431C4F8@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ipc-introduce-lockless-pre_down-ipcctl.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:52:15 -0700
+Message-ID: <20130507175215.935915A4111@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:36115 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759568Ab3EGRwU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:52:20 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m14so86517yen.4
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:52:19 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:44867 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756434Ab3EGRwR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:52:17 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so86549qen.2
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:52:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: davidlohr.bueso@hp.com, benisty.e@gmail.com, chegu_vinod@hp.com, jason.low2@hp.com, peter@hurleysoftware.com, riel@redhat.com, sedat.dilek@gmail.com, skinsbursky@parallels.com, torvalds@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc,sem: do not hold ipc lock more than necessary
+     Subject: ipc: introduce lockless pre_down ipcctl
 has been removed from the -mm tree.  Its filename was
-     ipcsem-do-not-hold-ipc-lock-more-than-necessary.patch
+     ipc-introduce-lockless-pre_down-ipcctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,sem: do not hold ipc lock more than necessary
+Subject: ipc: introduce lockless pre_down ipcctl
 
-Instead of holding the ipc lock for permissions and security checks, among
-others, only acquire it when necessary.
+Various forms of ipc use ipcctl_pre_down() to retrieve an ipc object and
+check permissions, mostly for IPC_RMID and IPC_SET commands.
 
-Some numbers....
+Introduce ipcctl_pre_down_nolock(), a lockless version of this function. 
+The locking version is retained, yet modified to call the nolock version
+without affecting its semantics, thus transparent to all ipc callers.
 
-1) With Rik's semop-multi.c microbenchmark we can see the following
-   results:
-
-Baseline (3.9-rc1):
-cpus 4, threads: 256, semaphores: 128, test duration: 30 secs
-total operations: 151452270, ops/sec 5048409
-
-+  59.40%            a.out  [kernel.kallsyms]  [k] _raw_spin_lock
-+   6.14%            a.out  [kernel.kallsyms]  [k] sys_semtimedop
-+   3.84%            a.out  [kernel.kallsyms]  [k] avc_has_perm_flags
-+   3.64%            a.out  [kernel.kallsyms]  [k] __audit_syscall_exit
-+   2.06%            a.out  [kernel.kallsyms]  [k] copy_user_enhanced_fast_string
-+   1.86%            a.out  [kernel.kallsyms]  [k] ipc_lock
-
-With this patchset:
-cpus 4, threads: 256, semaphores: 128, test duration: 30 secs
-total operations: 273156400, ops/sec 9105213
-
-+  18.54%            a.out  [kernel.kallsyms]  [k] _raw_spin_lock
-+  11.72%            a.out  [kernel.kallsyms]  [k] sys_semtimedop
-+   7.70%            a.out  [kernel.kallsyms]  [k] ipc_has_perm.isra.21
-+   6.58%            a.out  [kernel.kallsyms]  [k] avc_has_perm_flags
-+   6.54%            a.out  [kernel.kallsyms]  [k] __audit_syscall_exit
-+   4.71%            a.out  [kernel.kallsyms]  [k] ipc_obtain_object_check
-
-2) While on an Oracle swingbench DSS (data mining) workload the
-   improvements are not as exciting as with Rik's benchmark, we can see
-   some positive numbers.  For an 8 socket machine the following are the
-   percentages of %sys time incurred in the ipc lock:
-
-Baseline (3.9-rc1):
-100 swingbench users: 8,74%
-400 swingbench users: 21,86%
-800 swingbench users: 84,35%
-
-With this patchset:
-100 swingbench users: 8,11%
-400 swingbench users: 19,93%
-800 swingbench users: 77,69%
-
-[riel@redhat.com: fix two locking bugs]
-[sasha.levin@oracle.com: prevent releasing RCU read lock twice in semctl_main]
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Chegu Vinod <chegu_vinod@hp.com>
-Acked-by: Michel Lespinasse <walken@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Jason Low <jason.low2@hp.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Chegu Vinod <chegu_vinod@hp.com>
 Cc: Emmanuel Benisty <benisty.e@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jason Low <jason.low2@hp.com>
+Cc: Michel Lespinasse <walken@google.com>
 Cc: Peter Hurley <peter@hurleysoftware.com>
 Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c  |  161 +++++++++++++++++++++++++++++++++++----------------
- ipc/util.h |    5 +
- 2 files changed, 118 insertions(+), 48 deletions(-)
+ ipc/util.c |   31 ++++++++++++++++++++++++++-----
+ ipc/util.h |    3 +++
+ 2 files changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN ipc/sem.c~ipcsem-do-not-hold-ipc-lock-more-than-necessary ipc/sem.c
---- a/ipc/sem.c~ipcsem-do-not-hold-ipc-lock-more-than-necessary
-+++ a/ipc/sem.c
-@@ -204,13 +204,34 @@ static inline struct sem_array *sem_lock
- 	return container_of(ipcp, struct sem_array, sem_perm);
- }
- 
-+static inline struct sem_array *sem_obtain_object(struct ipc_namespace *ns, int id)
-+{
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object(&sem_ids(ns), id);
+diff -puN ipc/util.c~ipc-introduce-lockless-pre_down-ipcctl ipc/util.c
+--- a/ipc/util.c~ipc-introduce-lockless-pre_down-ipcctl
++++ a/ipc/util.c
+@@ -824,11 +824,28 @@ struct kern_ipc_perm *ipcctl_pre_down(st
+ 				      struct ipc64_perm *perm, int extra_perm)
+ {
+ 	struct kern_ipc_perm *ipcp;
 +
++	ipcp = ipcctl_pre_down_nolock(ns, ids, id, cmd, perm, extra_perm);
 +	if (IS_ERR(ipcp))
-+		return ERR_CAST(ipcp);
++		goto out;
 +
-+	return container_of(ipcp, struct sem_array, sem_perm);
++	spin_lock(&ipcp->lock);
++out:
++	return ipcp;
 +}
 +
- static inline struct sem_array *sem_lock_check(struct ipc_namespace *ns,
- 						int id)
- {
- 	struct kern_ipc_perm *ipcp = ipc_lock_check(&sem_ids(ns), id);
- 
- 	if (IS_ERR(ipcp))
--		return (struct sem_array *)ipcp;
-+		return ERR_CAST(ipcp);
-+
-+	return container_of(ipcp, struct sem_array, sem_perm);
-+}
-+
-+static inline struct sem_array *sem_obtain_object_check(struct ipc_namespace *ns,
-+							int id)
++struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
++					     struct ipc_ids *ids, int id, int cmd,
++					     struct ipc64_perm *perm, int extra_perm)
 +{
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object_check(&sem_ids(ns), id);
-+
-+	if (IS_ERR(ipcp))
-+		return ERR_CAST(ipcp);
- 
- 	return container_of(ipcp, struct sem_array, sem_perm);
- }
-@@ -234,6 +255,16 @@ static inline void sem_putref(struct sem
- 	ipc_unlock(&(sma)->sem_perm);
- }
- 
-+/*
-+ * Call inside the rcu read section.
-+ */
-+static inline void sem_getref(struct sem_array *sma)
-+{
-+	spin_lock(&(sma)->sem_perm.lock);
-+	ipc_rcu_getref(sma);
-+	ipc_unlock(&(sma)->sem_perm);
-+}
-+
- static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
- {
- 	ipc_rmid(&sem_ids(ns), &s->sem_perm);
-@@ -842,18 +873,25 @@ static int semctl_nolock(struct ipc_name
- 	case SEM_STAT:
- 	{
- 		struct semid64_ds tbuf;
--		int id;
-+		int id = 0;
-+
-+		memset(&tbuf, 0, sizeof(tbuf));
- 
- 		if (cmd == SEM_STAT) {
--			sma = sem_lock(ns, semid);
--			if (IS_ERR(sma))
--				return PTR_ERR(sma);
-+			rcu_read_lock();
-+			sma = sem_obtain_object(ns, semid);
-+			if (IS_ERR(sma)) {
-+				err = PTR_ERR(sma);
-+				goto out_unlock;
-+			}
- 			id = sma->sem_perm.id;
- 		} else {
--			sma = sem_lock_check(ns, semid);
--			if (IS_ERR(sma))
--				return PTR_ERR(sma);
--			id = 0;
-+			rcu_read_lock();
-+			sma = sem_obtain_object_check(ns, semid);
-+			if (IS_ERR(sma)) {
-+				err = PTR_ERR(sma);
-+				goto out_unlock;
-+			}
- 		}
- 
- 		err = -EACCES;
-@@ -864,13 +902,11 @@ static int semctl_nolock(struct ipc_name
- 		if (err)
- 			goto out_unlock;
- 
--		memset(&tbuf, 0, sizeof(tbuf));
--
- 		kernel_to_ipc64_perm(&sma->sem_perm, &tbuf.sem_perm);
- 		tbuf.sem_otime  = sma->sem_otime;
- 		tbuf.sem_ctime  = sma->sem_ctime;
- 		tbuf.sem_nsems  = sma->sem_nsems;
--		sem_unlock(sma);
-+		rcu_read_unlock();
- 		if (copy_semid_to_user(p, &tbuf, version))
- 			return -EFAULT;
- 		return id;
-@@ -879,7 +915,7 @@ static int semctl_nolock(struct ipc_name
- 		return -EINVAL;
- 	}
- out_unlock:
--	sem_unlock(sma);
-+	rcu_read_unlock();
- 	return err;
- }
- 
-@@ -947,27 +983,34 @@ static int semctl_main(struct ipc_namesp
- {
- 	struct sem_array *sma;
- 	struct sem* curr;
+ 	kuid_t euid;
 -	int err;
-+	int err, nsems;
- 	ushort fast_sem_io[SEMMSL_FAST];
- 	ushort* sem_io = fast_sem_io;
--	int nsems;
- 	struct list_head tasks;
++	int err = -EPERM;
++	struct kern_ipc_perm *ipcp;
  
--	sma = sem_lock_check(ns, semid);
--	if (IS_ERR(sma))
-+	INIT_LIST_HEAD(&tasks);
-+
+ 	down_write(&ids->rw_mutex);
+-	ipcp = ipc_lock_check(ids, id);
 +	rcu_read_lock();
-+	sma = sem_obtain_object_check(ns, semid);
-+	if (IS_ERR(sma)) {
-+		rcu_read_unlock();
- 		return PTR_ERR(sma);
-+	}
- 
--	INIT_LIST_HEAD(&tasks);
- 	nsems = sma->sem_nsems;
- 
- 	err = -EACCES;
- 	if (ipcperms(ns, &sma->sem_perm,
--			cmd == SETALL ? S_IWUGO : S_IRUGO))
--		goto out_unlock;
-+			cmd == SETALL ? S_IWUGO : S_IRUGO)) {
-+		rcu_read_unlock();
-+		goto out_wakeup;
-+	}
- 
- 	err = security_sem_semctl(sma, cmd);
--	if (err)
--		goto out_unlock;
-+	if (err) {
-+		rcu_read_unlock();
-+		goto out_wakeup;
-+	}
- 
- 	err = -EACCES;
- 	switch (cmd) {
-@@ -977,7 +1020,7 @@ static int semctl_main(struct ipc_namesp
- 		int i;
- 
- 		if(nsems > SEMMSL_FAST) {
--			sem_getref_and_unlock(sma);
-+			sem_getref(sma);
- 
- 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
- 			if(sem_io == NULL) {
-@@ -993,6 +1036,7 @@ static int semctl_main(struct ipc_namesp
- 			}
- 		}
- 
-+		spin_lock(&sma->sem_perm.lock);
- 		for (i = 0; i < sma->sem_nsems; i++)
- 			sem_io[i] = sma->sem_base[i].semval;
- 		sem_unlock(sma);
-@@ -1006,7 +1050,8 @@ static int semctl_main(struct ipc_namesp
- 		int i;
- 		struct sem_undo *un;
- 
--		sem_getref_and_unlock(sma);
-+		ipc_rcu_getref(sma);
-+		rcu_read_unlock();
- 
- 		if(nsems > SEMMSL_FAST) {
- 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
-@@ -1053,9 +1098,12 @@ static int semctl_main(struct ipc_namesp
- 	/* GETVAL, GETPID, GETNCTN, GETZCNT: fall-through */
- 	}
- 	err = -EINVAL;
--	if(semnum < 0 || semnum >= nsems)
--		goto out_unlock;
-+	if (semnum < 0 || semnum >= nsems) {
-+		rcu_read_unlock();
-+		goto out_wakeup;
-+	}
- 
-+	spin_lock(&sma->sem_perm.lock);
- 	curr = &sma->sem_base[semnum];
- 
- 	switch (cmd) {
-@@ -1072,10 +1120,11 @@ static int semctl_main(struct ipc_namesp
- 		err = count_semzcnt(sma,semnum);
- 		goto out_unlock;
- 	}
 +
- out_unlock:
- 	sem_unlock(sma);
-+out_wakeup:
- 	wake_up_sem_queue_do(&tasks);
--
- out_free:
- 	if(sem_io != fast_sem_io)
- 		ipc_free(sem_io, sizeof(ushort)*nsems);
-@@ -1126,29 +1175,35 @@ static int semctl_down(struct ipc_namesp
- 			return -EFAULT;
- 	}
- 
--	ipcp = ipcctl_pre_down(ns, &sem_ids(ns), semid, cmd,
--			       &semid64.sem_perm, 0);
-+	ipcp = ipcctl_pre_down_nolock(ns, &sem_ids(ns), semid, cmd,
-+				      &semid64.sem_perm, 0);
- 	if (IS_ERR(ipcp))
- 		return PTR_ERR(ipcp);
- 
- 	sma = container_of(ipcp, struct sem_array, sem_perm);
- 
- 	err = security_sem_semctl(sma, cmd);
--	if (err)
-+	if (err) {
-+		rcu_read_unlock();
- 		goto out_unlock;
-+	}
- 
- 	switch(cmd){
- 	case IPC_RMID:
-+		ipc_lock_object(&sma->sem_perm);
- 		freeary(ns, ipcp);
++	ipcp = ipc_obtain_object_check(ids, id);
+ 	if (IS_ERR(ipcp)) {
+ 		err = PTR_ERR(ipcp);
  		goto out_up;
- 	case IPC_SET:
-+		ipc_lock_object(&sma->sem_perm);
- 		err = ipc_update_perm(&semid64.sem_perm, ipcp);
- 		if (err)
- 			goto out_unlock;
- 		sma->sem_ctime = get_seconds();
- 		break;
- 	default:
-+		rcu_read_unlock();
- 		err = -EINVAL;
-+		goto out_up;
- 	}
+@@ -837,17 +854,21 @@ struct kern_ipc_perm *ipcctl_pre_down(st
+ 	audit_ipc_obj(ipcp);
+ 	if (cmd == IPC_SET)
+ 		audit_ipc_set_perm(extra_perm, perm->uid,
+-					 perm->gid, perm->mode);
++				   perm->gid, perm->mode);
  
- out_unlock:
-@@ -1277,16 +1332,18 @@ static struct sem_undo *find_alloc_undo(
- 	spin_unlock(&ulp->lock);
- 	if (likely(un!=NULL))
- 		goto out;
--	rcu_read_unlock();
+ 	euid = current_euid();
+ 	if (uid_eq(euid, ipcp->cuid) || uid_eq(euid, ipcp->uid)  ||
+ 	    ns_capable(ns->user_ns, CAP_SYS_ADMIN))
+ 		return ipcp;
  
- 	/* no undo structure around - allocate one. */
- 	/* step 1: figure out the size of the semaphore array */
--	sma = sem_lock_check(ns, semid);
--	if (IS_ERR(sma))
-+	sma = sem_obtain_object_check(ns, semid);
-+	if (IS_ERR(sma)) {
-+		rcu_read_unlock();
- 		return ERR_CAST(sma);
-+	}
- 
- 	nsems = sma->sem_nsems;
--	sem_getref_and_unlock(sma);
-+	ipc_rcu_getref(sma);
+-	err = -EPERM;
+-	ipc_unlock(ipcp);
+ out_up:
++	/*
++	 * Unsuccessful lookup, unlock and return
++	 * the corresponding error.
++	 */
 +	rcu_read_unlock();
- 
- 	/* step 2: allocate new undo structure */
- 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
-@@ -1421,7 +1478,8 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 
- 	INIT_LIST_HEAD(&tasks);
- 
--	sma = sem_lock_check(ns, semid);
-+	rcu_read_lock();
-+	sma = sem_obtain_object_check(ns, semid);
- 	if (IS_ERR(sma)) {
- 		if (un)
- 			rcu_read_unlock();
-@@ -1429,6 +1487,24 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 		goto out_free;
- 	}
- 
-+	error = -EFBIG;
-+	if (max >= sma->sem_nsems) {
-+		rcu_read_unlock();
-+		goto out_wakeup;
-+	}
+ 	up_write(&ids->rw_mutex);
 +
-+	error = -EACCES;
-+	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO)) {
-+		rcu_read_unlock();
-+		goto out_wakeup;
-+	}
-+
-+	error = security_sem_semop(sma, sops, nsops, alter);
-+	if (error) {
-+		rcu_read_unlock();
-+		goto out_wakeup;
-+	}
-+
- 	/*
- 	 * semid identifiers are not unique - find_alloc_undo may have
- 	 * allocated an undo structure, it was invalidated by an RMID
-@@ -1437,6 +1513,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 	 * "un" itself is guaranteed by rcu.
- 	 */
- 	error = -EIDRM;
-+	ipc_lock_object(&sma->sem_perm);
- 	if (un) {
- 		if (un->semid == -1) {
- 			rcu_read_unlock();
-@@ -1454,18 +1531,6 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 		}
- 	}
- 
--	error = -EFBIG;
--	if (max >= sma->sem_nsems)
--		goto out_unlock_free;
--
--	error = -EACCES;
--	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO))
--		goto out_unlock_free;
--
--	error = security_sem_semop(sma, sops, nsops, alter);
--	if (error)
--		goto out_unlock_free;
--
- 	error = try_atomic_semop (sma, sops, nsops, un, task_tgid_vnr(current));
- 	if (error <= 0) {
- 		if (alter && error == 0)
-@@ -1568,7 +1633,7 @@ sleep_again:
- 
- out_unlock_free:
- 	sem_unlock(sma);
--
-+out_wakeup:
- 	wake_up_sem_queue_do(&tasks);
- out_free:
- 	if(sops != fast_sops)
-diff -puN ipc/util.h~ipcsem-do-not-hold-ipc-lock-more-than-necessary ipc/util.h
---- a/ipc/util.h~ipcsem-do-not-hold-ipc-lock-more-than-necessary
-+++ a/ipc/util.h
-@@ -171,6 +171,11 @@ static inline void ipc_unlock(struct ker
- 	rcu_read_unlock();
+ 	return ERR_PTR(err);
  }
  
-+static inline void ipc_lock_object(struct kern_ipc_perm *perm)
-+{
-+	spin_lock(&perm->lock);
-+}
-+
- struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id);
- struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id);
- int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
+diff -puN ipc/util.h~ipc-introduce-lockless-pre_down-ipcctl ipc/util.h
+--- a/ipc/util.h~ipc-introduce-lockless-pre_down-ipcctl
++++ a/ipc/util.h
+@@ -128,6 +128,9 @@ struct kern_ipc_perm *ipc_obtain_object(
+ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ int ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
++struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
++					     struct ipc_ids *ids, int id, int cmd,
++					     struct ipc64_perm *perm, int extra_perm);
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_namespace *ns,
+ 				      struct ipc_ids *ids, int id, int cmd,
+ 				      struct ipc64_perm *perm, int extra_perm);
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
