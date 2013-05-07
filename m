@@ -1,293 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [merged] staging-zcache-enable-zcache-to-be-built-loaded-as-a-module.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:46:51 -0700
-Message-ID: <20130507174651.9923B5A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] x86-dont-show-trace-beyond-show_stacknull-null.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:46:59 -0700
+Message-ID: <20130507174700.042F831C2DA@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:37230 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753594Ab3EGRqw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:46:52 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so85059yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:46:52 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:54224 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759177Ab3EGRrB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:47:01 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m14so85038yen.4
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:47:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.magenheimer@oracle.com, andor.daam@googlemail.com, fschmaus@gmail.com, ilendir@googlemail.com, konrad.wilk@oracle.com, liwanp@linux.vnet.ibm.com, lliubbo@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, bhelgaas@google.com, davem@davemloft.net, fengguang.wu@intel.com, heiko.carstens@de.ibm.com, jesper.nilsson@axis.com, sam@ravnborg.org, schwidefsky@de.ibm.com, vapier@gentoo.org, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: staging: zcache: enable zcache to be built/loaded as a module
+     Subject: x86: don't show trace beyond show_stack(NULL, NULL)
 has been removed from the -mm tree.  Its filename was
-     staging-zcache-enable-zcache-to-be-built-loaded-as-a-module.patch
+     x86-dont-show-trace-beyond-show_stacknull-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Magenheimer <dan.magenheimer@oracle.com>
-Subject: staging: zcache: enable zcache to be built/loaded as a module
+From: Tejun Heo <tj@kernel.org>
+Subject: x86: don't show trace beyond show_stack(NULL, NULL)
 
-Allow zcache to be built/loaded as a module.  Note runtime dependency
-disallows loading if cleancache/frontswap lazy initialization patches are
-not present.  Zsmalloc support has not yet been merged into zcache but,
-once merged, could now easily be selected via a module_param.
+There are multiple ways a task can be dumped - explicit call to
+dump_stack(), triggering WARN() or BUG(), through sysrq-t and so on.  Most
+of what gets printed is upto each architecture and the current state is
+not particularly pretty.  Different pieces of information are presented
+differently depending on which path the dump takes and which architecture
+it's running on.  This is messy for no good reason and makes it
+exceedingly difficult to add or modify debug information to task dumps.
 
-If built-in (not built as a module), the original mechanism of enabling via
-a kernel boot parameter is retained, but this should be considered deprecated.
+In all archs except for s390, there's nothing arch-specific about the
+printed debug information.  This patchset updates all those archs to use
+the same helpers to consistently print out the same debug information.
 
-Note that module unload is explicitly not yet supported.
+An example WARN dump after this patchset.
 
-Signed-off-by: Dan Magenheimer <dan.magenheimer@oracle.com>
-[v1: Rebased with different order of patches]
-[v2: Removed [CLEANCACHE|FRONTSWAP]_HAS_LAZY_INIT ifdef]
-[v3: Rebased on top of ramster->zcache move]
-[v4: Redid the Makefile]
-[v5: s/ZCACHE2/ZCACHE/]
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Andor Daam <andor.daam@googlemail.com>
-Cc: Florian Schmaus <fschmaus@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Stefan Hengelein <ilendir@googlemail.com>
+ WARNING: at kernel/workqueue.c:4841 init_workqueues+0x35/0x505()
+ Modules linked in:
+ CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.9.0-rc1-work+ #3
+ Hardware name: empty empty/S3992, BIOS 080011  10/26/2007
+  0000000000000009 ffff88007c861e08 ffffffff81c614dc ffff88007c861e48
+  ffffffff8108f500 ffffffff82228240 0000000000000040 ffffffff8234a08e
+  0000000000000000 0000000000000000 0000000000000000 ffff88007c861e58
+ Call Trace:
+  [<ffffffff81c614dc>] dump_stack+0x19/0x1b
+  [<ffffffff8108f500>] warn_slowpath_common+0x70/0xa0
+  [<ffffffff8108f54a>] warn_slowpath_null+0x1a/0x20
+  [<ffffffff8234a0c3>] init_workqueues+0x35/0x505
+  ...
+
+And BUG dump.
+
+ kernel BUG at kernel/workqueue.c:4841!
+ invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+ Modules linked in:
+ CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.9.0-rc1-work+ #7
+ Hardware name: empty empty/S3992, BIOS 080011  10/26/2007
+ task: ffff88007c85e040 ti: ffff88007c860000 task.ti: ffff88007c860000
+ RIP: 0010:[<ffffffff8234a07e>]  [<ffffffff8234a07e>] init_workqueues+0x4/0x6
+ RSP: 0000:ffff88007c861ec8  EFLAGS: 00010246
+ RAX: ffff88007c861fd8 RBX: ffffffff824466a8 RCX: 0000000000000001
+ RDX: 0000000000000046 RSI: 0000000000000001 RDI: ffffffff8234a07a
+ RBP: ffff88007c861ec8 R08: 0000000000000000 R09: 0000000000000000
+ R10: 0000000000000001 R11: 0000000000000000 R12: ffffffff8234a07a
+ R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ FS:  0000000000000000(0000) GS:ffff88007dc00000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+ CR2: ffff88015f7ff000 CR3: 00000000021f1000 CR4: 00000000000007f0
+ DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+ Stack:
+  ffff88007c861ef8 ffffffff81000312 ffffffff824466a8 ffff88007c85e650
+  0000000000000003 0000000000000000 ffff88007c861f38 ffffffff82335e5d
+  ffff88007c862080 ffffffff8223d8c0 ffff88007c862080 ffffffff81c47760
+ Call Trace:
+  [<ffffffff81000312>] do_one_initcall+0x122/0x170
+  [<ffffffff82335e5d>] kernel_init_freeable+0x9b/0x1c8
+  [<ffffffff81c47760>] ? rest_init+0x140/0x140
+  [<ffffffff81c4776e>] kernel_init+0xe/0xf0
+  [<ffffffff81c6be9c>] ret_from_fork+0x7c/0xb0
+  [<ffffffff81c47760>] ? rest_init+0x140/0x140
+  ...
+
+This patchset contains the following seven patches.
+
+ 0001-x86-don-t-show-trace-beyond-show_stack-NULL-NULL.patch
+ 0002-sparc32-make-show_stack-acquire-fp-if-_ksp-is-not-sp.patch
+ 0003-dump_stack-consolidate-dump_stack-implementations-an.patch
+ 0004-dmi-morph-dmi_dump_ids-into-dmi_format_ids-which-for.patch
+ 0005-dump_stack-implement-arch-specific-hardware-descript.patch
+ 0006-dump_stack-unify-debug-information-printed-by-show_r.patch
+ 0007-arc-print-fatal-signals-reduce-duplicated-informatio.patch
+
+0001-0002 update stack dumping functions in x86 and sparc32 in
+preparation.
+
+0003 makes all arches except blackfin use generic dump_stack().
+blackfin still uses the generic helper to print the same info.
+
+0004-0005 properly abstract DMI identifier printing in WARN() and
+show_regs() so that all dumps print out the information.  This enables
+show_regs() to use the same debug info message.
+
+0006 updates show_regs() of all arches to use a common generic helper
+to print debug info.
+
+0007 removes somem duplicate information from arc dumps.
+
+While this patchset changes how debug info is printed on some archs,
+the printed information is always superset of what used to be there.
+
+This patchset makes task dump debug messages consistent and enables
+adding more information.  Workqueue is scheduled to add worker
+information including the workqueue in use and work item specific
+description.
+
+While this patch touches a lot of archs, it isn't too likely to cause
+non-trivial conflicts with arch-specfic changes and would probably be
+best to route together either through -mm.
+
+x86 is tested but other archs are either only compile tested or not
+tested at all.  Changes to most archs are generally trivial.
+
+
+
+This patch:
+
+show_stack(current or NULL, NULL) is used to print the backtrace of the
+current task.  As trace beyond the function itself isn't of much interest
+to anyone, don't show it by determining sp and bp in show_stack()'s frame
+and passing them to show_stack_log_lvl().
+
+This brings show_stack(NULL, NULL)'s behavior in line with
+dump_stack().
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zcache/Kconfig       |    6 +--
- drivers/staging/zcache/tmem.c        |    6 ++-
- drivers/staging/zcache/tmem.h        |    8 ++--
- drivers/staging/zcache/zcache-main.c |   45 +++++++++++++++++++++++--
- drivers/staging/zcache/zcache.h      |    2 -
- 5 files changed, 55 insertions(+), 12 deletions(-)
+ arch/x86/kernel/dumpstack.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/staging/zcache/Kconfig~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/Kconfig
---- a/drivers/staging/zcache/Kconfig~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/Kconfig
-@@ -1,5 +1,5 @@
- config ZCACHE
--	bool "Dynamic compression of swap pages and clean pagecache pages"
-+	tristate "Dynamic compression of swap pages and clean pagecache pages"
- 	depends on CRYPTO=y && SWAP=y && CLEANCACHE && FRONTSWAP
- 	select CRYPTO_LZO
- 	default n
-@@ -19,8 +19,8 @@ config ZCACHE_DEBUG
- 	  how zcache is doing. You probably want to set this to 'N'.
+diff -puN arch/x86/kernel/dumpstack.c~x86-dont-show-trace-beyond-show_stacknull-null arch/x86/kernel/dumpstack.c
+--- a/arch/x86/kernel/dumpstack.c~x86-dont-show-trace-beyond-show_stacknull-null
++++ a/arch/x86/kernel/dumpstack.c
+@@ -176,7 +176,19 @@ void show_trace(struct task_struct *task
  
- config RAMSTER
--	bool "Cross-machine RAM capacity sharing, aka peer-to-peer tmem"
--	depends on CONFIGFS_FS=y && SYSFS=y && !HIGHMEM && ZCACHE=y
-+	tristate "Cross-machine RAM capacity sharing, aka peer-to-peer tmem"
-+	depends on CONFIGFS_FS=y && SYSFS=y && !HIGHMEM && ZCACHE
- 	depends on NET
- 	# must ensure struct page is 8-byte aligned
- 	select HAVE_ALIGNED_STRUCT_PAGE if !64BIT
-diff -puN drivers/staging/zcache/tmem.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/tmem.c
---- a/drivers/staging/zcache/tmem.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/tmem.c
-@@ -35,7 +35,8 @@
- #include <linux/list.h>
- #include <linux/spinlock.h>
- #include <linux/atomic.h>
--#ifdef CONFIG_RAMSTER
-+#include <linux/export.h>
-+#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
- #include <linux/delay.h>
- #endif
- 
-@@ -641,6 +642,7 @@ void *tmem_localify_get_pampd(struct tme
- 	/* note, hashbucket remains locked */
- 	return pampd;
- }
-+EXPORT_SYMBOL_GPL(tmem_localify_get_pampd);
- 
- void tmem_localify_finish(struct tmem_obj *obj, uint32_t index,
- 			  void *pampd, void *saved_hb, bool delete)
-@@ -658,6 +660,7 @@ void tmem_localify_finish(struct tmem_ob
- 	}
- 	spin_unlock(&hb->lock);
- }
-+EXPORT_SYMBOL_GPL(tmem_localify_finish);
- 
- /*
-  * For ramster only.  Helper function to support asynchronous tmem_get.
-@@ -719,6 +722,7 @@ out:
- 	spin_unlock(&hb->lock);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(tmem_replace);
- #endif
- 
- /*
-diff -puN drivers/staging/zcache/tmem.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/tmem.h
---- a/drivers/staging/zcache/tmem.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/tmem.h
-@@ -126,7 +126,7 @@ static inline unsigned tmem_oid_hash(str
- 				TMEM_HASH_BUCKET_BITS);
- }
- 
--#ifdef CONFIG_RAMSTER
-+#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
- struct tmem_xhandle {
- 	uint8_t client_id;
- 	uint8_t xh_data_cksum;
-@@ -171,7 +171,7 @@ struct tmem_obj {
- 	unsigned int objnode_tree_height;
- 	unsigned long objnode_count;
- 	long pampd_count;
--#ifdef CONFIG_RAMSTER
-+#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
- 	/*
- 	 * for current design of ramster, all pages belonging to
- 	 * an object reside on the same remotenode and extra is
-@@ -215,7 +215,7 @@ struct tmem_pamops {
- 				uint32_t);
- 	void (*free)(void *, struct tmem_pool *,
- 				struct tmem_oid *, uint32_t, bool);
--#ifdef CONFIG_RAMSTER
-+#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
- 	void (*new_obj)(struct tmem_obj *);
- 	void (*free_obj)(struct tmem_pool *, struct tmem_obj *, bool);
- 	void *(*repatriate_preload)(void *, struct tmem_pool *,
-@@ -247,7 +247,7 @@ extern int tmem_flush_page(struct tmem_p
- extern int tmem_flush_object(struct tmem_pool *, struct tmem_oid *);
- extern int tmem_destroy_pool(struct tmem_pool *);
- extern void tmem_new_pool(struct tmem_pool *, uint32_t);
--#ifdef CONFIG_RAMSTER
-+#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
- extern int tmem_replace(struct tmem_pool *, struct tmem_oid *, uint32_t index,
- 			void *);
- extern void *tmem_localify_get_pampd(struct tmem_pool *, struct tmem_oid *,
-diff -puN drivers/staging/zcache/zcache-main.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/zcache-main.c
---- a/drivers/staging/zcache/zcache-main.c~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/zcache-main.c
-@@ -37,8 +37,10 @@
- #include "debug.h"
- #ifdef CONFIG_RAMSTER
- static bool ramster_enabled __read_mostly;
-+static int disable_frontswap_selfshrink;
- #else
- #define ramster_enabled false
-+#define disable_frontswap_selfshrink 0
- #endif
- 
- #ifndef __PG_WAS_ACTIVE
-@@ -81,8 +83,12 @@ static char *namestr __read_mostly = "zc
- 	(__GFP_FS | __GFP_NORETRY | __GFP_NOWARN | __GFP_NOMEMALLOC)
- 
- /* crypto API for zcache  */
-+#ifdef CONFIG_ZCACHE_MODULE
-+static char *zcache_comp_name = "lzo";
-+#else
- #define ZCACHE_COMP_NAME_SZ CRYPTO_MAX_ALG_NAME
- static char zcache_comp_name[ZCACHE_COMP_NAME_SZ] __read_mostly;
-+#endif
- static struct crypto_comp * __percpu *zcache_comp_pcpu_tfms __read_mostly;
- 
- enum comp_op {
-@@ -1721,6 +1727,7 @@ struct frontswap_ops *zcache_frontswap_r
-  * OR NOTHING HAPPENS!
-  */
- 
-+#ifndef CONFIG_ZCACHE_MODULE
- static int __init enable_zcache(char *s)
+ void show_stack(struct task_struct *task, unsigned long *sp)
  {
- 	zcache_enabled = true;
-@@ -1787,18 +1794,27 @@ static int __init enable_zcache_compress
- 	return 1;
- }
- __setup("zcache=", enable_zcache_compressor);
-+#endif
- 
- 
--static int __init zcache_comp_init(void)
-+static int zcache_comp_init(void)
- {
- 	int ret = 0;
- 
- 	/* check crypto algorithm */
-+#ifdef CONFIG_ZCACHE_MODULE
-+	ret = crypto_has_comp(zcache_comp_name, 0, 0);
-+	if (!ret) {
-+		ret = -1;
-+		goto out;
+-	show_stack_log_lvl(task, NULL, sp, 0, "");
++	unsigned long bp = 0;
++	unsigned long stack;
++
++	/*
++	 * Stack frames below this one aren't interesting.  Don't show them
++	 * if we're printing for %current.
++	 */
++	if (!sp && (!task || task == current)) {
++		sp = &stack;
++		bp = stack_frame(current, NULL);
 +	}
-+#else
- 	if (*zcache_comp_name != '\0') {
- 		ret = crypto_has_comp(zcache_comp_name, 0, 0);
- 		if (!ret)
- 			pr_info("zcache: %s not supported\n",
- 					zcache_comp_name);
-+		goto out;
- 	}
- 	if (!ret)
- 		strcpy(zcache_comp_name, "lzo");
-@@ -1807,6 +1823,7 @@ static int __init zcache_comp_init(void)
- 		ret = 1;
- 		goto out;
- 	}
-+#endif
- 	pr_info("zcache: using %s compressor\n", zcache_comp_name);
- 
- 	/* alloc percpu transforms */
-@@ -1818,10 +1835,13 @@ out:
- 	return ret;
++
++	show_stack_log_lvl(task, NULL, sp, bp, "");
  }
  
--static int __init zcache_init(void)
-+static int zcache_init(void)
- {
- 	int ret = 0;
- 
-+#ifdef CONFIG_ZCACHE_MODULE
-+	zcache_enabled = 1;
-+#endif
- 	if (ramster_enabled) {
- 		namestr = "ramster";
- 		ramster_register_pamops(&zcache_pamops);
-@@ -1894,9 +1914,28 @@ static int __init zcache_init(void)
- 	}
- 	if (ramster_enabled)
- 		ramster_init(!disable_cleancache, !disable_frontswap,
--				frontswap_has_exclusive_gets, false);
-+				frontswap_has_exclusive_gets,
-+				!disable_frontswap_selfshrink);
- out:
- 	return ret;
- }
- 
-+#ifdef CONFIG_ZCACHE_MODULE
-+#ifdef CONFIG_RAMSTER
-+module_param(ramster_enabled, int, S_IRUGO);
-+module_param(disable_frontswap_selfshrink, int, S_IRUGO);
-+#endif
-+module_param(disable_cleancache, int, S_IRUGO);
-+module_param(disable_frontswap, int, S_IRUGO);
-+#ifdef FRONTSWAP_HAS_EXCLUSIVE_GETS
-+module_param(frontswap_has_exclusive_gets, bool, S_IRUGO);
-+#endif
-+module_param(disable_frontswap_ignore_nonactive, int, S_IRUGO);
-+module_param(zcache_comp_name, charp, S_IRUGO);
-+module_init(zcache_init);
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Dan Magenheimer <dan.magenheimer@oracle.com>");
-+MODULE_DESCRIPTION("In-kernel compression of cleancache/frontswap pages");
-+#else
- late_initcall(zcache_init);
-+#endif
-diff -puN drivers/staging/zcache/zcache.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module drivers/staging/zcache/zcache.h
---- a/drivers/staging/zcache/zcache.h~staging-zcache-enable-zcache-to-be-built-loaded-as-a-module
-+++ a/drivers/staging/zcache/zcache.h
-@@ -39,7 +39,7 @@ extern int zcache_flush_page(int, int, s
- extern int zcache_flush_object(int, int, struct tmem_oid *);
- extern void zcache_decompress_to_page(char *, unsigned int, struct page *);
- 
--#ifdef CONFIG_RAMSTER
-+#if defined(CONFIG_RAMSTER) || defined(CONFIG_RAMSTER_MODULE)
- extern void *zcache_pampd_create(char *, unsigned int, bool, int,
- 				struct tmem_handle *);
- int zcache_autocreate_pool(unsigned int cli_id, unsigned int pool_id, bool eph);
+ /*
 _
 
-Patches currently in -mm which might be from dan.magenheimer@oracle.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
+linux-next.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
 
