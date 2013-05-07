@@ -1,301 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftest-add-a-test-case-for-ptrace_peeksiginfo.patch removed from -mm tree
-Date: Tue, 07 May 2013 10:49:03 -0700
-Message-ID: <20130507174903.8F69F5A4228@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] usermodehelper-export-_exec-and-_setup-functions.patch removed from -mm tree
+Date: Tue, 07 May 2013 10:49:06 -0700
+Message-ID: <20130507174906.8C7BF5A429A@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:61955 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756103Ab3EGRtF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:05 -0400
-Received: by mail-ve0-f202.google.com with SMTP id 15so85157vea.5
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:04 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:57473 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756103Ab3EGRtH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 13:49:07 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c10so85414qcz.0
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 10:49:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, davej@redhat.com, dhowells@redhat.com, mtk.manpages@gmail.com, oleg@redhat.com, palves@redhat.com, paulmck@linux.vnet.ibm.com, roland@redhat.com, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: lucas.demarchi@profusion.mobi, dhowells@redhat.com, james.l.morris@oracle.com, oleg@redhat.com, rjw@sisk.pl, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest: add a test case for PTRACE_PEEKSIGINFO
+     Subject: usermodehelper: export call_usermodehelper_exec() and call_usermodehelper_setup()
 has been removed from the -mm tree.  Its filename was
-     selftest-add-a-test-case-for-ptrace_peeksiginfo.patch
+     usermodehelper-export-_exec-and-_setup-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: selftest: add a test case for PTRACE_PEEKSIGINFO
+From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Subject: usermodehelper: export call_usermodehelper_exec() and call_usermodehelper_setup()
 
-* Dump signals from process-wide and per-thread queues with
-  different sizes of buffers.
-* Check error paths for buffers with restricted permissions. A part of
-  buffer or a whole buffer is for read-only.
-* Try to get nonexistent signal.
+call_usermodehelper_setup() + call_usermodehelper_exec() need to be called
+instead of call_usermodehelper_fns() when the cleanup function needs to be
+called even when an ENOMEM error occurs.  In this case using
+call_usermodehelper_fns() the user can't distinguish if the cleanup
+function was called or not.
 
-Signed-off-by: Andrew Vagin <avagin@openvz.org>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+[akpm@linux-foundation.org: export call_usermodehelper_setup() to modules]
+Signed-off-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pedro Alves <palves@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile             |    1 
- tools/testing/selftests/ptrace/Makefile      |   10 
- tools/testing/selftests/ptrace/peeksiginfo.c |  214 +++++++++++++++++
- 3 files changed, 225 insertions(+)
+ include/linux/kmod.h |    8 +++++
+ kernel/kmod.c        |   57 +++++++++++++++++------------------------
+ 2 files changed, 32 insertions(+), 33 deletions(-)
 
-diff -puN tools/testing/selftests/Makefile~selftest-add-a-test-case-for-ptrace_peeksiginfo tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~selftest-add-a-test-case-for-ptrace_peeksiginfo
-+++ a/tools/testing/selftests/Makefile
-@@ -4,6 +4,7 @@ TARGETS += efivarfs
- TARGETS += kcmp
- TARGETS += memory-hotplug
- TARGETS += mqueue
-+TARGETS += ptrace
- TARGETS += soft-dirty
- TARGETS += vm
+diff -puN include/linux/kmod.h~usermodehelper-export-_exec-and-_setup-functions include/linux/kmod.h
+--- a/include/linux/kmod.h~usermodehelper-export-_exec-and-_setup-functions
++++ a/include/linux/kmod.h
+@@ -71,6 +71,14 @@ call_usermodehelper_fns(char *path, char
+ 			int (*init)(struct subprocess_info *info, struct cred *new),
+ 			void (*cleanup)(struct subprocess_info *), void *data);
  
-diff -puN /dev/null tools/testing/selftests/ptrace/Makefile
---- /dev/null
-+++ a/tools/testing/selftests/ptrace/Makefile
-@@ -0,0 +1,10 @@
-+CFLAGS += -iquote../../../../include/uapi -Wall
-+peeksiginfo: peeksiginfo.c
++extern struct subprocess_info *
++call_usermodehelper_setup(char *path, char **argv, char **envp, gfp_t gfp_mask,
++			  int (*init)(struct subprocess_info *info, struct cred *new),
++			  void (*cleanup)(struct subprocess_info *), void *data);
 +
-+all: peeksiginfo
++extern int
++call_usermodehelper_exec(struct subprocess_info *info, int wait);
 +
-+clean:
-+	rm -f peeksiginfo
+ static inline int
+ call_usermodehelper(char *path, char **argv, char **envp, int wait)
+ {
+diff -puN kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-export-_exec-and-_setup-functions
++++ a/kernel/kmod.c
+@@ -502,14 +502,28 @@ static void helper_unlock(void)
+  * @argv: arg vector for process
+  * @envp: environment for process
+  * @gfp_mask: gfp mask for memory allocation
++ * @cleanup: a cleanup function
++ * @init: an init function
++ * @data: arbitrary context sensitive data
+  *
+  * Returns either %NULL on allocation failure, or a subprocess_info
+  * structure.  This should be passed to call_usermodehelper_exec to
+  * exec the process and free the structure.
++ *
++ * The init function is used to customize the helper process prior to
++ * exec.  A non-zero return code causes the process to error out, exit,
++ * and return the failure to the calling process
++ *
++ * The cleanup function is just before ethe subprocess_info is about to
++ * be freed.  This can be used for freeing the argv and envp.  The
++ * Function must be runnable in either a process context or the
++ * context in which call_usermodehelper_exec is called.
+  */
+-static
+ struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
+-						  char **envp, gfp_t gfp_mask)
++		char **envp, gfp_t gfp_mask,
++		int (*init)(struct subprocess_info *info, struct cred *new),
++		void (*cleanup)(struct subprocess_info *info),
++		void *data)
+ {
+ 	struct subprocess_info *sub_info;
+ 	sub_info = kzalloc(sizeof(struct subprocess_info), gfp_mask);
+@@ -520,36 +534,14 @@ struct subprocess_info *call_usermodehel
+ 	sub_info->path = path;
+ 	sub_info->argv = argv;
+ 	sub_info->envp = envp;
 +
-+run_tests: all
-+	@./peeksiginfo || echo "peeksiginfo selftests: [FAIL]"
-diff -puN /dev/null tools/testing/selftests/ptrace/peeksiginfo.c
---- /dev/null
-+++ a/tools/testing/selftests/ptrace/peeksiginfo.c
-@@ -0,0 +1,214 @@
-+#define _GNU_SOURCE
-+#include <stdio.h>
-+#include <signal.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <linux/types.h>
-+#include <sys/wait.h>
-+#include <sys/syscall.h>
-+#include <sys/user.h>
-+#include <sys/mman.h>
-+
-+#include "linux/ptrace.h"
-+
-+static int sys_rt_sigqueueinfo(pid_t tgid, int sig, siginfo_t *uinfo)
-+{
-+	return syscall(SYS_rt_sigqueueinfo, tgid, sig, uinfo);
-+}
-+
-+static int sys_rt_tgsigqueueinfo(pid_t tgid, pid_t tid,
-+					int sig, siginfo_t *uinfo)
-+{
-+	return syscall(SYS_rt_tgsigqueueinfo, tgid, tid, sig, uinfo);
-+}
-+
-+static int sys_ptrace(int request, pid_t pid, void *addr, void *data)
-+{
-+	return syscall(SYS_ptrace, request, pid, addr, data);
-+}
-+
-+#define SIGNR 10
-+#define TEST_SICODE_PRIV	-1
-+#define TEST_SICODE_SHARE	-2
-+
-+#define err(fmt, ...)						\
-+		fprintf(stderr,					\
-+			"Error (%s:%d): " fmt,			\
-+			__FILE__, __LINE__, ##__VA_ARGS__)
-+
-+static int check_error_paths(pid_t child)
-+{
-+	struct ptrace_peeksiginfo_args arg;
-+	int ret, exit_code = -1;
-+	void *addr_rw, *addr_ro;
-+
-+	/*
-+	 * Allocate two contiguous pages. The first one is for read-write,
-+	 * another is for read-only.
-+	 */
-+	addr_rw = mmap(NULL, 2 * PAGE_SIZE, PROT_READ | PROT_WRITE,
-+				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (addr_rw == MAP_FAILED) {
-+		err("mmap() failed: %m\n");
-+		return 1;
-+	}
-+
-+	addr_ro = mmap(addr_rw + PAGE_SIZE, PAGE_SIZE, PROT_READ,
-+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-+	if (addr_ro == MAP_FAILED) {
-+		err("mmap() failed: %m\n");
-+		goto out;
-+	}
-+
-+	arg.nr = SIGNR;
-+	arg.off = 0;
-+
-+	/* Unsupported flags */
-+	arg.flags = ~0;
-+	ret = sys_ptrace(PTRACE_PEEKSIGINFO, child, &arg, addr_rw);
-+	if (ret != -1 || errno != EINVAL) {
-+		err("sys_ptrace() returns %d (expected -1),"
-+				" errno %d (expected %d): %m\n",
-+				ret, errno, EINVAL);
-+		goto out;
-+	}
-+	arg.flags = 0;
-+
-+	/* A part of the buffer is read-only */
-+	ret = sys_ptrace(PTRACE_PEEKSIGINFO, child, &arg,
-+					addr_ro - sizeof(siginfo_t) * 2);
-+	if (ret != 2) {
-+		err("sys_ptrace() returns %d (expected 2): %m\n", ret);
-+		goto out;
-+	}
-+
-+	/* Read-only buffer */
-+	ret = sys_ptrace(PTRACE_PEEKSIGINFO, child, &arg, addr_ro);
-+	if (ret != -1 && errno != EFAULT) {
-+		err("sys_ptrace() returns %d (expected -1),"
-+				" errno %d (expected %d): %m\n",
-+				ret, errno, EFAULT);
-+		goto out;
-+	}
-+
-+	exit_code = 0;
-+out:
-+	munmap(addr_rw, 2 * PAGE_SIZE);
-+	return exit_code;
-+}
-+
-+int check_direct_path(pid_t child, int shared, int nr)
-+{
-+	struct ptrace_peeksiginfo_args arg = {.flags = 0, .nr = nr, .off = 0};
-+	int i, j, ret, exit_code = -1;
-+	siginfo_t siginfo[SIGNR];
-+	int si_code;
-+
-+	if (shared == 1) {
-+		arg.flags = PTRACE_PEEKSIGINFO_SHARED;
-+		si_code = TEST_SICODE_SHARE;
-+	} else {
-+		arg.flags = 0;
-+		si_code = TEST_SICODE_PRIV;
-+	}
-+
-+	for (i = 0; i < SIGNR; ) {
-+		arg.off = i;
-+		ret = sys_ptrace(PTRACE_PEEKSIGINFO, child, &arg, siginfo);
-+		if (ret == -1) {
-+			err("ptrace() failed: %m\n");
-+			goto out;
-+		}
-+
-+		if (ret == 0)
-+			break;
-+
-+		for (j = 0; j < ret; j++, i++) {
-+			if (siginfo[j].si_code == si_code &&
-+			    siginfo[j].si_int == i)
-+				continue;
-+
-+			err("%d: Wrong siginfo i=%d si_code=%d si_int=%d\n",
-+			     shared, i, siginfo[j].si_code, siginfo[j].si_int);
-+			goto out;
-+		}
-+	}
-+
-+	if (i != SIGNR) {
-+		err("Only %d signals were read\n", i);
-+		goto out;
-+	}
-+
-+	exit_code = 0;
-+out:
-+	return exit_code;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	siginfo_t siginfo[SIGNR];
-+	int i, exit_code = 1;
-+	sigset_t blockmask;
-+	pid_t child;
-+
-+	sigemptyset(&blockmask);
-+	sigaddset(&blockmask, SIGRTMIN);
-+	sigprocmask(SIG_BLOCK, &blockmask, NULL);
-+
-+	child = fork();
-+	if (child == -1) {
-+		err("fork() failed: %m");
-+		return 1;
-+	} else if (child == 0) {
-+		pid_t ppid = getppid();
-+		while (1) {
-+			if (ppid != getppid())
-+				break;
-+			sleep(1);
-+		}
-+		return 1;
-+	}
-+
-+	/* Send signals in process-wide and per-thread queues */
-+	for (i = 0; i < SIGNR; i++) {
-+		siginfo->si_code = TEST_SICODE_SHARE;
-+		siginfo->si_int = i;
-+		sys_rt_sigqueueinfo(child, SIGRTMIN, siginfo);
-+
-+		siginfo->si_code = TEST_SICODE_PRIV;
-+		siginfo->si_int = i;
-+		sys_rt_tgsigqueueinfo(child, child, SIGRTMIN, siginfo);
-+	}
-+
-+	if (sys_ptrace(PTRACE_ATTACH, child, NULL, NULL) == -1)
-+		return 1;
-+
-+	waitpid(child, NULL, 0);
-+
-+	/* Dump signals one by one*/
-+	if (check_direct_path(child, 0, 1))
-+		goto out;
-+	/* Dump all signals for one call */
-+	if (check_direct_path(child, 0, SIGNR))
-+		goto out;
-+
-+	/*
-+	 * Dump signal from the process-wide queue.
-+	 * The number of signals is not multible to the buffer size
-+	 */
-+	if (check_direct_path(child, 1, 3))
-+		goto out;
-+
-+	if (check_error_paths(child))
-+		goto out;
-+
-+	printf("PASS\n");
-+	exit_code = 0;
-+out:
-+	if (sys_ptrace(PTRACE_KILL, child, NULL, NULL) == -1)
-+		return 1;
-+
-+	waitpid(child, NULL, 0);
-+
-+	return exit_code;
-+}
-_
-
-Patches currently in -mm which might be from avagin@openvz.org are
-
-origin.patch
-
++	sub_info->cleanup = cleanup;
++	sub_info->init = init;
++	sub_info->data = data;
+   out:
+ 	return sub_info;
+ }
+-
+-/**
+- * call_usermodehelper_setfns - set a cleanup/init function
+- * @info: a subprocess_info returned by call_usermodehelper_setup
+- * @cleanup: a cleanup function
+- * @init: an init function
+- * @data: arbitrary context sensitive data
+- *
+- * The init function is used to customize the helper process prior to
+- * exec.  A non-zero return code causes the process to error out, exit,
+- * and return the failure to the calling process
+- *
+- * The cleanup function is just before ethe subprocess_info is about to
+- * be freed.  This can be used for freeing the argv and envp.  The
+- * Function must be runnable in either a process context or the
+- * context in which call_usermodehelper_exec is called.
+- */
+-static
+-void call_usermodehelper_setfns(struct subprocess_info *info,
+-		    int (*init)(struct subprocess_info *info, struct cred *new),
+-		    void (*cleanup)(struct subprocess_info *info),
+-		    void *data)
+-{
+-	info->cleanup = cleanup;
+-	info->init = init;
+-	info->data = data;
+-}
++EXPORT_SYMBOL(call_usermodehelper_setup);
+ 
+ /**
+  * call_usermodehelper_exec - start a usermode application
+@@ -563,7 +555,6 @@ void call_usermodehelper_setfns(struct s
+  * asynchronously if wait is not set, and runs as a child of keventd.
+  * (ie. it runs with full root capabilities).
+  */
+-static
+ int call_usermodehelper_exec(struct subprocess_info *sub_info, int wait)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(done);
+@@ -615,6 +606,7 @@ unlock:
+ 	helper_unlock();
+ 	return retval;
+ }
++EXPORT_SYMBOL(call_usermodehelper_exec);
+ 
+ /*
+  * call_usermodehelper_fns() will not run the caller-provided cleanup function
+@@ -630,13 +622,12 @@ int call_usermodehelper_fns(
+ 	struct subprocess_info *info;
+ 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
+ 
+-	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
++	info = call_usermodehelper_setup(path, argv, envp, gfp_mask,
++					 init, cleanup, data);
+ 
+ 	if (info == NULL)
+ 		return -ENOMEM;
+ 
+-	call_usermodehelper_setfns(info, init, cleanup, data);
