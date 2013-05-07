@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ep93xx-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-Date: Tue, 07 May 2013 15:49:19 -0700
-Message-ID: <20130507224919.C69525A41D5@corp2gmr1-2.hot.corp.google.com>
+Subject: + rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+Date: Tue, 07 May 2013 15:49:17 -0700
+Message-ID: <20130507224917.C611531C145@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:46811 "EHLO
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:39773 "EHLO
 	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755309Ab3EGWtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:20 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so121812yen.3
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:20 -0700 (PDT)
+	with ESMTP id S1755309Ab3EGWtS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 18:49:18 -0400
+Received: by mail-ye0-f202.google.com with SMTP id r13so121808yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 15:49:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: rtc: rtc-ep93xx: remove unnecessary platform_set_drvdata()
+     Subject: rtc: rtc-ds1302: remove unnecessary platform_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ep93xx-remove-unnecessary-platform_set_drvdata.patch
+     rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-ep93xx: remove unnecessary platform_set_drvdata()
+Subject: rtc: rtc-ds1302: remove unnecessary platform_set_drvdata()
 
 The driver core clears the driver data to NULL after device_release or on
 probe failure, since commit 0998d063100 ("device-core: Ensure drvdata =
@@ -45,28 +45,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ep93xx.c |    2 --
+ drivers/rtc/rtc-ds1302.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-ep93xx.c~rtc-rtc-ep93xx-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-ep93xx.c
---- a/drivers/rtc/rtc-ep93xx.c~rtc-rtc-ep93xx-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/rtc/rtc-ep93xx.c
-@@ -167,7 +167,6 @@ static int ep93xx_rtc_probe(struct platf
- 	return 0;
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -236,8 +236,6 @@ static int __init ds1302_rtc_probe(struc
  
- exit:
--	platform_set_drvdata(pdev, NULL);
- 	pdev->dev.platform_data = NULL;
- 	return err;
- }
-@@ -175,7 +174,6 @@ exit:
- static int ep93xx_rtc_remove(struct platform_device *pdev)
+ static int __exit ds1302_rtc_remove(struct platform_device *pdev)
  {
- 	sysfs_remove_group(&pdev->dev.kobj, &ep93xx_rtc_sysfs_files);
 -	platform_set_drvdata(pdev, NULL);
- 	pdev->dev.platform_data = NULL;
- 
+-
  	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
