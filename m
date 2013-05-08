@@ -1,57 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wait-add-wait_event_hrtimeout.patch removed from -mm tree
-Date: Wed, 08 May 2013 11:35:28 -0700
-Message-ID: <20130508183528.F257F31C088@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] aio-use-flush_dcache_page.patch removed from -mm tree
+Date: Wed, 08 May 2013 11:35:31 -0700
+Message-ID: <20130508183531.E3B705A415E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:58614 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758176Ab3EHSfb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:35:31 -0400
-Received: by mail-gh0-f202.google.com with SMTP id g24so195964ghb.5
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:35:30 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:41783 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758176Ab3EHSfd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:35:33 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m14so207796yen.2
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:35:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, mingo@elte.hu, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
+To: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wait: add wait_event_hrtimeout()
+     Subject: aio: use flush_dcache_page()
 has been removed from the -mm tree.  Its filename was
-     wait-add-wait_event_hrtimeout.patch
+     aio-use-flush_dcache_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: wait: add wait_event_hrtimeout()
+Subject: aio: use flush_dcache_page()
 
-Analagous to wait_event_timeout() and friends, this adds
-wait_event_hrtimeout() and wait_event_interruptible_hrtimeout().
+This wasn't causing problems before because it's not needed on x86, but it
+is needed on other architectures.
 
-Note that unlike the versions that use regular timers, these don't return
-the amount of time remaining when they return - instead, they return 0 or
--ETIME if they timed out.  because I was uncomfortable with the semantics
-of doing it the other way (that I could get it right, anyways).
-
-If the timer expires, there's no real guarantee that expire_time -
-current_time would be <= 0 - due to timer slack certainly, and I'm not
-sure I want to know the implications of the different clock bases in
-hrtimers.
-
-If the timer does expire and the code calculates that the time remaining
-is nonnegative, that could be even worse if the calling code then reuses
-that timeout.  Probably safer to just return 0 then, but I could imagine
-weird bugs or at least unintended behaviour arising from that too.
-
-I came to the conclusion that if other users end up actually needing the
-amount of time remaining, the sanest thing to do would be to create a
-version that uses absolute timeouts instead of relative.
-
-[akpm@linux-foundation.org: fix description of `timeout' arg]
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -65,109 +43,117 @@ Cc: Sam Bradshaw <sbradshaw@micron.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
-Reviewed-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   86 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 86 insertions(+)
+ fs/aio.c |   45 +++++++++++++++++----------------------------
+ 1 file changed, 17 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/wait.h~wait-add-wait_event_hrtimeout include/linux/wait.h
---- a/include/linux/wait.h~wait-add-wait_event_hrtimeout
-+++ a/include/linux/wait.h
-@@ -330,6 +330,92 @@ do {									\
- 	__ret;								\
- })
+diff -puN fs/aio.c~aio-use-flush_dcache_page fs/aio.c
+--- a/fs/aio.c~aio-use-flush_dcache_page
++++ a/fs/aio.c
+@@ -211,33 +211,15 @@ static int aio_setup_ring(struct kioctx
+ 	ring->incompat_features = AIO_RING_INCOMPAT_FEATURES;
+ 	ring->header_length = sizeof(struct aio_ring);
+ 	kunmap_atomic(ring);
++	flush_dcache_page(info->ring_pages[0]);
  
-+#define __wait_event_hrtimeout(wq, condition, timeout, state)		\
-+({									\
-+	int __ret = 0;							\
-+	DEFINE_WAIT(__wait);						\
-+	struct hrtimer_sleeper __t;					\
-+									\
-+	hrtimer_init_on_stack(&__t.timer, CLOCK_MONOTONIC,		\
-+			      HRTIMER_MODE_REL);			\
-+	hrtimer_init_sleeper(&__t, current);				\
-+	if ((timeout).tv64 != KTIME_MAX)				\
-+		hrtimer_start_range_ns(&__t.timer, timeout,		\
-+				       current->timer_slack_ns,		\
-+				       HRTIMER_MODE_REL);		\
-+									\
-+	for (;;) {							\
-+		prepare_to_wait(&wq, &__wait, state);			\
-+		if (condition)						\
-+			break;						\
-+		if (state == TASK_INTERRUPTIBLE &&			\
-+		    signal_pending(current)) {				\
-+			__ret = -ERESTARTSYS;				\
-+			break;						\
-+		}							\
-+		if (!__t.task) {					\
-+			__ret = -ETIME;					\
-+			break;						\
-+		}							\
-+		schedule();						\
-+	}								\
-+									\
-+	hrtimer_cancel(&__t.timer);					\
-+	destroy_hrtimer_on_stack(&__t.timer);				\
-+	finish_wait(&wq, &__wait);					\
-+	__ret;								\
-+})
+ 	return 0;
+ }
+ 
+-
+-/* aio_ring_event: returns a pointer to the event at the given index from
+- * kmap_atomic().  Release the pointer with put_aio_ring_event();
+- */
+ #define AIO_EVENTS_PER_PAGE	(PAGE_SIZE / sizeof(struct io_event))
+ #define AIO_EVENTS_FIRST_PAGE	((PAGE_SIZE - sizeof(struct aio_ring)) / sizeof(struct io_event))
+ #define AIO_EVENTS_OFFSET	(AIO_EVENTS_PER_PAGE - AIO_EVENTS_FIRST_PAGE)
+ 
+-#define aio_ring_event(info, nr) ({					\
+-	unsigned pos = (nr) + AIO_EVENTS_OFFSET;			\
+-	struct io_event *__event;					\
+-	__event = kmap_atomic(						\
+-			(info)->ring_pages[pos / AIO_EVENTS_PER_PAGE]); \
+-	__event += pos % AIO_EVENTS_PER_PAGE;				\
+-	__event;							\
+-})
+-
+-#define put_aio_ring_event(event) do {		\
+-	struct io_event *__event = (event);	\
+-	(void)__event;				\
+-	kunmap_atomic((void *)((unsigned long)__event & PAGE_MASK)); \
+-} while(0)
+-
+ static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
+ 			struct io_event *res)
+ {
+@@ -649,9 +631,9 @@ void aio_complete(struct kiocb *iocb, lo
+ 	struct kioctx	*ctx = iocb->ki_ctx;
+ 	struct aio_ring_info	*info;
+ 	struct aio_ring	*ring;
+-	struct io_event	*event;
++	struct io_event	*ev_page, *event;
+ 	unsigned long	flags;
+-	unsigned long	tail;
++	unsigned tail, pos;
+ 
+ 	/*
+ 	 * Special case handling for sync iocbs:
+@@ -690,19 +672,24 @@ void aio_complete(struct kiocb *iocb, lo
+ 	if (kiocbIsCancelled(iocb))
+ 		goto put_rq;
+ 
+-	ring = kmap_atomic(info->ring_pages[0]);
+-
+ 	tail = info->tail;
+-	event = aio_ring_event(info, tail);
++	pos = tail + AIO_EVENTS_OFFSET;
 +
-+/**
-+ * wait_event_hrtimeout - sleep until a condition gets true or a timeout elapses
-+ * @wq: the waitqueue to wait on
-+ * @condition: a C expression for the event to wait for
-+ * @timeout: timeout, as a ktime_t
-+ *
-+ * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
-+ * @condition evaluates to true or a signal is received.
-+ * The @condition is checked each time the waitqueue @wq is woken up.
-+ *
-+ * wake_up() has to be called after changing any variable that could
-+ * change the result of the wait condition.
-+ *
-+ * The function returns 0 if @condition became true, or -ETIME if the timeout
-+ * elapsed.
-+ */
-+#define wait_event_hrtimeout(wq, condition, timeout)			\
-+({									\
-+	int __ret = 0;							\
-+	if (!(condition))						\
-+		__ret = __wait_event_hrtimeout(wq, condition, timeout,	\
-+					       TASK_UNINTERRUPTIBLE);	\
-+	__ret;								\
-+})
+ 	if (++tail >= info->nr)
+ 		tail = 0;
+ 
++	ev_page = kmap_atomic(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
++	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
 +
-+/**
-+ * wait_event_interruptible_hrtimeout - sleep until a condition gets true or a timeout elapses
-+ * @wq: the waitqueue to wait on
-+ * @condition: a C expression for the event to wait for
-+ * @timeout: timeout, as a ktime_t
-+ *
-+ * The process is put to sleep (TASK_INTERRUPTIBLE) until the
-+ * @condition evaluates to true or a signal is received.
-+ * The @condition is checked each time the waitqueue @wq is woken up.
-+ *
-+ * wake_up() has to be called after changing any variable that could
-+ * change the result of the wait condition.
-+ *
-+ * The function returns 0 if @condition became true, -ERESTARTSYS if it was
-+ * interrupted by a signal, or -ETIME if the timeout elapsed.
-+ */
-+#define wait_event_interruptible_hrtimeout(wq, condition, timeout)	\
-+({									\
-+	long __ret = 0;							\
-+	if (!(condition))						\
-+		__ret = __wait_event_hrtimeout(wq, condition, timeout,	\
-+					       TASK_INTERRUPTIBLE);	\
-+	__ret;								\
-+})
+ 	event->obj = (u64)(unsigned long)iocb->ki_obj.user;
+ 	event->data = iocb->ki_user_data;
+ 	event->res = res;
+ 	event->res2 = res2;
+ 
+-	pr_debug("%p[%lu]: %p: %p %Lx %lx %lx\n",
++	kunmap_atomic(ev_page);
++	flush_dcache_page(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
 +
- #define __wait_event_interruptible_exclusive(wq, condition, ret)	\
- do {									\
- 	DEFINE_WAIT(__wait);						\
++	pr_debug("%p[%u]: %p: %p %Lx %lx %lx\n",
+ 		 ctx, tail, iocb, iocb->ki_obj.user, iocb->ki_user_data,
+ 		 res, res2);
+ 
+@@ -712,12 +699,13 @@ void aio_complete(struct kiocb *iocb, lo
+ 	smp_wmb();	/* make event visible before updating tail */
+ 
+ 	info->tail = tail;
+-	ring->tail = tail;
+ 
+-	put_aio_ring_event(event);
++	ring = kmap_atomic(info->ring_pages[0]);
++	ring->tail = tail;
+ 	kunmap_atomic(ring);
++	flush_dcache_page(info->ring_pages[0]);
+ 
+-	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
++	pr_debug("added to ring %p at [%u]\n", iocb, tail);
+ 
+ 	/*
+ 	 * Check if the user asked us to deliver the result through an
+@@ -807,6 +795,7 @@ static long aio_read_events_ring(struct
+ 	ring = kmap_atomic(info->ring_pages[0]);
+ 	ring->head = head;
+ 	kunmap_atomic(ring);
++	flush_dcache_page(info->ring_pages[0]);
+ 
+ 	pr_debug("%li  h%u t%u\n", ret, head, info->tail);
+ out:
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
