@@ -1,42 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gadget-remove-only-user-of-aio-retry.patch removed from -mm tree
-Date: Wed, 08 May 2013 11:34:54 -0700
-Message-ID: <20130508183454.E65085A415E@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] char-add-aio_readwrite-to-dev-nullzero.patch removed from -mm tree
+Date: Wed, 08 May 2013 11:35:00 -0700
+Message-ID: <20130508183500.E606631C088@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:38515 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758196Ab3EHSe5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:34:57 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 1so207871qec.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:34:56 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:45670 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758202Ab3EHSfC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:35:02 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so207994qen.0
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:35:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gadget: remove only user of aio retry
+     Subject: char: add aio_{read,write} to /dev/{null,zero}
 has been removed from the -mm tree.  Its filename was
-     gadget-remove-only-user-of-aio-retry.patch
+     char-add-aio_readwrite-to-dev-nullzero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zach Brown <zab@redhat.com>
-Subject: gadget: remove only user of aio retry
+Subject: char: add aio_{read,write} to /dev/{null,zero}
 
-This removes the only in-tree user of aio retry.  This will let us remove
-the retry code from the aio core.
+These are handy for measuring the cost of the aio infrastructure with
+operations that do very little and complete immediately.
 
-Removing retry is relatively easy as the USB gadget wasn't using it to
-retry IOs at all.  It always fully submitted the IO in the context of the
-initial io_submit() call.  It only used the AIO retry facility to get the
-submitter's mm context for copying the result of a read back to user
-space.  This is easy to implement with use_mm() and a work struct, much
-like kvm does with async_pf_execute() for get_user_pages().
-
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Zach Brown <zab@redhat.com>
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Felipe Balbi <balbi@ti.com>
@@ -51,131 +43,85 @@ Cc: Sam Bradshaw <sbradshaw@micron.com>
 Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Reviewed-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/inode.c |   38 ++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ drivers/char/mem.c |   35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff -puN drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry drivers/usb/gadget/inode.c
---- a/drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry
-+++ a/drivers/usb/gadget/inode.c
-@@ -24,6 +24,7 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/poll.h>
-+#include <linux/mmu_context.h>
- 
- #include <linux/device.h>
- #include <linux/moduleparam.h>
-@@ -513,6 +514,9 @@ static long ep_ioctl(struct file *fd, un
- struct kiocb_priv {
- 	struct usb_request	*req;
- 	struct ep_data		*epdata;
-+	struct kiocb		*iocb;
-+	struct mm_struct	*mm;
-+	struct work_struct	work;
- 	void			*buf;
- 	const struct iovec	*iv;
- 	unsigned long		nr_segs;
-@@ -540,15 +544,12 @@ static int ep_aio_cancel(struct kiocb *i
- 	return value;
+diff -puN drivers/char/mem.c~char-add-aio_readwrite-to-dev-nullzero drivers/char/mem.c
+--- a/drivers/char/mem.c~char-add-aio_readwrite-to-dev-nullzero
++++ a/drivers/char/mem.c
+@@ -627,6 +627,18 @@ static ssize_t write_null(struct file *f
+ 	return count;
  }
  
--static ssize_t ep_aio_read_retry(struct kiocb *iocb)
-+static ssize_t ep_copy_to_user(struct kiocb_priv *priv)
- {
--	struct kiocb_priv	*priv = iocb->private;
- 	ssize_t			len, total;
- 	void			*to_copy;
- 	int			i;
- 
--	/* we "retry" to get the right mm context for this: */
--
- 	/* copy stuff into user buffers */
- 	total = priv->actual;
- 	len = 0;
-@@ -568,9 +569,26 @@ static ssize_t ep_aio_read_retry(struct
- 		if (total == 0)
- 			break;
- 	}
-+
-+	return len;
++static ssize_t aio_read_null(struct kiocb *iocb, const struct iovec *iov,
++			     unsigned long nr_segs, loff_t pos)
++{
++	return 0;
 +}
 +
-+static void ep_user_copy_worker(struct work_struct *work)
++static ssize_t aio_write_null(struct kiocb *iocb, const struct iovec *iov,
++			      unsigned long nr_segs, loff_t pos)
 +{
-+	struct kiocb_priv *priv = container_of(work, struct kiocb_priv, work);
-+	struct mm_struct *mm = priv->mm;
-+	struct kiocb *iocb = priv->iocb;
-+	size_t ret;
++	return iov_length(iov, nr_segs);
++}
 +
-+	use_mm(mm);
-+	ret = ep_copy_to_user(priv);
-+	unuse_mm(mm);
-+
-+	/* completing the iocb can drop the ctx and mm, don't touch mm after */
-+	aio_complete(iocb, ret, ret);
-+
- 	kfree(priv->buf);
- 	kfree(priv);
--	return len;
+ static int pipe_to_null(struct pipe_inode_info *info, struct pipe_buffer *buf,
+ 			struct splice_desc *sd)
+ {
+@@ -670,6 +682,24 @@ static ssize_t read_zero(struct file *fi
+ 	return written ? written : -EFAULT;
  }
  
- static void ep_aio_complete(struct usb_ep *ep, struct usb_request *req)
-@@ -596,14 +614,14 @@ static void ep_aio_complete(struct usb_e
- 		aio_complete(iocb, req->actual ? req->actual : req->status,
- 				req->status);
- 	} else {
--		/* retry() won't report both; so we hide some faults */
-+		/* ep_copy_to_user() won't report both; we hide some faults */
- 		if (unlikely(0 != req->status))
- 			DBG(epdata->dev, "%s fault %d len %d\n",
- 				ep->name, req->status, req->actual);
++static ssize_t aio_read_zero(struct kiocb *iocb, const struct iovec *iov,
++			     unsigned long nr_segs, loff_t pos)
++{
++	size_t written = 0;
++	unsigned long i;
++	ssize_t ret;
++
++	for (i = 0; i < nr_segs; i++) {
++		ret = read_zero(iocb->ki_filp, iov[i].iov_base, iov[i].iov_len,
++				&pos);
++		if (ret < 0)
++			break;
++		written += ret;
++	}
++
++	return written ? written : -EFAULT;
++}
++
+ static int mmap_zero(struct file *file, struct vm_area_struct *vma)
+ {
+ #ifndef CONFIG_MMU
+@@ -738,6 +768,7 @@ static int open_port(struct inode *inode
+ #define full_lseek      null_lseek
+ #define write_zero	write_null
+ #define read_full       read_zero
++#define aio_write_zero	aio_write_null
+ #define open_mem	open_port
+ #define open_kmem	open_mem
+ #define open_oldmem	open_mem
+@@ -766,6 +797,8 @@ static const struct file_operations null
+ 	.llseek		= null_lseek,
+ 	.read		= read_null,
+ 	.write		= write_null,
++	.aio_read	= aio_read_null,
++	.aio_write	= aio_write_null,
+ 	.splice_write	= splice_write_null,
+ };
  
- 		priv->buf = req->buf;
- 		priv->actual = req->actual;
--		kick_iocb(iocb);
-+		schedule_work(&priv->work);
- 	}
- 	spin_unlock(&epdata->dev->lock);
- 
-@@ -633,8 +651,10 @@ fail:
- 		return value;
- 	}
- 	iocb->private = priv;
-+	priv->iocb = iocb;
- 	priv->iv = iv;
- 	priv->nr_segs = nr_segs;
-+	INIT_WORK(&priv->work, ep_user_copy_worker);
- 
- 	value = get_ready_ep(iocb->ki_filp->f_flags, epdata);
- 	if (unlikely(value < 0)) {
-@@ -646,6 +666,7 @@ fail:
- 	get_ep(epdata);
- 	priv->epdata = epdata;
- 	priv->actual = 0;
-+	priv->mm = current->mm; /* mm teardown waits for iocbs in exit_aio() */
- 
- 	/* each kiocb is coupled to one usb_request, but we can't
- 	 * allocate or submit those if the host disconnected.
-@@ -674,7 +695,7 @@ fail:
- 		kfree(priv);
- 		put_ep(epdata);
- 	} else
--		value = (iv ? -EIOCBRETRY : -EIOCBQUEUED);
-+		value = -EIOCBQUEUED;
- 	return value;
- }
- 
-@@ -692,7 +713,6 @@ ep_aio_read(struct kiocb *iocb, const st
- 	if (unlikely(!buf))
- 		return -ENOMEM;
- 
--	iocb->ki_retry = ep_aio_read_retry;
- 	return ep_aio_rwtail(iocb, buf, iocb->ki_left, epdata, iov, nr_segs);
- }
+@@ -782,6 +815,8 @@ static const struct file_operations zero
+ 	.llseek		= zero_lseek,
+ 	.read		= read_zero,
+ 	.write		= write_zero,
++	.aio_read	= aio_read_zero,
++	.aio_write	= aio_write_zero,
+ 	.mmap		= mmap_zero,
+ };
  
 _
 
