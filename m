@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arm-add-support-for-lz4-compressed-kernel-fix.patch added to -mm tree
-Date: Wed, 08 May 2013 12:32:34 -0700
-Message-ID: <20130508193234.8A8C431C26F@corp2gmr1-1.hot.corp.google.com>
+Subject: + lib-add-support-for-lz4-compressed-kernel-kbuild-fix-for-updated-lz4-tool-with-the-new-streaming-format.patch added to -mm tree
+Date: Wed, 08 May 2013 12:34:15 -0700
+Message-ID: <20130508193415.92BC431C1EA@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:49233 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab3EHTcf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 15:32:35 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so214270ggm.5
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 12:32:35 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:61501 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751453Ab3EHTeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 15:34:17 -0400
+Received: by mail-ve0-f202.google.com with SMTP id 15so214431vea.3
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 12:34:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyungsik.lee@lge.com, bp@alien8.de, florian@openwrt.org, rmk@arm.linux.org.uk, tglx@linutronix.de, yann.collet.73@gmail.com
+Cc: kyungsik.lee@lge.com, bp@alien8.de, chanho.min@lge.com, florian@openwrt.org, hpa@zytor.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, yann.collet.73@gmail.com
 
 
 The patch titled
-     Subject: arm: Remove enforced Os flag for LZ4 decompressor
+     Subject: kbuild: fix for updated LZ4 tool with the new streaming format
 has been added to the -mm tree.  Its filename is
-     arm-add-support-for-lz4-compressed-kernel-fix.patch
+     lib-add-support-for-lz4-compressed-kernel-kbuild-fix-for-updated-lz4-tool-with-the-new-streaming-format.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kyungsik Lee <kyungsik.lee@lge.com>
-Subject: arm: Remove enforced Os flag for LZ4 decompressor
+Subject: kbuild: fix for updated LZ4 tool with the new streaming format
 
--Os is enforced here, based on the test result of decompression time
-below, slightly faster than -O2.
+LZ4 has been updated with LZ4 Streaming Format specification(v1.3).
+lz4demo is replaced by lz4c. lz4c supports both the new streaming and
+legacy format with -l option.
 
-But further tests with UA show that using -O2 will be the right choice
-especially in the case of the unaligned access enabled and the gap,
-few counts in the normal decompression mode is small enough to remove -Os.
+This patch makes use of lz4c to support legacy format which is
+used for LZ4 De/compression in the linux kernel.
 
-Decompression Time(counts)
-     Normal    UA enabled
--Os  6717      3447
--O2  6720      2728
-
-Note: ARM v7, Kernel 3.4
-      counter freq. = 32768 HZ
-      UA(Unaligned Access)
-      gcc version 4.6.2
+Link: https://code.google.com/p/lz4/source/checkout
 
 Signed-off-by: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Florian Fainelli <florian@openwrt.org>
 Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Chanho Min <chanho.min@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/compressed/Makefile |    3 ---
- 1 file changed, 3 deletions(-)
+ scripts/Makefile.lib |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/boot/compressed/Makefile~arm-add-support-for-lz4-compressed-kernel-fix arch/arm/boot/compressed/Makefile
---- a/arch/arm/boot/compressed/Makefile~arm-add-support-for-lz4-compressed-kernel-fix
-+++ a/arch/arm/boot/compressed/Makefile
-@@ -27,9 +27,6 @@ OBJS	+= misc.o decompress.o
- ifeq ($(CONFIG_DEBUG_UNCOMPRESS),y)
- OBJS	+= debug.o
- endif
--ifeq ($(CONFIG_KERNEL_LZ4),y)
--CFLAGS_decompress.o := -Os
--endif
- FONTC	= $(srctree)/drivers/video/console/font_acorn_8x8.c
+diff -puN scripts/Makefile.lib~lib-add-support-for-lz4-compressed-kernel-kbuild-fix-for-updated-lz4-tool-with-the-new-streaming-format scripts/Makefile.lib
+--- a/scripts/Makefile.lib~lib-add-support-for-lz4-compressed-kernel-kbuild-fix-for-updated-lz4-tool-with-the-new-streaming-format
++++ a/scripts/Makefile.lib
+@@ -313,7 +313,7 @@ cmd_lzo = (cat $(filter-out FORCE,$^) |
  
- # string library code (-Os is enforced to keep it much smaller)
+ quiet_cmd_lz4 = LZ4     $@
+ cmd_lz4 = (cat $(filter-out FORCE,$^) | \
+-	lz4demo -c1 stdin stdout && $(call size_append, $(filter-out FORCE,$^))) > $@ || \
++	lz4c -l -c1 stdin stdout && $(call size_append, $(filter-out FORCE,$^))) > $@ || \
+ 	(rm -f $@ ; false)
+ 
+ # U-Boot mkimage
 _
 
 Patches currently in -mm which might be from kyungsik.lee@lge.com are
@@ -85,6 +79,7 @@ Patches currently in -mm which might be from kyungsik.lee@lge.com are
 lib-add-weak-clz-ctz-functions.patch
 decompressor-add-lz4-decompressor-module.patch
 lib-add-support-for-lz4-compressed-kernel.patch
+lib-add-support-for-lz4-compressed-kernel-kbuild-fix-for-updated-lz4-tool-with-the-new-streaming-format.patch
 arm-add-support-for-lz4-compressed-kernel.patch
 arm-add-support-for-lz4-compressed-kernel-fix.patch
 x86-add-support-for-lz4-compressed-kernel.patch
