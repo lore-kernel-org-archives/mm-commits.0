@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix.patch added to -mm tree
-Date: Wed, 08 May 2013 13:55:48 -0700
-Message-ID: <20130508205548.AF02F31C15D@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch added to -mm tree
+Date: Wed, 08 May 2013 14:09:35 -0700
+Message-ID: <20130508210935.77C995A404E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:55981 "EHLO
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:55448 "EHLO
 	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823Ab3EHUzt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 16:55:49 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so224221qen.2
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 13:55:49 -0700 (PDT)
+	with ESMTP id S1750830Ab3EHVJi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 17:09:38 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so225724qen.2
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 14:09:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, holt@sgi.com
+Cc: rientjes@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix
+     Subject: mm, memcg: don't take task_lock in task_in_mem_cgroup
 has been added to the -mm tree.  Its filename is
-     reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix.patch
+     mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix
+From: David Rientjes <rientjes@google.com>
+Subject: mm, memcg: don't take task_lock in task_in_mem_cgroup
 
-make the `s' option handling slightly less silly
+For processes that have detached their mm's, task_in_mem_cgroup()
+unnecessarily takes task_lock() when rcu_read_lock() is all that is
+necessary to call mem_cgroup_from_task().
 
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Russ Anderson <rja@sgi.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+While we're here, switch task_in_mem_cgroup() to return bool.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    9 +++++----
+ mm/memcontrol.c            |   11 ++++++-----
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix Documentation/kernel-parameters.txt
-diff -puN arch/arm/kernel/process.c~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix arch/arm/kernel/process.c
-diff -puN arch/unicore32/kernel/process.c~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix arch/unicore32/kernel/process.c
-diff -puN arch/x86/include/asm/emergency-restart.h~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix arch/x86/include/asm/emergency-restart.h
-diff -puN arch/x86/kernel/apic/x2apic_uv_x.c~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix arch/x86/kernel/apic/x2apic_uv_x.c
-diff -puN arch/x86/kernel/reboot.c~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix arch/x86/kernel/reboot.c
-diff -puN include/linux/reboot.h~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix include/linux/reboot.h
-diff -puN kernel/reboot.c~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix kernel/reboot.c
---- a/kernel/reboot.c~reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix
-+++ a/kernel/reboot.c
-@@ -386,10 +386,11 @@ static int __init reboot_setup(char *str
+diff -puN include/linux/memcontrol.h~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup
++++ a/include/linux/memcontrol.h
+@@ -77,7 +77,8 @@ extern void mem_cgroup_uncharge_cache_pa
  
- #ifdef CONFIG_SMP
- 		case 's':
--			if (isdigit(*(str+1))) {
--				reboot_cpu = (int) (*(str+1) - '0');
--				if (isdigit(*(str+2)))
--					reboot_cpu = reboot_cpu*10 + (int)(*(str+2) - '0');
-+			if (isdigit(str[1])) {
-+				reboot_cpu = str[1] - '0';
-+				if (isdigit(str[2]))
-+					reboot_cpu = reboot_cpu * 10 +
-+							str[2] - '0';
- 			}
- 			/*
- 			 * We will leave sorting out the final value
+ bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
+ 				  struct mem_cgroup *memcg);
+-int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg);
++bool task_in_mem_cgroup(struct task_struct *task,
++			const struct mem_cgroup *memcg);
+ 
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+ extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+@@ -273,10 +274,10 @@ static inline bool mm_match_cgroup(struc
+ 	return true;
+ }
+ 
+-static inline int task_in_mem_cgroup(struct task_struct *task,
+-				     const struct mem_cgroup *memcg)
++static inline bool task_in_mem_cgroup(struct task_struct *task,
++				      const struct mem_cgroup *memcg)
+ {
+-	return 1;
++	return true;
+ }
+ 
+ static inline struct cgroup_subsys_state
+diff -puN mm/memcontrol.c~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup
++++ a/mm/memcontrol.c
+@@ -1450,11 +1450,12 @@ static bool mem_cgroup_same_or_subtree(c
+ 	return ret;
+ }
+ 
+-int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg)
++bool task_in_mem_cgroup(struct task_struct *task,
++			const struct mem_cgroup *memcg)
+ {
+-	int ret;
+ 	struct mem_cgroup *curr = NULL;
+ 	struct task_struct *p;
++	bool ret;
+ 
+ 	p = find_lock_task_mm(task);
+ 	if (p) {
+@@ -1466,14 +1467,14 @@ int task_in_mem_cgroup(struct task_struc
+ 		 * killer still needs to detect if they have already been oom
+ 		 * killed to prevent needlessly killing additional tasks.
+ 		 */
+-		task_lock(task);
++		rcu_read_lock();
+ 		curr = mem_cgroup_from_task(task);
+ 		if (curr)
+ 			css_get(&curr->css);
+-		task_unlock(task);
++		rcu_read_unlock();
+ 	}
+ 	if (!curr)
+-		return 0;
++		return false;
+ 	/*
+ 	 * We should check use_hierarchy of "memcg" not "curr". Because checking
+ 	 * use_hierarchy of "curr" here make this function true if hierarchy is
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-generic-dynamic-per-cpu-refcounting.patch
-block-prep-work-for-batch-completion.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-checkpatch-fixes.patch
-reboot-move-arch-x86-reboot=-handling-to-generic-kernel-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-bpf-add-comments-explaining-the-schedule_work-operation.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
