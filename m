@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + errh-is_err-can-accept-__user-pointers.patch added to -mm tree
-Date: Wed, 08 May 2013 15:16:32 -0700
-Message-ID: <20130508221632.738AD31C15D@corp2gmr1-1.hot.corp.google.com>
+Subject: + rapidio-tsi721-fix-bug-in-msi-interrupt-handling.patch added to -mm tree
+Date: Wed, 08 May 2013 15:17:09 -0700
+Message-ID: <20130508221709.78D975A404E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:64257 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852Ab3EHWQd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 18:16:33 -0400
-Received: by mail-ve0-f201.google.com with SMTP id m1so232098ves.2
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 15:16:32 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:38378 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751195Ab3EHWRK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 18:17:10 -0400
+Received: by mail-qa0-f74.google.com with SMTP id i13so256481qae.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 15:17:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dan.carpenter@oracle.com, sparse@chrisli.org
+Cc: alexandre.bounine@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: err.h: IS_ERR() can accept __user pointers
+     Subject: rapidio/tsi721: fix bug in MSI interrupt handling
 has been added to the -mm tree.  Its filename is
-     errh-is_err-can-accept-__user-pointers.patch
+     rapidio-tsi721-fix-bug-in-msi-interrupt-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: err.h: IS_ERR() can accept __user pointers
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: fix bug in MSI interrupt handling
 
-Sparse generates a false positive when you pass a __user or __iomem
-pointer to the IS_ERR() functions.
+Fix bug in MSI interrupt handling which causes loss of event notifications.
 
-drivers/rtc/rtc-ds1286.c:344:36: sparse: incorrect type in argument 1 (different address spaces)
-drivers/rtc/rtc-ds1286.c:344:36:    expected void const *ptr
-drivers/rtc/rtc-ds1286.c:344:36:    got unsigned int [noderef] [usertype] <asn:2>*rtcregs
+Typical indication of lost MSI interrupts are stalled message and doorbell
+transfers between RapidIO endpoints.  To avoid loss of MSI interrupts all
+interrupts from the device must be disabled on entering the interrupt
+handler routine and re-enabled when exiting it.  Re-enabling device
+interrupts will trigger new MSI message(s) if Tsi721 registered new events
+since entering interrupt handler routine.
 
-We can silence these by adding a __force here and upgrading to the
-latest git release of Sparse.
+This patch is applicable to kernel versions starting from v3.2.
 
-This change has no effect when using current Sparse releases.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Christopher Li <sparse@chrisli.org>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/rapidio/devices/tsi721.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN include/linux/err.h~errh-is_err-can-accept-__user-pointers include/linux/err.h
---- a/include/linux/err.h~errh-is_err-can-accept-__user-pointers
-+++ a/include/linux/err.h
-@@ -24,17 +24,17 @@ static inline void * __must_check ERR_PT
- 	return (void *) error;
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-bug-in-msi-interrupt-handling drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-bug-in-msi-interrupt-handling
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -471,6 +471,10 @@ static irqreturn_t tsi721_irqhandler(int
+ 	u32 intval;
+ 	u32 ch_inte;
+ 
++	/* For MSI mode disable all device-level interrupts */
++	if (priv->flags & TSI721_USING_MSI)
++		iowrite32(0, priv->regs + TSI721_DEV_INTE);
++
+ 	dev_int = ioread32(priv->regs + TSI721_DEV_INT);
+ 	if (!dev_int)
+ 		return IRQ_NONE;
+@@ -560,6 +564,14 @@ static irqreturn_t tsi721_irqhandler(int
+ 		}
+ 	}
+ #endif
++
++	/* For MSI mode re-enable device-level interrupts */
++	if (priv->flags & TSI721_USING_MSI) {
++		dev_int = TSI721_DEV_INT_SR2PC_CH | TSI721_DEV_INT_SRIO |
++			TSI721_DEV_INT_SMSG_CH | TSI721_DEV_INT_BDMA_CH;
++		iowrite32(dev_int, priv->regs + TSI721_DEV_INTE);
++	}
++
+ 	return IRQ_HANDLED;
  }
  
--static inline long __must_check PTR_ERR(const void *ptr)
-+static inline long __must_check PTR_ERR(__force const void *ptr)
- {
- 	return (long) ptr;
- }
- 
--static inline long __must_check IS_ERR(const void *ptr)
-+static inline long __must_check IS_ERR(__force const void *ptr)
- {
- 	return IS_ERR_VALUE((unsigned long)ptr);
- }
- 
--static inline long __must_check IS_ERR_OR_NULL(const void *ptr)
-+static inline long __must_check IS_ERR_OR_NULL(__force const void *ptr)
- {
- 	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
- }
-@@ -46,13 +46,13 @@ static inline long __must_check IS_ERR_O
-  * Explicitly cast an error-valued pointer to another pointer type in such a
-  * way as to make it clear that's what's going on.
-  */
--static inline void * __must_check ERR_CAST(const void *ptr)
-+static inline void * __must_check ERR_CAST(__force const void *ptr)
- {
- 	/* cast away the const */
- 	return (void *) ptr;
- }
- 
--static inline int __must_check PTR_RET(const void *ptr)
-+static inline int __must_check PTR_RET(__force const void *ptr)
- {
- 	if (IS_ERR(ptr))
- 		return PTR_ERR(ptr);
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-origin.patch
-linux-next.patch
-configfs-use-capped-length-for-store_attribute.patch
-errh-is_err-can-accept-__user-pointers.patch
-mwave-fix-info-leak-in-mwave_ioctl.patch
+rapidio-make-enumeration-discovery-configurable.patch
+rapidio-add-enumeration-discovery-start-from-user-space.patch
+rapidio-documentation-update-for-enumeration-changes.patch
+rapidio-tsi721-fix-bug-in-msi-interrupt-handling.patch
 
