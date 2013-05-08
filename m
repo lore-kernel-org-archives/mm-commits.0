@@ -1,34 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aio-add-kiocb_cancel.patch removed from -mm tree
-Date: Wed, 08 May 2013 11:35:06 -0700
-Message-ID: <20130508183506.E046A31C1EA@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] aio-move-private-stuff-out-of-aioh.patch removed from -mm tree
+Date: Wed, 08 May 2013 11:35:10 -0700
+Message-ID: <20130508183510.A7DD65A415E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:51714 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758176Ab3EHSfI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:35:08 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so207939ggl.2
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:35:08 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:61897 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758176Ab3EHSfM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:35:12 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c10so208210qcz.4
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:35:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio: add kiocb_cancel()
+     Subject: aio: move private stuff out of aio.h
 has been removed from the -mm tree.  Its filename was
-     aio-add-kiocb_cancel.patch
+     aio-move-private-stuff-out-of-aioh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: add kiocb_cancel()
+Subject: aio: move private stuff out of aio.h
 
-Minor refactoring, to get rid of some duplicated code
-
-[akpm@linux-foundation.org: fix warning]
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
@@ -43,133 +40,168 @@ Cc: Sam Bradshaw <sbradshaw@micron.com>
 Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
-Reviewed-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   79 ++++++++++++++++++++++++++++-------------------------
- 1 file changed, 43 insertions(+), 36 deletions(-)
+ drivers/usb/gadget/inode.c |    1 
+ fs/aio.c                   |   61 +++++++++++++++++++++++++++++++++++
+ include/linux/aio.h        |   61 -----------------------------------
+ 3 files changed, 62 insertions(+), 61 deletions(-)
 
-diff -puN fs/aio.c~aio-add-kiocb_cancel fs/aio.c
---- a/fs/aio.c~aio-add-kiocb_cancel
-+++ a/fs/aio.c
-@@ -220,6 +220,29 @@ static inline void put_ioctx(struct kioc
- 		__put_ioctx(kioctx);
- }
+diff -puN drivers/usb/gadget/inode.c~aio-move-private-stuff-out-of-aioh drivers/usb/gadget/inode.c
+--- a/drivers/usb/gadget/inode.c~aio-move-private-stuff-out-of-aioh
++++ a/drivers/usb/gadget/inode.c
+@@ -25,6 +25,7 @@
+ #include <linux/slab.h>
+ #include <linux/poll.h>
+ #include <linux/mmu_context.h>
++#include <linux/aio.h>
  
-+static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
-+			struct io_event *res)
+ #include <linux/device.h>
+ #include <linux/moduleparam.h>
+diff -puN fs/aio.c~aio-move-private-stuff-out-of-aioh fs/aio.c
+--- a/fs/aio.c~aio-move-private-stuff-out-of-aioh
++++ a/fs/aio.c
+@@ -45,6 +45,67 @@
+ #define dprintk(x...)	do { ; } while (0)
+ #endif
+ 
++#define AIO_RING_MAGIC			0xa10a10a1
++#define AIO_RING_COMPAT_FEATURES	1
++#define AIO_RING_INCOMPAT_FEATURES	0
++struct aio_ring {
++	unsigned	id;	/* kernel internal index number */
++	unsigned	nr;	/* number of io_events */
++	unsigned	head;
++	unsigned	tail;
++
++	unsigned	magic;
++	unsigned	compat_features;
++	unsigned	incompat_features;
++	unsigned	header_length;	/* size of aio_ring */
++
++
++	struct io_event		io_events[0];
++}; /* 128 bytes + ring size */
++
++#define AIO_RING_PAGES	8
++struct aio_ring_info {
++	unsigned long		mmap_base;
++	unsigned long		mmap_size;
++
++	struct page		**ring_pages;
++	spinlock_t		ring_lock;
++	long			nr_pages;
++
++	unsigned		nr, tail;
++
++	struct page		*internal_pages[AIO_RING_PAGES];
++};
++
++static inline unsigned aio_ring_avail(struct aio_ring_info *info,
++					struct aio_ring *ring)
 +{
-+	int (*cancel)(struct kiocb *, struct io_event *);
-+	int ret = -EINVAL;
-+
-+	cancel = kiocb->ki_cancel;
-+	kiocbSetCancelled(kiocb);
-+	if (cancel) {
-+		kiocb->ki_users++;
-+		spin_unlock_irq(&ctx->ctx_lock);
-+
-+		memset(res, 0, sizeof(*res));
-+		res->obj = (u64)(unsigned long)kiocb->ki_obj.user;
-+		res->data = kiocb->ki_user_data;
-+		ret = cancel(kiocb, res);
-+
-+		spin_lock_irq(&ctx->ctx_lock);
-+	}
-+
-+	return ret;
++	return (ring->head + info->nr - 1 - ring->tail) % info->nr;
 +}
 +
- /* ioctx_alloc
-  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
-  */
-@@ -290,25 +313,19 @@ out_freectx:
-  */
- static void kill_ctx(struct kioctx *ctx)
- {
--	int (*cancel)(struct kiocb *, struct io_event *);
- 	struct task_struct *tsk = current;
- 	DECLARE_WAITQUEUE(wait, tsk);
- 	struct io_event res;
-+	struct kiocb *req;
- 
- 	spin_lock_irq(&ctx->ctx_lock);
- 	ctx->dead = 1;
- 	while (!list_empty(&ctx->active_reqs)) {
--		struct list_head *pos = ctx->active_reqs.next;
--		struct kiocb *iocb = list_kiocb(pos);
--		list_del_init(&iocb->ki_list);
--		cancel = iocb->ki_cancel;
--		kiocbSetCancelled(iocb);
--		if (cancel) {
--			iocb->ki_users++;
--			spin_unlock_irq(&ctx->ctx_lock);
--			cancel(iocb, &res);
--			spin_lock_irq(&ctx->ctx_lock);
--		}
-+		req = list_first_entry(&ctx->active_reqs,
-+					struct kiocb, ki_list);
++struct kioctx {
++	atomic_t		users;
++	int			dead;
 +
-+		list_del_init(&req->ki_list);
-+		kiocb_cancel(ctx, req, &res);
- 	}
- 
- 	if (!ctx->reqs_active)
-@@ -1416,7 +1433,7 @@ static struct kiocb *lookup_kiocb(struct
- SYSCALL_DEFINE3(io_cancel, aio_context_t, ctx_id, struct iocb __user *, iocb,
- 		struct io_event __user *, result)
- {
--	int (*cancel)(struct kiocb *iocb, struct io_event *res);
-+	struct io_event res;
- 	struct kioctx *ctx;
- 	struct kiocb *kiocb;
- 	u32 key;
-@@ -1431,32 +1448,22 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
- 		return -EINVAL;
- 
- 	spin_lock_irq(&ctx->ctx_lock);
--	ret = -EAGAIN;
++	/* This needs improving */
++	unsigned long		user_id;
++	struct hlist_node	list;
 +
- 	kiocb = lookup_kiocb(ctx, iocb, key);
--	if (kiocb && kiocb->ki_cancel) {
--		cancel = kiocb->ki_cancel;
--		kiocb->ki_users ++;
--		kiocbSetCancelled(kiocb);
--	} else
--		cancel = NULL;
-+	if (kiocb)
-+		ret = kiocb_cancel(ctx, kiocb, &res);
-+	else
-+		ret = -EINVAL;
++	wait_queue_head_t	wait;
 +
- 	spin_unlock_irq(&ctx->ctx_lock);
++	spinlock_t		ctx_lock;
++
++	int			reqs_active;
++	struct list_head	active_reqs;	/* used for cancellation */
++
++	/* sys_io_setup currently limits this to an unsigned int */
++	unsigned		max_reqs;
++
++	struct aio_ring_info	ring_info;
++
++	struct rcu_head		rcu_head;
++};
++
+ /*------ sysctl variables----*/
+ static DEFINE_SPINLOCK(aio_nr_lock);
+ unsigned long aio_nr;		/* current system wide number of aio requests */
+diff -puN include/linux/aio.h~aio-move-private-stuff-out-of-aioh include/linux/aio.h
+--- a/include/linux/aio.h~aio-move-private-stuff-out-of-aioh
++++ a/include/linux/aio.h
+@@ -103,67 +103,6 @@ static inline void init_sync_kiocb(struc
+ 		};
+ }
  
--	if (NULL != cancel) {
--		struct io_event tmp;
--		pr_debug("calling cancel\n");
--		memset(&tmp, 0, sizeof(tmp));
--		tmp.obj = (u64)(unsigned long)kiocb->ki_obj.user;
--		tmp.data = kiocb->ki_user_data;
--		ret = cancel(kiocb, &tmp);
--		if (!ret) {
--			/* Cancellation succeeded -- copy the result
--			 * into the user's buffer.
--			 */
--			if (copy_to_user(result, &tmp, sizeof(tmp)))
--				ret = -EFAULT;
--		}
--	} else
--		ret = -EINVAL;
-+	if (!ret) {
-+		/* Cancellation succeeded -- copy the result
-+		 * into the user's buffer.
-+		 */
-+		if (copy_to_user(result, &res, sizeof(res)))
-+			ret = -EFAULT;
-+	}
- 
- 	put_ioctx(ctx);
- 
+-#define AIO_RING_MAGIC			0xa10a10a1
+-#define AIO_RING_COMPAT_FEATURES	1
+-#define AIO_RING_INCOMPAT_FEATURES	0
+-struct aio_ring {
+-	unsigned	id;	/* kernel internal index number */
+-	unsigned	nr;	/* number of io_events */
+-	unsigned	head;
+-	unsigned	tail;
+-
+-	unsigned	magic;
+-	unsigned	compat_features;
+-	unsigned	incompat_features;
+-	unsigned	header_length;	/* size of aio_ring */
+-
+-
+-	struct io_event		io_events[0];
+-}; /* 128 bytes + ring size */
+-
+-#define AIO_RING_PAGES	8
+-struct aio_ring_info {
+-	unsigned long		mmap_base;
+-	unsigned long		mmap_size;
+-
+-	struct page		**ring_pages;
+-	spinlock_t		ring_lock;
+-	long			nr_pages;
+-
+-	unsigned		nr, tail;
+-
+-	struct page		*internal_pages[AIO_RING_PAGES];
+-};
+-
+-static inline unsigned aio_ring_avail(struct aio_ring_info *info,
+-					struct aio_ring *ring)
+-{
+-	return (ring->head + info->nr - 1 - ring->tail) % info->nr;
+-}
+-
+-struct kioctx {
+-	atomic_t		users;
+-	int			dead;
+-
+-	/* This needs improving */
+-	unsigned long		user_id;
+-	struct hlist_node	list;
+-
+-	wait_queue_head_t	wait;
+-
+-	spinlock_t		ctx_lock;
+-
+-	int			reqs_active;
+-	struct list_head	active_reqs;	/* used for cancellation */
+-
+-	/* sys_io_setup currently limits this to an unsigned int */
+-	unsigned		max_reqs;
+-
+-	struct aio_ring_info	ring_info;
+-
+-	struct rcu_head		rcu_head;
+-};
+-
+ /* prototypes */
+ #ifdef CONFIG_AIO
+ extern ssize_t wait_on_sync_kiocb(struct kiocb *iocb);
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
