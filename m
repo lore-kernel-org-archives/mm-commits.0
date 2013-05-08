@@ -1,33 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aio-use-flush_dcache_page.patch removed from -mm tree
-Date: Wed, 08 May 2013 11:35:31 -0700
-Message-ID: <20130508183531.E3B705A415E@corp2gmr1-2.hot.corp.google.com>
+Subject: [merged] aio-kill-batch-allocation.patch removed from -mm tree
+Date: Wed, 08 May 2013 11:35:40 -0700
+Message-ID: <20130508183540.EB98531C1EA@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:41783 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758176Ab3EHSfd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:35:33 -0400
-Received: by mail-ye0-f201.google.com with SMTP id m14so207796yen.2
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:35:33 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:54512 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758095Ab3EHSfm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:35:42 -0400
+Received: by mail-vc0-f202.google.com with SMTP id gf12so208275vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:35:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, zab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio: use flush_dcache_page()
+     Subject: aio: kill batch allocation
 has been removed from the -mm tree.  Its filename was
-     aio-use-flush_dcache_page.patch
+     aio-kill-batch-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: use flush_dcache_page()
+Subject: aio: kill batch allocation
 
-This wasn't causing problems before because it's not needed on x86, but it
-is needed on other architectures.
+Previously, allocating a kiocb required touching quite a few global (well,
+per kioctx) cachelines...  so batching up allocation to amortize those was
+worthwhile.  But we've gotten rid of some of those, and in another couple
+of patches kiocb allocation won't require writing to any shared
+cachelines, so that means we can just rip this code out.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -43,117 +46,200 @@ Cc: Sam Bradshaw <sbradshaw@micron.com>
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Reviewed-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   45 +++++++++++++++++----------------------------
- 1 file changed, 17 insertions(+), 28 deletions(-)
+ fs/aio.c            |  116 +++++-------------------------------------
+ include/linux/aio.h |    1 
+ 2 files changed, 15 insertions(+), 102 deletions(-)
 
-diff -puN fs/aio.c~aio-use-flush_dcache_page fs/aio.c
---- a/fs/aio.c~aio-use-flush_dcache_page
+diff -puN fs/aio.c~aio-kill-batch-allocation fs/aio.c
+--- a/fs/aio.c~aio-kill-batch-allocation
 +++ a/fs/aio.c
-@@ -211,33 +211,15 @@ static int aio_setup_ring(struct kioctx
- 	ring->incompat_features = AIO_RING_INCOMPAT_FEATURES;
- 	ring->header_length = sizeof(struct aio_ring);
- 	kunmap_atomic(ring);
-+	flush_dcache_page(info->ring_pages[0]);
+@@ -510,108 +510,27 @@ void exit_aio(struct mm_struct *mm)
+  * This prevents races between the aio code path referencing the
+  * req (after submitting it) and aio_complete() freeing the req.
+  */
+-static struct kiocb *__aio_get_req(struct kioctx *ctx)
++static inline struct kiocb *aio_get_req(struct kioctx *ctx)
+ {
+-	struct kiocb *req = NULL;
++	struct kiocb *req;
++
++	if (atomic_read(&ctx->reqs_active) >= ctx->ring_info.nr)
++		return NULL;
++
++	if (atomic_inc_return(&ctx->reqs_active) > ctx->ring_info.nr - 1)
++		goto out_put;
  
- 	return 0;
+ 	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL|__GFP_ZERO);
+ 	if (unlikely(!req))
+-		return NULL;
++		goto out_put;
+ 
+ 	atomic_set(&req->ki_users, 2);
+ 	req->ki_ctx = ctx;
+ 
+ 	return req;
+-}
+-
+-/*
+- * struct kiocb's are allocated in batches to reduce the number of
+- * times the ctx lock is acquired and released.
+- */
+-#define KIOCB_BATCH_SIZE	32L
+-struct kiocb_batch {
+-	struct list_head head;
+-	long count; /* number of requests left to allocate */
+-};
+-
+-static void kiocb_batch_init(struct kiocb_batch *batch, long total)
+-{
+-	INIT_LIST_HEAD(&batch->head);
+-	batch->count = total;
+-}
+-
+-static void kiocb_batch_free(struct kioctx *ctx, struct kiocb_batch *batch)
+-{
+-	struct kiocb *req, *n;
+-
+-	if (list_empty(&batch->head))
+-		return;
+-
+-	spin_lock_irq(&ctx->ctx_lock);
+-	list_for_each_entry_safe(req, n, &batch->head, ki_batch) {
+-		list_del(&req->ki_batch);
+-		kmem_cache_free(kiocb_cachep, req);
+-		atomic_dec(&ctx->reqs_active);
+-	}
+-	spin_unlock_irq(&ctx->ctx_lock);
+-}
+-
+-/*
+- * Allocate a batch of kiocbs.  This avoids taking and dropping the
+- * context lock a lot during setup.
+- */
+-static int kiocb_batch_refill(struct kioctx *ctx, struct kiocb_batch *batch)
+-{
+-	unsigned short allocated, to_alloc;
+-	long avail;
+-	struct kiocb *req, *n;
+-
+-	to_alloc = min(batch->count, KIOCB_BATCH_SIZE);
+-	for (allocated = 0; allocated < to_alloc; allocated++) {
+-		req = __aio_get_req(ctx);
+-		if (!req)
+-			/* allocation failed, go with what we've got */
+-			break;
+-		list_add(&req->ki_batch, &batch->head);
+-	}
+-
+-	if (allocated == 0)
+-		goto out;
+-
+-	spin_lock_irq(&ctx->ctx_lock);
+-
+-	avail = ctx->ring_info.nr - atomic_read(&ctx->reqs_active) - 1;
+-	BUG_ON(avail < 0);
+-	if (avail < allocated) {
+-		/* Trim back the number of requests. */
+-		list_for_each_entry_safe(req, n, &batch->head, ki_batch) {
+-			list_del(&req->ki_batch);
+-			kmem_cache_free(kiocb_cachep, req);
+-			if (--allocated <= avail)
+-				break;
+-		}
+-	}
+-
+-	batch->count -= allocated;
+-	atomic_add(allocated, &ctx->reqs_active);
+-
+-	spin_unlock_irq(&ctx->ctx_lock);
+-
+-out:
+-	return allocated;
+-}
+-
+-static inline struct kiocb *aio_get_req(struct kioctx *ctx,
+-					struct kiocb_batch *batch)
+-{
+-	struct kiocb *req;
+-
+-	if (list_empty(&batch->head))
+-		if (kiocb_batch_refill(ctx, batch) == 0)
+-			return NULL;
+-	req = list_first_entry(&batch->head, struct kiocb, ki_batch);
+-	list_del(&req->ki_batch);
+-	return req;
++out_put:
++	atomic_dec(&ctx->reqs_active);
++	return NULL;
  }
  
--
--/* aio_ring_event: returns a pointer to the event at the given index from
-- * kmap_atomic().  Release the pointer with put_aio_ring_event();
-- */
- #define AIO_EVENTS_PER_PAGE	(PAGE_SIZE / sizeof(struct io_event))
- #define AIO_EVENTS_FIRST_PAGE	((PAGE_SIZE - sizeof(struct aio_ring)) / sizeof(struct io_event))
- #define AIO_EVENTS_OFFSET	(AIO_EVENTS_PER_PAGE - AIO_EVENTS_FIRST_PAGE)
+ static void kiocb_free(struct kiocb *req)
+@@ -1198,8 +1117,7 @@ static ssize_t aio_setup_iocb(struct kio
+ }
  
--#define aio_ring_event(info, nr) ({					\
--	unsigned pos = (nr) + AIO_EVENTS_OFFSET;			\
--	struct io_event *__event;					\
--	__event = kmap_atomic(						\
--			(info)->ring_pages[pos / AIO_EVENTS_PER_PAGE]); \
--	__event += pos % AIO_EVENTS_PER_PAGE;				\
--	__event;							\
--})
--
--#define put_aio_ring_event(event) do {		\
--	struct io_event *__event = (event);	\
--	(void)__event;				\
--	kunmap_atomic((void *)((unsigned long)__event & PAGE_MASK)); \
--} while(0)
--
- static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
- 			struct io_event *res)
+ static int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
+-			 struct iocb *iocb, struct kiocb_batch *batch,
+-			 bool compat)
++			 struct iocb *iocb, bool compat)
  {
-@@ -649,9 +631,9 @@ void aio_complete(struct kiocb *iocb, lo
- 	struct kioctx	*ctx = iocb->ki_ctx;
- 	struct aio_ring_info	*info;
- 	struct aio_ring	*ring;
--	struct io_event	*event;
-+	struct io_event	*ev_page, *event;
- 	unsigned long	flags;
--	unsigned long	tail;
-+	unsigned tail, pos;
+ 	struct kiocb *req;
+ 	ssize_t ret;
+@@ -1220,7 +1138,7 @@ static int io_submit_one(struct kioctx *
+ 		return -EINVAL;
+ 	}
  
- 	/*
- 	 * Special case handling for sync iocbs:
-@@ -690,19 +672,24 @@ void aio_complete(struct kiocb *iocb, lo
- 	if (kiocbIsCancelled(iocb))
- 		goto put_rq;
+-	req = aio_get_req(ctx, batch);  /* returns with 2 references to req */
++	req = aio_get_req(ctx);  /* returns with 2 references to req */
+ 	if (unlikely(!req))
+ 		return -EAGAIN;
  
--	ring = kmap_atomic(info->ring_pages[0]);
+@@ -1293,7 +1211,6 @@ long do_io_submit(aio_context_t ctx_id,
+ 	long ret = 0;
+ 	int i = 0;
+ 	struct blk_plug plug;
+-	struct kiocb_batch batch;
+ 
+ 	if (unlikely(nr < 0))
+ 		return -EINVAL;
+@@ -1310,8 +1227,6 @@ long do_io_submit(aio_context_t ctx_id,
+ 		return -EINVAL;
+ 	}
+ 
+-	kiocb_batch_init(&batch, nr);
 -
- 	tail = info->tail;
--	event = aio_ring_event(info, tail);
-+	pos = tail + AIO_EVENTS_OFFSET;
-+
- 	if (++tail >= info->nr)
- 		tail = 0;
- 
-+	ev_page = kmap_atomic(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
-+	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
-+
- 	event->obj = (u64)(unsigned long)iocb->ki_obj.user;
- 	event->data = iocb->ki_user_data;
- 	event->res = res;
- 	event->res2 = res2;
- 
--	pr_debug("%p[%lu]: %p: %p %Lx %lx %lx\n",
-+	kunmap_atomic(ev_page);
-+	flush_dcache_page(info->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
-+
-+	pr_debug("%p[%u]: %p: %p %Lx %lx %lx\n",
- 		 ctx, tail, iocb, iocb->ki_obj.user, iocb->ki_user_data,
- 		 res, res2);
- 
-@@ -712,12 +699,13 @@ void aio_complete(struct kiocb *iocb, lo
- 	smp_wmb();	/* make event visible before updating tail */
- 
- 	info->tail = tail;
--	ring->tail = tail;
- 
--	put_aio_ring_event(event);
-+	ring = kmap_atomic(info->ring_pages[0]);
-+	ring->tail = tail;
- 	kunmap_atomic(ring);
-+	flush_dcache_page(info->ring_pages[0]);
- 
--	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
-+	pr_debug("added to ring %p at [%u]\n", iocb, tail);
+ 	blk_start_plug(&plug);
  
  	/*
- 	 * Check if the user asked us to deliver the result through an
-@@ -807,6 +795,7 @@ static long aio_read_events_ring(struct
- 	ring = kmap_atomic(info->ring_pages[0]);
- 	ring->head = head;
- 	kunmap_atomic(ring);
-+	flush_dcache_page(info->ring_pages[0]);
+@@ -1332,13 +1247,12 @@ long do_io_submit(aio_context_t ctx_id,
+ 			break;
+ 		}
  
- 	pr_debug("%li  h%u t%u\n", ret, head, info->tail);
- out:
+-		ret = io_submit_one(ctx, user_iocb, &tmp, &batch, compat);
++		ret = io_submit_one(ctx, user_iocb, &tmp, compat);
+ 		if (ret)
+ 			break;
+ 	}
+ 	blk_finish_plug(&plug);
+ 
+-	kiocb_batch_free(ctx, &batch);
+ 	put_ioctx(ctx);
+ 	return i ? i : ret;
+ }
+diff -puN include/linux/aio.h~aio-kill-batch-allocation include/linux/aio.h
+--- a/include/linux/aio.h~aio-kill-batch-allocation
++++ a/include/linux/aio.h
+@@ -85,7 +85,6 @@ struct kiocb {
+ 
+ 	struct list_head	ki_list;	/* the aio core uses this
+ 						 * for cancellation */
+-	struct list_head	ki_batch;	/* batch allocation */
+ 
+ 	/*
+ 	 * If the aio_resfd field of the userspace iocb is not zero,
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
