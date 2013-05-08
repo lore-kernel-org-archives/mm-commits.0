@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup.patch added to -mm tree
-Date: Wed, 08 May 2013 13:35:34 -0700
-Message-ID: <20130508203534.7BE575A415E@corp2gmr1-2.hot.corp.google.com>
+Subject: + migrate-shutdown-reboot-to-boot-cpu.patch added to -mm tree
+Date: Wed, 08 May 2013 13:39:25 -0700
+Message-ID: <20130508203925.EFFA45A41BD@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:40861 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755820Ab3EHUff (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 16:35:35 -0400
-Received: by mail-vb0-f73.google.com with SMTP id e13so221293vbg.0
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 13:35:35 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:49784 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756222Ab3EHUj1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 16:39:27 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r14so209724ghr.0
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 13:39:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, jack@suse.cz, jslaby@suse.cz
+Cc: holt@sgi.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, linux@arm.linux.org.uk, mingo@elte.hu, rja@sgi.com, shawn.guo@linaro.org, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: reiserfs: fix deadlock with nfs racing on create/lookup
+     Subject: Migrate shutdown/reboot to boot cpu
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup.patch
+     migrate-shutdown-reboot-to-boot-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeff Mahoney <jeffm@suse.com>
-Subject: reiserfs: fix deadlock with nfs racing on create/lookup
+From: Robin Holt <holt@sgi.com>
+Subject: Migrate shutdown/reboot to boot cpu
 
-Reiserfs is currently able to be deadlocked by having two NFS clients
-where one has removed and recreated a file and another is accessing the
-file with an open file handle.
+We recently noticed that reboot of a 1024 cpu machine takes approx 16
+minutes of just stopping the cpus.  The slowdown was tracked to commit
+f96972f.
 
-If one client deletes and recreates a file with timing such that the
-recreated file obtains the same [dirid, objectid] pair as the original
-file while another client accesses the file via file handle, the create
-and lookup can race and deadlock if the lookup manages to create the
-in-memory inode first.
+The current implementation does all the work of hot removing the cpus
+before halting the system.  We are switching to just migrating to the
+boot cpu and then continuing with shutdown/reboot.
 
-The create thread, in insert_inode_locked4, will hold the write lock while
-waiting on the other inode to be unlocked.  The lookup thread, anywhere in
-the iget path, will release and reacquire the write lock while it
-schedules.  If it needs to reacquire the lock while the create thread has
-it, it will never be able to make forward progress because it needs to
-reacquire the lock before ultimately unlocking the inode.
+This also has the effect of not breaking x86's command line parameter for
+specifying the reboot cpu.  Note, this code was shamelessly copied from
+arch/x86/kernel/reboot.c with bits removed pertaining to the reboot_cpu
+command line parameter.
 
-This patch drops the write lock across the insert_inode_locked4 call so
-that the ordering of inode_wait -> write lock is retained.  Since this
-would have been the case before the BKL push-down, this is safe.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Tested-by: Shawn Guo <shawn.guo@linaro.org>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/inode.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/sys.c |   29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiserfs/inode.c~reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup
-+++ a/fs/reiserfs/inode.c
-@@ -1811,11 +1811,16 @@ int reiserfs_new_inode(struct reiserfs_t
- 				  TYPE_STAT_DATA, SD_SIZE, MAX_US_INT);
- 	memcpy(INODE_PKEY(inode), &(ih.ih_key), KEY_SIZE);
- 	args.dirid = le32_to_cpu(ih.ih_key.k_dir_id);
--	if (insert_inode_locked4(inode, args.objectid,
--			     reiserfs_find_actor, &args) < 0) {
+diff -puN kernel/sys.c~migrate-shutdown-reboot-to-boot-cpu kernel/sys.c
+--- a/kernel/sys.c~migrate-shutdown-reboot-to-boot-cpu
++++ a/kernel/sys.c
+@@ -362,6 +362,29 @@ int unregister_reboot_notifier(struct no
+ }
+ EXPORT_SYMBOL(unregister_reboot_notifier);
+ 
++/* Add backwards compatibility for stable trees. */
++#ifndef PF_NO_SETAFFINITY
++#define PF_NO_SETAFFINITY		PF_THREAD_BOUND
++#endif
 +
-+	reiserfs_write_unlock(inode->i_sb);
-+	err = insert_inode_locked4(inode, args.objectid,
-+			     reiserfs_find_actor, &args);
-+	reiserfs_write_lock(inode->i_sb);
-+	if (err) {
- 		err = -EINVAL;
- 		goto out_bad_inode;
- 	}
++static void migrate_to_reboot_cpu(void)
++{
++	/* The boot cpu is always logical cpu 0 */
++	int reboot_cpu = 0;
 +
- 	if (old_format_only(sb))
- 		/* not a perfect generation count, as object ids can be reused, but
- 		 ** this is as good as reiserfs can do right now.
++	cpu_hotplug_disable();
++
++	/* Make certain the cpu I'm about to reboot on is online */
++	if (!cpu_online(reboot_cpu))
++		reboot_cpu = cpumask_first(cpu_online_mask);
++
++	/* Prevent races with other tasks migrating this task */
++	current->flags |= PF_NO_SETAFFINITY;
++
++	/* Make certain I only run on the appropriate processor */
++	set_cpus_allowed_ptr(current, cpumask_of(reboot_cpu));
++}
++
+ /**
+  *	kernel_restart - reboot the system
+  *	@cmd: pointer to buffer containing command to execute for restart
+@@ -373,7 +396,7 @@ EXPORT_SYMBOL(unregister_reboot_notifier
+ void kernel_restart(char *cmd)
+ {
+ 	kernel_restart_prepare(cmd);
+-	disable_nonboot_cpus();
++	migrate_to_reboot_cpu();
+ 	syscore_shutdown();
+ 	if (!cmd)
+ 		printk(KERN_EMERG "Restarting system.\n");
+@@ -400,7 +423,7 @@ static void kernel_shutdown_prepare(enum
+ void kernel_halt(void)
+ {
+ 	kernel_shutdown_prepare(SYSTEM_HALT);
+-	disable_nonboot_cpus();
++	migrate_to_reboot_cpu();
+ 	syscore_shutdown();
+ 	printk(KERN_EMERG "System halted.\n");
+ 	kmsg_dump(KMSG_DUMP_HALT);
+@@ -419,7 +442,7 @@ void kernel_power_off(void)
+ 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
+ 	if (pm_power_off_prepare)
+ 		pm_power_off_prepare();
+-	disable_nonboot_cpus();
++	migrate_to_reboot_cpu();
+ 	syscore_shutdown();
+ 	printk(KERN_EMERG "Power down.\n");
+ 	kmsg_dump(KMSG_DUMP_POWEROFF);
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
-hfs-avoid-crash-in-hfs_bnode_create.patch
-reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup.patch
+origin.patch
+mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu.patch
+mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
+migrate-shutdown-reboot-to-boot-cpu.patch
+remove-stable-friendly-pf_thread_bound-define.patch
+move-shutdown-reboot-related-functions-to-kernel-rebootc.patch
+checkpatchpl-the-new-kernel-rebootc-file.patch
+x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+arm-remove-unused-restart_mode-fields-from-some-arm-subarchs.patch
+arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+arm-change-reboot_mode-to-use-enum-reboot_mode.patch
+move-arch-x86-reboot=-handling-to-generic-kernel.patch
 
