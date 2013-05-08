@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-use-the-right-function-when-updating-access-flags.patch added to -mm tree
-Date: Wed, 08 May 2013 13:05:56 -0700
-Message-ID: <20130508200556.73FEF31C078@corp2gmr1-1.hot.corp.google.com>
+Subject: + lib-bitmapc-speed-up-bitmap_find_free_region.patch added to -mm tree
+Date: Wed, 08 May 2013 13:25:04 -0700
+Message-ID: <20130508202504.DAC3731C071@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:39021 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:61206 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413Ab3EHUF5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 16:05:57 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so218207ggm.3
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 13:05:56 -0700 (PDT)
+	with ESMTP id S1756112Ab3EHUZG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 16:25:06 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so220374ggm.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 13:25:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com
+Cc: chanho.min@lge.com, anish198519851985@gmail.com, jkosina@suse.cz, joe@perches.com, nyc@holomorphy.com
 
 
 The patch titled
-     Subject: mm/thp: use the correct function when updating access flags
+     Subject: lib/bitmap.c: speed up bitmap_find_free_region
 has been added to the -mm tree.  Its filename is
-     mm-thp-use-the-right-function-when-updating-access-flags.patch
+     lib-bitmapc-speed-up-bitmap_find_free_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/thp: use the correct function when updating access flags
+From: Chanho Min <chanho.min@lge.com>
+Subject: lib/bitmap.c: speed up bitmap_find_free_region
 
-We should use pmdp_set_access_flags to update access flags.  Archs like
-powerpc use extra checks(_PAGE_BUSY) when updating a hugepage PTE.  A
-set_pmd_at doesn't do those checks.  We should use set_pmd_at only when
-updating a none hugepage PTE.
+In bitmap_find_free_region(), if we skip the all-ones words and find bits
+in a not-all-ones word, we can improve performance of it.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>a
+For example, If bitmap_find_free_region() is called with order=0, First,
+It scans bitmap array by the increment of long type, then find 1 free bit
+within 1 long type value.  In 32 bits system and 1024 bits size, in the
+worst case, We need 1024 for-loops to find 1 free bit.  But, If this is
+applied, it takes 64 for-loops.  Instead, It will be needed additional
+if-comparison of every word and It can take time slightly as 'Test case
+3'.  But, In many cases, It will speed up significantly.
+
+Test cases bellows show the time taken to execute bitmap_find_free_region()
+before and after patch.
+
+Test condition : ARMv7 1GHZ 32 bits system, 1024 bits size, gcc 4.6.2
+
+Test case 1: order is 0. all bits are one except that last one bit is zero.
+ before patch: 29727 ns
+ after patch: 2349 ns
+
+Test case 2: order is 1. all bits are one except that last 2 contiguous bits
+are zero.
+ before patch: 15475 ns
+ after patch: 2225 ns
+
+Test case 3: order is 1. all words are not-all-ones and don't have 2 contiguous
+bits except that last 2 contiguous are zero.
+ before patch: 15475 ns
+ after patch: 16131 ns
+
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Joe Perches <joe@perches.com>
+Cc: anish singh <anish198519851985@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/bitmap.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-use-the-right-function-when-updating-access-flags mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-use-the-right-function-when-updating-access-flags
-+++ a/mm/huge_memory.c
-@@ -1265,7 +1265,9 @@ struct page *follow_trans_huge_pmd(struc
- 		 * young bit, instead of the current set_pmd_at.
- 		 */
- 		_pmd = pmd_mkyoung(pmd_mkdirty(*pmd));
--		set_pmd_at(mm, addr & HPAGE_PMD_MASK, pmd, _pmd);
-+		if (pmdp_set_access_flags(vma, addr & HPAGE_PMD_MASK,
-+					  pmd, _pmd,  1))
-+			update_mmu_cache_pmd(vma, addr, pmd);
- 	}
- 	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
- 		if (page->mapping && trylock_page(page)) {
+diff -puN lib/bitmap.c~lib-bitmapc-speed-up-bitmap_find_free_region lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmapc-speed-up-bitmap_find_free_region
++++ a/lib/bitmap.c
+@@ -1114,14 +1114,21 @@ done:
+  */
+ int bitmap_find_free_region(unsigned long *bitmap, int bits, int order)
+ {
+-	int pos, end;		/* scans bitmap by regions of size order */
++	int pos, end, nbit, i;	/* scans bitmap by regions of size order */
++	int nlongs = BITS_TO_LONGS(bits);
+ 
+-	for (pos = 0 ; (end = pos + (1 << order)) <= bits; pos = end) {
+-		if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE))
+-			continue;
+-		__reg_op(bitmap, pos, order, REG_OP_ALLOC);
+-		return pos;
+-	}
++	for (i = 0; i < nlongs; i++)
++		if (bitmap[i] != ~0UL) {
++			pos = i * BITS_PER_LONG;
++			nbit = min(bits, pos + BITS_PER_LONG);
++			for (; (end = pos + (1 << order)) <= nbit; pos = end) {
++				if (!__reg_op(bitmap, pos, order,
++					REG_OP_ISFREE))
++					continue;
++				__reg_op(bitmap, pos, order, REG_OP_ALLOC);
++				return pos;
++			}
++		}
+ 	return -ENOMEM;
+ }
+ EXPORT_SYMBOL(bitmap_find_free_region);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from chanho.min@lge.com are
 
 origin.patch
-mm-thp-use-the-right-function-when-updating-access-flags.patch
+lib-bitmapc-speed-up-bitmap_find_free_region.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+lib-add-weak-clz-ctz-functions.patch
+lib-add-support-for-lz4-compressed-kernel-kbuild-fix-for-updated-lz4-tool-with-the-new-streaming-format.patch
+lib-add-lz4-compressor-module.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api.patch
+crypto-add-lz4-cryptographic-api-fix.patch
 
