@@ -1,65 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-old-aio-use_mm-comment.patch removed from -mm tree
-Date: Wed, 08 May 2013 11:34:48 -0700
-Message-ID: <20130508183448.B5C0131C088@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] gadget-remove-only-user-of-aio-retry.patch removed from -mm tree
+Date: Wed, 08 May 2013 11:34:54 -0700
+Message-ID: <20130508183454.E65085A415E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:60225 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758225Ab3EHSeu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:34:50 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so207964qen.0
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:34:50 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:38515 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758196Ab3EHSe5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:34:57 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 1so207871qec.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:34:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove old aio use_mm() comment
+     Subject: gadget: remove only user of aio retry
 has been removed from the -mm tree.  Its filename was
-     mm-remove-old-aio-use_mm-comment.patch
+     gadget-remove-only-user-of-aio-retry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zach Brown <zab@redhat.com>
-Subject: mm: remove old aio use_mm() comment
+Subject: gadget: remove only user of aio retry
 
-Bunch of performance improvements and cleanups Zach Brown and I have been
-working on.  The code should be pretty solid at this point, though it
-could of course use more review and testing.
+This removes the only in-tree user of aio retry.  This will let us remove
+the retry code from the aio core.
 
-The results in my testing are pretty impressive, particularly when an
-ioctx is being shared between multiple threads.  In my crappy synthetic
-benchmark, with 4 threads submitting and one thread reaping completions, I
-saw overhead in the aio code go from ~50% (mostly ioctx lock contention)
-to low single digits.  Performance with ioctx per thread improved too, but
-I'd have to rerun those benchmarks.
+Removing retry is relatively easy as the USB gadget wasn't using it to
+retry IOs at all.  It always fully submitted the IO in the context of the
+initial io_submit() call.  It only used the AIO retry facility to get the
+submitter's mm context for copying the result of a read back to user
+space.  This is easy to implement with use_mm() and a work struct, much
+like kvm does with async_pf_execute() for get_user_pages().
 
-The reason I've been focused on performance when the ioctx is shared is
-that for a fair number of real world completions, userspace needs the
-completions aggregated somehow - in practice people just end up
-implementing this aggregation in userspace today, but if it's done right
-we can do it much more efficiently in the kernel.
-
-Performance wise, the end result of this patch series is that submitting a
-kiocb writes to _no_ shared cachelines - the penalty for sharing an ioctx
-is gone there.  There's still going to be some cacheline contention when
-we deliver the completions to the aio ringbuffer (at least if you have
-interrupts being delivered on multiple cores, which for high end stuff you
-do) but I have a couple more patches not in this series that implement
-coalescing for that (by taking advantage of interrupt coalescing).  With
-that, there's basically no bottlenecks or performance issues to speak of
-in the aio code.
-
-
-
-This patch:
-
-use_mm() is used in more places than just aio.  There's no need to mention
-callers when describing the function.
-
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Zach Brown <zab@redhat.com>
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Felipe Balbi <balbi@ti.com>
@@ -74,26 +51,132 @@ Cc: Sam Bradshaw <sbradshaw@micron.com>
 Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
-Reviewed-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_context.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/usb/gadget/inode.c |   38 ++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN mm/mmu_context.c~mm-remove-old-aio-use_mm-comment mm/mmu_context.c
---- a/mm/mmu_context.c~mm-remove-old-aio-use_mm-comment
-+++ a/mm/mmu_context.c
-@@ -14,9 +14,6 @@
-  * use_mm
-  *	Makes the calling kernel thread take on the specified
-  *	mm context.
-- *	Called by the retry thread execute retries within the
-- *	iocb issuer's mm context, so that copy_from/to_user
-- *	operations work seamlessly for aio.
-  *	(Note: this routine is intended to be called only
-  *	from a kernel thread context)
-  */
+diff -puN drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry drivers/usb/gadget/inode.c
+--- a/drivers/usb/gadget/inode.c~gadget-remove-only-user-of-aio-retry
++++ a/drivers/usb/gadget/inode.c
+@@ -24,6 +24,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/poll.h>
++#include <linux/mmu_context.h>
+ 
+ #include <linux/device.h>
+ #include <linux/moduleparam.h>
+@@ -513,6 +514,9 @@ static long ep_ioctl(struct file *fd, un
+ struct kiocb_priv {
+ 	struct usb_request	*req;
+ 	struct ep_data		*epdata;
++	struct kiocb		*iocb;
++	struct mm_struct	*mm;
++	struct work_struct	work;
+ 	void			*buf;
+ 	const struct iovec	*iv;
+ 	unsigned long		nr_segs;
+@@ -540,15 +544,12 @@ static int ep_aio_cancel(struct kiocb *i
+ 	return value;
+ }
+ 
+-static ssize_t ep_aio_read_retry(struct kiocb *iocb)
++static ssize_t ep_copy_to_user(struct kiocb_priv *priv)
+ {
+-	struct kiocb_priv	*priv = iocb->private;
+ 	ssize_t			len, total;
+ 	void			*to_copy;
+ 	int			i;
+ 
+-	/* we "retry" to get the right mm context for this: */
+-
+ 	/* copy stuff into user buffers */
+ 	total = priv->actual;
+ 	len = 0;
+@@ -568,9 +569,26 @@ static ssize_t ep_aio_read_retry(struct
+ 		if (total == 0)
+ 			break;
+ 	}
++
++	return len;
++}
++
++static void ep_user_copy_worker(struct work_struct *work)
++{
++	struct kiocb_priv *priv = container_of(work, struct kiocb_priv, work);
++	struct mm_struct *mm = priv->mm;
++	struct kiocb *iocb = priv->iocb;
++	size_t ret;
++
++	use_mm(mm);
++	ret = ep_copy_to_user(priv);
++	unuse_mm(mm);
++
++	/* completing the iocb can drop the ctx and mm, don't touch mm after */
++	aio_complete(iocb, ret, ret);
++
+ 	kfree(priv->buf);
+ 	kfree(priv);
+-	return len;
+ }
+ 
+ static void ep_aio_complete(struct usb_ep *ep, struct usb_request *req)
+@@ -596,14 +614,14 @@ static void ep_aio_complete(struct usb_e
+ 		aio_complete(iocb, req->actual ? req->actual : req->status,
+ 				req->status);
+ 	} else {
+-		/* retry() won't report both; so we hide some faults */
++		/* ep_copy_to_user() won't report both; we hide some faults */
+ 		if (unlikely(0 != req->status))
+ 			DBG(epdata->dev, "%s fault %d len %d\n",
+ 				ep->name, req->status, req->actual);
+ 
+ 		priv->buf = req->buf;
+ 		priv->actual = req->actual;
+-		kick_iocb(iocb);
++		schedule_work(&priv->work);
+ 	}
+ 	spin_unlock(&epdata->dev->lock);
+ 
+@@ -633,8 +651,10 @@ fail:
+ 		return value;
+ 	}
+ 	iocb->private = priv;
++	priv->iocb = iocb;
+ 	priv->iv = iv;
+ 	priv->nr_segs = nr_segs;
++	INIT_WORK(&priv->work, ep_user_copy_worker);
+ 
+ 	value = get_ready_ep(iocb->ki_filp->f_flags, epdata);
+ 	if (unlikely(value < 0)) {
+@@ -646,6 +666,7 @@ fail:
+ 	get_ep(epdata);
+ 	priv->epdata = epdata;
+ 	priv->actual = 0;
++	priv->mm = current->mm; /* mm teardown waits for iocbs in exit_aio() */
+ 
+ 	/* each kiocb is coupled to one usb_request, but we can't
+ 	 * allocate or submit those if the host disconnected.
+@@ -674,7 +695,7 @@ fail:
+ 		kfree(priv);
+ 		put_ep(epdata);
+ 	} else
+-		value = (iv ? -EIOCBRETRY : -EIOCBQUEUED);
++		value = -EIOCBQUEUED;
+ 	return value;
+ }
+ 
+@@ -692,7 +713,6 @@ ep_aio_read(struct kiocb *iocb, const st
+ 	if (unlikely(!buf))
+ 		return -ENOMEM;
+ 
+-	iocb->ki_retry = ep_aio_read_retry;
+ 	return ep_aio_rwtail(iocb, buf, iocb->ki_left, epdata, iov, nr_segs);
+ }
+ 
 _
 
 Patches currently in -mm which might be from zab@redhat.com are
