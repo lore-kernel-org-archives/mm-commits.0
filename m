@@ -1,50 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmallocc-add-vfree-comment.patch removed from -mm tree
-Date: Wed, 08 May 2013 11:34:45 -0700
-Message-ID: <20130508183445.7166031C088@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch removed from -mm tree
+Date: Wed, 08 May 2013 11:34:40 -0700
+Message-ID: <20130508183440.6F22B5A415E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:54083 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758225Ab3EHSeq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:34:46 -0400
-Received: by mail-qc0-f201.google.com with SMTP id c10so208188qcz.0
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:34:45 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:34253 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758216Ab3EHSel (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:34:41 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so207913ggm.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:34:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: add vfree comment
+     Subject: drivers/infiniband/hw: rename random32() to prandom_u32()
 has been removed from the -mm tree.  Its filename was
-     mm-vmallocc-add-vfree-comment.patch
+     drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/vmalloc.c: add vfree comment
+Subject: drivers/infiniband/hw: rename random32() to prandom_u32()
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Use preferable function name which implies using a pseudo-random
+number generator.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/cxgb3/cxio_resource.c |    4 ++--
+ drivers/infiniband/hw/cxgb4/id_table.c      |    4 ++--
+ drivers/infiniband/hw/mlx4/mad.c            |    2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c     |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-add-vfree-comment mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-add-vfree-comment
-+++ a/mm/vmalloc.c
-@@ -1522,6 +1522,8 @@ static void __vunmap(const void *addr, i
-  *	Must not be called in NMI context (strictly speaking, only if we don't
-  *	have CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG, but making the calling
-  *	conventions for vfree() arch-depenedent would be a really bad idea)
-+ *
-+ *	NOTE: assumes that the object at *addr has a size >= sizeof(llist_node)
-  *	
-  */
- void vfree(const void *addr)
+diff -puN drivers/infiniband/hw/cxgb3/cxio_resource.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32 drivers/infiniband/hw/cxgb3/cxio_resource.c
+--- a/drivers/infiniband/hw/cxgb3/cxio_resource.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/hw/cxgb3/cxio_resource.c
+@@ -62,13 +62,13 @@ static int __cxio_init_resource_fifo(str
+ 		kfifo_in(fifo, (unsigned char *) &entry, sizeof(u32));
+ 	if (random) {
+ 		j = 0;
+-		random_bytes = random32();
++		random_bytes = prandom_u32();
+ 		for (i = 0; i < RANDOM_SIZE; i++)
+ 			rarray[i] = i + skip_low;
+ 		for (i = skip_low + RANDOM_SIZE; i < nr - skip_high; i++) {
+ 			if (j >= RANDOM_SIZE) {
+ 				j = 0;
+-				random_bytes = random32();
++				random_bytes = prandom_u32();
+ 			}
+ 			idx = (random_bytes >> (j * 2)) & 0xF;
+ 			kfifo_in(fifo,
+diff -puN drivers/infiniband/hw/cxgb4/id_table.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32 drivers/infiniband/hw/cxgb4/id_table.c
+--- a/drivers/infiniband/hw/cxgb4/id_table.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/hw/cxgb4/id_table.c
+@@ -54,7 +54,7 @@ u32 c4iw_id_alloc(struct c4iw_id_table *
+ 
+ 	if (obj < alloc->max) {
+ 		if (alloc->flags & C4IW_ID_TABLE_F_RANDOM)
+-			alloc->last += random32() % RANDOM_SKIP;
++			alloc->last += prandom_u32() % RANDOM_SKIP;
+ 		else
+ 			alloc->last = obj + 1;
+ 		if (alloc->last >= alloc->max)
+@@ -88,7 +88,7 @@ int c4iw_id_table_alloc(struct c4iw_id_t
+ 	alloc->start = start;
+ 	alloc->flags = flags;
+ 	if (flags & C4IW_ID_TABLE_F_RANDOM)
+-		alloc->last = random32() % RANDOM_SKIP;
++		alloc->last = prandom_u32() % RANDOM_SKIP;
+ 	else
+ 		alloc->last = 0;
+ 	alloc->max  = num;
+diff -puN drivers/infiniband/hw/mlx4/mad.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32 drivers/infiniband/hw/mlx4/mad.c
+--- a/drivers/infiniband/hw/mlx4/mad.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/hw/mlx4/mad.c
+@@ -93,7 +93,7 @@ static void __propagate_pkey_ev(struct m
+ __be64 mlx4_ib_gen_node_guid(void)
+ {
+ #define NODE_GUID_HI	((u64) (((u64)IB_OPENIB_OUI) << 40))
+-	return cpu_to_be64(NODE_GUID_HI | random32());
++	return cpu_to_be64(NODE_GUID_HI | prandom_u32());
+ }
+ 
+ __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
+diff -puN drivers/infiniband/ulp/ipoib/ipoib_cm.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32 drivers/infiniband/ulp/ipoib/ipoib_cm.c
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c~drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32
++++ a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -460,7 +460,7 @@ static int ipoib_cm_req_handler(struct i
+ 		goto err_qp;
+ 	}
+ 
+-	psn = random32() & 0xffffff;
++	psn = prandom_u32() & 0xffffff;
+ 	ret = ipoib_cm_modify_rx_qp(dev, cm_id, p->qp, psn);
+ 	if (ret)
+ 		goto err_modify;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
