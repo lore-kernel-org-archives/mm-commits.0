@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-unlock-rw-lock-if-inode-lock-failed.patch added to -mm tree
-Date: Wed, 08 May 2013 12:39:08 -0700
-Message-ID: <20130508193908.8457F31C26F@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge.patch added to -mm tree
+Date: Wed, 08 May 2013 12:43:26 -0700
+Message-ID: <20130508194326.877F331C1EA@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:45174 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219Ab3EHTjJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 15:39:09 -0400
-Received: by mail-vc0-f201.google.com with SMTP id hz10so215069vcb.2
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 12:39:09 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:56739 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752731Ab3EHTn1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 15:43:27 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so215173qen.2
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 12:43:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joseph.qi@huawei.com, du.duyongfeng@huawei.com, jlbec@evilplan.org, lizefan@huawei.com, mfasheh@suse.com, sunil.mushran@gmail.com
+Cc: hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hughd@google.com, lxiang@redhat.com, mhocko@suse.cz, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: unlock rw lock if inode lock failed
+     Subject: mm: memcg: remove incorrect VM_BUG_ON for swap cache pages in uncharge
 has been added to the -mm tree.  Its filename is
-     ocfs2-unlock-rw-lock-if-inode-lock-failed.patch
+     mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: unlock rw lock if inode lock failed
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: remove incorrect VM_BUG_ON for swap cache pages in uncharge
 
-In ocfs2_file_aio_write(), it does ocfs2_rw_lock() first and then
-ocfs2_inode_lock().  But if ocfs2_inode_lock() failed, it goes to out_sems
-without unlocking rw lock.  This will cause a bug in ocfs2_lock_res_free()
-when testing res->l_ex_holders, which is increased in
-__ocfs2_cluster_lock() and decreased in __ocfs2_cluster_unlock().
+0c59b89 ("mm: memcg: push down PageSwapCache check into uncharge entry
+functions") added a VM_BUG_ON() on PageSwapCache in the uncharge path
+after checking that page flag once, assuming that the state is stable in
+all paths, but this is not the case and the condition triggers in user
+environments.  An uncharge after the last page table reference to the page
+goes away can race with reclaim adding the page to swap cache.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: "Duyongfeng (B)" <du.duyongfeng@huawei.com>
-Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
+Swap cache pages are usually uncharged when they are freed after swapout,
+from a path that also handles swap usage accounting and memcg lifetime
+management.  However, since the last page table reference is gone and thus
+no references to the swap slot left, the swap slot will be freed shortly
+when reclaim attempts to write the page to disk.  The whole swap
+accounting is not even necessary.
+
+So while the race condition for which this VM_BUG_ON was added is real and
+actually existed all along, there are no negative effects.  Remove the
+VM_BUG_ON again.
+
+Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Reported-by: Lingzhu Xiang <lxiang@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-unlock-rw-lock-if-inode-lock-failed fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-unlock-rw-lock-if-inode-lock-failed
-+++ a/fs/ocfs2/file.c
-@@ -2288,7 +2288,7 @@ relock:
- 		ret = ocfs2_inode_lock(inode, NULL, 1);
- 		if (ret < 0) {
- 			mlog_errno(ret);
--			goto out_sems;
-+			goto out;
- 		}
+diff -puN mm/memcontrol.c~mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge
++++ a/mm/memcontrol.c
+@@ -4108,8 +4108,6 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
  
- 		ocfs2_inode_unlock(inode, 1);
+-	VM_BUG_ON(PageSwapCache(page));
+-
+ 	if (PageTransHuge(page)) {
+ 		nr_pages <<= compound_order(page);
+ 		VM_BUG_ON(!PageTransHuge(page));
+@@ -4205,6 +4203,18 @@ void mem_cgroup_uncharge_page(struct pag
+ 	if (page_mapped(page))
+ 		return;
+ 	VM_BUG_ON(page->mapping && !PageAnon(page));
++	/*
++	 * If the page is in swap cache, uncharge should be deferred
++	 * to the swap path, which also properly accounts swap usage
++	 * and handles memcg lifetime.
++	 *
++	 * Note that this check is not stable and reclaim may add the
++	 * page to swap cache at any time after this.  However, if the
++	 * page is not in swap cache by the time page->mapcount hits
++	 * 0, there won't be any page table references to the swap
++	 * slot, and reclaim will free it and not actually write the
++	 * page to disk.
++	 */
+ 	if (PageSwapCache(page))
+ 		return;
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_ANON, false);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-ocfs2-unlock-rw-lock-if-inode-lock-failed.patch
+origin.patch
+mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge.patch
+mm-memmap_init_zone-performance-improvement.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
