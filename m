@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-crash-during-slab-init.patch added to -mm tree
-Date: Wed, 08 May 2013 15:00:33 -0700
-Message-ID: <20130508220033.77A535A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + ipc-shmc-dont-use-auto-variable-hs-in-newseg.patch added to -mm tree
+Date: Wed, 08 May 2013 15:14:15 -0700
+Message-ID: <20130508221415.720A231C15D@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:40730 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753143Ab3EHWAe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 18:00:34 -0400
-Received: by mail-qa0-f73.google.com with SMTP id bs12so255334qab.0
-        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 15:00:34 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:50557 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752012Ab3EHWOQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 18:14:16 -0400
+Received: by mail-ve0-f202.google.com with SMTP id 15so231960vea.3
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 15:14:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clmason@fusionio.com, chris.mason@fusionio.com, cl@linux.com, tony@atomide.com
+Cc: n-horiguchi@ah.jp.nec.com, bp@alien8.de
 
 
 The patch titled
-     Subject: slab: fix crash during slab init
+     Subject: ipc/shm.c: don't use auto variable hs in newseg()
 has been added to the -mm tree.  Its filename is
-     slab-fix-crash-during-slab-init.patch
+     ipc-shmc-dont-use-auto-variable-hs-in-newseg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Mason <clmason@fusionio.com>
-Subject: slab: fix crash during slab init
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: ipc/shm.c: don't use auto variable hs in newseg()
 
-Commit 8a965b3b ("mm, slab_common: Fix bootstrap creation of kmalloc
-caches") introduced a regression that caused us to crash early during
-boot.  The commit was introducing ordering of slab creation, making sure
-two odd-sized slabs were created after specific powers of two sizes.
+Fix "warning: unused variable 'hs'" when !CONFIG_HUGETLB_PAGE introduced
+by commit af73e4d9506d "hugetlbfs: fix mmap failure in unaligned size
+request".
 
-But, if any of the power of two slabs were created earlier during boot,
-slabs at index 1 or 2 might not get created at all.  This patch makes sure
-none of the slabs get skipped.
-
-Tony Lindgren bisected this down to the offending commit, which really
-helped because bisect kept bringing me to almost but not quite this one.
-
-Signed-off-by: Chris Mason <chris.mason@fusionio.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: Borislav Petkov <bp@alien8.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ ipc/shm.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab_common.c~slab-fix-crash-during-slab-init mm/slab_common.c
---- a/mm/slab_common.c~slab-fix-crash-during-slab-init
-+++ a/mm/slab_common.c
-@@ -446,18 +446,18 @@ void __init create_kmalloc_caches(unsign
- 		if (!kmalloc_caches[i]) {
- 			kmalloc_caches[i] = create_kmalloc_cache(NULL,
- 							1 << i, flags);
-+		}
+diff -puN ipc/shm.c~ipc-shmc-dont-use-auto-variable-hs-in-newseg ipc/shm.c
+--- a/ipc/shm.c~ipc-shmc-dont-use-auto-variable-hs-in-newseg
++++ a/ipc/shm.c
+@@ -491,9 +491,8 @@ static int newseg(struct ipc_namespace *
  
--			/*
--			 * Caches that are not of the two-to-the-power-of size.
--			 * These have to be created immediately after the
--			 * earlier power of two caches
--			 */
--			if (KMALLOC_MIN_SIZE <= 32 && !kmalloc_caches[1] && i == 6)
--				kmalloc_caches[1] = create_kmalloc_cache(NULL, 96, flags);
-+		/*
-+		 * Caches that are not of the two-to-the-power-of size.
-+		 * These have to be created immediately after the
-+		 * earlier power of two caches
-+		 */
-+		if (KMALLOC_MIN_SIZE <= 32 && !kmalloc_caches[1] && i == 6)
-+			kmalloc_caches[1] = create_kmalloc_cache(NULL, 96, flags);
+ 	sprintf (name, "SYSV%08x", key);
+ 	if (shmflg & SHM_HUGETLB) {
+-		struct hstate *hs = hstate_sizelog((shmflg >> SHM_HUGE_SHIFT)
+-						& SHM_HUGE_MASK);
+-		size_t hugesize = ALIGN(size, huge_page_size(hs));
++		size_t hugesize = ALIGN(size, huge_page_size(hstate_sizelog(
++				(shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK)));
  
--			if (KMALLOC_MIN_SIZE <= 64 && !kmalloc_caches[2] && i == 7)
--				kmalloc_caches[2] = create_kmalloc_cache(NULL, 192, flags);
--		}
-+		if (KMALLOC_MIN_SIZE <= 64 && !kmalloc_caches[2] && i == 7)
-+			kmalloc_caches[2] = create_kmalloc_cache(NULL, 192, flags);
- 	}
- 
- 	/* Kmalloc array is now usable */
+ 		/* hugetlb_file_setup applies strict accounting */
+ 		if (shmflg & SHM_NORESERVE)
 _
 
-Patches currently in -mm which might be from clmason@fusionio.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-slab-fix-crash-during-slab-init.patch
+origin.patch
+ipc-shmc-dont-use-auto-variable-hs-in-newseg.patch
 
