@@ -1,129 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: + idr-print-a-stack-dump-after-ida_remove-warning-fix.patch added to -mm tree
-Date: Tue, 07 May 2013 16:34:33 -0700
-Message-ID: <20130507233433.CCC0731C034@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] mm-sparc-use-common-help-functions-to-free-reserved-pages.patch removed from -mm tree
+Date: Wed, 08 May 2013 11:34:19 -0700
+Message-ID: <20130508183420.12EEE31C088@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:63381 "EHLO
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:60834 "EHLO
 	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756801Ab3EGXef (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 May 2013 19:34:35 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so125722ggl.2
-        for <mm-commits@vger.kernel.org>; Tue, 07 May 2013 16:34:34 -0700 (PDT)
+	with ESMTP id S1757816Ab3EHSeV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 May 2013 14:34:21 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so207820ggl.4
+        for <mm-commits@vger.kernel.org>; Wed, 08 May 2013 11:34:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jdelvare@suse.de, tiwai@suse.de, tj@kernel.org
+To: liuj97@gmail.com, davem@davemloft.net, jiang.liu@huawei.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr-print-a-stack-dump-after-ida_remove-warning-fix
-has been added to the -mm tree.  Its filename is
-     idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+     Subject: mm/SPARC: use common help functions to free reserved pages
+has been removed from the -mm tree.  Its filename was
+     mm-sparc-use-common-help-functions-to-free-reserved-pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: idr-print-a-stack-dump-after-ida_remove-warning-fix
+From: Jiang Liu <liuj97@gmail.com>
+Subject: mm/SPARC: use common help functions to free reserved pages
 
-convert the open-coded printk+dump_stack into WARN()
+Use common help functions to free reserved pages.
 
-Cc: Jean Delvare <jdelvare@suse.de>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/leon_smp.c |   15 ++-----------
+ arch/sparc/mm/init_32.c      |   37 ++-------------------------------
+ arch/sparc/mm/init_64.c      |   28 +++++-------------------
+ 3 files changed, 12 insertions(+), 68 deletions(-)
 
-diff -puN lib/idr.c~idr-print-a-stack-dump-after-ida_remove-warning-fix lib/idr.c
---- a/lib/idr.c~idr-print-a-stack-dump-after-ida_remove-warning-fix
-+++ a/lib/idr.c
-@@ -524,9 +524,7 @@ EXPORT_SYMBOL(idr_alloc_cyclic);
+diff -puN arch/sparc/kernel/leon_smp.c~mm-sparc-use-common-help-functions-to-free-reserved-pages arch/sparc/kernel/leon_smp.c
+--- a/arch/sparc/kernel/leon_smp.c~mm-sparc-use-common-help-functions-to-free-reserved-pages
++++ a/arch/sparc/kernel/leon_smp.c
+@@ -253,24 +253,15 @@ void __init leon_smp_done(void)
  
- static void idr_remove_warning(int id)
+ 	/* Free unneeded trap tables */
+ 	if (!cpu_present(1)) {
+-		ClearPageReserved(virt_to_page(&trapbase_cpu1));
+-		init_page_count(virt_to_page(&trapbase_cpu1));
+-		free_page((unsigned long)&trapbase_cpu1);
+-		totalram_pages++;
++		free_reserved_page(virt_to_page(&trapbase_cpu1));
+ 		num_physpages++;
+ 	}
+ 	if (!cpu_present(2)) {
+-		ClearPageReserved(virt_to_page(&trapbase_cpu2));
+-		init_page_count(virt_to_page(&trapbase_cpu2));
+-		free_page((unsigned long)&trapbase_cpu2);
+-		totalram_pages++;
++		free_reserved_page(virt_to_page(&trapbase_cpu2));
+ 		num_physpages++;
+ 	}
+ 	if (!cpu_present(3)) {
+-		ClearPageReserved(virt_to_page(&trapbase_cpu3));
+-		init_page_count(virt_to_page(&trapbase_cpu3));
+-		free_page((unsigned long)&trapbase_cpu3);
+-		totalram_pages++;
++		free_reserved_page(virt_to_page(&trapbase_cpu3));
+ 		num_physpages++;
+ 	}
+ 	/* Ok, they are spinning and ready to go. */
+diff -puN arch/sparc/mm/init_32.c~mm-sparc-use-common-help-functions-to-free-reserved-pages arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~mm-sparc-use-common-help-functions-to-free-reserved-pages
++++ a/arch/sparc/mm/init_32.c
+@@ -366,45 +366,14 @@ void __init mem_init(void)
+ 
+ void free_initmem (void)
  {
--	printk(KERN_WARNING
--		"idr_remove called for id=%d which is not allocated.\n", id);
--	dump_stack();
-+	WARN(1, "idr_remove called for id=%d which is not allocated.\n", id);
+-	unsigned long addr;
+-	unsigned long freed;
+-
+-	addr = (unsigned long)(&__init_begin);
+-	freed = (unsigned long)(&__init_end) - addr;
+-	for (; addr < (unsigned long)(&__init_end); addr += PAGE_SIZE) {
+-		struct page *p;
+-
+-		memset((void *)addr, POISON_FREE_INITMEM, PAGE_SIZE);
+-		p = virt_to_page(addr);
+-
+-		ClearPageReserved(p);
+-		init_page_count(p);
+-		__free_page(p);
+-		totalram_pages++;
+-		num_physpages++;
+-	}
+-	printk(KERN_INFO "Freeing unused kernel memory: %ldk freed\n",
+-		freed >> 10);
++	num_physpages += free_initmem_default(POISON_FREE_INITMEM);
  }
  
- static void sub_remove(struct idr *idp, int shift, int id)
-@@ -1064,9 +1062,7 @@ void ida_remove(struct ida *ida, int id)
- 	return;
- 
-  err:
--	printk(KERN_WARNING
--	       "ida_remove called for id=%d which is not allocated.\n", id);
--	dump_stack();
-+	WARN(1, "ida_remove called for id=%d which is not allocated.\n", id);
+ #ifdef CONFIG_BLK_DEV_INITRD
+ void free_initrd_mem(unsigned long start, unsigned long end)
+ {
+-	if (start < end)
+-		printk(KERN_INFO "Freeing initrd memory: %ldk freed\n",
+-			(end - start) >> 10);
+-	for (; start < end; start += PAGE_SIZE) {
+-		struct page *p;
+-
+-		memset((void *)start, POISON_FREE_INITMEM, PAGE_SIZE);
+-		p = virt_to_page(start);
+-
+-		ClearPageReserved(p);
+-		init_page_count(p);
+-		__free_page(p);
+-		totalram_pages++;
+-		num_physpages++;
+-	}
++	num_physpages += free_reserved_area(start, end, POISON_FREE_INITMEM,
++					    "initrd");
  }
- EXPORT_SYMBOL(ida_remove);
+ #endif
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-include-linux-mmh-complete-the-mm_walk-definition.patch
-hugetlbfs-fix-mmap-failure-in-unaligned-size-request.patch
-drivers-net-rename-random32-to-prandom_u32.patch
-drivers-infiniband-hw-mlx4-madc-rename-random32-to-prandom_u32.patch
-mm-vmallocc-add-vfree-comment.patch
-gadget-remove-only-user-of-aio-retry.patch
-aio-remove-retry-based-aio.patch
-aio-add-kiocb_cancel.patch
-aio-make-aio_put_req-lockless.patch
-aio-refcounting-cleanup.patch
-wait-add-wait_event_hrtimeout.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
-aio-use-cancellation-list-lazily.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-generic-dynamic-per-cpu-refcounting.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_retry.patch
-block-prep-work-for-batch-completion.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-bpf-add-comments-explaining-the-schedule_work-operation.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+diff -puN arch/sparc/mm/init_64.c~mm-sparc-use-common-help-functions-to-free-reserved-pages arch/sparc/mm/init_64.c
+--- a/arch/sparc/mm/init_64.c~mm-sparc-use-common-help-functions-to-free-reserved-pages
++++ a/arch/sparc/mm/init_64.c
+@@ -2059,8 +2059,7 @@ void __init mem_init(void)
+ 	/* We subtract one to account for the mem_map_zero page
+ 	 * allocated below.
+ 	 */
+-	totalram_pages -= 1;
+-	num_physpages = totalram_pages;
++	num_physpages = totalram_pages - 1;
+ 
+ 	/*
+ 	 * Set up the zero page, mark it reserved, so that page count
+@@ -2071,7 +2070,7 @@ void __init mem_init(void)
+ 		prom_printf("paging_init: Cannot alloc zero page.\n");
+ 		prom_halt();
+ 	}
+-	SetPageReserved(mem_map_zero);
++	mark_page_reserved(mem_map_zero);
+ 
+ 	codepages = (((unsigned long) _etext) - ((unsigned long) _start));
+ 	codepages = PAGE_ALIGN(codepages) >> PAGE_SHIFT;
+@@ -2111,37 +2110,22 @@ void free_initmem(void)
+ 	initend = (unsigned long)(__init_end) & PAGE_MASK;
+ 	for (; addr < initend; addr += PAGE_SIZE) {
+ 		unsigned long page;
+-		struct page *p;
+ 
+ 		page = (addr +
+ 			((unsigned long) __va(kern_base)) -
+ 			((unsigned long) KERNBASE));
+ 		memset((void *)addr, POISON_FREE_INITMEM, PAGE_SIZE);
+ 
+-		if (do_free) {
+-			p = virt_to_page(page);
+-
+-			ClearPageReserved(p);
+-			init_page_count(p);
+-			__free_page(p);
+-			totalram_pages++;
+-		}
++		if (do_free)
++			free_reserved_page(virt_to_page(page));
+ 	}
+ }
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+ void free_initrd_mem(unsigned long start, unsigned long end)
+ {
+-	if (start < end)
+-		printk ("Freeing initrd memory: %ldk freed\n", (end - start) >> 10);
+-	for (; start < end; start += PAGE_SIZE) {
+-		struct page *p = virt_to_page(start);
