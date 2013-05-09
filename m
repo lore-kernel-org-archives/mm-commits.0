@@ -1,118 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default.patch removed from -mm tree
-Date: Thu, 09 May 2013 13:35:59 -0700
-Message-ID: <20130509203600.4016631C08F@corp2gmr1-1.hot.corp.google.com>
+Subject: [wrecked] drivers-rtc-rtc-pxac-use-devm_-apis.patch removed from -mm tree
+Date: Thu, 09 May 2013 13:42:48 -0700
+Message-ID: <20130509204249.2D97131C1AD@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:37060 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753683Ab3EIUgC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:36:02 -0400
-Received: by mail-vb0-f74.google.com with SMTP id q16so331144vbe.1
-        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:36:01 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:50283 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265Ab3EIUmu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:42:50 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r14so320038ghr.0
+        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:42:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liuj97@gmail.com, arnd@arndb.de, ddaney.cavm@gmail.com, eunb.song@samsung.com, jiang.liu@huawei.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, jg1.han@samsung.com, robert.jarzmik@free.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/mips/mm/init.c: fix a bug caused by free_initmem_default()
+     Subject: drivers/rtc/rtc-pxa.c: use devm_* APIs
 has been removed from the -mm tree.  Its filename was
-     arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default.patch
+     drivers-rtc-rtc-pxac-use-devm_-apis.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Jiang Liu <liuj97@gmail.com>
-Subject: arch/mips/mm/init.c: fix a bug caused by free_initmem_default()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-pxa.c: use devm_* APIs
 
-EUNBONG SONG <eunb.song@samsung.com> reported a bug on MIPS64 platforms
-caused by free_initmem() as below:
+devm_* functions are device managed and make cleanup code simpler.
 
-[  132.134719] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W    3.9.0+ #29
-[  132.141678] Stack : 0000000000000004 000000000000003f ffffffff80fa0000 ffffffff802924a8
-          0000000000000000 ffffffff80fa0000 00000000000000ff ffffffff80293760
-          0000000000000000 0000000000000000 ffffffff81080000 ffffffff81080000
-          ffffffff80e2baf0 ffffffff80f93977 a80000004146cbb8 0000000000000020
-          0000000000000003 0000000000000020 a800000041473da8 ffffffff810f0000
-          a800000041473a10 ffffffff806ef910 a800000041473828 ffffffff80290920
-          0000000000000000 ffffffff80293b90 000000000000000a ffffffff80e2baf0
-          0000000000000000 a800000041473750 000000004146cef8 ffffffff805e7794
-          0000000000000000 0000000000000000 0000000000000000 0000000000000000
-          0000000000000000 ffffffff80272498 0000000000000000 0000000000000000
-          ...
-[  132.207201] Call Trace:
-[  132.209655] [<ffffffff80272498>] show_stack+0x68/0x80
-[  132.225943] [<ffffffff802bd4ac>] notifier_call_chain+0x5c/0xa8
-[  132.231776] [<ffffffff802bdb84>] __atomic_notifier_call_chain+0x3c/0x58
-[  132.238391] [<ffffffff802bdbe8>] notify_die+0x38/0x48
-[  132.243442] [<ffffffff802716cc>] die+0x4c/0x148
-[  132.247974] [<ffffffff8027f998>] do_page_fault+0x4b8/0x500
-[  132.253461] [<ffffffff8026c764>] resume_userspace_check+0x0/0x10
-[  132.259469] [<ffffffff80324a54>] free_reserved_area+0x8c/0x178
-[  132.265304] [<ffffffff806e0dc8>] kernel_init+0x20/0x100
-[  132.270529] [<ffffffff8026c7e0>] ret_from_kernel_thread+0x10/0x18
-
-The root cause is that virt_to_page()/virt_to_phys() can't be used to
-handle virtual address from compatible segments on MIPS64 because
-virt_to_phys() is defined as:
-
-static inline unsigned long virt_to_phys(volatile const void *address)
-{
-        return (unsigned long)address - PAGE_OFFSET + PHYS_OFFSET;
-}
-
-x86_64 platforms have a similar situation, but __pa() has been enhanced to
-handle virtual address space used for kernel code and data segments.
-
-static inline unsigned long __phys_addr_nodebug(unsigned long x)
-{
-        unsigned long y = x - __START_KERNEL_map;
-
-        /* use the carry flag to determine if x was < __START_KERNEL_map */
-        x = y + ((x > y) ? phys_base : (__START_KERNEL_map - PAGE_OFFSET));
-
-        return x;
-}
-
-So we have two possible solutions here.  The quick solution is to revert
-to the original implementation by using __pa_symbal().  The long term
-solution is to enhance virt_to_phys() to correctly handle virtual address
-from compatible segments.
-
-This patch adopts the quick solution to fix the bug for v3.10, and we need
-guidance from MIPS64 experts on whether we should go with the long term
-solution.
-
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: EUNBONG SONG <eunb.song@samsung.com>
-Reported-by: EUNBONG SONG <eunb.song@samsung.com>
-Cc: David Daney <ddaney.cavm@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/init.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-pxa.c |   41 +++++++++++-----------------------------
+ 1 file changed, 12 insertions(+), 29 deletions(-)
 
-diff -puN arch/mips/mm/init.c~arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default arch/mips/mm/init.c
---- a/arch/mips/mm/init.c~arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default
-+++ a/arch/mips/mm/init.c
-@@ -447,7 +447,9 @@ void free_initrd_mem(unsigned long start
- void __init_refok free_initmem(void)
- {
- 	prom_free_prom_memory();
--	free_initmem_default(POISON_FREE_INITMEM);
-+	free_init_pages("unused kernel memory",
-+			__pa_symbol(&__init_begin),
-+			__pa_symbol(&__init_end));
+diff -puN drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-use-devm_-apis drivers/rtc/rtc-pxa.c
+--- a/drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-use-devm_-apis
++++ a/drivers/rtc/rtc-pxa.c
+@@ -364,7 +364,7 @@ static int __init pxa_rtc_probe(struct p
+ 	int ret;
+ 	u32 rttr;
+ 
+-	pxa_rtc = kzalloc(sizeof(struct pxa_rtc), GFP_KERNEL);
++	pxa_rtc = devm_kzalloc(dev, sizeof(struct pxa_rtc), GFP_KERNEL);
+ 	if (!pxa_rtc)
+ 		return -ENOMEM;
+ 	rtc_info = pxa_rtc;
+@@ -375,37 +375,37 @@ static int __init pxa_rtc_probe(struct p
+ 	pxa_rtc->ress = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!pxa_rtc->ress) {
+ 		dev_err(dev, "No I/O memory resource defined\n");
+-		goto err_ress;
++		return ret;
+ 	}
+ 	pxa_rtc->ress_psbr = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+ 	if (!pxa_rtc->ress_psbr) {
+ 		dev_err(dev, "No I/O memory resource defined\n");
+-		goto err_ress;
++		return ret;
+ 	}
+ 
+ 	pxa_rtc->irq_1Hz = platform_get_irq(pdev, 0);
+ 	if (pxa_rtc->irq_1Hz < 0) {
+ 		dev_err(dev, "No 1Hz IRQ resource defined\n");
+-		goto err_ress;
++		return ret;
+ 	}
+ 	pxa_rtc->irq_Alrm = platform_get_irq(pdev, 1);
+ 	if (pxa_rtc->irq_Alrm < 0) {
+ 		dev_err(dev, "No alarm IRQ resource defined\n");
+-		goto err_ress;
++		return ret;
+ 	}
+ 	ret = -ENOMEM;
+-	pxa_rtc->base = ioremap(pxa_rtc->ress->start,
++	pxa_rtc->base = devm_ioremap(&pdev->dev, pxa_rtc->ress->start,
+ 				resource_size(pxa_rtc->ress));
+ 	if (!pxa_rtc->base) {
+ 		dev_err(&pdev->dev, "Unable to map pxa RTC I/O memory\n");
+-		goto err_map;
++		return ret;
+ 	}
+ 
+-	pxa_rtc->base_psbr = ioremap(pxa_rtc->ress_psbr->start,
++	pxa_rtc->base_psbr = devm_ioremap(&pdev->dev, pxa_rtc->ress_psbr->start,
+ 				resource_size(pxa_rtc->ress_psbr));
+ 	if (!pxa_rtc->base_psbr) {
+ 		dev_err(&pdev->dev, "Unable to map pxa RTC PSBR I/O memory\n");
+-		goto err_map;
++		return ret;
+ 	}
+ 	/*
+ 	 * If the clock divider is uninitialized then reset it to the
+@@ -420,41 +420,24 @@ static int __init pxa_rtc_probe(struct p
+ 
+ 	rtsr_clear_bits(pxa_rtc, RTSR_PIALE | RTSR_RDALE1 | RTSR_HZE);
+ 
+-	pxa_rtc->rtc = rtc_device_register("pxa-rtc", &pdev->dev, &pxa_rtc_ops,
+-					   THIS_MODULE);
++	pxa_rtc->rtc = devm_rtc_device_register(&pdev->dev, "pxa-rtc",
++						&pxa_rtc_ops, THIS_MODULE);
+ 	ret = PTR_ERR(pxa_rtc->rtc);
+ 	if (IS_ERR(pxa_rtc->rtc)) {
+ 		dev_err(dev, "Failed to register RTC device -> %d\n", ret);
+-		goto err_rtc_reg;
++		return ret;
+ 	}
+ 
+ 	device_init_wakeup(dev, 1);
+ 	pxa_rtc_open(dev);
+ 	return 0;
+-
+-err_rtc_reg:
+-	 iounmap(pxa_rtc->base);
+-err_ress:
+-err_map:
+-	kfree(pxa_rtc);
+-	return ret;
  }
  
- #ifndef CONFIG_MIPS_PGD_C0_CONTEXT
+ static int __exit pxa_rtc_remove(struct platform_device *pdev)
+ {
+-	struct pxa_rtc *pxa_rtc = platform_get_drvdata(pdev);
+-
+ 	struct device *dev = &pdev->dev;
+ 	pxa_rtc_release(dev);
+ 
+-	rtc_device_unregister(pxa_rtc->rtc);
+-
+-	spin_lock_irq(&pxa_rtc->lock);
+-	iounmap(pxa_rtc->base);
+-	spin_unlock_irq(&pxa_rtc->lock);
+-
+-	kfree(pxa_rtc);
+-
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from liuj97@gmail.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 origin.patch
+linux-next.patch
+drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
+drivers-rtc-interfacec-fix-checkpatch-errors.patch
+drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
+drivers-rtc-rtc-at91rm9200c-include-linux-uaccessh.patch
+drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch
+drivers-rtc-rtc-davincic-fix-whitespace-warning.patch
+drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch
+drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
+drivers-rtc-rtc-ds1511c-fix-issues-related-to-spaces-and-braces.patch
+drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch
+drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch
+drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch
+drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch
+drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
+drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch
+drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
+drivers-rtc-rtc-msm6242c-use-pr_warn.patch
+drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
+drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
+drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch
+drivers-rtc-rtc-pcf8583c-move-assignment-outside-if-condition.patch
+drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
+drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
+drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
+drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
+drivers-rtc-rtc-x1205c-fix-checkpatch-issues.patch
 
