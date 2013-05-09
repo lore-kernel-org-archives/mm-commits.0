@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch added to -mm tree
-Date: Thu, 09 May 2013 14:29:22 -0700
-Message-ID: <20130509212922.C2C875A4137@corp2gmr1-2.hot.corp.google.com>
+Subject: + cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch added to -mm tree
+Date: Thu, 09 May 2013 15:02:25 -0700
+Message-ID: <20130509220225.E320F5A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:60317 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729Ab3EIV3X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 17:29:23 -0400
-Received: by mail-yh0-f74.google.com with SMTP id t59so338373yho.1
-        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 14:29:23 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:33653 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752392Ab3EIWC1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 18:02:27 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so341203ggl.2
+        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 15:02:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, athorlton@sgi.com
+Cc: akpm@linux-foundation.org, gxt@mprc.pku.edu.cn, holt@sgi.com, hpa@zytor.com, linux@arm.linux.org.uk, mingo@elte.hu, rja@sgi.com, shawn.guo@linaro.org, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix
+     Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
 has been added to the -mm tree.  Its filename is
-     panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix
+Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
 
-remove stray quote
-
-Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cpu.h |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN kernel/panic.c~panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix kernel/panic.c
---- a/kernel/panic.c~panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix
-+++ a/kernel/panic.c
-@@ -400,7 +400,7 @@ static void warn_slowpath_common(const c
- 				 unsigned taint, struct slowpath_args *args)
- {
- 	pr_warn("------------[ cut here ]------------\n");
--	pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS()\n",  '
-+	pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS()\n",
- 		raw_smp_processor_id(), current->pid, file, line, caller);
+diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
++++ a/include/linux/cpu.h
+@@ -141,8 +141,6 @@ static inline void unregister_cpu_notifi
+ }
+ #endif
  
- 	if (args)
+-extern void cpu_hotplug_disable(void);
+-extern void cpu_hotplug_enable(void);
+ int cpu_up(unsigned int cpu);
+ void notify_cpu_starting(unsigned int cpu);
+ extern void cpu_maps_update_begin(void);
+@@ -150,7 +148,6 @@ extern void cpu_maps_update_done(void);
+ 
+ #else	/* CONFIG_SMP */
+ 
+-#define cpu_hotplug_disable()	do { } while (0)
+ #define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
+ 
+ static inline int register_cpu_notifier(struct notifier_block *nb)
+@@ -171,6 +168,15 @@ static inline void cpu_maps_update_done(
+ }
+ 
+ #endif /* CONFIG_SMP */
++
++#ifdef CONFIG_PM_SLEEP_SMP
++extern void cpu_hotplug_enable(void);
++extern void cpu_hotplug_disable(void);
++#else
++#define cpu_hotplug_enable()	do { } while (0)
++#define cpu_hotplug_disable()	do { } while (0)
++#endif
++
+ extern struct bus_type cpu_subsys;
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,6 +99,8 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
 drivers-video-implement-a-simple-framebuffer-driver.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
 shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
 ipcsem-fix-semctl-getzcnt-fix.patch
 ipcsem-fix-semctl-getncnt-fix.patch
