@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch added to -mm tree
-Date: Thu, 09 May 2013 15:02:25 -0700
-Message-ID: <20130509220225.E320F5A4005@corp2gmr1-2.hot.corp.google.com>
+Subject: + cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch added to -mm tree
+Date: Thu, 09 May 2013 15:02:28 -0700
+Message-ID: <20130509220228.E1ECA5A4005@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:33653 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752392Ab3EIWC1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 18:02:27 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so341203ggl.2
-        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 15:02:26 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:62863 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753445Ab3EIWCa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 18:02:30 -0400
+Received: by mail-yh0-f73.google.com with SMTP id a41so341734yho.4
+        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 15:02:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, gxt@mprc.pku.edu.cn, holt@sgi.com, hpa@zytor.com,
 
 
 The patch titled
-     Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
+     Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
+     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
+Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix
+
+a pox on macros, for the 1000th time
 
 Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Cc: <stable@vger.kernel.org>
@@ -50,45 +52,28 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/cpu.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix include/linux/cpu.h
---- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
+diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix
 +++ a/include/linux/cpu.h
-@@ -141,8 +141,6 @@ static inline void unregister_cpu_notifi
- }
+@@ -173,8 +173,13 @@ static inline void cpu_maps_update_done(
+ extern void cpu_hotplug_enable(void);
+ extern void cpu_hotplug_disable(void);
+ #else
+-#define cpu_hotplug_enable()	do { } while (0)
+-#define cpu_hotplug_disable()	do { } while (0)
++static inline void cpu_hotplug_enable(void)
++{
++}
++
++static inline void cpu_hotplug_disable(void)
++{
++}
  #endif
  
--extern void cpu_hotplug_disable(void);
--extern void cpu_hotplug_enable(void);
- int cpu_up(unsigned int cpu);
- void notify_cpu_starting(unsigned int cpu);
- extern void cpu_maps_update_begin(void);
-@@ -150,7 +148,6 @@ extern void cpu_maps_update_done(void);
- 
- #else	/* CONFIG_SMP */
- 
--#define cpu_hotplug_disable()	do { } while (0)
- #define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
- 
- static inline int register_cpu_notifier(struct notifier_block *nb)
-@@ -171,6 +168,15 @@ static inline void cpu_maps_update_done(
- }
- 
- #endif /* CONFIG_SMP */
-+
-+#ifdef CONFIG_PM_SLEEP_SMP
-+extern void cpu_hotplug_enable(void);
-+extern void cpu_hotplug_disable(void);
-+#else
-+#define cpu_hotplug_enable()	do { } while (0)
-+#define cpu_hotplug_disable()	do { } while (0)
-+#endif
-+
  extern struct bus_type cpu_subsys;
- 
- #ifdef CONFIG_HOTPLUG_CPU
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
