@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-add-missing-comments-for-initial-kernel-direct-mapping.patch added to -mm tree
-Date: Thu, 09 May 2013 13:17:32 -0700
-Message-ID: <20130509201732.89AA15A4251@corp2gmr1-2.hot.corp.google.com>
+Subject: + arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default.patch added to -mm tree
+Date: Thu, 09 May 2013 13:24:36 -0700
+Message-ID: <20130509202436.9EB495A42A2@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:45156 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:39275 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751935Ab3EIURd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:17:33 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so329631ggm.3
-        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:17:33 -0700 (PDT)
+	with ESMTP id S1752049Ab3EIUYi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:24:38 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so330611ggm.1
+        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:24:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhangyanfei@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, konrad.wilk@oracle.com, mingo@redhat.com, tglx@linutronix.de, yinghai@kernel.org
+Cc: liuj97@gmail.com, arnd@arndb.de, ddaney.cavm@gmail.com, eunb.song@samsung.com, jiang.liu@huawei.com, ralf@linux-mips.org
 
 
 The patch titled
-     Subject: x86: mm: add missing comments for initial kernel direct mapping
+     Subject: arch/mips/mm/init.c: fix a bug caused by free_initmem_default()
 has been added to the -mm tree.  Its filename is
-     x86-mm-add-missing-comments-for-initial-kernel-direct-mapping.patch
+     arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: x86: mm: add missing comments for initial kernel direct mapping
+From: Jiang Liu <liuj97@gmail.com>
+Subject: arch/mips/mm/init.c: fix a bug caused by free_initmem_default()
 
-For some reason, comments below are lost:
-  - comments for init_range_memory_mapping()
-  - comments in init_mem_mapping that is helpful for reminding people
-    that the pagetable is setup top-down
+EUNBONG SONG <eunb.song@samsung.com> reported a bug on MIPS64 platforms
+caused by free_initmem() as below:
 
-The comments were written by Yinghai in his patch in
-https://lkml.org/lkml/2012/11/28/620
+[  132.134719] CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W    3.9.0+ #29
+[  132.141678] Stack : 0000000000000004 000000000000003f ffffffff80fa0000 ffffffff802924a8
+          0000000000000000 ffffffff80fa0000 00000000000000ff ffffffff80293760
+          0000000000000000 0000000000000000 ffffffff81080000 ffffffff81080000
+          ffffffff80e2baf0 ffffffff80f93977 a80000004146cbb8 0000000000000020
+          0000000000000003 0000000000000020 a800000041473da8 ffffffff810f0000
+          a800000041473a10 ffffffff806ef910 a800000041473828 ffffffff80290920
+          0000000000000000 ffffffff80293b90 000000000000000a ffffffff80e2baf0
+          0000000000000000 a800000041473750 000000004146cef8 ffffffff805e7794
+          0000000000000000 0000000000000000 0000000000000000 0000000000000000
+          0000000000000000 ffffffff80272498 0000000000000000 0000000000000000
+          ...
+[  132.207201] Call Trace:
+[  132.209655] [<ffffffff80272498>] show_stack+0x68/0x80
+[  132.225943] [<ffffffff802bd4ac>] notifier_call_chain+0x5c/0xa8
+[  132.231776] [<ffffffff802bdb84>] __atomic_notifier_call_chain+0x3c/0x58
+[  132.238391] [<ffffffff802bdbe8>] notify_die+0x38/0x48
+[  132.243442] [<ffffffff802716cc>] die+0x4c/0x148
+[  132.247974] [<ffffffff8027f998>] do_page_fault+0x4b8/0x500
+[  132.253461] [<ffffffff8026c764>] resume_userspace_check+0x0/0x10
+[  132.259469] [<ffffffff80324a54>] free_reserved_area+0x8c/0x178
+[  132.265304] [<ffffffff806e0dc8>] kernel_init+0x20/0x100
+[  132.270529] [<ffffffff8026c7e0>] ret_from_kernel_thread+0x10/0x18
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+The root cause is that virt_to_page()/virt_to_phys() can't be used to
+handle virtual address from compatible segments on MIPS64 because
+virt_to_phys() is defined as:
+
+static inline unsigned long virt_to_phys(volatile const void *address)
+{
+        return (unsigned long)address - PAGE_OFFSET + PHYS_OFFSET;
+}
+
+x86_64 platforms have a similar situation, but __pa() has been enhanced to
+handle virtual address space used for kernel code and data segments.
+
+static inline unsigned long __phys_addr_nodebug(unsigned long x)
+{
+        unsigned long y = x - __START_KERNEL_map;
+
+        /* use the carry flag to determine if x was < __START_KERNEL_map */
+        x = y + ((x > y) ? phys_base : (__START_KERNEL_map - PAGE_OFFSET));
+
+        return x;
+}
+
+So we have two possible solutions here.  The quick solution is to revert
+to the original implementation by using __pa_symbal().  The long term
+solution is to enhance virt_to_phys() to correctly handle virtual address
+from compatible segments.
+
+This patch adopts the quick solution to fix the bug for v3.10, and we need
+guidance from MIPS64 experts on whether we should go with the long term
+solution.
+
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: EUNBONG SONG <eunb.song@samsung.com>
+Reported-off-by: EUNBONG SONG <eunb.song@samsung.com>
+Cc: David Daney <ddaney.cavm@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ arch/mips/mm/init.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/init.c~x86-mm-add-missing-comments-for-initial-kernel-direct-mapping arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-mm-add-missing-comments-for-initial-kernel-direct-mapping
-+++ a/arch/x86/mm/init.c
-@@ -359,7 +359,17 @@ unsigned long __init_refok init_memory_m
+diff -puN arch/mips/mm/init.c~arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default
++++ a/arch/mips/mm/init.c
+@@ -447,7 +447,9 @@ void free_initrd_mem(unsigned long start
+ void __init_refok free_initmem(void)
+ {
+ 	prom_free_prom_memory();
+-	free_initmem_default(POISON_FREE_INITMEM);
++	free_init_pages("unused kernel memory",
++			__pa_symbol(&__init_begin),
++			__pa_symbol(&__init_end));
  }
  
- /*
-- * would have hole in the middle or ends, and only ram parts will be mapped.
-+ * We need to iterate through E820 memory map and create direct mappings
-+ * for only E820_RAM and E820_KERN_RESERVED regions. We cannot simply
-+ * create direct mappings for all pfns from [0 to max_low_pfn) and
-+ * [4GB to max_pfn) because of possible memory holes in high addresses
-+ * that cannot be marked as UC by fixed/variable range MTRRs.
-+ * Depending on the alignment of E820 ranges, this may possibly result
-+ * in using smaller size (i.e. 4K instead of 2M or 1G) page tables.
-+ *
-+ * init_mem_mapping call init_range_memory_mapping with big range.
-+ * That range would have hole in the middle or ends, and only ram parts
-+ * will be mapped in init_range_memory_mapping.
-  */
- static unsigned long __init init_range_memory_mapping(
- 					   unsigned long r_start,
-@@ -419,6 +429,13 @@ void __init init_mem_mapping(void)
- 	max_pfn_mapped = 0; /* will get exact value next */
- 	min_pfn_mapped = real_end >> PAGE_SHIFT;
- 	last_start = start = real_end;
-+
-+	/*
-+	 * We start from the top (end of memory) and go to the bottom.
-+	 * The memblock_find_in_range gets us a block of RAM from the
-+	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) as new pages
-+	 * for page table.
-+	 */
- 	while (last_start > ISA_END_ADDRESS) {
- 		if (last_start > step_size) {
- 			start = round_down(last_start - 1, step_size);
+ #ifndef CONFIG_MIPS_PGD_C0_CONTEXT
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from liuj97@gmail.com are
 
 origin.patch
-x86-mm-add-missing-comments-for-initial-kernel-direct-mapping.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
+arch-mips-mm-initc-fix-a-bug-caused-by-free_initmem_default.patch
 
