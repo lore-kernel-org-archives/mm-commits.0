@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch removed from -mm tree
-Date: Thu, 09 May 2013 13:51:44 -0700
-Message-ID: <20130509205144.963E05A42C1@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs.patch removed from -mm tree
+Date: Thu, 09 May 2013 13:51:47 -0700
+Message-ID: <20130509205147.969FC5A4282@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:42092 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752813Ab3EIUvq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:51:46 -0400
-Received: by mail-yh0-f74.google.com with SMTP id t59so334494yho.5
-        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:51:45 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:46007 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753438Ab3EIUvt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:51:49 -0400
+Received: by mail-qa0-f74.google.com with SMTP id i13so358191qae.1
+        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:51:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: holt@sgi.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, linux@arm.linux.org.uk, mingo@elte.hu, rja@sgi.com, shawn.guo@linaro.org, srivatsa.bhat@linux.vnet.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reboot: unicore32: prepare reboot_mode for moving to generic kernel code.
+     Subject: reboot: arm: remove unused restart_mode fields from some arm subarchs
 has been removed from the -mm tree.  Its filename was
-     reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+     reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Robin Holt <holt@sgi.com>
-Subject: reboot: unicore32: prepare reboot_mode for moving to generic kernel code.
+Subject: reboot: arm: remove unused restart_mode fields from some arm subarchs
 
-Prepare for the moving the parsing of reboot= to the generic kernel code
-by making reboot_mode into a more generic form.
+These restart_mode fields are not used at all.  Remove them to make
+moving the reboot= cmdline options to the general kernel easier.
 
 Signed-off-by: Robin Holt <holt@sgi.com>
 Cc: Shawn Guo <shawn.guo@linaro.org>
@@ -42,74 +42,72 @@ Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/kernel/process.c |   10 +++++-----
- arch/unicore32/kernel/setup.h   |    2 +-
- arch/unicore32/mm/mmu.c         |    2 +-
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ arch/arm/mach-ebsa110/core.c |    1 -
+ arch/arm/mach-pxa/mioa701.c  |    1 -
+ arch/arm/mach-pxa/spitz.c    |    3 ---
+ arch/arm/mach-pxa/tosa.c     |    1 -
+ 4 files changed, 6 deletions(-)
 
-diff -puN arch/unicore32/kernel/process.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/unicore32/kernel/process.c
---- a/arch/unicore32/kernel/process.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code
-+++ a/arch/unicore32/kernel/process.c
-@@ -51,14 +51,14 @@ void arch_cpu_idle(void)
- 	local_irq_enable();
+diff -puN arch/arm/mach-ebsa110/core.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs arch/arm/mach-ebsa110/core.c
+--- a/arch/arm/mach-ebsa110/core.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs
++++ a/arch/arm/mach-ebsa110/core.c
+@@ -321,7 +321,6 @@ MACHINE_START(EBSA110, "EBSA110")
+ 	.atag_offset	= 0x400,
+ 	.reserve_lp0	= 1,
+ 	.reserve_lp2	= 1,
+-	.restart_mode	= 's',
+ 	.map_io		= ebsa110_map_io,
+ 	.init_early	= ebsa110_init_early,
+ 	.init_irq	= ebsa110_init_irq,
+diff -puN arch/arm/mach-pxa/mioa701.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs arch/arm/mach-pxa/mioa701.c
+--- a/arch/arm/mach-pxa/mioa701.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs
++++ a/arch/arm/mach-pxa/mioa701.c
+@@ -756,7 +756,6 @@ static void mioa701_machine_exit(void)
+ 
+ MACHINE_START(MIOA701, "MIO A701")
+ 	.atag_offset	= 0x100,
+-	.restart_mode	= 's',
+ 	.map_io		= &pxa27x_map_io,
+ 	.nr_irqs	= PXA_NR_IRQS,
+ 	.init_irq	= &pxa27x_init_irq,
+diff -puN arch/arm/mach-pxa/spitz.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs arch/arm/mach-pxa/spitz.c
+--- a/arch/arm/mach-pxa/spitz.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs
++++ a/arch/arm/mach-pxa/spitz.c
+@@ -979,7 +979,6 @@ static void __init spitz_fixup(struct ta
+ 
+ #ifdef CONFIG_MACH_SPITZ
+ MACHINE_START(SPITZ, "SHARP Spitz")
+-	.restart_mode	= 'g',
+ 	.fixup		= spitz_fixup,
+ 	.map_io		= pxa27x_map_io,
+ 	.nr_irqs	= PXA_NR_IRQS,
+@@ -993,7 +992,6 @@ MACHINE_END
+ 
+ #ifdef CONFIG_MACH_BORZOI
+ MACHINE_START(BORZOI, "SHARP Borzoi")
+-	.restart_mode	= 'g',
+ 	.fixup		= spitz_fixup,
+ 	.map_io		= pxa27x_map_io,
+ 	.nr_irqs	= PXA_NR_IRQS,
+@@ -1007,7 +1005,6 @@ MACHINE_END
+ 
+ #ifdef CONFIG_MACH_AKITA
+ MACHINE_START(AKITA, "SHARP Akita")
+-	.restart_mode	= 'g',
+ 	.fixup		= spitz_fixup,
+ 	.map_io		= pxa27x_map_io,
+ 	.nr_irqs	= PXA_NR_IRQS,
+diff -puN arch/arm/mach-pxa/tosa.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs arch/arm/mach-pxa/tosa.c
+--- a/arch/arm/mach-pxa/tosa.c~reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs
++++ a/arch/arm/mach-pxa/tosa.c
+@@ -969,7 +969,6 @@ static void __init fixup_tosa(struct tag
  }
  
--static char reboot_mode = 'h';
-+static enum reboot_mode reboot_mode;
- 
- int __init reboot_setup(char *str)
- {
--	reboot_mode = str[0];
-+	if ('s' == str[0])
-+		reboot_mode = REBOOT_WARM;
- 	return 1;
- }
--
- __setup("reboot=", reboot_setup);
- 
- void machine_halt(void)
-@@ -88,7 +88,7 @@ void machine_restart(char *cmd)
- 	 * we may need it to insert some 1:1 mappings so that
- 	 * soft boot works.
- 	 */
--	setup_mm_for_reboot(reboot_mode);
-+	setup_mm_for_reboot();
- 
- 	/* Clean and invalidate caches */
- 	flush_cache_all();
-@@ -102,7 +102,7 @@ void machine_restart(char *cmd)
- 	/*
- 	 * Now handle reboot code.
- 	 */
--	if (reboot_mode == 's') {
-+	if (reboot_mode == REBOOT_WARM) {
- 		/* Jump into ROM at address 0xffff0000 */
- 		cpu_reset(VECTORS_BASE);
- 	} else {
-diff -puN arch/unicore32/kernel/setup.h~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/unicore32/kernel/setup.h
---- a/arch/unicore32/kernel/setup.h~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code
-+++ a/arch/unicore32/kernel/setup.h
-@@ -22,7 +22,7 @@ extern void puv3_ps2_init(void);
- extern void pci_puv3_preinit(void);
- extern void __init puv3_init_gpio(void);
- 
--extern void setup_mm_for_reboot(char mode);
-+extern void setup_mm_for_reboot(void);
- 
- extern char __stubs_start[], __stubs_end[];
- extern char __vectors_start[], __vectors_end[];
-diff -puN arch/unicore32/mm/mmu.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/unicore32/mm/mmu.c
---- a/arch/unicore32/mm/mmu.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code
-+++ a/arch/unicore32/mm/mmu.c
-@@ -445,7 +445,7 @@ void __init paging_init(void)
-  * the user-mode pages.  This will then ensure that we have predictable
-  * results when turning the mmu off
-  */
--void setup_mm_for_reboot(char mode)
-+void setup_mm_for_reboot(void)
- {
- 	unsigned long base_pmdval;
- 	pgd_t *pgd;
+ MACHINE_START(TOSA, "SHARP Tosa")
+-	.restart_mode	= 'g',
+ 	.fixup          = fixup_tosa,
+ 	.map_io         = pxa25x_map_io,
+ 	.nr_irqs	= TOSA_NR_IRQS,
 _
 
 Patches currently in -mm which might be from holt@sgi.com are
@@ -119,7 +117,6 @@ mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu.patch
 mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
 cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
 migrate-shutdown-reboot-to-boot-cpu.patch
-reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs.patch
 reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
 reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
 reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-checkpatch-fixes.patch
