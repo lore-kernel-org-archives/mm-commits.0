@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-fix-watermark-check-in-__zone_watermark_ok.patch added to -mm tree
-Date: Thu, 09 May 2013 13:02:36 -0700
-Message-ID: <20130509200236.7DB8231C022@corp2gmr1-1.hot.corp.google.com>
+Subject: + kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules.patch added to -mm tree
+Date: Thu, 09 May 2013 13:11:18 -0700
+Message-ID: <20130509201118.93A3B31C022@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:41756 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab3EIUCh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:02:37 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so329005yho.0
-        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:02:37 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:42164 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213Ab3EIULT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:11:19 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so329090ggm.5
+        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:11:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: t.stanislaws@samsung.com, b.zolnierkie@samsung.com, kyungmin.park@samsung.com, mel@csn.ul.ie, minchan@kernel.org
+Cc: gang.chen@asianux.com, eparis@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/page_alloc.c: fix watermark check in __zone_watermark_ok()
+     Subject: kernel/audit_tree.c:audit_add_tree_rule(): protect `rule' from kill_rules()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-watermark-check-in-__zone_watermark_ok.patch
+     kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: mm/page_alloc.c: fix watermark check in __zone_watermark_ok()
+From: Chen Gang <gang.chen@asianux.com>
+Subject: kernel/audit_tree.c:audit_add_tree_rule(): protect `rule' from kill_rules()
 
-The watermark check consists of two sub-checks.  The first one is:
+audit_add_tree_rule() must set 'rule->tree = NULL;' firstly, to protect
+the rule itself freed in kill_rules().
 
-	if (free_pages <= min + lowmem_reserve)
-		return false;
+The reason is when it is killed, the 'rule' itself may have already
+released, we should not access it.  one example: we add a rule to an
+inode, just at the same time the other task is deleting this inode.
 
-The check assures that there is minimal amount of RAM in the zone.  If CMA
-is used then the free_pages is reduced by the number of free pages in CMA
-prior to the over-mentioned check.
+The work flow for adding a rule:
 
-	if (!(alloc_flags & ALLOC_CMA))
-		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
+    audit_receive() -> (need audit_cmd_mutex lock)
+      audit_receive_skb() ->
+        audit_receive_msg() ->
+          audit_receive_filter() ->
+            audit_add_rule() ->
+              audit_add_tree_rule() -> (need audit_filter_mutex lock)
+                ...
+                unlock audit_filter_mutex
+                get_tree()
+                ...
+                iterate_mounts() -> (iterate all related inodes)
+                  tag_mount() ->
+                    tag_trunk() ->
+                      create_trunk() -> (assume it is 1st rule)
+                        fsnotify_add_mark() ->
+                          fsnotify_add_inode_mark() ->  (add mark to inode->i_fsnotify_marks)
+                        ...
+                        get_tree(); (each inode will get one)
+                ...
+                lock audit_filter_mutex
 
-This prevents the zone from being drained from pages available for
-non-movable allocations.
+The work flow for deleting an inode:
 
-The second check prevents the zone from getting too fragmented.
+    __destroy_inode() ->
+     fsnotify_inode_delete() ->
+       __fsnotify_inode_delete() ->
+        fsnotify_clear_marks_by_inode() ->  (get mark from inode->i_fsnotify_marks)
+          fsnotify_destroy_mark() ->
+           fsnotify_destroy_mark_locked() ->
+             audit_tree_freeing_mark() ->
+               evict_chunk() ->
+                 ...
+                 tree->goner = 1
+                 ...
+                 kill_rules() ->   (assume current->audit_context == NULL)
+                   call_rcu() ->   (rule->tree != NULL)
+                     audit_free_rule_rcu() ->
+                       audit_free_rule()
+                 ...
+                 audit_schedule_prune() ->  (assume current->audit_context == NULL)
+                   kthread_run() ->    (need audit_cmd_mutex and audit_filter_mutex lock)
+                     prune_one() ->    (delete it from prue_list)
+                       put_tree(); (match the original get_tree above)
 
-	for (o = 0; o < order; o++) {
-		free_pages -= z->free_area[o].nr_free << o;
-		min >>= 1;
-		if (free_pages <= min)
-			return false;
-	}
 
-The field z->free_area[o].nr_free is equal to the number of free pages
-including free CMA pages.  Therefore the CMA pages are subtracted twice. 
-This may cause a false positive fail of __zone_watermark_ok() if the CMA
-area gets strongly fragmented.  In such a case there are many 0-order free
-pages located in CMA.  Those pages are subtracted twice therefore they
-will quickly drain free_pages during the check against fragmentation.  The
-test fails even though there are many free non-cma pages in the zone.
-
-This patch fixes this issue by subtracting CMA pages only for a purpose of
-(free_pages <= min + lowmem_reserve) check.
-
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/audit_tree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-watermark-check-in-__zone_watermark_ok mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-watermark-check-in-__zone_watermark_ok
-+++ a/mm/page_alloc.c
-@@ -1628,6 +1628,7 @@ static bool __zone_watermark_ok(struct z
- 	long min = mark;
- 	long lowmem_reserve = z->lowmem_reserve[classzone_idx];
- 	int o;
-+	long free_cma = 0;
+diff -puN kernel/audit_tree.c~kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules kernel/audit_tree.c
+--- a/kernel/audit_tree.c~kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules
++++ a/kernel/audit_tree.c
+@@ -658,6 +658,7 @@ int audit_add_tree_rule(struct audit_kru
+ 	struct vfsmount *mnt;
+ 	int err;
  
- 	free_pages -= (1 << order) - 1;
- 	if (alloc_flags & ALLOC_HIGH)
-@@ -1637,9 +1638,10 @@ static bool __zone_watermark_ok(struct z
- #ifdef CONFIG_CMA
- 	/* If allocation can't use CMA areas don't use free CMA pages */
- 	if (!(alloc_flags & ALLOC_CMA))
--		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
-+		free_cma = zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
--	if (free_pages <= min + lowmem_reserve)
-+
-+	if (free_pages - free_cma <= min + lowmem_reserve)
- 		return false;
- 	for (o = 0; o < order; o++) {
- 		/* At the next order, this order's pages become unavailable */
++	rule->tree = NULL;
+ 	list_for_each_entry(tree, &tree_list, list) {
+ 		if (!strcmp(seed->pathname, tree->pathname)) {
+ 			put_tree(seed);
 _
 
-Patches currently in -mm which might be from t.stanislaws@samsung.com are
+Patches currently in -mm which might be from gang.chen@asianux.com are
 
 origin.patch
-mm-page_alloc-fix-watermark-check-in-__zone_watermark_ok.patch
+linux-next.patch
+kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
 
