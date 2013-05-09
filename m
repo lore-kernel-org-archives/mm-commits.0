@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch added to -mm tree
-Date: Thu, 09 May 2013 13:59:57 -0700
-Message-ID: <20130509205957.92FBC31C15D@corp2gmr1-1.hot.corp.google.com>
+Subject: + ipcsem-fix-semctl-getzcnt.patch added to -mm tree
+Date: Thu, 09 May 2013 14:00:46 -0700
+Message-ID: <20130509210046.7458E31C145@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:59358 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752590Ab3EIU76 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 16:59:58 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 1so334892qec.5
-        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 13:59:58 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:55012 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452Ab3EIVAr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 May 2013 17:00:47 -0400
+Received: by mail-vb0-f74.google.com with SMTP id q16so334682vbe.5
+        for <mm-commits@vger.kernel.org>; Thu, 09 May 2013 14:00:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: athorlton@sgi.com, holt@sgi.com, markivx@codeaurora.org, rusty@rustcorp.com.au, sboyd@codeaurora.org, tj@kernel.org
+Cc: riel@redhat.com, koverstreet@google.com
 
 
 The patch titled
-     Subject: panic: add cpu/pid to warn_slowpath_common in WARNING printk()s
+     Subject: ipc,sem: fix semctl(..., GETZCNT)
 has been added to the -mm tree.  Its filename is
-     panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
+     ipcsem-fix-semctl-getzcnt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Thorlton <athorlton@sgi.com>
-Subject: panic: add cpu/pid to warn_slowpath_common in WARNING printk()s
+From: Rik van Riel <riel@redhat.com>
+Subject: ipc,sem: fix semctl(..., GETZCNT)
 
-Add the cpu/pid that called WARN() so that the stack traces can be matched
-up with the WARNING messages.
+The semctl GETZCNT returns the number of semops waiting for the specified
+semaphore to become zero.  After changeset 9f1bc2c, the semops waiting on
+just one semaphore are waiting on that semaphore's list.
 
-Signed-off-by: Alex Thorlton <athorlton@sgi.com>
-Reviewed-by: Robin Holt <holt@sgi.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Vikram Mulukutla <markivx@codeaurora.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
+In order to return the correct count, we have to walk that list too, in
+addition to the sem_array's list for complex operations.
+
+This bug broke dbench; it works again with this patch applied.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Kent Overstreet <koverstreet@google.com>
+Tested-by: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ ipc/sem.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN kernel/panic.c~panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks kernel/panic.c
---- a/kernel/panic.c~panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks
-+++ a/kernel/panic.c
-@@ -399,8 +399,9 @@ struct slowpath_args {
- static void warn_slowpath_common(const char *file, int line, void *caller,
- 				 unsigned taint, struct slowpath_args *args)
- {
--	printk(KERN_WARNING "------------[ cut here ]------------\n");
--	printk(KERN_WARNING "WARNING: at %s:%d %pS()\n", file, line, caller);
-+	pr_warn("------------[ cut here ]------------\n");
-+	pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS()\n",  '
-+		raw_smp_processor_id(), current->pid, file, line, caller);
+diff -puN ipc/sem.c~ipcsem-fix-semctl-getzcnt ipc/sem.c
+--- a/ipc/sem.c~ipcsem-fix-semctl-getzcnt
++++ a/ipc/sem.c
+@@ -815,6 +815,13 @@ static int count_semzcnt (struct sem_arr
+ 	struct sem_queue * q;
  
- 	if (args)
- 		vprintk(args->fmt, args->args);
+ 	semzcnt = 0;
++	list_for_each_entry(q, &sma->sem_base[semnum].sem_pending, list) {
++		struct sembuf * sops = q->sops;
++		BUG_ON(sops->sem_num != semnum);
++		if ((sops->sem_op == 0) && !(sops->sem_flg & IPC_NOWAIT))
++			semzcnt++;
++	}
++
+ 	list_for_each_entry(q, &sma->sem_pending, list) {
+ 		struct sembuf * sops = q->sops;
+ 		int nsops = q->nsops;
 _
 
-Patches currently in -mm which might be from athorlton@sgi.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
-dump_stack-serialize-the-output-from-dump_stack.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+mm-compaction-fix-of-improper-cache-flush-in-migration-code.patch
+ipcsem-fix-semctl-getzcnt.patch
+mm-remove-free_area_cache.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
