@@ -1,92 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-fix-crash-during-slab-init.patch removed from -mm tree
-Date: Fri, 10 May 2013 12:14:48 -0700
-Message-ID: <20130510191448.5F4C031C071@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size.patch removed from -mm tree
+Date: Fri, 10 May 2013 12:14:54 -0700
+Message-ID: <20130510191454.83ED95A4028@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:40682 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753261Ab3EJTOt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 May 2013 15:14:49 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 1so424981qec.1
-        for <mm-commits@vger.kernel.org>; Fri, 10 May 2013 12:14:49 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:44446 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753613Ab3EJTOz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 May 2013 15:14:55 -0400
+Received: by mail-qc0-f201.google.com with SMTP id c10so425669qcz.0
+        for <mm-commits@vger.kernel.org>; Fri, 10 May 2013 12:14:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clmason@fusionio.com, akpm@linux-foundation.org, chris.mason@fusionio.com, cl@linux.com, penberg@kernel.org, penguin-kernel@i-love.sakura.ne.jp, soren.brinkmann@xilinx.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: lizefan@huawei.com, davej@redhat.com, davidlohr.bueso@hp.com, lizfan@huawei.com, n-horiguchi@ah.jp.nec.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: fix crash during slab init
+     Subject: shm: fix null pointer deref when userspace specifies invalid hugepage size
 has been removed from the -mm tree.  Its filename was
-     slab-fix-crash-during-slab-init.patch
+     shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chris Mason <clmason@fusionio.com>
-Subject: slab: fix crash during slab init
+From: Li Zefan <lizefan@huawei.com>
+Subject: shm: fix null pointer deref when userspace specifies invalid hugepage size
 
-Commit 8a965b3b ("mm, slab_common: Fix bootstrap creation of kmalloc
-caches") introduced a regression that caused us to crash early during
-boot.  The commit was introducing ordering of slab creation, making sure
-two odd-sized slabs were created after specific powers of two sizes.
+Dave reported an oops triggered by trinity:
 
-But, if any of the power of two slabs were created earlier during boot,
-slabs at index 1 or 2 might not get created at all.  This patch makes sure
-none of the slabs get skipped.
+[  163.917836] BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+[  163.918984] IP: [<ffffffff812c48ed>] newseg+0x10d/0x390
+[  163.919705] PGD cf8c1067 PUD cf8c2067 PMD 0
+[  163.920326] Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+[  163.929949] CPU: 2 PID: 7636 Comm: trinity-child2 Not tainted 3.9.0+#67
+...
+[  163.953629] Call Trace:
+[  163.957706]  [<ffffffff812be322>] ipcget+0x182/0x380
+[  163.962123]  [<ffffffff810b99a5>] ?trace_hardirqs_on_caller+0x115/0x1e0
+[  163.966752]  [<ffffffff812c559a>] SyS_shmget+0x5a/0x60
+[  163.971163]  [<ffffffff812c47e0>] ? shm_close+0x140/0x140
+[  163.975590]  [<ffffffff812c3e60>] ? shm_release+0x50/0x50
+[  163.979991]  [<ffffffff812c3df0>] ? shm_get_unmapped_area+0x20/0x20
+[  163.984499]  [<ffffffff816caa14>] tracesys+0xdd/0xe2
 
-Tony Lindgren bisected this down to the offending commit, which really
-helped because bisect kept bringing me to almost but not quite this one.
+This bug was introduced by commit af73e4d9506d3b797509f3c030e7dcd554f7d9c4
+("hugetlbfs: fix mmap failure in unaligned size request").
 
-Signed-off-by: Chris Mason <chris.mason@fusionio.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Pekka Enberg <penberg@kernel.org>
-Acked-by: Soren Brinkmann <soren.brinkmann@xilinx.com>
-Tested-by: Soren Brinkmann <soren.brinkmann@xilinx.com>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Previously it would return -ENODEV, but seems -EINVAL is more appropriate.
+
+Signed-off-by: Li Zefan <lizfan@huawei.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ ipc/shm.c |    8 +++++++-
+ mm/mmap.c |    8 ++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab_common.c~slab-fix-crash-during-slab-init mm/slab_common.c
---- a/mm/slab_common.c~slab-fix-crash-during-slab-init
-+++ a/mm/slab_common.c
-@@ -446,18 +446,18 @@ void __init create_kmalloc_caches(unsign
- 		if (!kmalloc_caches[i]) {
- 			kmalloc_caches[i] = create_kmalloc_cache(NULL,
- 							1 << i, flags);
+diff -puN ipc/shm.c~shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size ipc/shm.c
+--- a/ipc/shm.c~shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size
++++ a/ipc/shm.c
+@@ -493,7 +493,13 @@ static int newseg(struct ipc_namespace *
+ 	if (shmflg & SHM_HUGETLB) {
+ 		struct hstate *hs = hstate_sizelog((shmflg >> SHM_HUGE_SHIFT)
+ 						& SHM_HUGE_MASK);
+-		size_t hugesize = ALIGN(size, huge_page_size(hs));
++		size_t hugesize;
++
++		if (!hs) {
++			error = -EINVAL;
++			goto no_file;
 +		}
++		hugesize = ALIGN(size, huge_page_size(hs));
  
--			/*
--			 * Caches that are not of the two-to-the-power-of size.
--			 * These have to be created immediately after the
--			 * earlier power of two caches
--			 */
--			if (KMALLOC_MIN_SIZE <= 32 && !kmalloc_caches[1] && i == 6)
--				kmalloc_caches[1] = create_kmalloc_cache(NULL, 96, flags);
-+		/*
-+		 * Caches that are not of the two-to-the-power-of size.
-+		 * These have to be created immediately after the
-+		 * earlier power of two caches
-+		 */
-+		if (KMALLOC_MIN_SIZE <= 32 && !kmalloc_caches[1] && i == 6)
-+			kmalloc_caches[1] = create_kmalloc_cache(NULL, 96, flags);
+ 		/* hugetlb_file_setup applies strict accounting */
+ 		if (shmflg & SHM_NORESERVE)
+diff -puN mm/mmap.c~shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size mm/mmap.c
+--- a/mm/mmap.c~shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size
++++ a/mm/mmap.c
+@@ -1367,9 +1367,13 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+ 			len = ALIGN(len, huge_page_size(hstate_file(file)));
+ 	} else if (flags & MAP_HUGETLB) {
+ 		struct user_struct *user = NULL;
++		struct hstate *hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) &
++						   SHM_HUGE_MASK);
  
--			if (KMALLOC_MIN_SIZE <= 64 && !kmalloc_caches[2] && i == 7)
--				kmalloc_caches[2] = create_kmalloc_cache(NULL, 192, flags);
--		}
-+		if (KMALLOC_MIN_SIZE <= 64 && !kmalloc_caches[2] && i == 7)
-+			kmalloc_caches[2] = create_kmalloc_cache(NULL, 192, flags);
- 	}
- 
- 	/* Kmalloc array is now usable */
+-		len = ALIGN(len, huge_page_size(hstate_sizelog(
+-			(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK)));
++		if (!hs)
++			return -EINVAL;
++
++		len = ALIGN(len, huge_page_size(hs));
+ 		/*
+ 		 * VM_NORESERVE is used because the reservations will be
+ 		 * taken when vm_ops->mmap() is called
 _
 
-Patches currently in -mm which might be from clmason@fusionio.com are
+Patches currently in -mm which might be from lizefan@huawei.com are
 
 origin.patch
+ocfs2-unlock-rw-lock-if-inode-lock-failed.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
 
