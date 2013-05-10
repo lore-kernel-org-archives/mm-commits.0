@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch added to -mm tree
-Date: Fri, 10 May 2013 13:49:50 -0700
-Message-ID: <20130510204950.C65435A4028@corp2gmr1-2.hot.corp.google.com>
+Subject: + char-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch added to -mm tree
+Date: Fri, 10 May 2013 13:49:52 -0700
+Message-ID: <20130510204952.C64F15A4028@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:59875 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754405Ab3EJUtv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 May 2013 16:49:51 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so433487ggl.4
-        for <mm-commits@vger.kernel.org>; Fri, 10 May 2013 13:49:51 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:35917 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754449Ab3EJUtx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 May 2013 16:49:53 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m14so433573yen.2
+        for <mm-commits@vger.kernel.org>; Fri, 10 May 2013 13:49:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: huawei.libin@huawei.com
 
 
 The patch titled
-     Subject: ncpfs: use vma_pages() to replace (vm_end - vm_start) >> PAGE_SHIFT
+     Subject: char: use vma_pages() to replace (vm_end - vm_start) >> PAGE_SHIFT
 has been added to the -mm tree.  Its filename is
-     ncpfs-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch
+     char-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libin <huawei.libin@huawei.com>
-Subject: ncpfs: use vma_pages() to replace (vm_end - vm_start) >> PAGE_SHIFT
+Subject: char: use vma_pages() to replace (vm_end - vm_start) >> PAGE_SHIFT
 
 (*->vm_end - *->vm_start) >> PAGE_SHIFT operation is implemented
 as a inline funcion vma_pages() in linux/mm.h, so using it.
@@ -43,21 +43,21 @@ Signed-off-by: Libin <huawei.libin@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/mmap.c |    2 +-
+ drivers/char/mspec.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ncpfs/mmap.c~ncpfs-use-vma_pages-to-replace-vm_end-vm_start-page_shift fs/ncpfs/mmap.c
---- a/fs/ncpfs/mmap.c~ncpfs-use-vma_pages-to-replace-vm_end-vm_start-page_shift
-+++ a/fs/ncpfs/mmap.c
-@@ -117,7 +117,7 @@ int ncp_mmap(struct file *file, struct v
- 		return -EINVAL;
- 	/* we do not support files bigger than 4GB... We eventually 
- 	   supports just 4GB... */
--	if (((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff 
-+	if (vma_pages(vma) + vma->vm_pgoff
- 	   > (1U << (32 - PAGE_SHIFT)))
- 		return -EFBIG;
+diff -puN drivers/char/mspec.c~char-use-vma_pages-to-replace-vm_end-vm_start-page_shift drivers/char/mspec.c
+--- a/drivers/char/mspec.c~char-use-vma_pages-to-replace-vm_end-vm_start-page_shift
++++ a/drivers/char/mspec.c
+@@ -168,7 +168,7 @@ mspec_close(struct vm_area_struct *vma)
+ 	if (!atomic_dec_and_test(&vdata->refcnt))
+ 		return;
  
+-	last_index = (vdata->vm_end - vdata->vm_start) >> PAGE_SHIFT;
++	last_index = vma_pages(vdata);
+ 	for (index = 0; index < last_index; index++) {
+ 		if (vdata->maddr[index] == 0)
+ 			continue;
 _
 
 Patches currently in -mm which might be from huawei.libin@huawei.com are
