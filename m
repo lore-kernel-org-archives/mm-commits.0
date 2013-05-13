@@ -1,70 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: + uio-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch added to -mm tree
-Date: Fri, 10 May 2013 13:49:54 -0700
-Message-ID: <20130510204954.C3DFB31C078@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 13 May 2013 12:13:53 -0700
+Message-ID: <20130513191353.C8C4431C3A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:51132 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754449Ab3EJUtz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 May 2013 16:49:55 -0400
-Received: by mail-vc0-f202.google.com with SMTP id gf12so434402vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 10 May 2013 13:49:55 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:48804 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754672Ab3EMTNy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 15:13:54 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so637080yho.5
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 12:13:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: huawei.libin@huawei.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uio: use vma_pages() to replace (vm_end - vm_start) >> PAGE_SHIFT
-has been added to the -mm tree.  Its filename is
-     uio-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Libin <huawei.libin@huawei.com>
-Subject: uio: use vma_pages() to replace (vm_end - vm_start) >> PAGE_SHIFT
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-(*->vm_end - *->vm_start) >> PAGE_SHIFT operation is implemented
-as a inline funcion vma_pages() in linux/mm.h, so using it.
-
-Signed-off-by: Libin <huawei.libin@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uio/uio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/kvm/kvm_mips.c                           |   12 -----------
+ drivers/md/persistent-data/dm-space-map-metadata.c |    4 ---
+ 2 files changed, 16 deletions(-)
 
-diff -puN drivers/uio/uio.c~uio-use-vma_pages-to-replace-vm_end-vm_start-page_shift drivers/uio/uio.c
---- a/drivers/uio/uio.c~uio-use-vma_pages-to-replace-vm_end-vm_start-page_shift
-+++ a/drivers/uio/uio.c
-@@ -677,7 +677,7 @@ static int uio_mmap(struct file *filep,
- 	if (mi < 0)
- 		return -EINVAL;
+diff -puN arch/mips/kvm/kvm_mips.c~linux-next-git-rejects arch/mips/kvm/kvm_mips.c
+--- a/arch/mips/kvm/kvm_mips.c~linux-next-git-rejects
++++ a/arch/mips/kvm/kvm_mips.c
+@@ -209,29 +209,17 @@ int kvm_arch_create_memslot(struct kvm_m
+ }
  
--	requested_pages = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
-+	requested_pages = vma_pages(vma);
- 	actual_pages = ((idev->info->mem[mi].addr & ~PAGE_MASK)
- 			+ idev->info->mem[mi].size + PAGE_SIZE -1) >> PAGE_SHIFT;
- 	if (requested_pages > actual_pages)
+ int kvm_arch_prepare_memory_region(struct kvm *kvm,
+-<<<<<<< HEAD
+-                                struct kvm_memory_slot *memslot,
+-                                struct kvm_userspace_memory_region *mem,
+-                                enum kvm_mr_change change)
+-=======
+ 				   struct kvm_memory_slot *memslot,
+ 				   struct kvm_memory_slot old,
+ 				   struct kvm_userspace_memory_region *mem,
+ 				   bool user_alloc)
+->>>>>>> linux-next/akpm-base
+ {
+ 	return 0;
+ }
+ 
+ void kvm_arch_commit_memory_region(struct kvm *kvm,
+-<<<<<<< HEAD
+-                                struct kvm_userspace_memory_region *mem,
+-                                const struct kvm_memory_slot *old,
+-                                enum kvm_mr_change change)
+-=======
+ 				   struct kvm_userspace_memory_region *mem,
+ 				   struct kvm_memory_slot old, bool user_alloc)
+->>>>>>> linux-next/akpm-base
+ {
+ 	unsigned long npages = 0;
+ 	int i, err = 0;
+diff -puN drivers/md/persistent-data/dm-space-map-metadata.c~linux-next-git-rejects drivers/md/persistent-data/dm-space-map-metadata.c
+--- a/drivers/md/persistent-data/dm-space-map-metadata.c~linux-next-git-rejects
++++ a/drivers/md/persistent-data/dm-space-map-metadata.c
+@@ -465,11 +465,7 @@ static struct dm_space_map ops = {
+ 	.commit = sm_metadata_commit,
+ 	.root_size = sm_metadata_root_size,
+ 	.copy_root = sm_metadata_copy_root,
+-<<<<<<< HEAD
+-	.register_threshold_callback = sm_metadata_register_threshold_callback
+-=======
+ 	.register_threshold_callback = NULL
+->>>>>>> linux-next/akpm-base
+ };
+ 
+ /*----------------------------------------------------------------*/
 _
 
-Patches currently in -mm which might be from huawei.libin@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-mm-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch
-ncpfs-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch
-char-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch
-uio-use-vma_pages-to-replace-vm_end-vm_start-page_shift.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+generic-dynamic-per-cpu-refcounting.patch
+block-prep-work-for-batch-completion.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+bpf-add-comments-explaining-the-schedule_work-operation.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
