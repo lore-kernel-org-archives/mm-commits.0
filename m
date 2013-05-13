@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch added to -mm tree
-Date: Mon, 13 May 2013 16:06:53 -0700
-Message-ID: <20130513230653.F00F331C2A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch added to -mm tree
+Date: Mon, 13 May 2013 16:06:59 -0700
+Message-ID: <20130513230659.EA2BF5A423C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:36360 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755136Ab3EMXGz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:06:55 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so669786yho.4
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:06:55 -0700 (PDT)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:56759 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136Ab3EMXHC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:02 -0400
+Received: by mail-ye0-f201.google.com with SMTP id m14so668181yen.2
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, benh@kernel.crashing.org, fweisbec@gmail.com, jan.kratochvi
 
 
 The patch titled
-     Subject: ptrace/sh: revert "hw_breakpoints: Fix racy access to ptrace breakpoints"
+     Subject: ptrace/x86: simplify the "disable" logic in ptrace_write_dr7()
 has been added to the -mm tree.  Its filename is
-     ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+     ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace/sh: revert "hw_breakpoints: Fix racy access to ptrace breakpoints"
+Subject: ptrace/x86: simplify the "disable" logic in ptrace_write_dr7()
 
-This reverts commit e0ac8457d020c ("hw_breakpoints: Fix racy access to
-ptrace breakpoints").
-
-The patch was fine but we can no longer race with SIGKILL after 9899d11f
-("ptrace: ensure arch_ptrace/ptrace_request can never race with SIGKILL"),
-the __TASK_TRACED tracee can't be woken up and ->ptrace_bps[] can't go
-away.
+ptrace_write_dr7() looks unnecessarily overcomplicated.  We can factor out
+ptrace_modify_breakpoint() and do not do "continue" twice, just we need to
+pass the proper "disabled" argument to ptrace_modify_breakpoint().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Cc: Michael Neuling <mikey@neuling.org>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Prasad <prasad@linux.vnet.ibm.com>
 Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/ptrace_32.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/kernel/ptrace.c |   38 +++++++++++++------------------------
+ 1 file changed, 14 insertions(+), 24 deletions(-)
 
-diff -puN arch/sh/kernel/ptrace_32.c~ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints arch/sh/kernel/ptrace_32.c
---- a/arch/sh/kernel/ptrace_32.c~ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints
-+++ a/arch/sh/kernel/ptrace_32.c
-@@ -117,11 +117,7 @@ void user_enable_single_step(struct task
+diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7 arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7
++++ a/arch/x86/kernel/ptrace.c
+@@ -637,9 +637,7 @@ static int ptrace_write_dr7(struct task_
+ 	struct thread_struct *thread = &(tsk->thread);
+ 	unsigned long old_dr7;
+ 	int i, orig_ret = 0, rc = 0;
+-	int enabled, second_pass = 0;
+-	unsigned len, type;
+-	struct perf_event *bp;
++	int second_pass = 0;
  
- 	set_tsk_thread_flag(child, TIF_SINGLESTEP);
+ 	data &= ~DR_CONTROL_RESERVED;
+ 	old_dr7 = ptrace_get_dr7(thread->ptrace_bps);
+@@ -649,30 +647,22 @@ restore:
+ 	 * appropriate changes to each.
+ 	 */
+ 	for (i = 0; i < HBP_NUM; i++) {
+-		enabled = decode_dr7(data, i, &len, &type);
+-		bp = thread->ptrace_bps[i];
++		unsigned len, type;
++		bool disabled = !decode_dr7(data, i, &len, &type);
++		struct perf_event *bp = thread->ptrace_bps[i];
  
--	if (ptrace_get_breakpoints(child) < 0)
--		return;
+-		if (!enabled) {
+-			if (bp) {
+-				/*
+-				 * Don't unregister the breakpoints right-away,
+-				 * unless all register_user_hw_breakpoint()
+-				 * requests have succeeded. This prevents
+-				 * any window of opportunity for debug
+-				 * register grabbing by other users.
+-				 */
+-				if (!second_pass)
+-					continue;
 -
- 	set_single_step(child, pc);
--	ptrace_put_breakpoints(child);
- }
+-				rc = ptrace_modify_breakpoint(bp, len, type,
+-							      tsk, 1);
+-				if (rc)
+-					break;
+-			}
+-			continue;
++		if (disabled) {
++			/*
++			 * Don't unregister the breakpoints right-away, unless
++			 * all register_user_hw_breakpoint() requests have
++			 * succeeded. This prevents any window of opportunity
++			 * for debug register grabbing by other users.
++			 */
++			if (!bp || !second_pass)
++				continue;
+ 		}
  
- void user_disable_single_step(struct task_struct *child)
+-		rc = ptrace_modify_breakpoint(bp, len, type, tsk, 0);
++		rc = ptrace_modify_breakpoint(bp, len, type, tsk, disabled);
+ 		if (rc)
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
