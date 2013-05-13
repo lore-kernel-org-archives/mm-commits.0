@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch added to -mm tree
-Date: Mon, 13 May 2013 14:11:47 -0700
-Message-ID: <20130513211147.DECC35A40E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch added to -mm tree
+Date: Mon, 13 May 2013 14:11:49 -0700
+Message-ID: <20130513211149.DCD305A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:42787 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753090Ab3EMVLt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:11:49 -0400
-Received: by mail-qc0-f202.google.com with SMTP id d1so655004qcz.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:11:48 -0700 (PDT)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:50763 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752912Ab3EMVLv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:11:51 -0400
+Received: by mail-gg0-f201.google.com with SMTP id k25so654172ggl.4
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:11:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: cody@linux.vnet.ibm.com, gilad@benyossef.com, kosaki.motohiro@gmail.com, mgo
 
 
 The patch titled
-     Subject: mm/page_alloc: insert memory barriers to allow async update of pcp batch and high
+     Subject: mm/page_alloc: protect pcp->batch accesses with ACCESS_ONCE
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch
+     mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: mm/page_alloc: insert memory barriers to allow async update of pcp batch and high
+Subject: mm/page_alloc: protect pcp->batch accesses with ACCESS_ONCE
 
-Introduce pageset_update() to perform a safe transision from one set of
-pcp->{batch,high} to a new set using memory barriers.
-
-This ensures that batch is always set to a safe value (1) prior to
-updating high, and ensure that high is fully updated before setting the
-real value of batch.  It avoids ->batch ever rising above ->high.
-
-Suggested by Gilad Ben-Yossef in these threads:
-
-	https://lkml.org/lkml/2013/4/9/23
-	https://lkml.org/lkml/2013/4/10/49
-
-Also reproduces his proposed comment.
+pcp->batch could change at any point, avoid relying on it being a stable
+value.
 
 Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
-Reviewed-by: Gilad Ben-Yossef <gilad@benyossef.com>
+Cc: Gilad Ben-Yossef <gilad@benyossef.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   41 ++++++++++++++++++++++++++++++++---------
- 1 file changed, 32 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high
+diff -puN mm/page_alloc.c~mm-page_alloc-protect-pcp-batch-accesses-with-access_once mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-protect-pcp-batch-accesses-with-access_once
 +++ a/mm/page_alloc.c
-@@ -4035,12 +4035,37 @@ static int __meminit zone_batchsize(stru
- #endif
- }
- 
-+/*
-+ * pcp->high and pcp->batch values are related and dependent on one another:
-+ * ->batch must never be higher then ->high.
-+ * The following function updates them in a safe manner without read side
-+ * locking.
-+ *
-+ * Any new users of pcp->batch and pcp->high should ensure they can cope with
-+ * those fields changing asynchronously (acording the the above rule).
-+ *
-+ * mutex_is_locked(&pcp_batch_high_lock) required when calling this function
-+ * outside of boot time (or some other assurance that no concurrent updaters
-+ * exist).
-+ */
-+static void pageset_update(struct per_cpu_pages *pcp, unsigned long high,
-+		unsigned long batch)
-+{
-+       /* start with a fail safe value for batch */
-+	pcp->batch = 1;
-+	smp_wmb();
-+
-+       /* Update high, then batch, in order */
-+	pcp->high = high;
-+	smp_wmb();
-+
-+	pcp->batch = batch;
-+}
-+
- /* a companion to setup_pagelist_highmark() */
- static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
+@@ -1182,10 +1182,12 @@ void drain_zone_pages(struct zone *zone,
  {
--	struct per_cpu_pages *pcp = &p->pcp;
--	pcp->high = 6 * batch;
--	pcp->batch = max(1UL, 1 * batch);
-+	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
- }
+ 	unsigned long flags;
+ 	int to_drain;
++	unsigned long batch;
  
- static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
-@@ -4064,13 +4089,11 @@ static void setup_pageset(struct per_cpu
- static void setup_pagelist_highmark(struct per_cpu_pageset *p,
- 				unsigned long high)
- {
--	struct per_cpu_pages *pcp;
-+	unsigned long batch = max(1UL, high / 4);
-+	if ((high / 4) > (PAGE_SHIFT * 8))
-+		batch = PAGE_SHIFT * 8;
+ 	local_irq_save(flags);
+-	if (pcp->count >= pcp->batch)
+-		to_drain = pcp->batch;
++	batch = ACCESS_ONCE(pcp->batch);
++	if (pcp->count >= batch)
++		to_drain = batch;
+ 	else
+ 		to_drain = pcp->count;
+ 	if (to_drain > 0) {
+@@ -1353,8 +1355,9 @@ void free_hot_cold_page(struct page *pag
+ 		list_add(&page->lru, &pcp->lists[migratetype]);
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+-		free_pcppages_bulk(zone, pcp->batch, pcp);
+-		pcp->count -= pcp->batch;
++		unsigned long batch = ACCESS_ONCE(pcp->batch);
++		free_pcppages_bulk(zone, batch, pcp);
++		pcp->count -= batch;
+ 	}
  
--	pcp = &p->pcp;
--	pcp->high = high;
--	pcp->batch = max(1UL, high/4);
--	if ((high/4) > (PAGE_SHIFT * 8))
--		pcp->batch = PAGE_SHIFT * 8;
-+	pageset_update(&p->pcp, high, batch);
- }
- 
- static void __meminit setup_zone_pageset(struct zone *zone)
+ out:
 _
 
 Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
