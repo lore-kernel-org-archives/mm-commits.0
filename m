@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-x86-cleanup-ptrace_set_debugreg.patch added to -mm tree
-Date: Mon, 13 May 2013 16:07:11 -0700
-Message-ID: <20130513230711.EC1815A423C@corp2gmr1-2.hot.corp.google.com>
+Subject: + ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch added to -mm tree
+Date: Mon, 13 May 2013 16:07:14 -0700
+Message-ID: <20130513230715.133D15A4211@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:54848 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755136Ab3EMXHN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:13 -0400
-Received: by mail-qc0-f202.google.com with SMTP id d1so668782qcz.5
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:13 -0700 (PDT)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:50792 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136Ab3EMXHQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:16 -0400
+Received: by mail-qe0-f74.google.com with SMTP id 7so50302qeb.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, benh@kernel.crashing.org, fweisbec@gmail.com, jan.kratochvi
 
 
 The patch titled
-     Subject: ptrace/x86: cleanup ptrace_set_debugreg()
+     Subject: ptrace: PTRACE_DETACH should do flush_ptrace_hw_breakpoint(child)
 has been added to the -mm tree.  Its filename is
-     ptrace-x86-cleanup-ptrace_set_debugreg.patch
+     ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace/x86: cleanup ptrace_set_debugreg()
+Subject: ptrace: PTRACE_DETACH should do flush_ptrace_hw_breakpoint(child)
 
-ptrace_set_debugreg() is trivial but looks horrible.  Kill the unnecessary
-goto's and return's to cleanup the code.
+Change ptrace_detach() to call flush_ptrace_hw_breakpoint(child).  This
+frees the slots for non-ptrace PERF_TYPE_BREAKPOINT users, and this
+ensures that the tracee won't be killed by SIGTRAP triggered by the active
+breakpoints.
 
-This matches ptrace_get_debugreg() which also needs the trivial whitespace
-cleanups.
+Test-case:
+
+	unsigned long encode_dr7(int drnum, int enable, unsigned int type, unsigned int len)
+	{
+		unsigned long dr7;
+
+		dr7 = ((len | type) & 0xf)
+			<< (DR_CONTROL_SHIFT + drnum * DR_CONTROL_SIZE);
+		if (enable)
+			dr7 |= (DR_GLOBAL_ENABLE << (drnum * DR_ENABLE_SIZE));
+
+		return dr7;
+	}
+
+	int write_dr(int pid, int dr, unsigned long val)
+	{
+		return ptrace(PTRACE_POKEUSER, pid,
+				offsetof (struct user, u_debugreg[dr]),
+				val);
+	}
+
+	void func(void)
+	{
+	}
+
+	int main(void)
+	{
+		int pid, stat;
+		unsigned long dr7;
+
+		pid = fork();
+		if (!pid) {
+			assert(ptrace(PTRACE_TRACEME, 0,0,0) == 0);
+			kill(getpid(), SIGHUP);
+
+			func();
+			return 0x13;
+		}
+
+		assert(pid == waitpid(-1, &stat, 0));
+		assert(WSTOPSIG(stat) == SIGHUP);
+
+		assert(write_dr(pid, 0, (long)func) == 0);
+		dr7 = encode_dr7(0, 1, DR_RW_EXECUTE, DR_LEN_1);
+		assert(write_dr(pid, 7, dr7) == 0);
+
+		assert(ptrace(PTRACE_DETACH, pid, 0,0) == 0);
+		assert(pid == waitpid(-1, &stat, 0));
+		assert(stat == 0x1300);
+
+		return 0;
+	}
+
+Before this patch the child is killed after PTRACE_DETACH.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
@@ -56,67 +110,20 @@ Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |   26 ++++++++------------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
+ kernel/ptrace.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-cleanup-ptrace_set_debugreg arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~ptrace-x86-cleanup-ptrace_set_debugreg
-+++ a/arch/x86/kernel/ptrace.c
-@@ -703,7 +703,7 @@ restore:
-  */
- static unsigned long ptrace_get_debugreg(struct task_struct *tsk, int n)
- {
--	struct thread_struct *thread = &(tsk->thread);
-+	struct thread_struct *thread = &tsk->thread;
- 	unsigned long val = 0;
+diff -puN kernel/ptrace.c~ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild
++++ a/kernel/ptrace.c
+@@ -469,6 +469,7 @@ static int ptrace_detach(struct task_str
+ 	/* Architecture-specific hardware disable .. */
+ 	ptrace_disable(child);
+ 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
++	flush_ptrace_hw_breakpoint(child);
  
- 	if (n < HBP_NUM) {
-@@ -713,7 +713,7 @@ static unsigned long ptrace_get_debugreg
- 			val = bp->hw.info.address;
- 	} else if (n == 6) {
- 		val = thread->debugreg6;
--	 } else if (n == 7) {
-+	} else if (n == 7) {
- 		val = thread->ptrace_dr7;
- 	}
- 	return val;
-@@ -761,30 +761,20 @@ static int ptrace_set_breakpoint_addr(st
- static int ptrace_set_debugreg(struct task_struct *tsk, int n,
- 			       unsigned long val)
- {
--	struct thread_struct *thread = &(tsk->thread);
--	int rc = 0;
--
-+	struct thread_struct *thread = &tsk->thread;
- 	/* There are no DR4 or DR5 registers */
--	if (n == 4 || n == 5)
--		return -EIO;
-+	int rc = -EIO;
- 
--	if (n == 6) {
--		thread->debugreg6 = val;
--		goto ret_path;
--	}
- 	if (n < HBP_NUM) {
- 		rc = ptrace_set_breakpoint_addr(tsk, n, val);
--		if (rc)
--			return rc;
--	}
--	/* All that's left is DR7 */
--	if (n == 7) {
-+	} else if (n == 6) {
-+		thread->debugreg6 = val;
-+		rc = 0;
-+	} else if (n == 7) {
- 		rc = ptrace_write_dr7(tsk, val);
- 		if (!rc)
- 			thread->ptrace_dr7 = val;
- 	}
--
--ret_path:
- 	return rc;
- }
- 
+ 	write_lock_irq(&tasklist_lock);
+ 	/*
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
