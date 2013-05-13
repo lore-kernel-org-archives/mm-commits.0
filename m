@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max8998c-remove-empty-function.patch added to -mm tree
-Date: Mon, 13 May 2013 16:54:49 -0700
-Message-ID: <20130513235449.A4D0131C07C@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-max8925c-remove-empty-function.patch added to -mm tree
+Date: Mon, 13 May 2013 16:54:51 -0700
+Message-ID: <20130513235451.CAA7231C07C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:61174 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656Ab3EMXyu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:54:50 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so672677yen.3
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:54:50 -0700 (PDT)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:55321 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656Ab3EMXyx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:54:53 -0400
+Received: by mail-qe0-f73.google.com with SMTP id a11so673267qen.2
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:54:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, mk7.kang@samsung.com
+Cc: sachin.kamat@linaro.org, haojian.zhuang@gmail.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max8998.c: remove empty function
+     Subject: drivers/rtc/rtc-max8925.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max8998c-remove-empty-function.patch
+     drivers-rtc-rtc-max8925c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max8998.c: remove empty function
+Subject: drivers/rtc/rtc-max8925.c: remove empty function
 
 After the switch to devm_ functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything. 
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Minkyu Kang <mk7.kang@samsung.com>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max8998.c |    6 ------
+ drivers/rtc/rtc-max8925.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-max8998.c~drivers-rtc-rtc-max8998c-remove-empty-function drivers/rtc/rtc-max8998.c
---- a/drivers/rtc/rtc-max8998.c~drivers-rtc-rtc-max8998c-remove-empty-function
-+++ a/drivers/rtc/rtc-max8998.c
-@@ -294,11 +294,6 @@ static int max8998_rtc_probe(struct plat
+diff -puN drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-remove-empty-function drivers/rtc/rtc-max8925.c
+--- a/drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-remove-empty-function
++++ a/drivers/rtc/rtc-max8925.c
+@@ -288,11 +288,6 @@ static int max8925_rtc_probe(struct plat
  	return 0;
  }
  
--static int max8998_rtc_remove(struct platform_device *pdev)
+-static int max8925_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static const struct platform_device_id max8998_rtc_id[] = {
- 	{ "max8998-rtc", TYPE_MAX8998 },
- 	{ "lp3974-rtc", TYPE_LP3974 },
-@@ -311,7 +306,6 @@ static struct platform_driver max8998_rt
- 		.owner	= THIS_MODULE,
+ #ifdef CONFIG_PM_SLEEP
+ static int max8925_rtc_suspend(struct device *dev)
+ {
+@@ -323,7 +318,6 @@ static struct platform_driver max8925_rt
+ 		.pm     = &max8925_rtc_pm_ops,
  	},
- 	.probe		= max8998_rtc_probe,
--	.remove		= max8998_rtc_remove,
- 	.id_table	= max8998_rtc_id,
+ 	.probe		= max8925_rtc_probe,
+-	.remove		= max8925_rtc_remove,
  };
  
+ module_platform_driver(max8925_rtc_driver);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
