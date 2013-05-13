@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch added to -mm tree
-Date: Mon, 13 May 2013 16:07:08 -0700
-Message-ID: <20130513230708.F1E145A4255@corp2gmr1-2.hot.corp.google.com>
+Subject: + ptrace-x86-cleanup-ptrace_set_debugreg.patch added to -mm tree
+Date: Mon, 13 May 2013 16:07:11 -0700
+Message-ID: <20130513230711.EC1815A423C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:62791 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755136Ab3EMXHK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:10 -0400
-Received: by mail-qa0-f73.google.com with SMTP id bs12so333798qab.4
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:10 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:54848 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136Ab3EMXHN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:13 -0400
+Received: by mail-qc0-f202.google.com with SMTP id d1so668782qcz.5
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, benh@kernel.crashing.org, fweisbec@gmail.com, jan.kratochvi
 
 
 The patch titled
-     Subject: ptrace/x86: ptrace_write_dr7() should create bp if !disabled
+     Subject: ptrace/x86: cleanup ptrace_set_debugreg()
 has been added to the -mm tree.  Its filename is
-     ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+     ptrace-x86-cleanup-ptrace_set_debugreg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace/x86: ptrace_write_dr7() should create bp if !disabled
+Subject: ptrace/x86: cleanup ptrace_set_debugreg()
 
-24f1e32c ("hw-breakpoints: Rewrite the hw-breakpoints layer on top of perf
-events") introduced the minor regression.  Before this commit
+ptrace_set_debugreg() is trivial but looks horrible.  Kill the unnecessary
+goto's and return's to cleanup the code.
 
-	PTRACE_POKEUSER DR7, enableDR0
-	PTRACE_POKEUSER DR0, address
-
-was perfectly valid, now PTRACE_POKEUSER(DR7) fails if DR0 was not
-previously initialized by PTRACE_POKEUSER(DR0).
-
-Change ptrace_write_dr7() to do ptrace_register_breakpoint(addr => 0) if
-!bp && !disabled.  This fixes watchpoint-zeroaddr from ptrace-tests, see
-https://bugzilla.redhat.com/show_bug.cgi?id=660204.
+This matches ptrace_get_debugreg() which also needs the trivial whitespace
+cleanups.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Jan Kratochvil <jan.kratochvil@redhat.com>
 Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Cc: Michael Neuling <mikey@neuling.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Paul Mundt <lethal@linux-sh.org>
@@ -63,36 +56,67 @@ Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ arch/x86/kernel/ptrace.c |   26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled
+diff -puN arch/x86/kernel/ptrace.c~ptrace-x86-cleanup-ptrace_set_debugreg arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~ptrace-x86-cleanup-ptrace_set_debugreg
 +++ a/arch/x86/kernel/ptrace.c
-@@ -670,13 +670,16 @@ restore:
- 		if (!bp) {
- 			if (disabled)
- 				continue;
--			/*
--			 * We should have at least an inactive breakpoint at
--			 * this slot. It means the user is writing dr7 without
--			 * having written the address register first.
--			 */
--			rc = -EINVAL;
--			break;
-+
-+			bp = ptrace_register_breakpoint(tsk,
-+					len, type, 0, disabled);
-+			if (IS_ERR(bp)) {
-+				rc = PTR_ERR(bp);
-+				break;
-+			}
-+
-+			thread->ptrace_bps[i] = bp;
-+			continue;
- 		}
+@@ -703,7 +703,7 @@ restore:
+  */
+ static unsigned long ptrace_get_debugreg(struct task_struct *tsk, int n)
+ {
+-	struct thread_struct *thread = &(tsk->thread);
++	struct thread_struct *thread = &tsk->thread;
+ 	unsigned long val = 0;
  
- 		rc = ptrace_modify_breakpoint(bp, len, type, disabled);
+ 	if (n < HBP_NUM) {
+@@ -713,7 +713,7 @@ static unsigned long ptrace_get_debugreg
+ 			val = bp->hw.info.address;
+ 	} else if (n == 6) {
+ 		val = thread->debugreg6;
+-	 } else if (n == 7) {
++	} else if (n == 7) {
+ 		val = thread->ptrace_dr7;
+ 	}
+ 	return val;
+@@ -761,30 +761,20 @@ static int ptrace_set_breakpoint_addr(st
+ static int ptrace_set_debugreg(struct task_struct *tsk, int n,
+ 			       unsigned long val)
+ {
+-	struct thread_struct *thread = &(tsk->thread);
+-	int rc = 0;
+-
++	struct thread_struct *thread = &tsk->thread;
+ 	/* There are no DR4 or DR5 registers */
+-	if (n == 4 || n == 5)
+-		return -EIO;
++	int rc = -EIO;
+ 
+-	if (n == 6) {
+-		thread->debugreg6 = val;
+-		goto ret_path;
+-	}
+ 	if (n < HBP_NUM) {
+ 		rc = ptrace_set_breakpoint_addr(tsk, n, val);
+-		if (rc)
+-			return rc;
+-	}
+-	/* All that's left is DR7 */
+-	if (n == 7) {
++	} else if (n == 6) {
++		thread->debugreg6 = val;
++		rc = 0;
++	} else if (n == 7) {
+ 		rc = ptrace_write_dr7(tsk, val);
+ 		if (!rc)
+ 			thread->ptrace_dr7 = val;
+ 	}
+-
+-ret_path:
+ 	return rc;
+ }
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
