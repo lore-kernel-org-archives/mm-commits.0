@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch added to -mm tree
-Date: Mon, 13 May 2013 14:12:01 -0700
-Message-ID: <20130513211201.A7F1031C276@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch added to -mm tree
+Date: Mon, 13 May 2013 14:12:03 -0700
+Message-ID: <20130513211203.8A78B31C276@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:48541 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378Ab3EMVMC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:12:02 -0400
-Received: by mail-yh0-f73.google.com with SMTP id a41so656007yho.2
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:12:02 -0700 (PDT)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:53877 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753090Ab3EMVMF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:12:05 -0400
+Received: by mail-qa0-f73.google.com with SMTP id bs12so320081qab.2
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:12:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: cody@linux.vnet.ibm.com, gilad@benyossef.com, kosaki.motohiro@gmail.com, mgo
 
 
 The patch titled
-     Subject: mm/page_alloc: factor zone_pageset_init() out of setup_zone_pageset()
+     Subject: mm/page_alloc: in zone_pcp_update(), uze zone_pageset_init()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch
+     mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: mm/page_alloc: factor zone_pageset_init() out of setup_zone_pageset()
+Subject: mm/page_alloc: in zone_pcp_update(), uze zone_pageset_init()
+
+Previously, zone_pcp_update() called pageset_set_batch() directly,
+essentially assuming that percpu_pagelist_fraction == 0.  Correct this by
+calling zone_pageset_init(), which chooses the appropriate ->batch and
+->high calculations.
 
 Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
 Cc: Gilad Ben-Yossef <gilad@benyossef.com>
@@ -44,50 +49,25 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset
+diff -puN mm/page_alloc.c~mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init
 +++ a/mm/page_alloc.c
-@@ -4104,22 +4104,25 @@ static void setup_pagelist_highmark(stru
- 	pageset_update(&p->pcp, high, batch);
- }
- 
-+static void __meminit zone_pageset_init(struct zone *zone, int cpu)
-+{
-+	struct per_cpu_pageset *pcp = per_cpu_ptr(zone->pageset, cpu);
-+
-+	pageset_init(pcp);
-+	if (percpu_pagelist_fraction)
-+		setup_pagelist_highmark(pcp,
-+			(zone->managed_pages /
-+				percpu_pagelist_fraction));
-+	else
-+		pageset_set_batch(pcp, zone_batchsize(zone));
-+}
-+
- static void __meminit setup_zone_pageset(struct zone *zone)
+@@ -6098,11 +6098,9 @@ void free_contig_range(unsigned long pfn
+ void __meminit zone_pcp_update(struct zone *zone)
  {
- 	int cpu;
--
- 	zone->pageset = alloc_percpu(struct per_cpu_pageset);
--
--	for_each_possible_cpu(cpu) {
--		struct per_cpu_pageset *pcp = per_cpu_ptr(zone->pageset, cpu);
--
--		setup_pageset(pcp, zone_batchsize(zone));
--
--		if (percpu_pagelist_fraction)
--			setup_pagelist_highmark(pcp,
--				(zone->managed_pages /
--					percpu_pagelist_fraction));
--	}
-+	for_each_possible_cpu(cpu)
+ 	unsigned cpu;
+-	unsigned long batch;
+ 	mutex_lock(&pcp_batch_high_lock);
+-	batch = zone_batchsize(zone);
+ 	for_each_possible_cpu(cpu)
+-		pageset_set_batch(per_cpu_ptr(zone->pageset, cpu), batch);
 +		zone_pageset_init(zone, cpu);
+ 	mutex_unlock(&pcp_batch_high_lock);
  }
- 
- /*
+ #endif
 _
 
 Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
