@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1302c-remove-empty-function.patch added to -mm tree
-Date: Mon, 13 May 2013 16:54:57 -0700
-Message-ID: <20130513235457.B21875A4211@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-dm355evmc-remove-empty-function.patch added to -mm tree
+Date: Mon, 13 May 2013 16:54:59 -0700
+Message-ID: <20130513235459.B73BB31C07C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:39299 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656Ab3EMXy6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:54:58 -0400
-Received: by mail-gh0-f202.google.com with SMTP id g24so94753ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:54:58 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:35590 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656Ab3EMXzA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:55:00 -0400
+Received: by mail-ve0-f202.google.com with SMTP id 14so270461vea.5
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:55:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1302.c: remove empty function
+     Subject: drivers/rtc/rtc-dm355evm.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1302c-remove-empty-function.patch
+     drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ds1302.c: remove empty function
+Subject: drivers/rtc/rtc-dm355evm.c: remove empty function
 
 After the switch to devm_ functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything. 
@@ -44,30 +44,31 @@ Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1302.c |    6 ------
+ drivers/rtc/rtc-dm355evm.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-remove-empty-function drivers/rtc/rtc-ds1302.c
---- a/drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-remove-empty-function
-+++ a/drivers/rtc/rtc-ds1302.c
-@@ -234,17 +234,11 @@ static int __init ds1302_rtc_probe(struc
+diff -puN drivers/rtc/rtc-dm355evm.c~drivers-rtc-rtc-dm355evmc-remove-empty-function drivers/rtc/rtc-dm355evm.c
+--- a/drivers/rtc/rtc-dm355evm.c~drivers-rtc-rtc-dm355evmc-remove-empty-function
++++ a/drivers/rtc/rtc-dm355evm.c
+@@ -139,18 +139,12 @@ static int dm355evm_rtc_probe(struct pla
  	return 0;
  }
  
--static int __exit ds1302_rtc_remove(struct platform_device *pdev)
+-static int dm355evm_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static struct platform_driver ds1302_platform_driver = {
+ /*
+  * I2C is used to talk to the MSP430, but this platform device is
+  * exposed by an MFD driver that manages I2C communications.
+  */
+ static struct platform_driver rtc_dm355evm_driver = {
+ 	.probe		= dm355evm_rtc_probe,
+-	.remove		= dm355evm_rtc_remove,
  	.driver		= {
- 		.name	= DRV_NAME,
  		.owner	= THIS_MODULE,
- 	},
--	.remove		= __exit_p(ds1302_rtc_remove),
- };
- 
- module_platform_driver_probe(ds1302_platform_driver, ds1302_rtc_probe);
+ 		.name	= "rtc-dm355evm",
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
