@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch added to -mm tree
-Date: Mon, 13 May 2013 14:11:53 -0700
-Message-ID: <20130513211153.D5C535A40E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch added to -mm tree
+Date: Mon, 13 May 2013 14:11:57 -0700
+Message-ID: <20130513211157.A15945A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:57455 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841Ab3EMVL4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:11:56 -0400
-Received: by mail-yh0-f74.google.com with SMTP id t59so655900yho.5
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:11:56 -0700 (PDT)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:50384 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753123Ab3EMVL6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:11:58 -0400
+Received: by mail-gh0-f201.google.com with SMTP id r14so198145ghr.4
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:11:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: cody@linux.vnet.ibm.com, gilad@benyossef.com, kosaki.motohiro@gmail.com, mgo
 
 
 The patch titled
-     Subject: mm/page_alloc: when handling percpu_pagelist_fraction, don't unneedly recalulate high
+     Subject: mm/page_alloc: factor setup_pageset() into pageset_init() and pageset_set_batch()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
+     mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: mm/page_alloc: when handling percpu_pagelist_fraction, don't unneedly recalulate high
-
-Simply moves calculation of the new 'high' value outside the
-for_each_possible_cpu() loop, as it does not depend on the cpu.
+Subject: mm/page_alloc: factor setup_pageset() into pageset_init() and pageset_set_batch()
 
 Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
 Cc: Gilad Ben-Yossef <gilad@benyossef.com>
@@ -47,37 +44,39 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high
+diff -puN mm/page_alloc.c~mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch
 +++ a/mm/page_alloc.c
-@@ -5575,7 +5575,6 @@ int lowmem_reserve_ratio_sysctl_handler(
-  * cpu.  It is the fraction of total pages in each zone that a hot per cpu pagelist
-  * can have before it gets flushed back to buddy allocator.
-  */
--
- int percpu_pagelist_fraction_sysctl_handler(ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
-@@ -5589,12 +5588,11 @@ int percpu_pagelist_fraction_sysctl_hand
+@@ -4071,7 +4071,7 @@ static void pageset_set_batch(struct per
+ 	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
+ }
  
- 	mutex_lock(&pcp_batch_high_lock);
- 	for_each_populated_zone(zone) {
--		for_each_possible_cpu(cpu) {
--			unsigned long  high;
--			high = zone->managed_pages / percpu_pagelist_fraction;
-+		unsigned long  high;
-+		high = zone->managed_pages / percpu_pagelist_fraction;
-+		for_each_possible_cpu(cpu)
- 			setup_pagelist_highmark(
--				per_cpu_ptr(zone->pageset, cpu), high);
--		}
-+					per_cpu_ptr(zone->pageset, cpu), high);
- 	}
- 	mutex_unlock(&pcp_batch_high_lock);
- 	return 0;
+-static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
++static void pageset_init(struct per_cpu_pageset *p)
+ {
+ 	struct per_cpu_pages *pcp;
+ 	int migratetype;
+@@ -4080,11 +4080,16 @@ static void setup_pageset(struct per_cpu
+ 
+ 	pcp = &p->pcp;
+ 	pcp->count = 0;
+-	pageset_set_batch(p, batch);
+ 	for (migratetype = 0; migratetype < MIGRATE_PCPTYPES; migratetype++)
+ 		INIT_LIST_HEAD(&pcp->lists[migratetype]);
+ }
+ 
++static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
++{
++	pageset_init(p);
++	pageset_set_batch(p, batch);
++}
++
+ /*
+  * setup_pagelist_highmark() sets the high water mark for hot per_cpu_pagelist
+  * to the value high for the pageset p.
 _
 
 Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
