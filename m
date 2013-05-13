@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-nuc900c-remove-empty-function.patch added to -mm tree
-Date: Mon, 13 May 2013 16:54:45 -0700
-Message-ID: <20130513235445.C8B035A4211@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-msm6242c-remove-empty-function.patch added to -mm tree
+Date: Mon, 13 May 2013 16:54:47 -0700
+Message-ID: <20130513235447.CA9E231C07C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:64958 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752622Ab3EMXyr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:54:47 -0400
-Received: by mail-ve0-f201.google.com with SMTP id cz11so408610veb.4
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:54:46 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:44772 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656Ab3EMXys (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:54:48 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so674277yho.5
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:54:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, mcuos.com@gmail.com
+Cc: sachin.kamat@linaro.org, geert@linux-m68k.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-nuc900.c: remove empty function
+     Subject: drivers/rtc/rtc-msm6242.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-nuc900c-remove-empty-function.patch
+     drivers-rtc-rtc-msm6242c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-nuc900.c: remove empty function
+Subject: drivers/rtc/rtc-msm6242.c: remove empty function
 
 After the switch to devm_ functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything. 
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |    6 ------
+ drivers/rtc/rtc-msm6242.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~drivers-rtc-rtc-nuc900c-remove-empty-function drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~drivers-rtc-rtc-nuc900c-remove-empty-function
-+++ a/drivers/rtc/rtc-nuc900.c
-@@ -265,13 +265,7 @@ static int __init nuc900_rtc_probe(struc
+diff -puN drivers/rtc/rtc-msm6242.c~drivers-rtc-rtc-msm6242c-remove-empty-function drivers/rtc/rtc-msm6242.c
+--- a/drivers/rtc/rtc-msm6242.c~drivers-rtc-rtc-msm6242c-remove-empty-function
++++ a/drivers/rtc/rtc-msm6242.c
+@@ -222,17 +222,11 @@ static int __init msm6242_rtc_probe(stru
  	return 0;
  }
  
--static int __exit nuc900_rtc_remove(struct platform_device *pdev)
+-static int __exit msm6242_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static struct platform_driver nuc900_rtc_driver = {
--	.remove		= __exit_p(nuc900_rtc_remove),
- 	.driver		= {
- 		.name	= "nuc900-rtc",
+ static struct platform_driver msm6242_rtc_driver = {
+ 	.driver	= {
+ 		.name	= "rtc-msm6242",
  		.owner	= THIS_MODULE,
+ 	},
+-	.remove	= __exit_p(msm6242_rtc_remove),
+ };
+ 
+ module_platform_driver_probe(msm6242_rtc_driver, msm6242_rtc_probe);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
