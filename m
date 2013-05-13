@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-bq4802c-remove-empty-function.patch added to -mm tree
-Date: Mon, 13 May 2013 16:55:05 -0700
-Message-ID: <20130513235505.BCF7A31C111@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-ab3100c-remove-empty-function.patch added to -mm tree
+Date: Mon, 13 May 2013 16:55:09 -0700
+Message-ID: <20130513235509.C9C905A42C3@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:57841 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753319Ab3EMXzG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:55:06 -0400
-Received: by mail-gg0-f201.google.com with SMTP id k25so672589ggl.2
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:55:06 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:64665 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754921Ab3EMXzK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:55:10 -0400
+Received: by mail-gh0-f202.google.com with SMTP id g24so94776ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:55:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org
+Cc: sachin.kamat@linaro.org, linus.walleij@stericsson.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-bq4802.c: remove empty function
+     Subject: drivers/rtc/rtc-ab3100.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-bq4802c-remove-empty-function.patch
+     drivers-rtc-rtc-ab3100c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-bq4802.c: remove empty function
+Subject: drivers/rtc/rtc-ab3100.c: remove empty function
 
 After the switch to devm_ functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything. 
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bq4802.c |    6 ------
+ drivers/rtc/rtc-ab3100.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-bq4802.c~drivers-rtc-rtc-bq4802c-remove-empty-function drivers/rtc/rtc-bq4802.c
---- a/drivers/rtc/rtc-bq4802.c~drivers-rtc-rtc-bq4802c-remove-empty-function
-+++ a/drivers/rtc/rtc-bq4802.c
-@@ -186,11 +186,6 @@ out:
- 
+diff -puN drivers/rtc/rtc-ab3100.c~drivers-rtc-rtc-ab3100c-remove-empty-function drivers/rtc/rtc-ab3100.c
+--- a/drivers/rtc/rtc-ab3100.c~drivers-rtc-rtc-ab3100c-remove-empty-function
++++ a/drivers/rtc/rtc-ab3100.c
+@@ -240,17 +240,11 @@ static int __init ab3100_rtc_probe(struc
+ 	return 0;
  }
  
--static int bq4802_remove(struct platform_device *pdev)
+-static int __exit ab3100_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- /* work with hotplug and coldplug */
- MODULE_ALIAS("platform:rtc-bq4802");
- 
-@@ -200,7 +195,6 @@ static struct platform_driver bq4802_dri
- 		.owner	= THIS_MODULE,
+ static struct platform_driver ab3100_rtc_driver = {
+ 	.driver = {
+ 		.name = "ab3100-rtc",
+ 		.owner = THIS_MODULE,
  	},
- 	.probe		= bq4802_probe,
--	.remove		= bq4802_remove,
+-	.remove	 = __exit_p(ab3100_rtc_remove),
  };
  
- module_platform_driver(bq4802_driver);
+ module_platform_driver_probe(ab3100_rtc_driver, ab3100_rtc_probe);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
