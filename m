@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch added to -mm tree
-Date: Mon, 13 May 2013 16:07:14 -0700
-Message-ID: <20130513230715.133D15A4211@corp2gmr1-2.hot.corp.google.com>
+Subject: + ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch added to -mm tree
+Date: Mon, 13 May 2013 16:07:17 -0700
+Message-ID: <20130513230717.ED14F5A4211@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:50792 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755136Ab3EMXHQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:16 -0400
-Received: by mail-qe0-f74.google.com with SMTP id 7so50302qeb.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:16 -0700 (PDT)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:38596 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136Ab3EMXHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:19 -0400
+Received: by mail-ve0-f202.google.com with SMTP id 14so265956vea.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, benh@kernel.crashing.org, fweisbec@gmail.com, jan.kratochvi
 
 
 The patch titled
-     Subject: ptrace: PTRACE_DETACH should do flush_ptrace_hw_breakpoint(child)
+     Subject: ptrace/x86: flush_ptrace_hw_breakpoint() shoule clear the virtual debug registers
 has been added to the -mm tree.  Its filename is
-     ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+     ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace: PTRACE_DETACH should do flush_ptrace_hw_breakpoint(child)
+Subject: ptrace/x86: flush_ptrace_hw_breakpoint() shoule clear the virtual debug registers
 
-Change ptrace_detach() to call flush_ptrace_hw_breakpoint(child).  This
-frees the slots for non-ptrace PERF_TYPE_BREAKPOINT users, and this
-ensures that the tracee won't be killed by SIGTRAP triggered by the active
-breakpoints.
+flush_ptrace_hw_breakpoint() destroys the counters set by ptrace, but
+"leaks" ->debugreg6 and ->ptrace_dr7.
 
-Test-case:
-
-	unsigned long encode_dr7(int drnum, int enable, unsigned int type, unsigned int len)
-	{
-		unsigned long dr7;
-
-		dr7 = ((len | type) & 0xf)
-			<< (DR_CONTROL_SHIFT + drnum * DR_CONTROL_SIZE);
-		if (enable)
-			dr7 |= (DR_GLOBAL_ENABLE << (drnum * DR_ENABLE_SIZE));
-
-		return dr7;
-	}
-
-	int write_dr(int pid, int dr, unsigned long val)
-	{
-		return ptrace(PTRACE_POKEUSER, pid,
-				offsetof (struct user, u_debugreg[dr]),
-				val);
-	}
-
-	void func(void)
-	{
-	}
-
-	int main(void)
-	{
-		int pid, stat;
-		unsigned long dr7;
-
-		pid = fork();
-		if (!pid) {
-			assert(ptrace(PTRACE_TRACEME, 0,0,0) == 0);
-			kill(getpid(), SIGHUP);
-
-			func();
-			return 0x13;
-		}
-
-		assert(pid == waitpid(-1, &stat, 0));
-		assert(WSTOPSIG(stat) == SIGHUP);
-
-		assert(write_dr(pid, 0, (long)func) == 0);
-		dr7 = encode_dr7(0, 1, DR_RW_EXECUTE, DR_LEN_1);
-		assert(write_dr(pid, 7, dr7) == 0);
-
-		assert(ptrace(PTRACE_DETACH, pid, 0,0) == 0);
-		assert(pid == waitpid(-1, &stat, 0));
-		assert(stat == 0x1300);
-
-		return 0;
-	}
-
-Before this patch the child is killed after PTRACE_DETACH.
+The problem is minor, but still it doesn't look right and flush_thread()
+did this until 66cb5917 ("hw-breakpoints: use the new wrapper routines to
+access debug registers in process/thread code").  Now that PTRACE_DETACH
+does flush_ too this makes even more sense.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Cc: Michael Neuling <mikey@neuling.org>
@@ -110,20 +58,22 @@ Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/hw_breakpoint.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/ptrace.c~ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild
-+++ a/kernel/ptrace.c
-@@ -469,6 +469,7 @@ static int ptrace_detach(struct task_str
- 	/* Architecture-specific hardware disable .. */
- 	ptrace_disable(child);
- 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
-+	flush_ptrace_hw_breakpoint(child);
+diff -puN arch/x86/kernel/hw_breakpoint.c~ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers arch/x86/kernel/hw_breakpoint.c
+--- a/arch/x86/kernel/hw_breakpoint.c~ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers
++++ a/arch/x86/kernel/hw_breakpoint.c
+@@ -393,6 +393,9 @@ void flush_ptrace_hw_breakpoint(struct t
+ 		unregister_hw_breakpoint(t->ptrace_bps[i]);
+ 		t->ptrace_bps[i] = NULL;
+ 	}
++
++	t->debugreg6 = 0;
++	t->ptrace_dr7 = 0;
+ }
  
- 	write_lock_irq(&tasklist_lock);
- 	/*
+ void hw_breakpoint_restore(void)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
