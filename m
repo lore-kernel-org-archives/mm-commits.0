@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch added to -mm tree
-Date: Mon, 13 May 2013 16:06:50 -0700
-Message-ID: <20130513230650.EE3C05A4211@corp2gmr1-2.hot.corp.google.com>
+Subject: + ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch added to -mm tree
+Date: Mon, 13 May 2013 16:06:53 -0700
+Message-ID: <20130513230653.F00F331C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:40241 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755136Ab3EMXGw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:06:52 -0400
-Received: by mail-qc0-f202.google.com with SMTP id d1so668756qcz.5
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:06:52 -0700 (PDT)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:36360 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136Ab3EMXGz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:06:55 -0400
+Received: by mail-yh0-f73.google.com with SMTP id a41so669786yho.4
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:06:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, benh@kernel.crashing.org, fweisbec@gmail.com, jan.kratochvi
 
 
 The patch titled
-     Subject: ptrace/arm: revert "hw_breakpoints: Fix racy access to ptrace breakpoints"
+     Subject: ptrace/sh: revert "hw_breakpoints: Fix racy access to ptrace breakpoints"
 has been added to the -mm tree.  Its filename is
-     ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+     ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace/arm: revert "hw_breakpoints: Fix racy access to ptrace breakpoints"
+Subject: ptrace/sh: revert "hw_breakpoints: Fix racy access to ptrace breakpoints"
 
-This reverts commit bf0b8f4b55e ("hw_breakpoints: Fix racy access to
+This reverts commit e0ac8457d020c ("hw_breakpoints: Fix racy access to
 ptrace breakpoints").
 
 The patch was fine but we can no longer race with SIGKILL after 9899d11f
@@ -45,46 +45,37 @@ the __TASK_TRACED tracee can't be woken up and ->ptrace_bps[] can't go
 away.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Cc: Michael Neuling <mikey@neuling.org>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Will Deacon <will.deacon@arm.com>
 Cc: Prasad <prasad@linux.vnet.ibm.com>
 Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/ptrace.c |    8 --------
- 1 file changed, 8 deletions(-)
+ arch/sh/kernel/ptrace_32.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/arm/kernel/ptrace.c~ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints arch/arm/kernel/ptrace.c
---- a/arch/arm/kernel/ptrace.c~ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints
-+++ a/arch/arm/kernel/ptrace.c
-@@ -886,20 +886,12 @@ long arch_ptrace(struct task_struct *chi
+diff -puN arch/sh/kernel/ptrace_32.c~ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints arch/sh/kernel/ptrace_32.c
+--- a/arch/sh/kernel/ptrace_32.c~ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints
++++ a/arch/sh/kernel/ptrace_32.c
+@@ -117,11 +117,7 @@ void user_enable_single_step(struct task
  
- #ifdef CONFIG_HAVE_HW_BREAKPOINT
- 		case PTRACE_GETHBPREGS:
--			if (ptrace_get_breakpoints(child) < 0)
--				return -ESRCH;
--
- 			ret = ptrace_gethbpregs(child, addr,
- 						(unsigned long __user *)data);
--			ptrace_put_breakpoints(child);
- 			break;
- 		case PTRACE_SETHBPREGS:
--			if (ptrace_get_breakpoints(child) < 0)
--				return -ESRCH;
--
- 			ret = ptrace_sethbpregs(child, addr,
- 						(unsigned long __user *)data);
--			ptrace_put_breakpoints(child);
- 			break;
- #endif
+ 	set_tsk_thread_flag(child, TIF_SINGLESTEP);
  
+-	if (ptrace_get_breakpoints(child) < 0)
+-		return;
+-
+ 	set_single_step(child, pc);
+-	ptrace_put_breakpoints(child);
+ }
+ 
+ void user_disable_single_step(struct task_struct *child)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
