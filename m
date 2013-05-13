@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch added to -mm tree
-Date: Mon, 13 May 2013 14:11:51 -0700
-Message-ID: <20130513211151.E2ED65A40E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch added to -mm tree
+Date: Mon, 13 May 2013 14:11:53 -0700
+Message-ID: <20130513211153.D5C535A40E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f202.google.com ([209.85.128.202]:61000 "EHLO
-	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752912Ab3EMVLx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:11:53 -0400
-Received: by mail-ve0-f202.google.com with SMTP id 14so252012vea.5
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:11:52 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:57455 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752841Ab3EMVL4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:11:56 -0400
+Received: by mail-yh0-f74.google.com with SMTP id t59so655900yho.5
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:11:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: cody@linux.vnet.ibm.com, gilad@benyossef.com, kosaki.motohiro@gmail.com, mgo
 
 
 The patch titled
-     Subject: mm/page_alloc: convert zone_pcp_update() to rely on memory barriers instead of stop_machine()
+     Subject: mm/page_alloc: when handling percpu_pagelist_fraction, don't unneedly recalulate high
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch
+     mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: mm/page_alloc: convert zone_pcp_update() to rely on memory barriers instead of stop_machine()
+Subject: mm/page_alloc: when handling percpu_pagelist_fraction, don't unneedly recalulate high
 
-zone_pcp_update()'s goal is to adjust the ->high and ->mark members of a
-percpu pageset based on a zone's ->managed_pages.  We don't need to drain
-the entire percpu pageset just to modify these fields.
-
-This lets us avoid calling setup_pageset() (and the draining required to
-call it) and instead allows simply setting the fields' values (with some
-attention paid to memory barriers to prevent the relationship between
-->batch and ->high from being thrown off).
-
-This does change the behavior of zone_pcp_update() as the percpu pagesets
-will not be drained when zone_pcp_update() is called (they will end up
-being shrunk, not completely drained, later when a 0-order page is freed
-in free_hot_cold_page()).
+Simply moves calculation of the new 'high' value outside the
+for_each_possible_cpu() loop, as it does not depend on the cpu.
 
 Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
 Cc: Gilad Ben-Yossef <gilad@benyossef.com>
@@ -58,55 +47,37 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   33 +++++++++------------------------
- 1 file changed, 9 insertions(+), 24 deletions(-)
+ mm/page_alloc.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine
+diff -puN mm/page_alloc.c~mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high
 +++ a/mm/page_alloc.c
-@@ -6085,33 +6085,18 @@ void free_contig_range(unsigned long pfn
- #endif
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--static int __meminit __zone_pcp_update(void *data)
--{
--	struct zone *zone = data;
--	int cpu;
--	unsigned long batch = zone_batchsize(zone), flags;
+@@ -5575,7 +5575,6 @@ int lowmem_reserve_ratio_sysctl_handler(
+  * cpu.  It is the fraction of total pages in each zone that a hot per cpu pagelist
+  * can have before it gets flushed back to buddy allocator.
+  */
 -
--	for_each_possible_cpu(cpu) {
--		struct per_cpu_pageset *pset;
--		struct per_cpu_pages *pcp;
--
--		pset = per_cpu_ptr(zone->pageset, cpu);
--		pcp = &pset->pcp;
--
--		local_irq_save(flags);
--		if (pcp->count > 0)
--			free_pcppages_bulk(zone, pcp->count, pcp);
--		drain_zonestat(zone, pset);
--		setup_pageset(pset, batch);
--		local_irq_restore(flags);
--	}
--	return 0;
--}
--
-+/*
-+ * The zone indicated has a new number of managed_pages; batch sizes and percpu
-+ * page high values need to be recalulated.
-+ */
- void __meminit zone_pcp_update(struct zone *zone)
+ int percpu_pagelist_fraction_sysctl_handler(ctl_table *table, int write,
+ 	void __user *buffer, size_t *length, loff_t *ppos)
  {
-+	unsigned cpu;
-+	unsigned long batch;
+@@ -5589,12 +5588,11 @@ int percpu_pagelist_fraction_sysctl_hand
+ 
  	mutex_lock(&pcp_batch_high_lock);
--	stop_machine(__zone_pcp_update, zone, NULL);
-+	batch = zone_batchsize(zone);
-+	for_each_possible_cpu(cpu)
-+		pageset_set_batch(per_cpu_ptr(zone->pageset, cpu), batch);
+ 	for_each_populated_zone(zone) {
+-		for_each_possible_cpu(cpu) {
+-			unsigned long  high;
+-			high = zone->managed_pages / percpu_pagelist_fraction;
++		unsigned long  high;
++		high = zone->managed_pages / percpu_pagelist_fraction;
++		for_each_possible_cpu(cpu)
+ 			setup_pagelist_highmark(
+-				per_cpu_ptr(zone->pageset, cpu), high);
+-		}
++					per_cpu_ptr(zone->pageset, cpu), high);
+ 	}
  	mutex_unlock(&pcp_batch_high_lock);
- }
- #endif
+ 	return 0;
 _
 
 Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
