@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-kill-tif_debug.patch added to -mm tree
-Date: Mon, 13 May 2013 16:07:20 -0700
-Message-ID: <20130513230720.EA0EA31C1D4@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch added to -mm tree
+Date: Mon, 13 May 2013 16:09:18 -0700
+Message-ID: <20130513230918.858A331C2A9@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:34542 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755136Ab3EMXHW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:07:22 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r13so668241yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:07:22 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:37084 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755441Ab3EMXJT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:09:19 -0400
+Received: by mail-gh0-f202.google.com with SMTP id g24so90334ghb.5
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:09:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, benh@kernel.crashing.org, fweisbec@gmail.com, jan.kratochvil@redhat.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mikey@neuling.org, mingo@kernel.org, paulus@samba.org, prasad@linux.vnet.ibm.com, will.deacon@arm.com
+Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, benh@kernel.crashing.org, hughd@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kill TIF_DEBUG
+     Subject: mm/THP: use pmd_populate() to update the pmd with pgtable_t pointer
 has been added to the -mm tree.  Its filename is
-     x86-kill-tif_debug.patch
+     mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: x86: kill TIF_DEBUG
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/THP: use pmd_populate() to update the pmd with pgtable_t pointer
 
-Because it is not used.
+We should not use set_pmd_at to update pmd_t with pgtable_t pointer. 
+set_pmd_at is used to set pmd with huge pte entries and architectures like
+ppc64, clear few flags from the pte when saving a new entry.  Without this
+change we observe bad pte errors like below on ppc64 with THP enabled.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+BUG: Bad page map in process ld mm=0xc000001ee39f4780 pte:7fc3f37848000001 pmd:c000001ec0000000
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Michael Neuling <mikey@neuling.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Prasad <prasad@linux.vnet.ibm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/thread_info.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/huge_memory.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/thread_info.h~x86-kill-tif_debug arch/x86/include/asm/thread_info.h
---- a/arch/x86/include/asm/thread_info.h~x86-kill-tif_debug
-+++ a/arch/x86/include/asm/thread_info.h
-@@ -89,7 +89,6 @@ struct thread_info {
- #define TIF_FORK		18	/* ret_from_fork */
- #define TIF_NOHZ		19	/* in adaptive nohz mode */
- #define TIF_MEMDIE		20	/* is terminating due to OOM killer */
--#define TIF_DEBUG		21	/* uses debug registers */
- #define TIF_IO_BITMAP		22	/* uses I/O bitmap */
- #define TIF_FORCED_TF		24	/* true if TF in eflags artificially */
- #define TIF_BLOCKSTEP		25	/* set when we want DEBUGCTLMSR_BTF */
-@@ -113,7 +112,6 @@ struct thread_info {
- #define _TIF_IA32		(1 << TIF_IA32)
- #define _TIF_FORK		(1 << TIF_FORK)
- #define _TIF_NOHZ		(1 << TIF_NOHZ)
--#define _TIF_DEBUG		(1 << TIF_DEBUG)
- #define _TIF_IO_BITMAP		(1 << TIF_IO_BITMAP)
- #define _TIF_FORCED_TF		(1 << TIF_FORCED_TF)
- #define _TIF_BLOCKSTEP		(1 << TIF_BLOCKSTEP)
-@@ -154,7 +152,7 @@ struct thread_info {
- 	(_TIF_IO_BITMAP|_TIF_NOTSC|_TIF_BLOCKSTEP)
- 
- #define _TIF_WORK_CTXSW_PREV (_TIF_WORK_CTXSW|_TIF_USER_RETURN_NOTIFY)
--#define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW|_TIF_DEBUG)
-+#define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW)
- 
- #define PREEMPT_ACTIVE		0x10000000
- 
+diff -puN mm/huge_memory.c~mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer
++++ a/mm/huge_memory.c
+@@ -2325,7 +2325,12 @@ static void collapse_huge_page(struct mm
+ 		pte_unmap(pte);
+ 		spin_lock(&mm->page_table_lock);
+ 		BUG_ON(!pmd_none(*pmd));
+-		set_pmd_at(mm, address, pmd, _pmd);
++		/*
++		 * We can only use set_pmd_at when establishing
++		 * hugepmds and never for establishing regular pmds that
++		 * points to regular pagetables. Use pmd_populate for that
++		 */
++		pmd_populate(mm, pmd, pmd_pgtable(_pmd));
+ 		spin_unlock(&mm->page_table_lock);
+ 		anon_vma_unlock_write(vma->anon_vma);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-posix_cpu_timer-consolidate-expiry-time-type.patch
-posix_cpu_timers-consolidate-timer-list-cleanups.patch
-posix_cpu_timers-consolidate-expired-timers-check.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
-ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
-ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
-ptrace-x86-introduce-ptrace_register_breakpoint.patch
-ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
-ptrace-x86-cleanup-ptrace_set_debugreg.patch
-ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
-ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
-x86-kill-tif_debug.patch
+mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
+mm-thp-use-the-right-function-when-updating-access-flags.patch
 
