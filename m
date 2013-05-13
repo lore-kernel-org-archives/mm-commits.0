@@ -1,132 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 13 May 2013 12:13:53 -0700
-Message-ID: <20130513191353.C8C4431C3A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + linux-kernelh-fix-kernel-doc-warning.patch added to -mm tree
+Date: Mon, 13 May 2013 14:02:46 -0700
+Message-ID: <20130513210246.708D231C1FC@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:48804 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754672Ab3EMTNy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 15:13:54 -0400
-Received: by mail-yh0-f74.google.com with SMTP id t59so637080yho.5
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 12:13:54 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39712 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752552Ab3EMVCr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 17:02:47 -0400
+Received: by mail-qa0-f74.google.com with SMTP id i13so318513qae.5
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 14:02:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rdunlap@infradead.org, rostedt@goodmis.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: linux/kernel.h: fix kernel-doc warning
+has been added to the -mm tree.  Its filename is
+     linux-kernelh-fix-kernel-doc-warning.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: linux/kernel.h: fix kernel-doc warning
 
+Fix kernel-doc warning in <linux/kernel.h>:
+
+Warning(include/linux/kernel.h:590): No description found for parameter 'ip'
+
+scripts/kernel-doc cannot handle macros, functions, or function
+prototypes between the function or macro that is being documented
+and its definition, so move these prototypes above the function
+that is being documented.
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kvm/kvm_mips.c                           |   12 -----------
- drivers/md/persistent-data/dm-space-map-metadata.c |    4 ---
- 2 files changed, 16 deletions(-)
+ include/linux/kernel.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/kvm/kvm_mips.c~linux-next-git-rejects arch/mips/kvm/kvm_mips.c
---- a/arch/mips/kvm/kvm_mips.c~linux-next-git-rejects
-+++ a/arch/mips/kvm/kvm_mips.c
-@@ -209,29 +209,17 @@ int kvm_arch_create_memslot(struct kvm_m
- }
+diff -puN include/linux/kernel.h~linux-kernelh-fix-kernel-doc-warning include/linux/kernel.h
+--- a/include/linux/kernel.h~linux-kernelh-fix-kernel-doc-warning
++++ a/include/linux/kernel.h
+@@ -562,6 +562,9 @@ int __trace_bprintk(unsigned long ip, co
+ extern __printf(2, 3)
+ int __trace_printk(unsigned long ip, const char *fmt, ...);
  
- int kvm_arch_prepare_memory_region(struct kvm *kvm,
--<<<<<<< HEAD
--                                struct kvm_memory_slot *memslot,
--                                struct kvm_userspace_memory_region *mem,
--                                enum kvm_mr_change change)
--=======
- 				   struct kvm_memory_slot *memslot,
- 				   struct kvm_memory_slot old,
- 				   struct kvm_userspace_memory_region *mem,
- 				   bool user_alloc)
-->>>>>>> linux-next/akpm-base
- {
- 	return 0;
- }
++extern int __trace_bputs(unsigned long ip, const char *str);
++extern int __trace_puts(unsigned long ip, const char *str, int size);
++
+ /**
+  * trace_puts - write a string into the ftrace buffer
+  * @str: the string to record
+@@ -587,8 +590,6 @@ int __trace_printk(unsigned long ip, con
+  *  (1 when __trace_bputs is used, strlen(str) when __trace_puts is used)
+  */
  
- void kvm_arch_commit_memory_region(struct kvm *kvm,
--<<<<<<< HEAD
--                                struct kvm_userspace_memory_region *mem,
--                                const struct kvm_memory_slot *old,
--                                enum kvm_mr_change change)
--=======
- 				   struct kvm_userspace_memory_region *mem,
- 				   struct kvm_memory_slot old, bool user_alloc)
-->>>>>>> linux-next/akpm-base
- {
- 	unsigned long npages = 0;
- 	int i, err = 0;
-diff -puN drivers/md/persistent-data/dm-space-map-metadata.c~linux-next-git-rejects drivers/md/persistent-data/dm-space-map-metadata.c
---- a/drivers/md/persistent-data/dm-space-map-metadata.c~linux-next-git-rejects
-+++ a/drivers/md/persistent-data/dm-space-map-metadata.c
-@@ -465,11 +465,7 @@ static struct dm_space_map ops = {
- 	.commit = sm_metadata_commit,
- 	.root_size = sm_metadata_root_size,
- 	.copy_root = sm_metadata_copy_root,
--<<<<<<< HEAD
--	.register_threshold_callback = sm_metadata_register_threshold_callback
--=======
- 	.register_threshold_callback = NULL
-->>>>>>> linux-next/akpm-base
- };
- 
- /*----------------------------------------------------------------*/
+-extern int __trace_bputs(unsigned long ip, const char *str);
+-extern int __trace_puts(unsigned long ip, const char *str, int size);
+ #define trace_puts(str) ({						\
+ 	static const char *trace_printk_fmt				\
+ 		__attribute__((section("__trace_printk_fmt"))) =	\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-generic-dynamic-per-cpu-refcounting.patch
-block-prep-work-for-batch-completion.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-bpf-add-comments-explaining-the-schedule_work-operation.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+linux-kernelh-fix-kernel-doc-warning.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 
