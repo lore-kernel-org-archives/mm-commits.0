@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch added to -mm tree
-Date: Mon, 13 May 2013 16:09:18 -0700
-Message-ID: <20130513230918.858A331C2A9@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch added to -mm tree
+Date: Mon, 13 May 2013 16:14:04 -0700
+Message-ID: <20130513231404.DACC131C276@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:37084 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755441Ab3EMXJT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:09:19 -0400
-Received: by mail-gh0-f202.google.com with SMTP id g24so90334ghb.5
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:09:19 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39218 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755536Ab3EMXOG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:14:06 -0400
+Received: by mail-qa0-f74.google.com with SMTP id i13so334338qae.3
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:14:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, benh@kernel.crashing.org, hughd@google.com, stable@vger.kernel.org
+Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, benh@kernel.crashing.org, david@gibson.dropbear.id.au
 
 
 The patch titled
-     Subject: mm/THP: use pmd_populate() to update the pmd with pgtable_t pointer
+     Subject: mm/THP: withdraw the pgtable after pmdp related operations
 has been added to the -mm tree.  Its filename is
-     mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
+     mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/THP: use pmd_populate() to update the pmd with pgtable_t pointer
+Subject: mm/THP: withdraw the pgtable after pmdp related operations
 
-We should not use set_pmd_at to update pmd_t with pgtable_t pointer. 
-set_pmd_at is used to set pmd with huge pte entries and architectures like
-ppc64, clear few flags from the pte when saving a new entry.  Without this
-change we observe bad pte errors like below on ppc64 with THP enabled.
-
-BUG: Bad page map in process ld mm=0xc000001ee39f4780 pte:7fc3f37848000001 pmd:c000001ec0000000
+For architectures like ppc64 we look at deposited pgtable when calling
+pmdp_get_and_clear.  So do the pgtable_trans_huge_withdraw after finishing
+pmdp related operations.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer
+diff -puN mm/huge_memory.c~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations
 +++ a/mm/huge_memory.c
-@@ -2325,7 +2325,12 @@ static void collapse_huge_page(struct mm
- 		pte_unmap(pte);
- 		spin_lock(&mm->page_table_lock);
- 		BUG_ON(!pmd_none(*pmd));
--		set_pmd_at(mm, address, pmd, _pmd);
+@@ -1360,9 +1360,15 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		struct page *page;
+ 		pgtable_t pgtable;
+ 		pmd_t orig_pmd;
+-		pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
 +		/*
-+		 * We can only use set_pmd_at when establishing
-+		 * hugepmds and never for establishing regular pmds that
-+		 * points to regular pagetables. Use pmd_populate for that
++		 * For architectures like ppc64 we look at deposited pgtable
++		 * when calling pmdp_get_and_clear. So do the
++		 * pgtable_trans_huge_withdraw after finishing pmdp related
++		 * operations.
 +		 */
-+		pmd_populate(mm, pmd, pmd_pgtable(_pmd));
- 		spin_unlock(&mm->page_table_lock);
- 		anon_vma_unlock_write(vma->anon_vma);
- 		goto out;
+ 		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
+ 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
++		pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
+ 		if (is_huge_zero_pmd(orig_pmd)) {
+ 			tlb->mm->nr_ptes--;
+ 			spin_unlock(&tlb->mm->page_table_lock);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
 mm-thp-use-the-right-function-when-updating-access-flags.patch
+mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch
+mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch
+mm-thp-dont-use-hpage_shift-in-transparent-hugepage-code.patch
+mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch
 
