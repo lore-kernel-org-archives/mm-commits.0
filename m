@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-tilec-remove-empty-function.patch added to -mm tree
-Date: Mon, 13 May 2013 16:54:43 -0700
-Message-ID: <20130513235443.C3E1F5A4211@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-nuc900c-remove-empty-function.patch added to -mm tree
+Date: Mon, 13 May 2013 16:54:45 -0700
+Message-ID: <20130513235445.C8B035A4211@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:50751 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752622Ab3EMXyo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:54:44 -0400
-Received: by mail-qe0-f73.google.com with SMTP id a11so673217qen.4
-        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:54:44 -0700 (PDT)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:64958 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752622Ab3EMXyr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 May 2013 19:54:47 -0400
+Received: by mail-ve0-f201.google.com with SMTP id cz11so408610veb.4
+        for <mm-commits@vger.kernel.org>; Mon, 13 May 2013 16:54:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org
+Cc: sachin.kamat@linaro.org, mcuos.com@gmail.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tile.c: remove empty function
+     Subject: drivers/rtc/rtc-nuc900.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-tilec-remove-empty-function.patch
+     drivers-rtc-rtc-nuc900c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-tile.c: remove empty function
+Subject: drivers/rtc/rtc-nuc900.c: remove empty function
 
 After the switch to devm_ functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything. 
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Wan ZongShun <mcuos.com@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tile.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/rtc/rtc-nuc900.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-tile.c~drivers-rtc-rtc-tilec-remove-empty-function drivers/rtc/rtc-tile.c
---- a/drivers/rtc/rtc-tile.c~drivers-rtc-rtc-tilec-remove-empty-function
-+++ a/drivers/rtc/rtc-tile.c
-@@ -91,21 +91,12 @@ static int tile_rtc_probe(struct platfor
+diff -puN drivers/rtc/rtc-nuc900.c~drivers-rtc-rtc-nuc900c-remove-empty-function drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~drivers-rtc-rtc-nuc900c-remove-empty-function
++++ a/drivers/rtc/rtc-nuc900.c
+@@ -265,13 +265,7 @@ static int __init nuc900_rtc_probe(struc
  	return 0;
  }
  
--/*
-- * Device cleanup routine.
-- */
--static int tile_rtc_remove(struct platform_device *dev)
+-static int __exit nuc900_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static struct platform_driver tile_rtc_platform_driver = {
+ static struct platform_driver nuc900_rtc_driver = {
+-	.remove		= __exit_p(nuc900_rtc_remove),
  	.driver		= {
- 		.name	= "rtc-tile",
+ 		.name	= "nuc900-rtc",
  		.owner	= THIS_MODULE,
- 	},
- 	.probe		= tile_rtc_probe,
--	.remove		= tile_rtc_remove,
- };
- 
- /*
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
