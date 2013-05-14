@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
 Subject: + a.patch added to -mm tree
-Date: Tue, 14 May 2013 11:28:23 -0700
-Message-ID: <51928247.qC9r3DHNPjfdzO4j%akpm@linux-foundation.org>
+Date: Tue, 14 May 2013 11:29:03 -0700
+Message-ID: <5192826f.gJTD73TCQOWcKvgF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab3ENS2Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 May 2013 14:28:24 -0400
+	with ESMTP id S1754656Ab3ENS3E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 May 2013 14:29:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@google.com, akpm@linux-foundation.org
 
 Subject: + a.patch added to -mm tree
-To: akpm@linux-foundation.org
+To: akpm@linux-foundation.org,akpm@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 14 May 2013 11:28:23 -0700
+Date: Tue, 14 May 2013 11:29:03 -0700
 
 
 The patch titled
@@ -41,6 +41,7 @@ there every 3-4 working days
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: a
 
+Cc: <akpm@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
