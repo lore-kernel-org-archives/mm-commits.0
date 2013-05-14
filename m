@@ -1,32 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [-] a.patch removed from -mm tree
-Date: Tue, 14 May 2013 11:21:34 -0700
-Message-ID: <519280ae.jQC2AgC9VbFDqaZp%akpm@linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Tue, 14 May 2013 11:28:23 -0700
+Message-ID: <51928247.qC9r3DHNPjfdzO4j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51576 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757961Ab3ENSVg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 May 2013 14:21:36 -0400
+	with ESMTP id S1751194Ab3ENS2Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 May 2013 14:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [-] a.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + a.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Tue, 14 May 2013 11:21:34 -0700
+Date: Tue, 14 May 2013 11:28:23 -0700
 
 
 The patch titled
      Subject: a
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      a.patch
 
-This patch was dropped because test
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
