@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + aio-fix-io_getevents-documentation.patch added to -mm tree
-Date: Tue, 14 May 2013 12:39:38 -0700
-Message-ID: <519292fa.ubpcf7zxFNmf/CSB%akpm@linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Wed, 15 May 2013 12:03:51 -0700
+Message-ID: <5193dc17./vpca27idcEaLtMK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52670 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32856 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755376Ab3ENTjj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 May 2013 15:39:39 -0400
+	with ESMTP id S1753212Ab3EOTDw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 May 2013 15:03:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, chrubis@suse.cz, bcrl@kvack.org, jmoyer@redhat.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + aio-fix-io_getevents-documentation.patch added to -mm tree
-To: jmoyer@redhat.com,bcrl@kvack.org,chrubis@suse.cz,mtk.manpages@gmail.com
+Subject: + a.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Tue, 14 May 2013 12:39:38 -0700
+Date: Wed, 15 May 2013 12:03:51 -0700
 
 
 The patch titled
-     Subject: aio: fix io_getevents documentation
+     Subject: a
 has been added to the -mm tree.  Its filename is
-     aio-fix-io_getevents-documentation.patch
+     a.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +38,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: aio: fix io_getevents documentation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: a
 
-In reviewing man pages, I noticed that io_getevents is documented to
-update the timeout that gets passed into the library call.  This doesn't
-happen in kernel space or in the library (even though it's documented to
-do so in both places).  Unless there is objection, I'd like to fix the
-comments/docs to match the code (I will also update the man page upon
-consensus).
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Acked-by: Cyril Hrubis <chrubis@suse.cz>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/open.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-fix-io_getevents-documentation fs/aio.c
---- a/fs/aio.c~aio-fix-io_getevents-documentation
-+++ a/fs/aio.c
-@@ -1299,8 +1299,7 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
-  *	< min_nr if the timeout specified by timeout has elapsed
-  *	before sufficient events are available, where timeout == NULL
-  *	specifies an infinite timeout. Note that the timeout pointed to by
-- *	timeout is relative and will be updated if not NULL and the
-- *	operation blocks. Will fail with -ENOSYS if not implemented.
-+ *	timeout is relative.  Will fail with -ENOSYS if not implemented.
+diff -puN fs/open.c~a fs/open.c
+--- a/fs/open.c~a
++++ a/fs/open.c
+@@ -3,7 +3,7 @@
+  *
+  *  Copyright (C) 1991, 1992  Linus Torvalds
   */
- SYSCALL_DEFINE5(io_getevents, aio_context_t, ctx_id,
- 		long, min_nr,
+-
++xxx
+ #include <linux/string.h>
+ #include <linux/mm.h>
+ #include <linux/file.h>
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-aio-fix-io_getevents-documentation.patch
-aio-reqs_active-reqs_available.patch
-aio-percpu-reqs_available.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+revert-selftest-add-simple-test-for-soft-dirty-bit.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
 generic-dynamic-per-cpu-refcounting.patch
-aio-percpu-ioctx-refcount.patch
-aio-use-xchg-instead-of-completion_lock.patch
 block-prep-work-for-batch-completion.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-prep-work-for-batch-completion-fix-4.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
-virtio-blk-convert-to-batch-completion.patch
-mtip32xx-convert-to-batch-completion.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+bpf-add-comments-explaining-the-schedule_work-operation.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+a.patch
 
