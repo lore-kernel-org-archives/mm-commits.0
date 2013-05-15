@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] a.patch removed from -mm tree
-Date: Wed, 15 May 2013 12:13:15 -0700
-Message-ID: <5193de4b.lo8GKBdY8Gh742O4%akpm@linux-foundation.org>
+Subject: + mm-vmscan-flatten-kswapd-priority-loop.patch added to -mm tree
+Date: Wed, 15 May 2013 14:39:55 -0700
+Message-ID: <519400ab.9OU+JBlMNTz1TblT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32877 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33917 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756698Ab3EOTNQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 May 2013 15:13:16 -0400
+	with ESMTP id S1752490Ab3EOVj4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 May 2013 17:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
 
-makemail -to akpm@linux-foundation.org,mm-commits@vger.kernel.org -from=akpm@linux-foundation.org -subject=[obsolete] a.patch removed from -mm tree -date=Wed, 15 May 2013 12:13:15 -0700
+makemail -to mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,zcalusic@bitsync.net -from=akpm@linux-foundation.org -subject=+ mm-vmscan-flatten-kswapd-priority-loop.patch added to -mm tree -date=Wed, 15 May 2013 14:39:55 -0700
