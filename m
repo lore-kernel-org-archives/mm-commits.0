@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
-Subject: + memory_hotplug-use-pgdat_resize_lock-in-online_pages.patch
+Subject: + memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
  added to -mm tree
-Date: Wed, 15 May 2013 16:22:17 -0700
-Message-ID: <519418a9.pJOHSICIBzAUwp+4%akpm@linux-foundation.org>
+Date: Wed, 15 May 2013 16:22:18 -0700
+Message-ID: <519418aa.qPIauJh+CK1/S3Wz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34540 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559Ab3EOXWS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 May 2013 19:22:18 -0400
+	with ESMTP id S1753149Ab3EOXWT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 May 2013 19:22:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, cody@linux.vnet.ibm.com
 
-makemail -to cody@linux.vnet.ibm.com,rientjes@google.com -from=akpm@linux-foundation.org -subject=+ memory_hotplug-use-pgdat_resize_lock-in-online_pages.patch added to -mm tree -date=Wed, 15 May 2013 16:22:17 -0700
+makemail -to cody@linux.vnet.ibm.com,rientjes@google.com -from=akpm@linux-foundation.org -subject=+ memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch added to -mm tree -date=Wed, 15 May 2013 16:22:18 -0700
