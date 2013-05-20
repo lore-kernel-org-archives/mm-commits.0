@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-pps-clients-pps-gpioc-convert-to-module_platform_driver.patch added to -mm tree
-Date: Mon, 20 May 2013 16:22:55 -0700
-Message-ID: <519ab04f.cAUuhfSW4s0tc75j%akpm@linux-foundation.org>
+ partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch added
+ to -mm tree
+Date: Mon, 20 May 2013 16:42:04 -0700
+Message-ID: <519ab4cc.8Rew+nFDQ21FN+XA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45113 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756212Ab3ETXW4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 19:22:56 -0400
+	with ESMTP id S1756487Ab3ETXmF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 19:42:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, giometti@enneenne.com, jlu@pengutronix.de
+To: mm-commits@vger.kernel.org, kzak@redhat.com, axboe@kernel.dk, phdm@macqel.be
 
-Subject: + drivers-pps-clients-pps-gpioc-convert-to-module_platform_driver.patch added to -mm tree
-To: jlu@pengutronix.de,giometti@enneenne.com
+Subject: + partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch added to -mm tree
+To: phdm@macqel.be,axboe@kernel.dk,kzak@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 20 May 2013 16:22:55 -0700
+Date: Mon, 20 May 2013 16:42:04 -0700
 
 
 The patch titled
-     Subject: drivers/pps/clients/pps-gpio.c: convert to module_platform_driver
+     Subject: partitions/msdos.c: end-of-line whitespace and semicolon cleanup
 has been added to the -mm tree.  Its filename is
-     drivers-pps-clients-pps-gpioc-convert-to-module_platform_driver.patch
+     partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +40,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Luebbe <jlu@pengutronix.de>
-Subject: drivers/pps/clients/pps-gpio.c: convert to module_platform_driver
+From: Philippe De Muyter <phdm@macqel.be>
+Subject: partitions/msdos.c: end-of-line whitespace and semicolon cleanup
 
-This removes some boilerplate code (no functional changes).
-
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-gpio.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ block/partitions/msdos.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pps/clients/pps-gpio.c~drivers-pps-clients-pps-gpioc-convert-to-module_platform_driver drivers/pps/clients/pps-gpio.c
---- a/drivers/pps/clients/pps-gpio.c~drivers-pps-clients-pps-gpioc-convert-to-module_platform_driver
-+++ a/drivers/pps/clients/pps-gpio.c
-@@ -187,23 +187,7 @@ static struct platform_driver pps_gpio_d
- 	},
- };
+diff -puN block/partitions/msdos.c~partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup block/partitions/msdos.c
+--- a/block/partitions/msdos.c~partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup
++++ a/block/partitions/msdos.c
+@@ -90,7 +90,7 @@ static int aix_magic_present(struct pars
+ 		if (d[0] == '_' && d[1] == 'L' && d[2] == 'V' && d[3] == 'M')
+ 			ret = 1;
+ 		put_dev_sector(sect);
+-	};
++	}
+ 	return ret;
+ }
  
--static int __init pps_gpio_init(void)
--{
--	int ret = platform_driver_register(&pps_gpio_driver);
--	if (ret < 0)
--		pr_err("failed to register platform driver\n");
--	return ret;
--}
--
--static void __exit pps_gpio_exit(void)
--{
--	platform_driver_unregister(&pps_gpio_driver);
--	pr_debug("unregistered platform driver\n");
--}
--
--module_init(pps_gpio_init);
--module_exit(pps_gpio_exit);
+@@ -142,7 +142,7 @@ static void parse_extended(struct parsed
+ 			return;
+ 
+ 		if (!msdos_magic_present(data + 510))
+-			goto done; 
++			goto done;
+ 
+ 		p = (struct partition *) (data + 0x1be);
+ 
+@@ -155,7 +155,7 @@ static void parse_extended(struct parsed
+ 		 * and OS/2 seems to use all four entries.
+ 		 */
+ 
+-		/* 
++		/*
+ 		 * First process the data partition(s)
+ 		 */
+ 		for (i=0; i<4; i++, p++) {
+@@ -263,7 +263,7 @@ static void parse_solaris_x86(struct par
+ }
+ 
+ #if defined(CONFIG_BSD_DISKLABEL)
+-/* 
++/*
+  * Create devices for BSD partitions listed in a disklabel, under a
+  * dos-like partition. See parse_extended() for more information.
+  */
+@@ -294,7 +294,7 @@ static void parse_bsd(struct parsed_part
+ 
+ 		if (state->next == state->limit)
+ 			break;
+-		if (p->p_fstype == BSD_FS_UNUSED) 
++		if (p->p_fstype == BSD_FS_UNUSED)
+ 			continue;
+ 		bsd_start = le32_to_cpu(p->p_offset);
+ 		bsd_size = le32_to_cpu(p->p_size);
+@@ -441,7 +441,7 @@ static struct {
+ 	{NEW_SOLARIS_X86_PARTITION, parse_solaris_x86},
+ 	{0, NULL},
+ };
+- 
++
+ int msdos_partition(struct parsed_partitions *state)
+ {
+ 	sector_t sector_size = bdev_logical_block_size(state->bdev) / 512;
+_
+
+Patches currently in -mm which might be from phdm@macqel.be are
+
+partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
+partitions-add-aix-lvm-partition-support-files.patch
+partitions-add-aix-lvm-partition-support-files-compile-aixc-if-configured.patch
+partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry.patch
+partitions-msdos-enumerate-also-aix-lvm-partitions.patch
+
