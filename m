@@ -1,83 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: +
- documentation-codingstyle-allow-multiple-return-statements-per-function.patch added to -mm tree
-Date: Mon, 20 May 2013 13:05:08 -0700
-Message-ID: <519a81f4.aif3yD/xV4/cFkOW%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch removed from -mm tree
+Date: Mon, 20 May 2013 13:13:56 -0700
+Message-ID: <519a8404.8fFWLp2Pex+0ndSq%akpm__436.260799370025$1369080848$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756835Ab3ETUFJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 16:05:09 -0400
+	with ESMTP id S1755733Ab3ETUN6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 16:13:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob@landley.net, eduardo.valentin@ti.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, shawn.guo@linaro.org, rja@sgi.com, mingo@elte.hu, linux@arm.linux.org.uk, hpa@zytor.com, holt@sgi.com, gxt@mprc.pku.edu.cn, akpm@linux-foundation.org
 
-Subject: + documentation-codingstyle-allow-multiple-return-statements-per-function.patch added to -mm tree
-To: dan.carpenter@oracle.com,eduardo.valentin@ti.com,rob@landley.net
+Subject: [folded-merged] cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,gxt@mprc.pku.edu.cn,holt@sgi.com,hpa@zytor.com,linux@arm.linux.org.uk,mingo@elte.hu,rja@sgi.com,shawn.guo@linaro.org,srivatsa.bhat@linux.vnet.ibm.com,stable@vger.kernel.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 20 May 2013 13:05:08 -0700
+Date: Mon, 20 May 2013 13:13:56 -0700
 
 
 The patch titled
-     Subject: Documentation/CodingStyle: allow multiple return statements per function
-has been added to the -mm tree.  Its filename is
-     documentation-codingstyle-allow-multiple-return-statements-per-function.patch
+     Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
+has been removed from the -mm tree.  Its filename was
+     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Documentation/CodingStyle: allow multiple return statements per function
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
 
-A surprising number of newbies interpret this section to mean that only
-one return statement is allowed per function.  Part of the problem is that
-the "one return statement per function" rule is an actual style guideline
-that people are used to from other projects.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: Rob Landley <rob@landley.net>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/cpu.h |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/CodingStyle~documentation-codingstyle-allow-multiple-return-statements-per-function Documentation/CodingStyle
---- a/Documentation/CodingStyle~documentation-codingstyle-allow-multiple-return-statements-per-function
-+++ a/Documentation/CodingStyle
-@@ -389,7 +389,8 @@ Albeit deprecated by some people, the eq
- used frequently by compilers in form of the unconditional jump instruction.
+diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
++++ a/include/linux/cpu.h
+@@ -141,8 +141,6 @@ static inline void unregister_cpu_notifi
+ }
+ #endif
  
- The goto statement comes in handy when a function exits from multiple
--locations and some common work such as cleanup has to be done.
-+locations and some common work such as cleanup has to be done.  If there is no
-+cleanup needed then just return directly.
+-extern void cpu_hotplug_disable(void);
+-extern void cpu_hotplug_enable(void);
+ int cpu_up(unsigned int cpu);
+ void notify_cpu_starting(unsigned int cpu);
+ extern void cpu_maps_update_begin(void);
+@@ -150,7 +148,6 @@ extern void cpu_maps_update_done(void);
  
- The rationale is:
+ #else	/* CONFIG_SMP */
  
+-#define cpu_hotplug_disable()	do { } while (0)
+ #define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
+ 
+ static inline int register_cpu_notifier(struct notifier_block *nb)
+@@ -171,6 +168,15 @@ static inline void cpu_maps_update_done(
+ }
+ 
+ #endif /* CONFIG_SMP */
++
++#ifdef CONFIG_PM_SLEEP_SMP
++extern void cpu_hotplug_enable(void);
++extern void cpu_hotplug_disable(void);
++#else
++#define cpu_hotplug_enable()	do { } while (0)
++#define cpu_hotplug_disable()	do { } while (0)
++#endif
++
+ extern struct bus_type cpu_subsys;
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-configfs-use-capped-length-for-store_attribute.patch
-errh-is_err-can-accept-__user-pointers.patch
-rbtree-remove-unneeded-include.patch
-documentation-codingstyle-allow-multiple-return-statements-per-function.patch
-mwave-fix-info-leak-in-mwave_ioctl.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+revert-selftest-add-simple-test-for-soft-dirty-bit.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+generic-dynamic-per-cpu-refcounting.patch
+block-prep-work-for-batch-completion.patch
+block-prep-work-for-batch-completion-fix-2.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
