@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + softirq-use-_ret_ip_.patch added to -mm tree
-Date: Mon, 20 May 2013 16:51:12 -0700
-Message-ID: <519ab6f0.E6iXIruM0gWWlp/w%akpm@linux-foundation.org>
+Subject: + partitions-add-aix-lvm-partition-support-files-v2.patch added
+ to -mm tree
+Date: Mon, 20 May 2013 16:53:17 -0700
+Message-ID: <519ab76d.LyM3TfJusQa+dC8C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45263 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755943Ab3ETXvN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 19:51:13 -0400
+	with ESMTP id S1755897Ab3ETXxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 19:53:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, fweisbec@gmail.com, davidlohr.bueso@hp.com
+To: mm-commits@vger.kernel.org, kzak@redhat.com, axboe@kernel.dk, phdm@macqel.be
 
-Subject: + softirq-use-_ret_ip_.patch added to -mm tree
-To: davidlohr.bueso@hp.com,fweisbec@gmail.com,tglx@linutronix.de
+Subject: + partitions-add-aix-lvm-partition-support-files-v2.patch added to -mm tree
+To: phdm@macqel.be,axboe@kernel.dk,kzak@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 20 May 2013 16:51:12 -0700
+Date: Mon, 20 May 2013 16:53:17 -0700
 
 
 The patch titled
-     Subject: softirq: use _RET_IP_
+     Subject: partitions-add-aix-lvm-partition-support-files-v2
 has been added to the -mm tree.  Its filename is
-     softirq-use-_ret_ip_.patch
+     partitions-add-aix-lvm-partition-support-files-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,66 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: softirq: use _RET_IP_
+From: Philippe De Muyter <phdm@macqel.be>
+Subject: partitions-add-aix-lvm-partition-support-files-v2
 
-Use the already defined macro to pass the function return address.
+Fix a problem in the discovering of small (1 pp) partitions in presence of
+discontiguous partitions.
 
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ block/partitions/aix.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/softirq.c~softirq-use-_ret_ip_ kernel/softirq.c
---- a/kernel/softirq.c~softirq-use-_ret_ip_
-+++ a/kernel/softirq.c
-@@ -127,8 +127,7 @@ static inline void __local_bh_disable(un
+diff -puN block/partitions/aix.c~partitions-add-aix-lvm-partition-support-files-v2 block/partitions/aix.c
+--- a/block/partitions/aix.c~partitions-add-aix-lvm-partition-support-files-v2
++++ a/block/partitions/aix.c
+@@ -257,12 +257,13 @@ int aix_partition(struct parsed_partitio
+ 				continue;
+ 			}
+ 			lvip[lv_ix].pps_found += 1;
+-			if (lp_ix != next_lp_ix)
+-				continue;
+-			if (lp_ix == 1)
++			if (lp_ix == 1) {
+ 				cur_lv_ix = lv_ix;
+-			else if (lv_ix != cur_lv_ix)
+ 				next_lp_ix = 1;
++			} else if (lv_ix != cur_lv_ix || lp_ix != next_lp_ix) {
++				next_lp_ix = 1;
++				continue;
++			}
+ 			if (lp_ix == lvip[lv_ix].pps_per_lv) {
+ 				char tmp[70];
  
- void local_bh_disable(void)
- {
--	__local_bh_disable((unsigned long)__builtin_return_address(0),
--				SOFTIRQ_DISABLE_OFFSET);
-+	__local_bh_disable(_RET_IP_, SOFTIRQ_DISABLE_OFFSET);
- }
- 
- EXPORT_SYMBOL(local_bh_disable);
-@@ -139,7 +138,7 @@ static void __local_bh_enable(unsigned i
- 	WARN_ON_ONCE(!irqs_disabled());
- 
- 	if (softirq_count() == cnt)
--		trace_softirqs_on((unsigned long)__builtin_return_address(0));
-+		trace_softirqs_on(_RET_IP_);
- 	sub_preempt_count(cnt);
- }
- 
-@@ -184,7 +183,7 @@ static inline void _local_bh_enable_ip(u
- 
- void local_bh_enable(void)
- {
--	_local_bh_enable_ip((unsigned long)__builtin_return_address(0));
-+	_local_bh_enable_ip(_RET_IP_);
- }
- EXPORT_SYMBOL(local_bh_enable);
- 
-@@ -223,8 +222,7 @@ asmlinkage void __do_softirq(void)
- 	pending = local_softirq_pending();
- 	account_irq_enter_time(current);
- 
--	__local_bh_disable((unsigned long)__builtin_return_address(0),
--				SOFTIRQ_OFFSET);
-+	__local_bh_disable(_RET_IP_, SOFTIRQ_OFFSET);
- 	lockdep_softirq_enter();
- 
- 	cpu = smp_processor_id();
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
-linux-next.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-softirq-use-_ret_ip_.patch
+partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
+partitions-add-aix-lvm-partition-support-files.patch
+partitions-add-aix-lvm-partition-support-files-v2.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-compile-aixc-if-configured.patch
+partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry.patch
+partitions-msdos-enumerate-also-aix-lvm-partitions.patch
 
