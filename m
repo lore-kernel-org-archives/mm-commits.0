@@ -1,37 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch removed from -mm tree
-Date: Mon, 20 May 2013 13:13:56 -0700
-Message-ID: <519a8404.8fFWLp2Pex+0ndSq%akpm__436.260799370025$1369080848$gmane$org@linux-foundation.org>
+ cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch removed from -mm tree
+Date: Mon, 20 May 2013 13:14:00 -0700
+Message-ID: <519a8408.Vs4/+yUoYBW24WfK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733Ab3ETUN6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 16:13:58 -0400
+	with ESMTP id S1756919Ab3ETUOC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 16:14:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, shawn.guo@linaro.org, rja@sgi.com, mingo@elte.hu, linux@arm.linux.org.uk, hpa@zytor.com, holt@sgi.com, gxt@mprc.pku.edu.cn, akpm@linux-foundation.org
 
-Subject: [folded-merged] cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch removed from -mm tree
+Subject: [folded-merged] cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch removed from -mm tree
 To: akpm@linux-foundation.org,gxt@mprc.pku.edu.cn,holt@sgi.com,hpa@zytor.com,linux@arm.linux.org.uk,mingo@elte.hu,rja@sgi.com,shawn.guo@linaro.org,srivatsa.bhat@linux.vnet.ibm.com,stable@vger.kernel.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 20 May 2013 13:13:56 -0700
+Date: Mon, 20 May 2013 13:14:00 -0700
 
 
 The patch titled
-     Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
+     Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
+     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
 
 This patch was dropped because it was folded into cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
+Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix
+
+a pox on macros, for the 1000th time
 
 Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Cc: <stable@vger.kernel.org>
@@ -47,45 +49,28 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/cpu.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix include/linux/cpu.h
---- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix
+diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix
 +++ a/include/linux/cpu.h
-@@ -141,8 +141,6 @@ static inline void unregister_cpu_notifi
- }
+@@ -173,8 +173,13 @@ static inline void cpu_maps_update_done(
+ extern void cpu_hotplug_enable(void);
+ extern void cpu_hotplug_disable(void);
+ #else
+-#define cpu_hotplug_enable()	do { } while (0)
+-#define cpu_hotplug_disable()	do { } while (0)
++static inline void cpu_hotplug_enable(void)
++{
++}
++
++static inline void cpu_hotplug_disable(void)
++{
++}
  #endif
  
--extern void cpu_hotplug_disable(void);
--extern void cpu_hotplug_enable(void);
- int cpu_up(unsigned int cpu);
- void notify_cpu_starting(unsigned int cpu);
- extern void cpu_maps_update_begin(void);
-@@ -150,7 +148,6 @@ extern void cpu_maps_update_done(void);
- 
- #else	/* CONFIG_SMP */
- 
--#define cpu_hotplug_disable()	do { } while (0)
- #define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
- 
- static inline int register_cpu_notifier(struct notifier_block *nb)
-@@ -171,6 +168,15 @@ static inline void cpu_maps_update_done(
- }
- 
- #endif /* CONFIG_SMP */
-+
-+#ifdef CONFIG_PM_SLEEP_SMP
-+extern void cpu_hotplug_enable(void);
-+extern void cpu_hotplug_disable(void);
-+#else
-+#define cpu_hotplug_enable()	do { } while (0)
-+#define cpu_hotplug_disable()	do { } while (0)
-+#endif
-+
  extern struct bus_type cpu_subsys;
- 
- #ifdef CONFIG_HOTPLUG_CPU
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,7 +84,6 @@ drivers-video-implement-a-simple-framebuffer-driver.patch
 shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
 revert-selftest-add-simple-test-for-soft-dirty-bit.patch
 cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
 kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
 sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
