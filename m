@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + block-prep-work-for-batch-completion-fix-101.patch added to -mm tree
-Date: Mon, 20 May 2013 15:36:14 -0700
-Message-ID: <519aa55e.OJm1NdLbodEWrNCl%akpm@linux-foundation.org>
+Subject: +
+ fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch added to -mm tree
+Date: Mon, 20 May 2013 15:38:53 -0700
+Message-ID: <519aa5fd.N+7x96QWTylwtPb/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44949 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44952 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757069Ab3ETWgP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 18:36:15 -0400
+	with ESMTP id S1751622Ab3ETWiy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 18:38:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, koverstreet@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@gmail.com
 
-Subject: + block-prep-work-for-batch-completion-fix-101.patch added to -mm tree
-To: akpm@linux-foundation.org,koverstreet@google.com
+Subject: + fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch added to -mm tree
+To: rgoldwyn@gmail.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Mon, 20 May 2013 15:36:14 -0700
+Date: Mon, 20 May 2013 15:38:53 -0700
 
 
 The patch titled
-     Subject: block-prep-work-for-batch-completion-fix-101
+     Subject: fs/ocfs2/namei.c: remove unecessary ERROR when removing non-empty directory
 has been added to the -mm tree.  Its filename is
-     block-prep-work-for-batch-completion-fix-101.patch
+     fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,74 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prep-work-for-batch-completion-fix-101
+From: Goldwyn Rodrigues <rgoldwyn@gmail.com>
+Subject: fs/ocfs2/namei.c: remove unecessary ERROR when removing non-empty directory
 
-Cc: Kent Overstreet <koverstreet@google.com>
+While removing a non-empty directory, the kernel dumps a message:
+(rmdir,21743,1):ocfs2_unlink:953 ERROR: status = -39
+
+Suppress the error message from being printed in the dmesg so users
+don't panic.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/inode.c |    2 +-
+ fs/ocfs2/namei.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/btrfs/inode.c~block-prep-work-for-batch-completion-fix-101 fs/btrfs/inode.c
---- a/fs/btrfs/inode.c~block-prep-work-for-batch-completion-fix-101
-+++ a/fs/btrfs/inode.c
-@@ -7084,7 +7084,7 @@ static void btrfs_end_dio_bio(struct bio
- 		bio_io_error(dip->orig_bio);
- 	} else {
- 		set_bit(BIO_UPTODATE, &dip->dio_bio->bi_flags);
--		bio_endio(dip->orig_bio, 0);
-+		bio_endio_batch(dip->orig_bio, 0, batch);
- 	}
- out:
- 	bio_put(bio);
+diff -puN fs/ocfs2/namei.c~fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory
++++ a/fs/ocfs2/namei.c
+@@ -947,7 +947,7 @@ leave:
+ 	ocfs2_free_dir_lookup_result(&orphan_insert);
+ 	ocfs2_free_dir_lookup_result(&lookup);
+ 
+-	if (status)
++	if (status && (status != -ENOTEMPTY))
+ 		mlog_errno(status);
+ 
+ 	return status;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rgoldwyn@gmail.com are
 
-origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-revert-selftest-add-simple-test-for-soft-dirty-bit.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-generic-dynamic-per-cpu-refcounting.patch
-block-prep-work-for-batch-completion.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-prep-work-for-batch-completion-fix-101.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch
 
