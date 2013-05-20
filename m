@@ -1,102 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] a.patch removed from -mm tree
-Date: Mon, 20 May 2013 12:51:01 -0700
-Message-ID: <519a7ea5.fptZl7RCeZxPsUfg%akpm@linux-foundation.org>
+Subject: +
+ documentation-codingstyle-allow-multiple-return-statements-per-function.patch added to -mm tree
+Date: Mon, 20 May 2013 13:05:08 -0700
+Message-ID: <519a81f4.aif3yD/xV4/cFkOW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46261 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733Ab3ETTvB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 15:51:01 -0400
+	with ESMTP id S1756835Ab3ETUFJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 16:05:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rob@landley.net, eduardo.valentin@ti.com, dan.carpenter@oracle.com
 
-Subject: [merged] a.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + documentation-codingstyle-allow-multiple-return-statements-per-function.patch added to -mm tree
+To: dan.carpenter@oracle.com,eduardo.valentin@ti.com,rob@landley.net
 From: akpm@linux-foundation.org
-Date: Mon, 20 May 2013 12:51:00 -0700
+Date: Mon, 20 May 2013 13:05:08 -0700
 
 
 The patch titled
-     Subject: a
-has been removed from the -mm tree.  Its filename was
-     a.patch
+     Subject: Documentation/CodingStyle: allow multiple return statements per function
+has been added to the -mm tree.  Its filename is
+     documentation-codingstyle-allow-multiple-return-statements-per-function.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Documentation/CodingStyle: allow multiple return statements per function
 
+A surprising number of newbies interpret this section to mean that only
+one return statement is allowed per function.  Part of the problem is that
+the "one return statement per function" rule is an actual style guideline
+that people are used to from other projects.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/CodingStyle |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/open.c~a fs/open.c
---- a/fs/open.c~a
-+++ a/fs/open.c
-@@ -3,7 +3,7 @@
-  *
-  *  Copyright (C) 1991, 1992  Linus Torvalds
-  */
--
-+xxx
- #include <linux/string.h>
- #include <linux/mm.h>
- #include <linux/file.h>
+diff -puN Documentation/CodingStyle~documentation-codingstyle-allow-multiple-return-statements-per-function Documentation/CodingStyle
+--- a/Documentation/CodingStyle~documentation-codingstyle-allow-multiple-return-statements-per-function
++++ a/Documentation/CodingStyle
+@@ -389,7 +389,8 @@ Albeit deprecated by some people, the eq
+ used frequently by compilers in form of the unconditional jump instruction.
+ 
+ The goto statement comes in handy when a function exits from multiple
+-locations and some common work such as cleanup has to be done.
++locations and some common work such as cleanup has to be done.  If there is no
++cleanup needed then just return directly.
+ 
+ The rationale is:
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-revert-selftest-add-simple-test-for-soft-dirty-bit.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix.patch
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-fix-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-generic-dynamic-per-cpu-refcounting.patch
-block-prep-work-for-batch-completion.patch
-block-prep-work-for-batch-completion-fix-2.patch
-block-prep-work-for-batch-completion-fix-3.patch
-block-prep-work-for-batch-completion-fix-3-fix.patch
-block-prep-work-for-batch-completion-fix-99.patch
-block-prep-work-for-batch-completion-fix-4.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+configfs-use-capped-length-for-store_attribute.patch
+errh-is_err-can-accept-__user-pointers.patch
+rbtree-remove-unneeded-include.patch
+documentation-codingstyle-allow-multiple-return-statements-per-function.patch
+mwave-fix-info-leak-in-mwave_ioctl.patch
 
