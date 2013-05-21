@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- vt-convert-last-unbind_con_driver-call-to-do_unbind_con_driver.patch added
+Subject: + vt-delete-unneeded-function-unregister_con_driver.patch added
  to -mm tree
-Date: Tue, 21 May 2013 15:27:37 -0700
-Message-ID: <519bf4d9.pBf1rKXsRHKA5RkX%akpm@linux-foundation.org>
+Date: Tue, 21 May 2013 15:27:42 -0700
+Message-ID: <519bf4de.lUSME4Be5Fdi+ydv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049Ab3EUW1i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 May 2013 18:27:38 -0400
+	with ESMTP id S1752049Ab3EUW1o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 May 2013 18:27:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, tiwai@suse.de, sedat.dilek@gmail.com, maarten.lankhorst@canonical.com, jslaby@suse.cz, huax.lu@intel.com, greg@kroah.com, daniel.vetter@ffwll.ch, airlied@linux.ie, FlorianSchandinat@gmx.de, udknight@gmail.com
 
-Subject: + vt-convert-last-unbind_con_driver-call-to-do_unbind_con_driver.patch added to -mm tree
+Subject: + vt-delete-unneeded-function-unregister_con_driver.patch added to -mm tree
 To: udknight@gmail.com,FlorianSchandinat@gmx.de,airlied@linux.ie,daniel.vetter@ffwll.ch,greg@kroah.com,huax.lu@intel.com,jslaby@suse.cz,maarten.lankhorst@canonical.com,sedat.dilek@gmail.com,tiwai@suse.de,tomi.valkeinen@ti.com
 From: akpm@linux-foundation.org
-Date: Tue, 21 May 2013 15:27:37 -0700
+Date: Tue, 21 May 2013 15:27:42 -0700
 
 
 The patch titled
-     Subject: vt: convert last unbind_con_driver call to do_unbind_con_driver
+     Subject: vt: delete unneeded function unregister_con_driver
 has been added to the -mm tree.  Its filename is
-     vt-convert-last-unbind_con_driver-call-to-do_unbind_con_driver.patch
+     vt-delete-unneeded-function-unregister_con_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wang YanQing <udknight@gmail.com>
-Subject: vt: convert last unbind_con_driver call to do_unbind_con_driver
+Subject: vt: delete unneeded function unregister_con_driver
 
-There is only one place use unbind_con_driver, this patch convert it to
-do_unbind_con_driver too, then we can delete unbind_con_driver to reduce
-code size and duplication.
+Now there is no place use unregister_con_driver, and we can achieve
+unregister_con_driver's function with unregister_con_driver easily, so
+just delete it to reduce code size and duplication.
 
 Signed-off-by: Wang YanQing <udknight@gmail.com>
 Cc: Greg KH <greg@kroah.com>
@@ -61,26 +60,51 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/tty/vt/vt.c     |   13 +------------
+ include/linux/console.h |    1 -
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/tty/vt/vt.c~vt-convert-last-unbind_con_driver-call-to-do_unbind_con_driver drivers/tty/vt/vt.c
---- a/drivers/tty/vt/vt.c~vt-convert-last-unbind_con_driver-call-to-do_unbind_con_driver
+diff -puN drivers/tty/vt/vt.c~vt-delete-unneeded-function-unregister_con_driver drivers/tty/vt/vt.c
+--- a/drivers/tty/vt/vt.c~vt-delete-unneeded-function-unregister_con_driver
 +++ a/drivers/tty/vt/vt.c
-@@ -3301,8 +3301,11 @@ static int vt_unbind(struct con_driver *
- 		if (first == 0 && last == MAX_NR_CONSOLES -1)
- 			deflt = 1;
+@@ -3543,7 +3543,7 @@ err:
  
--		if (first != -1)
--			unbind_con_driver(csw, first, last, deflt);
-+		if (first != -1) {
-+			console_lock();
-+			do_unbind_con_driver(csw, first, last, deflt);
-+			console_unlock();
-+		}
  
- 		first = -1;
- 		last = -1;
+ /**
+- * unregister_con_driver - unregister console driver from console layer
++ * do_unregister_con_driver - unregister console driver from console layer
+  * @csw: console driver
+  *
+  * DESCRIPTION: All drivers that registers to the console layer must
+@@ -3553,17 +3553,6 @@ err:
+  *
+  * The driver must unbind first prior to unregistration.
+  */
+-int unregister_con_driver(const struct consw *csw)
+-{
+-	int retval;
+-
+-	console_lock();
+-	retval = do_unregister_con_driver(csw);
+-	console_unlock();
+-	return retval;
+-}
+-EXPORT_SYMBOL(unregister_con_driver);
+-
+ int do_unregister_con_driver(const struct consw *csw)
+ {
+ 	int i, retval = -ENODEV;
+diff -puN include/linux/console.h~vt-delete-unneeded-function-unregister_con_driver include/linux/console.h
+--- a/include/linux/console.h~vt-delete-unneeded-function-unregister_con_driver
++++ a/include/linux/console.h
+@@ -75,7 +75,6 @@ extern const struct consw newport_con;	/
+ extern const struct consw prom_con;	/* SPARC PROM console */
+ 
+ int con_is_bound(const struct consw *csw);
+-int unregister_con_driver(const struct consw *csw);
+ int do_unregister_con_driver(const struct consw *csw);
+ int do_take_over_console(const struct consw *sw, int first, int last, int deflt);
+ void give_up_console(const struct consw *sw);
 _
 
 Patches currently in -mm which might be from udknight@gmail.com are
