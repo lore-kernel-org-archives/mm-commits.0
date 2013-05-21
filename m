@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- vt-delete-unneeded-functions-register_con_drivertake_over_console.patch
- added to -mm tree
-Date: Tue, 21 May 2013 15:27:36 -0700
-Message-ID: <519bf4d8.Tnm4OMnnZROm6MIJ%akpm@linux-foundation.org>
+Subject: + vt-delete-unneeded-function-unbind_con_driver.patch added to
+ -mm tree
+Date: Tue, 21 May 2013 15:27:38 -0700
+Message-ID: <519bf4da.qTo7vnz9cNGvIyji%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59113 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049Ab3EUW1h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 May 2013 18:27:37 -0400
+	with ESMTP id S1752054Ab3EUW1j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 May 2013 18:27:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, tiwai@suse.de, sedat.dilek@gmail.com, maarten.lankhorst@canonical.com, jslaby@suse.cz, huax.lu@intel.com, greg@kroah.com, daniel.vetter@ffwll.ch, airlied@linux.ie, FlorianSchandinat@gmx.de, udknight@gmail.com
 
-Subject: + vt-delete-unneeded-functions-register_con_drivertake_over_console.patch added to -mm tree
+Subject: + vt-delete-unneeded-function-unbind_con_driver.patch added to -mm tree
 To: udknight@gmail.com,FlorianSchandinat@gmx.de,airlied@linux.ie,daniel.vetter@ffwll.ch,greg@kroah.com,huax.lu@intel.com,jslaby@suse.cz,maarten.lankhorst@canonical.com,sedat.dilek@gmail.com,tiwai@suse.de,tomi.valkeinen@ti.com
 From: akpm@linux-foundation.org
-Date: Tue, 21 May 2013 15:27:36 -0700
+Date: Tue, 21 May 2013 15:27:38 -0700
 
 
 The patch titled
-     Subject: vt: delete unneeded functions register_con_driver|take_over_console
+     Subject: vt: delete unneeded function unbind_con_driver
 has been added to the -mm tree.  Its filename is
-     vt-delete-unneeded-functions-register_con_drivertake_over_console.patch
+     vt-delete-unneeded-function-unbind_con_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,12 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wang YanQing <udknight@gmail.com>
-Subject: vt: delete unneeded functions register_con_driver|take_over_console
+Subject: vt: delete unneeded function unbind_con_driver
 
-Now there is no place use register_con_driver|take_over_console, and we
-can achieve their function with do_register_con_driver|
-do_take_over_console easily, so just delete them to reduce code
-duplication.
+Now there is no place use unbind_con_driver, and we can achieve
+unbind_con_driver's function with do_unbind_con_driver easily, so just
+delete it to reduce code size and duplication.
 
 Signed-off-by: Wang YanQing <udknight@gmail.com>
 Cc: Greg KH <greg@kroah.com>
@@ -62,92 +60,60 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c     |   45 --------------------------------------
- include/linux/console.h |    2 -
- 2 files changed, 47 deletions(-)
+ drivers/tty/vt/vt.c     |   28 ----------------------------
+ include/linux/vt_kern.h |    2 --
+ 2 files changed, 30 deletions(-)
 
-diff -puN drivers/tty/vt/vt.c~vt-delete-unneeded-functions-register_con_drivertake_over_console drivers/tty/vt/vt.c
---- a/drivers/tty/vt/vt.c~vt-delete-unneeded-functions-register_con_drivertake_over_console
+diff -puN drivers/tty/vt/vt.c~vt-delete-unneeded-function-unbind_con_driver drivers/tty/vt/vt.c
+--- a/drivers/tty/vt/vt.c~vt-delete-unneeded-function-unbind_con_driver
 +++ a/drivers/tty/vt/vt.c
-@@ -3574,26 +3574,6 @@ err:
+@@ -3114,34 +3114,6 @@ static int con_is_graphics(const struct
  	return retval;
  }
  
 -/**
-- * register_con_driver - register console driver to console layer
-- * @csw: console driver
-- * @first: the first console to take over, minimum value is 0
-- * @last: the last console to take over, maximum value is MAX_NR_CONSOLES -1
+- * unbind_con_driver - unbind a console driver
+- * @csw: pointer to console driver to unregister
+- * @first: first in range of consoles that @csw should be unbound from
+- * @last: last in range of consoles that @csw should be unbound from
+- * @deflt: should next bound console driver be default after @csw is unbound?
 - *
-- * DESCRIPTION: This function registers a console driver which can later
-- * bind to a range of consoles specified by @first and @last. It will
-- * also initialize the console driver by calling con_startup().
+- * To unbind a driver from all possible consoles, pass 0 as @first and
+- * %MAX_NR_CONSOLES as @last.
+- *
+- * @deflt controls whether the console that ends up replacing @csw should be
+- * the default console.
+- *
+- * RETURNS:
+- * -ENODEV if @csw isn't a registered console driver or can't be unregistered
+- * or 0 on success.
 - */
--int register_con_driver(const struct consw *csw, int first, int last)
+-int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
 -{
 -	int retval;
 -
 -	console_lock();
--	retval = do_register_con_driver(csw, first, last);
+-	retval = do_unbind_con_driver(csw, first, last, deflt);
 -	console_unlock();
 -	return retval;
 -}
--EXPORT_SYMBOL(register_con_driver);
- 
- /**
-  * unregister_con_driver - unregister console driver from console layer
-@@ -3675,30 +3655,6 @@ int do_take_over_console(const struct co
- }
- EXPORT_SYMBOL_GPL(do_take_over_console);
- 
--/*
-- *	If we support more console drivers, this function is used
-- *	when a driver wants to take over some existing consoles
-- *	and become default driver for newly opened ones.
-- *
-- *	take_over_console is basically a register followed by unbind
-- */
--int take_over_console(const struct consw *csw, int first, int last, int deflt)
--{
--	int err;
+-EXPORT_SYMBOL(unbind_con_driver);
 -
--	err = register_con_driver(csw, first, last);
--	/*
--	 * If we get an busy error we still want to bind the console driver
--	 * and return success, as we may have unbound the console driver
--	 * but not unregistered it.
--	 */
--	if (err == -EBUSY)
--		err = 0;
--	if (!err)
--		bind_con_driver(csw, first, last, deflt);
--
--	return err;
--}
+ /* unlocked version of unbind_con_driver() */
+ int do_unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ {
+diff -puN include/linux/vt_kern.h~vt-delete-unneeded-function-unbind_con_driver include/linux/vt_kern.h
+--- a/include/linux/vt_kern.h~vt-delete-unneeded-function-unbind_con_driver
++++ a/include/linux/vt_kern.h
+@@ -133,8 +133,6 @@ void change_console(struct vc_data *new_
+ void reset_vc(struct vc_data *vc);
+ extern int do_unbind_con_driver(const struct consw *csw, int first, int last,
+ 			     int deflt);
+-extern int unbind_con_driver(const struct consw *csw, int first, int last,
+-			     int deflt);
+ int vty_init(const struct file_operations *console_fops);
  
- /*
-  * give_up_console is a wrapper to unregister_con_driver. It will only
-@@ -4262,6 +4218,5 @@ EXPORT_SYMBOL(console_blanked);
- EXPORT_SYMBOL(vc_cons);
- EXPORT_SYMBOL(global_cursor_default);
- #ifndef VT_SINGLE_DRIVER
--EXPORT_SYMBOL(take_over_console);
- EXPORT_SYMBOL(give_up_console);
- #endif
-diff -puN include/linux/console.h~vt-delete-unneeded-functions-register_con_drivertake_over_console include/linux/console.h
---- a/include/linux/console.h~vt-delete-unneeded-functions-register_con_drivertake_over_console
-+++ a/include/linux/console.h
-@@ -75,10 +75,8 @@ extern const struct consw newport_con;	/
- extern const struct consw prom_con;	/* SPARC PROM console */
- 
- int con_is_bound(const struct consw *csw);
--int register_con_driver(const struct consw *csw, int first, int last);
- int unregister_con_driver(const struct consw *csw);
- int do_unregister_con_driver(const struct consw *csw);
--int take_over_console(const struct consw *sw, int first, int last, int deflt);
- int do_take_over_console(const struct consw *sw, int first, int last, int deflt);
- void give_up_console(const struct consw *sw);
- #ifdef CONFIG_HW_CONSOLE
+ static inline bool vt_force_oops_output(struct vc_data *vc)
 _
 
 Patches currently in -mm which might be from udknight@gmail.com are
