@@ -1,89 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + partitions-add-aix-lvm-partition-support-files-v2.patch added
- to -mm tree
-Date: Mon, 20 May 2013 16:53:17 -0700
-Message-ID: <519ab76d.LyM3TfJusQa+dC8C%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ arm-net-bpf_jit-make-code-generation-less-dependent-on-struct-sk_filter-fixup-merge-conflict.patch removed from -mm tree
+Date: Tue, 21 May 2013 13:04:47 -0700
+Message-ID: <519bd35f.Ls/zIViX4lxMFp4k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45263 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755897Ab3ETXxS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 May 2013 19:53:18 -0400
+	with ESMTP id S1753689Ab3EUUEs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 May 2013 16:04:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kzak@redhat.com, axboe@kernel.dk, phdm@macqel.be
+To: mm-commits@vger.kernel.org, nschichan@freebox.fr, arnd@arndb.de, dborkman@redhat.com
 
-Subject: + partitions-add-aix-lvm-partition-support-files-v2.patch added to -mm tree
-To: phdm@macqel.be,axboe@kernel.dk,kzak@redhat.com
+Subject: [to-be-updated] arm-net-bpf_jit-make-code-generation-less-dependent-on-struct-sk_filter-fixup-merge-conflict.patch removed from -mm tree
+To: dborkman@redhat.com,arnd@arndb.de,nschichan@freebox.fr,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 20 May 2013 16:53:17 -0700
+Date: Tue, 21 May 2013 13:04:47 -0700
 
 
 The patch titled
-     Subject: partitions-add-aix-lvm-partition-support-files-v2
-has been added to the -mm tree.  Its filename is
-     partitions-add-aix-lvm-partition-support-files-v2.patch
+     Subject: ARM: bpf_jit: seccomp filtering: fixup merge conflict
+has been removed from the -mm tree.  Its filename was
+     arm-net-bpf_jit-make-code-generation-less-dependent-on-struct-sk_filter-fixup-merge-conflict.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Philippe De Muyter <phdm@macqel.be>
-Subject: partitions-add-aix-lvm-partition-support-files-v2
+From: Daniel Borkmann <dborkman@redhat.com>
+Subject: ARM: bpf_jit: seccomp filtering: fixup merge conflict
 
-Fix a problem in the discovering of small (1 pp) partitions in presence of
-discontiguous partitions.
+Commit e4c67f4c0479d8e3cb0 (ARM: net: bpf_jit: make code generation less
+dependent on struct sk_filter.) caused a merge conflict with commit
+79617801ea0c0e6 (filter: bpf_jit_comp: refactor and unify BPF JIT image
+dump output) resulting in a build failure:
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+arch/arm/net/bpf_jit_32.c: In function '__bpf_jit_compile':
+arch/arm/net/bpf_jit_32.c:930:16: error: 'fp' undeclared (first use in this function)
+    bpf_jit_dump(fp->len, alloc_size, 2, ctx.target);
+
+Fix this up by using ctx.prog_len that is being set before we enter
+__bpf_jit_compile().
+
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Nicolas Schichan <nschichan@freebox.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/aix.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/net/bpf_jit_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/partitions/aix.c~partitions-add-aix-lvm-partition-support-files-v2 block/partitions/aix.c
---- a/block/partitions/aix.c~partitions-add-aix-lvm-partition-support-files-v2
-+++ a/block/partitions/aix.c
-@@ -257,12 +257,13 @@ int aix_partition(struct parsed_partitio
- 				continue;
- 			}
- 			lvip[lv_ix].pps_found += 1;
--			if (lp_ix != next_lp_ix)
--				continue;
--			if (lp_ix == 1)
-+			if (lp_ix == 1) {
- 				cur_lv_ix = lv_ix;
--			else if (lv_ix != cur_lv_ix)
- 				next_lp_ix = 1;
-+			} else if (lv_ix != cur_lv_ix || lp_ix != next_lp_ix) {
-+				next_lp_ix = 1;
-+				continue;
-+			}
- 			if (lp_ix == lvip[lv_ix].pps_per_lv) {
- 				char tmp[70];
+diff -puN arch/arm/net/bpf_jit_32.c~arm-net-bpf_jit-make-code-generation-less-dependent-on-struct-sk_filter-fixup-merge-conflict arch/arm/net/bpf_jit_32.c
+--- a/arch/arm/net/bpf_jit_32.c~arm-net-bpf_jit-make-code-generation-less-dependent-on-struct-sk_filter-fixup-merge-conflict
++++ a/arch/arm/net/bpf_jit_32.c
+@@ -917,7 +917,7 @@ static void __bpf_jit_compile(struct jit
  
+ 	if (bpf_jit_enable > 1)
+ 		/* there are 2 passes here */
+-		bpf_jit_dump(fp->len, alloc_size, 2, ctx.target);
++		bpf_jit_dump(ctx.prog_len, alloc_size, 2, ctx.target);
+ 
+ out:
+ 	kfree(ctx.offsets);
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from dborkman@redhat.com are
 
-partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
-partitions-add-aix-lvm-partition-support-files.patch
-partitions-add-aix-lvm-partition-support-files-v2.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-compile-aixc-if-configured.patch
-partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry.patch
-partitions-msdos-enumerate-also-aix-lvm-partitions.patch
+linux-next.patch
 
