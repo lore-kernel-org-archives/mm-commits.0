@@ -1,75 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-klistc-del-waiter-from-klist_remove_waiters-before-waking-waiting-process.patch removed from -mm tree
-Date: Wed, 22 May 2013 12:33:18 -0700
-Message-ID: <519d1d7e.p7SsMIDBlCIO3VcM%akpm__32288.3696215742$1369251210$gmane$org@linux-foundation.org>
+Subject: [merged] vt-delete-unneeded-function-unbind_con_driver.patch
+ removed from -mm tree
+Date: Wed, 22 May 2013 12:33:26 -0700
+Message-ID: <519d1d86.aL0EJugj/mgomQaR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41285 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41328 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754882Ab3EVTdT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 15:33:19 -0400
+	with ESMTP id S1756420Ab3EVTd1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 15:33:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yanmin_zhang@linux.intel.com, stable@vger.kernel.org, peterz@infradead.org, mingo@elte.hu, biao.wang@intel.com
+To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, tiwai@suse.de, sedat.dilek@gmail.com, maarten.lankhorst@canonical.com, jslaby@suse.cz, huax.lu@intel.com, greg@kroah.com, daniel.vetter@ffwll.ch, airlied@linux.ie, FlorianSchandinat@gmx.de, udknight@gmail.com
 
-Subject: [merged] lib-klistc-del-waiter-from-klist_remove_waiters-before-waking-waiting-process.patch removed from -mm tree
-To: biao.wang@intel.com,mingo@elte.hu,peterz@infradead.org,stable@vger.kernel.org,yanmin_zhang@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] vt-delete-unneeded-function-unbind_con_driver.patch removed from -mm tree
+To: udknight@gmail.com,FlorianSchandinat@gmx.de,airlied@linux.ie,daniel.vetter@ffwll.ch,greg@kroah.com,huax.lu@intel.com,jslaby@suse.cz,maarten.lankhorst@canonical.com,sedat.dilek@gmail.com,tiwai@suse.de,tomi.valkeinen@ti.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 May 2013 12:33:18 -0700
+Date: Wed, 22 May 2013 12:33:26 -0700
 
 
 The patch titled
-     Subject: lib/klist.c: del waiter from klist_remove_waiters before waking waiting process
+     Subject: vt: delete unneeded function unbind_con_driver
 has been removed from the -mm tree.  Its filename was
-     lib-klistc-del-waiter-from-klist_remove_waiters-before-waking-waiting-process.patch
+     vt-delete-unneeded-function-unbind_con_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "wang, biao" <biao.wang@intel.com>
-Subject: lib/klist.c: del waiter from klist_remove_waiters before waking waiting process
+From: Wang YanQing <udknight@gmail.com>
+Subject: vt: delete unneeded function unbind_con_driver
 
-There is a race between klist_remove() and klist_release().
+Now there is no place use unbind_con_driver, and we can achieve
+unbind_con_driver's function with do_unbind_con_driver easily, so just
+delete it to reduce code size and duplication.
 
-klist_remove() uses a local var `waiter' stored on the stack.  When
-klist_release() calls wake_up_process(waiter->process) to wake up the
-waiter, the waiter might run immediately and reuse the stack.  Then,
-klist_release() calls list_del(&waiter->list) to change previous wait data
-and causes corruption in the waiting thread's stack area.
-
-Signed-off-by: wang, biao <biao.wang@intel.com>
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Wang YanQing <udknight@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: Lu Hua <huax.lu@intel.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/klist.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/tty/vt/vt.c     |   28 ----------------------------
+ include/linux/vt_kern.h |    2 --
+ 2 files changed, 30 deletions(-)
 
-diff -puN lib/klist.c~lib-klistc-del-waiter-from-klist_remove_waiters-before-waking-waiting-process lib/klist.c
---- a/lib/klist.c~lib-klistc-del-waiter-from-klist_remove_waiters-before-waking-waiting-process
-+++ a/lib/klist.c
-@@ -193,10 +193,10 @@ static void klist_release(struct kref *k
- 		if (waiter->node != n)
- 			continue;
+diff -puN drivers/tty/vt/vt.c~vt-delete-unneeded-function-unbind_con_driver drivers/tty/vt/vt.c
+--- a/drivers/tty/vt/vt.c~vt-delete-unneeded-function-unbind_con_driver
++++ a/drivers/tty/vt/vt.c
+@@ -3114,34 +3114,6 @@ static int con_is_graphics(const struct
+ 	return retval;
+ }
  
-+		list_del(&waiter->list);
- 		waiter->woken = 1;
- 		mb();
- 		wake_up_process(waiter->process);
--		list_del(&waiter->list);
- 	}
- 	spin_unlock(&klist_remove_lock);
- 	knode_set_klist(n, NULL);
-_
-
-Patches currently in -mm which might be from biao.wang@intel.com are
-
-linux-next.patch
-
+-/**
+- * unbind_con_driver - unbind a console driver
+- * @csw: pointer to console driver to unregister
+- * @first: first in range of consoles that @csw should be unbound from
+- * @last: last in range of consoles that @csw should be unbound from
+- * @deflt: should next bound console driver be default after @csw is unbound?
+- *
+- * To unbind a driver from all possible consoles, pass 0 as @first and
+- * %MAX_NR_CONSOLES as @last.
+- *
+- * @deflt controls whether the console that ends up replacing @csw should be
+- * the default console.
+- *
+- * RETURNS:
+- * -ENODEV if @csw isn't a registered console driver or can't be unregistered
+- * or 0 on success.
+- */
+-int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+-{
+-	int retval;
+-
+-	console_lock();
+-	retval = do_unbind_con_driver(csw, first, last, deflt);
+-	console_unlock();
+-	return retval;
+-}
+-EXPORT_SYMBOL(unbind_con_driver);
