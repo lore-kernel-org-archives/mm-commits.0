@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-invalid-ida_remove-call.patch added to -mm tree
-Date: Wed, 22 May 2013 14:41:48 -0700
-Message-ID: <519d3b9c.8HDWHvjAVC4cd5Fb%akpm@linux-foundation.org>
+Subject: + drivers-block-brdc-fix-brd_lookup_page-race.patch added to -mm
+ tree
+Date: Wed, 22 May 2013 14:48:33 -0700
+Message-ID: <519d3d31.wZzfH4/59zC8BVO0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41995 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756915Ab3EVVlt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 17:41:49 -0400
+	with ESMTP id S1755732Ab3EVVse (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 17:48:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, crrodriguez@opensuse.org, tiwai@suse.de
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, cw@f00f.org, axboe@kernel.dk, behlendorf1@llnl.gov
 
-Subject: + vfs-fix-invalid-ida_remove-call.patch added to -mm tree
-To: tiwai@suse.de,crrodriguez@opensuse.org,viro@zeniv.linux.org.uk
+Subject: + drivers-block-brdc-fix-brd_lookup_page-race.patch added to -mm tree
+To: behlendorf1@llnl.gov,axboe@kernel.dk,cw@f00f.org,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 May 2013 14:41:48 -0700
+Date: Wed, 22 May 2013 14:48:33 -0700
 
 
 The patch titled
-     Subject: vfs: fix invalid ida_remove() call
+     Subject: drivers/block/brd.c: fix brd_lookup_page() race
 has been added to the -mm tree.  Its filename is
-     vfs-fix-invalid-ida_remove-call.patch
+     drivers-block-brdc-fix-brd_lookup_page-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,46 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Takashi Iwai <tiwai@suse.de>
-Subject: vfs: fix invalid ida_remove() call
+From: Brian Behlendorf <behlendorf1@llnl.gov>
+Subject: drivers/block/brd.c: fix brd_lookup_page() race
 
-When the group id of a shared mount is not allocated, the umount still
-tries to call mnt_release_group_id(), which eventually hits a kernel
-warning at ida_remove() spewing a message like:
+The index on the page must be set before it is inserted in the radix tree.
+Otherwise there is a small race which can occur during lookup where the
+page can be found with the incorrect index.  This will trigger the
+BUG_ON() in brd_lookup_page().
 
-  ida_remove called for id=0 which is not allocated.
-
-This patch fixes the bug simply checking the group id in the caller.
-
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Reported-by: Cristian Rodríguez <crrodriguez@opensuse.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Reported-by: Chris Wedgwood <cw@f00f.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pnode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/brd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/pnode.c~vfs-fix-invalid-ida_remove-call fs/pnode.c
---- a/fs/pnode.c~vfs-fix-invalid-ida_remove-call
-+++ a/fs/pnode.c
-@@ -83,7 +83,8 @@ static int do_make_slave(struct mount *m
- 		if (peer_mnt == mnt)
- 			peer_mnt = NULL;
- 	}
--	if (IS_MNT_SHARED(mnt) && list_empty(&mnt->mnt_share))
-+	if (mnt->mnt_group_id && IS_MNT_SHARED(mnt) &&
-+	    list_empty(&mnt->mnt_share))
- 		mnt_release_group_id(mnt);
+diff -puN drivers/block/brd.c~drivers-block-brdc-fix-brd_lookup_page-race drivers/block/brd.c
+--- a/drivers/block/brd.c~drivers-block-brdc-fix-brd_lookup_page-race
++++ a/drivers/block/brd.c
+@@ -117,13 +117,13 @@ static struct page *brd_insert_page(stru
  
- 	list_del_init(&mnt->mnt_share);
+ 	spin_lock(&brd->brd_lock);
+ 	idx = sector >> PAGE_SECTORS_SHIFT;
++	page->index = idx;
+ 	if (radix_tree_insert(&brd->brd_pages, idx, page)) {
+ 		__free_page(page);
+ 		page = radix_tree_lookup(&brd->brd_pages, idx);
+ 		BUG_ON(!page);
+ 		BUG_ON(page->index != idx);
+-	} else
+-		page->index = idx;
++	}
+ 	spin_unlock(&brd->brd_lock);
+ 
+ 	radix_tree_preload_end();
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from behlendorf1@llnl.gov are
 
-linux-next.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-vfs-fix-invalid-ida_remove-call.patch
-idr-print-a-stack-dump-after-ida_remove-warning.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+drivers-block-brdc-fix-brd_lookup_page-race.patch
 
