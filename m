@@ -1,82 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + vt-delete-unneeded-function-bind_con_driver.patch added to -mm
- tree
-Date: Tue, 21 May 2013 15:27:40 -0700
-Message-ID: <519bf4dc.brOKHwWeQyyd6XCY%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-hyper-v-file-list.patch removed from
+ -mm tree
+Date: Wed, 22 May 2013 12:33:16 -0700
+Message-ID: <519d1d7c.e76XdAF1H6knhpLj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41282 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049Ab3EUW1q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 May 2013 18:27:46 -0400
+	with ESMTP id S1754882Ab3EVTdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 15:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, tiwai@suse.de, sedat.dilek@gmail.com, maarten.lankhorst@canonical.com, jslaby@suse.cz, huax.lu@intel.com, greg@kroah.com, daniel.vetter@ffwll.ch, airlied@linux.ie, FlorianSchandinat@gmx.de, udknight@gmail.com
+To: mm-commits@vger.kernel.org, kys@microsoft.com, haiyangz@microsoft.com
 
-Subject: + vt-delete-unneeded-function-bind_con_driver.patch added to -mm tree
-To: udknight@gmail.com,FlorianSchandinat@gmx.de,airlied@linux.ie,daniel.vetter@ffwll.ch,greg@kroah.com,huax.lu@intel.com,jslaby@suse.cz,maarten.lankhorst@canonical.com,sedat.dilek@gmail.com,tiwai@suse.de,tomi.valkeinen@ti.com
+Subject: [merged] maintainers-update-hyper-v-file-list.patch removed from -mm tree
+To: haiyangz@microsoft.com,kys@microsoft.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 May 2013 15:27:40 -0700
+Date: Wed, 22 May 2013 12:33:16 -0700
 
 
 The patch titled
-     Subject: vt: delete unneeded function bind_con_driver
-has been added to the -mm tree.  Its filename is
-     vt-delete-unneeded-function-bind_con_driver.patch
+     Subject: MAINTAINERS: update Hyper-V file list
+has been removed from the -mm tree.  Its filename was
+     maintainers-update-hyper-v-file-list.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang YanQing <udknight@gmail.com>
-Subject: vt: delete unneeded function bind_con_driver
+From: Haiyang Zhang <haiyangz@microsoft.com>
+Subject: MAINTAINERS: update Hyper-V file list
 
-Now there is no place use bind_con_driver, and do_bind_con_driver can
-achieve bind_con_driver's function easily, so just delete it to reduce
-code size and duplication.
-
-Signed-off-by: Wang YanQing <udknight@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Lu Hua <huax.lu@intel.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
+Reviewed-by: K. Y. Srinivasan <kys@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ MAINTAINERS |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/tty/vt/vt.c~vt-delete-unneeded-function-bind_con_driver drivers/tty/vt/vt.c
---- a/drivers/tty/vt/vt.c~vt-delete-unneeded-function-bind_con_driver
-+++ a/drivers/tty/vt/vt.c
-@@ -3086,17 +3086,6 @@ err:
- };
+diff -puN MAINTAINERS~maintainers-update-hyper-v-file-list MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-hyper-v-file-list
++++ a/MAINTAINERS
+@@ -3865,9 +3865,16 @@ M:	K. Y. Srinivasan <kys@microsoft.com>
+ M:	Haiyang Zhang <haiyangz@microsoft.com>
+ L:	devel@linuxdriverproject.org
+ S:	Maintained
+-F:	drivers/hv/
++F:	arch/x86/include/asm/mshyperv.h
++F:	arch/x86/include/uapi/asm/hyperv.h
++F:	arch/x86/kernel/cpu/mshyperv.c
+ F:	drivers/hid/hid-hyperv.c
++F:	drivers/hv/
+ F:	drivers/net/hyperv/
++F:	drivers/scsi/storvsc_drv.c
++F:	drivers/video/hyperv_fb.c
++F:	include/linux/hyperv.h
++F:	tools/hv/
  
- 
--static int bind_con_driver(const struct consw *csw, int first, int last,
--			   int deflt)
--{
--	int ret;
--
--	console_lock();
--	ret = do_bind_con_driver(csw, first, last, deflt);
--	console_unlock();
--	return ret;
--}
+ I2C OVER PARALLEL PORT
+ M:	Jean Delvare <khali@linux-fr.org>
+_
+
+Patches currently in -mm which might be from haiyangz@microsoft.com are
+
+linux-next.patch
+
