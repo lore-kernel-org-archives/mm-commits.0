@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + video-udlfb-make-local-symbol-static.patch added to -mm tree
-Date: Wed, 22 May 2013 14:37:25 -0700
-Message-ID: <519d3a95.iGL1HNcMLK9ddq/W%akpm@linux-foundation.org>
+Subject: + video-imxfb-make-local-symbols-static.patch added to -mm tree
+Date: Wed, 22 May 2013 14:37:26 -0700
+Message-ID: <519d3a96.PyNKqLHai1aHglDz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41904 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754087Ab3EVVh0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 17:37:26 -0400
+	with ESMTP id S1754087Ab3EVVh1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 17:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + video-udlfb-make-local-symbol-static.patch added to -mm tree
+Subject: + video-imxfb-make-local-symbols-static.patch added to -mm tree
 To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 May 2013 14:37:25 -0700
+Date: Wed, 22 May 2013 14:37:26 -0700
 
 
 The patch titled
-     Subject: drivers/video/udlfb.c: make local symbol static
+     Subject: drivers/video/imxfb.c: make local symbols static
 has been added to the -mm tree.  Its filename is
-     video-udlfb-make-local-symbol-static.patch
+     video-imxfb-make-local-symbols-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +39,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/udlfb.c: make local symbol static
+Subject: drivers/video/imxfb.c: make local symbols static
 
-'dlfb_handle_damage' is used only in this file. Make it static.
+These symbols are used only in this file.  Make them static.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/udlfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/imxfb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/udlfb.c~video-udlfb-make-local-symbol-static drivers/video/udlfb.c
---- a/drivers/video/udlfb.c~video-udlfb-make-local-symbol-static
-+++ a/drivers/video/udlfb.c
-@@ -573,7 +573,7 @@ static int dlfb_render_hline(struct dlfb
+diff -puN drivers/video/imxfb.c~video-imxfb-make-local-symbols-static drivers/video/imxfb.c
+--- a/drivers/video/imxfb.c~video-imxfb-make-local-symbols-static
++++ a/drivers/video/imxfb.c
+@@ -960,7 +960,7 @@ static int imxfb_remove(struct platform_
  	return 0;
  }
  
--int dlfb_handle_damage(struct dlfb_data *dev, int x, int y,
-+static int dlfb_handle_damage(struct dlfb_data *dev, int x, int y,
- 	       int width, int height, char *data)
+-void  imxfb_shutdown(struct platform_device * dev)
++static void imxfb_shutdown(struct platform_device *dev)
  {
- 	int i, ret;
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct imxfb_info *fbi = info->par;
+@@ -999,7 +999,7 @@ static int imxfb_setup(void)
+ 	return 0;
+ }
+ 
+-int __init imxfb_init(void)
++static int __init imxfb_init(void)
+ {
+ 	int ret = imxfb_setup();
+ 
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
