@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch added to
- -mm tree
-Date: Wed, 22 May 2013 15:45:54 -0700
-Message-ID: <519d4aa2.KIUfXeZTzsMz4mre%akpm@linux-foundation.org>
+Subject: + rbtree-remove-unneeded-include-fix.patch added to -mm tree
+Date: Wed, 22 May 2013 16:02:01 -0700
+Message-ID: <519d4e69.8saE3eo+Ij1TgRnE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42550 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42569 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756954Ab3EVWpz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 18:45:55 -0400
+	with ESMTP id S1752937Ab3EVXCC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 May 2013 19:02:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, cody@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, nzimmer@sgi.com, dan.carpenter@oracle.com, akpm@linux-foundation.org
 
-Subject: + memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,cody@linux.vnet.ibm.com,rientjes@google.com
+Subject: + rbtree-remove-unneeded-include-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,dan.carpenter@oracle.com,nzimmer@sgi.com
 From: akpm@linux-foundation.org
-Date: Wed, 22 May 2013 15:45:54 -0700
+Date: Wed, 22 May 2013 16:02:01 -0700
 
 
 The patch titled
-     Subject: memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix
+     Subject: rbtree-remove-unneeded-include-fix
 has been added to the -mm tree.  Its filename is
-     memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+     rbtree-remove-unneeded-include-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +39,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix
+Subject: rbtree-remove-unneeded-include-fix
 
-fix build
+fix lib/interval_tree.c build
 
-Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    1 +
+ lib/interval_tree.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN mm/memory_hotplug.c~memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix
-+++ a/mm/memory_hotplug.c
-@@ -1492,6 +1492,7 @@ static int __ref __offline_pages(unsigne
- 	unsigned long pfn, nr_pages, expire;
- 	long offlined_pages;
- 	int ret, drain, retry_max, node;
-+	unsigned long flags;
- 	struct zone *zone;
- 	struct memory_notify arg;
- 
+diff -puN lib/interval_tree.c~rbtree-remove-unneeded-include-fix lib/interval_tree.c
+--- a/lib/interval_tree.c~rbtree-remove-unneeded-include-fix
++++ a/lib/interval_tree.c
+@@ -1,3 +1,4 @@
++#include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/interval_tree.h>
+ #include <linux/interval_tree_generic.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,6 +84,7 @@ memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 dump_stack-serialize-the-output-from-dump_stack-fix.patch
 panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
 lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+rbtree-remove-unneeded-include-fix.patch
 checkpatch-warn-when-using-gccs-binary-constant-extension.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate-fix.patch
