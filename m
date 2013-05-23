@@ -1,60 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- block-prep-work-for-batch-completion-fix-3-fix.patch removed from -mm tree
-Date: Thu, 23 May 2013 13:49:13 -0700
-Message-ID: <519e80c9.5EbeAM1RbAqjkXsK%akpm@linux-foundation.org>
+Subject: [folded-merged] block-prep-work-for-batch-completion-fix-99.patch removed from -mm tree
+Date: Thu, 23 May 2013 13:49:15 -0700
+Message-ID: <519e80cb.o4Sj057pvXIg5C5H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49863 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49864 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758494Ab3EWUtO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:49:14 -0400
+	with ESMTP id S1758494Ab3EWUtQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:49:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, neilb@suse.de, koverstreet@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, koverstreet@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] block-prep-work-for-batch-completion-fix-3-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,fengguang.wu@intel.com,koverstreet@google.com,neilb@suse.de,mm-commits@vger.kernel.org
+Subject: [folded-merged] block-prep-work-for-batch-completion-fix-99.patch removed from -mm tree
+To: akpm@linux-foundation.org,fengguang.wu@intel.com,koverstreet@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 13:49:13 -0700
+Date: Thu, 23 May 2013 13:49:15 -0700
 
 
 The patch titled
-     Subject: block-prep-work-for-batch-completion-fix-3-fix
+     Subject: block-prep-work-for-batch-completion-fix-99
 has been removed from the -mm tree.  Its filename was
-     block-prep-work-for-batch-completion-fix-3-fix.patch
+     block-prep-work-for-batch-completion-fix-99.patch
 
 This patch was dropped because it was folded into block-prep-work-for-batch-completion.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prep-work-for-batch-completion-fix-3-fix
+Subject: block-prep-work-for-batch-completion-fix-99
 
 Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Neil Brown <neilb@suse.de>
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bcache/alloc.c |    3 ++-
+ drivers/md/bcache/debug.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/bcache/alloc.c~block-prep-work-for-batch-completion-fix-3-fix drivers/md/bcache/alloc.c
---- a/drivers/md/bcache/alloc.c~block-prep-work-for-batch-completion-fix-3-fix
-+++ a/drivers/md/bcache/alloc.c
-@@ -156,7 +156,8 @@ static void discard_finish(struct work_s
- 	closure_put(&ca->set->cl);
+diff -puN drivers/md/bcache/debug.c~block-prep-work-for-batch-completion-fix-99 drivers/md/bcache/debug.c
+--- a/drivers/md/bcache/debug.c~block-prep-work-for-batch-completion-fix-99
++++ a/drivers/md/bcache/debug.c
+@@ -177,7 +177,8 @@ void bch_btree_verify(struct btree *b, s
+ 	mutex_unlock(&b->c->verify_lock);
  }
  
--static void discard_endio(struct bio *bio, int error)
-+static void discard_endio(struct bio *bio, int error,
-+			  struct batch_complete *batch)
+-static void data_verify_endio(struct bio *bio, int error)
++static void data_verify_endio(struct bio *bio, int error,
++			      struct batch_complete *batch)
  {
- 	struct discard *d = container_of(bio, struct discard, bio);
- 	schedule_work(&d->work);
+ 	struct closure *cl = bio->bi_private;
+ 	closure_put(cl);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +88,6 @@ partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
 drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
 generic-dynamic-per-cpu-refcounting.patch
 block-prep-work-for-batch-completion.patch
-block-prep-work-for-batch-completion-fix-99.patch
 block-prep-work-for-batch-completion-fix-4.patch
 block-prep-work-for-batch-completion-fix-101.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
