@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-introduce-remap_vmalloc_range_partial.patch added to
- -mm tree
-Date: Thu, 23 May 2013 15:25:05 -0700
-Message-ID: <519e9741.LRm9VfQmXmmmGSE2%akpm@linux-foundation.org>
+Subject: + vmalloc-introduce-remap_vmalloc_range_partial-fix.patch added
+ to -mm tree
+Date: Thu, 23 May 2013 15:25:07 -0700
+Message-ID: <519e9743.1jgdTQOH5FcQHd3S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50604 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759846Ab3EWWZQ (ORCPT
+	with ESMTP id S1759823Ab3EWWZQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
 
-Subject: + vmalloc-introduce-remap_vmalloc_range_partial.patch added to -mm tree
-To: d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
+Subject: + vmalloc-introduce-remap_vmalloc_range_partial-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 15:25:05 -0700
+Date: Thu, 23 May 2013 15:25:07 -0700
 
 
 The patch titled
-     Subject: vmalloc: introduce remap_vmalloc_range_partial
+     Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
 has been added to the -mm tree.  Its filename is
-     vmalloc-introduce-remap_vmalloc_range_partial.patch
+     vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,174 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmalloc: introduce remap_vmalloc_range_partial
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
 
-We want to allocate ELF note segment buffer on the 2nd kernel in vmalloc
-space and remap it to user-space in order to reduce the risk that memory
-allocation fails on system with huge number of CPUs and so with huge ELF
-note segment that exceeds 11-order block size.
+use PAGE_ALIGNED()
 
-Although there's already remap_vmalloc_range for the purpose of remapping
-vmalloc memory to user-space, we need to specify user-space range via vma.
- Mmap on /proc/vmcore needs to remap range across multiple objects, so the
-interface that requires vma to cover full range is problematic.
-
-This patch introduces remap_vmalloc_range_partial that receives user-space
-range as a pair of base address and size and can be used for mmap on
-/proc/vmcore case.
-
-remap_vmalloc_range is rewritten using remap_vmalloc_range_partial.
-
-Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lisa Mitchell <lisa.mitchell@hp.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    4 ++
- mm/vmalloc.c            |   63 ++++++++++++++++++++++++++------------
- 2 files changed, 48 insertions(+), 19 deletions(-)
+ mm/vmalloc.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/vmalloc.h~vmalloc-introduce-remap_vmalloc_range_partial include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~vmalloc-introduce-remap_vmalloc_range_partial
-+++ a/include/linux/vmalloc.h
-@@ -82,6 +82,10 @@ extern void *vmap(struct page **pages, u
- 			unsigned long flags, pgprot_t prot);
- extern void vunmap(const void *addr);
- 
-+extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
-+				       unsigned long uaddr, void *kaddr,
-+				       unsigned long size);
-+
- extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- 							unsigned long pgoff);
- void vmalloc_sync_all(void);
-diff -puN mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial
+diff -puN mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix
 +++ a/mm/vmalloc.c
-@@ -2148,42 +2148,44 @@ finished:
- }
+@@ -1476,10 +1476,9 @@ static void __vunmap(const void *addr, i
+ 	if (!addr)
+ 		return;
  
- /**
-- *	remap_vmalloc_range  -  map vmalloc pages to userspace
-- *	@vma:		vma to cover (map full range of vma)
-- *	@addr:		vmalloc memory
-- *	@pgoff:		number of pages into addr before first page to map
-+ *	remap_vmalloc_range_partial  -  map vmalloc pages to userspace
-+ *	@vma:		vma to cover
-+ *	@uaddr:		target user address to start at
-+ *	@kaddr:		virtual address of vmalloc kernel memory
-+ *	@size:		size of map area
-  *
-  *	Returns:	0 for success, -Exxx on failure
-  *
-- *	This function checks that addr is a valid vmalloc'ed area, and
-- *	that it is big enough to cover the vma. Will return failure if
-- *	that criteria isn't met.
-+ *	This function checks that @kaddr is a valid vmalloc'ed area,
-+ *	and that it is big enough to cover the range starting at
-+ *	@uaddr in @vma. Will return failure if that criteria isn't
-+ *	met.
-  *
-  *	Similar to remap_pfn_range() (see mm/memory.c)
-  */
--int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
--						unsigned long pgoff)
-+int remap_vmalloc_range_partial(struct vm_area_struct *vma, unsigned long uaddr,
-+				void *kaddr, unsigned long size)
- {
- 	struct vm_struct *area;
--	unsigned long uaddr = vma->vm_start;
--	unsigned long usize = vma->vm_end - vma->vm_start;
+-	if ((PAGE_SIZE-1) & (unsigned long)addr) {
+-		WARN(1, KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
++	if (WARN(!PAGE_ALIGNED(addr), "Trying to vfree() bad address (%p)\n",
++			addr));
+ 		return;
+-	}
  
--	if ((PAGE_SIZE-1) & (unsigned long)addr)
-+	size = PAGE_ALIGN(size);
-+
-+	if (((PAGE_SIZE-1) & (unsigned long)uaddr) ||
-+	    ((PAGE_SIZE-1) & (unsigned long)kaddr))
+ 	area = remove_vm_area(addr);
+ 	if (unlikely(!area)) {
+@@ -2170,8 +2169,7 @@ int remap_vmalloc_range_partial(struct v
+ 
+ 	size = PAGE_ALIGN(size);
+ 
+-	if (((PAGE_SIZE-1) & (unsigned long)uaddr) ||
+-	    ((PAGE_SIZE-1) & (unsigned long)kaddr))
++	if (!PAGE_ALIGNED(uaddr) || !PAGE_ALIGNED(kaddr))
  		return -EINVAL;
  
--	area = find_vm_area(addr);
-+	area = find_vm_area(kaddr);
- 	if (!area)
- 		return -EINVAL;
- 
- 	if (!(area->flags & VM_USERMAP))
- 		return -EINVAL;
- 
--	if (usize + (pgoff << PAGE_SHIFT) > area->size - PAGE_SIZE)
-+	if (kaddr + size > area->addr + area->size)
- 		return -EINVAL;
- 
--	addr += pgoff << PAGE_SHIFT;
- 	do {
--		struct page *page = vmalloc_to_page(addr);
-+		struct page *page = vmalloc_to_page(kaddr);
- 		int ret;
- 
- 		ret = vm_insert_page(vma, uaddr, page);
-@@ -2191,14 +2193,37 @@ int remap_vmalloc_range(struct vm_area_s
- 			return ret;
- 
- 		uaddr += PAGE_SIZE;
--		addr += PAGE_SIZE;
--		usize -= PAGE_SIZE;
--	} while (usize > 0);
-+		kaddr += PAGE_SIZE;
-+		size -= PAGE_SIZE;
-+	} while (size > 0);
- 
- 	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(remap_vmalloc_range_partial);
-+
-+/**
-+ *	remap_vmalloc_range  -  map vmalloc pages to userspace
-+ *	@vma:		vma to cover (map full range of vma)
-+ *	@addr:		vmalloc memory
-+ *	@pgoff:		number of pages into addr before first page to map
-+ *
-+ *	Returns:	0 for success, -Exxx on failure
-+ *
-+ *	This function checks that addr is a valid vmalloc'ed area, and
-+ *	that it is big enough to cover the vma. Will return failure if
-+ *	that criteria isn't met.
-+ *
-+ *	Similar to remap_pfn_range() (see mm/memory.c)
-+ */
-+int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
-+						unsigned long pgoff)
-+{
-+	return remap_vmalloc_range_partial(vma, vma->vm_start,
-+					   addr + (pgoff << PAGE_SHIFT),
-+					   vma->vm_end - vma->vm_start);
-+}
- EXPORT_SYMBOL(remap_vmalloc_range);
- 
- /*
+ 	area = find_vm_area(kaddr);
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+revert-selftest-add-simple-test-for-soft-dirty-bit.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
 include-linux-mmh-add-page_aligned-helper.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
 vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
 vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
