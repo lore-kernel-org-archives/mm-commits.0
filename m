@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch added to
- -mm tree
-Date: Thu, 23 May 2013 15:25:11 -0700
-Message-ID: <519e9747.itpeUi42jKCWYhES%akpm@linux-foundation.org>
+ drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch added to -mm tree
+Date: Thu, 23 May 2013 15:52:00 -0700
+Message-ID: <519e9d90.dDjKzEOeTRkpKSu2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50641 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50760 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759752Ab3EWWZg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:36 -0400
+	with ESMTP id S1759758Ab3EWWwB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:52:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, james.hogan@imgtec.com, dwmw2@infradead.org, keescook@chromium.org
 
-Subject: + vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch added to -mm tree
-To: d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
+Subject: + drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch added to -mm tree
+To: keescook@chromium.org,dwmw2@infradead.org,james.hogan@imgtec.com,rusty@rustcorp.com.au
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 15:25:11 -0700
+Date: Thu, 23 May 2013 15:52:00 -0700
 
 
 The patch titled
-     Subject: vmcore: allow user process to remap ELF note segment buffer
+     Subject: drivers/mtd/chips/gen_probe.c: refactor call to request_module()
 has been added to the -mm tree.  Its filename is
-     vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
+     drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,88 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: allow user process to remap ELF note segment buffer
+From: Kees Cook <keescook@chromium.org>
+Subject: drivers/mtd/chips/gen_probe.c: refactor call to request_module()
 
-Now ELF note segment has been copied in the buffer on vmalloc memory.  To
-allow user process to remap the ELF note segment buffer with
-remap_vmalloc_page, the corresponding VM area object has to have
-VM_USERMAP flag set.
+This reduces the size of the stack frame when calling request_module().
+Performing the sprintf before the call is not needed.
 
-Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Lisa Mitchell <lisa.mitchell@hp.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/mtd/chips/gen_probe.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-allow-user-process-to-remap-elf-note-segment-buffer fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-allow-user-process-to-remap-elf-note-segment-buffer
-+++ a/fs/proc/vmcore.c
-@@ -369,6 +369,7 @@ static int __init merge_note_headers_elf
- 	Elf64_Ehdr *ehdr_ptr;
- 	Elf64_Phdr phdr;
- 	u64 phdr_sz = 0, note_off;
-+	struct vm_struct *vm;
+diff -puN drivers/mtd/chips/gen_probe.c~drivers-mtd-chips-gen_probec-refactor-call-to-request_module drivers/mtd/chips/gen_probe.c
+--- a/drivers/mtd/chips/gen_probe.c~drivers-mtd-chips-gen_probec-refactor-call-to-request_module
++++ a/drivers/mtd/chips/gen_probe.c
+@@ -211,9 +211,7 @@ static inline struct mtd_info *cfi_cmdse
  
- 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
+ 	probe_function = __symbol_get(probename);
+ 	if (!probe_function) {
+-		char modname[sizeof("cfi_cmdset_%4.4X")];
+-		sprintf(modname, "cfi_cmdset_%4.4X", type);
+-		request_module(modname);
++		request_module("cfi_cmdset_%4.4X", type);
+ 		probe_function = __symbol_get(probename);
+ 	}
  
-@@ -385,6 +386,12 @@ static int __init merge_note_headers_elf
- 	if (!*notes_buf)
- 		return -ENOMEM;
- 
-+	/* Allow users to remap ELF note segment buffer on vmalloc
-+	 * memory using remap_vmalloc_range. */
-+	vm = find_vm_area(*notes_buf);
-+	BUG_ON(!vm);
-+	vm->flags |= VM_USERMAP;
-+
- 	rc = copy_notes_elf64(ehdr_ptr, *notes_buf);
- 	if (rc < 0)
- 		return rc;
-@@ -548,6 +555,7 @@ static int __init merge_note_headers_elf
- 	Elf32_Ehdr *ehdr_ptr;
- 	Elf32_Phdr phdr;
- 	u64 phdr_sz = 0, note_off;
-+	struct vm_struct *vm;
- 
- 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
- 
-@@ -564,6 +572,12 @@ static int __init merge_note_headers_elf
- 	if (!*notes_buf)
- 		return -ENOMEM;
- 
-+	/* Allow users to remap ELF note segment buffer on vmalloc
-+	 * memory using remap_vmalloc_range. */
-+	vm = find_vm_area(*notes_buf);
-+	BUG_ON(!vm);
-+	vm->flags |= VM_USERMAP;
-+
- 	rc = copy_notes_elf32(ehdr_ptr, *notes_buf);
- 	if (rc < 0)
- 		return rc;
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 
