@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-make-find_vm_area-check-in-range.patch added to -mm
- tree
-Date: Thu, 23 May 2013 15:25:04 -0700
-Message-ID: <519e9740.gn9b9sQ78juDxKwL%akpm@linux-foundation.org>
+Subject: +
+ vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch added to -mm tree
+Date: Thu, 23 May 2013 15:25:13 -0700
+Message-ID: <519e9749.bzUk53pD9Q6E6MkZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50597 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50621 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759761Ab3EWWZP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:15 -0400
+	with ESMTP id S1759878Ab3EWWZT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com
 
-Subject: + vmalloc-make-find_vm_area-check-in-range.patch added to -mm tree
+Subject: + vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch added to -mm tree
 To: d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 15:25:04 -0700
+Date: Thu, 23 May 2013 15:25:13 -0700
 
 
 The patch titled
-     Subject: vmalloc: make find_vm_area check in range
+     Subject: vmcore: calculate vmcore file size from buffer size and total size of vmcore objects
 has been added to the -mm tree.  Its filename is
-     vmalloc-make-find_vm_area-check-in-range.patch
+     vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,110 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmalloc: make find_vm_area check in range
+Subject: vmcore: calculate vmcore file size from buffer size and total size of vmcore objects
 
-Currently, __find_vmap_area searches for the kernel VM area starting at a
-given address.  This patch changes this behavior so that it searches for
-the kernel VM area to which the address belongs.  This change is needed by
-remap_vmalloc_range_partial to be introduced in later patch that receives
-any position of kernel VM area as target address.
+The previous patches newly added holes before each chunk of memory and the
+holes need to be count in vmcore file size.  There are two ways to count
+file size in such a way:
 
-This patch changes the condition (addr > va->va_start) to the equivalent
-(addr >= va->va_end) by taking advantage of the fact that each kernel VM
-area is non-overlapping.
+1) suppose m is a poitner to the last vmcore object in vmcore_list.
+   Then file size is (m->offset + m->size), or
+
+2) calculate sum of size of buffers for ELF header, program headers,
+   ELF note segments and objects in vmcore_list.
+
+Although 1) is more direct and simpler than 2), 2) seems better in that it
+reflects internal object structure of /proc/vmcore.  Thus, this patch
+changes get_vmcore_size_elf{64, 32} so that it calculates size in the way
+of 2).
+
+As a result, both get_vmcore_size_elf{64, 32} have the same definition. 
+Merge them as get_vmcore_size.
 
 Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
 Cc: Lisa Mitchell <lisa.mitchell@hp.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/vmcore.c |   44 +++++++++++---------------------------------
+ 1 file changed, 11 insertions(+), 33 deletions(-)
 
-diff -puN mm/vmalloc.c~vmalloc-make-find_vm_area-check-in-range mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-make-find_vm_area-check-in-range
-+++ a/mm/vmalloc.c
-@@ -292,7 +292,7 @@ static struct vmap_area *__find_vmap_are
- 		va = rb_entry(n, struct vmap_area, rb_node);
- 		if (addr < va->va_start)
- 			n = n->rb_left;
--		else if (addr > va->va_start)
-+		else if (addr >= va->va_end)
- 			n = n->rb_right;
- 		else
- 			return va;
+diff -puN fs/proc/vmcore.c~vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects
++++ a/fs/proc/vmcore.c
+@@ -204,36 +204,15 @@ static struct vmcore* __init get_new_ele
+ 	return kzalloc(sizeof(struct vmcore), GFP_KERNEL);
+ }
+ 
+-static u64 __init get_vmcore_size_elf64(char *elfptr, size_t elfsz)
++static u64 __init get_vmcore_size(size_t elfsz, size_t elfnotesegsz,
++				  struct list_head *vc_list)
+ {
+-	int i;
+ 	u64 size;
+-	Elf64_Ehdr *ehdr_ptr;
+-	Elf64_Phdr *phdr_ptr;
+-
+-	ehdr_ptr = (Elf64_Ehdr *)elfptr;
+-	phdr_ptr = (Elf64_Phdr*)(elfptr + sizeof(Elf64_Ehdr));
+-	size = elfsz;
+-	for (i = 0; i < ehdr_ptr->e_phnum; i++) {
+-		size += phdr_ptr->p_memsz;
+-		phdr_ptr++;
+-	}
+-	return size;
+-}
+-
+-static u64 __init get_vmcore_size_elf32(char *elfptr, size_t elfsz)
+-{
+-	int i;
+-	u64 size;
+-	Elf32_Ehdr *ehdr_ptr;
+-	Elf32_Phdr *phdr_ptr;
++	struct vmcore *m;
+ 
+-	ehdr_ptr = (Elf32_Ehdr *)elfptr;
+-	phdr_ptr = (Elf32_Phdr*)(elfptr + sizeof(Elf32_Ehdr));
+-	size = elfsz;
+-	for (i = 0; i < ehdr_ptr->e_phnum; i++) {
+-		size += phdr_ptr->p_memsz;
+-		phdr_ptr++;
++	size = elfsz + elfnotesegsz;
++	list_for_each_entry(m, vc_list, list) {
++		size += m->size;
+ 	}
+ 	return size;
+ }
+@@ -856,20 +835,19 @@ static int __init parse_crash_elf_header
+ 		rc = parse_crash_elf64_headers();
+ 		if (rc)
+ 			return rc;
+-
+-		/* Determine vmcore size. */
+-		vmcore_size = get_vmcore_size_elf64(elfcorebuf, elfcorebuf_sz);
+ 	} else if (e_ident[EI_CLASS] == ELFCLASS32) {
+ 		rc = parse_crash_elf32_headers();
+ 		if (rc)
+ 			return rc;
+-
+-		/* Determine vmcore size. */
+-		vmcore_size = get_vmcore_size_elf32(elfcorebuf, elfcorebuf_sz);
+ 	} else {
+ 		pr_warn("Warning: Core image elf header is not sane\n");
+ 		return -EINVAL;
+ 	}
++
++	/* Determine vmcore size. */
++	vmcore_size = get_vmcore_size(elfcorebuf_sz, elfnotes_sz,
++				      &vmcore_list);
++
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
