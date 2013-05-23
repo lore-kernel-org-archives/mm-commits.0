@@ -1,107 +1,359 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- block-aio-batch-completion-for-bios-kiocbs-fix.patch removed from -mm tree
-Date: Thu, 23 May 2013 13:50:31 -0700
-Message-ID: <519e8117.nflfXXM3jsIiHi9t%akpm@linux-foundation.org>
+Subject: [to-be-updated] mtip32xx-convert-to-batch-completion.patch
+ removed from -mm tree
+Date: Thu, 23 May 2013 13:50:33 -0700
+Message-ID: <519e8119.65eXqkqh+TWXNppP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49979 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759376Ab3EWUuc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:50:32 -0400
+	with ESMTP id S1759393Ab3EWUue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, koverstreet@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zab@redhat.com, viro@zeniv.linux.org.uk, tytso@mit.edu, smani@micron.com, sbradshaw@micron.com, rusty@rustcorp.com.au, mfasheh@suse.com, jmoyer@redhat.com, jlbec@evilplan.org, gregkh@linuxfoundation.org, bcrl@kvack.org, balbi@ti.com, axboe@kernel.dk, asamymuthupa@micron.com, koverstreet@google.com
 
-Subject: [to-be-updated] block-aio-batch-completion-for-bios-kiocbs-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,koverstreet@google.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] mtip32xx-convert-to-batch-completion.patch removed from -mm tree
+To: koverstreet@google.com,asamymuthupa@micron.com,axboe@kernel.dk,balbi@ti.com,bcrl@kvack.org,gregkh@linuxfoundation.org,jlbec@evilplan.org,jmoyer@redhat.com,mfasheh@suse.com,rusty@rustcorp.com.au,sbradshaw@micron.com,smani@micron.com,tytso@mit.edu,viro@zeniv.linux.org.uk,zab@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 13:50:31 -0700
+Date: Thu, 23 May 2013 13:50:33 -0700
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix
+     Subject: mtip32xx: convert to batch completion
 has been removed from the -mm tree.  Its filename was
-     block-aio-batch-completion-for-bios-kiocbs-fix.patch
+     mtip32xx-convert-to-batch-completion.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix
+From: Kent Overstreet <koverstreet@google.com>
+Subject: mtip32xx: convert to batch completion
 
-Cc: Kent Overstreet <koverstreet@google.com>
+[asamymuthupa@micron.com:
+	* changes for conversion to bio batch completion from Kent
+	* fix to apply the above changes cleanly on latest mtip32xx code
+	* batch bio completion changes in
+		* mtip_command_cleanup()
+		* mtip_timeout_function()
+		* mtip_handle_tfe()]
+
+Signed-off-by: Kent Overstreet <koverstreet@google.com>
+Signed-off-by: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Zach Brown <zab@redhat.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Selvan Mani <smani@micron.com>
+Cc: Sam Bradshaw <sbradshaw@micron.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Reviewed-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/blockconsole.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/mtip32xx/mtip32xx.c |   86 +++++++++++++++-------------
+ drivers/block/mtip32xx/mtip32xx.h |    8 --
+ 2 files changed, 51 insertions(+), 43 deletions(-)
 
-diff -puN drivers/block/blockconsole.c~block-aio-batch-completion-for-bios-kiocbs-fix drivers/block/blockconsole.c
---- a/drivers/block/blockconsole.c~block-aio-batch-completion-for-bios-kiocbs-fix
-+++ a/drivers/block/blockconsole.c
-@@ -164,7 +164,8 @@ static void bcon_advance_console_bytes(s
- 	} while (cmpxchg64(&bc->console_bytes, old, new) != old);
+diff -puN drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion drivers/block/mtip32xx/mtip32xx.c
+--- a/drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion
++++ a/drivers/block/mtip32xx/mtip32xx.c
+@@ -151,6 +151,9 @@ static void mtip_command_cleanup(struct
+ 	struct mtip_cmd *command;
+ 	struct mtip_port *port = dd->port;
+ 	static int in_progress;
++	struct batch_complete batch;
++
++	batch_complete_init(&batch);
+ 
+ 	if (in_progress)
+ 		return;
+@@ -166,11 +169,9 @@ static void mtip_command_cleanup(struct
+ 			command = &port->commands[commandindex];
+ 
+ 			if (atomic_read(&command->active)
+-			    && (command->async_callback)) {
+-				command->async_callback(command->async_data,
+-					-ENODEV);
+-				command->async_callback = NULL;
+-				command->async_data = NULL;
++			    && (command->bio)) {
++				bio_endio_batch(command->bio, -ENODEV, &batch);
++				command->bio = NULL;
+ 			}
+ 
+ 			dma_unmap_sg(&port->dd->pdev->dev,
+@@ -178,9 +179,10 @@ static void mtip_command_cleanup(struct
+ 				command->scatter_ents,
+ 				command->direction);
+ 		}
++		up(&port->cmd_slot);
+ 	}
+ 
+-	up(&port->cmd_slot);
++	batch_complete(&batch);
+ 
+ 	set_bit(MTIP_DDF_CLEANUP_BIT, &dd->dd_flag);
+ 	in_progress = 0;
+@@ -580,6 +582,9 @@ static void mtip_timeout_function(unsign
+ 	unsigned int bit, group;
+ 	unsigned int num_command_slots;
+ 	unsigned long to, tagaccum[SLOTBITS_IN_LONGS];
++	struct batch_complete batch;
++
++	batch_complete_init(&batch);
+ 
+ 	if (unlikely(!port))
+ 		return;
+@@ -622,11 +627,9 @@ static void mtip_timeout_function(unsign
+ 			writel(1 << bit, port->completed[group]);
+ 
+ 			/* Call the async completion callback. */
+-			if (likely(command->async_callback))
+-				command->async_callback(command->async_data,
+-							 -EIO);
+-			command->async_callback = NULL;
+-			command->comp_func = NULL;
++			if (likely(command->bio))
++				bio_endio_batch(command->bio, -EIO, &batch);
++			command->bio = NULL;
+ 
+ 			/* Unmap the DMA scatter list entries */
+ 			dma_unmap_sg(&port->dd->pdev->dev,
+@@ -645,6 +648,8 @@ static void mtip_timeout_function(unsign
+ 		}
+ 	}
+ 
++	batch_complete(&batch);
++
+ 	if (cmdto_cnt) {
+ 		print_tags(port->dd, "timed out", tagaccum, cmdto_cnt);
+ 		if (!test_bit(MTIP_PF_IC_ACTIVE_BIT, &port->flags)) {
+@@ -695,7 +700,8 @@ static void mtip_timeout_function(unsign
+ static void mtip_async_complete(struct mtip_port *port,
+ 				int tag,
+ 				void *data,
+-				int status)
++				int status,
++				struct batch_complete *batch)
+ {
+ 	struct mtip_cmd *command;
+ 	struct driver_data *dd = data;
+@@ -712,11 +718,10 @@ static void mtip_async_complete(struct m
+ 	}
+ 
+ 	/* Upper layer callback */
+-	if (likely(command->async_callback))
+-		command->async_callback(command->async_data, cb_status);
++	if (likely(command->bio))
++		bio_endio_batch(command->bio, cb_status, batch);
+ 
+-	command->async_callback = NULL;
+-	command->comp_func = NULL;
++	command->bio = NULL;
+ 
+ 	/* Unmap the DMA scatter list entries */
+ 	dma_unmap_sg(&dd->pdev->dev,
+@@ -752,24 +757,22 @@ static void mtip_async_complete(struct m
+ static void mtip_completion(struct mtip_port *port,
+ 			    int tag,
+ 			    void *data,
+-			    int status)
++			    int status,
++			    struct batch_complete *batch)
+ {
+-	struct mtip_cmd *command = &port->commands[tag];
+ 	struct completion *waiting = data;
+ 	if (unlikely(status == PORT_IRQ_TF_ERR))
+ 		dev_warn(&port->dd->pdev->dev,
+ 			"Internal command %d completed with TFE\n", tag);
+ 
+-	command->async_callback = NULL;
+-	command->comp_func = NULL;
+-
+ 	complete(waiting);
  }
  
--static void request_complete(struct bio *bio, int err)
-+static void request_complete(struct bio *bio, int err,
-+			     struct batch_complete *batch)
+ static void mtip_null_completion(struct mtip_port *port,
+ 			    int tag,
+ 			    void *data,
+-			    int status)
++			    int status,
++			    struct batch_complete *batch)
  {
- 	complete((struct completion *)bio->bi_private);
+ 	return;
  }
-@@ -289,7 +290,7 @@ static void bcon_unregister(struct work_
- }
+@@ -798,6 +801,7 @@ static void mtip_handle_tfe(struct drive
+ 	unsigned char *buf;
+ 	char *fail_reason = NULL;
+ 	int fail_all_ncq_write = 0, fail_all_ncq_cmds = 0;
++	struct batch_complete batch;
  
- #define BCON_MAX_ERRORS	10
--static void bcon_end_io(struct bio *bio, int err)
-+static void bcon_end_io(struct bio *bio, int err, struct batch_complete *batch)
+ 	dev_warn(&dd->pdev->dev, "Taskfile error\n");
+ 
+@@ -815,13 +819,14 @@ static void mtip_handle_tfe(struct drive
+ 		atomic_inc(&cmd->active); /* active > 1 indicates error */
+ 		if (cmd->comp_data && cmd->comp_func) {
+ 			cmd->comp_func(port, MTIP_TAG_INTERNAL,
+-					cmd->comp_data, PORT_IRQ_TF_ERR);
++					cmd->comp_data, PORT_IRQ_TF_ERR, NULL);
+ 		}
+ 		goto handle_tfe_exit;
+ 	}
+ 
+ 	/* clear the tag accumulator */
+ 	memset(tagaccum, 0, SLOTBITS_IN_LONGS * sizeof(long));
++	batch_complete_init(&batch);
+ 
+ 	/* Loop through all the groups */
+ 	for (group = 0; group < dd->slot_groups; group++) {
+@@ -848,7 +853,7 @@ static void mtip_handle_tfe(struct drive
+ 				cmd->comp_func(port,
+ 					 tag,
+ 					 cmd->comp_data,
+-					 0);
++					 0, &batch);
+ 			} else {
+ 				dev_err(&port->dd->pdev->dev,
+ 					"Missing completion func for tag %d",
+@@ -861,6 +866,7 @@ static void mtip_handle_tfe(struct drive
+ 			}
+ 		}
+ 	}
++	batch_complete(&batch);
+ 
+ 	print_tags(dd, "completed (TFE)", tagaccum, cmd_cnt);
+ 
+@@ -902,6 +908,7 @@ static void mtip_handle_tfe(struct drive
+ 
+ 	/* clear the tag accumulator */
+ 	memset(tagaccum, 0, SLOTBITS_IN_LONGS * sizeof(long));
++	batch_complete_init(&batch);
+ 
+ 	/* Loop through all the groups */
+ 	for (group = 0; group < dd->slot_groups; group++) {
+@@ -935,7 +942,7 @@ static void mtip_handle_tfe(struct drive
+ 					if (cmd->comp_func) {
+ 						cmd->comp_func(port, tag,
+ 							cmd->comp_data,
+-							-ENODATA);
++							-ENODATA, &batch);
+ 					}
+ 					continue;
+ 				}
+@@ -965,13 +972,15 @@ static void mtip_handle_tfe(struct drive
+ 					port,
+ 					tag,
+ 					cmd->comp_data,
+-					PORT_IRQ_TF_ERR);
++					PORT_IRQ_TF_ERR, &batch);
+ 			else
+ 				dev_warn(&port->dd->pdev->dev,
+ 					"Bad completion for tag %d\n",
+ 					tag);
+ 		}
+ 	}
++
++	batch_complete(&batch);
+ 	print_tags(dd, "reissued (TFE)", tagaccum, cmd_cnt);
+ 
+ handle_tfe_exit:
+@@ -992,6 +1001,9 @@ static inline void mtip_workq_sdbfx(stru
+ 	struct driver_data *dd = port->dd;
+ 	int tag, bit;
+ 	struct mtip_cmd *command;
++	struct batch_complete batch;
++
++	batch_complete_init(&batch);
+ 
+ 	if (!completed) {
+ 		WARN_ON_ONCE(!completed);
+@@ -1016,7 +1028,8 @@ static inline void mtip_workq_sdbfx(stru
+ 					port,
+ 					tag,
+ 					command->comp_data,
+-					0);
++					0,
++					&batch);
+ 			} else {
+ 				dev_warn(&dd->pdev->dev,
+ 					"Null completion "
+@@ -1026,13 +1039,16 @@ static inline void mtip_workq_sdbfx(stru
+ 				if (mtip_check_surprise_removal(
+ 					dd->pdev)) {
+ 					mtip_command_cleanup(dd);
+-					return;
++					goto out;
+ 				}
+ 			}
+ 		}
+ 		completed >>= 1;
+ 	}
+ 
++out:
++	batch_complete(&batch);
++
+ 	/* If last, re-enable interrupts */
+ 	if (atomic_dec_return(&dd->irq_workers_active) == 0)
+ 		writel(0xffffffff, dd->mmio + HOST_IRQ_STAT);
+@@ -1053,7 +1069,7 @@ static inline void mtip_process_legacy(s
+ 			cmd->comp_func(port,
+ 				MTIP_TAG_INTERNAL,
+ 				cmd->comp_data,
+-				0);
++				0, NULL);
+ 			return;
+ 		}
+ 	}
+@@ -2561,8 +2577,8 @@ static int mtip_hw_ioctl(struct driver_d
+  *	None
+  */
+ static void mtip_hw_submit_io(struct driver_data *dd, sector_t sector,
+-			      int nsect, int nents, int tag, void *callback,
+-			      void *data, int dir, int unaligned)
++			      int nsect, int nents, int tag,
++			      struct bio *bio, int dir, int unaligned)
  {
- 	struct bcon_bio *bcon_bio = container_of(bio, struct bcon_bio, bio);
- 	struct blockconsole *bc = bio->bi_private;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-revert-selftest-add-simple-test-for-soft-dirty-bit.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+ 	struct host_to_dev_fis	*fis;
+ 	struct mtip_port *port = dd->port;
+@@ -2621,12 +2637,7 @@ static void mtip_hw_submit_io(struct dri
+ 	command->comp_func = mtip_async_complete;
+ 	command->direction = dma_dir;
+ 
+-	/*
+-	 * Set the completion function and data for the command passed
+-	 * from the upper layer.
+-	 */
+-	command->async_data = data;
+-	command->async_callback = callback;
++	command->bio = bio;
+ 
+ 	/*
+ 	 * To prevent this command from being issued
+@@ -3936,7 +3947,6 @@ static void mtip_make_request(struct req
+ 				bio_sectors(bio),
+ 				nents,
+ 				tag,
+-				bio_endio,
+ 				bio,
+ 				bio_data_dir(bio),
+ 				unaligned);
+diff -puN drivers/block/mtip32xx/mtip32xx.h~mtip32xx-convert-to-batch-completion drivers/block/mtip32xx/mtip32xx.h
+--- a/drivers/block/mtip32xx/mtip32xx.h~mtip32xx-convert-to-batch-completion
++++ a/drivers/block/mtip32xx/mtip32xx.h
+@@ -328,11 +328,9 @@ struct mtip_cmd {
+ 	void (*comp_func)(struct mtip_port *port,
+ 				int tag,
+ 				void *data,
+-				int status);
+-	/* Additional callback function that may be called by comp_func() */
+-	void (*async_callback)(void *data, int status);
