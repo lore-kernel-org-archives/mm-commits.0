@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch added
+ drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch added
  to -mm tree
-Date: Thu, 23 May 2013 16:11:48 -0700
-Message-ID: <519ea234.1EUhPSQw0nDKX+R1%akpm@linux-foundation.org>
+Date: Thu, 23 May 2013 16:27:26 -0700
+Message-ID: <519ea5de.uNvpR1wwna+BHqrC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50928 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759759Ab3EWXLt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 19:11:49 -0400
+	with ESMTP id S1759888Ab3EWX11 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 19:27:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, aneesh.kumar@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, libo.chen@huawei.com, james.hogan@imgtec.com, dwmw2@infradead.org, davidb@codeaurora.org, clbchenlibo.chen@huawei.com
 
-Subject: + mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch added to -mm tree
-To: aneesh.kumar@linux.vnet.ibm.com,fengguang.wu@intel.com
+Subject: + drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch added to -mm tree
+To: clbchenlibo.chen@huawei.com,davidb@codeaurora.org,dwmw2@infradead.org,james.hogan@imgtec.com,libo.chen@huawei.com
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 16:11:48 -0700
+Date: Thu, 23 May 2013 16:27:26 -0700
 
 
 The patch titled
-     Subject: mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
+     Subject: drivers/iommu/msm_iommu_dev.c: fix leak and clean up error paths
 has been added to the -mm tree.  Its filename is
-     mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch
+     drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +40,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
+From: Libo Chen <clbchenlibo.chen@huawei.com>
+Subject: drivers/iommu/msm_iommu_dev.c: fix leak and clean up error paths
 
-Author: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
+Fix two obvious problems:
 
-s390: Fix build error
+1. We have registered msm_iommu_driver first, and need unregister it
+   when registered msm_iommu_ctx_driver fail
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+2. We don`t need to kfree drvdata before kzalloc successful.
+
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+Acked-by: David Brown <davidb@codeaurora.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/iommu/msm_iommu_dev.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/s390/include/asm/pgtable.h~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1351,7 +1351,7 @@ static inline pmd_t pmd_mkwrite(pmd_t pm
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN drivers/iommu/msm_iommu_dev.c~drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths drivers/iommu/msm_iommu_dev.c
+--- a/drivers/iommu/msm_iommu_dev.c~drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths
++++ a/drivers/iommu/msm_iommu_dev.c
+@@ -292,22 +292,20 @@ static int msm_iommu_ctx_probe(struct pl
+ 	struct msm_iommu_ctx_drvdata *ctx_drvdata = NULL;
+ 	int i, ret;
+ 	if (!c || !pdev->dev.parent) {
+-		ret = -EINVAL;
+-		goto fail;
++		return -EINVAL;
+ 	}
  
- #define __HAVE_ARCH_PGTABLE_DEPOSIT
--extern void pgtable_trans_huge_deposit(struct mm_struct *mm, , pmd_t *pmdp,
-+extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
- 				       pgtable_t pgtable);
+ 	drvdata = dev_get_drvdata(pdev->dev.parent);
  
- #define __HAVE_ARCH_PGTABLE_WITHDRAW
+ 	if (!drvdata) {
+-		ret = -ENODEV;
+-		goto fail;
++		return -ENODEV;
+ 	}
+ 
+ 	ctx_drvdata = kzalloc(sizeof(*ctx_drvdata), GFP_KERNEL);
+ 	if (!ctx_drvdata) {
+-		ret = -ENOMEM;
+-		goto fail;
++		return -ENOMEM;
+ 	}
++
+ 	ctx_drvdata->num = c->num;
+ 	ctx_drvdata->pdev = pdev;
+ 
+@@ -401,6 +399,7 @@ static int __init msm_iommu_driver_init(
+ 
+ 	ret = platform_driver_register(&msm_iommu_ctx_driver);
+ 	if (ret != 0) {
++		platform_driver_unregister(&msm_iommu_driver);
+ 		pr_err("Failed to register IOMMU context driver\n");
+ 		goto error;
+ 	}
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
 
-mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
-mm-thp-use-the-right-function-when-updating-access-flags.patch
-mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch
-mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch
-mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch
-mm-thp-dont-use-hpage_shift-in-transparent-hugepage-code.patch
-mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch
+origin.patch
+linux-next.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+drivers-cdrom-gdromc-fix-device-number-leak.patch
 
