@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-introduce-remap_vmalloc_range_partial-fix.patch added
- to -mm tree
-Date: Thu, 23 May 2013 15:25:07 -0700
-Message-ID: <519e9743.1jgdTQOH5FcQHd3S%akpm@linux-foundation.org>
+Subject: + vmalloc-make-find_vm_area-check-in-range.patch added to -mm
+ tree
+Date: Thu, 23 May 2013 15:25:04 -0700
+Message-ID: <519e9740.gn9b9sQ78juDxKwL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50597 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759823Ab3EWWZQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:16 -0400
+	with ESMTP id S1759761Ab3EWWZP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com
 
-Subject: + vmalloc-introduce-remap_vmalloc_range_partial-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
+Subject: + vmalloc-make-find_vm_area-check-in-range.patch added to -mm tree
+To: d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 15:25:07 -0700
+Date: Thu, 23 May 2013 15:25:04 -0700
 
 
 The patch titled
-     Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
+     Subject: vmalloc: make find_vm_area check in range
 has been added to the -mm tree.  Its filename is
-     vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+     vmalloc-make-find_vm_area-check-in-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
+From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Subject: vmalloc: make find_vm_area check in range
 
-use PAGE_ALIGNED()
+Currently, __find_vmap_area searches for the kernel VM area starting at a
+given address.  This patch changes this behavior so that it searches for
+the kernel VM area to which the address belongs.  This change is needed by
+remap_vmalloc_range_partial to be introduced in later patch that receives
+any position of kernel VM area as target address.
 
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lisa Mitchell <lisa.mitchell@hp.com>
+This patch changes the condition (addr > va->va_start) to the equivalent
+(addr >= va->va_end) by taking advantage of the fact that each kernel VM
+area is non-overlapping.
+
+Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: Lisa Mitchell <lisa.mitchell@hp.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix
+diff -puN mm/vmalloc.c~vmalloc-make-find_vm_area-check-in-range mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-make-find_vm_area-check-in-range
 +++ a/mm/vmalloc.c
-@@ -1476,10 +1476,9 @@ static void __vunmap(const void *addr, i
- 	if (!addr)
- 		return;
- 
--	if ((PAGE_SIZE-1) & (unsigned long)addr) {
--		WARN(1, KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
-+	if (WARN(!PAGE_ALIGNED(addr), "Trying to vfree() bad address (%p)\n",
-+			addr));
- 		return;
--	}
- 
- 	area = remove_vm_area(addr);
- 	if (unlikely(!area)) {
-@@ -2170,8 +2169,7 @@ int remap_vmalloc_range_partial(struct v
- 
- 	size = PAGE_ALIGN(size);
- 
--	if (((PAGE_SIZE-1) & (unsigned long)uaddr) ||
--	    ((PAGE_SIZE-1) & (unsigned long)kaddr))
-+	if (!PAGE_ALIGNED(uaddr) || !PAGE_ALIGNED(kaddr))
- 		return -EINVAL;
- 
- 	area = find_vm_area(kaddr);
+@@ -292,7 +292,7 @@ static struct vmap_area *__find_vmap_are
+ 		va = rb_entry(n, struct vmap_area, rb_node);
+ 		if (addr < va->va_start)
+ 			n = n->rb_left;
+-		else if (addr > va->va_start)
++		else if (addr >= va->va_end)
+ 			n = n->rb_right;
+ 		else
+ 			return va;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-revert-selftest-add-simple-test-for-soft-dirty-bit.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
 include-linux-mmh-add-page_aligned-helper.patch
+vmcore-clean-up-read_vmcore.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
+vmalloc-make-find_vm_area-check-in-range.patch
+vmalloc-introduce-remap_vmalloc_range_partial.patch
 vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
 vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
+vmcore-support-mmap-on-proc-vmcore.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
