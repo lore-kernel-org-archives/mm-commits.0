@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
- added to -mm tree
-Date: Thu, 23 May 2013 15:25:02 -0700
-Message-ID: <519e973e.zTztsRakYxnYrVxF%akpm@linux-foundation.org>
+ vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch added to -mm tree
+Date: Thu, 23 May 2013 15:25:10 -0700
+Message-ID: <519e9746.L7GYAbjOXkWG0id5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759866Ab3EWWZV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:21 -0400
+	with ESMTP id S1759854Ab3EWWZQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 18:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
 
-Subject: + vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch added to -mm tree
+Subject: + vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch added to -mm tree
 To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 15:25:02 -0700
+Date: Thu, 23 May 2013 15:25:10 -0700
 
 
 The patch titled
-     Subject: vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix
+     Subject: vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
 has been added to the -mm tree.  Its filename is
-     vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+     vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix
+Subject: vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
+
+use min(), fix error-path vzalloc() leaks
 
 Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
 Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
@@ -52,129 +53,61 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   69 ++++++++++++++++++++-------------------------
- 1 file changed, 31 insertions(+), 38 deletions(-)
+ fs/proc/vmcore.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix
+diff -puN fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
 +++ a/fs/proc/vmcore.c
-@@ -477,6 +477,12 @@ static void __init set_vmcore_list_offse
- 	}
- }
+@@ -142,9 +142,7 @@ static ssize_t read_vmcore(struct file *
  
-+static void free_elfcorebuf(void)
-+{
-+	free_pages((unsigned long)elfcorebuf, get_order(elfcorebuf_sz_orig));
-+	elfcorebuf = NULL;
-+}
-+
- static int __init parse_crash_elf64_headers(void)
+ 	/* Read ELF core header */
+ 	if (*fpos < elfcorebuf_sz) {
+-		tsz = elfcorebuf_sz - *fpos;
+-		if (buflen < tsz)
+-			tsz = buflen;
++		tsz = min(elfcorebuf_sz - (size_t)*fpos, buflen);
+ 		if (copy_to_user(buffer, elfcorebuf + *fpos, tsz))
+ 			return -EFAULT;
+ 		buflen -= tsz;
+@@ -161,9 +159,7 @@ static ssize_t read_vmcore(struct file *
+ 	if (*fpos < elfcorebuf_sz + elfnotes_sz) {
+ 		void *kaddr;
+ 
+-		tsz = elfcorebuf_sz + elfnotes_sz - *fpos;
+-		if (buflen < tsz)
+-			tsz = buflen;
++		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)*fpos, buflen);
+ 		kaddr = elfnotes_buf + *fpos - elfcorebuf_sz;
+ 		if (copy_to_user(buffer, kaddr, tsz))
+ 			return -EFAULT;
+@@ -179,9 +175,7 @@ static ssize_t read_vmcore(struct file *
+ 
+ 	list_for_each_entry(m, &vmcore_list, list) {
+ 		if (*fpos < m->offset + m->size) {
+-			tsz = m->offset + m->size - *fpos;
+-			if (buflen < tsz)
+-				tsz = buflen;
++			tsz = min_t(size_t, m->offset + m->size - *fpos, buflen);
+ 			start = m->paddr + *fpos - m->offset;
+ 			tmp = read_from_oldmem(buffer, tsz, &start, 1);
+ 			if (tmp < 0)
+@@ -710,6 +704,8 @@ static void free_elfcorebuf(void)
  {
- 	int rc=0;
-@@ -505,36 +511,31 @@ static int __init parse_crash_elf64_head
- 	}
- 
- 	/* Read in all elf headers. */
--	elfcorebuf_sz_orig = sizeof(Elf64_Ehdr) + ehdr.e_phnum * sizeof(Elf64_Phdr);
-+	elfcorebuf_sz_orig = sizeof(Elf64_Ehdr) +
-+				ehdr.e_phnum * sizeof(Elf64_Phdr);
- 	elfcorebuf_sz = elfcorebuf_sz_orig;
--	elfcorebuf = (void *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
--					       get_order(elfcorebuf_sz_orig));
-+	elfcorebuf = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
-+					      get_order(elfcorebuf_sz_orig));
- 	if (!elfcorebuf)
- 		return -ENOMEM;
- 	addr = elfcorehdr_addr;
- 	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz_orig, &addr, 0);
--	if (rc < 0) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc < 0)
-+		goto fail;
- 
- 	/* Merge all PT_NOTE headers into one. */
- 	rc = merge_note_headers_elf64(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	rc = process_ptload_program_headers_elf64(elfcorebuf, elfcorebuf_sz,
- 							&vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
- 	return 0;
-+fail:
-+	free_elfcorebuf();
-+	return rc;
+ 	free_pages((unsigned long)elfcorebuf, get_order(elfcorebuf_sz_orig));
+ 	elfcorebuf = NULL;
++	vfree(elfnotes_buf);
++	elfnotes_buf = NULL;
  }
  
- static int __init parse_crash_elf32_headers(void)
-@@ -567,34 +568,28 @@ static int __init parse_crash_elf32_head
- 	/* Read in all elf headers. */
- 	elfcorebuf_sz_orig = sizeof(Elf32_Ehdr) + ehdr.e_phnum * sizeof(Elf32_Phdr);
- 	elfcorebuf_sz = elfcorebuf_sz_orig;
--	elfcorebuf = (void *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
--					       get_order(elfcorebuf_sz_orig));
-+	elfcorebuf = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
-+					      get_order(elfcorebuf_sz_orig));
- 	if (!elfcorebuf)
- 		return -ENOMEM;
- 	addr = elfcorehdr_addr;
- 	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz_orig, &addr, 0);
--	if (rc < 0) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc < 0)
-+		goto fail;
- 
- 	/* Merge all PT_NOTE headers into one. */
- 	rc = merge_note_headers_elf32(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	rc = process_ptload_program_headers_elf32(elfcorebuf, elfcorebuf_sz,
- 								&vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
- 	return 0;
-+fail:
-+	free_elfcorebuf();
-+	return rc;
- }
- 
- static int __init parse_crash_elf_headers(void)
-@@ -672,8 +667,6 @@ void vmcore_cleanup(void)
+ static int __init parse_crash_elf64_headers(void)
+@@ -898,8 +894,6 @@ void vmcore_cleanup(void)
  		list_del(&m->list);
  		kfree(m);
  	}
--	free_pages((unsigned long)elfcorebuf,
--		   get_order(elfcorebuf_sz_orig));
--	elfcorebuf = NULL;
-+	free_elfcorebuf();
+-	vfree(elfnotes_buf);
+-	elfnotes_buf = NULL;
+ 	free_elfcorebuf();
  }
  EXPORT_SYMBOL_GPL(vmcore_cleanup);
 _
