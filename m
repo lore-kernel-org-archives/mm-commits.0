@@ -1,77 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe.patch added
- to -mm tree
-Date: Thu, 23 May 2013 13:29:39 -0700
-Message-ID: <519e7c33.GA2z/e+p6c9TSlpt%akpm@linux-foundation.org>
+Subject: [folded-merged] block-prep-work-for-batch-completion-fix-2.patch
+ removed from -mm tree
+Date: Thu, 23 May 2013 13:49:09 -0700
+Message-ID: <519e80c5.yPFw6cqT5xFDi6eo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49780 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759320Ab3EWU3j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:29:39 -0400
+	with ESMTP id S1758330Ab3EWUtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yongjun_wei@trendmicro.com.cn
+To: mm-commits@vger.kernel.org, koverstreet@google.com, akpm@linux-foundation.org
 
-Subject: + rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe.patch added to -mm tree
-To: yongjun_wei@trendmicro.com.cn
+Subject: [folded-merged] block-prep-work-for-batch-completion-fix-2.patch removed from -mm tree
+To: akpm@linux-foundation.org,koverstreet@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 13:29:39 -0700
+Date: Thu, 23 May 2013 13:49:09 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-vr41xx.c: fix error return code in rtc_probe()
-has been added to the -mm tree.  Its filename is
-     rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe.patch
+     Subject: block-prep-work-for-batch-completion-fix-2
+has been removed from the -mm tree.  Its filename was
+     block-prep-work-for-batch-completion-fix-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into block-prep-work-for-batch-completion.patch
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: drivers/rtc/rtc-vr41xx.c: fix error return code in rtc_probe()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: block-prep-work-for-batch-completion-fix-2
 
-Fix to return -EBUSY in the platform irq get error handling case instead
-of 0, as done elsewhere in this function.
+fs/bio.c: In function 'submit_bio_wait':
+fs/bio.c:786: warning: assignment from incompatible pointer type
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vr41xx.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/bio.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -339,8 +339,10 @@ static int rtc_probe(struct platform_dev
- 		goto err_device_unregister;
+diff -puN fs/bio.c~block-prep-work-for-batch-completion-fix-2 fs/bio.c
+--- a/fs/bio.c~block-prep-work-for-batch-completion-fix-2
++++ a/fs/bio.c
+@@ -760,7 +760,8 @@ struct submit_bio_ret {
+ 	int error;
+ };
  
- 	pie_irq = platform_get_irq(pdev, 1);
--	if (pie_irq <= 0)
-+	if (pie_irq <= 0) {
-+		retval = -EBUSY;
- 		goto err_free_irq;
-+	}
+-static void submit_bio_wait_endio(struct bio *bio, int error)
++static void submit_bio_wait_endio(struct bio *bio, int error,
++				  struct batch_complete *batch)
+ {
+ 	struct submit_bio_ret *ret = bio->bi_private;
  
- 	retval = request_irq(pie_irq, rtclong1_interrupt, 0,
- 			     "rtclong1", pdev);
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 linux-next.patch
-rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
+drivers-video-implement-a-simple-framebuffer-driver.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+revert-selftest-add-simple-test-for-soft-dirty-bit.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+generic-dynamic-per-cpu-refcounting.patch
+block-prep-work-for-batch-completion.patch
+block-prep-work-for-batch-completion-fix-3.patch
+block-prep-work-for-batch-completion-fix-3-fix.patch
+block-prep-work-for-batch-completion-fix-99.patch
+block-prep-work-for-batch-completion-fix-4.patch
+block-prep-work-for-batch-completion-fix-101.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
