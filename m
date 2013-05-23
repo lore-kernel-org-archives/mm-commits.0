@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch added to -mm tree
-Date: Thu, 23 May 2013 16:07:52 -0700
-Message-ID: <519ea148.KduBdM6rEQPSqGQ1%akpm@linux-foundation.org>
+ mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch added
+ to -mm tree
+Date: Thu, 23 May 2013 16:11:48 -0700
+Message-ID: <519ea234.1EUhPSQw0nDKX+R1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50868 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50873 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759757Ab3EWXHx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 19:07:53 -0400
+	with ESMTP id S1759759Ab3EWXLt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 19:11:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, aneesh.kumar@linux.vnet.ibm.com
 
-Subject: + ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch added to -mm tree
-To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@vger.kernel.org
+Subject: + mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch added to -mm tree
+To: aneesh.kumar@linux.vnet.ibm.com,fengguang.wu@intel.com
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 16:07:52 -0700
+Date: Thu, 23 May 2013 16:11:48 -0700
 
 
 The patch titled
-     Subject: ocfs2: goto out_unlock if ocfs2_get_clusters_nocache() failed in ocfs2_fiemap()
+     Subject: mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch
+     mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +40,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: goto out_unlock if ocfs2_get_clusters_nocache() failed in ocfs2_fiemap()
 
-Last time we found there is lock/unlock bug in ocfs2_file_aio_write, and
-then we did a thorough search for all lock resources in ocfs2_inode_info,
-including rw, inode and open lockres and found this bug.  My kernel
-version is 3.0.13, and it is also in the lastest version 3.9.  In
-ocfs2_fiemap, once ocfs2_get_clusters_nocache failed, it should goto
-out_unlock instead of out, because we need release buffer head, up read
-alloc sem and unlock inode.
+Author: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
+s390: Fix build error
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/extent_map.c |    2 +-
+ arch/s390/include/asm/pgtable.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/extent_map.c~ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap fs/ocfs2/extent_map.c
---- a/fs/ocfs2/extent_map.c~ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap
-+++ a/fs/ocfs2/extent_map.c
-@@ -790,7 +790,7 @@ int ocfs2_fiemap(struct inode *inode, st
- 						 &hole_size, &rec, &is_last);
- 		if (ret) {
- 			mlog_errno(ret);
--			goto out;
-+			goto out_unlock;
- 		}
+diff -puN arch/s390/include/asm/pgtable.h~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1351,7 +1351,7 @@ static inline pmd_t pmd_mkwrite(pmd_t pm
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
  
- 		if (rec.e_blkno == 0ULL) {
+ #define __HAVE_ARCH_PGTABLE_DEPOSIT
+-extern void pgtable_trans_huge_deposit(struct mm_struct *mm, , pmd_t *pmdp,
++extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 				       pgtable_t pgtable);
+ 
+ #define __HAVE_ARCH_PGTABLE_WITHDRAW
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-ocfs2-unlock-rw-lock-if-inode-lock-failed.patch
-ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch
+mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
+mm-thp-use-the-right-function-when-updating-access-flags.patch
+mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch
+mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch
+mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch
+mm-thp-dont-use-hpage_shift-in-transparent-hugepage-code.patch
+mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch
 
