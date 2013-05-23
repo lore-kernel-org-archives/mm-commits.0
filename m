@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] block-prep-work-for-batch-completion-fix-99.patch removed from -mm tree
-Date: Thu, 23 May 2013 13:49:15 -0700
-Message-ID: <519e80cb.o4Sj057pvXIg5C5H%akpm@linux-foundation.org>
+Subject: [folded-merged] block-prep-work-for-batch-completion-fix-4.patch
+ removed from -mm tree
+Date: Thu, 23 May 2013 13:49:17 -0700
+Message-ID: <519e80cd.qqwIU3vEAWtP6qeL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49867 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758494Ab3EWUtQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:49:16 -0400
+	with ESMTP id S1758494Ab3EWUtS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 16:49:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, koverstreet@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] block-prep-work-for-batch-completion-fix-99.patch removed from -mm tree
-To: akpm@linux-foundation.org,fengguang.wu@intel.com,koverstreet@google.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] block-prep-work-for-batch-completion-fix-4.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 13:49:15 -0700
+Date: Thu, 23 May 2013 13:49:17 -0700
 
 
 The patch titled
-     Subject: block-prep-work-for-batch-completion-fix-99
+     Subject: block-prep-work-for-batch-completion-fix-4
 has been removed from the -mm tree.  Its filename was
-     block-prep-work-for-batch-completion-fix-99.patch
+     block-prep-work-for-batch-completion-fix-4.patch
 
 This patch was dropped because it was folded into block-prep-work-for-batch-completion.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prep-work-for-batch-completion-fix-99
+Subject: block-prep-work-for-batch-completion-fix-4
 
-Cc: Kent Overstreet <koverstreet@google.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bcache/debug.c |    3 ++-
+ drivers/block/nvme-core.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/bcache/debug.c~block-prep-work-for-batch-completion-fix-99 drivers/md/bcache/debug.c
---- a/drivers/md/bcache/debug.c~block-prep-work-for-batch-completion-fix-99
-+++ a/drivers/md/bcache/debug.c
-@@ -177,7 +177,8 @@ void bch_btree_verify(struct btree *b, s
- 	mutex_unlock(&b->c->verify_lock);
- }
+diff -puN drivers/block/nvme-core.c~block-prep-work-for-batch-completion-fix-4 drivers/block/nvme-core.c
+--- a/drivers/block/nvme-core.c~block-prep-work-for-batch-completion-fix-4
++++ a/drivers/block/nvme-core.c
+@@ -413,7 +413,8 @@ struct nvme_bio_pair {
+ 	atomic_t cnt;
+ };
  
--static void data_verify_endio(struct bio *bio, int error)
-+static void data_verify_endio(struct bio *bio, int error,
-+			      struct batch_complete *batch)
+-static void nvme_bio_pair_endio(struct bio *bio, int err)
++static void nvme_bio_pair_endio(struct bio *bio, int err,
++				struct batch_complete *batch)
  {
- 	struct closure *cl = bio->bi_private;
- 	closure_put(cl);
+ 	struct nvme_bio_pair *bp = bio->bi_private;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +88,6 @@ partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
 drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
 generic-dynamic-per-cpu-refcounting.patch
 block-prep-work-for-batch-completion.patch
-block-prep-work-for-batch-completion-fix-4.patch
 block-prep-work-for-batch-completion-fix-101.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
