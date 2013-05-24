@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-support-mmap-on-proc-vmcore-fix.patch added to -mm tree
-Date: Thu, 23 May 2013 17:20:42 -0700
-Message-ID: <519eb25a.yDNjXWJJSV04DqB3%akpm@linux-foundation.org>
+Subject: + coredump-format_corename-can-leak-cn-corename.patch added to
+ -mm tree
+Date: Fri, 24 May 2013 12:53:43 -0700
+Message-ID: <519fc547.SiwKa+ECYRQarIwY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51247 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57945 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757620Ab3EXAUn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 May 2013 20:20:43 -0400
+	with ESMTP id S1754732Ab3EXTxo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 15:53:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: + vmcore-support-mmap-on-proc-vmcore-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
+Subject: + coredump-format_corename-can-leak-cn-corename.patch added to -mm tree
+To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 May 2013 17:20:42 -0700
+Date: Fri, 24 May 2013 12:53:43 -0700
 
 
 The patch titled
-     Subject: vmcore-support-mmap-on-proc-vmcore-fix
+     Subject: coredump: format_corename() can leak cn->corename
 has been added to the -mm tree.  Its filename is
-     vmcore-support-mmap-on-proc-vmcore-fix.patch
+     coredump-format_corename-can-leak-cn-corename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,133 +39,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmcore-support-mmap-on-proc-vmcore-fix
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: format_corename() can leak cn->corename
 
-use min(), switch to conventional error-unwinding approach
+do_coredump() assumes that format_corename() can only fail if
+expand_corename() fails and frees cn->corename.  This is not true, for
+example cn_print_exe_file() can fail and in this case nobody frees
+cn->corename.
 
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lisa Mitchell <lisa.mitchell@hp.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Change do_coredump() to always do kfree(cn->corename) after it calls
+format_corename() (NULL is fine), change expand_corename() to do nothing
+if kmalloc() fails.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Colin Walters <walters@verbum.org>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ fs/coredump.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-support-mmap-on-proc-vmcore-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-support-mmap-on-proc-vmcore-fix
-+++ a/fs/proc/vmcore.c
-@@ -218,9 +218,7 @@ static int mmap_vmcore(struct file *file
- 	if (start < elfcorebuf_sz) {
- 		u64 pfn;
+diff -puN fs/coredump.c~coredump-format_corename-can-leak-cn-corename fs/coredump.c
+--- a/fs/coredump.c~coredump-format_corename-can-leak-cn-corename
++++ a/fs/coredump.c
+@@ -58,16 +58,14 @@ static atomic_t call_count = ATOMIC_INIT
  
--		tsz = elfcorebuf_sz - start;
--		if (size < tsz)
--			tsz = size;
-+		tsz = min(elfcorebuf_sz - (size_t)start, size);
- 		pfn = __pa(elfcorebuf + start) >> PAGE_SHIFT;
- 		if (remap_pfn_range(vma, vma->vm_start, pfn, tsz,
- 				    vma->vm_page_prot))
-@@ -236,15 +234,11 @@ static int mmap_vmcore(struct file *file
- 	if (start < elfcorebuf_sz + elfnotes_sz) {
- 		void *kaddr;
+ static int expand_corename(struct core_name *cn)
+ {
+-	char *old_corename = cn->corename;
++	int size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
++	char *corename = krealloc(cn->corename, size, GFP_KERNEL);
  
--		tsz = elfcorebuf_sz + elfnotes_sz - start;
--		if (size < tsz)
--			tsz = size;
-+		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)start, size);
- 		kaddr = elfnotes_buf + start - elfcorebuf_sz;
- 		if (remap_vmalloc_range_partial(vma, vma->vm_start + len,
--						kaddr, tsz)) {
--			do_munmap(vma->vm_mm, vma->vm_start, len);
--			return -EAGAIN;
--		}
-+						kaddr, tsz))
-+			goto fail;
- 		size -= tsz;
- 		start += tsz;
- 		len += tsz;
-@@ -257,16 +251,12 @@ static int mmap_vmcore(struct file *file
- 		if (start < m->offset + m->size) {
- 			u64 paddr = 0;
+-	cn->size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
+-	cn->corename = krealloc(old_corename, cn->size, GFP_KERNEL);
+-
+-	if (!cn->corename) {
+-		kfree(old_corename);
++	if (!corename)
+ 		return -ENOMEM;
+-	}
  
--			tsz = m->offset + m->size - start;
--			if (size < tsz)
--				tsz = size;
-+			tsz = min_t(size_t, m->offset + m->size - start, size);
- 			paddr = m->paddr + start - m->offset;
- 			if (remap_pfn_range(vma, vma->vm_start + len,
- 					    paddr >> PAGE_SHIFT, tsz,
--					    vma->vm_page_prot)) {
--				do_munmap(vma->vm_mm, vma->vm_start, len);
--				return -EAGAIN;
--			}
-+					    vma->vm_page_prot))
-+				goto fail;
- 			size -= tsz;
- 			start += tsz;
- 			len += tsz;
-@@ -277,6 +267,9 @@ static int mmap_vmcore(struct file *file
- 	}
- 
++	cn->size = size;
++	cn->corename = corename;
  	return 0;
-+fail:
-+	do_munmap(vma->vm_mm, vma->vm_start, len);
-+	return -EAGAIN;
  }
  
- static const struct file_operations proc_vmcore_operations = {
+@@ -157,10 +155,9 @@ static int format_corename(struct core_n
+ 	int pid_in_pattern = 0;
+ 	int err = 0;
+ 
++	cn->used = 0;
+ 	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
+ 	cn->corename = kmalloc(cn->size, GFP_KERNEL);
+-	cn->used = 0;
+-
+ 	if (!cn->corename)
+ 		return -ENOMEM;
+ 
+@@ -549,7 +546,7 @@ void do_coredump(siginfo_t *siginfo)
+ 		if (ispipe < 0) {
+ 			printk(KERN_WARNING "format_corename failed\n");
+ 			printk(KERN_WARNING "Aborting core\n");
+-			goto fail_corename;
++			goto fail_unlock;
+ 		}
+ 
+ 		if (cprm.limit == 1) {
+@@ -669,7 +666,6 @@ fail_dropcount:
+ 		atomic_dec(&core_dump_count);
+ fail_unlock:
+ 	kfree(cn.corename);
+-fail_corename:
+ 	coredump_finish(mm, core_dumped);
+ 	revert_creds(old_cred);
+ fail_creds:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
-drivers-video-implement-a-simple-framebuffer-driver.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-revert-selftest-add-simple-test-for-soft-dirty-bit.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+origin.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
+x86-kill-tif_debug.patch
+coredump-format_corename-can-leak-cn-corename.patch
+coredump-introduce-cn_vprintf.patch
+coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
+coredump-kill-cn_escape-introduce-cn_esc_printf.patch
+coredump-kill-call_count-add-core_name_size.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
 
