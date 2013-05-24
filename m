@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-devm_backlight_device_registerunregister.patch
- added to -mm tree
-Date: Fri, 24 May 2013 13:37:31 -0700
-Message-ID: <519fcf8b.FQ+SU5dHXVfnQwpM%akpm@linux-foundation.org>
+Subject: + lcd-add-devm_lcd_device_registerunregister.patch added to -mm
+ tree
+Date: Fri, 24 May 2013 13:37:32 -0700
+Message-ID: <519fcf8c.CANVICKYMssj8gKP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58172 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869Ab3EXUhc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 16:37:32 -0400
+	with ESMTP id S1750869Ab3EXUhd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 16:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tj@kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-add-devm_backlight_device_registerunregister.patch added to -mm tree
+Subject: + lcd-add-devm_lcd_device_registerunregister.patch added to -mm tree
 To: jg1.han@samsung.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 May 2013 13:37:31 -0700
+Date: Fri, 24 May 2013 13:37:32 -0700
 
 
 The patch titled
-     Subject: backlight: add devm_backlight_device_{register,unregister}()
+     Subject: lcd: add devm_lcd_device_{register,unregister}()
 has been added to the -mm tree.  Its filename is
-     backlight-add-devm_backlight_device_registerunregister.patch
+     lcd-add-devm_lcd_device_registerunregister.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,122 +40,115 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: add devm_backlight_device_{register,unregister}()
+Subject: lcd: add devm_lcd_device_{register,unregister}()
 
 These functions allow the driver core to automatically clean up any
-allocation made by backlight drivers. Thus it simplifies the error
-paths.
+allocation made by lcd drivers.  Thus it simplifies the error paths.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |   75 ++++++++++++++++++++++++++
- include/linux/backlight.h           |    6 ++
- 2 files changed, 81 insertions(+)
+ drivers/video/backlight/lcd.c |   70 ++++++++++++++++++++++++++++++++
+ include/linux/lcd.h           |    5 ++
+ 2 files changed, 75 insertions(+)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-add-devm_backlight_device_registerunregister drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-add-devm_backlight_device_registerunregister
-+++ a/drivers/video/backlight/backlight.c
-@@ -370,6 +370,81 @@ void backlight_device_unregister(struct
+diff -puN drivers/video/backlight/lcd.c~lcd-add-devm_lcd_device_registerunregister drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~lcd-add-devm_lcd_device_registerunregister
++++ a/drivers/video/backlight/lcd.c
+@@ -260,6 +260,76 @@ void lcd_device_unregister(struct lcd_de
  }
- EXPORT_SYMBOL(backlight_device_unregister);
+ EXPORT_SYMBOL(lcd_device_unregister);
  
-+static void devm_backlight_device_release(struct device *dev, void *res)
++static void devm_lcd_device_release(struct device *dev, void *res)
 +{
-+	struct backlight_device *backlight = *(struct backlight_device **)res;
++	struct lcd_device *lcd = *(struct lcd_device **)res;
 +
-+	backlight_device_unregister(backlight);
++	lcd_device_unregister(lcd);
 +}
 +
-+static int devm_backlight_device_match(struct device *dev, void *res,
-+					void *data)
++static int devm_lcd_device_match(struct device *dev, void *res, void *data)
 +{
-+	struct backlight_device **r = res;
++	struct lcd_device **r = res;
 +
 +	return *r == data;
 +}
 +
 +/**
-+ * devm_backlight_device_register - resource managed backlight_device_register()
++ * devm_lcd_device_register - resource managed lcd_device_register()
 + * @dev: the device to register
 + * @name: the name of the device
 + * @parent: a pointer to the parent device
 + * @devdata: an optional pointer to be stored for private driver use
-+ * @ops: the backlight operations structure
-+ * @props: the backlight properties
++ * @ops: the lcd operations structure
 + *
-+ * @return a struct backlight on success, or an ERR_PTR on error
++ * @return a struct lcd on success, or an ERR_PTR on error
 + *
-+ * Managed backlight_device_register(). The backlight_device returned
-+ * from this function are automatically freed on driver detach.
-+ * See backlight_device_register() for more information.
++ * Managed lcd_device_register(). The lcd_device returned from this function
++ * are automatically freed on driver detach. See lcd_device_register()
++ * for more information.
 + */
-+struct backlight_device *devm_backlight_device_register(struct device *dev,
-+	const char *name, struct device *parent, void *devdata,
-+	const struct backlight_ops *ops,
-+	const struct backlight_properties *props)
++struct lcd_device *devm_lcd_device_register(struct device *dev,
++		const char *name, struct device *parent,
++		void *devdata, struct lcd_ops *ops)
 +{
-+	struct backlight_device **ptr, *backlight;
++	struct lcd_device **ptr, *lcd;
 +
-+	ptr = devres_alloc(devm_backlight_device_release, sizeof(*ptr),
-+			GFP_KERNEL);
++	ptr = devres_alloc(devm_lcd_device_release, sizeof(*ptr), GFP_KERNEL);
 +	if (!ptr)
 +		return ERR_PTR(-ENOMEM);
 +
-+	backlight = backlight_device_register(name, parent, devdata, ops,
-+						props);
-+	if (!IS_ERR(backlight)) {
-+		*ptr = backlight;
++	lcd = lcd_device_register(name, parent, devdata, ops);
++	if (!IS_ERR(lcd)) {
++		*ptr = lcd;
 +		devres_add(dev, ptr);
 +	} else {
 +		devres_free(ptr);
 +	}
 +
-+	return backlight;
++	return lcd;
 +}
-+EXPORT_SYMBOL(devm_backlight_device_register);
++EXPORT_SYMBOL(devm_lcd_device_register);
 +
 +/**
-+ * devm_backlight_device_unregister - resource managed backlight_device_unregister()
++ * devm_lcd_device_unregister - resource managed lcd_device_unregister()
 + * @dev: the device to unregister
-+ * @bd: the backlight device to unregister
++ * @ld: the lcd device to unregister
 + *
-+ * Deallocated a backlight allocated with devm_backlight_device_register().
-+ * Normally this function will not need to be called and the resource management
++ * Deallocated a lcd allocated with devm_lcd_device_register(). Normally
++ * this function will not need to be called and the resource management
 + * code will ensure that the resource is freed.
 + */
-+void devm_backlight_device_unregister(struct device *dev,
-+				struct backlight_device *bd)
++void devm_lcd_device_unregister(struct device *dev, struct lcd_device *ld)
 +{
 +	int rc;
 +
-+	rc = devres_release(dev, devm_backlight_device_release,
-+				devm_backlight_device_match, bd);
++	rc = devres_release(dev, devm_lcd_device_release,
++				devm_lcd_device_match, ld);
 +	WARN_ON(rc);
 +}
-+EXPORT_SYMBOL(devm_backlight_device_unregister);
++EXPORT_SYMBOL(devm_lcd_device_unregister);
 +
- #ifdef CONFIG_OF
- static int of_parent_match(struct device *dev, const void *data)
++
+ static void __exit lcd_class_exit(void)
  {
-diff -puN include/linux/backlight.h~backlight-add-devm_backlight_device_registerunregister include/linux/backlight.h
---- a/include/linux/backlight.h~backlight-add-devm_backlight_device_registerunregister
-+++ a/include/linux/backlight.h
-@@ -114,7 +114,13 @@ static inline void backlight_update_stat
- extern struct backlight_device *backlight_device_register(const char *name,
- 	struct device *dev, void *devdata, const struct backlight_ops *ops,
- 	const struct backlight_properties *props);
-+extern struct backlight_device *devm_backlight_device_register(
-+	struct device *dev, const char *name, struct device *parent,
-+	void *devdata, const struct backlight_ops *ops,
-+	const struct backlight_properties *props);
- extern void backlight_device_unregister(struct backlight_device *bd);
-+extern void devm_backlight_device_unregister(struct device *dev,
-+					struct backlight_device *bd);
- extern void backlight_force_update(struct backlight_device *bd,
- 				   enum backlight_update_reason reason);
+ 	class_destroy(lcd_class);
+diff -puN include/linux/lcd.h~lcd-add-devm_lcd_device_registerunregister include/linux/lcd.h
+--- a/include/linux/lcd.h~lcd-add-devm_lcd_device_registerunregister
++++ a/include/linux/lcd.h
+@@ -112,7 +112,12 @@ static inline void lcd_set_power(struct
+ 
+ extern struct lcd_device *lcd_device_register(const char *name,
+ 	struct device *parent, void *devdata, struct lcd_ops *ops);
++extern struct lcd_device *devm_lcd_device_register(struct device *dev,
++	const char *name, struct device *parent,
++	void *devdata, struct lcd_ops *ops);
+ extern void lcd_device_unregister(struct lcd_device *ld);
++extern void devm_lcd_device_unregister(struct device *dev,
++	struct lcd_device *ld);
+ 
+ #define to_lcd_device(obj) container_of(obj, struct lcd_device, dev)
  
 _
 
