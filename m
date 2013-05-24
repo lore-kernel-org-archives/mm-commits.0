@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-format_corename-can-leak-cn-corename.patch added to
- -mm tree
-Date: Fri, 24 May 2013 12:53:43 -0700
-Message-ID: <519fc547.SiwKa+ECYRQarIwY%akpm@linux-foundation.org>
+Subject: + coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch added to -mm tree
+Date: Fri, 24 May 2013 12:53:45 -0700
+Message-ID: <519fc549.Q1A2UhI4cAkxSpiw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57945 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754732Ab3EXTxo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 15:53:44 -0400
+	with ESMTP id S1757410Ab3EXTxq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 15:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: + coredump-format_corename-can-leak-cn-corename.patch added to -mm tree
+Subject: + coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch added to -mm tree
 To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 May 2013 12:53:43 -0700
+Date: Fri, 24 May 2013 12:53:45 -0700
 
 
 The patch titled
-     Subject: coredump: format_corename() can leak cn->corename
+     Subject: coredump: cn_vprintf() has no reason to call vsnprintf() twice
 has been added to the -mm tree.  Its filename is
-     coredump-format_corename-can-leak-cn-corename.patch
+     coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: format_corename() can leak cn->corename
+Subject: coredump: cn_vprintf() has no reason to call vsnprintf() twice
 
-do_coredump() assumes that format_corename() can only fail if
-expand_corename() fails and frees cn->corename.  This is not true, for
-example cn_print_exe_file() can fail and in this case nobody frees
-cn->corename.
-
-Change do_coredump() to always do kfree(cn->corename) after it calls
-format_corename() (NULL is fine), change expand_corename() to do nothing
-if kmalloc() fails.
+cn_vprintf() looks really overcomplicated and sub-optimal.  We do not need
+vsnprintf(NULL) to calculate the size we need, we can simply try to print
+into the current buffer and expand/retry only if necessary.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -62,63 +56,50 @@ Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ fs/coredump.c |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN fs/coredump.c~coredump-format_corename-can-leak-cn-corename fs/coredump.c
---- a/fs/coredump.c~coredump-format_corename-can-leak-cn-corename
+diff -puN fs/coredump.c~coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice fs/coredump.c
+--- a/fs/coredump.c~coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice
 +++ a/fs/coredump.c
-@@ -58,16 +58,14 @@ static atomic_t call_count = ATOMIC_INIT
+@@ -71,26 +71,20 @@ static int expand_corename(struct core_n
  
- static int expand_corename(struct core_name *cn)
+ static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
  {
--	char *old_corename = cn->corename;
-+	int size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
-+	char *corename = krealloc(cn->corename, size, GFP_KERNEL);
+-	char *cur;
+-	int need;
+-	int ret;
++	int free, need;
  
--	cn->size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
--	cn->corename = krealloc(old_corename, cn->size, GFP_KERNEL);
+-	need = vsnprintf(NULL, 0, fmt, arg);
+-	if (likely(need < cn->size - cn->used - 1))
+-		goto out_printf;
++again:
++	free = cn->size - cn->used;
++	need = vsnprintf(cn->corename + cn->used, free, fmt, arg);
++	if (need < free) {
++		cn->used += need;
++		return 0;
++	}
+ 
+-	ret = expand_corename(cn);
+-	if (ret)
+-		goto expand_fail;
++	if (!expand_corename(cn))
++		goto again;
+ 
+-out_printf:
+-	cur = cn->corename + cn->used;
+-	vsnprintf(cur, need + 1, fmt, arg);
+-	cn->used += need;
+-	return 0;
 -
--	if (!cn->corename) {
--		kfree(old_corename);
-+	if (!corename)
- 		return -ENOMEM;
--	}
- 
-+	cn->size = size;
-+	cn->corename = corename;
- 	return 0;
+-expand_fail:
+-	return ret;
++	return -ENOMEM;
  }
  
-@@ -157,10 +155,9 @@ static int format_corename(struct core_n
- 	int pid_in_pattern = 0;
- 	int err = 0;
- 
-+	cn->used = 0;
- 	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
- 	cn->corename = kmalloc(cn->size, GFP_KERNEL);
--	cn->used = 0;
--
- 	if (!cn->corename)
- 		return -ENOMEM;
- 
-@@ -549,7 +546,7 @@ void do_coredump(siginfo_t *siginfo)
- 		if (ispipe < 0) {
- 			printk(KERN_WARNING "format_corename failed\n");
- 			printk(KERN_WARNING "Aborting core\n");
--			goto fail_corename;
-+			goto fail_unlock;
- 		}
- 
- 		if (cprm.limit == 1) {
-@@ -669,7 +666,6 @@ fail_dropcount:
- 		atomic_dec(&core_dump_count);
- fail_unlock:
- 	kfree(cn.corename);
--fail_corename:
- 	coredump_finish(mm, core_dumped);
- 	revert_creds(old_cred);
- fail_creds:
+ static int cn_printf(struct core_name *cn, const char *fmt, ...)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
