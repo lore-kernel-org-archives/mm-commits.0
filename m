@@ -1,130 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
- removed from -mm tree
-Date: Fri, 24 May 2013 15:40:28 -0700
-Message-ID: <519fec5c.vt6M5vKDYYgqDXjA%akpm@linux-foundation.org>
+ mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix.patch removed from -mm tree
+Date: Fri, 24 May 2013 15:41:01 -0700
+Message-ID: <519fec7d.ph71skY3zlOF0K0s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58635 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756001Ab3EXWka (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 18:40:30 -0400
+	with ESMTP id S1756001Ab3EXWlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 18:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, holt@sgi.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, cpw@sgi.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,holt@sgi.com,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,cpw@sgi.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 May 2013 15:40:28 -0700
+Date: Fri, 24 May 2013 15:41:01 -0700
 
 
 The patch titled
-     Subject: mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix
+     Subject: mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix.patch
+     mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix.patch
 
-This patch was dropped because it was folded into mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu.patch
+This patch was dropped because it was folded into mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix
+Subject: mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix
 
-tweak comments
+remove now-unused hugetlb_vma() stub
 
-Cc: Robin Holt <holt@sgi.com>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Cliff Wickman <cpw@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |   38 ++++++++++++++++++--------------------
- 1 file changed, 18 insertions(+), 20 deletions(-)
+ mm/pagewalk.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/mmu_notifier.c~mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu-fix
-+++ a/mm/mmu_notifier.c
-@@ -46,11 +46,10 @@ void __mmu_notifier_release(struct mm_st
- 	id = srcu_read_lock(&srcu);
- 	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist)
- 		/*
--		 * if ->release runs before mmu_notifier_unregister it
--		 * must be handled as it's the only way for the driver
--		 * to flush all existing sptes and stop the driver
--		 * from establishing any more sptes before all the
--		 * pages in the mm are freed.
-+		 * If ->release runs before mmu_notifier_unregister it must be
-+		 * handled, as it's the only way for the driver to flush all
-+		 * existing sptes and stop the driver from establishing any more
-+		 * sptes before all the pages in the mm are freed.
- 		 */
- 		if (mn->ops->release)
- 			mn->ops->release(mn, mm);
-@@ -63,22 +62,22 @@ void __mmu_notifier_release(struct mm_st
- 				 hlist);
- 		/*
- 		 * We arrived before mmu_notifier_unregister so
--		 * mmu_notifier_unregister will do nothing other than
--		 * to wait ->release to finish and
--		 * mmu_notifier_unregister to return.
-+		 * mmu_notifier_unregister will do nothing other than to wait
-+		 * for ->release to finish and for mmu_notifier_unregister to
-+		 * return.
- 		 */
- 		hlist_del_init_rcu(&mn->hlist);
- 	}
- 	spin_unlock(&mm->mmu_notifier_mm->lock);
- 
- 	/*
--	 * synchronize_srcu here prevents mmu_notifier_release to
--	 * return to exit_mmap (which would proceed freeing all pages
--	 * in the mm) until the ->release method returns, if it was
--	 * invoked by mmu_notifier_unregister.
-+	 * synchronize_srcu here prevents mmu_notifier_release from returning to
-+	 * exit_mmap (which would proceed with freeing all pages in the mm)
-+	 * until the ->release method returns, if it was invoked by
-+	 * mmu_notifier_unregister.
- 	 *
--	 * The mmu_notifier_mm can't go away from under us because one
--	 * mm_count is hold by exit_mmap.
-+	 * The mmu_notifier_mm can't go away from under us because one mm_count
-+	 * is held by exit_mmap.
- 	 */
- 	synchronize_srcu(&srcu);
+diff -puN mm/pagewalk.c~mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix
++++ a/mm/pagewalk.c
+@@ -128,11 +128,6 @@ static int walk_hugetlb_range(struct vm_
  }
-@@ -291,16 +290,15 @@ void mmu_notifier_unregister(struct mmu_
  
- 	if (!hlist_unhashed(&mn->hlist)) {
- 		/*
--		 * SRCU here will force exit_mmap to wait ->release to finish
--		 * before freeing the pages.
-+		 * SRCU here will force exit_mmap to wait for ->release to
-+		 * finish before freeing the pages.
- 		 */
- 		int id;
- 
- 		id = srcu_read_lock(&srcu);
- 		/*
--		 * exit_mmap will block in mmu_notifier_release to
--		 * guarantee ->release is called before freeing the
--		 * pages.
-+		 * exit_mmap will block in mmu_notifier_release to guarantee
-+		 * that ->release is called before freeing the pages.
- 		 */
- 		if (mn->ops->release)
- 			mn->ops->release(mn, mm);
-@@ -316,7 +314,7 @@ void mmu_notifier_unregister(struct mmu_
- 	}
- 
- 	/*
--	 * Wait any running method to finish, of course including
-+	 * Wait for any running method to finish, of course including
- 	 * ->release if it was run by mmu_notifier_relase instead of us.
- 	 */
- 	synchronize_srcu(&srcu);
+ #else /* CONFIG_HUGETLB_PAGE */
+-static struct vm_area_struct* hugetlb_vma(unsigned long addr, struct mm_walk *walk)
+-{
+-	return NULL;
+-}
+-
+ static int walk_hugetlb_range(struct vm_area_struct *vma,
+ 			      unsigned long addr, unsigned long end,
+ 			      struct mm_walk *walk)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,7 +65,7 @@ mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu.patch
 drivers-video-implement-a-simple-framebuffer-driver.patch
 shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
 revert-selftest-add-simple-test-for-soft-dirty-bit.patch
-mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix.patch
+mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas.patch
 aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
