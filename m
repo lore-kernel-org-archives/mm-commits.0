@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-kill-call_count-add-core_name_size.patch added to -mm
- tree
-Date: Fri, 24 May 2013 12:53:47 -0700
-Message-ID: <519fc54b.gYrU5IyMUT3OKhbO%akpm@linux-foundation.org>
+Subject: + coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch added to -mm tree
+Date: Fri, 24 May 2013 12:53:48 -0700
+Message-ID: <519fc54c.sTQze25eI1hyYZyN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57981 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57985 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757455Ab3EXTxs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 15:53:48 -0400
+	with ESMTP id S1757457Ab3EXTxt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 15:53:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: + coredump-kill-call_count-add-core_name_size.patch added to -mm tree
+Subject: + coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch added to -mm tree
 To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 May 2013 12:53:47 -0700
+Date: Fri, 24 May 2013 12:53:48 -0700
 
 
 The patch titled
-     Subject: coredump: kill call_count, add core_name_size
+     Subject: coredump: '% at the end' shouldn't bypass core_uses_pid logic
 has been added to the -mm tree.  Its filename is
-     coredump-kill-call_count-add-core_name_size.patch
+     coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,21 +39,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: kill call_count, add core_name_size
+Subject: coredump: '% at the end' shouldn't bypass core_uses_pid logic
 
-Imho, "atomic_t call_count" is ugly and should die.  It buys nothing and
-in fact it can grow more than necessary, expand doesn't check if it was
-already incremented by another task.
+"goto end" should not bypass the "Backward compatibility with
+core_uses_pid" code, move this label up.
 
-Kill it, and introduce "static int core_name_size" updated by
-expand_corename().  This is obviously racy too but harmless, and
-core_name_size never grows for no reason.
+While at it,
 
-We do not bother to to calculate the "right" new size, we simply do
-kmalloc(size_we_need) and use ksize() to rely on kmalloc_index's decision.
+	- It is ugly to copy '|' into cn->corename and then inc
+	  the pointer for argv_split().
 
-Finally change format_corename() to use expand_corename(), krealloc(NULL)
-is fine.
+	  Change format_corename() to increment pat_ptr instead.
+
+	- Remove the dead "if (*pat_ptr == 0)" in format_corename(),
+	  we already checked it is not zero.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -67,67 +65,62 @@ Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ fs/coredump.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/coredump.c~coredump-kill-call_count-add-core_name_size fs/coredump.c
---- a/fs/coredump.c~coredump-kill-call_count-add-core_name_size
+diff -puN fs/coredump.c~coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic fs/coredump.c
+--- a/fs/coredump.c~coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic
 +++ a/fs/coredump.c
-@@ -45,26 +45,28 @@
- #include <trace/events/sched.h>
- 
- int core_uses_pid;
--char core_pattern[CORENAME_MAX_SIZE] = "core";
- unsigned int core_pipe_limit;
-+char core_pattern[CORENAME_MAX_SIZE] = "core";
-+static int core_name_size = CORENAME_MAX_SIZE;
- 
- struct core_name {
- 	char *corename;
- 	int used, size;
- };
--static atomic_t call_count = ATOMIC_INIT(1);
- 
- /* The maximal length of core_pattern is also specified in sysctl.c */
- 
--static int expand_corename(struct core_name *cn)
-+static int expand_corename(struct core_name *cn, int size)
- {
--	int size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
- 	char *corename = krealloc(cn->corename, size, GFP_KERNEL);
- 
- 	if (!corename)
+@@ -166,12 +166,13 @@ static int format_corename(struct core_n
+ 	if (expand_corename(cn, core_name_size))
  		return -ENOMEM;
  
--	cn->size = size;
-+	if (size > core_name_size) /* racy but harmless */
-+		core_name_size = size;
++	if (ispipe)
++		++pat_ptr;
 +
-+	cn->size = ksize(corename);
- 	cn->corename = corename;
- 	return 0;
- }
-@@ -81,7 +83,7 @@ again:
- 		return 0;
+ 	/* Repeat as long as we have more pattern to process and more output
+ 	   space */
+ 	while (*pat_ptr) {
+ 		if (*pat_ptr != '%') {
+-			if (*pat_ptr == 0)
+-				goto out;
+ 			err = cn_printf(cn, "%c", *pat_ptr++);
+ 		} else {
+ 			switch (*++pat_ptr) {
+@@ -240,6 +241,7 @@ static int format_corename(struct core_n
+ 			return err;
  	}
  
--	if (!expand_corename(cn))
-+	if (!expand_corename(cn, cn->size + need - free + 1))
- 		goto again;
++out:
+ 	/* Backward compatibility with core_uses_pid:
+ 	 *
+ 	 * If core_pattern does not include a %p (as is the default)
+@@ -250,7 +252,6 @@ static int format_corename(struct core_n
+ 		if (err)
+ 			return err;
+ 	}
+-out:
+ 	return ispipe;
+ }
  
- 	return -ENOMEM;
-@@ -160,9 +162,8 @@ static int format_corename(struct core_n
- 	int err = 0;
+@@ -580,7 +581,7 @@ void do_coredump(siginfo_t *siginfo)
+ 			goto fail_dropcount;
+ 		}
  
- 	cn->used = 0;
--	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
--	cn->corename = kmalloc(cn->size, GFP_KERNEL);
--	if (!cn->corename)
-+	cn->corename = NULL;
-+	if (expand_corename(cn, core_name_size))
- 		return -ENOMEM;
+-		helper_argv = argv_split(GFP_KERNEL, cn.corename+1, NULL);
++		helper_argv = argv_split(GFP_KERNEL, cn.corename, NULL);
+ 		if (!helper_argv) {
+ 			printk(KERN_WARNING "%s failed to allocate memory\n",
+ 			       __func__);
+@@ -597,7 +598,7 @@ void do_coredump(siginfo_t *siginfo)
  
- 	/* Repeat as long as we have more pattern to process and more output
+ 		argv_free(helper_argv);
+ 		if (retval) {
+-			printk(KERN_INFO "Core dump to %s pipe failed\n",
++			printk(KERN_INFO "Core dump to |%s pipe failed\n",
+ 			       cn.corename);
+ 			goto close_fail;
+ 		}
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
