@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch added to -mm tree
-Date: Fri, 24 May 2013 12:53:45 -0700
-Message-ID: <519fc549.Q1A2UhI4cAkxSpiw%akpm@linux-foundation.org>
+Subject: + coredump-introduce-cn_vprintf.patch added to -mm tree
+Date: Fri, 24 May 2013 12:53:44 -0700
+Message-ID: <519fc548.12aMQTJoxzQ8Dcfo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57956 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757410Ab3EXTxq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 15:53:46 -0400
+	with ESMTP id S1757394Ab3EXTxp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 15:53:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: + coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch added to -mm tree
+Subject: + coredump-introduce-cn_vprintf.patch added to -mm tree
 To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 May 2013 12:53:45 -0700
+Date: Fri, 24 May 2013 12:53:44 -0700
 
 
 The patch titled
-     Subject: coredump: cn_vprintf() has no reason to call vsnprintf() twice
+     Subject: coredump: introduce cn_vprintf()
 has been added to the -mm tree.  Its filename is
-     coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
+     coredump-introduce-cn_vprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,11 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: cn_vprintf() has no reason to call vsnprintf() twice
+Subject: coredump: introduce cn_vprintf()
 
-cn_vprintf() looks really overcomplicated and sub-optimal.  We do not need
-vsnprintf(NULL) to calculate the size we need, we can simply try to print
-into the current buffer and expand/retry only if necessary.
+Turn cn_printf(...) into cn_vprintf(va_list args), reintroduce
+cn_printf() as a trivial wrapper.
+
+This simplifies the next change and cn_vprintf() will have more
+callers.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -56,50 +58,60 @@ Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
+ fs/coredump.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN fs/coredump.c~coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice fs/coredump.c
---- a/fs/coredump.c~coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice
+diff -puN fs/coredump.c~coredump-introduce-cn_vprintf fs/coredump.c
+--- a/fs/coredump.c~coredump-introduce-cn_vprintf
 +++ a/fs/coredump.c
-@@ -71,26 +71,20 @@ static int expand_corename(struct core_n
- 
- static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
- {
--	char *cur;
--	int need;
--	int ret;
-+	int free, need;
- 
--	need = vsnprintf(NULL, 0, fmt, arg);
--	if (likely(need < cn->size - cn->used - 1))
--		goto out_printf;
-+again:
-+	free = cn->size - cn->used;
-+	need = vsnprintf(cn->corename + cn->used, free, fmt, arg);
-+	if (need < free) {
-+		cn->used += need;
-+		return 0;
-+	}
- 
--	ret = expand_corename(cn);
--	if (ret)
--		goto expand_fail;
-+	if (!expand_corename(cn))
-+		goto again;
- 
--out_printf:
--	cur = cn->corename + cn->used;
--	vsnprintf(cur, need + 1, fmt, arg);
--	cn->used += need;
--	return 0;
--
--expand_fail:
--	return ret;
-+	return -ENOMEM;
+@@ -69,17 +69,13 @@ static int expand_corename(struct core_n
+ 	return 0;
  }
  
- static int cn_printf(struct core_name *cn, const char *fmt, ...)
+-static int cn_printf(struct core_name *cn, const char *fmt, ...)
++static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
+ {
+ 	char *cur;
+ 	int need;
+ 	int ret;
+-	va_list arg;
+ 
+-	va_start(arg, fmt);
+ 	need = vsnprintf(NULL, 0, fmt, arg);
+-	va_end(arg);
+-
+ 	if (likely(need < cn->size - cn->used - 1))
+ 		goto out_printf;
+ 
+@@ -89,9 +85,7 @@ static int cn_printf(struct core_name *c
+ 
+ out_printf:
+ 	cur = cn->corename + cn->used;
+-	va_start(arg, fmt);
+ 	vsnprintf(cur, need + 1, fmt, arg);
+-	va_end(arg);
+ 	cn->used += need;
+ 	return 0;
+ 
+@@ -99,6 +93,18 @@ expand_fail:
+ 	return ret;
+ }
+ 
++static int cn_printf(struct core_name *cn, const char *fmt, ...)
++{
++	va_list arg;
++	int ret;
++
++	va_start(arg, fmt);
++	ret = cn_vprintf(cn, fmt, arg);
++	va_end(arg);
++
++	return ret;
++}
++
+ static void cn_escape(char *str)
+ {
+ 	for (; *str; str++)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
