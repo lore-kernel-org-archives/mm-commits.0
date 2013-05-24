@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipcmsg-shorten-critical-region-in-msgctl_down.patch added to
- -mm tree
-Date: Fri, 24 May 2013 13:17:38 -0700
-Message-ID: <519fcae2.VsCdh6qwwEHHudp1%akpm@linux-foundation.org>
+Subject: +
+ ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object.patch added to -mm tree
+Date: Fri, 24 May 2013 13:17:40 -0700
+Message-ID: <519fcae4.pJosN18bCWfndlrx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757474Ab3EXURj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 16:17:39 -0400
+	with ESMTP id S1756913Ab3EXURl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 16:17:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, andi@firstfloor.org, davidlohr.bueso@hp.com
 
-Subject: + ipcmsg-shorten-critical-region-in-msgctl_down.patch added to -mm tree
+Subject: + ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object.patch added to -mm tree
 To: davidlohr.bueso@hp.com,andi@firstfloor.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 24 May 2013 13:17:38 -0700
+Date: Fri, 24 May 2013 13:17:40 -0700
 
 
 The patch titled
-     Subject: ipc,msg: shorten critical region in msgctl_down
+     Subject: ipc,msg: introduce lockless functions to obtain the ipc object
 has been added to the -mm tree.  Its filename is
-     ipcmsg-shorten-critical-region-in-msgctl_down.patch
+     ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,msg: shorten critical region in msgctl_down
+Subject: ipc,msg: introduce lockless functions to obtain the ipc object
 
-Instead of holding the ipc lock for the entire function, use the
-ipcctl_pre_down_nolock and only acquire the lock for specific commands:
-RMID and SET.
+Add msq_obtain_object() and msq_obtain_object_check(), which will allow us
+to get the ipc object without acquiring the lock.  Just as with
+semaphores, these functions are basically wrappers around
+ipc_obtain_object*().
 
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -52,59 +53,40 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ ipc/msg.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN ipc/msg.c~ipcmsg-shorten-critical-region-in-msgctl_down ipc/msg.c
---- a/ipc/msg.c~ipcmsg-shorten-critical-region-in-msgctl_down
+diff -puN ipc/msg.c~ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object
 +++ a/ipc/msg.c
-@@ -412,11 +412,10 @@ static int msgctl_down(struct ipc_namesp
- 	down_write(&msg_ids(ns).rw_mutex);
- 	rcu_read_lock();
+@@ -166,6 +166,27 @@ static inline struct msg_queue *msg_lock
+ 	return container_of(ipcp, struct msg_queue, q_perm);
+ }
  
--	ipcp = ipcctl_pre_down(ns, &msg_ids(ns), msqid, cmd,
--			       &msqid64.msg_perm, msqid64.msg_qbytes);
-+	ipcp = ipcctl_pre_down_nolock(ns, &msg_ids(ns), msqid, cmd,
-+				      &msqid64.msg_perm, msqid64.msg_qbytes);
- 	if (IS_ERR(ipcp)) {
- 		err = PTR_ERR(ipcp);
--		/* the ipc lock is not held upon failure */
- 		goto out_unlock1;
- 	}
- 
-@@ -424,10 +423,11 @@ static int msgctl_down(struct ipc_namesp
- 
- 	err = security_msg_queue_msgctl(msq, cmd);
- 	if (err)
--		goto out_unlock0;
-+		goto out_unlock1;
- 
- 	switch (cmd) {
- 	case IPC_RMID:
-+		ipc_lock_object(&msq->q_perm);
- 		/* freeque unlocks the ipc object and rcu */
- 		freeque(ns, ipcp);
- 		goto out_up;
-@@ -435,9 +435,10 @@ static int msgctl_down(struct ipc_namesp
- 		if (msqid64.msg_qbytes > ns->msg_ctlmnb &&
- 		    !capable(CAP_SYS_RESOURCE)) {
- 			err = -EPERM;
--			goto out_unlock0;
-+			goto out_unlock1;
- 		}
- 
-+		ipc_lock_object(&msq->q_perm);
- 		err = ipc_update_perm(&msqid64.msg_perm, ipcp);
- 		if (err)
- 			goto out_unlock0;
-@@ -456,6 +457,7 @@ static int msgctl_down(struct ipc_namesp
- 		break;
- 	default:
- 		err = -EINVAL;
-+		goto out_unlock1;
- 	}
- 
- out_unlock0:
++static inline struct msg_queue *msq_obtain_object(struct ipc_namespace *ns, int id)
++{
++	struct kern_ipc_perm *ipcp = ipc_obtain_object(&msg_ids(ns), id);
++
++	if (IS_ERR(ipcp))
++		return ERR_CAST(ipcp);
++
++	return container_of(ipcp, struct msg_queue, q_perm);
++}
++
++static inline struct msg_queue *msq_obtain_object_check(struct ipc_namespace *ns,
++							int id)
++{
++	struct kern_ipc_perm *ipcp = ipc_obtain_object_check(&msg_ids(ns), id);
++
++	if (IS_ERR(ipcp))
++		return ERR_CAST(ipcp);
++
++	return container_of(ipcp, struct msg_queue, q_perm);
++}
++
+ static inline void msg_rmid(struct ipc_namespace *ns, struct msg_queue *s)
+ {
+ 	ipc_rmid(&msg_ids(ns), &s->q_perm);
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
