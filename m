@@ -1,62 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix.patch removed from -mm tree
-Date: Fri, 24 May 2013 15:41:01 -0700
-Message-ID: <519fec7d.ph71skY3zlOF0K0s%akpm@linux-foundation.org>
+ aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix.patch
+ removed from -mm tree
+Date: Fri, 24 May 2013 15:41:23 -0700
+Message-ID: <519fec93.HnrRxXyMcY9b8Q9c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58635 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756001Ab3EXWlC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 18:41:02 -0400
+	with ESMTP id S1755400Ab3EXWlY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 May 2013 18:41:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, cpw@sgi.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, koverstreet@google.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,cpw@sgi.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,koverstreet@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 May 2013 15:41:01 -0700
+Date: Fri, 24 May 2013 15:41:23 -0700
 
 
 The patch titled
-     Subject: mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix
+     Subject: aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix.patch
+     aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix.patch
 
-This patch was dropped because it was folded into mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas.patch
+This patch was dropped because it was folded into aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix
+Subject: aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix
 
-remove now-unused hugetlb_vma() stub
+fix build
 
-Cc: Cliff Wickman <cpw@sgi.com>
+fs/aio.c:1321:1: error: unterminated argument list invoking macro "wait_event"
+fs/aio.c: In function 'free_ioctx':
+fs/aio.c:310: error: 'wait_event' undeclared (first use in this function)
+fs/aio.c:310: error: (Each undeclared identifier is reported only once
+fs/aio.c:310: error: for each function it appears in.)
+fs/aio.c:310: error: expected ';' at end of input
+fs/aio.c:310: error: expected declaration or statement at end of input
+fs/aio.c:310: error: expected declaration or statement at end of input
+
+Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/aio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/pagewalk.c~mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix mm/pagewalk.c
---- a/mm/pagewalk.c~mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas-fix
-+++ a/mm/pagewalk.c
-@@ -128,11 +128,6 @@ static int walk_hugetlb_range(struct vm_
- }
+diff -puN fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix fs/aio.c
+--- a/fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix
++++ a/fs/aio.c
+@@ -308,8 +308,8 @@ static void free_ioctx(struct kioctx *ct
  
- #else /* CONFIG_HUGETLB_PAGE */
--static struct vm_area_struct* hugetlb_vma(unsigned long addr, struct mm_walk *walk)
--{
--	return NULL;
--}
--
- static int walk_hugetlb_range(struct vm_area_struct *vma,
- 			      unsigned long addr, unsigned long end,
- 			      struct mm_walk *walk)
+ 	while (atomic_read(&ctx->reqs_active) > 0) {
+ 		wait_event(ctx->wait,
+-			   (head != ctx->tail) ||
+-			   (atomic_read(&ctx->reqs_active) <= 0);
++				head != ctx->tail ||
++				atomic_read(&ctx->reqs_active) <= 0);
+ 
+ 		avail = (head <= ctx->tail ? ctx->tail : ctx->nr_events) - head;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +75,7 @@ drivers-video-implement-a-simple-framebuffer-driver.patch
 shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
 revert-selftest-add-simple-test-for-soft-dirty-bit.patch
 mm-pagewalkc-walk_page_range-should-avoid-vm_pfnmap-areas.patch
-aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time-fix.patch
+aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
 linux-next.patch
 linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
