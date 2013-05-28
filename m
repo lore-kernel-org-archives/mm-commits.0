@@ -1,125 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- wait-fix-false-timeouts-when-using-wait_event_timeout.patch removed from
+Subject: [merged] hfs-avoid-crash-in-hfs_bnode_create.patch removed from
  -mm tree
-Date: Tue, 28 May 2013 12:36:39 -0700
-Message-ID: <51a50747.lvEg6YT6T5qoU0tf%akpm@linux-foundation.org>
+Date: Tue, 28 May 2013 12:36:49 -0700
+Message-ID: <51a50751.9v9q6+Y7AI8mtEd5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60409 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755060Ab3E1Tgk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:36:40 -0400
+	with ESMTP id S1755162Ab3E1Tgu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:36:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, paulmck@linux.vnet.ibm.com, lczerner@redhat.com, dhowells@redhat.com, davej@redhat.com, daniel.vetter@ffwll.ch, axboe@kernel.dk, imre.deak@intel.com
+To: mm-commits@vger.kernel.org, slava@dubeyko.com, jslaby@suse.cz, jeffm@suse.com
 
-Subject: [merged] wait-fix-false-timeouts-when-using-wait_event_timeout.patch removed from -mm tree
-To: imre.deak@intel.com,axboe@kernel.dk,daniel.vetter@ffwll.ch,davej@redhat.com,dhowells@redhat.com,lczerner@redhat.com,paulmck@linux.vnet.ibm.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] hfs-avoid-crash-in-hfs_bnode_create.patch removed from -mm tree
+To: jeffm@suse.com,jslaby@suse.cz,slava@dubeyko.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:36:39 -0700
+Date: Tue, 28 May 2013 12:36:49 -0700
 
 
 The patch titled
-     Subject: wait: fix false timeouts when using wait_event_timeout()
+     Subject: hfs: avoid crash in hfs_bnode_create
 has been removed from the -mm tree.  Its filename was
-     wait-fix-false-timeouts-when-using-wait_event_timeout.patch
+     hfs-avoid-crash-in-hfs_bnode_create.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Imre Deak <imre.deak@intel.com>
-Subject: wait: fix false timeouts when using wait_event_timeout()
+From: Jeff Mahoney <jeffm@suse.com>
+Subject: hfs: avoid crash in hfs_bnode_create
 
-Many callers of the wait_event_timeout() and
-wait_event_interruptible_timeout() expect that the return value will be
-positive if the specified condition becomes true before the timeout
-elapses.  However, at the moment this isn't guaranteed.  If the wake-up
-handler is delayed enough, the time remaining until timeout will be
-calculated as 0 - and passed back as a return value - even if the
-condition became true before the timeout has passed.
+Commit 634725a92938 ("hfs: cleanup HFS+ prints") removed the BUG_ON in
+hfs_bnode_create in hfsplus.  This patch removes it from the hfs version
+and avoids an fsfuzzer crash.
 
-Fix this by returning at least 1 if the condition becomes true.  This
-semantic is in line with what wait_for_condition_timeout() does; see
-commit bb10ed09 ("sched: fix wait_for_completion_timeout() spurious
-failure under heavy load").
-
-Daniel said "We have 3 instances of this bug in drm/i915.  One case even
-where we switch between the interruptible and not interruptible
-wait_event_timeout variants, foolishly presuming they have the same
-semantics.  I very much like this."
-
-One such bug is reported at
-https://bugs.freedesktop.org/show_bug.cgi?id=64133
-
-Signed-off-by: Imre Deak <imre.deak@intel.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Acked-by: David Howells <dhowells@redhat.com>
-Acked-by: Jens Axboe <axboe@kernel.dk>
-Cc: "Paul E.  McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Lukas Czerner <lczerner@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Acked-by: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ fs/hfs/bnode.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/wait.h~wait-fix-false-timeouts-when-using-wait_event_timeout include/linux/wait.h
---- a/include/linux/wait.h~wait-fix-false-timeouts-when-using-wait_event_timeout
-+++ a/include/linux/wait.h
-@@ -217,6 +217,8 @@ do {									\
- 		if (!ret)						\
- 			break;						\
- 	}								\
-+	if (!ret && (condition))					\
-+		ret = 1;						\
- 	finish_wait(&wq, &__wait);					\
- } while (0)
- 
-@@ -233,8 +235,9 @@ do {									\
-  * wake_up() has to be called after changing any variable that could
-  * change the result of the wait condition.
-  *
-- * The function returns 0 if the @timeout elapsed, and the remaining
-- * jiffies if the condition evaluated to true before the timeout elapsed.
-+ * The function returns 0 if the @timeout elapsed, or the remaining
-+ * jiffies (at least 1) if the @condition evaluated to %true before
-+ * the @timeout elapsed.
-  */
- #define wait_event_timeout(wq, condition, timeout)			\
- ({									\
-@@ -302,6 +305,8 @@ do {									\
- 		ret = -ERESTARTSYS;					\
- 		break;							\
- 	}								\
-+	if (!ret && (condition))					\
-+		ret = 1;						\
- 	finish_wait(&wq, &__wait);					\
- } while (0)
- 
-@@ -318,9 +323,10 @@ do {									\
-  * wake_up() has to be called after changing any variable that could
-  * change the result of the wait condition.
-  *
-- * The function returns 0 if the @timeout elapsed, -ERESTARTSYS if it
-- * was interrupted by a signal, and the remaining jiffies otherwise
-- * if the condition evaluated to true before the timeout elapsed.
-+ * Returns:
-+ * 0 if the @timeout elapsed, -%ERESTARTSYS if it was interrupted by
-+ * a signal, or the remaining jiffies (at least 1) if the @condition
-+ * evaluated to %true before the @timeout elapsed.
-  */
- #define wait_event_interruptible_timeout(wq, condition, timeout)	\
- ({									\
+diff -puN fs/hfs/bnode.c~hfs-avoid-crash-in-hfs_bnode_create fs/hfs/bnode.c
+--- a/fs/hfs/bnode.c~hfs-avoid-crash-in-hfs_bnode_create
++++ a/fs/hfs/bnode.c
+@@ -415,7 +415,11 @@ struct hfs_bnode *hfs_bnode_create(struc
+ 	spin_lock(&tree->hash_lock);
+ 	node = hfs_bnode_findhash(tree, num);
+ 	spin_unlock(&tree->hash_lock);
+-	BUG_ON(node);
++	if (node) {
++		pr_crit("new node %u already hashed?\n", num);
++		WARN_ON(1);
++		return node;
++	}
+ 	node = __hfs_bnode_create(tree, num);
+ 	if (!node)
+ 		return ERR_PTR(-ENOMEM);
 _
 
-Patches currently in -mm which might be from imre.deak@intel.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-origin.patch
 linux-next.patch
+reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup.patch
 
