@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
- added to -mm tree
-Date: Tue, 28 May 2013 15:48:46 -0700
-Message-ID: <51a5344e.etqQcSNsYbWVYGlf%akpm@linux-foundation.org>
+ mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch added
+ to -mm tree
+Date: Tue, 28 May 2013 16:02:04 -0700
+Message-ID: <51a5376c.S2crnLU156c+EHOu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33654 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756411Ab3E1Wsr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:48:47 -0400
+	with ESMTP id S1757389Ab3E1XCG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:02:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, lizefan@huawei.com, khlebnikov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@parallels.com, bsingharora@gmail.com, avagin@openvz.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, liwanp@linux.vnet.ibm.com
 
-Subject: + memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch added to -mm tree
-To: avagin@openvz.org,bsingharora@gmail.com,glommer@parallels.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,khlebnikov@openvz.org,lizefan@huawei.com,mhocko@suse.cz,stable@vger.kernel.org
+Subject: + mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 15:48:46 -0700
+Date: Tue, 28 May 2013 16:02:04 -0700
 
 
 The patch titled
-     Subject: memcg: don't initialize kmem-cache destroying work for root caches
+     Subject: mm/memory-hotplug: fix lowmem count overflow when offline pages
 has been added to the -mm tree.  Its filename is
-     memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+     mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,81 +40,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: memcg: don't initialize kmem-cache destroying work for root caches
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/memory-hotplug: fix lowmem count overflow when offline pages
 
-struct memcg_cache_params has a union.  Different parts of this union are
-used for root and non-root caches.  A part with destroying work is used
-only for non-root caches.
+Logic memory-remove code fails to correctly account the Total High Memory
+when a memory block which contains High Memory is offlined as shown in the
+example below.  The following patch fixes it.
 
-[  115.096202] BUG: unable to handle kernel paging request at 0000000fffffffe0
-[  115.096785] IP: [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
-[  115.097024] PGD 7ace1067 PUD 0
-[  115.097024] Oops: 0000 [#4] SMP
-[  115.097024] Modules linked in: netlink_diag af_packet_diag udp_diag tcp_diag inet_diag unix_diag ip6table_filter ip6_tables i2c_piix4 virtio_net virtio_balloon microcode i2c_core pcspkr floppy
-[  115.097024] CPU: 0 PID: 1929 Comm: lt-vzctl Tainted: G      D      3.10.0-rc1+ #2
-[  115.097024] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-[  115.097024] task: ffff88007b5aaee0 ti: ffff88007bf0c000 task.ti: ffff88007bf0c000
-[  115.097024] RIP: 0010<ffffffff8116b641>]  [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
-[  115.097024] RSP: 0018:ffff88007bf0de68  EFLAGS: 00010202
-[  115.097024] RAX: 0000000fffffffe0 RBX: 00007fff4014f200 RCX: 0000000000000300
-[  115.097024] RDX: 0000000000000005 RSI: 00000000000000d0 RDI: ffff88007d001300
-[  115.097024] RBP: ffff88007bf0dea8 R08: 00007f849c3141b7 R09: ffffffff8118e100
-[  115.097024] R10: 0000000000000001 R11: 0000000000000246 R12: 00000000000000d0
-[  115.097024] R13: 0000000fffffffe0 R14: ffff88007d001300 R15: 0000000000001000
-[  115.097024] FS:  00007f849cbb8b40(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
-[  115.097024] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  115.097024] CR2: 0000000fffffffe0 CR3: 000000007bc38000 CR4: 00000000000006f0
-[  115.097024] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  115.097024] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[  115.097024] Stack:
-[  115.097024]  ffffffff8118e100 ffffffff81149ea1 0000000000000008 00007fff4014f200
-[  115.097024]  00007fff4014f200 0000000000000000 0000000000000000 0000000000001000
-[  115.097024]  ffff88007bf0dee8 ffffffff8118e100 ffff880037598e00 00007fff4014f200
-[  115.097024] Call Trace:
-[  115.097024]  [<ffffffff8118e100>] ? getname_flags.part.34+0x30/0x140
-[  115.097024]  [<ffffffff81149ea1>] ? vma_rb_erase+0x121/0x210
-[  115.097024]  [<ffffffff8118e100>] getname_flags.part.34+0x30/0x140
-[  115.097024]  [<ffffffff8118e248>] getname+0x38/0x60
-[  115.097024]  [<ffffffff81181d55>] do_sys_open+0xc5/0x1e0
-[  115.097024]  [<ffffffff81181e92>] SyS_open+0x22/0x30
-[  115.097024]  [<ffffffff8161cb82>] system_call_fastpath+0x16/0x1b
-[  115.097024] Code: f4 53 48 83 ec 18 8b 05 8e 53 b7 00 4c 8b 4d 08 21 f0 a8 10 74 0d 4c 89 4d c0 e8 1b 76 4a 00 4c 8b 4d c0 e9 92 00 00 00 4d 89 f5 <4d> 8b 45 00 65 4c 03 04 25 48 cd 00 00 49 8b 50 08 4d 8b 38 49
-[  115.097024] RIP  [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
-[  115.097024]  RSP <ffff88007bf0de68>
-[  115.097024] CR2: 0000000fffffffe0
-[  115.121352] ---[ end trace 16bb8e8408b97d0e ]---
+Before logic memory remove:
 
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+MemTotal:        7603740 kB
+MemFree:         6329612 kB
+Buffers:           94352 kB
+Cached:           872008 kB
+SwapCached:            0 kB
+Active:           626932 kB
+Inactive:         519216 kB
+Active(anon):     180776 kB
+Inactive(anon):   222944 kB
+Active(file):     446156 kB
+Inactive(file):   296272 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+HighTotal:       7294672 kB
+HighFree:        5704696 kB
+LowTotal:         309068 kB
+LowFree:          624916 kB
+
+After logic memory remove:
+
+MemTotal:        7079452 kB
+MemFree:         5805976 kB
+Buffers:           94372 kB
+Cached:           872000 kB
+SwapCached:            0 kB
+Active:           626936 kB
+Inactive:         519236 kB
+Active(anon):     180780 kB
+Inactive(anon):   222944 kB
+Active(file):     446156 kB
+Inactive(file):   296292 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+HighTotal:       7294672 kB
+HighFree:        5181024 kB
+LowTotal:       4294752076 kB
+LowFree:          624952 kB
+
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: <stable@vger.kernel.org>	[3.9.x]
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>	[2.6.24+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches
-+++ a/mm/memcontrol.c
-@@ -3141,8 +3141,6 @@ int memcg_update_cache_size(struct kmem_
- 			return -ENOMEM;
- 		}
- 
--		INIT_WORK(&s->memcg_params->destroy,
--				kmem_cache_destroy_work_func);
- 		s->memcg_params->is_root_cache = true;
- 
- 		/*
+diff -puN mm/page_alloc.c~mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages
++++ a/mm/page_alloc.c
+@@ -6196,6 +6196,8 @@ __offline_isolated_pages(unsigned long s
+ 		list_del(&page->lru);
+ 		rmv_page_order(page);
+ 		zone->free_area[order].nr_free--;
++		if (PageHighMem(page))
++			totalhigh_pages -= 1 << order;
+ 		for (i = 0; i < (1 << order); i++)
+ 			SetPageReserved((page+i));
+ 		pfn += (1 << order);
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
-memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+mm-pageblock-remove-get-set_pageblock_flags.patch
+mm-hugetlb-remove-hugetlb_prefault.patch
+mm-hugetlb-use-already-exist-interface-huge_page_shift.patch
 
