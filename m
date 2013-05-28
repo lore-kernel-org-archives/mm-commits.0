@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch added to -mm tree
-Date: Tue, 28 May 2013 13:06:17 -0700
-Message-ID: <51a50e39.AENDZw/xFUdmyFLu%akpm@linux-foundation.org>
+ mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+ added to -mm tree
+Date: Tue, 28 May 2013 13:06:20 -0700
+Message-ID: <51a50e3c.L2lIoeObPbmPG0wc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60743 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755033Ab3E1UGT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 16:06:19 -0400
+	with ESMTP id S1755033Ab3E1UGV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 16:06:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tytso@mit.edu, sanbai@taobao.com, riel@redhat.com, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dhowells@redhat.com, bernd.schubert@fastmail.fm, anserper@ya.ru, alexey.lyashkov@gmail.com, Trond.Myklebust@netapp.com, mgorman@suse.de
 
-Subject: + mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch added to -mm tree
+Subject: + mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch added to -mm tree
 To: mgorman@suse.de,Trond.Myklebust@netapp.com,alexey.lyashkov@gmail.com,anserper@ya.ru,bernd.schubert@fastmail.fm,dhowells@redhat.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,riel@redhat.com,sanbai@taobao.com,tytso@mit.edu
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 13:06:17 -0700
+Date: Tue, 28 May 2013 13:06:20 -0700
 
 
 The patch titled
-     Subject: mm: remove lru parameter from __pagevec_lru_add and remove parts of pagevec API
+     Subject: mm: remove lru parameter from __lru_cache_add and lru_cache_add_lru
 has been added to the -mm tree.  Its filename is
-     mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
+     mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +41,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: remove lru parameter from __pagevec_lru_add and remove parts of pagevec API
+Subject: mm: remove lru parameter from __lru_cache_add and lru_cache_add_lru
 
-Now that the LRU to add a page to is decided at LRU-add time, remove the
-misleading lru parameter from __pagevec_lru_add.  A consequence of this is
-that the pagevec_lru_add_file, pagevec_lru_add_anon and similar helpers
-are misleading as the caller no longer has direct control over what LRU
-the page is added to.  Unused helpers are removed by this patch and
-existing users of pagevec_lru_add_file() are converted to use
-lru_cache_add_file() directly and use the per-cpu pagevecs instead of
-creating their own pagevec.
+Similar to __pagevec_lru_add, this patch removes the LRU parameter from
+__lru_cache_add and lru_cache_add_lru as the caller does not control the
+exact LRU the page gets added to.  lru_cache_add_lru gets renamed to
+lru_cache_add the name is silly without the lru parameter.  With the
+parameter removed, it is required that the caller indicate if they want
+the page added to the active or inactive list by setting or clearing
+PageActive respectively.
 
+[akpm@linux-foundation.org: Suggested the patch]
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Alexey Lyahkov <alexey.lyashkov@gmail.com>
 Cc: Andrew Perepechko <anserper@ya.ru>
@@ -67,249 +68,132 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cachefiles/rdwr.c    |   30 +++++++-----------------------
- fs/nfs/dir.c            |    7 ++-----
- include/linux/pagevec.h |   34 +---------------------------------
- mm/swap.c               |   12 ++++--------
- 4 files changed, 14 insertions(+), 69 deletions(-)
+ include/linux/swap.h |   11 +++++++----
+ mm/rmap.c            |    7 ++++---
+ mm/swap.c            |   14 ++++----------
+ mm/vmscan.c          |    4 +---
+ 4 files changed, 16 insertions(+), 20 deletions(-)
 
-diff -puN fs/cachefiles/rdwr.c~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api fs/cachefiles/rdwr.c
---- a/fs/cachefiles/rdwr.c~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api
-+++ a/fs/cachefiles/rdwr.c
-@@ -12,6 +12,7 @@
- #include <linux/mount.h>
- #include <linux/slab.h>
- #include <linux/file.h>
-+#include <linux/swap.h>
- #include "internal.h"
+diff -puN include/linux/swap.h~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru include/linux/swap.h
+--- a/include/linux/swap.h~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru
++++ a/include/linux/swap.h
+@@ -10,6 +10,7 @@
+ #include <linux/node.h>
+ #include <linux/fs.h>
+ #include <linux/atomic.h>
++#include <linux/page-flags.h>
+ #include <asm/page.h>
  
- /*
-@@ -227,8 +228,7 @@ static void cachefiles_read_copier(struc
+ struct notifier_block;
+@@ -233,8 +234,8 @@ extern unsigned long nr_free_pagecache_p
+ 
+ 
+ /* linux/mm/swap.c */
+-extern void __lru_cache_add(struct page *, enum lru_list lru);
+-extern void lru_cache_add_lru(struct page *, enum lru_list lru);
++extern void __lru_cache_add(struct page *);
++extern void lru_cache_add(struct page *);
+ extern void lru_add_page_tail(struct page *page, struct page *page_tail,
+ 			 struct lruvec *lruvec, struct list_head *head);
+ extern void activate_page(struct page *);
+@@ -254,12 +255,14 @@ extern void add_page_to_unevictable_list
   */
- static int cachefiles_read_backing_file_one(struct cachefiles_object *object,
- 					    struct fscache_retrieval *op,
--					    struct page *netpage,
--					    struct pagevec *pagevec)
-+					    struct page *netpage)
+ static inline void lru_cache_add_anon(struct page *page)
  {
- 	struct cachefiles_one_read *monitor;
- 	struct address_space *bmapping;
-@@ -237,8 +237,6 @@ static int cachefiles_read_backing_file_
- 
- 	_enter("");
- 
--	pagevec_reinit(pagevec);
--
- 	_debug("read back %p{%lu,%d}",
- 	       netpage, netpage->index, page_count(netpage));
- 
-@@ -283,9 +281,7 @@ installed_new_backing_page:
- 	backpage = newpage;
- 	newpage = NULL;
- 
--	page_cache_get(backpage);
--	pagevec_add(pagevec, backpage);
--	__pagevec_lru_add_file(pagevec);
-+	lru_cache_add_file(backpage);
- 
- read_backing_page:
- 	ret = bmapping->a_ops->readpage(NULL, backpage);
-@@ -452,8 +448,7 @@ int cachefiles_read_or_alloc_page(struct
- 	if (block) {
- 		/* submit the apparently valid page to the backing fs to be
- 		 * read from disk */
--		ret = cachefiles_read_backing_file_one(object, op, page,
--						       &pagevec);
-+		ret = cachefiles_read_backing_file_one(object, op, page);
- 	} else if (cachefiles_has_space(cache, 0, 1) == 0) {
- 		/* there's space in the cache we can use */
- 		fscache_mark_page_cached(op, page);
-@@ -482,14 +477,11 @@ static int cachefiles_read_backing_file(
- {
- 	struct cachefiles_one_read *monitor = NULL;
- 	struct address_space *bmapping = object->backer->d_inode->i_mapping;
--	struct pagevec lru_pvec;
- 	struct page *newpage = NULL, *netpage, *_n, *backpage = NULL;
- 	int ret = 0;
- 
- 	_enter("");
- 
--	pagevec_init(&lru_pvec, 0);
--
- 	list_for_each_entry_safe(netpage, _n, list, lru) {
- 		list_del(&netpage->lru);
- 
-@@ -534,9 +526,7 @@ static int cachefiles_read_backing_file(
- 		backpage = newpage;
- 		newpage = NULL;
- 
--		page_cache_get(backpage);
--		if (!pagevec_add(&lru_pvec, backpage))
--			__pagevec_lru_add_file(&lru_pvec);
-+		lru_cache_add_file(backpage);
- 
- 	reread_backing_page:
- 		ret = bmapping->a_ops->readpage(NULL, backpage);
-@@ -559,9 +549,7 @@ static int cachefiles_read_backing_file(
- 			goto nomem;
- 		}
- 
--		page_cache_get(netpage);
--		if (!pagevec_add(&lru_pvec, netpage))
--			__pagevec_lru_add_file(&lru_pvec);
-+		lru_cache_add_file(netpage);
- 
- 		/* install a monitor */
- 		page_cache_get(netpage);
-@@ -643,9 +631,7 @@ static int cachefiles_read_backing_file(
- 
- 		fscache_mark_page_cached(op, netpage);
- 
--		page_cache_get(netpage);
--		if (!pagevec_add(&lru_pvec, netpage))
--			__pagevec_lru_add_file(&lru_pvec);
-+		lru_cache_add_file(netpage);
- 
- 		/* the netpage is unlocked and marked up to date here */
- 		fscache_end_io(op, netpage, 0);
-@@ -661,8 +647,6 @@ static int cachefiles_read_backing_file(
- 
- out:
- 	/* tidy up */
--	pagevec_lru_add_file(&lru_pvec);
--
- 	if (newpage)
- 		page_cache_release(newpage);
- 	if (netpage)
-diff -puN fs/nfs/dir.c~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api fs/nfs/dir.c
---- a/fs/nfs/dir.c~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api
-+++ a/fs/nfs/dir.c
-@@ -33,6 +33,7 @@
- #include <linux/pagevec.h>
- #include <linux/namei.h>
- #include <linux/mount.h>
-+#include <linux/swap.h>
- #include <linux/sched.h>
- #include <linux/kmemleak.h>
- #include <linux/xattr.h>
-@@ -1759,7 +1760,6 @@ EXPORT_SYMBOL_GPL(nfs_unlink);
-  */
- int nfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
- {
--	struct pagevec lru_pvec;
- 	struct page *page;
- 	char *kaddr;
- 	struct iattr attr;
-@@ -1799,11 +1799,8 @@ int nfs_symlink(struct inode *dir, struc
- 	 * No big deal if we can't add this page to the page cache here.
- 	 * READLINK will get the missing page from the server if needed.
- 	 */
--	pagevec_init(&lru_pvec, 0);
--	if (!add_to_page_cache(page, dentry->d_inode->i_mapping, 0,
-+	if (!add_to_page_cache_lru(page, dentry->d_inode->i_mapping, 0,
- 							GFP_KERNEL)) {
--		pagevec_add(&lru_pvec, page);
--		pagevec_lru_add_file(&lru_pvec);
- 		SetPageUptodate(page);
- 		unlock_page(page);
- 	} else
-diff -puN include/linux/pagevec.h~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api
-+++ a/include/linux/pagevec.h
-@@ -21,7 +21,7 @@ struct pagevec {
- };
- 
- void __pagevec_release(struct pagevec *pvec);
--void __pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
-+void __pagevec_lru_add(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
- unsigned pagevec_lookup_tag(struct pagevec *pvec,
-@@ -64,36 +64,4 @@ static inline void pagevec_release(struc
- 		__pagevec_release(pvec);
+-	__lru_cache_add(page, LRU_INACTIVE_ANON);
++	ClearPageActive(page);
++	__lru_cache_add(page);
  }
  
--static inline void __pagevec_lru_add_anon(struct pagevec *pvec)
--{
--	__pagevec_lru_add(pvec, LRU_INACTIVE_ANON);
--}
--
--static inline void __pagevec_lru_add_active_anon(struct pagevec *pvec)
--{
--	__pagevec_lru_add(pvec, LRU_ACTIVE_ANON);
--}
--
--static inline void __pagevec_lru_add_file(struct pagevec *pvec)
--{
--	__pagevec_lru_add(pvec, LRU_INACTIVE_FILE);
--}
--
--static inline void __pagevec_lru_add_active_file(struct pagevec *pvec)
--{
--	__pagevec_lru_add(pvec, LRU_ACTIVE_FILE);
--}
--
--static inline void pagevec_lru_add_file(struct pagevec *pvec)
--{
--	if (pagevec_count(pvec))
--		__pagevec_lru_add_file(pvec);
--}
--
--static inline void pagevec_lru_add_anon(struct pagevec *pvec)
--{
--	if (pagevec_count(pvec))
--		__pagevec_lru_add_anon(pvec);
--}
--
- #endif /* _LINUX_PAGEVEC_H */
-diff -puN mm/swap.c~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api mm/swap.c
---- a/mm/swap.c~mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api
-+++ a/mm/swap.c
-@@ -505,7 +505,7 @@ void __lru_cache_add(struct page *page,
+ static inline void lru_cache_add_file(struct page *page)
+ {
+-	__lru_cache_add(page, LRU_INACTIVE_FILE);
++	ClearPageActive(page);
++	__lru_cache_add(page);
+ }
  
+ /* linux/mm/vmscan.c */
+diff -puN mm/rmap.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru mm/rmap.c
+--- a/mm/rmap.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru
++++ a/mm/rmap.c
+@@ -1093,9 +1093,10 @@ void page_add_new_anon_rmap(struct page
+ 	else
+ 		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
+ 	__page_set_anon_rmap(page, vma, address, 1);
+-	if (!mlocked_vma_newpage(vma, page))
+-		lru_cache_add_lru(page, LRU_ACTIVE_ANON);
+-	else
++	if (!mlocked_vma_newpage(vma, page)) {
++		SetPageActive(page);
++		lru_cache_add(page);
++	} else
+ 		add_page_to_unevictable_list(page);
+ }
+ 
+diff -puN mm/swap.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru mm/swap.c
+--- a/mm/swap.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru
++++ a/mm/swap.c
+@@ -494,15 +494,10 @@ EXPORT_SYMBOL(mark_page_accessed);
+  * pagevec is drained. This gives a chance for the caller of __lru_cache_add()
+  * have the page added to the active list using mark_page_accessed().
+  */
+-void __lru_cache_add(struct page *page, enum lru_list lru)
++void __lru_cache_add(struct page *page)
+ {
+ 	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
+ 
+-	if (is_active_lru(lru))
+-		SetPageActive(page);
+-	else
+-		ClearPageActive(page);
+-
  	page_cache_get(page);
  	if (!pagevec_space(pvec))
--		__pagevec_lru_add(pvec, lru);
-+		__pagevec_lru_add(pvec);
- 	pagevec_add(pvec, page);
- 	put_cpu_var(lru_add_pvec);
- }
-@@ -628,7 +628,7 @@ void lru_add_drain_cpu(int cpu)
- 	struct pagevec *pvec = &per_cpu(lru_add_pvec, cpu);
+ 		__pagevec_lru_add(pvec);
+@@ -512,11 +507,10 @@ void __lru_cache_add(struct page *page,
+ EXPORT_SYMBOL(__lru_cache_add);
  
- 	if (pagevec_count(pvec))
--		__pagevec_lru_add(pvec, NR_LRU_LISTS);
-+		__pagevec_lru_add(pvec);
- 
- 	pvec = &per_cpu(lru_rotate_pvecs, cpu);
- 	if (pagevec_count(pvec)) {
-@@ -832,12 +832,10 @@ void lru_add_page_tail(struct page *page
- static void __pagevec_lru_add_fn(struct page *page, struct lruvec *lruvec,
- 				 void *arg)
- {
--	enum lru_list requested_lru = (enum lru_list)arg;
- 	int file = page_is_file_cache(page);
- 	int active = PageActive(page);
- 	enum lru_list lru = page_lru(page);
- 
--	WARN_ON_ONCE(requested_lru < NR_LRU_LISTS && requested_lru != lru);
- 	VM_BUG_ON(PageUnevictable(page));
- 	VM_BUG_ON(PageLRU(page));
- 
-@@ -851,11 +849,9 @@ static void __pagevec_lru_add_fn(struct
-  * Add the passed pages to the LRU, then drop the caller's refcount
-  * on them.  Reinitialises the caller's pagevec.
+ /**
+- * lru_cache_add_lru - add a page to a page list
++ * lru_cache_add - add a page to a page list
+  * @page: the page to be added to the LRU.
+- * @lru: the LRU list to which the page is added.
   */
--void __pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
-+void __pagevec_lru_add(struct pagevec *pvec)
+-void lru_cache_add_lru(struct page *page, enum lru_list lru)
++void lru_cache_add(struct page *page)
  {
--	VM_BUG_ON(is_unevictable_lru(lru));
--
--	pagevec_lru_move_fn(pvec, __pagevec_lru_add_fn, (void *)lru);
-+	pagevec_lru_move_fn(pvec, __pagevec_lru_add_fn, NULL);
- }
- EXPORT_SYMBOL(__pagevec_lru_add);
+ 	if (PageActive(page)) {
+ 		VM_BUG_ON(PageUnevictable(page));
+@@ -525,7 +519,7 @@ void lru_cache_add_lru(struct page *page
+ 	}
  
+ 	VM_BUG_ON(PageLRU(page));
+-	__lru_cache_add(page, lru);
++	__lru_cache_add(page);
+ }
+ 
+ /**
+diff -puN mm/vmscan.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru
++++ a/mm/vmscan.c
+@@ -546,7 +546,6 @@ int remove_mapping(struct address_space
+ void putback_lru_page(struct page *page)
+ {
+ 	int lru;
+-	int active = !!TestClearPageActive(page);
+ 	int was_unevictable = PageUnevictable(page);
+ 
+ 	VM_BUG_ON(PageLRU(page));
+@@ -561,8 +560,7 @@ redo:
+ 		 * unevictable page on [in]active list.
+ 		 * We know how to handle that.
+ 		 */
+-		lru = active + page_lru_base_type(page);
+-		lru_cache_add_lru(page, lru);
++		lru_cache_add(page);
+ 	} else {
+ 		/*
+ 		 * Put unevictable pages directly on zone's unevictable
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
