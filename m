@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-normal-message-to-use-pr_debug.patch added to -mm
- tree
-Date: Tue, 28 May 2013 15:31:39 -0700
-Message-ID: <51a5304b.9Es1UFLPYl4iWITi%akpm@linux-foundation.org>
+Subject: + ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch
+ added to -mm tree
+Date: Tue, 28 May 2013 15:35:27 -0700
+Message-ID: <51a5312f.vZqzDvmi++UZKl5s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33420 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758959Ab3E1Wbk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:31:40 -0400
+	with ESMTP id S1757097Ab3E1Wf2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:35:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, toshi.kani@hp.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, joe.jin@oracle.com, jlbec@evilplan.org, xiaowei.hu@oracle.com
 
-Subject: + mm-change-normal-message-to-use-pr_debug.patch added to -mm tree
-To: toshi.kani@hp.com
+Subject: + ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch added to -mm tree
+To: xiaowei.hu@oracle.com,jlbec@evilplan.org,joe.jin@oracle.com,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 15:31:39 -0700
+Date: Tue, 28 May 2013 15:35:27 -0700
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: change normal message to use pr_debug
+     Subject: ocfs2: ocfs2_prep_new_orphaned_file() should return ret
 has been added to the -mm tree.  Its filename is
-     mm-change-normal-message-to-use-pr_debug.patch
+     ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm/memory_hotplug.c: change normal message to use pr_debug
+From: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
+Subject: ocfs2: ocfs2_prep_new_orphaned_file() should return ret
 
-During early boot-up, iomem_resource is set up from the boot descriptor
-table, such as EFI Memory Table and e820.  Later, acpi_memory_device_add()
-calls add_memory() for each ACPI memory device object as it enumerates
-ACPI namespace.  This add_memory() call is expected to fail in
-register_memory_resource() at boot since iomem_resource has been set up
-from EFI/e820.  As a result, add_memory() returns -EEXIST, which
-acpi_memory_device_add() handles as the normal case.
+If an error occurs, for example an EIO in __ocfs2_prepare_orphan_dir,
+ocfs2_prep_new_orphaned_file will release the inode_ac, then when the
+caller of ocfs2_prep_new_orphaned_file gets a 0 return, it will refer to a
+NULL ocfs2_alloc_context struct in the following functions.  A kernel
+panic happens.
 
-This scheme works fine, but the following error message is
-logged for every ACPI memory device object during boot-up.
-
-  "System RAM resource %pR cannot be added\n"
-
-This patch changes register_memory_resource() to use pr_debug() for the
-message as it shows up under the normal case.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
+Reviewed-by: shencanquan <shencanquan@huawei.com>
+Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
+ fs/ocfs2/namei.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-change-normal-message-to-use-pr_debug mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-change-normal-message-to-use-pr_debug
-+++ a/mm/memory_hotplug.c
-@@ -75,7 +75,7 @@ static struct resource *register_memory_
- 	res->end = start + size - 1;
- 	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
- 	if (request_resource(&iomem_resource, res) < 0) {
--		printk("System RAM resource %pR cannot be added\n", res);
-+		pr_debug("System RAM resource %pR cannot be added\n", res);
- 		kfree(res);
- 		res = NULL;
- 	}
+diff -puN fs/ocfs2/namei.c~ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret
++++ a/fs/ocfs2/namei.c
+@@ -2216,7 +2216,7 @@ out:
+ 
+ 	brelse(orphan_dir_bh);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ int ocfs2_create_inode_in_orphan(struct inode *dir,
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from xiaowei.hu@oracle.com are
 
-linux-next.patch
-mm-change-normal-message-to-use-pr_debug.patch
+ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch
 
