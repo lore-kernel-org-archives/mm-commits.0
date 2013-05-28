@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch added
- to -mm tree
-Date: Tue, 28 May 2013 14:04:09 -0700
-Message-ID: <51a51bc9./+QkbNhsXSD0TC0V%akpm@linux-foundation.org>
+Subject: + fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch
+ added to -mm tree
+Date: Tue, 28 May 2013 14:11:32 -0700
+Message-ID: <51a51d84.lI9Sw4dvQkE+zvzb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32895 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32994 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754843Ab3E1VEK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 17:04:10 -0400
+	with ESMTP id S1755734Ab3E1VLd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 17:11:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
 
-Subject: + mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch added to -mm tree
-To: zhangyanfei@cn.fujitsu.com
+Subject: + fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch added to -mm tree
+To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,sunil.mushran@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 14:04:09 -0700
+Date: Tue, 28 May 2013 14:11:32 -0700
 
 
 The patch titled
-     Subject: mm: remove duplicated call to get_pfn_range_for_nid()
+     Subject: fs/ocfs2/dlm/dlmrecovery.c: remove duplicate declarations
 has been added to the -mm tree.  Its filename is
-     mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+     fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,184 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm: remove duplicated call to get_pfn_range_for_nid()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: fs/ocfs2/dlm/dlmrecovery.c: remove duplicate declarations
 
-When calculating pages in a node,
-for each zone in that node, we will have
-  zone_spanned_pages_in_node
-    --> get_pfn_range_for_nid
-  zone_absent_pages_in_node
-    --> get_pfn_range_for_nid
+Below 3 functions have already been declared in dlmcommon.h, so we have
+no need to declare them again in dlmrecovery.c.
+dlm_complete_recovery_thread
+dlm_launch_recovery_thread
+dlm_kick_recovery_thread
 
-That is to say, we call get_pfn_range_for_nid() to get start_pfn and
-end_pfn of the node for MAX_NR_ZONES * 2 times.  And this is totally
-unnecessary if we call get_pfn_range_for_nid() before zone_*_pages_in_node
-add two extra arguments node_start_pfn and node_end_pfn for
-zone_*_pages_in_node, then we can remove the get_pfn_range_in_node() in
-zone_*_pages_in_node.
-
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   40 +++++++++++++++++++++++++++++-----------
- 1 file changed, 29 insertions(+), 11 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid
-+++ a/mm/page_alloc.c
-@@ -4418,13 +4418,13 @@ static void __meminit adjust_zone_range_
-  */
- static unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long zone_type,
-+					unsigned long node_start_pfn,
-+					unsigned long node_end_pfn,
- 					unsigned long *ignored)
- {
--	unsigned long node_start_pfn, node_end_pfn;
- 	unsigned long zone_start_pfn, zone_end_pfn;
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -55,9 +55,6 @@
+ static void dlm_do_local_recovery_cleanup(struct dlm_ctxt *dlm, u8 dead_node);
  
--	/* Get the start and end of the node and zone */
--	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
-+	/* Get the start and end of the zone */
- 	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
- 	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
- 	adjust_zone_range_for_zone_movable(nid, zone_type,
-@@ -4479,14 +4479,14 @@ unsigned long __init absent_pages_in_ran
- /* Return the number of page frames in holes in a zone on a node */
- static unsigned long __meminit zone_absent_pages_in_node(int nid,
- 					unsigned long zone_type,
-+					unsigned long node_start_pfn,
-+					unsigned long node_end_pfn,
- 					unsigned long *ignored)
- {
- 	unsigned long zone_low = arch_zone_lowest_possible_pfn[zone_type];
- 	unsigned long zone_high = arch_zone_highest_possible_pfn[zone_type];
--	unsigned long node_start_pfn, node_end_pfn;
- 	unsigned long zone_start_pfn, zone_end_pfn;
+ static int dlm_recovery_thread(void *data);
+-void dlm_complete_recovery_thread(struct dlm_ctxt *dlm);
+-int dlm_launch_recovery_thread(struct dlm_ctxt *dlm);
+-void dlm_kick_recovery_thread(struct dlm_ctxt *dlm);
+ static int dlm_do_recovery(struct dlm_ctxt *dlm);
  
--	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
- 	zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
- 	zone_end_pfn = clamp(node_end_pfn, zone_low, zone_high);
- 
-@@ -4499,6 +4499,8 @@ static unsigned long __meminit zone_abse
- #else /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long zone_type,
-+					unsigned long node_start_pfn,
-+					unsigned long node_end_pfn,
- 					unsigned long *zones_size)
- {
- 	return zones_size[zone_type];
-@@ -4506,6 +4508,8 @@ static inline unsigned long __meminit zo
- 
- static inline unsigned long __meminit zone_absent_pages_in_node(int nid,
- 						unsigned long zone_type,
-+						unsigned long node_start_pfn,
-+						unsigned long node_end_pfn,
- 						unsigned long *zholes_size)
- {
- 	if (!zholes_size)
-@@ -4517,21 +4521,27 @@ static inline unsigned long __meminit zo
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- 
- static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
--		unsigned long *zones_size, unsigned long *zholes_size)
-+						unsigned long node_start_pfn,
-+						unsigned long node_end_pfn,
-+						unsigned long *zones_size,
-+						unsigned long *zholes_size)
- {
- 	unsigned long realtotalpages, totalpages = 0;
- 	enum zone_type i;
- 
- 	for (i = 0; i < MAX_NR_ZONES; i++)
- 		totalpages += zone_spanned_pages_in_node(pgdat->node_id, i,
--								zones_size);
-+							 node_start_pfn,
-+							 node_end_pfn,
-+							 zones_size);
- 	pgdat->node_spanned_pages = totalpages;
- 
- 	realtotalpages = totalpages;
- 	for (i = 0; i < MAX_NR_ZONES; i++)
- 		realtotalpages -=
- 			zone_absent_pages_in_node(pgdat->node_id, i,
--								zholes_size);
-+						  node_start_pfn, node_end_pfn,
-+						  zholes_size);
- 	pgdat->node_present_pages = realtotalpages;
- 	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
- 							realtotalpages);
-@@ -4640,6 +4650,7 @@ static unsigned long __paginginit calc_m
-  * NOTE: pgdat should get zeroed by caller.
-  */
- static void __paginginit free_area_init_core(struct pglist_data *pgdat,
-+		unsigned long node_start_pfn, unsigned long node_end_pfn,
- 		unsigned long *zones_size, unsigned long *zholes_size)
- {
- 	enum zone_type j;
-@@ -4661,8 +4672,11 @@ static void __paginginit free_area_init_
- 		struct zone *zone = pgdat->node_zones + j;
- 		unsigned long size, realsize, freesize, memmap_pages;
- 
--		size = zone_spanned_pages_in_node(nid, j, zones_size);
-+		size = zone_spanned_pages_in_node(nid, j, node_start_pfn,
-+						  node_end_pfn, zones_size);
- 		realsize = freesize = size - zone_absent_pages_in_node(nid, j,
-+								node_start_pfn,
-+								node_end_pfn,
- 								zholes_size);
- 
- 		/*
-@@ -4776,6 +4790,7 @@ void __paginginit free_area_init_node(in
- 		unsigned long node_start_pfn, unsigned long *zholes_size)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
-+	unsigned long start_pfn, end_pfn;
- 
- 	/* pg_data_t should be reset to zero when it's allocated */
- 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
-@@ -4783,7 +4798,9 @@ void __paginginit free_area_init_node(in
- 	pgdat->node_id = nid;
- 	pgdat->node_start_pfn = node_start_pfn;
- 	init_zone_allows_reclaim(nid);
--	calculate_node_totalpages(pgdat, zones_size, zholes_size);
-+	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-+	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
-+				  zones_size, zholes_size);
- 
- 	alloc_node_mem_map(pgdat);
- #ifdef CONFIG_FLAT_NODE_MEM_MAP
-@@ -4792,7 +4809,8 @@ void __paginginit free_area_init_node(in
- 		(unsigned long)pgdat->node_mem_map);
- #endif
- 
--	free_area_init_core(pgdat, zones_size, zholes_size);
-+	free_area_init_core(pgdat, start_pfn, end_pfn,
-+			    zones_size, zholes_size);
- }
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ static int dlm_pick_recovery_master(struct dlm_ctxt *dlm);
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch
 
