@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rx8025-use-devm_-functions.patch added to -mm tree
-Date: Tue, 28 May 2013 15:22:08 -0700
-Message-ID: <51a52e10.Cjpn/9gLV+5BHZiy%akpm@linux-foundation.org>
+Subject: + rtc-rtc-mpc5121-use-devm_-functions.patch added to -mm tree
+Date: Tue, 28 May 2013 15:22:04 -0700
+Message-ID: <51a52e0c.Gg3ESzeLHd6WKTgL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33371 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759022Ab3E1WWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:22:09 -0400
+	with ESMTP id S1757848Ab3E1WWF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:22:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + rtc-rtc-rx8025-use-devm_-functions.patch added to -mm tree
+Subject: + rtc-rtc-mpc5121-use-devm_-functions.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 15:22:08 -0700
+Date: Tue, 28 May 2013 15:22:04 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-rx8025: use devm_*() functions
+     Subject: rtc: rtc-mpc5121: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rx8025-use-devm_-functions.patch
+     rtc-rtc-mpc5121-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rx8025: use devm_*() functions
+Subject: rtc: rtc-mpc5121: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -47,76 +47,67 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx8025.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ drivers/rtc/rtc-mpc5121.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-rx8025.c~rtc-rtc-rx8025-use-devm_-functions drivers/rtc/rtc-rx8025.c
---- a/drivers/rtc/rtc-rx8025.c~rtc-rtc-rx8025-use-devm_-functions
-+++ a/drivers/rtc/rtc-rx8025.c
-@@ -549,7 +549,7 @@ static int rx8025_probe(struct i2c_clien
- 		goto errout;
+diff -puN drivers/rtc/rtc-mpc5121.c~rtc-rtc-mpc5121-use-devm_-functions drivers/rtc/rtc-mpc5121.c
+--- a/drivers/rtc/rtc-mpc5121.c~rtc-rtc-mpc5121-use-devm_-functions
++++ a/drivers/rtc/rtc-mpc5121.c
+@@ -312,15 +312,14 @@ static int mpc5121_rtc_probe(struct plat
+ 	struct mpc5121_rtc_data *rtc;
+ 	int err = 0;
+ 
+-	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
++	rtc = devm_kzalloc(&op->dev, sizeof(*rtc), GFP_KERNEL);
+ 	if (!rtc)
+ 		return -ENOMEM;
+ 
+ 	rtc->regs = of_iomap(op->dev.of_node, 0);
+ 	if (!rtc->regs) {
+ 		dev_err(&op->dev, "%s: couldn't map io space\n", __func__);
+-		err = -ENOSYS;
+-		goto out_free;
++		return -ENOSYS;
  	}
  
--	rx8025 = kzalloc(sizeof(*rx8025), GFP_KERNEL);
-+	rx8025 = devm_kzalloc(&client->dev, sizeof(*rx8025), GFP_KERNEL);
- 	if (!rx8025) {
- 		dev_err(&adapter->dev, "failed to alloc memory\n");
- 		err = -ENOMEM;
-@@ -562,7 +562,7 @@ static int rx8025_probe(struct i2c_clien
- 
- 	err = rx8025_init_client(client, &need_reset);
- 	if (err)
--		goto errout_free;
-+		goto errout;
- 
- 	if (need_reset) {
- 		struct rtc_time tm;
-@@ -572,12 +572,12 @@ static int rx8025_probe(struct i2c_clien
- 		rx8025_set_time(&client->dev, &tm);
- 	}
- 
--	rx8025->rtc = rtc_device_register(client->name, &client->dev,
-+	rx8025->rtc = devm_rtc_device_register(&client->dev, client->name,
- 					  &rx8025_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rx8025->rtc)) {
- 		err = PTR_ERR(rx8025->rtc);
- 		dev_err(&client->dev, "unable to register the class device\n");
--		goto errout_free;
-+		goto errout;
- 	}
- 
- 	if (client->irq > 0) {
-@@ -586,7 +586,7 @@ static int rx8025_probe(struct i2c_clien
- 				  0, "rx8025", client);
- 		if (err) {
- 			dev_err(&client->dev, "unable to request IRQ\n");
--			goto errout_reg;
-+			goto errout;
+ 	device_init_wakeup(&op->dev, 1);
+@@ -354,10 +353,10 @@ static int mpc5121_rtc_probe(struct plat
+ 			out_be32(&rtc->regs->keep_alive, ka);
  		}
+ 
+-		rtc->rtc = rtc_device_register("mpc5121-rtc", &op->dev,
++		rtc->rtc = devm_rtc_device_register(&op->dev, "mpc5121-rtc",
+ 						&mpc5121_rtc_ops, THIS_MODULE);
+ 	} else {
+-		rtc->rtc = rtc_device_register("mpc5200-rtc", &op->dev,
++		rtc->rtc = devm_rtc_device_register(&op->dev, "mpc5200-rtc",
+ 						&mpc5200_rtc_ops, THIS_MODULE);
  	}
  
-@@ -603,12 +603,6 @@ errout_irq:
- 	if (client->irq > 0)
- 		free_irq(client->irq, client);
+@@ -377,8 +376,6 @@ out_dispose2:
+ out_dispose:
+ 	irq_dispose_mapping(rtc->irq);
+ 	iounmap(rtc->regs);
+-out_free:
+-	kfree(rtc);
  
--errout_reg:
--	rtc_device_unregister(rx8025->rtc);
--
--errout_free:
--	kfree(rx8025);
--
- errout:
- 	dev_err(&adapter->dev, "probing for rx8025 failed\n");
  	return err;
-@@ -629,8 +623,6 @@ static int rx8025_remove(struct i2c_clie
- 	}
+ }
+@@ -392,14 +389,11 @@ static int mpc5121_rtc_remove(struct pla
+ 	out_8(&regs->alm_enable, 0);
+ 	out_8(&regs->int_enable, in_8(&regs->int_enable) & ~0x1);
  
- 	rx8025_sysfs_unregister(&client->dev);
--	rtc_device_unregister(rx8025->rtc);
--	kfree(rx8025);
+-	rtc_device_unregister(rtc->rtc);
+ 	iounmap(rtc->regs);
+ 	free_irq(rtc->irq, &op->dev);
+ 	free_irq(rtc->irq_periodic, &op->dev);
+ 	irq_dispose_mapping(rtc->irq);
+ 	irq_dispose_mapping(rtc->irq_periodic);
+-	dev_set_drvdata(&op->dev, NULL);
+-	kfree(rtc);
+ 
  	return 0;
  }
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
