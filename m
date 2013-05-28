@@ -1,186 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- nilfs2-fix-issue-of-nilfs_set_page_dirty-for-page-at-eof-boundary.patch
+Subject: [merged] drivers-char-randomc-fix-priming-of-last_data.patch
  removed from -mm tree
-Date: Tue, 28 May 2013 12:37:13 -0700
-Message-ID: <51a50769.1pp5AapDZXF8GI4b%akpm@linux-foundation.org>
+Date: Tue, 28 May 2013 12:37:17 -0700
+Message-ID: <51a5076d.M5kh+sM6guKDWf97%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60468 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788Ab3E1ThO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:14 -0400
+	with ESMTP id S1754238Ab3E1ThS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, slava@dubeyko.com, Anthony2486@interfaces.org.uk, konishi.ryusuke@lab.ntt.co.jp
+To: mm-commits@vger.kernel.org, tytso@mit.edu, stable@vger.kernel.org, nhorman@tuxdriver.com, mpm@selenic.com, jstodola@redhat.com, jstancek@redhat.com, herbert@gondor.apana.org.au, davem@davemloft.net, jarod@redhat.com
 
-Subject: [merged] nilfs2-fix-issue-of-nilfs_set_page_dirty-for-page-at-eof-boundary.patch removed from -mm tree
-To: konishi.ryusuke@lab.ntt.co.jp,Anthony2486@interfaces.org.uk,slava@dubeyko.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] drivers-char-randomc-fix-priming-of-last_data.patch removed from -mm tree
+To: jarod@redhat.com,davem@davemloft.net,herbert@gondor.apana.org.au,jstancek@redhat.com,jstodola@redhat.com,mpm@selenic.com,nhorman@tuxdriver.com,stable@vger.kernel.org,tytso@mit.edu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:37:13 -0700
+Date: Tue, 28 May 2013 12:37:17 -0700
 
 
 The patch titled
-     Subject: nilfs2: fix issue of nilfs_set_page_dirty() for page at EOF boundary
+     Subject: drivers/char/random.c: fix priming of last_data
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-issue-of-nilfs_set_page_dirty-for-page-at-eof-boundary.patch
+     drivers-char-randomc-fix-priming-of-last_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix issue of nilfs_set_page_dirty() for page at EOF boundary
+From: Jarod Wilson <jarod@redhat.com>
+Subject: drivers/char/random.c: fix priming of last_data
 
-nilfs2: fix issue of nilfs_set_page_dirty for page at EOF boundary
+Commit ec8f02da9e ("random: prime last_data value per fips requirements")
+added priming of last_data per fips requirements.  Unfortuantely, it did
+so in a way that can lead to multiple threads all incrementing nbytes, but
+only one actually doing anything with the extra data, which leads to some
+fun random corruption and panics.
 
-DESCRIPTION:
-There are use-cases when NILFS2 file system (formatted with block size
-lesser than 4 KB) can be remounted in RO mode because of encountering
-of "broken bmap" issue.
+The fix is to simply do everything needed to prime last_data in a single
+shot, so there's no window for multiple cpus to increment nbytes -- in
+fact, we won't even increment or decrement nbytes anymore, we'll just
+extract the needed EXTRACT_SIZE one time per pool and then carry on with
+the normal routine.
 
-The issue was reported by Anthony Doggett
-<Anthony2486@interfaces.org.uk>: "The machine I've been trialling
-nilfs on is running Debian Testing, Linux version 3.2.0-4-686-pae
-(debian-kernel@lists.debian.org) (gcc version 4.6.3 (Debian 4.6.3-14)
-) #1 SMP Debian 3.2.35-2), but I've also reproduced it (identically)
-with Debian Unstable amd64 and Debian Experimental (using the
-3.8-trunk kernel).  The problematic partitions were formatted with
-"mkfs.nilfs2 -b 1024 -B 8192"."
+All these changes have been tested across multiple hosts and architectures
+where panics were previously encoutered.  The code changes are are
+strictly limited to areas only touched when when booted in fips mode.
 
-SYMPTOMS:
-(1) System log contains error messages likewise:
+This change should also go into 3.8-stable, to make the myriads of fips
+users on 3.8.x happy.
 
-    [63102.496756] nilfs_direct_assign: invalid pointer: 0
-    [63102.496786] NILFS error (device dm-17): nilfs_bmap_assign: broken bmap (inode number=28)
-    [63102.496798]
-    [63102.524403] Remounting filesystem read-only
-
-(2) The NILFS2 file system is remounted in RO mode.
-
-REPRODUSING PATH:
-(1) Create volume group with name "unencrypted" by means of vgcreate utility.
-(2) Run script (prepared by Anthony Doggett <Anthony2486@interfaces.org.uk>):
-
-----------------[BEGIN SCRIPT]--------------------
-
-VG=unencrypted
-lvcreate --size 2G --name ntest $VG
-mkfs.nilfs2 -b 1024 -B 8192 /dev/mapper/$VG-ntest
-mkdir /var/tmp/n
-mkdir /var/tmp/n/ntest
-mount /dev/mapper/$VG-ntest /var/tmp/n/ntest
-mkdir /var/tmp/n/ntest/thedir
-cd /var/tmp/n/ntest/thedir
-sleep 2
-date
-darcs init
-sleep 2
-dmesg|tail -n 5
-date
-darcs whatsnew || true
-date
-sleep 2
-dmesg|tail -n 5
-----------------[END SCRIPT]--------------------
-
-REPRODUCIBILITY: 100%
-
-INVESTIGATION:
-As it was discovered, the issue takes place during segment
-construction after executing such sequence of user-space operations:
-
-open("_darcs/index", O_RDWR|O_CREAT|O_NOCTTY, 0666) = 7
-fstat(7, {st_mode=S_IFREG|0644, st_size=0, ...}) = 0
-ftruncate(7, 60)
-
-The error message "NILFS error (device dm-17): nilfs_bmap_assign:
-broken bmap (inode number=28)" takes place because of trying to get
-block number for third block of the file with logical offset #3072
-bytes. As it is possible to see from above output, the file has 60
-bytes of the whole size. So, it is enough one block (1 KB in size)
-allocation for the whole file. Trying to operate with several blocks
-instead of one takes place because of discovering several dirty
-buffers for this file in nilfs_segctor_scan_file() method.
-
-The root cause of this issue is in nilfs_set_page_dirty function which
-is called just before writing to an mmapped page.
-
-When nilfs_page_mkwrite function handles a page at EOF boundary, it
-fills hole blocks only inside EOF through __block_page_mkwrite().
-
-The __block_page_mkwrite() function calls set_page_dirty() after
-filling hole blocks, thus nilfs_set_page_dirty function (=
-a_ops->set_page_dirty) is called.  However, the current implementation
-of nilfs_set_page_dirty() wrongly marks all buffers dirty even for
-page at EOF boundary.
-
-As a result, buffers outside EOF are inconsistently marked dirty and
-queued for write even though they are not mapped with nilfs_get_block
-function.
-
-FIX:
-This modifies nilfs_set_page_dirty() not to mark hole blocks dirty.
-
-Thanks to Vyacheslav Dubeyko for his effort on analysis and proposals
-for this issue.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Reported-by: Anthony Doggett <Anthony2486@interfaces.org.uk>
-Reported-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Tested-by: Jan Stancek <jstancek@redhat.com>
+Tested-by: Jan Stodola <jstodola@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |   27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
+ drivers/char/random.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN fs/nilfs2/inode.c~nilfs2-fix-issue-of-nilfs_set_page_dirty-for-page-at-eof-boundary fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-fix-issue-of-nilfs_set_page_dirty-for-page-at-eof-boundary
-+++ a/fs/nilfs2/inode.c
-@@ -219,13 +219,32 @@ static int nilfs_writepage(struct page *
- 
- static int nilfs_set_page_dirty(struct page *page)
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-priming-of-last_data drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-priming-of-last_data
++++ a/drivers/char/random.c
+@@ -957,10 +957,23 @@ static ssize_t extract_entropy(struct en
  {
--	int ret = __set_page_dirty_buffers(page);
-+	int ret = __set_page_dirty_nobuffers(page);
+ 	ssize_t ret = 0, i;
+ 	__u8 tmp[EXTRACT_SIZE];
++	unsigned long flags;
  
--	if (ret) {
-+	if (page_has_buffers(page)) {
- 		struct inode *inode = page->mapping->host;
--		unsigned nr_dirty = 1 << (PAGE_SHIFT - inode->i_blkbits);
-+		unsigned nr_dirty = 0;
-+		struct buffer_head *bh, *head;
+ 	/* if last_data isn't primed, we need EXTRACT_SIZE extra bytes */
+-	if (fips_enabled && !r->last_data_init)
+-		nbytes += EXTRACT_SIZE;
++	if (fips_enabled) {
++		spin_lock_irqsave(&r->lock, flags);
++		if (!r->last_data_init) {
++			r->last_data_init = true;
++			spin_unlock_irqrestore(&r->lock, flags);
++			trace_extract_entropy(r->name, EXTRACT_SIZE,
++					      r->entropy_count, _RET_IP_);
++			xfer_secondary_pool(r, EXTRACT_SIZE);
++			extract_buf(r, tmp);
++			spin_lock_irqsave(&r->lock, flags);
++			memcpy(r->last_data, tmp, EXTRACT_SIZE);
++		}
++		spin_unlock_irqrestore(&r->lock, flags);
++	}
  
--		nilfs_set_file_dirty(inode, nr_dirty);
-+		/*
-+		 * This page is locked by callers, and no other thread
-+		 * concurrently marks its buffers dirty since they are
-+		 * only dirtied through routines in fs/buffer.c in
-+		 * which call sites of mark_buffer_dirty are protected
-+		 * by page lock.
-+		 */
-+		bh = head = page_buffers(page);
-+		do {
-+			/* Do not mark hole blocks dirty */
-+			if (buffer_dirty(bh) || !buffer_mapped(bh))
-+				continue;
-+
-+			set_buffer_dirty(bh);
-+			nr_dirty++;
-+		} while (bh = bh->b_this_page, bh != head);
-+
-+		if (nr_dirty)
-+			nilfs_set_file_dirty(inode, nr_dirty);
- 	}
- 	return ret;
- }
-_
-
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
-
-
+ 	trace_extract_entropy(r->name, nbytes, r->entropy_count, _RET_IP_);
+ 	xfer_secondary_pool(r, nbytes);
+@@ -970,19 +983,6 @@ static ssize_t extract_entropy(struct en
+ 		extract_buf(r, tmp);
+ 
+ 		if (fips_enabled) {
+-			unsigned long flags;
+-
+-
+-			/* prime last_data value if need be, per fips 140-2 */
+-			if (!r->last_data_init) {
+-				spin_lock_irqsave(&r->lock, flags);
+-				memcpy(r->last_data, tmp, EXTRACT_SIZE);
+-				r->last_data_init = true;
+-				nbytes -= EXTRACT_SIZE;
+-				spin_unlock_irqrestore(&r->lock, flags);
+-				extract_buf(r, tmp);
+-			}
