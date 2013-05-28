@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-use-already-exist-interface-huge_page_shift.patch
- added to -mm tree
-Date: Tue, 28 May 2013 16:02:08 -0700
-Message-ID: <51a53770.DUyA5aNq4mHy+uCG%akpm@linux-foundation.org>
+Subject: +
+ drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch added to -mm tree
+Date: Tue, 28 May 2013 16:09:58 -0700
+Message-ID: <51a53946.hQQ+dw3VlEaWbBzC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33745 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33854 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758201Ab3E1XCJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:02:09 -0400
+	with ESMTP id S1758127Ab3E1XJ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:09:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, jslaby@suse.cz, jeffm@suse.com, davem@davemloft.net, cascardo@linux.vnet.ibm.com, ohering@suse.com
 
-Subject: + mm-hugetlb-use-already-exist-interface-huge_page_shift.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,benh@kernel.crashing.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com
+Subject: + drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch added to -mm tree
+To: ohering@suse.com,cascardo@linux.vnet.ibm.com,davem@davemloft.net,jeffm@suse.com,jslaby@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 16:02:08 -0700
+Date: Tue, 28 May 2013 16:09:58 -0700
 
 
 The patch titled
-     Subject: mm/hugetlb: use already existing interface huge_page_shift
+     Subject: drivers/net/ethernet/ibm/ehea/ehea_main.c: add alias entry for portN properties
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-already-exist-interface-huge_page_shift.patch
+     drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hugetlb: use already existing interface huge_page_shift
+From: Olaf Hering <ohering@suse.com>
+Subject: drivers/net/ethernet/ibm/ehea/ehea_main.c: add alias entry for portN properties
 
-Use the already existing interface huge_page_shift instead of h->order +
-PAGE_SHIFT.
+Use separate table for alias entries in the ehea module, otherwise the
+probe() function will operate on the separate ports instead of the
+lhea-"root" entry of the device-tree
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Addresses https://bugzilla.novell.com/show_bug.cgi?id=435215
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Olaf Hering <ohering@suse.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    2 +-
- mm/hugetlb.c                  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ibm/ehea/ehea_main.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-use-already-exist-interface-huge_page_shift arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-use-already-exist-interface-huge_page_shift
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -357,7 +357,7 @@ void add_gpage(u64 addr, u64 page_size,
- int alloc_bootmem_huge_page(struct hstate *hstate)
- {
- 	struct huge_bootmem_page *m;
--	int idx = shift_to_mmu_psize(hstate->order + PAGE_SHIFT);
-+	int idx = shift_to_mmu_psize(huge_page_shift(hstate));
- 	int nr_gpages = gpage_freearray[idx].nr_gpages;
+diff -puN drivers/net/ethernet/ibm/ehea/ehea_main.c~drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties drivers/net/ethernet/ibm/ehea/ehea_main.c
+--- a/drivers/net/ethernet/ibm/ehea/ehea_main.c~drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties
++++ a/drivers/net/ethernet/ibm/ehea/ehea_main.c
+@@ -103,6 +103,19 @@ static int ehea_probe_adapter(struct pla
  
- 	if (nr_gpages == 0)
-diff -puN mm/hugetlb.c~mm-hugetlb-use-already-exist-interface-huge_page_shift mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-already-exist-interface-huge_page_shift
-+++ a/mm/hugetlb.c
-@@ -319,7 +319,7 @@ unsigned long vma_kernel_pagesize(struct
+ static int ehea_remove(struct platform_device *dev);
  
- 	hstate = hstate_vma(vma);
++static struct of_device_id ehea_module_device_table[] = {
++	{
++		.name = "lhea",
++		.compatible = "IBM,lhea",
++	},
++	{
++		.type = "network",
++		.compatible = "IBM,lhea-ethernet",
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, ehea_module_device_table);
++
+ static struct of_device_id ehea_device_table[] = {
+ 	{
+ 		.name = "lhea",
+@@ -110,7 +123,6 @@ static struct of_device_id ehea_device_t
+ 	},
+ 	{},
+ };
+-MODULE_DEVICE_TABLE(of, ehea_device_table);
  
--	return 1UL << (hstate->order + PAGE_SHIFT);
-+	return 1UL << huge_page_shift(hstate);
- }
- EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
- 
+ static struct of_platform_driver ehea_driver = {
+ 	.driver = {
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ohering@suse.com are
 
-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
-mm-pageblock-remove-get-set_pageblock_flags.patch
-mm-hugetlb-remove-hugetlb_prefault.patch
-mm-hugetlb-use-already-exist-interface-huge_page_shift.patch
+drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch
 
