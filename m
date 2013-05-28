@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch added to -mm tree
-Date: Tue, 28 May 2013 13:57:29 -0700
-Message-ID: <51a51a39.DbWMF3rXyNibuXbZ%akpm@linux-foundation.org>
+Subject: + mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch added
+ to -mm tree
+Date: Tue, 28 May 2013 14:04:09 -0700
+Message-ID: <51a51bc9./+QkbNhsXSD0TC0V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32895 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756543Ab3E1U5a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 16:57:30 -0400
+	with ESMTP id S1754843Ab3E1VEK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 17:04:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, james.l.morris@oracle.com, dhowells@redhat.com, andriy.shevchenko@linux.intel.com, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com
 
-Subject: + lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch added to -mm tree
-To: gang.chen@asianux.com,andriy.shevchenko@linux.intel.com,dhowells@redhat.com,james.l.morris@oracle.com,rusty@rustcorp.com.au
+Subject: + mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch added to -mm tree
+To: zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 13:57:29 -0700
+Date: Tue, 28 May 2013 14:04:09 -0700
 
 
 The patch titled
-     Subject: lib/mpi/mpicoder.c: looping issue, need stop when equal to zero, found by 'EXTRA_FLAGS=-W'.
+     Subject: mm: remove duplicated call to get_pfn_range_for_nid()
 has been added to the -mm tree.  Its filename is
-     lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch
+     mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,184 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: lib/mpi/mpicoder.c: looping issue, need stop when equal to zero, found by 'EXTRA_FLAGS=-W'.
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: mm: remove duplicated call to get_pfn_range_for_nid()
 
-For 'while' looping, need stop when 'nbytes == 0', or will cause issue.
-('nbytes' is size_t which is always bigger or equal than zero).
+When calculating pages in a node,
+for each zone in that node, we will have
+  zone_spanned_pages_in_node
+    --> get_pfn_range_for_nid
+  zone_absent_pages_in_node
+    --> get_pfn_range_for_nid
 
-The related warning: (with EXTRA_CFLAGS=-W)
-  lib/mpi/mpicoder.c:40:2: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+That is to say, we call get_pfn_range_for_nid() to get start_pfn and
+end_pfn of the node for MAX_NR_ZONES * 2 times.  And this is totally
+unnecessary if we call get_pfn_range_for_nid() before zone_*_pages_in_node
+add two extra arguments node_start_pfn and node_end_pfn for
+zone_*_pages_in_node, then we can remove the get_pfn_range_in_node() in
+zone_*_pages_in_node.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/mpi/mpicoder.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   40 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 29 insertions(+), 11 deletions(-)
 
-diff -puN lib/mpi/mpicoder.c~lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w lib/mpi/mpicoder.c
---- a/lib/mpi/mpicoder.c~lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w
-+++ a/lib/mpi/mpicoder.c
-@@ -37,7 +37,7 @@ MPI mpi_read_raw_data(const void *xbuffe
- 	mpi_limb_t a;
- 	MPI val = NULL;
+diff -puN mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid
++++ a/mm/page_alloc.c
+@@ -4418,13 +4418,13 @@ static void __meminit adjust_zone_range_
+  */
+ static unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
++					unsigned long node_start_pfn,
++					unsigned long node_end_pfn,
+ 					unsigned long *ignored)
+ {
+-	unsigned long node_start_pfn, node_end_pfn;
+ 	unsigned long zone_start_pfn, zone_end_pfn;
  
--	while (nbytes >= 0 && buffer[0] == 0) {
-+	while (nbytes > 0 && buffer[0] == 0) {
- 		buffer++;
- 		nbytes--;
- 	}
+-	/* Get the start and end of the node and zone */
+-	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
++	/* Get the start and end of the zone */
+ 	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
+ 	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
+ 	adjust_zone_range_for_zone_movable(nid, zone_type,
+@@ -4479,14 +4479,14 @@ unsigned long __init absent_pages_in_ran
+ /* Return the number of page frames in holes in a zone on a node */
+ static unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 					unsigned long zone_type,
++					unsigned long node_start_pfn,
++					unsigned long node_end_pfn,
+ 					unsigned long *ignored)
+ {
+ 	unsigned long zone_low = arch_zone_lowest_possible_pfn[zone_type];
+ 	unsigned long zone_high = arch_zone_highest_possible_pfn[zone_type];
+-	unsigned long node_start_pfn, node_end_pfn;
+ 	unsigned long zone_start_pfn, zone_end_pfn;
+ 
+-	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
+ 	zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
+ 	zone_end_pfn = clamp(node_end_pfn, zone_low, zone_high);
+ 
+@@ -4499,6 +4499,8 @@ static unsigned long __meminit zone_abse
+ #else /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
++					unsigned long node_start_pfn,
++					unsigned long node_end_pfn,
+ 					unsigned long *zones_size)
+ {
+ 	return zones_size[zone_type];
+@@ -4506,6 +4508,8 @@ static inline unsigned long __meminit zo
+ 
+ static inline unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 						unsigned long zone_type,
++						unsigned long node_start_pfn,
++						unsigned long node_end_pfn,
+ 						unsigned long *zholes_size)
+ {
+ 	if (!zholes_size)
+@@ -4517,21 +4521,27 @@ static inline unsigned long __meminit zo
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 
+ static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
+-		unsigned long *zones_size, unsigned long *zholes_size)
++						unsigned long node_start_pfn,
++						unsigned long node_end_pfn,
++						unsigned long *zones_size,
++						unsigned long *zholes_size)
+ {
+ 	unsigned long realtotalpages, totalpages = 0;
+ 	enum zone_type i;
+ 
+ 	for (i = 0; i < MAX_NR_ZONES; i++)
+ 		totalpages += zone_spanned_pages_in_node(pgdat->node_id, i,
+-								zones_size);
++							 node_start_pfn,
++							 node_end_pfn,
++							 zones_size);
+ 	pgdat->node_spanned_pages = totalpages;
+ 
+ 	realtotalpages = totalpages;
+ 	for (i = 0; i < MAX_NR_ZONES; i++)
+ 		realtotalpages -=
+ 			zone_absent_pages_in_node(pgdat->node_id, i,
+-								zholes_size);
++						  node_start_pfn, node_end_pfn,
++						  zholes_size);
+ 	pgdat->node_present_pages = realtotalpages;
+ 	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
+ 							realtotalpages);
+@@ -4640,6 +4650,7 @@ static unsigned long __paginginit calc_m
+  * NOTE: pgdat should get zeroed by caller.
+  */
+ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
++		unsigned long node_start_pfn, unsigned long node_end_pfn,
+ 		unsigned long *zones_size, unsigned long *zholes_size)
+ {
+ 	enum zone_type j;
+@@ -4661,8 +4672,11 @@ static void __paginginit free_area_init_
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, freesize, memmap_pages;
+ 
+-		size = zone_spanned_pages_in_node(nid, j, zones_size);
++		size = zone_spanned_pages_in_node(nid, j, node_start_pfn,
++						  node_end_pfn, zones_size);
+ 		realsize = freesize = size - zone_absent_pages_in_node(nid, j,
++								node_start_pfn,
++								node_end_pfn,
+ 								zholes_size);
+ 
+ 		/*
+@@ -4776,6 +4790,7 @@ void __paginginit free_area_init_node(in
+ 		unsigned long node_start_pfn, unsigned long *zholes_size)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
++	unsigned long start_pfn, end_pfn;
+ 
+ 	/* pg_data_t should be reset to zero when it's allocated */
+ 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
+@@ -4783,7 +4798,9 @@ void __paginginit free_area_init_node(in
+ 	pgdat->node_id = nid;
+ 	pgdat->node_start_pfn = node_start_pfn;
+ 	init_zone_allows_reclaim(nid);
+-	calculate_node_totalpages(pgdat, zones_size, zholes_size);
++	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
++	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
++				  zones_size, zholes_size);
+ 
+ 	alloc_node_mem_map(pgdat);
+ #ifdef CONFIG_FLAT_NODE_MEM_MAP
+@@ -4792,7 +4809,8 @@ void __paginginit free_area_init_node(in
+ 		(unsigned long)pgdat->node_mem_map);
+ #endif
+ 
+-	free_area_init_core(pgdat, zones_size, zholes_size);
++	free_area_init_core(pgdat, start_pfn, end_pfn,
++			    zones_size, zholes_size);
+ }
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
-linux-next.patch
-lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch
-kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules.patch
-kernel-auditfilterc-fix-leak-in-audit_add_rule-error-path.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
-mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
+ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
+vmcore-clean-up-read_vmcore.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
+vmalloc-make-find_vm_area-check-in-range.patch
+vmalloc-introduce-remap_vmalloc_range_partial.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
+vmcore-support-mmap-on-proc-vmcore.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
 
