@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask.patch added
- to -mm tree
-Date: Tue, 28 May 2013 16:27:04 -0700
-Message-ID: <51a53d48.Eya1PLSp+i52gWdc%akpm@linux-foundation.org>
+Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+ added to -mm tree
+Date: Tue, 28 May 2013 16:27:05 -0700
+Message-ID: <51a53d49.A6GywwlHOMBuiWQq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759227Ab3E1X1F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:27:05 -0400
+	with ESMTP id S1759248Ab3E1X1G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, roland@redhat.com, oleg@redhat.com, mtk.manpages@gmail.com, gorcunov@openvz.org, avagin@openvz.org
+To: mm-commits@vger.kernel.org, avagin@openvz.org, akpm@linux-foundation.org
 
-Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask.patch added to -mm tree
-To: avagin@openvz.org,gorcunov@openvz.org,mtk.manpages@gmail.com,oleg@redhat.com,roland@redhat.com,xemul@parallels.com
+Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,avagin@openvz.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 16:27:04 -0700
+Date: Tue, 28 May 2013 16:27:05 -0700
 
 
 The patch titled
-     Subject: ptrace: add ability to get/set signal-blocked mask
+     Subject: ptrace-add-ability-to-get-set-signal-blocked-mask-fix
 has been added to the -mm tree.  Its filename is
-     ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+     ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,107 +39,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: ptrace: add ability to get/set signal-blocked mask
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ptrace-add-ability-to-get-set-signal-blocked-mask-fix
 
-crtools uses a parasite code for dumping processes.  The parasite code is
-injected into a process with help PTRACE_SEIZE.
+be consistent with brace layout
 
-Currently crtools blocks signals from a parasite code.  If a process has
-pending signals, crtools wait while a process handles these signals.
-
-This method is not suitable for stopped tasks.  A stopped task can have a
-few pending signals, when we will try to execute a parasite code, we will
-need to drop SIGSTOP, but all other signals must remain pending, because a
-state of processes must not be changed during checkpointing.
-
-This patch adds two ptrace commands to set/get signal-blocked mask.
-
-I think gdb can use this commands too.
-
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Andrey Vagin <avagin@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/ptrace.h |    3 ++
- kernel/ptrace.c             |   42 ++++++++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+)
+ kernel/ptrace.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/uapi/linux/ptrace.h~ptrace-add-ability-to-get-set-signal-blocked-mask include/uapi/linux/ptrace.h
---- a/include/uapi/linux/ptrace.h~ptrace-add-ability-to-get-set-signal-blocked-mask
-+++ a/include/uapi/linux/ptrace.h
-@@ -61,6 +61,9 @@ struct ptrace_peeksiginfo_args {
- 	__s32 nr;	/* how may siginfos to take */
- };
- 
-+#define PTRACE_GETSIGMASK	0x420a
-+#define PTRACE_SETSIGMASK	0x420b
-+
- /* Read signals from a shared (process wide) queue */
- #define PTRACE_PEEKSIGINFO_SHARED	(1 << 0)
- 
-diff -puN kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask
+diff -puN kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask-fix kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask-fix
 +++ a/kernel/ptrace.c
-@@ -843,6 +843,48 @@ int ptrace_request(struct task_struct *c
- 			ret = ptrace_setsiginfo(child, &siginfo);
+@@ -856,8 +856,7 @@ int ptrace_request(struct task_struct *c
+ 
  		break;
  
-+	case PTRACE_GETSIGMASK:
-+		if (addr != sizeof(sigset_t)) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (copy_to_user(datavp, &child->blocked, sizeof(sigset_t)))
-+			ret = -EFAULT;
-+		else
-+			ret = 0;
-+
-+		break;
-+
-+	case PTRACE_SETSIGMASK:
-+	{
-+		sigset_t new_set;
-+
-+		if (addr != sizeof(sigset_t)) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (copy_from_user(&new_set, datavp, sizeof(sigset_t))) {
-+			ret = -EFAULT;
-+			break;
-+		}
-+
-+		sigdelsetmask(&new_set, sigmask(SIGKILL)|sigmask(SIGSTOP));
-+
-+		/*
-+		 * Every thread does recalc_sigpending() after resume, so
-+		 * retarget_shared_pending() and recalc_sigpending() are not
-+		 * called here.
-+		 */
-+		spin_lock_irq(&child->sighand->siglock);
-+		child->blocked = new_set;
-+		spin_unlock_irq(&child->sighand->siglock);
-+
-+		ret = 0;
-+		break;
-+	}
-+
- 	case PTRACE_INTERRUPT:
- 		/*
- 		 * Stop tracee without any side-effect on signal or job
+-	case PTRACE_SETSIGMASK:
+-	{
++	case PTRACE_SETSIGMASK: {
+ 		sigset_t new_set;
+ 
+ 		if (addr != sizeof(sigset_t)) {
+@@ -989,8 +988,7 @@ int ptrace_request(struct task_struct *c
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	case PTRACE_GETREGSET:
+-	case PTRACE_SETREGSET:
+-	{
++	case PTRACE_SETREGSET: {
+ 		struct iovec kiov;
+ 		struct iovec __user *uiov = datavp;
+ 
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
 ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
