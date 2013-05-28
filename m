@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-jz4740-use-devm_-functions.patch added to -mm tree
-Date: Tue, 28 May 2013 15:22:03 -0700
-Message-ID: <51a52e0b.pufDuM++YUROEDhj%akpm@linux-foundation.org>
+Subject: + rtc-rtc-m48t59-use-devm_-functions.patch added to -mm tree
+Date: Tue, 28 May 2013 15:22:05 -0700
+Message-ID: <51a52e0d.8td/lJ6t3cNzsO2g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33369 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758099Ab3E1WWE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:22:04 -0400
+	with ESMTP id S1758954Ab3E1WWG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + rtc-rtc-jz4740-use-devm_-functions.patch added to -mm tree
+Subject: + rtc-rtc-m48t59-use-devm_-functions.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 15:22:03 -0700
+Date: Tue, 28 May 2013 15:22:05 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-jz4740: use devm_*() functions
+     Subject: rtc: rtc-m48t59: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-jz4740-use-devm_-functions.patch
+     rtc-rtc-m48t59-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-jz4740: use devm_*() functions
+Subject: rtc: rtc-m48t59: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -47,145 +47,118 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-jz4740.c |   65 +++++++++----------------------------
- 1 file changed, 16 insertions(+), 49 deletions(-)
+ drivers/rtc/rtc-m48t59.c |   53 +++++++++++--------------------------
+ 1 file changed, 17 insertions(+), 36 deletions(-)
 
-diff -puN drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-use-devm_-functions drivers/rtc/rtc-jz4740.c
---- a/drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-use-devm_-functions
-+++ a/drivers/rtc/rtc-jz4740.c
-@@ -14,6 +14,7 @@
-  *
-  */
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-rtc-m48t59-use-devm_-functions drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-rtc-m48t59-use-devm_-functions
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -409,7 +409,8 @@ static int m48t59_rtc_probe(struct platf
+ 	} else if (res->flags & IORESOURCE_MEM) {
+ 		/* we are memory-mapped */
+ 		if (!pdata) {
+-			pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++			pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata),
++						GFP_KERNEL);
+ 			if (!pdata)
+ 				return -ENOMEM;
+ 			/* Ensure we only kmalloc platform data once */
+@@ -425,7 +426,7 @@ static int m48t59_rtc_probe(struct platf
+ 			pdata->read_byte = m48t59_mem_readb;
+ 	}
  
-+#include <linux/io.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
-@@ -216,37 +217,34 @@ static int jz4740_rtc_probe(struct platf
- 	struct jz4740_rtc *rtc;
- 	uint32_t scratchpad;
- 
--	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
+-	m48t59 = kzalloc(sizeof(*m48t59), GFP_KERNEL);
++	m48t59 = devm_kzalloc(&pdev->dev, sizeof(*m48t59), GFP_KERNEL);
+ 	if (!m48t59)
  		return -ENOMEM;
  
- 	rtc->irq = platform_get_irq(pdev, 0);
- 	if (rtc->irq < 0) {
--		ret = -ENOENT;
- 		dev_err(&pdev->dev, "Failed to get platform irq\n");
--		goto err_free;
-+		return -ENOENT;
- 	}
+@@ -433,9 +434,10 @@ static int m48t59_rtc_probe(struct platf
  
- 	rtc->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!rtc->mem) {
--		ret = -ENOENT;
- 		dev_err(&pdev->dev, "Failed to get platform mmio memory\n");
--		goto err_free;
-+		return -ENOENT;
- 	}
- 
--	rtc->mem = request_mem_region(rtc->mem->start, resource_size(rtc->mem),
--					pdev->name);
-+	rtc->mem = devm_request_mem_region(&pdev->dev, rtc->mem->start,
-+					resource_size(rtc->mem), pdev->name);
- 	if (!rtc->mem) {
--		ret = -EBUSY;
- 		dev_err(&pdev->dev, "Failed to request mmio memory region\n");
--		goto err_free;
-+		return -EBUSY;
- 	}
- 
--	rtc->base = ioremap_nocache(rtc->mem->start, resource_size(rtc->mem));
-+	rtc->base = devm_ioremap_nocache(&pdev->dev, rtc->mem->start,
-+					resource_size(rtc->mem));
- 	if (!rtc->base) {
--		ret = -EBUSY;
- 		dev_err(&pdev->dev, "Failed to ioremap mmio memory\n");
--		goto err_release_mem_region;
-+		return -EBUSY;
- 	}
- 
- 	spin_lock_init(&rtc->lock);
-@@ -255,19 +253,19 @@ static int jz4740_rtc_probe(struct platf
- 
- 	device_init_wakeup(&pdev->dev, 1);
- 
--	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev, &jz4740_rtc_ops,
--					THIS_MODULE);
-+	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-+					&jz4740_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc->rtc)) {
- 		ret = PTR_ERR(rtc->rtc);
- 		dev_err(&pdev->dev, "Failed to register rtc device: %d\n", ret);
--		goto err_iounmap;
-+		return ret;
- 	}
- 
--	ret = request_irq(rtc->irq, jz4740_rtc_irq, 0,
-+	ret = devm_request_irq(&pdev->dev, rtc->irq, jz4740_rtc_irq, 0,
- 				pdev->name, rtc);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Failed to request rtc irq: %d\n", ret);
--		goto err_unregister_rtc;
-+		return ret;
- 	}
- 
- 	scratchpad = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SCRATCHPAD);
-@@ -276,43 +274,13 @@ static int jz4740_rtc_probe(struct platf
- 		ret = jz4740_rtc_reg_write(rtc, JZ_REG_RTC_SEC, 0);
- 		if (ret) {
- 			dev_err(&pdev->dev, "Could not write write to RTC registers\n");
--			goto err_free_irq;
+ 	if (!m48t59->ioaddr) {
+ 		/* ioaddr not mapped externally */
+-		m48t59->ioaddr = ioremap(res->start, resource_size(res));
++		m48t59->ioaddr = devm_ioremap(&pdev->dev, res->start,
++						resource_size(res));
+ 		if (!m48t59->ioaddr)
+-			goto out;
 +			return ret;
- 		}
  	}
+ 
+ 	/* Try to get irq number. We also can work in
+@@ -446,10 +448,11 @@ static int m48t59_rtc_probe(struct platf
+ 		m48t59->irq = NO_IRQ;
+ 
+ 	if (m48t59->irq != NO_IRQ) {
+-		ret = request_irq(m48t59->irq, m48t59_rtc_interrupt,
+-			IRQF_SHARED, "rtc-m48t59", &pdev->dev);
++		ret = devm_request_irq(&pdev->dev, m48t59->irq,
++				m48t59_rtc_interrupt, IRQF_SHARED,
++				"rtc-m48t59", &pdev->dev);
+ 		if (ret)
+-			goto out;
++			return ret;
+ 	}
+ 	switch (pdata->type) {
+ 	case M48T59RTC_TYPE_M48T59:
+@@ -469,51 +472,29 @@ static int m48t59_rtc_probe(struct platf
+ 		break;
+ 	default:
+ 		dev_err(&pdev->dev, "Unknown RTC type\n");
+-		ret = -ENODEV;
+-		goto out;
++		return -ENODEV;
+ 	}
+ 
+ 	spin_lock_init(&m48t59->lock);
+ 	platform_set_drvdata(pdev, m48t59);
+ 
+-	m48t59->rtc = rtc_device_register(name, &pdev->dev, ops, THIS_MODULE);
+-	if (IS_ERR(m48t59->rtc)) {
+-		ret = PTR_ERR(m48t59->rtc);
+-		goto out;
+-	}
++	m48t59->rtc = devm_rtc_device_register(&pdev->dev, name, ops,
++						THIS_MODULE);
++	if (IS_ERR(m48t59->rtc))
++		return PTR_ERR(m48t59->rtc);
+ 
+ 	m48t59_nvram_attr.size = pdata->offset;
+ 
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &m48t59_nvram_attr);
+-	if (ret) {
+-		rtc_device_unregister(m48t59->rtc);
+-		goto out;
+-	}
++	if (ret)
++		return ret;
  
  	return 0;
 -
--err_free_irq:
--	free_irq(rtc->irq, rtc);
--err_unregister_rtc:
--	rtc_device_unregister(rtc->rtc);
--err_iounmap:
--	iounmap(rtc->base);
--err_release_mem_region:
--	release_mem_region(rtc->mem->start, resource_size(rtc->mem));
--err_free:
--	kfree(rtc);
--
+-out:
+-	if (m48t59->irq != NO_IRQ)
+-		free_irq(m48t59->irq, &pdev->dev);
+-	if (m48t59->ioaddr)
+-		iounmap(m48t59->ioaddr);
+-		kfree(m48t59);
 -	return ret;
  }
  
--static int jz4740_rtc_remove(struct platform_device *pdev)
--{
--	struct jz4740_rtc *rtc = platform_get_drvdata(pdev);
--
--	free_irq(rtc->irq, rtc);
--
--	rtc_device_unregister(rtc->rtc);
--
--	iounmap(rtc->base);
--	release_mem_region(rtc->mem->start, resource_size(rtc->mem));
--
--	kfree(rtc);
--
--	return 0;
--}
--
--
- #ifdef CONFIG_PM
- static int jz4740_rtc_suspend(struct device *dev)
+ static int m48t59_rtc_remove(struct platform_device *pdev)
  {
-@@ -344,7 +312,6 @@ static const struct dev_pm_ops jz4740_pm
+-	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
+-	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
+-
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &m48t59_nvram_attr);
+-	if (!IS_ERR(m48t59->rtc))
+-		rtc_device_unregister(m48t59->rtc);
+-	if (m48t59->ioaddr && !pdata->ioaddr)
+-		iounmap(m48t59->ioaddr);
+-	if (m48t59->irq != NO_IRQ)
+-		free_irq(m48t59->irq, &pdev->dev);
+-	kfree(m48t59);
+ 	return 0;
+ }
  
- static struct platform_driver jz4740_rtc_driver = {
- 	.probe	 = jz4740_rtc_probe,
--	.remove	 = jz4740_rtc_remove,
- 	.driver	 = {
- 		.name  = "jz4740-rtc",
- 		.owner = THIS_MODULE,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
