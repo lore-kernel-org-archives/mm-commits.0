@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drm-cirrus-correct-register-values-for-16bpp.patch added to -mm tree
-Date: Tue, 28 May 2013 16:10:39 -0700
-Message-ID: <51a5396f.o3TF9OjfZmMfyUoC%akpm__49725.3996356905$1369782657$gmane$org@linux-foundation.org>
+Subject: +
+ drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch added
+ to -mm tree
+Date: Tue, 28 May 2013 16:11:52 -0700
+Message-ID: <51a539b8.XvW+cwDoLrR3CpAs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33860 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33872 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759234Ab3E1XKk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:10:40 -0400
+	with ESMTP id S1758461Ab3E1XLx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:11:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, jslaby@suse.cz, airlied@linux.ie, tiwai@suse.de
+To: mm-commits@vger.kernel.org, jslaby@suse.cz, airlied@linux.ie, jeffm@suse.com
 
-Subject: + drm-cirrus-correct-register-values-for-16bpp.patch added to -mm tree
-To: tiwai@suse.de,airlied@linux.ie,jslaby@suse.cz,stable@vger.kernel.org
+Subject: + drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch added to -mm tree
+To: jeffm@suse.com,airlied@linux.ie,jslaby@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 16:10:39 -0700
+Date: Tue, 28 May 2013 16:11:52 -0700
 
 
 The patch titled
-     Subject: drm/cirrus: correct register values for 16bpp
+     Subject: drm/nouveau: make vga_switcheroo code depend on VGA_SWITCHEROO
 has been added to the -mm tree.  Its filename is
-     drm-cirrus-correct-register-values-for-16bpp.patch
+     drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,47 +40,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Takashi Iwai <tiwai@suse.de>
-Subject: drm/cirrus: correct register values for 16bpp
+From: Jeff Mahoney <jeffm@suse.com>
+Subject: drm/nouveau: make vga_switcheroo code depend on VGA_SWITCHEROO
 
-When the mode is set with 16bpp on QEMU, the output gets totally broken. 
-The culprit is the bogus register values set for 16bpp, which was likely
-copied from from a wrong place.
+Commit 8116188fdef594 ("nouveau/acpi: hook up to the MXM method for mux
+switching.") broke the build on non-x86 architectures due to the new
+dependency on MXM and MXM being an x86 platform driver.
 
-Addresses https://bugzilla.novell.com/show_bug.cgi?id=799216
+It built previously since the vga switcheroo registration routines were
+zereod out on !X86.  The code was built in but unused.
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
+This patch makes all of the DSM code depend on CONFIG_VGA_SWITCHEROO,
+allowing it to build on non-x86 and shrinking the module size as well.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Cc: David Airlie <airlied@linux.ie>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/cirrus/cirrus_mode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_acpi.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/gpu/drm/cirrus/cirrus_mode.c~drm-cirrus-correct-register-values-for-16bpp drivers/gpu/drm/cirrus/cirrus_mode.c
---- a/drivers/gpu/drm/cirrus/cirrus_mode.c~drm-cirrus-correct-register-values-for-16bpp
-+++ a/drivers/gpu/drm/cirrus/cirrus_mode.c
-@@ -273,8 +273,8 @@ static int cirrus_crtc_mode_set(struct d
- 		sr07 |= 0x11;
- 		break;
- 	case 16:
--		sr07 |= 0xc1;
--		hdr = 0xc0;
-+		sr07 |= 0x17;
-+		hdr = 0xc1;
- 		break;
- 	case 24:
- 		sr07 |= 0x15;
+diff -puN drivers/gpu/drm/nouveau/nouveau_acpi.c~drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo drivers/gpu/drm/nouveau/nouveau_acpi.c
+--- a/drivers/gpu/drm/nouveau/nouveau_acpi.c~drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo
++++ a/drivers/gpu/drm/nouveau/nouveau_acpi.c
+@@ -46,6 +46,7 @@ bool nouveau_is_v1_dsm(void) {
+ #define NOUVEAU_DSM_HAS_MUX 0x1
+ #define NOUVEAU_DSM_HAS_OPT 0x2
+ 
++#ifdef CONFIG_VGA_SWITCHEROO
+ static const char nouveau_dsm_muid[] = {
+ 	0xA0, 0xA0, 0x95, 0x9D, 0x60, 0x00, 0x48, 0x4D,
+ 	0xB3, 0x4D, 0x7E, 0x5F, 0xEA, 0x12, 0x9F, 0xD4,
+@@ -337,6 +338,10 @@ void nouveau_unregister_dsm_handler(void
+ 	if (nouveau_dsm_priv.optimus_detected || nouveau_dsm_priv.dsm_detected)
+ 		vga_switcheroo_unregister_handler();
+ }
++#else
++void nouveau_register_dsm_handler(void) {}
++void nouveau_unregister_dsm_handler(void) {}
++#endif
+ 
+ /* retrieve the ROM in 4k blocks */
+ static int nouveau_rom_call(acpi_handle rom_handle, uint8_t *bios,
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 linux-next.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drm-cirrus-correct-register-values-for-16bpp.patch
-vfs-fix-invalid-ida_remove-call.patch
-idr-print-a-stack-dump-after-ida_remove-warning.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch
+drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch
+reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup.patch
 
