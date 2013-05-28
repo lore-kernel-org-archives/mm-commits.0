@@ -1,223 +1,287 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu.patch
- removed from -mm tree
-Date: Tue, 28 May 2013 12:36:41 -0700
-Message-ID: <51a50749.A35nstAuAKlyzu11%akpm@linux-foundation.org>
+ rapidio-add-enumeration-discovery-start-from-user-space.patch removed from
+ -mm tree
+Date: Tue, 28 May 2013 12:36:35 -0700
+Message-ID: <51a50743.rMt8CeaOHpNWAJNl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60370 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754954Ab3E1Tgm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:36:42 -0400
+	with ESMTP id S1754929Ab3E1Tgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, holt@sgi.com, xiaoguangrong@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, mporter@kernel.crashing.org, micha.nelissen@Prodrive.nl, leoli@freescale.com, galak@kernel.crashing.org, andre.van.herk@Prodrive.nl, alexandre.bounine@idt.com
 
-Subject: [merged] mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu.patch removed from -mm tree
-To: xiaoguangrong@linux.vnet.ibm.com,holt@sgi.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] rapidio-add-enumeration-discovery-start-from-user-space.patch removed from -mm tree
+To: alexandre.bounine@idt.com,andre.van.herk@Prodrive.nl,galak@kernel.crashing.org,leoli@freescale.com,micha.nelissen@Prodrive.nl,mporter@kernel.crashing.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:36:41 -0700
+Date: Tue, 28 May 2013 12:36:35 -0700
 
 
 The patch titled
-     Subject: mm: mmu_notifier: re-fix freed page still mapped in secondary MMU
+     Subject: rapidio: add enumeration/discovery start from user space
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu.patch
+     rapidio-add-enumeration-discovery-start-from-user-space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: mm: mmu_notifier: re-fix freed page still mapped in secondary MMU
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio: add enumeration/discovery start from user space
 
-commit 751efd8610d3 ("mmu_notifier_unregister NULL Pointer deref and
-multiple ->release()") breaks the fix 3ad3d901bb ("mm: mmu_notifier: fix
-freed page still mapped in secondary MMU").
+Add RapidIO enumeration/discovery start from user space.  User space start
+allows to defer RapidIO fabric scan until the moment when all
+participating endpoints are initialized avoiding mandatory synchronized
+start of all endpoints (which may be challenging in systems with large
+number of RapidIO endpoints).
 
-Since hlist_for_each_entry_rcu() is changed now, we can not revert that
-patch directly, so this patch reverts the commit and simply fix the bug
-spotted by that patch
-
-This bug spotted by commit 751efd8610d3 is:
-======
-There is a race condition between mmu_notifier_unregister() and
-__mmu_notifier_release().
-
-Assume two tasks, one calling mmu_notifier_unregister() as a result of a
-filp_close() ->flush() callout (task A), and the other calling
-mmu_notifier_release() from an mmput() (task B).
-
-                    A                               B
-t1                                              srcu_read_lock()
-t2              if (!hlist_unhashed())
-t3                                              srcu_read_unlock()
-t4              srcu_read_lock()
-t5                                              hlist_del_init_rcu()
-t6                                              synchronize_srcu()
-t7              srcu_read_unlock()
-t8              hlist_del_rcu()  <--- NULL pointer deref.
-======
-
-This can be fixed by using hlist_del_init_rcu instead of hlist_del_rcu.
-
-The another issue spotted in the commit is "multiple ->release()
-callouts", we needn't care it too much because it is really rare (e.g, can
-not happen on kvm since mmu-notify is unregistered after exit_mmap()) and
-the later call of multiple ->release should be fast since all the pages
-have already been released by the first call.  Anyway, this issue should
-be fixed in a separate patch.
-
--stable suggestions:
-Any version has commit 751efd8610d3 need to be backported. I find the oldest
-version has this commit is 3.0-stable.
-
-[akpm@linux-foundation.org: tweak comments]
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Tested-by: Robin Holt <holt@sgi.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@Prodrive.nl>
+Cc: Micha Nelissen <micha.nelissen@Prodrive.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |   79 +++++++++++++++++++++-----------------------
- 1 file changed, 39 insertions(+), 40 deletions(-)
+ drivers/rapidio/rio-driver.c |    1 
+ drivers/rapidio/rio-scan.c   |   24 +++++++++++++++--
+ drivers/rapidio/rio-sysfs.c  |   45 +++++++++++++++++++++++++++++++++
+ drivers/rapidio/rio.c        |   28 +++++++++++++++++++-
+ drivers/rapidio/rio.h        |    2 +
+ include/linux/rio.h          |    9 +++++-
+ 6 files changed, 102 insertions(+), 7 deletions(-)
 
-diff -puN mm/mmu_notifier.c~mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-mmu_notifier-re-fix-freed-page-still-mapped-in-secondary-mmu
-+++ a/mm/mmu_notifier.c
-@@ -40,48 +40,44 @@ void __mmu_notifier_release(struct mm_st
- 	int id;
- 
- 	/*
--	 * srcu_read_lock() here will block synchronize_srcu() in
--	 * mmu_notifier_unregister() until all registered
--	 * ->release() callouts this function makes have
--	 * returned.
-+	 * SRCU here will block mmu_notifier_unregister until
-+	 * ->release returns.
- 	 */
- 	id = srcu_read_lock(&srcu);
-+	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist)
-+		/*
-+		 * If ->release runs before mmu_notifier_unregister it must be
-+		 * handled, as it's the only way for the driver to flush all
-+		 * existing sptes and stop the driver from establishing any more
-+		 * sptes before all the pages in the mm are freed.
-+		 */
-+		if (mn->ops->release)
-+			mn->ops->release(mn, mm);
-+	srcu_read_unlock(&srcu, id);
-+
- 	spin_lock(&mm->mmu_notifier_mm->lock);
- 	while (unlikely(!hlist_empty(&mm->mmu_notifier_mm->list))) {
- 		mn = hlist_entry(mm->mmu_notifier_mm->list.first,
- 				 struct mmu_notifier,
- 				 hlist);
--
- 		/*
--		 * Unlink.  This will prevent mmu_notifier_unregister()
--		 * from also making the ->release() callout.
-+		 * We arrived before mmu_notifier_unregister so
-+		 * mmu_notifier_unregister will do nothing other than to wait
-+		 * for ->release to finish and for mmu_notifier_unregister to
-+		 * return.
- 		 */
- 		hlist_del_init_rcu(&mn->hlist);
--		spin_unlock(&mm->mmu_notifier_mm->lock);
--
--		/*
--		 * Clear sptes. (see 'release' description in mmu_notifier.h)
--		 */
--		if (mn->ops->release)
--			mn->ops->release(mn, mm);
--
--		spin_lock(&mm->mmu_notifier_mm->lock);
- 	}
- 	spin_unlock(&mm->mmu_notifier_mm->lock);
- 
- 	/*
--	 * All callouts to ->release() which we have done are complete.
--	 * Allow synchronize_srcu() in mmu_notifier_unregister() to complete
--	 */
--	srcu_read_unlock(&srcu, id);
--
--	/*
--	 * mmu_notifier_unregister() may have unlinked a notifier and may
--	 * still be calling out to it.	Additionally, other notifiers
--	 * may have been active via vmtruncate() et. al. Block here
--	 * to ensure that all notifier callouts for this mm have been
--	 * completed and the sptes are really cleaned up before returning
--	 * to exit_mmap().
-+	 * synchronize_srcu here prevents mmu_notifier_release from returning to
-+	 * exit_mmap (which would proceed with freeing all pages in the mm)
-+	 * until the ->release method returns, if it was invoked by
-+	 * mmu_notifier_unregister.
-+	 *
-+	 * The mmu_notifier_mm can't go away from under us because one mm_count
-+	 * is held by exit_mmap.
- 	 */
- 	synchronize_srcu(&srcu);
- }
-@@ -292,31 +288,34 @@ void mmu_notifier_unregister(struct mmu_
+diff -puN drivers/rapidio/rio-driver.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio-driver.c
+--- a/drivers/rapidio/rio-driver.c~rapidio-add-enumeration-discovery-start-from-user-space
++++ a/drivers/rapidio/rio-driver.c
+@@ -207,6 +207,7 @@ struct bus_type rio_bus_type = {
+ 	.name = "rapidio",
+ 	.match = rio_match_bus,
+ 	.dev_attrs = rio_dev_attrs,
++	.bus_attrs = rio_bus_attrs,
+ 	.probe = rio_device_probe,
+ 	.remove = rio_device_remove,
+ };
+diff -puN drivers/rapidio/rio-scan.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-add-enumeration-discovery-start-from-user-space
++++ a/drivers/rapidio/rio-scan.c
+@@ -1134,19 +1134,30 @@ static void rio_pw_enable(struct rio_mpo
+ /**
+  * rio_enum_mport- Start enumeration through a master port
+  * @mport: Master port to send transactions
++ * @flags: Enumeration control flags
+  *
+  * Starts the enumeration process. If somebody has enumerated our
+  * master port device, then give up. If not and we have an active
+  * link, then start recursive peer enumeration. Returns %0 if
+  * enumeration succeeds or %-EBUSY if enumeration fails.
+  */
+-int rio_enum_mport(struct rio_mport *mport)
++int rio_enum_mport(struct rio_mport *mport, u32 flags)
  {
- 	BUG_ON(atomic_read(&mm->mm_count) <= 0);
+ 	struct rio_net *net = NULL;
+ 	int rc = 0;
  
--	spin_lock(&mm->mmu_notifier_mm->lock);
- 	if (!hlist_unhashed(&mn->hlist)) {
-+		/*
-+		 * SRCU here will force exit_mmap to wait for ->release to
-+		 * finish before freeing the pages.
-+		 */
- 		int id;
+ 	printk(KERN_INFO "RIO: enumerate master port %d, %s\n", mport->id,
+ 	       mport->name);
++
++	/*
++	 * To avoid multiple start requests (repeat enumeration is not supported
++	 * by this method) check if enumeration/discovery was performed for this
++	 * mport: if mport was added into the list of mports for a net exit
++	 * with error.
++	 */
++	if (mport->nnode.next || mport->nnode.prev)
++		return -EBUSY;
++
+ 	/* If somebody else enumerated our master port device, bail. */
+ 	if (rio_enum_host(mport) < 0) {
+ 		printk(KERN_INFO
+@@ -1236,14 +1247,16 @@ static void rio_build_route_tables(struc
+ /**
+  * rio_disc_mport- Start discovery through a master port
+  * @mport: Master port to send transactions
++ * @flags: discovery control flags
+  *
+  * Starts the discovery process. If we have an active link,
+- * then wait for the signal that enumeration is complete.
++ * then wait for the signal that enumeration is complete (if wait
++ * is allowed).
+  * When enumeration completion is signaled, start recursive
+  * peer discovery. Returns %0 if discovery succeeds or %-EBUSY
+  * on failure.
+  */
+-int rio_disc_mport(struct rio_mport *mport)
++int rio_disc_mport(struct rio_mport *mport, u32 flags)
+ {
+ 	struct rio_net *net = NULL;
+ 	unsigned long to_end;
+@@ -1253,6 +1266,11 @@ int rio_disc_mport(struct rio_mport *mpo
  
-+		id = srcu_read_lock(&srcu);
- 		/*
--		 * Ensure we synchronize up with __mmu_notifier_release().
-+		 * exit_mmap will block in mmu_notifier_release to guarantee
-+		 * that ->release is called before freeing the pages.
- 		 */
--		id = srcu_read_lock(&srcu);
--
--		hlist_del_rcu(&mn->hlist);
--		spin_unlock(&mm->mmu_notifier_mm->lock);
--
- 		if (mn->ops->release)
- 			mn->ops->release(mn, mm);
-+		srcu_read_unlock(&srcu, id);
+ 	/* If master port has an active link, allocate net and discover peers */
+ 	if (rio_mport_is_active(mport)) {
++		if (rio_enum_complete(mport))
++			goto enum_done;
++		else if (flags & RIO_SCAN_ENUM_NO_WAIT)
++			return -EAGAIN;
++
+ 		pr_debug("RIO: wait for enumeration to complete...\n");
  
-+		spin_lock(&mm->mmu_notifier_mm->lock);
- 		/*
--		 * Allow __mmu_notifier_release() to complete.
-+		 * Can not use list_del_rcu() since __mmu_notifier_release
-+		 * can delete it before we hold the lock.
- 		 */
--		srcu_read_unlock(&srcu, id);
--	} else
-+		hlist_del_init_rcu(&mn->hlist);
- 		spin_unlock(&mm->mmu_notifier_mm->lock);
+ 		to_end = jiffies + CONFIG_RAPIDIO_DISC_TIMEOUT * HZ;
+diff -puN drivers/rapidio/rio-sysfs.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rapidio-add-enumeration-discovery-start-from-user-space
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -285,3 +285,48 @@ void rio_remove_sysfs_dev_files(struct r
+ 			rdev->rswitch->sw_sysfs(rdev, RIO_SW_SYSFS_REMOVE);
+ 	}
+ }
++
++static ssize_t bus_scan_store(struct bus_type *bus, const char *buf,
++				size_t count)
++{
++	long val;
++	struct rio_mport *port = NULL;
++	int rc;
++
++	if (kstrtol(buf, 0, &val) < 0)
++		return -EINVAL;
++
++	if (val == RIO_MPORT_ANY) {
++		rc = rio_init_mports();
++		goto exit;
 +	}
++
++	if (val < 0 || val >= RIO_MAX_MPORTS)
++		return -EINVAL;
++
++	port = rio_find_mport((int)val);
++
++	if (!port) {
++		pr_debug("RIO: %s: mport_%d not available\n",
++			 __func__, (int)val);
++		return -EINVAL;
++	}
++
++	if (!port->nscan)
++		return -EINVAL;
++
++	if (port->host_deviceid >= 0)
++		rc = port->nscan->enumerate(port, 0);
++	else
++		rc = port->nscan->discover(port, RIO_SCAN_ENUM_NO_WAIT);
++exit:
++	if (!rc)
++		rc = count;
++
++	return rc;
++}
++
++struct bus_attribute rio_bus_attrs[] = {
++	__ATTR(scan, (S_IWUSR|S_IWGRP), NULL, bus_scan_store),
++	__ATTR_NULL
++};
+diff -puN drivers/rapidio/rio.c~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-add-enumeration-discovery-start-from-user-space
++++ a/drivers/rapidio/rio.c
+@@ -1383,6 +1383,30 @@ EXPORT_SYMBOL_GPL(rio_dma_prep_slave_sg)
+ #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
  
- 	/*
--	 * Wait for any running method to finish, including ->release() if it
--	 * was run by __mmu_notifier_release() instead of us.
-+	 * Wait for any running method to finish, of course including
-+	 * ->release if it was run by mmu_notifier_relase instead of us.
- 	 */
- 	synchronize_srcu(&srcu);
+ /**
++ * rio_find_mport - find RIO mport by its ID
++ * @mport_id: number (ID) of mport device
++ *
++ * Given a RIO mport number, the desired mport is located
++ * in the global list of mports. If the mport is found, a pointer to its
++ * data structure is returned.  If no mport is found, %NULL is returned.
++ */
++struct rio_mport *rio_find_mport(int mport_id)
++{
++	struct rio_mport *port;
++
++	mutex_lock(&rio_mport_list_lock);
++	list_for_each_entry(port, &rio_mports, node) {
++		if (port->id == mport_id)
++			goto found;
++	}
++	port = NULL;
++found:
++	mutex_unlock(&rio_mport_list_lock);
++
++	return port;
++}
++
++/**
+  * rio_register_scan - enumeration/discovery method registration interface
+  * @mport_id: mport device ID for which fabric scan routine has to be set
+  *            (RIO_MPORT_ANY = set for all available mports)
+@@ -1475,7 +1499,7 @@ static void disc_work_handler(struct wor
+ 	work = container_of(_work, struct rio_disc_work, work);
+ 	pr_debug("RIO: discovery work for mport %d %s\n",
+ 		 work->mport->id, work->mport->name);
+-	work->mport->nscan->discover(work->mport);
++	work->mport->nscan->discover(work->mport, 0);
+ }
  
+ int rio_init_mports(void)
+@@ -1495,7 +1519,7 @@ int rio_init_mports(void)
+ 	list_for_each_entry(port, &rio_mports, node) {
+ 		if (port->host_deviceid >= 0) {
+ 			if (port->nscan)
+-				port->nscan->enumerate(port);
++				port->nscan->enumerate(port, 0);
+ 		} else
+ 			n++;
+ 	}
+diff -puN drivers/rapidio/rio.h~rapidio-add-enumeration-discovery-start-from-user-space drivers/rapidio/rio.h
+--- a/drivers/rapidio/rio.h~rapidio-add-enumeration-discovery-start-from-user-space
++++ a/drivers/rapidio/rio.h
+@@ -45,9 +45,11 @@ extern int rio_enable_rx_tx_port(struct
+ extern int rio_register_scan(int mport_id, struct rio_scan *scan_ops);
+ extern int rio_unregister_scan(int mport_id);
+ extern void rio_attach_device(struct rio_dev *rdev);
++extern struct rio_mport *rio_find_mport(int mport_id);
+ 
+ /* Structures internal to the RIO core code */
+ extern struct device_attribute rio_dev_attrs[];
++extern struct bus_attribute rio_bus_attrs[];
+ 
+ extern struct rio_switch_ops __start_rio_switch_ops[];
+ extern struct rio_switch_ops __end_rio_switch_ops[];
+diff -puN include/linux/rio.h~rapidio-add-enumeration-discovery-start-from-user-space include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-enumeration-discovery-start-from-user-space
++++ a/include/linux/rio.h
+@@ -265,6 +265,11 @@ struct rio_mport {
+ 	struct rio_scan *nscan;
+ };
+ 
++/*
++ * Enumeration/discovery control flags
++ */
++#define RIO_SCAN_ENUM_NO_WAIT	0x00000001 /* Do not wait for enum completed */
++
+ struct rio_id_table {
+ 	u16 start;	/* logical minimal id */
+ 	u32 max;	/* max number of IDs in table */
+@@ -467,8 +472,8 @@ static inline struct rio_mport *dma_to_m
+  * @discover: Callback to perform RapidIO fabric discovery.
+  */
+ struct rio_scan {
+-	int (*enumerate)(struct rio_mport *mport);
+-	int (*discover)(struct rio_mport *mport);
++	int (*enumerate)(struct rio_mport *mport, u32 flags);
++	int (*discover)(struct rio_mport *mport, u32 flags);
+ };
+ 
+ /* Architecture and hardware-specific functions */
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-linux-next.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-clear_refs-introduce-private-struct-for-mm_walk.patch
-pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
-pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch
-mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
-mm-soft-dirty-bits-for-user-memory-changes-tracking-call-mmu-notifiers-when-write-protecting-ptes.patch
-pagemap-prepare-to-reuse-constant-bits-with-page-shift.patch
+rapidio-switches-remove-tsi500-driver.patch
 
