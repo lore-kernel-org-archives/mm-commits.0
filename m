@@ -1,106 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch removed
- from -mm tree
-Date: Tue, 28 May 2013 12:36:59 -0700
-Message-ID: <51a5075b.5tjRYBppGtzn6QiN%akpm@linux-foundation.org>
+Subject: [merged] aio-fix-io_getevents-documentation.patch removed from
+ -mm tree
+Date: Tue, 28 May 2013 12:37:03 -0700
+Message-ID: <51a5075f.3oj/R2Mbo95vrp0T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60434 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60440 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755076Ab3E1ThA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:00 -0400
+	with ESMTP id S1754238Ab3E1ThE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, cooloney@gmail.com, bigeasy@linutronix.de, christian.gmeiner@gmail.com
+To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, chrubis@suse.cz, bcrl@kvack.org, jmoyer@redhat.com
 
-Subject: [merged] drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch removed from -mm tree
-To: christian.gmeiner@gmail.com,bigeasy@linutronix.de,cooloney@gmail.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] aio-fix-io_getevents-documentation.patch removed from -mm tree
+To: jmoyer@redhat.com,bcrl@kvack.org,chrubis@suse.cz,mtk.manpages@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:36:59 -0700
+Date: Tue, 28 May 2013 12:37:03 -0700
 
 
 The patch titled
-     Subject: drivers/leds/leds-ot200.c: fix error caused by shifted mask
+     Subject: aio: fix io_getevents documentation
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch
+     aio-fix-io_getevents-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-Subject: drivers/leds/leds-ot200.c: fix error caused by shifted mask
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: aio: fix io_getevents documentation
 
-During the development of this driver an in-house register documentation
-was used.  The last week some integration tests were done and this problem
-was found.  It turned out that the released register documentation is
-wrong.
+In reviewing man pages, I noticed that io_getevents is documented to
+update the timeout that gets passed into the library call.  This doesn't
+happen in kernel space or in the library (even though it's documented to
+do so in both places).  Unless there is objection, I'd like to fix the
+comments/docs to match the code (I will also update the man page upon
+consensus).
 
-The fix is very simple: shift all masks by one.
-
-Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
+Acked-by: Cyril Hrubis <chrubis@suse.cz>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-ot200.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/aio.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/leds/leds-ot200.c~drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask drivers/leds/leds-ot200.c
---- a/drivers/leds/leds-ot200.c~drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask
-+++ a/drivers/leds/leds-ot200.c
-@@ -47,37 +47,37 @@ static struct ot200_led leds[] = {
- 	{
- 		.name = "led_1",
- 		.port = 0x49,
--		.mask = BIT(7),
-+		.mask = BIT(6),
- 	},
- 	{
- 		.name = "led_2",
- 		.port = 0x49,
--		.mask = BIT(6),
-+		.mask = BIT(5),
- 	},
- 	{
- 		.name = "led_3",
- 		.port = 0x49,
--		.mask = BIT(5),
-+		.mask = BIT(4),
- 	},
- 	{
- 		.name = "led_4",
- 		.port = 0x49,
--		.mask = BIT(4),
-+		.mask = BIT(3),
- 	},
- 	{
- 		.name = "led_5",
- 		.port = 0x49,
--		.mask = BIT(3),
-+		.mask = BIT(2),
- 	},
- 	{
- 		.name = "led_6",
- 		.port = 0x49,
--		.mask = BIT(2),
-+		.mask = BIT(1),
- 	},
- 	{
- 		.name = "led_7",
- 		.port = 0x49,
--		.mask = BIT(1),
-+		.mask = BIT(0),
- 	}
- };
- 
+diff -puN fs/aio.c~aio-fix-io_getevents-documentation fs/aio.c
+--- a/fs/aio.c~aio-fix-io_getevents-documentation
++++ a/fs/aio.c
+@@ -1299,8 +1299,7 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
+  *	< min_nr if the timeout specified by timeout has elapsed
+  *	before sufficient events are available, where timeout == NULL
+  *	specifies an infinite timeout. Note that the timeout pointed to by
+- *	timeout is relative and will be updated if not NULL and the
+- *	operation blocks. Will fail with -ENOSYS if not implemented.
++ *	timeout is relative.  Will fail with -ENOSYS if not implemented.
+  */
+ SYSCALL_DEFINE5(io_getevents, aio_context_t, ctx_id,
+ 		long, min_nr,
 _
 
-Patches currently in -mm which might be from christian.gmeiner@gmail.com are
+Patches currently in -mm which might be from jmoyer@redhat.com are
 
 
