@@ -1,72 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch removed from -mm tree
-Date: Tue, 28 May 2013 12:37:26 -0700
-Message-ID: <51a50776.1Ln3ojjd+uUHzcve%akpm__24305.1935373389$1369769868$gmane$org@linux-foundation.org>
+Subject: [merged] block-remove-refs-to-xd-disks-from-documentation.patch
+ removed from -mm tree
+Date: Tue, 28 May 2013 12:37:28 -0700
+Message-ID: <51a50778.ntzwb8GPUd3vCuuW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60495 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755187Ab3E1Th1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:27 -0400
+	with ESMTP id S1755235Ab3E1Th3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, stable@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, axboe@kernel.dk, linus.walleij@linaro.org
 
-Subject: [merged] ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch removed from -mm tree
-To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@vger.kernel.org,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] block-remove-refs-to-xd-disks-from-documentation.patch removed from -mm tree
+To: linus.walleij@linaro.org,axboe@kernel.dk,paul.gortmaker@windriver.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:37:26 -0700
+Date: Tue, 28 May 2013 12:37:28 -0700
 
 
 The patch titled
-     Subject: ocfs2: goto out_unlock if ocfs2_get_clusters_nocache() failed in ocfs2_fiemap()
+     Subject: block: remove refs to XD disks from documentation
 has been removed from the -mm tree.  Its filename was
-     ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch
+     block-remove-refs-to-xd-disks-from-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: goto out_unlock if ocfs2_get_clusters_nocache() failed in ocfs2_fiemap()
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: block: remove refs to XD disks from documentation
 
-Last time we found there is lock/unlock bug in ocfs2_file_aio_write, and
-then we did a thorough search for all lock resources in ocfs2_inode_info,
-including rw, inode and open lockres and found this bug.  My kernel
-version is 3.0.13, and it is also in the lastest version 3.9.  In
-ocfs2_fiemap, once ocfs2_get_clusters_nocache failed, it should goto
-out_unlock instead of out, because we need release buffer head, up read
-alloc sem and unlock inode.
+d1a6f4f19728d6 ("block: delete super ancient PC-XT driver for 1980's
+hardware") deleted the XD disk driver, but there are still a few
+references to it in the documentation directory.  Delete the remnants and
+thus also free up the major block device 13 for reuse.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/extent_map.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devices.txt             |    7 +------
+ Documentation/kernel-parameters.txt   |    3 ---
+ Documentation/m68k/kernel-options.txt |    2 --
+ 3 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN fs/ocfs2/extent_map.c~ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap fs/ocfs2/extent_map.c
---- a/fs/ocfs2/extent_map.c~ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap
-+++ a/fs/ocfs2/extent_map.c
-@@ -790,7 +790,7 @@ int ocfs2_fiemap(struct inode *inode, st
- 						 &hole_size, &rec, &is_last);
- 		if (ret) {
- 			mlog_errno(ret);
--			goto out;
-+			goto out_unlock;
- 		}
+diff -puN Documentation/devices.txt~block-remove-refs-to-xd-disks-from-documentation Documentation/devices.txt
+--- a/Documentation/devices.txt~block-remove-refs-to-xd-disks-from-documentation
++++ a/Documentation/devices.txt
+@@ -498,12 +498,7 @@ Your cooperation is appreciated.
  
- 		if (rec.e_blkno == 0ULL) {
-_
-
-Patches currently in -mm which might be from joseph.qi@huawei.com are
-
-
+ 		Each device type has 5 bits (32 minors).
+ 
+- 13 block	8-bit MFM/RLL/IDE controller
+-		  0 = /dev/xda		First XT disk whole disk
+-		 64 = /dev/xdb		Second XT disk whole disk
+-
+-		Partitions are handled in the same way as IDE disks
+-		(see major number 3).
++ 13 block
+ 
+  14 char	Open Sound System (OSS)
+ 		  0 = /dev/mixer	Mixer control
+diff -puN Documentation/kernel-parameters.txt~block-remove-refs-to-xd-disks-from-documentation Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~block-remove-refs-to-xd-disks-from-documentation
++++ a/Documentation/kernel-parameters.txt
+@@ -3368,9 +3368,6 @@ bytes respectively. Such letter suffixes
+ 			plus one apbt timer for broadcast timer.
+ 			x86_mrst_timer=apbt_only | lapic_and_apbt
+ 
+-	xd=		[HW,XT] Original XT pre-IDE (RLL encoded) disks.
+-	xd_geo=		See header of drivers/block/xd.c.
