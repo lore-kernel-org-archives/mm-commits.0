@@ -1,70 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aio-fix-io_getevents-documentation.patch removed from
- -mm tree
-Date: Tue, 28 May 2013 12:37:03 -0700
-Message-ID: <51a5075f.3oj/R2Mbo95vrp0T%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
+ removed from -mm tree
+Date: Tue, 28 May 2013 12:36:57 -0700
+Message-ID: <51a50759.tbz6eVSLHGGxBVOk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60430 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754238Ab3E1ThE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:04 -0400
+	with ESMTP id S1754788Ab3E1Tg6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mtk.manpages@gmail.com, chrubis@suse.cz, bcrl@kvack.org, jmoyer@redhat.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, hughd@google.com, benh@kernel.crashing.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com
 
-Subject: [merged] aio-fix-io_getevents-documentation.patch removed from -mm tree
-To: jmoyer@redhat.com,bcrl@kvack.org,chrubis@suse.cz,mtk.manpages@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch removed from -mm tree
+To: aneesh.kumar@linux.vnet.ibm.com,aarcange@redhat.com,benh@kernel.crashing.org,hughd@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:37:03 -0700
+Date: Tue, 28 May 2013 12:36:57 -0700
 
 
 The patch titled
-     Subject: aio: fix io_getevents documentation
+     Subject: mm/THP: use pmd_populate() to update the pmd with pgtable_t pointer
 has been removed from the -mm tree.  Its filename was
-     aio-fix-io_getevents-documentation.patch
+     mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: aio: fix io_getevents documentation
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/THP: use pmd_populate() to update the pmd with pgtable_t pointer
 
-In reviewing man pages, I noticed that io_getevents is documented to
-update the timeout that gets passed into the library call.  This doesn't
-happen in kernel space or in the library (even though it's documented to
-do so in both places).  Unless there is objection, I'd like to fix the
-comments/docs to match the code (I will also update the man page upon
-consensus).
+We should not use set_pmd_at to update pmd_t with pgtable_t pointer. 
+set_pmd_at is used to set pmd with huge pte entries and architectures like
+ppc64, clear few flags from the pte when saving a new entry.  Without this
+change we observe bad pte errors like below on ppc64 with THP enabled.
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Acked-by: Cyril Hrubis <chrubis@suse.cz>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+BUG: Bad page map in process ld mm=0xc000001ee39f4780 pte:7fc3f37848000001 pmd:c000001ec0000000
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/huge_memory.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-fix-io_getevents-documentation fs/aio.c
---- a/fs/aio.c~aio-fix-io_getevents-documentation
-+++ a/fs/aio.c
-@@ -1299,8 +1299,7 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
-  *	< min_nr if the timeout specified by timeout has elapsed
-  *	before sufficient events are available, where timeout == NULL
-  *	specifies an infinite timeout. Note that the timeout pointed to by
-- *	timeout is relative and will be updated if not NULL and the
-- *	operation blocks. Will fail with -ENOSYS if not implemented.
-+ *	timeout is relative.  Will fail with -ENOSYS if not implemented.
-  */
- SYSCALL_DEFINE5(io_getevents, aio_context_t, ctx_id,
- 		long, min_nr,
+diff -puN mm/huge_memory.c~mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-use-pmd_populate-to-update-the-pmd-with-pgtable_t-pointer
++++ a/mm/huge_memory.c
+@@ -2325,7 +2325,12 @@ static void collapse_huge_page(struct mm
+ 		pte_unmap(pte);
+ 		spin_lock(&mm->page_table_lock);
+ 		BUG_ON(!pmd_none(*pmd));
+-		set_pmd_at(mm, address, pmd, _pmd);
++		/*
++		 * We can only use set_pmd_at when establishing
++		 * hugepmds and never for establishing regular pmds that
++		 * points to regular pagetables. Use pmd_populate for that
++		 */
++		pmd_populate(mm, pmd, pmd_pgtable(_pmd));
+ 		spin_unlock(&mm->page_table_lock);
+ 		anon_vma_unlock_write(vma->anon_vma);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
+mm-thp-use-the-right-function-when-updating-access-flags.patch
+mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch
+mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch
+mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch
+mm-thp-dont-use-hpage_shift-in-transparent-hugepage-code.patch
+mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch
 
