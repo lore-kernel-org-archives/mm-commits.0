@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-pm8xxx-use-devm_-functions.patch added to -mm tree
-Date: Tue, 28 May 2013 15:22:06 -0700
-Message-ID: <51a52e0e.IxiJl4UGPrzqgV48%akpm@linux-foundation.org>
+Subject: + rtc-rtc-rx8025-use-devm_-functions.patch added to -mm tree
+Date: Tue, 28 May 2013 15:22:08 -0700
+Message-ID: <51a52e10.Cjpn/9gLV+5BHZiy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33378 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758099Ab3E1WWH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:22:07 -0400
+	with ESMTP id S1759022Ab3E1WWJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:22:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + rtc-rtc-pm8xxx-use-devm_-functions.patch added to -mm tree
+Subject: + rtc-rtc-rx8025-use-devm_-functions.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 15:22:06 -0700
+Date: Tue, 28 May 2013 15:22:08 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-pm8xxx: use devm_*() functions
+     Subject: rtc: rtc-rx8025: use devm_*() functions
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-pm8xxx-use-devm_-functions.patch
+     rtc-rtc-rx8025-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-pm8xxx: use devm_*() functions
+Subject: rtc: rtc-rx8025: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler.
 
@@ -47,105 +47,76 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pm8xxx.c |   27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ drivers/rtc/rtc-rx8025.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/rtc-pm8xxx.c~rtc-rtc-pm8xxx-use-devm_-functions drivers/rtc/rtc-pm8xxx.c
---- a/drivers/rtc/rtc-pm8xxx.c~rtc-rtc-pm8xxx-use-devm_-functions
-+++ a/drivers/rtc/rtc-pm8xxx.c
-@@ -395,7 +395,7 @@ static int pm8xxx_rtc_probe(struct platf
- 	if (pdata != NULL)
- 		rtc_write_enable = pdata->rtc_write_enable;
- 
--	rtc_dd = kzalloc(sizeof(*rtc_dd), GFP_KERNEL);
-+	rtc_dd = devm_kzalloc(&pdev->dev, sizeof(*rtc_dd), GFP_KERNEL);
- 	if (rtc_dd == NULL) {
- 		dev_err(&pdev->dev, "Unable to allocate memory!\n");
- 		return -ENOMEM;
-@@ -407,16 +407,14 @@ static int pm8xxx_rtc_probe(struct platf
- 	rtc_dd->rtc_alarm_irq = platform_get_irq(pdev, 0);
- 	if (rtc_dd->rtc_alarm_irq < 0) {
- 		dev_err(&pdev->dev, "Alarm IRQ resource absent!\n");
--		rc = -ENXIO;
--		goto fail_rtc_enable;
-+		return -ENXIO;
+diff -puN drivers/rtc/rtc-rx8025.c~rtc-rtc-rx8025-use-devm_-functions drivers/rtc/rtc-rx8025.c
+--- a/drivers/rtc/rtc-rx8025.c~rtc-rtc-rx8025-use-devm_-functions
++++ a/drivers/rtc/rtc-rx8025.c
+@@ -549,7 +549,7 @@ static int rx8025_probe(struct i2c_clien
+ 		goto errout;
  	}
  
- 	rtc_resource = platform_get_resource_byname(pdev, IORESOURCE_IO,
- 							"pmic_rtc_base");
- 	if (!(rtc_resource && rtc_resource->start)) {
- 		dev_err(&pdev->dev, "RTC IO resource absent!\n");
--		rc = -ENXIO;
--		goto fail_rtc_enable;
-+		return -ENXIO;
+-	rx8025 = kzalloc(sizeof(*rx8025), GFP_KERNEL);
++	rx8025 = devm_kzalloc(&client->dev, sizeof(*rx8025), GFP_KERNEL);
+ 	if (!rx8025) {
+ 		dev_err(&adapter->dev, "failed to alloc memory\n");
+ 		err = -ENOMEM;
+@@ -562,7 +562,7 @@ static int rx8025_probe(struct i2c_clien
+ 
+ 	err = rx8025_init_client(client, &need_reset);
+ 	if (err)
+-		goto errout_free;
++		goto errout;
+ 
+ 	if (need_reset) {
+ 		struct rtc_time tm;
+@@ -572,12 +572,12 @@ static int rx8025_probe(struct i2c_clien
+ 		rx8025_set_time(&client->dev, &tm);
  	}
  
- 	rtc_dd->rtc_base = rtc_resource->start;
-@@ -432,7 +430,7 @@ static int pm8xxx_rtc_probe(struct platf
- 	rc = pm8xxx_read_wrapper(rtc_dd, &ctrl_reg, rtc_dd->rtc_base, 1);
- 	if (rc < 0) {
- 		dev_err(&pdev->dev, "RTC control register read failed!\n");
--		goto fail_rtc_enable;
-+		return rc;
+-	rx8025->rtc = rtc_device_register(client->name, &client->dev,
++	rx8025->rtc = devm_rtc_device_register(&client->dev, client->name,
+ 					  &rx8025_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rx8025->rtc)) {
+ 		err = PTR_ERR(rx8025->rtc);
+ 		dev_err(&client->dev, "unable to register the class device\n");
+-		goto errout_free;
++		goto errout;
  	}
  
- 	if (!(ctrl_reg & PM8xxx_RTC_ENABLE)) {
-@@ -442,7 +440,7 @@ static int pm8xxx_rtc_probe(struct platf
- 		if (rc < 0) {
- 			dev_err(&pdev->dev, "Write to RTC control register "
- 								"failed\n");
--			goto fail_rtc_enable;
-+			return rc;
+ 	if (client->irq > 0) {
+@@ -586,7 +586,7 @@ static int rx8025_probe(struct i2c_clien
+ 				  0, "rx8025", client);
+ 		if (err) {
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+-			goto errout_reg;
++			goto errout;
  		}
  	}
  
-@@ -453,13 +451,12 @@ static int pm8xxx_rtc_probe(struct platf
- 	platform_set_drvdata(pdev, rtc_dd);
+@@ -603,12 +603,6 @@ errout_irq:
+ 	if (client->irq > 0)
+ 		free_irq(client->irq, client);
  
- 	/* Register the RTC device */
--	rtc_dd->rtc = rtc_device_register("pm8xxx_rtc", &pdev->dev,
-+	rtc_dd->rtc = devm_rtc_device_register(&pdev->dev, "pm8xxx_rtc",
- 				&pm8xxx_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc_dd->rtc)) {
- 		dev_err(&pdev->dev, "%s: RTC registration failed (%ld)\n",
- 					__func__, PTR_ERR(rtc_dd->rtc));
--		rc = PTR_ERR(rtc_dd->rtc);
--		goto fail_rtc_enable;
-+		return PTR_ERR(rtc_dd->rtc);
- 	}
- 
- 	/* Request the alarm IRQ */
-@@ -468,7 +465,7 @@ static int pm8xxx_rtc_probe(struct platf
- 				 "pm8xxx_rtc_alarm", rtc_dd);
- 	if (rc < 0) {
- 		dev_err(&pdev->dev, "Request IRQ failed (%d)\n", rc);
--		goto fail_req_irq;
-+		return rc;
- 	}
- 
- 	device_init_wakeup(&pdev->dev, 1);
-@@ -476,12 +473,6 @@ static int pm8xxx_rtc_probe(struct platf
- 	dev_dbg(&pdev->dev, "Probe success !!\n");
- 
- 	return 0;
+-errout_reg:
+-	rtc_device_unregister(rx8025->rtc);
 -
--fail_req_irq:
--	rtc_device_unregister(rtc_dd->rtc);
--fail_rtc_enable:
--	kfree(rtc_dd);
--	return rc;
- }
+-errout_free:
+-	kfree(rx8025);
+-
+ errout:
+ 	dev_err(&adapter->dev, "probing for rx8025 failed\n");
+ 	return err;
+@@ -629,8 +623,6 @@ static int rx8025_remove(struct i2c_clie
+ 	}
  
- static int pm8xxx_rtc_remove(struct platform_device *pdev)
-@@ -490,8 +481,6 @@ static int pm8xxx_rtc_remove(struct plat
- 
- 	device_init_wakeup(&pdev->dev, 0);
- 	free_irq(rtc_dd->rtc_alarm_irq, rtc_dd);
--	rtc_device_unregister(rtc_dd->rtc);
--	kfree(rtc_dd);
- 
+ 	rx8025_sysfs_unregister(&client->dev);
+-	rtc_device_unregister(rx8025->rtc);
+-	kfree(rx8025);
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
