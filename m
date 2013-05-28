@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch added to -mm tree
-Date: Tue, 28 May 2013 13:18:29 -0700
-Message-ID: <51a51115.V2lUWMVpEi0BcdRu%akpm@linux-foundation.org>
+ mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
+ added to -mm tree
+Date: Tue, 28 May 2013 13:30:22 -0700
+Message-ID: <51a513de.pEo8fG3qC17OpgIo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60923 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755546Ab3E1US3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 16:18:29 -0400
+	with ESMTP id S1755879Ab3E1UaX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 16:30:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, walken@google.com, viro@zeniv.linux.org.uk, riel@redhat.com, gang.chen@asianux.com
 
-Subject: + mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch added to -mm tree
-To: gang.chen@asianux.com
+Subject: + mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch added to -mm tree
+To: gang.chen@asianux.com,riel@redhat.com,viro@zeniv.linux.org.uk,walken@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 13:18:29 -0700
+Date: Tue, 28 May 2013 13:30:22 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc.c: add additional checking and return value for the 'table->data'
+     Subject: mm/nommu.c: add additional check for vread() just like vwrite() has done
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
+     mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,56 +41,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Chen Gang <gang.chen@asianux.com>
-Subject: mm/page_alloc.c: add additional checking and return value for the 'table->data'
+Subject: mm/nommu.c: add additional check for vread() just like vwrite() has done
 
-- check the length of the procfs data before copying it into a fixed
-  size array.
+vwrite() checks for overflow. vread() should do the same thing.
 
-- when __parse_numa_zonelist_order() fails, save the error code for
-  return.
-
-- 'char*' --> 'char *' coding style fix
+Since vwrite() checks the source buffer address, vread() should check
+the destination buffer address.
 
 Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/nommu.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data
-+++ a/mm/page_alloc.c
-@@ -3256,18 +3256,25 @@ int numa_zonelist_order_handler(ctl_tabl
- 	static DEFINE_MUTEX(zl_order_mutex);
+diff -puN mm/nommu.c~mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done mm/nommu.c
+--- a/mm/nommu.c~mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done
++++ a/mm/nommu.c
+@@ -282,6 +282,10 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
  
- 	mutex_lock(&zl_order_mutex);
--	if (write)
--		strcpy(saved_string, (char*)table->data);
-+	if (write) {
-+		if (strlen((char *)table->data) >= NUMA_ZONELIST_ORDER_LEN) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+		strcpy(saved_string, (char *)table->data);
-+	}
- 	ret = proc_dostring(table, write, buffer, length, ppos);
- 	if (ret)
- 		goto out;
- 	if (write) {
- 		int oldval = user_zonelist_order;
--		if (__parse_numa_zonelist_order((char*)table->data)) {
+ long vread(char *buf, char *addr, unsigned long count)
+ {
++	/* Don't allow overflow */
++	if ((unsigned long) buf + count < count)
++		count = -(unsigned long) buf;
 +
-+		ret = __parse_numa_zonelist_order((char *)table->data);
-+		if (ret) {
- 			/*
- 			 * bogus value.  restore saved string
- 			 */
--			strncpy((char*)table->data, saved_string,
-+			strncpy((char *)table->data, saved_string,
- 				NUMA_ZONELIST_ORDER_LEN);
- 			user_zonelist_order = oldval;
- 		} else if (oldval != user_zonelist_order) {
+ 	memcpy(buf, addr, count);
+ 	return count;
+ }
 _
 
 Patches currently in -mm which might be from gang.chen@asianux.com are
@@ -99,4 +81,5 @@ kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules.patch
 kernel-auditfilterc-fix-leak-in-audit_add_rule-error-path.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
 mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
+mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
 
