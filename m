@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch added to -mm tree
-Date: Tue, 28 May 2013 16:09:58 -0700
-Message-ID: <51a53946.hQQ+dw3VlEaWbBzC%akpm@linux-foundation.org>
+Subject: + drm-cirrus-correct-register-values-for-16bpp.patch added to -mm tree
+Date: Tue, 28 May 2013 16:10:39 -0700
+Message-ID: <51a5396f.o3TF9OjfZmMfyUoC%akpm__49725.3996356905$1369782657$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33860 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758127Ab3E1XJ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:09:59 -0400
+	with ESMTP id S1759234Ab3E1XKk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:10:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jslaby@suse.cz, jeffm@suse.com, davem@davemloft.net, cascardo@linux.vnet.ibm.com, ohering@suse.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, jslaby@suse.cz, airlied@linux.ie, tiwai@suse.de
 
-Subject: + drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch added to -mm tree
-To: ohering@suse.com,cascardo@linux.vnet.ibm.com,davem@davemloft.net,jeffm@suse.com,jslaby@suse.cz
+Subject: + drm-cirrus-correct-register-values-for-16bpp.patch added to -mm tree
+To: tiwai@suse.de,airlied@linux.ie,jslaby@suse.cz,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 16:09:58 -0700
+Date: Tue, 28 May 2013 16:10:39 -0700
 
 
 The patch titled
-     Subject: drivers/net/ethernet/ibm/ehea/ehea_main.c: add alias entry for portN properties
+     Subject: drm/cirrus: correct register values for 16bpp
 has been added to the -mm tree.  Its filename is
-     drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch
+     drm-cirrus-correct-register-values-for-16bpp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Olaf Hering <ohering@suse.com>
-Subject: drivers/net/ethernet/ibm/ehea/ehea_main.c: add alias entry for portN properties
+From: Takashi Iwai <tiwai@suse.de>
+Subject: drm/cirrus: correct register values for 16bpp
 
-Use separate table for alias entries in the ehea module, otherwise the
-probe() function will operate on the separate ports instead of the
-lhea-"root" entry of the device-tree
+When the mode is set with 16bpp on QEMU, the output gets totally broken. 
+The culprit is the bogus register values set for 16bpp, which was likely
+copied from from a wrong place.
 
-Addresses https://bugzilla.novell.com/show_bug.cgi?id=435215
+Addresses https://bugzilla.novell.com/show_bug.cgi?id=799216
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Signed-off-by: Olaf Hering <ohering@suse.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: David Airlie <airlied@linux.ie>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/ibm/ehea/ehea_main.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/cirrus/cirrus_mode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ethernet/ibm/ehea/ehea_main.c~drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties drivers/net/ethernet/ibm/ehea/ehea_main.c
---- a/drivers/net/ethernet/ibm/ehea/ehea_main.c~drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties
-+++ a/drivers/net/ethernet/ibm/ehea/ehea_main.c
-@@ -103,6 +103,19 @@ static int ehea_probe_adapter(struct pla
- 
- static int ehea_remove(struct platform_device *dev);
- 
-+static struct of_device_id ehea_module_device_table[] = {
-+	{
-+		.name = "lhea",
-+		.compatible = "IBM,lhea",
-+	},
-+	{
-+		.type = "network",
-+		.compatible = "IBM,lhea-ethernet",
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, ehea_module_device_table);
-+
- static struct of_device_id ehea_device_table[] = {
- 	{
- 		.name = "lhea",
-@@ -110,7 +123,6 @@ static struct of_device_id ehea_device_t
- 	},
- 	{},
- };
--MODULE_DEVICE_TABLE(of, ehea_device_table);
- 
- static struct of_platform_driver ehea_driver = {
- 	.driver = {
+diff -puN drivers/gpu/drm/cirrus/cirrus_mode.c~drm-cirrus-correct-register-values-for-16bpp drivers/gpu/drm/cirrus/cirrus_mode.c
+--- a/drivers/gpu/drm/cirrus/cirrus_mode.c~drm-cirrus-correct-register-values-for-16bpp
++++ a/drivers/gpu/drm/cirrus/cirrus_mode.c
+@@ -273,8 +273,8 @@ static int cirrus_crtc_mode_set(struct d
+ 		sr07 |= 0x11;
+ 		break;
+ 	case 16:
+-		sr07 |= 0xc1;
+-		hdr = 0xc0;
++		sr07 |= 0x17;
++		hdr = 0xc1;
+ 		break;
+ 	case 24:
+ 		sr07 |= 0x15;
 _
 
-Patches currently in -mm which might be from ohering@suse.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
-drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch
+linux-next.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drm-cirrus-correct-register-values-for-16bpp.patch
+vfs-fix-invalid-ida_remove-call.patch
+idr-print-a-stack-dump-after-ida_remove-warning.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
 
