@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-ocfs2-dlm-dlmrecoveryc-dlm_request_all_locks-ret-should-be-int-instead-of-enum.patch added to -mm tree
-Date: Tue, 28 May 2013 16:22:36 -0700
-Message-ID: <51a53c3c.MuuWEu2ARQpvWE4V%akpm@linux-foundation.org>
+Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask.patch added
+ to -mm tree
+Date: Tue, 28 May 2013 16:27:04 -0700
+Message-ID: <51a53d48.Eya1PLSp+i52gWdc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34146 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759227Ab3E1XWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:22:37 -0400
+	with ESMTP id S1759227Ab3E1X1F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, roland@redhat.com, oleg@redhat.com, mtk.manpages@gmail.com, gorcunov@openvz.org, avagin@openvz.org
 
-Subject: + fs-ocfs2-dlm-dlmrecoveryc-dlm_request_all_locks-ret-should-be-int-instead-of-enum.patch added to -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask.patch added to -mm tree
+To: avagin@openvz.org,gorcunov@openvz.org,mtk.manpages@gmail.com,oleg@redhat.com,roland@redhat.com,xemul@parallels.com
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 16:22:36 -0700
+Date: Tue, 28 May 2013 16:27:04 -0700
 
 
 The patch titled
-     Subject: fs/ocfs2/dlm/dlmrecovery.c:dlm_request_all_locks(): ret should be int instead of enum
+     Subject: ptrace: add ability to get/set signal-blocked mask
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-dlm-dlmrecoveryc-dlm_request_all_locks-ret-should-be-int-instead-of-enum.patch
+     ptrace-add-ability-to-get-set-signal-blocked-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: fs/ocfs2/dlm/dlmrecovery.c:dlm_request_all_locks(): ret should be int instead of enum
+From: Andrey Vagin <avagin@openvz.org>
+Subject: ptrace: add ability to get/set signal-blocked mask
 
-In dlm_request_all_locks, ret is type enum.  But o2net_send_message
-returns a type int value.  Then it will never run into the following error
-branch.  So we should change the ret type from enum to int.
+crtools uses a parasite code for dumping processes.  The parasite code is
+injected into a process with help PTRACE_SEIZE.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Currently crtools blocks signals from a parasite code.  If a process has
+pending signals, crtools wait while a process handles these signals.
+
+This method is not suitable for stopped tasks.  A stopped task can have a
+few pending signals, when we will try to execute a parasite code, we will
+need to drop SIGSTOP, but all other signals must remain pending, because a
+state of processes must not be changed during checkpointing.
+
+This patch adds two ptrace commands to set/get signal-blocked mask.
+
+I think gdb can use this commands too.
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/uapi/linux/ptrace.h |    3 ++
+ kernel/ptrace.c             |   42 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~fs-ocfs2-dlm-dlmrecoveryc-dlm_request_all_locks-ret-should-be-int-instead-of-enum fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~fs-ocfs2-dlm-dlmrecoveryc-dlm_request_all_locks-ret-should-be-int-instead-of-enum
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -786,7 +786,7 @@ static int dlm_request_all_locks(struct
- 				 u8 dead_node)
- {
- 	struct dlm_lock_request lr;
--	enum dlm_status ret;
-+	int ret;
+diff -puN include/uapi/linux/ptrace.h~ptrace-add-ability-to-get-set-signal-blocked-mask include/uapi/linux/ptrace.h
+--- a/include/uapi/linux/ptrace.h~ptrace-add-ability-to-get-set-signal-blocked-mask
++++ a/include/uapi/linux/ptrace.h
+@@ -61,6 +61,9 @@ struct ptrace_peeksiginfo_args {
+ 	__s32 nr;	/* how may siginfos to take */
+ };
  
- 	mlog(0, "\n");
++#define PTRACE_GETSIGMASK	0x420a
++#define PTRACE_SETSIGMASK	0x420b
++
+ /* Read signals from a shared (process wide) queue */
+ #define PTRACE_PEEKSIGINFO_SHARED	(1 << 0)
  
-@@ -799,7 +799,6 @@ static int dlm_request_all_locks(struct
- 	lr.dead_node = dead_node;
+diff -puN kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask
++++ a/kernel/ptrace.c
+@@ -843,6 +843,48 @@ int ptrace_request(struct task_struct *c
+ 			ret = ptrace_setsiginfo(child, &siginfo);
+ 		break;
  
- 	// send message
--	ret = DLM_NOLOCKMGR;
- 	ret = o2net_send_message(DLM_LOCK_REQUEST_MSG, dlm->key,
- 				 &lr, sizeof(lr), request_from, NULL);
- 
++	case PTRACE_GETSIGMASK:
++		if (addr != sizeof(sigset_t)) {
++			ret = -EINVAL;
++			break;
++		}
++
++		if (copy_to_user(datavp, &child->blocked, sizeof(sigset_t)))
++			ret = -EFAULT;
++		else
++			ret = 0;
++
++		break;
++
++	case PTRACE_SETSIGMASK:
++	{
++		sigset_t new_set;
++
++		if (addr != sizeof(sigset_t)) {
++			ret = -EINVAL;
++			break;
++		}
++
++		if (copy_from_user(&new_set, datavp, sizeof(sigset_t))) {
++			ret = -EFAULT;
++			break;
++		}
++
++		sigdelsetmask(&new_set, sigmask(SIGKILL)|sigmask(SIGSTOP));
++
++		/*
++		 * Every thread does recalc_sigpending() after resume, so
++		 * retarget_shared_pending() and recalc_sigpending() are not
++		 * called here.
++		 */
++		spin_lock_irq(&child->sighand->siglock);
++		child->blocked = new_set;
++		spin_unlock_irq(&child->sighand->siglock);
++
++		ret = 0;
++		break;
++	}
++
+ 	case PTRACE_INTERRUPT:
+ 		/*
+ 		 * Stop tracee without any side-effect on signal or job
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
-fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch
-fs-ocfs2-dlm-dlmrecoveryc-dlm_request_all_locks-ret-should-be-int-instead-of-enum.patch
+memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 
