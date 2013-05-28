@@ -1,77 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
- removed from -mm tree
-Date: Tue, 28 May 2013 12:37:25 -0700
-Message-ID: <51a50775.bTzTmqJIY9K66UQX%akpm@linux-foundation.org>
+ ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch removed from -mm tree
+Date: Tue, 28 May 2013 12:37:26 -0700
+Message-ID: <51a50776.1Ln3ojjd+uUHzcve%akpm__24305.1935373389$1369769868$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60495 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755144Ab3E1Th0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:26 -0400
+	with ESMTP id S1755187Ab3E1Th1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zab@redhat.com, koverstreet@google.com, jwboyer@redhat.com, bcrl@kvack.org
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, stable@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
 
-Subject: [merged] aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch removed from -mm tree
-To: bcrl@kvack.org,jwboyer@redhat.com,koverstreet@google.com,zab@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch removed from -mm tree
+To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@vger.kernel.org,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:37:25 -0700
+Date: Tue, 28 May 2013 12:37:26 -0700
 
 
 The patch titled
-     Subject: aio: fix kioctx not being freed after cancellation at exit time
+     Subject: ocfs2: goto out_unlock if ocfs2_get_clusters_nocache() failed in ocfs2_fiemap()
 has been removed from the -mm tree.  Its filename was
-     aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time.patch
+     ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Benjamin LaHaise <bcrl@kvack.org>
-Subject: aio: fix kioctx not being freed after cancellation at exit time
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: goto out_unlock if ocfs2_get_clusters_nocache() failed in ocfs2_fiemap()
 
-The recent changes overhauling fs/aio.c introduced a bug that results in
-the kioctx not being freed when outstanding kiocbs are cancelled at
-exit_aio() time.  Specifically, a kiocb that is cancelled has its
-completion events discarded by batch_complete_aio(), which then fails to
-wake up the process stuck in free_ioctx().  Fix this by modifying the
-wait_event() condition in free_ioctx() appropriately.
+Last time we found there is lock/unlock bug in ocfs2_file_aio_write, and
+then we did a thorough search for all lock resources in ocfs2_inode_info,
+including rw, inode and open lockres and found this bug.  My kernel
+version is 3.0.13, and it is also in the lastest version 3.9.  In
+ocfs2_fiemap, once ocfs2_get_clusters_nocache failed, it should goto
+out_unlock instead of out, because we need release buffer head, up read
+alloc sem and unlock inode.
 
-This patch was tested with the cancel operation in the thread based code
-posted yesterday.
-
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: Zach Brown <zab@redhat.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/ocfs2/extent_map.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time fs/aio.c
---- a/fs/aio.c~aio-fix-kioctx-not-being-freed-after-cancellation-at-exit-time
-+++ a/fs/aio.c
-@@ -307,7 +307,9 @@ static void free_ioctx(struct kioctx *ct
- 	kunmap_atomic(ring);
+diff -puN fs/ocfs2/extent_map.c~ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap fs/ocfs2/extent_map.c
+--- a/fs/ocfs2/extent_map.c~ocfs2-goto-out_unlock-if-ocfs2_get_clusters_nocache-failed-in-ocfs2_fiemap
++++ a/fs/ocfs2/extent_map.c
+@@ -790,7 +790,7 @@ int ocfs2_fiemap(struct inode *inode, st
+ 						 &hole_size, &rec, &is_last);
+ 		if (ret) {
+ 			mlog_errno(ret);
+-			goto out;
++			goto out_unlock;
+ 		}
  
- 	while (atomic_read(&ctx->reqs_active) > 0) {
--		wait_event(ctx->wait, head != ctx->tail);
-+		wait_event(ctx->wait,
-+				head != ctx->tail ||
-+				atomic_read(&ctx->reqs_active) <= 0);
- 
- 		avail = (head <= ctx->tail ? ctx->tail : ctx->nr_events) - head;
- 
+ 		if (rec.e_blkno == 0ULL) {
 _
 
-Patches currently in -mm which might be from bcrl@kvack.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 
