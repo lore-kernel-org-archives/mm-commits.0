@@ -1,72 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfs-avoid-crash-in-hfs_bnode_create.patch removed from
- -mm tree
-Date: Tue, 28 May 2013 12:36:49 -0700
-Message-ID: <51a50751.9v9q6+Y7AI8mtEd5%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge.patch
+ removed from -mm tree
+Date: Tue, 28 May 2013 12:36:47 -0700
+Message-ID: <51a5074f.wWEf4n8SLSRo7WJw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60405 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755162Ab3E1Tgu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:36:50 -0400
+	with ESMTP id S1753856Ab3E1Tgs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:36:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, slava@dubeyko.com, jslaby@suse.cz, jeffm@suse.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, lxiang@redhat.com, hughd@google.com, heiko.carstens@de.ibm.com, hannes@cmpxchg.org
 
-Subject: [merged] hfs-avoid-crash-in-hfs_bnode_create.patch removed from -mm tree
-To: jeffm@suse.com,jslaby@suse.cz,slava@dubeyko.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge.patch removed from -mm tree
+To: hannes@cmpxchg.org,heiko.carstens@de.ibm.com,hughd@google.com,lxiang@redhat.com,mhocko@suse.cz,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:36:49 -0700
+Date: Tue, 28 May 2013 12:36:47 -0700
 
 
 The patch titled
-     Subject: hfs: avoid crash in hfs_bnode_create
+     Subject: mm: memcg: remove incorrect VM_BUG_ON for swap cache pages in uncharge
 has been removed from the -mm tree.  Its filename was
-     hfs-avoid-crash-in-hfs_bnode_create.patch
+     mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Mahoney <jeffm@suse.com>
-Subject: hfs: avoid crash in hfs_bnode_create
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: remove incorrect VM_BUG_ON for swap cache pages in uncharge
 
-Commit 634725a92938 ("hfs: cleanup HFS+ prints") removed the BUG_ON in
-hfs_bnode_create in hfsplus.  This patch removes it from the hfs version
-and avoids an fsfuzzer crash.
+0c59b89 ("mm: memcg: push down PageSwapCache check into uncharge entry
+functions") added a VM_BUG_ON() on PageSwapCache in the uncharge path
+after checking that page flag once, assuming that the state is stable in
+all paths, but this is not the case and the condition triggers in user
+environments.  An uncharge after the last page table reference to the page
+goes away can race with reclaim adding the page to swap cache.
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Acked-by: Jeff Mahoney <jeffm@suse.com>
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Swap cache pages are usually uncharged when they are freed after swapout,
+from a path that also handles swap usage accounting and memcg lifetime
+management.  However, since the last page table reference is gone and thus
+no references to the swap slot left, the swap slot will be freed shortly
+when reclaim attempts to write the page to disk.  The whole swap
+accounting is not even necessary.
+
+So while the race condition for which this VM_BUG_ON was added is real and
+actually existed all along, there are no negative effects.  Remove the
+VM_BUG_ON again.
+
+Reported-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Reported-by: Lingzhu Xiang <lxiang@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/bnode.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/hfs/bnode.c~hfs-avoid-crash-in-hfs_bnode_create fs/hfs/bnode.c
---- a/fs/hfs/bnode.c~hfs-avoid-crash-in-hfs_bnode_create
-+++ a/fs/hfs/bnode.c
-@@ -415,7 +415,11 @@ struct hfs_bnode *hfs_bnode_create(struc
- 	spin_lock(&tree->hash_lock);
- 	node = hfs_bnode_findhash(tree, num);
- 	spin_unlock(&tree->hash_lock);
--	BUG_ON(node);
-+	if (node) {
-+		pr_crit("new node %u already hashed?\n", num);
-+		WARN_ON(1);
-+		return node;
-+	}
- 	node = __hfs_bnode_create(tree, num);
- 	if (!node)
- 		return ERR_PTR(-ENOMEM);
+diff -puN mm/memcontrol.c~mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-remove-incorrect-vm_bug_on-for-swap-cache-pages-in-uncharge
++++ a/mm/memcontrol.c
+@@ -4108,8 +4108,6 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
+ 
+-	VM_BUG_ON(PageSwapCache(page));
+-
+ 	if (PageTransHuge(page)) {
+ 		nr_pages <<= compound_order(page);
+ 		VM_BUG_ON(!PageTransHuge(page));
+@@ -4205,6 +4203,18 @@ void mem_cgroup_uncharge_page(struct pag
+ 	if (page_mapped(page))
+ 		return;
+ 	VM_BUG_ON(page->mapping && !PageAnon(page));
++	/*
++	 * If the page is in swap cache, uncharge should be deferred
++	 * to the swap path, which also properly accounts swap usage
++	 * and handles memcg lifetime.
++	 *
++	 * Note that this check is not stable and reclaim may add the
++	 * page to swap cache at any time after this.  However, if the
++	 * page is not in swap cache by the time page->mapcount hits
++	 * 0, there won't be any page table references to the swap
++	 * slot, and reclaim will free it and not actually write the
++	 * page to disk.
++	 */
+ 	if (PageSwapCache(page))
+ 		return;
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_ANON, false);
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-linux-next.patch
-reiserfs-fix-deadlock-with-nfs-racing-on-create-lookup.patch
+mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
+mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
+mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
+mm-vmscan-flatten-kswapd-priority-loop.patch
+mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
+mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
+mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
+mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
+mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
+memcg-update-todo-list-in-documentation.patch
+mm-memmap_init_zone-performance-improvement.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
