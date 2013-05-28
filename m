@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch
+Subject: +
+ memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
  added to -mm tree
-Date: Tue, 28 May 2013 15:35:27 -0700
-Message-ID: <51a5312f.vZqzDvmi++UZKl5s%akpm@linux-foundation.org>
+Date: Tue, 28 May 2013 15:48:46 -0700
+Message-ID: <51a5344e.etqQcSNsYbWVYGlf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33420 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33654 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757097Ab3E1Wf2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:35:28 -0400
+	with ESMTP id S1756411Ab3E1Wsr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 18:48:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, joe.jin@oracle.com, jlbec@evilplan.org, xiaowei.hu@oracle.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, lizefan@huawei.com, khlebnikov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@parallels.com, bsingharora@gmail.com, avagin@openvz.org
 
-Subject: + ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch added to -mm tree
-To: xiaowei.hu@oracle.com,jlbec@evilplan.org,joe.jin@oracle.com,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com
+Subject: + memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch added to -mm tree
+To: avagin@openvz.org,bsingharora@gmail.com,glommer@parallels.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,khlebnikov@openvz.org,lizefan@huawei.com,mhocko@suse.cz,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 15:35:27 -0700
+Date: Tue, 28 May 2013 15:48:46 -0700
 
 
 The patch titled
-     Subject: ocfs2: ocfs2_prep_new_orphaned_file() should return ret
+     Subject: memcg: don't initialize kmem-cache destroying work for root caches
 has been added to the -mm tree.  Its filename is
-     ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch
+     memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +40,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
-Subject: ocfs2: ocfs2_prep_new_orphaned_file() should return ret
+From: Andrey Vagin <avagin@openvz.org>
+Subject: memcg: don't initialize kmem-cache destroying work for root caches
 
-If an error occurs, for example an EIO in __ocfs2_prepare_orphan_dir,
-ocfs2_prep_new_orphaned_file will release the inode_ac, then when the
-caller of ocfs2_prep_new_orphaned_file gets a 0 return, it will refer to a
-NULL ocfs2_alloc_context struct in the following functions.  A kernel
-panic happens.
+struct memcg_cache_params has a union.  Different parts of this union are
+used for root and non-root caches.  A part with destroying work is used
+only for non-root caches.
 
-Signed-off-by: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
-Reviewed-by: shencanquan <shencanquan@huawei.com>
-Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+[  115.096202] BUG: unable to handle kernel paging request at 0000000fffffffe0
+[  115.096785] IP: [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
+[  115.097024] PGD 7ace1067 PUD 0
+[  115.097024] Oops: 0000 [#4] SMP
+[  115.097024] Modules linked in: netlink_diag af_packet_diag udp_diag tcp_diag inet_diag unix_diag ip6table_filter ip6_tables i2c_piix4 virtio_net virtio_balloon microcode i2c_core pcspkr floppy
+[  115.097024] CPU: 0 PID: 1929 Comm: lt-vzctl Tainted: G      D      3.10.0-rc1+ #2
+[  115.097024] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[  115.097024] task: ffff88007b5aaee0 ti: ffff88007bf0c000 task.ti: ffff88007bf0c000
+[  115.097024] RIP: 0010<ffffffff8116b641>]  [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
+[  115.097024] RSP: 0018:ffff88007bf0de68  EFLAGS: 00010202
+[  115.097024] RAX: 0000000fffffffe0 RBX: 00007fff4014f200 RCX: 0000000000000300
+[  115.097024] RDX: 0000000000000005 RSI: 00000000000000d0 RDI: ffff88007d001300
+[  115.097024] RBP: ffff88007bf0dea8 R08: 00007f849c3141b7 R09: ffffffff8118e100
+[  115.097024] R10: 0000000000000001 R11: 0000000000000246 R12: 00000000000000d0
+[  115.097024] R13: 0000000fffffffe0 R14: ffff88007d001300 R15: 0000000000001000
+[  115.097024] FS:  00007f849cbb8b40(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+[  115.097024] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  115.097024] CR2: 0000000fffffffe0 CR3: 000000007bc38000 CR4: 00000000000006f0
+[  115.097024] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  115.097024] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[  115.097024] Stack:
+[  115.097024]  ffffffff8118e100 ffffffff81149ea1 0000000000000008 00007fff4014f200
+[  115.097024]  00007fff4014f200 0000000000000000 0000000000000000 0000000000001000
+[  115.097024]  ffff88007bf0dee8 ffffffff8118e100 ffff880037598e00 00007fff4014f200
+[  115.097024] Call Trace:
+[  115.097024]  [<ffffffff8118e100>] ? getname_flags.part.34+0x30/0x140
+[  115.097024]  [<ffffffff81149ea1>] ? vma_rb_erase+0x121/0x210
+[  115.097024]  [<ffffffff8118e100>] getname_flags.part.34+0x30/0x140
+[  115.097024]  [<ffffffff8118e248>] getname+0x38/0x60
+[  115.097024]  [<ffffffff81181d55>] do_sys_open+0xc5/0x1e0
+[  115.097024]  [<ffffffff81181e92>] SyS_open+0x22/0x30
+[  115.097024]  [<ffffffff8161cb82>] system_call_fastpath+0x16/0x1b
+[  115.097024] Code: f4 53 48 83 ec 18 8b 05 8e 53 b7 00 4c 8b 4d 08 21 f0 a8 10 74 0d 4c 89 4d c0 e8 1b 76 4a 00 4c 8b 4d c0 e9 92 00 00 00 4d 89 f5 <4d> 8b 45 00 65 4c 03 04 25 48 cd 00 00 49 8b 50 08 4d 8b 38 49
+[  115.097024] RIP  [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
+[  115.097024]  RSP <ffff88007bf0de68>
+[  115.097024] CR2: 0000000fffffffe0
+[  115.121352] ---[ end trace 16bb8e8408b97d0e ]---
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: <stable@vger.kernel.org>	[3.9.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret
-+++ a/fs/ocfs2/namei.c
-@@ -2216,7 +2216,7 @@ out:
+diff -puN mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches
++++ a/mm/memcontrol.c
+@@ -3141,8 +3141,6 @@ int memcg_update_cache_size(struct kmem_
+ 			return -ENOMEM;
+ 		}
  
- 	brelse(orphan_dir_bh);
+-		INIT_WORK(&s->memcg_params->destroy,
+-				kmem_cache_destroy_work_func);
+ 		s->memcg_params->is_root_cache = true;
  
--	return 0;
-+	return ret;
- }
- 
- int ocfs2_create_inode_in_orphan(struct inode *dir,
+ 		/*
 _
 
-Patches currently in -mm which might be from xiaowei.hu@oracle.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
-ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch
+memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
 
