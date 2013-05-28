@@ -1,72 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fbdev-fb_goldfish-should-depend-on-has_dma.patch removed from -mm tree
-Date: Tue, 28 May 2013 12:37:09 -0700
-Message-ID: <51a50765./tD5mp6vce8VaBlg%akpm@linux-foundation.org>
+Subject: [merged] auditfilterc-fix-kernel-doc-warnings.patch removed from
+ -mm tree
+Date: Tue, 28 May 2013 12:37:05 -0700
+Message-ID: <51a50761.kzLScbsGRjVgYZCZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60444 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755136Ab3E1ThK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:10 -0400
+	with ESMTP id S1754727Ab3E1ThG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 15:37:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, FlorianSchandinat@gmx.de, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, eparis@redhat.com, rdunlap@infradead.org
 
-Subject: [merged] fbdev-fb_goldfish-should-depend-on-has_dma.patch removed from -mm tree
-To: geert@linux-m68k.org,FlorianSchandinat@gmx.de,mm-commits@vger.kernel.org
+Subject: [merged] auditfilterc-fix-kernel-doc-warnings.patch removed from -mm tree
+To: rdunlap@infradead.org,eparis@redhat.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 12:37:09 -0700
+Date: Tue, 28 May 2013 12:37:05 -0700
 
 
 The patch titled
-     Subject: fbdev: FB_GOLDFISH should depend on HAS_DMA
+     Subject: auditfilter.c: fix kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     fbdev-fb_goldfish-should-depend-on-has_dma.patch
+     auditfilterc-fix-kernel-doc-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: fbdev: FB_GOLDFISH should depend on HAS_DMA
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: auditfilter.c: fix kernel-doc warnings
 
-If NO_DMA=y:
+Fix kernel-doc warnings in kernel/auditfilter.c:
 
-drivers/built-in.o: In function `goldfish_fb_remove':
-drivers/video/goldfishfb.c:301: undefined reference to `dma_free_coherent'
-drivers/built-in.o: In function `goldfish_fb_probe':
-drivers/video/goldfishfb.c:247: undefined reference to `dma_alloc_coherent'
-drivers/video/goldfishfb.c:280: undefined reference to `dma_free_coherent'
+Warning(kernel/auditfilter.c:1029): Excess function parameter 'loginuid' description in 'audit_receive_filter'
+Warning(kernel/auditfilter.c:1029): Excess function parameter 'sessionid' description in 'audit_receive_filter'
+Warning(kernel/auditfilter.c:1029): Excess function parameter 'sid' description in 'audit_receive_filter'
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/auditfilter.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/video/Kconfig~fbdev-fb_goldfish-should-depend-on-has_dma drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-fb_goldfish-should-depend-on-has_dma
-+++ a/drivers/video/Kconfig
-@@ -2199,7 +2199,7 @@ config FB_XILINX
- 
- config FB_GOLDFISH
- 	tristate "Goldfish Framebuffer"
--	depends on FB
-+	depends on FB && HAS_DMA
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
+diff -puN kernel/auditfilter.c~auditfilterc-fix-kernel-doc-warnings kernel/auditfilter.c
+--- a/kernel/auditfilter.c~auditfilterc-fix-kernel-doc-warnings
++++ a/kernel/auditfilter.c
+@@ -1021,9 +1021,6 @@ static void audit_log_rule_change(char *
+  * @seq: netlink audit message sequence (serial) number
+  * @data: payload data
+  * @datasz: size of payload data
+- * @loginuid: loginuid of sender
+- * @sessionid: sessionid for netlink audit message
+- * @sid: SE Linux Security ID of sender
+  */
+ int audit_receive_filter(int type, int pid, int seq, void *data, size_t datasz)
+ {
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-origin.patch
 linux-next.patch
-init-remove-permanent-string-buffer-from-do_one_initcall.patch
-drivers-rtc-rtc-msm6242c-remove-empty-function.patch
-lib-add-weak-clz-ctz-functions.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 
