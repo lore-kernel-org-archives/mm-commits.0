@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch added to
- -mm tree
-Date: Wed, 29 May 2013 12:27:50 -0700
-Message-ID: <51a656b6.dU0Wz/7PjIWHgxiv%akpm@linux-foundation.org>
+ drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch added to -mm tree
+Date: Wed, 29 May 2013 12:28:19 -0700
+Message-ID: <51a656d3.Rnodpl/vcTK/kZ3u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49809 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49811 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965341Ab3E2T1v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 15:27:51 -0400
+	with ESMTP id S965341Ab3E2T2U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 15:28:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dbasehore@chromium.org
+To: mm-commits@vger.kernel.org, dbasehore@chromium.org, akpm@linux-foundation.org
 
-Subject: + drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch added to -mm tree
-To: dbasehore@chromium.org
+Subject: + drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,dbasehore@chromium.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 12:27:50 -0700
+Date: Wed, 29 May 2013 12:28:19 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-cmos.c: fix accidentally enabling rtc channel
+     Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
+     drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Derek Basehore <dbasehore@chromium.org>
-Subject: drivers/rtc/rtc-cmos.c: fix accidentally enabling rtc channel
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
 
-During resume, we call hpet_rtc_timer_init after masking an irq bit in
-hpet.  This will cause the call to hpet_disable_rtc_channel to be undone
-if RTC_AIE is the only bit not masked.
+coding-style tweak
 
-Signed-off-by: Derek Basehore <dbasehore@chromium.org>
+Cc: Derek Basehore <dbasehore@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-cmos.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-fix-accidentally-enabling-rtc-channel drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-fix-accidentally-enabling-rtc-channel
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
 +++ a/drivers/rtc/rtc-cmos.c
-@@ -854,6 +854,10 @@ static int cmos_resume(struct device *de
+@@ -854,9 +854,8 @@ static int cmos_resume(struct device *de
  		}
  
  		spin_lock_irq(&rtc_lock);
-+		if (device_may_wakeup(dev)) {
-+			hpet_rtc_timer_init();
-+		}
-+
+-		if (device_may_wakeup(dev)) {
++		if (device_may_wakeup(dev))
+ 			hpet_rtc_timer_init();
+-		}
+ 
  		do {
  			CMOS_WRITE(tmp, RTC_CONTROL);
- 			hpet_set_rtc_irq_bit(tmp & RTC_IRQMASK);
-@@ -869,7 +873,6 @@ static int cmos_resume(struct device *de
- 			rtc_update_irq(cmos->rtc, 1, mask);
- 			tmp &= ~RTC_AIE;
- 			hpet_mask_rtc_irq_bit(RTC_AIE);
--			hpet_rtc_timer_init();
- 		} while (mask & RTC_AIE);
- 		spin_unlock_irq(&rtc_lock);
- 	}
 _
 
-Patches currently in -mm which might be from dbasehore@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
