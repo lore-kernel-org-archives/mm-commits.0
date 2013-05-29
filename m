@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-at91rm9200-refactor-interrupt-register-handling.patch added to -mm tree
-Date: Wed, 29 May 2013 13:34:01 -0700
-Message-ID: <51a66639./Q+mCnQLwrmuCwps%akpm@linux-foundation.org>
+Subject: + rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch added to -mm
+ tree
+Date: Wed, 29 May 2013 13:34:03 -0700
+Message-ID: <51a6663b.WjxupvlkGwLFe16j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50269 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966917Ab3E2UeC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:34:02 -0400
+	with ESMTP id S966925Ab3E2UeE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:34:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, ludovic.desroches@atmel.com, dgilbert@interlog.com, Robert.Nelson@digikey.com, jhovold@gmail.com
 
-Subject: + rtc-at91rm9200-refactor-interrupt-register-handling.patch added to -mm tree
+Subject: + rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch added to -mm tree
 To: jhovold@gmail.com,Robert.Nelson@digikey.com,dgilbert@interlog.com,ludovic.desroches@atmel.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:34:01 -0700
+Date: Wed, 29 May 2013 13:34:03 -0700
 
 
 The patch titled
-     Subject: rtc-at91rm9200: refactor interrupt-register handling
+     Subject: rtc-at91rm9200: use shadow IMR on at91sam9x5
 has been added to the -mm tree.  Its filename is
-     rtc-at91rm9200-refactor-interrupt-register-handling.patch
+     rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johan Hovold <jhovold@gmail.com>
-Subject: rtc-at91rm9200: refactor interrupt-register handling
+Subject: rtc-at91rm9200: use shadow IMR on at91sam9x5
 
-Add accessors for the interrupt register.
-
-This will allow us to easily add a shadow interrupt-mask register to
-use on SoCs where the interrupt-mask register cannot be used.
+Add support for the at91sam9x5-family which must use the shadow interrupt
+mask due to a hardware issue (causing RTC_IMR to always be zero).
 
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
@@ -55,146 +54,58 @@ Cc: Robert Nelson <Robert.Nelson@digikey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   43 ++++++++++++++++++++++-----------
- 1 file changed, 29 insertions(+), 14 deletions(-)
+ Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt |    2 +-
+ arch/arm/boot/dts/at91sam9x5.dtsi                              |    2 +-
+ drivers/rtc/rtc-at91rm9200.c                                   |    7 +++++++
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-refactor-interrupt-register-handling drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-refactor-interrupt-register-handling
+diff -puN Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5 Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
+--- a/Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5
++++ a/Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
+@@ -1,7 +1,7 @@
+ Atmel AT91RM9200 Real Time Clock
+ 
+ Required properties:
+-- compatible: should be: "atmel,at91rm9200-rtc"
++- compatible: should be: "atmel,at91rm9200-rtc" or "atmel,at91sam9x5-rtc"
+ - reg: physical base address of the controller and length of memory mapped
+   region.
+ - interrupts: rtc alarm/event interrupt
+diff -puN arch/arm/boot/dts/at91sam9x5.dtsi~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5 arch/arm/boot/dts/at91sam9x5.dtsi
+--- a/arch/arm/boot/dts/at91sam9x5.dtsi~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5
++++ a/arch/arm/boot/dts/at91sam9x5.dtsi
+@@ -646,7 +646,7 @@
+ 			};
+ 
+ 			rtc@fffffeb0 {
+-				compatible = "atmel,at91rm9200-rtc";
++				compatible = "atmel,at91sam9x5-rtc";
+ 				reg = <0xfffffeb0 0x40>;
+ 				interrupts = <1 IRQ_TYPE_LEVEL_HIGH 7>;
+ 				status = "disabled";
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5 drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5
 +++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -50,6 +50,21 @@ static unsigned int at91_alarm_year = AT
- static void __iomem *at91_rtc_regs;
- static int irq;
+@@ -308,12 +308,19 @@ static irqreturn_t at91_rtc_interrupt(in
+ static const struct at91_rtc_config at91rm9200_config = {
+ };
  
-+static void at91_rtc_write_ier(u32 mask)
-+{
-+	at91_rtc_write(AT91_RTC_IER, mask);
-+}
++static const struct at91_rtc_config at91sam9x5_config = {
++	.use_shadow_imr	= true,
++};
 +
-+static void at91_rtc_write_idr(u32 mask)
-+{
-+	at91_rtc_write(AT91_RTC_IDR, mask);
-+}
-+
-+static u32 at91_rtc_read_imr(void)
-+{
-+	return at91_rtc_read(AT91_RTC_IMR);
-+}
-+
- /*
-  * Decode time/date into rtc_time structure
-  */
-@@ -113,9 +128,9 @@ static int at91_rtc_settime(struct devic
- 	cr = at91_rtc_read(AT91_RTC_CR);
- 	at91_rtc_write(AT91_RTC_CR, cr | AT91_RTC_UPDCAL | AT91_RTC_UPDTIM);
- 
--	at91_rtc_write(AT91_RTC_IER, AT91_RTC_ACKUPD);
-+	at91_rtc_write_ier(AT91_RTC_ACKUPD);
- 	wait_for_completion(&at91_rtc_updated);	/* wait for ACKUPD interrupt */
--	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD);
-+	at91_rtc_write_idr(AT91_RTC_ACKUPD);
- 
- 	at91_rtc_write(AT91_RTC_TIMR,
- 			  bin2bcd(tm->tm_sec) << 0
-@@ -147,7 +162,7 @@ static int at91_rtc_readalarm(struct dev
- 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
- 	tm->tm_year = at91_alarm_year - 1900;
- 
--	alrm->enabled = (at91_rtc_read(AT91_RTC_IMR) & AT91_RTC_ALARM)
-+	alrm->enabled = (at91_rtc_read_imr() & AT91_RTC_ALARM)
- 			? 1 : 0;
- 
- 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
-@@ -172,7 +187,7 @@ static int at91_rtc_setalarm(struct devi
- 	tm.tm_min = alrm->time.tm_min;
- 	tm.tm_sec = alrm->time.tm_sec;
- 
--	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
-+	at91_rtc_write_idr(AT91_RTC_ALARM);
- 	at91_rtc_write(AT91_RTC_TIMALR,
- 		  bin2bcd(tm.tm_sec) << 0
- 		| bin2bcd(tm.tm_min) << 8
-@@ -185,7 +200,7 @@ static int at91_rtc_setalarm(struct devi
- 
- 	if (alrm->enabled) {
- 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
--		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
-+		at91_rtc_write_ier(AT91_RTC_ALARM);
+ #ifdef CONFIG_OF
+ static const struct of_device_id at91_rtc_dt_ids[] = {
+ 	{
+ 		.compatible = "atmel,at91rm9200-rtc",
+ 		.data = &at91rm9200_config,
+ 	}, {
++		.compatible = "atmel,at91sam9x5-rtc",
++		.data = &at91sam9x5_config,
++	}, {
+ 		/* sentinel */
  	}
- 
- 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
-@@ -201,9 +216,9 @@ static int at91_rtc_alarm_irq_enable(str
- 
- 	if (enabled) {
- 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
--		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
-+		at91_rtc_write_ier(AT91_RTC_ALARM);
- 	} else
--		at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
-+		at91_rtc_write_idr(AT91_RTC_ALARM);
- 
- 	return 0;
- }
-@@ -212,7 +227,7 @@ static int at91_rtc_alarm_irq_enable(str
-  */
- static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
- {
--	unsigned long imr = at91_rtc_read(AT91_RTC_IMR);
-+	unsigned long imr = at91_rtc_read_imr();
- 
- 	seq_printf(seq, "update_IRQ\t: %s\n",
- 			(imr & AT91_RTC_ACKUPD) ? "yes" : "no");
-@@ -232,7 +247,7 @@ static irqreturn_t at91_rtc_interrupt(in
- 	unsigned int rtsr;
- 	unsigned long events = 0;
- 
--	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_read(AT91_RTC_IMR);
-+	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_read_imr();
- 	if (rtsr) {		/* this interrupt is shared!  Is it ours? */
- 		if (rtsr & AT91_RTC_ALARM)
- 			events |= (RTC_AF | RTC_IRQF);
-@@ -327,7 +342,7 @@ static int __init at91_rtc_probe(struct
- 	at91_rtc_write(AT91_RTC_MR, 0);		/* 24 hour mode */
- 
- 	/* Disable all interrupts */
--	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
-+	at91_rtc_write_idr(AT91_RTC_ACKUPD | AT91_RTC_ALARM |
- 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
- 					AT91_RTC_CALEV);
- 
-@@ -372,7 +387,7 @@ static int __exit at91_rtc_remove(struct
- 	struct rtc_device *rtc = platform_get_drvdata(pdev);
- 
- 	/* Disable all interrupts */
--	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
-+	at91_rtc_write_idr(AT91_RTC_ACKUPD | AT91_RTC_ALARM |
- 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
- 					AT91_RTC_CALEV);
- 	free_irq(irq, pdev);
-@@ -394,13 +409,13 @@ static int at91_rtc_suspend(struct devic
- 	/* this IRQ is shared with DBGU and other hardware which isn't
- 	 * necessarily doing PM like we are...
- 	 */
--	at91_rtc_imr = at91_rtc_read(AT91_RTC_IMR)
-+	at91_rtc_imr = at91_rtc_read_imr()
- 			& (AT91_RTC_ALARM|AT91_RTC_SECEV);
- 	if (at91_rtc_imr) {
- 		if (device_may_wakeup(dev))
- 			enable_irq_wake(irq);
- 		else
--			at91_rtc_write(AT91_RTC_IDR, at91_rtc_imr);
-+			at91_rtc_write_idr(at91_rtc_imr);
- 	}
- 	return 0;
- }
-@@ -411,7 +426,7 @@ static int at91_rtc_resume(struct device
- 		if (device_may_wakeup(dev))
- 			disable_irq_wake(irq);
- 		else
--			at91_rtc_write(AT91_RTC_IER, at91_rtc_imr);
-+			at91_rtc_write_ier(at91_rtc_imr);
- 	}
- 	return 0;
- }
+ };
 _
 
 Patches currently in -mm which might be from jhovold@gmail.com are
