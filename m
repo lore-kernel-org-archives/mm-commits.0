@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-rx4581c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-m41t94c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:53 -0700
-Message-ID: <51a66325.mxyMqjOjErGSfgaK%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:41 -0700
+Message-ID: <51a66319.5hMK4JknByZeR6gn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966886Ab3E2UUy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:54 -0400
+	with ESMTP id S966797Ab3E2UUm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, torbenh@linutronix.de, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, Kim.Heino@bluegiga.com, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-rx4581c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,torbenh@linutronix.de
+Subject: + drivers-rtc-rtc-m41t94c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,Kim.Heino@bluegiga.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:53 -0700
+Date: Wed, 29 May 2013 13:20:41 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rx4581.c: remove empty function
+     Subject: drivers/rtc/rtc-m41t94.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-rx4581c-remove-empty-function.patch
+     drivers-rtc-rtc-m41t94c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-rx4581.c: remove empty function
+Subject: drivers/rtc/rtc-m41t94.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Torben Hohn <torbenh@linutronix.de>
+Cc: Kim B. Heino <Kim.Heino@bluegiga.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx4581.c |    6 ------
+ drivers/rtc/rtc-m41t94.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-rx4581.c~drivers-rtc-rtc-rx4581c-remove-empty-function drivers/rtc/rtc-rx4581.c
---- a/drivers/rtc/rtc-rx4581.c~drivers-rtc-rtc-rx4581c-remove-empty-function
-+++ a/drivers/rtc/rtc-rx4581.c
-@@ -282,11 +282,6 @@ static int rx4581_probe(struct spi_devic
+diff -puN drivers/rtc/rtc-m41t94.c~drivers-rtc-rtc-m41t94c-remove-empty-function drivers/rtc/rtc-m41t94.c
+--- a/drivers/rtc/rtc-m41t94.c~drivers-rtc-rtc-m41t94c-remove-empty-function
++++ a/drivers/rtc/rtc-m41t94.c
+@@ -134,18 +134,12 @@ static int m41t94_probe(struct spi_devic
  	return 0;
  }
  
--static int rx4581_remove(struct spi_device *spi)
+-static int m41t94_remove(struct spi_device *spi)
 -{
 -	return 0;
 -}
 -
- static const struct spi_device_id rx4581_id[] = {
- 	{ "rx4581", 0 },
- 	{ }
-@@ -299,7 +294,6 @@ static struct spi_driver rx4581_driver =
+ static struct spi_driver m41t94_driver = {
+ 	.driver = {
+ 		.name	= "rtc-m41t94",
  		.owner	= THIS_MODULE,
  	},
- 	.probe	= rx4581_probe,
--	.remove = rx4581_remove,
- 	.id_table = rx4581_id,
+ 	.probe	= m41t94_probe,
+-	.remove = m41t94_remove,
  };
  
+ module_spi_driver(m41t94_driver);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
