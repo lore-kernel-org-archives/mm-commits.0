@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max77686c-remove-empty-function.patch added to
- -mm tree
-Date: Wed, 29 May 2013 13:20:45 -0700
-Message-ID: <51a6631d.gDqaEk1DRmB7VZAt%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-sun4vc-remove-empty-function.patch added to -mm tree
+Date: Wed, 29 May 2013 13:20:58 -0700
+Message-ID: <51a6632a.pqJX2gf7S6ptfrCg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50099 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966868Ab3E2UUq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:46 -0400
+	with ESMTP id S966862Ab3E2UVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:21:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, woong.byun@samsung.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-max77686c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,woong.byun@samsung.com
+Subject: + drivers-rtc-rtc-sun4vc-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:45 -0700
+Date: Wed, 29 May 2013 13:20:58 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max77686.c: remove empty function
+     Subject: drivers/rtc/rtc-sun4v.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max77686c-remove-empty-function.patch
+     drivers-rtc-rtc-sun4vc-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max77686.c: remove empty function
+Subject: drivers/rtc/rtc-sun4v.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Chiwoong Byun <woong.byun@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max77686.c |    6 ------
+ drivers/rtc/rtc-sun4v.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-remove-empty-function drivers/rtc/rtc-max77686.c
---- a/drivers/rtc/rtc-max77686.c~drivers-rtc-rtc-max77686c-remove-empty-function
-+++ a/drivers/rtc/rtc-max77686.c
-@@ -567,11 +567,6 @@ err_rtc:
- 	return ret;
+diff -puN drivers/rtc/rtc-sun4v.c~drivers-rtc-rtc-sun4vc-remove-empty-function drivers/rtc/rtc-sun4v.c
+--- a/drivers/rtc/rtc-sun4v.c~drivers-rtc-rtc-sun4vc-remove-empty-function
++++ a/drivers/rtc/rtc-sun4v.c
+@@ -92,17 +92,11 @@ static int __init sun4v_rtc_probe(struct
+ 	return 0;
  }
  
--static int max77686_rtc_remove(struct platform_device *pdev)
+-static int __exit sun4v_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static void max77686_rtc_shutdown(struct platform_device *pdev)
- {
- #ifdef MAX77686_RTC_WTSR_SMPL
-@@ -610,7 +605,6 @@ static struct platform_driver max77686_r
+ static struct platform_driver sun4v_rtc_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-sun4v",
  		.owner	= THIS_MODULE,
  	},
- 	.probe		= max77686_rtc_probe,
--	.remove		= max77686_rtc_remove,
- 	.shutdown	= max77686_rtc_shutdown,
- 	.id_table	= rtc_id,
+-	.remove		= __exit_p(sun4v_rtc_remove),
  };
+ 
+ module_platform_driver_probe(sun4v_rtc_driver, sun4v_rtc_probe);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
