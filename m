@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-m48t35c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-max8997c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:39 -0700
-Message-ID: <51a66317.2ok8ihgRt1+r9OHa%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:46 -0700
+Message-ID: <51a6631e.gtdd3Kk4B7BwEboE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50081 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50104 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966780Ab3E2UUk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:40 -0400
+	with ESMTP id S966872Ab3E2UUr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, ms925.kim@samsung.com, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-m48t35c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,tsbogend@alpha.franken.de
+Subject: + drivers-rtc-rtc-max8997c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,ms925.kim@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:39 -0700
+Date: Wed, 29 May 2013 13:20:46 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m48t35.c: remove empty function
+     Subject: drivers/rtc/rtc-max8997.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-m48t35c-remove-empty-function.patch
+     drivers-rtc-rtc-max8997c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-m48t35.c: remove empty function
+Subject: drivers/rtc/rtc-max8997.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: <ms925.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t35.c |    6 ------
+ drivers/rtc/rtc-max8997.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-remove-empty-function drivers/rtc/rtc-m48t35.c
---- a/drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-remove-empty-function
-+++ a/drivers/rtc/rtc-m48t35.c
-@@ -180,18 +180,12 @@ static int m48t35_probe(struct platform_
- 	return 0;
+diff -puN drivers/rtc/rtc-max8997.c~drivers-rtc-rtc-max8997c-remove-empty-function drivers/rtc/rtc-max8997.c
+--- a/drivers/rtc/rtc-max8997.c~drivers-rtc-rtc-max8997c-remove-empty-function
++++ a/drivers/rtc/rtc-max8997.c
+@@ -507,11 +507,6 @@ err_out:
+ 	return ret;
  }
  
--static int m48t35_remove(struct platform_device *pdev)
+-static int max8997_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static struct platform_driver m48t35_platform_driver = {
- 	.driver		= {
- 		.name	= "rtc-m48t35",
+ static void max8997_rtc_shutdown(struct platform_device *pdev)
+ {
+ 	struct max8997_rtc_info *info = platform_get_drvdata(pdev);
+@@ -531,7 +526,6 @@ static struct platform_driver max8997_rt
  		.owner	= THIS_MODULE,
  	},
- 	.probe		= m48t35_probe,
--	.remove		= m48t35_remove,
+ 	.probe		= max8997_rtc_probe,
+-	.remove		= max8997_rtc_remove,
+ 	.shutdown	= max8997_rtc_shutdown,
+ 	.id_table	= rtc_id,
  };
- 
- module_platform_driver(m48t35_platform_driver);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
