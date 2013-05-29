@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rc5t583-use-platform_getset_drvdata.patch added to -mm
- tree
-Date: Wed, 29 May 2013 13:07:32 -0700
-Message-ID: <51a66004.4Yh5UQJ8xtrUmVE5%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-bq32kc-remove-empty-function.patch added to -mm tree
+Date: Wed, 29 May 2013 13:20:28 -0700
+Message-ID: <51a6630c.SgrPBxGrvwuIoh0r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50053 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965216Ab3E2UHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:07:33 -0400
+	with ESMTP id S965519Ab3E2UU3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + rtc-rtc-rc5t583-use-platform_getset_drvdata.patch added to -mm tree
-To: jg1.han@samsung.com
+Subject: + drivers-rtc-rtc-bq32kc-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:07:32 -0700
+Date: Wed, 29 May 2013 13:20:28 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-rc5t583: use platform_{get,set}_drvdata()
+     Subject: drivers/rtc/rtc-bq32k.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rc5t583-use-platform_getset_drvdata.patch
+     drivers-rtc-rtc-bq32kc-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +38,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rc5t583: use platform_{get,set}_drvdata()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-bq32k.c: remove empty function
 
-Use the wrapper functions for getting and setting the driver data using
-platform_device instead of using dev_{get,set}_drvdata() with &pdev->dev,
-so we can directly pass a struct platform_device.
+After the switch to devm_* functions and the removal of
+rtc_device_unregister(), the 'remove' function does not do anything.
+Delete it.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rc5t583.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-bq32k.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-use-platform_getset_drvdata drivers/rtc/rtc-rc5t583.c
---- a/drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-use-platform_getset_drvdata
-+++ a/drivers/rtc/rtc-rc5t583.c
-@@ -273,7 +273,7 @@ static int rc5t583_rtc_probe(struct plat
-  */
- static int rc5t583_rtc_remove(struct platform_device *pdev)
- {
--	struct rc5t583_rtc *rc5t583_rtc = dev_get_drvdata(&pdev->dev);
-+	struct rc5t583_rtc *rc5t583_rtc = platform_get_drvdata(pdev);
- 
- 	rc5t583_rtc_alarm_irq_enable(&rc5t583_rtc->rtc->dev, 0);
+diff -puN drivers/rtc/rtc-bq32k.c~drivers-rtc-rtc-bq32kc-remove-empty-function drivers/rtc/rtc-bq32k.c
+--- a/drivers/rtc/rtc-bq32k.c~drivers-rtc-rtc-bq32kc-remove-empty-function
++++ a/drivers/rtc/rtc-bq32k.c
+@@ -163,11 +163,6 @@ static int bq32k_probe(struct i2c_client
  	return 0;
+ }
+ 
+-static int bq32k_remove(struct i2c_client *client)
+-{
+-	return 0;
+-}
+-
+ static const struct i2c_device_id bq32k_id[] = {
+ 	{ "bq32000", 0 },
+ 	{ }
+@@ -180,7 +175,6 @@ static struct i2c_driver bq32k_driver =
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= bq32k_probe,
+-	.remove		= bq32k_remove,
+ 	.id_table	= bq32k_id,
+ };
+ 
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
+origin.patch
 linux-next.patch
-rtc-tps6586x-device-wakeup-flags-correction.patch
-backlight-atmel-pwm-bl-remove-unnecessary-platform_set_drvdata.patch
-backlight-ep93xx-remove-unnecessary-platform_set_drvdata.patch
-backlight-lp8788-remove-unnecessary-platform_set_drvdata.patch
-backlight-pcf50633-remove-unnecessary-platform_set_drvdata.patch
-backlight-add-devm_backlight_device_registerunregister.patch
-lcd-add-devm_lcd_device_registerunregister.patch
-maintainers-add-backlight-subsystem-co-maintainer.patch
-rtc-rtc-88pm80x-remove-unnecessary-platform_set_drvdata.patch
+video-smscufx-use-null-instead-of-0.patch
+video-udlfb-use-null-instead-of-0.patch
+video-udlfb-make-local-symbol-static.patch
+video-imxfb-make-local-symbols-static.patch
 drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
 drivers-rtc-interfacec-fix-checkpatch-errors.patch
 drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
@@ -105,59 +111,52 @@ drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
 drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
 drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
 drivers-rtc-rtc-x1205c-fix-checkpatch-issues.patch
-rtc-rtc-88pm860x-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ab3100-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ab8500-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-at32ap700x-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-at91rm9200-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-at91sam9-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-au1xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-bfin-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-bq4802-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-coh901331-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-da9052-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-da9055-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-davinci-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-dm355evm-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ds1302-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ep93xx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-jz4740-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-lp8788-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-lpc32xx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-ls1x-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-m48t59-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-max8925-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-max8998-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-mc13xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-msm6242-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-mxc-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-nuc900-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-pcap-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-pm8xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-s3c-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-sa1100-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-sh-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-spear-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-stmp3xxx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-twl-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-vr41xx-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-vt8500-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-m48t86-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-puv3-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-rp5c01-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-tile-remove-unnecessary-platform_set_drvdata.patch
-rtc-rtc-hid-sensor-time-allow-full-years-16bit-in-hid-reports.patch
-rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes.patch
-rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot.patch
-rtc-rtc-hid-sensor-time-add-support-for-milliseconds.patch
-rtc-rtc-ds1307-use-devm_-functions.patch
-rtc-rtc-jz4740-use-devm_-functions.patch
-rtc-rtc-mpc5121-use-devm_-functions.patch
-rtc-rtc-m48t59-use-devm_-functions.patch
-rtc-rtc-pm8xxx-use-devm_-functions.patch
-rtc-rtc-pxa-use-devm_-functions.patch
-rtc-rtc-rx8025-use-devm_-functions.patch
-rtc-rtc-sh-use-devm_-functions.patch
-rtc-rtc-coh901331-use-platform_getset_drvdata.patch
-rtc-rtc-rc5t583-use-platform_getset_drvdata.patch
+drivers-rtc-rtc-m48t86c-remove-empty-function.patch
+drivers-rtc-rtc-tilec-remove-empty-function.patch
+drivers-rtc-rtc-nuc900c-remove-empty-function.patch
+drivers-rtc-rtc-msm6242c-remove-empty-function.patch
+drivers-rtc-rtc-max8998c-remove-empty-function.patch
+drivers-rtc-rtc-max8925c-remove-empty-function.patch
+drivers-rtc-rtc-ls1xc-remove-empty-function.patch
+drivers-rtc-rtc-lp8788c-remove-empty-function.patch
+drivers-rtc-rtc-ds1302c-remove-empty-function.patch
+drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
+drivers-rtc-rtc-da9055c-remove-empty-function.patch
+drivers-rtc-rtc-da9052c-remove-empty-function.patch
+drivers-rtc-rtc-bq4802c-remove-empty-function.patch
+drivers-rtc-rtc-au1xxxc-remove-empty-function.patch
+drivers-rtc-rtc-ab3100c-remove-empty-function.patch
+drivers-rtc-rtc-bq32kc-remove-empty-function.patch
+drivers-rtc-rtc-ds1216c-remove-empty-function.patch
+drivers-rtc-rtc-ds1286c-remove-empty-function.patch
+drivers-rtc-rtc-ds1672c-remove-empty-function.patch
+drivers-rtc-rtc-ds3234c-remove-empty-function.patch
+drivers-rtc-rtc-ds1390c-remove-empty-function.patch
+drivers-rtc-rtc-efic-remove-empty-function.patch
+drivers-rtc-rtc-em3027c-remove-empty-function.patch
+drivers-rtc-rtc-fm3130c-remove-empty-function.patch
+drivers-rtc-rtc-isl12022c-remove-empty-function.patch
+drivers-rtc-rtc-m41t93c-remove-empty-function.patch
+drivers-rtc-rtc-m48t35c-remove-empty-function.patch
+drivers-rtc-rtc-genericc-remove-empty-function.patch
+drivers-rtc-rtc-m41t94c-remove-empty-function.patch
+drivers-rtc-rtc-max6902c-remove-empty-function.patch
+drivers-rtc-rtc-max6900c-remove-empty-function.patch
+drivers-rtc-rtc-max8907c-remove-empty-function.patch
+drivers-rtc-rtc-max77686c-remove-empty-function.patch
+drivers-rtc-rtc-max8997c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8523c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8563c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8583c-remove-empty-function.patch
+drivers-rtc-rtc-ps3c-remove-empty-function.patch
+drivers-rtc-rtc-rs5c313c-remove-empty-function.patch
+drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch
+drivers-rtc-rtc-rx4581c-remove-empty-function.patch
+drivers-rtc-rtc-rs5c348c-remove-empty-function.patch
+drivers-rtc-rtc-rx8581c-remove-empty-function.patch
+drivers-rtc-rtc-snvsc-remove-empty-function.patch
+drivers-rtc-rtc-starfirec-remove-empty-function.patch
+drivers-rtc-rtc-sun4vc-remove-empty-function.patch
+drivers-rtc-rtc-tps80031c-remove-empty-function.patch
+drivers-rtc-rtc-wm831xc-remove-empty-function.patch
 
