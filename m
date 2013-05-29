@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-pcf8523c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-rx4581c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:47 -0700
-Message-ID: <51a6631f.43H4i36X22ELIr6t%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:53 -0700
+Message-ID: <51a66325.mxyMqjOjErGSfgaK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966880Ab3E2UUt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:49 -0400
+	with ESMTP id S966886Ab3E2UUy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, thierry.reding@avionic-design.de, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, torbenh@linutronix.de, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-pcf8523c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,thierry.reding@avionic-design.de
+Subject: + drivers-rtc-rtc-rx4581c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,torbenh@linutronix.de
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:47 -0700
+Date: Wed, 29 May 2013 13:20:53 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8523.c: remove empty function
+     Subject: drivers/rtc/rtc-rx4581.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-pcf8523c-remove-empty-function.patch
+     drivers-rtc-rtc-rx4581c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-pcf8523.c: remove empty function
+Subject: drivers/rtc/rtc-rx4581.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Torben Hohn <torbenh@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8523.c |    6 ------
+ drivers/rtc/rtc-rx4581.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8523.c~drivers-rtc-rtc-pcf8523c-remove-empty-function drivers/rtc/rtc-pcf8523.c
---- a/drivers/rtc/rtc-pcf8523.c~drivers-rtc-rtc-pcf8523c-remove-empty-function
-+++ a/drivers/rtc/rtc-pcf8523.c
-@@ -317,11 +317,6 @@ static int pcf8523_probe(struct i2c_clie
+diff -puN drivers/rtc/rtc-rx4581.c~drivers-rtc-rtc-rx4581c-remove-empty-function drivers/rtc/rtc-rx4581.c
+--- a/drivers/rtc/rtc-rx4581.c~drivers-rtc-rtc-rx4581c-remove-empty-function
++++ a/drivers/rtc/rtc-rx4581.c
+@@ -282,11 +282,6 @@ static int rx4581_probe(struct spi_devic
  	return 0;
  }
  
--static int pcf8523_remove(struct i2c_client *client)
+-static int rx4581_remove(struct spi_device *spi)
 -{
 -	return 0;
 -}
 -
- static const struct i2c_device_id pcf8523_id[] = {
- 	{ "pcf8523", 0 },
+ static const struct spi_device_id rx4581_id[] = {
+ 	{ "rx4581", 0 },
  	{ }
-@@ -343,7 +338,6 @@ static struct i2c_driver pcf8523_driver
- 		.of_match_table = of_match_ptr(pcf8523_of_match),
+@@ -299,7 +294,6 @@ static struct spi_driver rx4581_driver =
+ 		.owner	= THIS_MODULE,
  	},
- 	.probe = pcf8523_probe,
--	.remove = pcf8523_remove,
- 	.id_table = pcf8523_id,
+ 	.probe	= rx4581_probe,
+-	.remove = rx4581_remove,
+ 	.id_table = rx4581_id,
  };
- module_i2c_driver(pcf8523_driver);
+ 
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
