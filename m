@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-em3027c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-m41t93c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:35 -0700
-Message-ID: <51a66313.fiUr8EyERqEojsBa%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:38 -0700
+Message-ID: <51a66316.wg2HeCIuwIx6XHH2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50072 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50084 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966780Ab3E2UUg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:36 -0400
+	with ESMTP id S966797Ab3E2UUk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mike@compulab.co.il, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, n.voss@weinmann.de, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-em3027c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,mike@compulab.co.il
+Subject: + drivers-rtc-rtc-m41t93c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,n.voss@weinmann.de
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:35 -0700
+Date: Wed, 29 May 2013 13:20:38 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-em3027.c: remove empty function
+     Subject: drivers/rtc/rtc-m41t93.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-em3027c-remove-empty-function.patch
+     drivers-rtc-rtc-m41t93c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-em3027.c: remove empty function
+Subject: drivers/rtc/rtc-m41t93.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Nikolaus Voss <n.voss@weinmann.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-em3027.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/rtc/rtc-m41t93.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-em3027.c~drivers-rtc-rtc-em3027c-remove-empty-function drivers/rtc/rtc-em3027.c
---- a/drivers/rtc/rtc-em3027.c~drivers-rtc-rtc-em3027c-remove-empty-function
-+++ a/drivers/rtc/rtc-em3027.c
-@@ -131,11 +131,6 @@ static int em3027_probe(struct i2c_clien
+diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-remove-empty-function drivers/rtc/rtc-m41t93.c
+--- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-remove-empty-function
++++ a/drivers/rtc/rtc-m41t93.c
+@@ -194,19 +194,12 @@ static int m41t93_probe(struct spi_devic
  	return 0;
  }
  
--static int em3027_remove(struct i2c_client *client)
+-
+-static int m41t93_remove(struct spi_device *spi)
 -{
 -	return 0;
 -}
 -
- static struct i2c_device_id em3027_id[] = {
- 	{ "em3027", 0 },
- 	{ }
-@@ -146,7 +141,6 @@ static struct i2c_driver em3027_driver =
- 		   .name = "rtc-em3027",
+ static struct spi_driver m41t93_driver = {
+ 	.driver = {
+ 		.name	= "rtc-m41t93",
+ 		.owner	= THIS_MODULE,
  	},
- 	.probe = &em3027_probe,
--	.remove = &em3027_remove,
- 	.id_table = em3027_id,
+ 	.probe	= m41t93_probe,
+-	.remove = m41t93_remove,
  };
  
+ module_spi_driver(m41t93_driver);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
