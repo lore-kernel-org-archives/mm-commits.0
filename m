@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-m41t93c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-genericc-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:38 -0700
-Message-ID: <51a66316.wg2HeCIuwIx6XHH2%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:40 -0700
+Message-ID: <51a66318.WpmK6iF77PwaNAp8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966797Ab3E2UUk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:40 -0400
+	with ESMTP id S966821Ab3E2UUl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n.voss@weinmann.de, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, kyle@mcmartin.ca, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-m41t93c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,n.voss@weinmann.de
+Subject: + drivers-rtc-rtc-genericc-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,kyle@mcmartin.ca
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:38 -0700
+Date: Wed, 29 May 2013 13:20:40 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t93.c: remove empty function
+     Subject: drivers/rtc/rtc-generic.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-m41t93c-remove-empty-function.patch
+     drivers-rtc-rtc-genericc-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-m41t93.c: remove empty function
+Subject: drivers/rtc/rtc-generic.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Nikolaus Voss <n.voss@weinmann.de>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t93.c |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/rtc/rtc-generic.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-remove-empty-function drivers/rtc/rtc-m41t93.c
---- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-remove-empty-function
-+++ a/drivers/rtc/rtc-m41t93.c
-@@ -194,19 +194,12 @@ static int m41t93_probe(struct spi_devic
+diff -puN drivers/rtc/rtc-generic.c~drivers-rtc-rtc-genericc-remove-empty-function drivers/rtc/rtc-generic.c
+--- a/drivers/rtc/rtc-generic.c~drivers-rtc-rtc-genericc-remove-empty-function
++++ a/drivers/rtc/rtc-generic.c
+@@ -48,17 +48,11 @@ static int __init generic_rtc_probe(stru
  	return 0;
  }
  
--
--static int m41t93_remove(struct spi_device *spi)
+-static int __exit generic_rtc_remove(struct platform_device *dev)
 -{
 -	return 0;
 -}
 -
- static struct spi_driver m41t93_driver = {
+ static struct platform_driver generic_rtc_driver = {
  	.driver = {
- 		.name	= "rtc-m41t93",
- 		.owner	= THIS_MODULE,
+ 		.name = "rtc-generic",
+ 		.owner = THIS_MODULE,
  	},
- 	.probe	= m41t93_probe,
--	.remove = m41t93_remove,
+-	.remove = __exit_p(generic_rtc_remove),
  };
  
- module_spi_driver(m41t93_driver);
+ module_platform_driver_probe(generic_rtc_driver, generic_rtc_probe);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
