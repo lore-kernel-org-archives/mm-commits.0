@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-bq32kc-remove-empty-function.patch added to -mm tree
-Date: Wed, 29 May 2013 13:20:28 -0700
-Message-ID: <51a6630c.SgrPBxGrvwuIoh0r%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-ds1286c-remove-empty-function.patch added to
+ -mm tree
+Date: Wed, 29 May 2013 13:20:30 -0700
+Message-ID: <51a6630e.ht6vuqqOE+bxaL1j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50058 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965519Ab3E2UU3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:29 -0400
+	with ESMTP id S965519Ab3E2UUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-bq32kc-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org
+Subject: + drivers-rtc-rtc-ds1286c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,tsbogend@alpha.franken.de
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:28 -0700
+Date: Wed, 29 May 2013 13:20:30 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-bq32k.c: remove empty function
+     Subject: drivers/rtc/rtc-ds1286.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-bq32kc-remove-empty-function.patch
+     drivers-rtc-rtc-ds1286c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-bq32k.c: remove empty function
+Subject: drivers/rtc/rtc-ds1286.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bq32k.c |    6 ------
+ drivers/rtc/rtc-ds1286.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-bq32k.c~drivers-rtc-rtc-bq32kc-remove-empty-function drivers/rtc/rtc-bq32k.c
---- a/drivers/rtc/rtc-bq32k.c~drivers-rtc-rtc-bq32kc-remove-empty-function
-+++ a/drivers/rtc/rtc-bq32k.c
-@@ -163,11 +163,6 @@ static int bq32k_probe(struct i2c_client
+diff -puN drivers/rtc/rtc-ds1286.c~drivers-rtc-rtc-ds1286c-remove-empty-function drivers/rtc/rtc-ds1286.c
+--- a/drivers/rtc/rtc-ds1286.c~drivers-rtc-rtc-ds1286c-remove-empty-function
++++ a/drivers/rtc/rtc-ds1286.c
+@@ -353,18 +353,12 @@ static int ds1286_probe(struct platform_
  	return 0;
  }
  
--static int bq32k_remove(struct i2c_client *client)
+-static int ds1286_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static const struct i2c_device_id bq32k_id[] = {
- 	{ "bq32000", 0 },
- 	{ }
-@@ -180,7 +175,6 @@ static struct i2c_driver bq32k_driver =
+ static struct platform_driver ds1286_platform_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-ds1286",
  		.owner	= THIS_MODULE,
  	},
- 	.probe		= bq32k_probe,
--	.remove		= bq32k_remove,
- 	.id_table	= bq32k_id,
+ 	.probe		= ds1286_probe,
+-	.remove		= ds1286_remove,
  };
  
+ module_platform_driver(ds1286_platform_driver);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
