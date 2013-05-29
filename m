@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
- added to -mm tree
-Date: Tue, 28 May 2013 16:27:05 -0700
-Message-ID: <51a53d49.A6GywwlHOMBuiWQq%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 29 May 2013 12:00:44 -0700
+Message-ID: <51a6505c.c5HeUBYakJl9CQ0P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34149 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759248Ab3E1X1G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 May 2013 19:27:06 -0400
+	with ESMTP id S1752657Ab3E2TAp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 15:00:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, avagin@openvz.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,avagin@openvz.org
+Subject: + linux-next-git-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 May 2013 16:27:05 -0700
+Date: Wed, 29 May 2013 12:00:44 -0700
 
 
 The patch titled
-     Subject: ptrace-add-ability-to-get-set-signal-blocked-mask-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ptrace-add-ability-to-get-set-signal-blocked-mask-fix
+Subject: linux-next-git-rejects
 
-be consistent with brace layout
-
-Cc: Andrey Vagin <avagin@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/exynos5250.dtsi |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask-fix kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask-fix
-+++ a/kernel/ptrace.c
-@@ -856,8 +856,7 @@ int ptrace_request(struct task_struct *c
+diff -puN arch/arm/boot/dts/exynos5250.dtsi~linux-next-git-rejects arch/arm/boot/dts/exynos5250.dtsi
+--- a/arch/arm/boot/dts/exynos5250.dtsi~linux-next-git-rejects
++++ a/arch/arm/boot/dts/exynos5250.dtsi
+@@ -527,11 +527,7 @@
+ 		clock-names = "usbhost";
+ 	};
  
- 		break;
- 
--	case PTRACE_SETSIGMASK:
--	{
-+	case PTRACE_SETSIGMASK: {
- 		sigset_t new_set;
- 
- 		if (addr != sizeof(sigset_t)) {
-@@ -989,8 +988,7 @@ int ptrace_request(struct task_struct *c
- 
- #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
- 	case PTRACE_GETREGSET:
--	case PTRACE_SETREGSET:
--	{
-+	case PTRACE_SETREGSET: {
- 		struct iovec kiov;
- 		struct iovec __user *uiov = datavp;
- 
+-<<<<<<< HEAD
+-	usbphy@12130000 {
+-=======
+ 	usb2_phy: usbphy@12130000 {
+->>>>>>> linux-next/akpm-base
+ 		compatible = "samsung,exynos5250-usb2phy";
+ 		reg = <0x12130000 0x100>;
+ 		clocks = <&clock 1>, <&clock 285>;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,4 +109,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+linux-next-git-rejects.patch
 
