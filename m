@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max6900c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-max6902c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:43 -0700
-Message-ID: <51a6631b.47IbEvNo0y/rWp1h%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:42 -0700
+Message-ID: <51a6631a.LXuFjfV69QcDPOWS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50094 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966862Ab3E2UUo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:44 -0400
+	with ESMTP id S966847Ab3E2UUn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dale@farnsworth.org, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-max6900c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,dale@farnsworth.org
+Subject: + drivers-rtc-rtc-max6902c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:43 -0700
+Date: Wed, 29 May 2013 13:20:42 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max6900.c: remove empty function
+     Subject: drivers/rtc/rtc-max6902.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max6900c-remove-empty-function.patch
+     drivers-rtc-rtc-max6902c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max6900.c: remove empty function
+Subject: drivers/rtc/rtc-max6902.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Dale Farnsworth <dale@farnsworth.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6900.c |    6 ------
+ drivers/rtc/rtc-max6902.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-max6900.c~drivers-rtc-rtc-max6900c-remove-empty-function drivers/rtc/rtc-max6900.c
---- a/drivers/rtc/rtc-max6900.c~drivers-rtc-rtc-max6900c-remove-empty-function
-+++ a/drivers/rtc/rtc-max6900.c
-@@ -212,11 +212,6 @@ static int max6900_rtc_set_time(struct d
- 	return max6900_i2c_set_time(to_i2c_client(dev), tm);
+diff -puN drivers/rtc/rtc-max6902.c~drivers-rtc-rtc-max6902c-remove-empty-function drivers/rtc/rtc-max6902.c
+--- a/drivers/rtc/rtc-max6902.c~drivers-rtc-rtc-max6902c-remove-empty-function
++++ a/drivers/rtc/rtc-max6902.c
+@@ -143,18 +143,12 @@ static int max6902_probe(struct spi_devi
+ 	return 0;
  }
  
--static int max6900_remove(struct i2c_client *client)
+-static int max6902_remove(struct spi_device *spi)
 -{
 -	return 0;
 -}
 -
- static const struct rtc_class_ops max6900_rtc_ops = {
- 	.read_time = max6900_rtc_read_time,
- 	.set_time = max6900_rtc_set_time,
-@@ -252,7 +247,6 @@ static struct i2c_driver max6900_driver
- 		   .name = "rtc-max6900",
- 		   },
- 	.probe = max6900_probe,
--	.remove = max6900_remove,
- 	.id_table = max6900_id,
+ static struct spi_driver max6902_driver = {
+ 	.driver = {
+ 		.name	= "rtc-max6902",
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= max6902_probe,
+-	.remove = max6902_remove,
  };
  
+ module_spi_driver(max6902_driver);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
