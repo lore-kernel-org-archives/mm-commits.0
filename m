@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-tps80031c-remove-empty-function.patch added to
- -mm tree
-Date: Wed, 29 May 2013 13:20:59 -0700
-Message-ID: <51a6632b.zHLQPS0frkTWasUB%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-snvsc-remove-empty-function.patch added to -mm
+ tree
+Date: Wed, 29 May 2013 13:20:56 -0700
+Message-ID: <51a66328.kfMYLb9zl/UG3Bh/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50128 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966785Ab3E2UVA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:21:00 -0400
+	with ESMTP id S966790Ab3E2UU5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ldewangan@nvidia.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-tps80031c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,ldewangan@nvidia.com
+Subject: + drivers-rtc-rtc-snvsc-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:59 -0700
+Date: Wed, 29 May 2013 13:20:56 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tps80031.c: remove empty function
+     Subject: drivers/rtc/rtc-snvs.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-tps80031c-remove-empty-function.patch
+     drivers-rtc-rtc-snvsc-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-tps80031.c: remove empty function
+Subject: drivers/rtc/rtc-snvs.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Laxman Dewangan <ldewangan@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps80031.c |    6 ------
+ drivers/rtc/rtc-snvs.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps80031.c~drivers-rtc-rtc-tps80031c-remove-empty-function drivers/rtc/rtc-tps80031.c
---- a/drivers/rtc/rtc-tps80031.c~drivers-rtc-rtc-tps80031c-remove-empty-function
-+++ a/drivers/rtc/rtc-tps80031.c
-@@ -298,11 +298,6 @@ static int tps80031_rtc_probe(struct pla
+diff -puN drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvsc-remove-empty-function drivers/rtc/rtc-snvs.c
+--- a/drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvsc-remove-empty-function
++++ a/drivers/rtc/rtc-snvs.c
+@@ -294,11 +294,6 @@ static int snvs_rtc_probe(struct platfor
  	return 0;
  }
  
--static int tps80031_rtc_remove(struct platform_device *pdev)
+-static int snvs_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
  #ifdef CONFIG_PM_SLEEP
- static int tps80031_rtc_suspend(struct device *dev)
+ static int snvs_rtc_suspend(struct device *dev)
  {
-@@ -333,7 +328,6 @@ static struct platform_driver tps80031_r
- 		.pm	= &tps80031_pm_ops,
+@@ -337,7 +332,6 @@ static struct platform_driver snvs_rtc_d
+ 		.of_match_table = of_match_ptr(snvs_dt_ids),
  	},
- 	.probe	= tps80031_rtc_probe,
--	.remove	= tps80031_rtc_remove,
+ 	.probe		= snvs_rtc_probe,
+-	.remove		= snvs_rtc_remove,
  };
+ module_platform_driver(snvs_rtc_driver);
  
- module_platform_driver(tps80031_rtc_driver);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
