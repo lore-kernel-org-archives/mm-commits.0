@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ab8540-add-second-resolution-to-rtc-driver.patch added to
- -mm tree
-Date: Wed, 29 May 2013 14:09:33 -0700
-Message-ID: <51a66e8d.vgLHOw7SdxAK0a9b%akpm@linux-foundation.org>
+Subject: + audit-wait_for_auditd-should-use-task_uninterruptible.patch
+ added to -mm tree
+Date: Wed, 29 May 2013 14:59:54 -0700
+Message-ID: <51a67a5a.BXRt/slwtui8iNeg%akpm__40468.7697337524$1369864806$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966985Ab3E2VJe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 17:09:34 -0400
+	with ESMTP id S935228Ab3E2V7z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 17:59:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sameo@linux.intel.com, linus.walleij@linaro.org, lee.jones@linaro.org, julien.delacou@stericsson.com, alexandre.torgue@st.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, streeter@redhat.com, stable@vger.kernel.org, eparis@redhat.com, oleg@redhat.com
 
-Subject: + rtc-ab8540-add-second-resolution-to-rtc-driver.patch added to -mm tree
-To: alexandre.torgue@st.com,julien.delacou@stericsson.com,lee.jones@linaro.org,linus.walleij@linaro.org,sameo@linux.intel.com
+Subject: + audit-wait_for_auditd-should-use-task_uninterruptible.patch added to -mm tree
+To: oleg@redhat.com,eparis@redhat.com,stable@vger.kernel.org,streeter@redhat.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 14:09:33 -0700
+Date: Wed, 29 May 2013 14:59:54 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ab8500.c: add second resolution to rtc driver
+     Subject: audit: wait_for_auditd() should use TASK_UNINTERRUPTIBLE
 has been added to the -mm tree.  Its filename is
-     rtc-ab8540-add-second-resolution-to-rtc-driver.patch
+     audit-wait_for_auditd-should-use-task_uninterruptible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,144 +39,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Torgue <alexandre.torgue@st.com>
-Subject: drivers/rtc/rtc-ab8500.c: add second resolution to rtc driver
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: audit: wait_for_auditd() should use TASK_UNINTERRUPTIBLE
 
-Android expects the RTC to have second resolution.  On ab8540 cut2 RTC
-block has a new register which allows setting seconds for wakeup alarms.
+audit_log_start() does wait_for_auditd() in a loop until
+audit_backlog_wait_time passes or audit_skb_queue has a room.
 
-Existing registers (minutes hi, mid and low) have seen their offsets
-changed. Here is the new mapping:
-  * AlarmSec     (A) 0x22
-  * AlarmMinLow  (M) from 0x8 to 0x23
-  * AlarmMinMid  (M) from 0x9 to 0x24
-  * AlarmMinHigh (M) from 0xA to 0x25
+If signal_pending() is true this becomes a busy-wait loop, schedule() in
+TASK_INTERRUPTIBLE won't block.
 
-Signed-off-by: Julien Delacou <julien.delacou@stericsson.com>
-Signed-off-by: Alexandre Torgue <alexandre.torgue@st.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+(akpm: that'll cause the system to lock up on a non-preemptible
+uniprocessor kernel)
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Guy Streeter <streeter@redhat.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |   63 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 62 insertions(+), 1 deletion(-)
+ kernel/audit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ab8500.c~rtc-ab8540-add-second-resolution-to-rtc-driver drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~rtc-ab8540-add-second-resolution-to-rtc-driver
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -35,6 +35,10 @@
- #define AB8500_RTC_FORCE_BKUP_REG	0x0D
- #define AB8500_RTC_CALIB_REG		0x0E
- #define AB8500_RTC_SWITCH_STAT_REG	0x0F
-+#define AB8540_RTC_ALRM_SEC		0x22
-+#define AB8540_RTC_ALRM_MIN_LOW_REG	0x23
-+#define AB8540_RTC_ALRM_MIN_MID_REG	0x24
-+#define AB8540_RTC_ALRM_MIN_HI_REG	0x25
- 
- /* RtcReadRequest bits */
- #define RTC_READ_REQUEST		0x01
-@@ -58,6 +62,11 @@ static const u8 ab8500_rtc_alarm_regs[]
- 	AB8500_RTC_ALRM_MIN_LOW_REG
- };
- 
-+static const u8 ab8540_rtc_alarm_regs[] = {
-+	AB8540_RTC_ALRM_MIN_HI_REG, AB8540_RTC_ALRM_MIN_MID_REG,
-+	AB8540_RTC_ALRM_MIN_LOW_REG, AB8540_RTC_ALRM_SEC
-+};
-+
- /* Calculate the seconds from 1970 to 01-01-2000 00:00:00 */
- static unsigned long get_elapsed_seconds(int year)
+diff -puN kernel/audit.c~audit-wait_for_auditd-should-use-task_uninterruptible kernel/audit.c
+--- a/kernel/audit.c~audit-wait_for_auditd-should-use-task_uninterruptible
++++ a/kernel/audit.c
+@@ -1056,7 +1056,7 @@ static inline void audit_get_stamp(struc
+ static void wait_for_auditd(unsigned long sleep_time)
  {
-@@ -267,6 +276,42 @@ static int ab8500_rtc_set_alarm(struct d
- 	return ab8500_rtc_irq_enable(dev, alarm->enabled);
- }
+ 	DECLARE_WAITQUEUE(wait, current);
+-	set_current_state(TASK_INTERRUPTIBLE);
++	set_current_state(TASK_UNINTERRUPTIBLE);
+ 	add_wait_queue(&audit_backlog_wait, &wait);
  
-+static int ab8540_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+{
-+	int retval, i;
-+	unsigned char buf[ARRAY_SIZE(ab8540_rtc_alarm_regs)];
-+	unsigned long mins, secs = 0;
-+
-+	if (alarm->time.tm_year < (AB8500_RTC_EPOCH - 1900)) {
-+		dev_dbg(dev, "year should be equal to or greater than %d\n",
-+				AB8500_RTC_EPOCH);
-+		return -EINVAL;
-+	}
-+
-+	/* Get the number of seconds since 1970 */
-+	rtc_tm_to_time(&alarm->time, &secs);
-+
-+	/*
-+	 * Convert it to the number of seconds since 01-01-2000 00:00:00
-+	 */
-+	secs -= get_elapsed_seconds(AB8500_RTC_EPOCH);
-+	mins = secs / 60;
-+
-+	buf[3] = secs % 60;
-+	buf[2] = mins & 0xFF;
-+	buf[1] = (mins >> 8) & 0xFF;
-+	buf[0] = (mins >> 16) & 0xFF;
-+
-+	/* Set the alarm time */
-+	for (i = 0; i < ARRAY_SIZE(ab8540_rtc_alarm_regs); i++) {
-+		retval = abx500_set_register_interruptible(dev, AB8500_RTC,
-+			ab8540_rtc_alarm_regs[i], buf[i]);
-+		if (retval < 0)
-+			return retval;
-+	}
-+
-+	return ab8500_rtc_irq_enable(dev, alarm->enabled);
-+}
- 
- static int ab8500_rtc_set_calibration(struct device *dev, int calibration)
- {
-@@ -389,8 +434,22 @@ static const struct rtc_class_ops ab8500
- 	.alarm_irq_enable	= ab8500_rtc_irq_enable,
- };
- 
-+static const struct rtc_class_ops ab8540_rtc_ops = {
-+	.read_time		= ab8500_rtc_read_time,
-+	.set_time		= ab8500_rtc_set_time,
-+	.read_alarm		= ab8500_rtc_read_alarm,
-+	.set_alarm		= ab8540_rtc_set_alarm,
-+	.alarm_irq_enable	= ab8500_rtc_irq_enable,
-+};
-+
-+static struct platform_device_id ab85xx_rtc_ids[] = {
-+	{ "ab8500-rtc", (kernel_ulong_t)&ab8500_rtc_ops, },
-+	{ "ab8540-rtc", (kernel_ulong_t)&ab8540_rtc_ops, },
-+};
-+
- static int ab8500_rtc_probe(struct platform_device *pdev)
- {
-+	const struct platform_device_id *platid = platform_get_device_id(pdev);
- 	int err;
- 	struct rtc_device *rtc;
- 	u8 rtc_ctrl;
-@@ -423,7 +482,8 @@ static int ab8500_rtc_probe(struct platf
- 	device_init_wakeup(&pdev->dev, true);
- 
- 	rtc = devm_rtc_device_register(&pdev->dev, "ab8500-rtc",
--					&ab8500_rtc_ops, THIS_MODULE);
-+				(struct rtc_class_ops *)platid->driver_data,
-+				THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		dev_err(&pdev->dev, "Registration failed\n");
- 		err = PTR_ERR(rtc);
-@@ -461,6 +521,7 @@ static struct platform_driver ab8500_rtc
- 	},
- 	.probe	= ab8500_rtc_probe,
- 	.remove = ab8500_rtc_remove,
-+	.id_table = ab85xx_rtc_ids,
- };
- 
- module_platform_driver(ab8500_rtc_driver);
+ 	if (audit_backlog_limit &&
 _
 
-Patches currently in -mm which might be from alexandre.torgue@st.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mfd-ab8540-add-device-for-new-rtc-version-on-ab8540-cut2.patch
-rtc-ab8540-add-second-resolution-to-rtc-driver.patch
+audit-wait_for_auditd-should-use-task_uninterruptible.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
+x86-kill-tif_debug.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+usermodehelper-kill-the-sub_info-path-check.patch
+coredump-format_corename-can-leak-cn-corename.patch
+coredump-introduce-cn_vprintf.patch
+coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
+coredump-kill-cn_escape-introduce-cn_esc_printf.patch
+coredump-kill-call_count-add-core_name_size.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
+fs-execc-do_execve_common-use-current_user.patch
 
