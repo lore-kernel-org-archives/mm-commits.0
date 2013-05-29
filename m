@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + minix-bug-widening-a-binary-not-operation.patch added to -mm
- tree
-Date: Wed, 29 May 2013 15:28:31 -0700
-Message-ID: <51a6810f.UCp/bltPKelI0+0M%akpm@linux-foundation.org>
+Subject: + pktcdvd-silence-static-checker-warning.patch added to -mm tree
+Date: Wed, 29 May 2013 15:29:35 -0700
+Message-ID: <51a6814f.YJkuO8Q+IESydyrf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50871 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50950 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935390Ab3E2W2c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 18:28:32 -0400
+	with ESMTP id S935320Ab3E2W3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 18:29:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, jkosina@suse.cz, dan.carpenter@oracle.com
 
-Subject: + minix-bug-widening-a-binary-not-operation.patch added to -mm tree
-To: dan.carpenter@oracle.com,viro@zeniv.linux.org.uk
+Subject: + pktcdvd-silence-static-checker-warning.patch added to -mm tree
+To: dan.carpenter@oracle.com,jkosina@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 15:28:31 -0700
+Date: Wed, 29 May 2013 15:29:35 -0700
 
 
 The patch titled
-     Subject: minix: bug widening a binary "not" operation
+     Subject: pktcdvd: silence static checker warning
 has been added to the -mm tree.  Its filename is
-     minix-bug-widening-a-binary-not-operation.patch
+     pktcdvd-silence-static-checker-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +39,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: minix: bug widening a binary "not" operation
+Subject: pktcdvd: silence static checker warning
 
-"chunk_size" is an unsigned int and "pos" is an unsigned long.  The
-"& ~(chunk_size-1)" operation clears the high 32 bits unintentionally.
-
-The ALIGN() macro does the correct thing.
+Static checkers complain about widening the binary "not" operations here
+because sectors are u64 and "(pd)->settings.size" is unsigned int.  It
+unintentionally clears the high 32 bits of the sector.  This means that
+the driver won't work for devices with over 2TB of space.  Since this is a
+DVD drive, we're unlikely to reach that limit, but we may as well silence
+the warning.
 
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/pktcdvd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/minix/dir.c~minix-bug-widening-a-binary-not-operation fs/minix/dir.c
---- a/fs/minix/dir.c~minix-bug-widening-a-binary-not-operation
-+++ a/fs/minix/dir.c
-@@ -95,7 +95,7 @@ static int minix_readdir(struct file * f
- 	char *name;
- 	__u32 inumber;
+diff -puN drivers/block/pktcdvd.c~pktcdvd-silence-static-checker-warning drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-silence-static-checker-warning
++++ a/drivers/block/pktcdvd.c
+@@ -83,7 +83,8 @@
  
--	pos = (pos + chunk_size-1) & ~(chunk_size-1);
-+	pos = ALIGN(pos, chunk_size);
- 	if (pos >= inode->i_size)
- 		goto done;
+ #define MAX_SPEED 0xffff
  
+-#define ZONE(sector, pd) (((sector) + (pd)->offset) & ~((pd)->settings.size - 1))
++#define ZONE(sector, pd) (((sector) + (pd)->offset) & \
++			~(sector_t)((pd)->settings.size - 1))
+ 
+ static DEFINE_MUTEX(pktcdvd_mutex);
+ static struct pktcdvd_device *pkt_devs[MAX_WRITERS];
 _
 
 Patches currently in -mm which might be from dan.carpenter@oracle.com are
@@ -79,4 +81,5 @@ rbtree-remove-unneeded-include-fix.patch
 minix-bug-widening-a-binary-not-operation.patch
 documentation-codingstyle-allow-multiple-return-statements-per-function.patch
 mwave-fix-info-leak-in-mwave_ioctl.patch
+pktcdvd-silence-static-checker-warning.patch
 
