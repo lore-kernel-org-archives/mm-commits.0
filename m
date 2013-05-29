@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-rx8581c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:52 -0700
-Message-ID: <51a66324.fF3a19Ic+Wgz87yW%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:55 -0700
+Message-ID: <51a66327.qSNkss4jP2NV/5DO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966885Ab3E2UUx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:53 -0400
+	with ESMTP id S966776Ab3E2UU5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gregory.hermant@calao-systems.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, martyn.welch@ge.com, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,gregory.hermant@calao-systems.com
+Subject: + drivers-rtc-rtc-rx8581c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,martyn.welch@ge.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:52 -0700
+Date: Wed, 29 May 2013 13:20:55 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rv3029c2.c: remove empty function
+     Subject: drivers/rtc/rtc-rx8581.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch
+     drivers-rtc-rtc-rx8581c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-rv3029c2.c: remove empty function
+Subject: drivers/rtc/rtc-rx8581.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Gregory Hermant <gregory.hermant@calao-systems.com>
+Cc: Martyn Welch <martyn.welch@ge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rv3029c2.c |    6 ------
+ drivers/rtc/rtc-rx8581.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-rv3029c2.c~drivers-rtc-rtc-rv3029c2c-remove-empty-function drivers/rtc/rtc-rv3029c2.c
---- a/drivers/rtc/rtc-rv3029c2.c~drivers-rtc-rtc-rv3029c2c-remove-empty-function
-+++ a/drivers/rtc/rtc-rv3029c2.c
-@@ -412,17 +412,11 @@ static int rv3029c2_probe(struct i2c_cli
+diff -puN drivers/rtc/rtc-rx8581.c~drivers-rtc-rtc-rx8581c-remove-empty-function drivers/rtc/rtc-rx8581.c
+--- a/drivers/rtc/rtc-rx8581.c~drivers-rtc-rtc-rx8581c-remove-empty-function
++++ a/drivers/rtc/rtc-rx8581.c
+@@ -251,11 +251,6 @@ static int rx8581_probe(struct i2c_clien
  	return 0;
  }
  
--static int rv3029c2_remove(struct i2c_client *client)
+-static int rx8581_remove(struct i2c_client *client)
 -{
 -	return 0;
 -}
 -
- static struct i2c_driver rv3029c2_driver = {
- 	.driver = {
- 		.name = "rtc-rv3029c2",
+ static const struct i2c_device_id rx8581_id[] = {
+ 	{ "rx8581", 0 },
+ 	{ }
+@@ -268,7 +263,6 @@ static struct i2c_driver rx8581_driver =
+ 		.owner	= THIS_MODULE,
  	},
- 	.probe = rv3029c2_probe,
--	.remove = rv3029c2_remove,
- 	.id_table = rv3029c2_id,
+ 	.probe		= rx8581_probe,
+-	.remove		= rx8581_remove,
+ 	.id_table	= rx8581_id,
  };
  
 _
