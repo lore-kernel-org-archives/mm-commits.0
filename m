@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max8997c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-max8907c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:46 -0700
-Message-ID: <51a6631e.gtdd3Kk4B7BwEboE%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:44 -0700
+Message-ID: <51a6631c.OIUOJKSQ2YrkrHv8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50097 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966872Ab3E2UUr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:47 -0400
+	with ESMTP id S966866Ab3E2UUp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ms925.kim@samsung.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-max8997c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,ms925.kim@samsung.com
+Subject: + drivers-rtc-rtc-max8907c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:46 -0700
+Date: Wed, 29 May 2013 13:20:44 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max8997.c: remove empty function
+     Subject: drivers/rtc/rtc-max8907.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max8997c-remove-empty-function.patch
+     drivers-rtc-rtc-max8907c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-max8997.c: remove empty function
+Subject: drivers/rtc/rtc-max8907.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: <ms925.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max8997.c |    6 ------
+ drivers/rtc/rtc-max8907.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-max8997.c~drivers-rtc-rtc-max8997c-remove-empty-function drivers/rtc/rtc-max8997.c
---- a/drivers/rtc/rtc-max8997.c~drivers-rtc-rtc-max8997c-remove-empty-function
-+++ a/drivers/rtc/rtc-max8997.c
-@@ -507,11 +507,6 @@ err_out:
+diff -puN drivers/rtc/rtc-max8907.c~drivers-rtc-rtc-max8907c-remove-empty-function drivers/rtc/rtc-max8907.c
+--- a/drivers/rtc/rtc-max8907.c~drivers-rtc-rtc-max8907c-remove-empty-function
++++ a/drivers/rtc/rtc-max8907.c
+@@ -213,18 +213,12 @@ static int max8907_rtc_probe(struct plat
  	return ret;
  }
  
--static int max8997_rtc_remove(struct platform_device *pdev)
+-static int max8907_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static void max8997_rtc_shutdown(struct platform_device *pdev)
- {
- 	struct max8997_rtc_info *info = platform_get_drvdata(pdev);
-@@ -531,7 +526,6 @@ static struct platform_driver max8997_rt
- 		.owner	= THIS_MODULE,
+ static struct platform_driver max8907_rtc_driver = {
+ 	.driver = {
+ 		.name = "max8907-rtc",
+ 		.owner = THIS_MODULE,
  	},
- 	.probe		= max8997_rtc_probe,
--	.remove		= max8997_rtc_remove,
- 	.shutdown	= max8997_rtc_shutdown,
- 	.id_table	= rtc_id,
+ 	.probe = max8907_rtc_probe,
+-	.remove = max8907_rtc_remove,
  };
+ module_platform_driver(max8907_rtc_driver);
+ 
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
