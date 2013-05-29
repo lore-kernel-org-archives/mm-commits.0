@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1390c-remove-empty-function.patch added to
- -mm tree
-Date: Wed, 29 May 2013 13:20:33 -0700
-Message-ID: <51a66311.kZZwrBs5tW/l+xC6%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-efic-remove-empty-function.patch added to -mm
+ tree
+Date: Wed, 29 May 2013 13:20:34 -0700
+Message-ID: <51a66312.kyvuaOmnUfVgQm2b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50067 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966780Ab3E2UUe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:34 -0400
+	with ESMTP id S966780Ab3E2UUf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mpfj@mimc.co.uk, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, dannf@hp.com, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-ds1390c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,mpfj@mimc.co.uk
+Subject: + drivers-rtc-rtc-efic-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,dannf@hp.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:33 -0700
+Date: Wed, 29 May 2013 13:20:34 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1390.c: remove empty function
+     Subject: drivers/rtc/rtc-efi.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1390c-remove-empty-function.patch
+     drivers-rtc-rtc-efic-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ds1390.c: remove empty function
+Subject: drivers/rtc/rtc-efi.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Mark Jackson <mpfj@mimc.co.uk>
+Cc: dann frazier <dannf@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1390.c |    6 ------
+ drivers/rtc/rtc-efi.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1390.c~drivers-rtc-rtc-ds1390c-remove-empty-function drivers/rtc/rtc-ds1390.c
---- a/drivers/rtc/rtc-ds1390.c~drivers-rtc-rtc-ds1390c-remove-empty-function
-+++ a/drivers/rtc/rtc-ds1390.c
-@@ -154,18 +154,12 @@ static int ds1390_probe(struct spi_devic
- 	return res;
+diff -puN drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-remove-empty-function drivers/rtc/rtc-efi.c
+--- a/drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-remove-empty-function
++++ a/drivers/rtc/rtc-efi.c
+@@ -201,17 +201,11 @@ static int __init efi_rtc_probe(struct p
+ 	return 0;
  }
  
--static int ds1390_remove(struct spi_device *spi)
+-static int __exit efi_rtc_remove(struct platform_device *dev)
 -{
 -	return 0;
 -}
 -
- static struct spi_driver ds1390_driver = {
+ static struct platform_driver efi_rtc_driver = {
  	.driver = {
- 		.name	= "rtc-ds1390",
- 		.owner	= THIS_MODULE,
+ 		.name = "rtc-efi",
+ 		.owner = THIS_MODULE,
  	},
- 	.probe	= ds1390_probe,
--	.remove = ds1390_remove,
+-	.remove = __exit_p(efi_rtc_remove),
  };
  
- module_spi_driver(ds1390_driver);
+ module_platform_driver_probe(efi_rtc_driver, efi_rtc_probe);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
