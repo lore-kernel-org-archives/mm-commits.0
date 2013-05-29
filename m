@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ps3c-remove-empty-function.patch added to -mm
- tree
-Date: Wed, 29 May 2013 13:20:50 -0700
-Message-ID: <51a66322.Ti45c9j8JtNfqRp4%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-pcf8583c-remove-empty-function.patch added to
+ -mm tree
+Date: Wed, 29 May 2013 13:20:49 -0700
+Message-ID: <51a66321.MgtTmdJn6D7I+TV5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50110 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966884Ab3E2UUv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:51 -0400
+	with ESMTP id S966883Ab3E2UUu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, geoff@infradead.org, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-ps3c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,geoff@infradead.org
+Subject: + drivers-rtc-rtc-pcf8583c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:50 -0700
+Date: Wed, 29 May 2013 13:20:49 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ps3.c: remove empty function
+     Subject: drivers/rtc/rtc-pcf8583.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ps3c-remove-empty-function.patch
+     drivers-rtc-rtc-pcf8583c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ps3.c: remove empty function
+Subject: drivers/rtc/rtc-pcf8583.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Geoff Levand <geoff@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ps3.c |    6 ------
+ drivers/rtc/rtc-pcf8583.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ps3.c~drivers-rtc-rtc-ps3c-remove-empty-function drivers/rtc/rtc-ps3.c
---- a/drivers/rtc/rtc-ps3.c~drivers-rtc-rtc-ps3c-remove-empty-function
-+++ a/drivers/rtc/rtc-ps3.c
-@@ -71,17 +71,11 @@ static int __init ps3_rtc_probe(struct p
+diff -puN drivers/rtc/rtc-pcf8583.c~drivers-rtc-rtc-pcf8583c-remove-empty-function drivers/rtc/rtc-pcf8583.c
+--- a/drivers/rtc/rtc-pcf8583.c~drivers-rtc-rtc-pcf8583c-remove-empty-function
++++ a/drivers/rtc/rtc-pcf8583.c
+@@ -290,11 +290,6 @@ static int pcf8583_probe(struct i2c_clie
  	return 0;
  }
  
--static int __exit ps3_rtc_remove(struct platform_device *dev)
+-static int pcf8583_remove(struct i2c_client *client)
 -{
 -	return 0;
 -}
 -
- static struct platform_driver ps3_rtc_driver = {
- 	.driver = {
- 		.name = "rtc-ps3",
- 		.owner = THIS_MODULE,
+ static const struct i2c_device_id pcf8583_id[] = {
+ 	{ "pcf8583", 0 },
+ 	{ }
+@@ -307,7 +302,6 @@ static struct i2c_driver pcf8583_driver
+ 		.owner	= THIS_MODULE,
  	},
--	.remove = __exit_p(ps3_rtc_remove),
+ 	.probe		= pcf8583_probe,
+-	.remove		= pcf8583_remove,
+ 	.id_table	= pcf8583_id,
  };
  
- module_platform_driver_probe(ps3_rtc_driver, ps3_rtc_probe);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
