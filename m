@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch added to -mm tree
-Date: Wed, 29 May 2013 12:28:19 -0700
-Message-ID: <51a656d3.Rnodpl/vcTK/kZ3u%akpm@linux-foundation.org>
+ mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch added to -mm tree
+Date: Wed, 29 May 2013 12:48:22 -0700
+Message-ID: <51a65b86.PO8iDeHRMwmTZQLl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49811 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49863 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965341Ab3E2T2U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 15:28:20 -0400
+	with ESMTP id S1758817Ab3E2TsX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 15:48:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dbasehore@chromium.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mgorman@suse.de
 
-Subject: + drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,dbasehore@chromium.org
+Subject: + mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch added to -mm tree
+To: mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 12:28:19 -0700
+Date: Wed, 29 May 2013 12:48:22 -0700
 
 
 The patch titled
-     Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
+     Subject: mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+     mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +39,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2
 
-coding-style tweak
+The patch "mm: vmscan: Block kswapd if it is encountering pages under
+writeback" stalls in congestion_wait it encounters a page under writeback
+that is marked for immediate reclaim.  Initially this was a
+wait_on_page_writeback() but after the switch to congestion_wait(), there
+is no guarantee the page has completed writeback and it can be placed on a
+list for freeing.
 
-Cc: Derek Basehore <dbasehore@chromium.org>
+This is a fix for
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -854,9 +854,8 @@ static int cmos_resume(struct device *de
- 		}
+diff -puN mm/vmscan.c~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2 mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2
++++ a/mm/vmscan.c
+@@ -766,8 +766,10 @@ static unsigned long shrink_page_list(st
+ 			if (current_is_kswapd() &&
+ 			    PageReclaim(page) &&
+ 			    zone_is_reclaim_writeback(zone)) {
++				unlock_page(page);
+ 				congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 				zone_clear_flag(zone, ZONE_WRITEBACK);
++				goto keep;
  
- 		spin_lock_irq(&rtc_lock);
--		if (device_may_wakeup(dev)) {
-+		if (device_may_wakeup(dev))
- 			hpet_rtc_timer_init();
--		}
- 
- 		do {
- 			CMOS_WRITE(tmp, RTC_CONTROL);
+ 			/* Case 2 above */
+ 			} else if (global_reclaim(sc) ||
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch
+mm-page_alloc-prevent-concurrent-updaters-of-pcp-batch-and-high.patch
+mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch
+mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
+mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch
+mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
+mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch
+mm-page_alloc-relocate-comment-to-be-directly-above-code-it-refers-to.patch
+mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch
+mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch
+mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch
+mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
+mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
+mm-vmscan-flatten-kswapd-priority-loop.patch
+mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
+mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
+mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch
+mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
+mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
+mm-add-tracepoints-for-lru-activation-and-insertions.patch
+mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
+mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
+mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-memmap_init_zone-performance-improvement.patch
+mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered.patch
+mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed.patch
+mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account.patch
 
