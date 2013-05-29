@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds3234c-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-ds1216c-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:20:32 -0700
-Message-ID: <51a66310.5gdf4sEtSjO9lUBm%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:29 -0700
+Message-ID: <51a6630d.y0z3dmO1mPeLr59I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965519Ab3E2UUd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:33 -0400
+	with ESMTP id S965519Ab3E2UUa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, denzzzhome@yahoo.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-ds3234c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,denzzzhome@yahoo.com
+Subject: + drivers-rtc-rtc-ds1216c-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org,tsbogend@alpha.franken.de
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:32 -0700
+Date: Wed, 29 May 2013 13:20:29 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds3234.c: remove empty function
+     Subject: drivers/rtc/rtc-ds1216.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds3234c-remove-empty-function.patch
+     drivers-rtc-rtc-ds1216c-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-ds3234.c: remove empty function
+Subject: drivers/rtc/rtc-ds1216.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Dennis Aberilla <denzzzhome@yahoo.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3234.c |    6 ------
+ drivers/rtc/rtc-ds1216.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds3234.c~drivers-rtc-rtc-ds3234c-remove-empty-function drivers/rtc/rtc-ds3234.c
---- a/drivers/rtc/rtc-ds3234.c~drivers-rtc-rtc-ds3234c-remove-empty-function
-+++ a/drivers/rtc/rtc-ds3234.c
-@@ -156,18 +156,12 @@ static int ds3234_probe(struct spi_devic
+diff -puN drivers/rtc/rtc-ds1216.c~drivers-rtc-rtc-ds1216c-remove-empty-function drivers/rtc/rtc-ds1216.c
+--- a/drivers/rtc/rtc-ds1216.c~drivers-rtc-rtc-ds1216c-remove-empty-function
++++ a/drivers/rtc/rtc-ds1216.c
+@@ -167,17 +167,11 @@ static int __init ds1216_rtc_probe(struc
  	return 0;
  }
  
--static int ds3234_remove(struct spi_device *spi)
+-static int __exit ds1216_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static struct spi_driver ds3234_driver = {
- 	.driver = {
- 		.name	 = "ds3234",
+ static struct platform_driver ds1216_rtc_platform_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-ds1216",
  		.owner	= THIS_MODULE,
  	},
- 	.probe	 = ds3234_probe,
--	.remove = ds3234_remove,
+-	.remove		= __exit_p(ds1216_rtc_remove),
  };
  
- module_spi_driver(ds3234_driver);
+ static int __init ds1216_rtc_init(void)
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
