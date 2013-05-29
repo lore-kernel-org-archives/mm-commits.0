@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-wm831xc-remove-empty-function.patch added to
+Subject: + drivers-rtc-rtc-starfirec-remove-empty-function.patch added to
  -mm tree
-Date: Wed, 29 May 2013 13:21:00 -0700
-Message-ID: <51a6632c.BApTOsV5yNRnpXkf%akpm@linux-foundation.org>
+Date: Wed, 29 May 2013 13:20:57 -0700
+Message-ID: <51a66329.jBs5h7TgbOP9DP6e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50129 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966847Ab3E2UVB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:21:01 -0400
+	with ESMTP id S966866Ab3E2UU6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, broonie@opensource.wolfsonmicro.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-wm831xc-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,broonie@opensource.wolfsonmicro.com
+Subject: + drivers-rtc-rtc-starfirec-remove-empty-function.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:21:00 -0700
+Date: Wed, 29 May 2013 13:20:57 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-wm831x.c: remove empty function
+     Subject: drivers/rtc/rtc-starfire.c: remove empty function
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-wm831xc-remove-empty-function.patch
+     drivers-rtc-rtc-starfirec-remove-empty-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-wm831x.c: remove empty function
+Subject: drivers/rtc/rtc-starfire.c: remove empty function
 
 After the switch to devm_* functions and the removal of
 rtc_device_unregister(), the 'remove' function does not do anything.
 Delete it.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-wm831x.c |    6 ------
+ drivers/rtc/rtc-starfire.c |    6 ------
  1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-wm831x.c~drivers-rtc-rtc-wm831xc-remove-empty-function drivers/rtc/rtc-wm831x.c
---- a/drivers/rtc/rtc-wm831x.c~drivers-rtc-rtc-wm831xc-remove-empty-function
-+++ a/drivers/rtc/rtc-wm831x.c
-@@ -460,11 +460,6 @@ err:
- 	return ret;
+diff -puN drivers/rtc/rtc-starfire.c~drivers-rtc-rtc-starfirec-remove-empty-function drivers/rtc/rtc-starfire.c
+--- a/drivers/rtc/rtc-starfire.c~drivers-rtc-rtc-starfirec-remove-empty-function
++++ a/drivers/rtc/rtc-starfire.c
+@@ -51,17 +51,11 @@ static int __init starfire_rtc_probe(str
+ 	return 0;
  }
  
--static int wm831x_rtc_remove(struct platform_device *pdev)
+-static int __exit starfire_rtc_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
- static const struct dev_pm_ops wm831x_rtc_pm_ops = {
- 	.suspend = wm831x_rtc_suspend,
- 	.resume = wm831x_rtc_resume,
-@@ -478,7 +473,6 @@ static const struct dev_pm_ops wm831x_rt
+ static struct platform_driver starfire_rtc_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-starfire",
+ 		.owner	= THIS_MODULE,
+ 	},
+-	.remove		= __exit_p(starfire_rtc_remove),
+ };
  
- static struct platform_driver wm831x_rtc_driver = {
- 	.probe = wm831x_rtc_probe,
--	.remove = wm831x_rtc_remove,
- 	.driver = {
- 		.name = "wm831x-rtc",
- 		.pm = &wm831x_rtc_pm_ops,
+ module_platform_driver_probe(starfire_rtc_driver, starfire_rtc_probe);
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
