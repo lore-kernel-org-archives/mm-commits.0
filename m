@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch added to
- -mm tree
-Date: Wed, 29 May 2013 15:20:22 -0700
-Message-ID: <51a67f26.MotuwsfjYVQ0NiGS%akpm@linux-foundation.org>
+Subject: + minix-bug-widening-a-binary-not-operation.patch added to -mm
+ tree
+Date: Wed, 29 May 2013 15:28:31 -0700
+Message-ID: <51a6810f.UCp/bltPKelI0+0M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50811 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965980Ab3E2WUX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 18:20:23 -0400
+	with ESMTP id S935390Ab3E2W2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 18:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgoyal@redhat.com, tony.luck@intel.com, schwidefsky@de.ibm.com, ralf@linux-mips.org, paulus@samba.org, matt.fleming@intel.com, hpa@zytor.com, holzheu@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, ebiederm@xmission.com, dave@sr71.net, benh@kernel.crashing.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, dan.carpenter@oracle.com
 
-Subject: + documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch added to -mm tree
-To: zhangyanfei@cn.fujitsu.com,benh@kernel.crashing.org,dave@sr71.net,ebiederm@xmission.com,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,holzheu@linux.vnet.ibm.com,hpa@zytor.com,matt.fleming@intel.com,paulus@samba.org,ralf@linux-mips.org,schwidefsky@de.ibm.com,tony.luck@intel.com,vgoyal@redhat.com
+Subject: + minix-bug-widening-a-binary-not-operation.patch added to -mm tree
+To: dan.carpenter@oracle.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 15:20:22 -0700
+Date: Wed, 29 May 2013 15:28:31 -0700
 
 
 The patch titled
-     Subject: Documentation/kdump/kdump.txt: remove /dev/oldmem description
+     Subject: minix: bug widening a binary "not" operation
 has been added to the -mm tree.  Its filename is
-     documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
+     minix-bug-widening-a-binary-not-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,103 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: Documentation/kdump/kdump.txt: remove /dev/oldmem description
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: minix: bug widening a binary "not" operation
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Matt Fleming <matt.fleming@intel.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Tony Luck <tony.luck@intel.com>
+"chunk_size" is an unsigned int and "pos" is an unsigned long.  The
+"& ~(chunk_size-1)" operation clears the high 32 bits unintentionally.
+
+The ALIGN() macro does the correct thing.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   31 ++++++-------------------------
- 1 file changed, 6 insertions(+), 25 deletions(-)
+ fs/minix/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kdump/kdump.txt~documentation-kdump-kdumptxt-remove-dev-oldmem-description Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~documentation-kdump-kdumptxt-remove-dev-oldmem-description
-+++ a/Documentation/kdump/kdump.txt
-@@ -47,19 +47,12 @@ parameter. Optionally the size of the EL
- when using the elfcorehdr=[size[KMG]@]offset[KMG] syntax.
+diff -puN fs/minix/dir.c~minix-bug-widening-a-binary-not-operation fs/minix/dir.c
+--- a/fs/minix/dir.c~minix-bug-widening-a-binary-not-operation
++++ a/fs/minix/dir.c
+@@ -95,7 +95,7 @@ static int minix_readdir(struct file * f
+ 	char *name;
+ 	__u32 inumber;
  
+-	pos = (pos + chunk_size-1) & ~(chunk_size-1);
++	pos = ALIGN(pos, chunk_size);
+ 	if (pos >= inode->i_size)
+ 		goto done;
  
--With the dump-capture kernel, you can access the memory image, or "old
--memory," in two ways:
--
--- Through a /dev/oldmem device interface. A capture utility can read the
--  device file and write out the memory in raw format. This is a raw dump
--  of memory. Analysis and capture tools must be intelligent enough to
--  determine where to look for the right information.
--
--- Through /proc/vmcore. This exports the dump as an ELF-format file that
--  you can write out using file copy commands such as cp or scp. Further,
--  you can use analysis tools such as the GNU Debugger (GDB) and the Crash
--  tool to debug the dump file. This method ensures that the dump pages are
--  correctly ordered.
-+With the dump-capture kernel, you can access the memory image through
-+/proc/vmcore. This exports the dump as an ELF-format file that you can
-+write out using file copy commands such as cp or scp. Further, you can
-+use analysis tools such as the GNU Debugger (GDB) and the Crash tool to
-+debug the dump file. This method ensures that the dump pages are correctly
-+ordered.
- 
- 
- Setup and Installation
-@@ -423,18 +416,6 @@ the following command:
- 
-    cp /proc/vmcore <dump-file>
- 
--You can also access dumped memory as a /dev/oldmem device for a linear
--and raw view. To create the device, use the following command:
--
--    mknod /dev/oldmem c 1 12
--
--Use the dd command with suitable options for count, bs, and skip to
--access specific portions of the dump.
--
--To see the entire memory, use the following command:
--
--   dd if=/dev/oldmem of=oldmem.001
--
- 
- Analysis
- ========
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 linux-next.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
-dev-oldmem-remove-the-interface.patch
-dev-oldmem-remove-the-interface-fix.patch
-documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
-mips-remove-savemaxmem-parameter-setup.patch
-powerpc-remove-savemaxmem-parameter-setup.patch
-ia64-remove-setting-for-saved_max_pfn.patch
-s390-remove-setting-for-saved_max_pfn.patch
+configfs-use-capped-length-for-store_attribute.patch
+errh-is_err-can-accept-__user-pointers.patch
+rbtree-remove-unneeded-include.patch
+rbtree-remove-unneeded-include-fix.patch
+minix-bug-widening-a-binary-not-operation.patch
+documentation-codingstyle-allow-multiple-return-statements-per-function.patch
+mwave-fix-info-leak-in-mwave_ioctl.patch
 
