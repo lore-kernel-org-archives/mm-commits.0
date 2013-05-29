@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-m41t94c-remove-empty-function.patch added to
- -mm tree
-Date: Wed, 29 May 2013 13:20:41 -0700
-Message-ID: <51a66319.5hMK4JknByZeR6gn%akpm@linux-foundation.org>
+Subject: + rtc-at91rm9200-refactor-interrupt-register-handling.patch added to -mm tree
+Date: Wed, 29 May 2013 13:34:01 -0700
+Message-ID: <51a66639./Q+mCnQLwrmuCwps%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50089 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50260 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966797Ab3E2UUm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:20:42 -0400
+	with ESMTP id S966917Ab3E2UeC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 16:34:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, Kim.Heino@bluegiga.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, ludovic.desroches@atmel.com, dgilbert@interlog.com, Robert.Nelson@digikey.com, jhovold@gmail.com
 
-Subject: + drivers-rtc-rtc-m41t94c-remove-empty-function.patch added to -mm tree
-To: sachin.kamat@linaro.org,Kim.Heino@bluegiga.com
+Subject: + rtc-at91rm9200-refactor-interrupt-register-handling.patch added to -mm tree
+To: jhovold@gmail.com,Robert.Nelson@digikey.com,dgilbert@interlog.com,ludovic.desroches@atmel.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 13:20:41 -0700
+Date: Wed, 29 May 2013 13:34:01 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t94.c: remove empty function
+     Subject: rtc-at91rm9200: refactor interrupt-register handling
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-m41t94c-remove-empty-function.patch
+     rtc-at91rm9200-refactor-interrupt-register-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,125 +38,170 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-m41t94.c: remove empty function
+From: Johan Hovold <jhovold@gmail.com>
+Subject: rtc-at91rm9200: refactor interrupt-register handling
 
-After the switch to devm_* functions and the removal of
-rtc_device_unregister(), the 'remove' function does not do anything.
-Delete it.
+Add accessors for the interrupt register.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Kim B. Heino <Kim.Heino@bluegiga.com>
+This will allow us to easily add a shadow interrupt-mask register to
+use on SoCs where the interrupt-mask register cannot be used.
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Douglas Gilbert <dgilbert@interlog.com>
+Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
+Cc: Robert Nelson <Robert.Nelson@digikey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t94.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |   43 ++++++++++++++++++++++-----------
+ 1 file changed, 29 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-m41t94.c~drivers-rtc-rtc-m41t94c-remove-empty-function drivers/rtc/rtc-m41t94.c
---- a/drivers/rtc/rtc-m41t94.c~drivers-rtc-rtc-m41t94c-remove-empty-function
-+++ a/drivers/rtc/rtc-m41t94.c
-@@ -134,18 +134,12 @@ static int m41t94_probe(struct spi_devic
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-refactor-interrupt-register-handling drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-refactor-interrupt-register-handling
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -50,6 +50,21 @@ static unsigned int at91_alarm_year = AT
+ static void __iomem *at91_rtc_regs;
+ static int irq;
+ 
++static void at91_rtc_write_ier(u32 mask)
++{
++	at91_rtc_write(AT91_RTC_IER, mask);
++}
++
++static void at91_rtc_write_idr(u32 mask)
++{
++	at91_rtc_write(AT91_RTC_IDR, mask);
++}
++
++static u32 at91_rtc_read_imr(void)
++{
++	return at91_rtc_read(AT91_RTC_IMR);
++}
++
+ /*
+  * Decode time/date into rtc_time structure
+  */
+@@ -113,9 +128,9 @@ static int at91_rtc_settime(struct devic
+ 	cr = at91_rtc_read(AT91_RTC_CR);
+ 	at91_rtc_write(AT91_RTC_CR, cr | AT91_RTC_UPDCAL | AT91_RTC_UPDTIM);
+ 
+-	at91_rtc_write(AT91_RTC_IER, AT91_RTC_ACKUPD);
++	at91_rtc_write_ier(AT91_RTC_ACKUPD);
+ 	wait_for_completion(&at91_rtc_updated);	/* wait for ACKUPD interrupt */
+-	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD);
++	at91_rtc_write_idr(AT91_RTC_ACKUPD);
+ 
+ 	at91_rtc_write(AT91_RTC_TIMR,
+ 			  bin2bcd(tm->tm_sec) << 0
+@@ -147,7 +162,7 @@ static int at91_rtc_readalarm(struct dev
+ 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
+ 	tm->tm_year = at91_alarm_year - 1900;
+ 
+-	alrm->enabled = (at91_rtc_read(AT91_RTC_IMR) & AT91_RTC_ALARM)
++	alrm->enabled = (at91_rtc_read_imr() & AT91_RTC_ALARM)
+ 			? 1 : 0;
+ 
+ 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
+@@ -172,7 +187,7 @@ static int at91_rtc_setalarm(struct devi
+ 	tm.tm_min = alrm->time.tm_min;
+ 	tm.tm_sec = alrm->time.tm_sec;
+ 
+-	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
++	at91_rtc_write_idr(AT91_RTC_ALARM);
+ 	at91_rtc_write(AT91_RTC_TIMALR,
+ 		  bin2bcd(tm.tm_sec) << 0
+ 		| bin2bcd(tm.tm_min) << 8
+@@ -185,7 +200,7 @@ static int at91_rtc_setalarm(struct devi
+ 
+ 	if (alrm->enabled) {
+ 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
+-		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
++		at91_rtc_write_ier(AT91_RTC_ALARM);
+ 	}
+ 
+ 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
+@@ -201,9 +216,9 @@ static int at91_rtc_alarm_irq_enable(str
+ 
+ 	if (enabled) {
+ 		at91_rtc_write(AT91_RTC_SCCR, AT91_RTC_ALARM);
+-		at91_rtc_write(AT91_RTC_IER, AT91_RTC_ALARM);
++		at91_rtc_write_ier(AT91_RTC_ALARM);
+ 	} else
+-		at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ALARM);
++		at91_rtc_write_idr(AT91_RTC_ALARM);
+ 
  	return 0;
  }
+@@ -212,7 +227,7 @@ static int at91_rtc_alarm_irq_enable(str
+  */
+ static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+-	unsigned long imr = at91_rtc_read(AT91_RTC_IMR);
++	unsigned long imr = at91_rtc_read_imr();
  
--static int m41t94_remove(struct spi_device *spi)
--{
--	return 0;
--}
--
- static struct spi_driver m41t94_driver = {
- 	.driver = {
- 		.name	= "rtc-m41t94",
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= m41t94_probe,
--	.remove = m41t94_remove,
- };
+ 	seq_printf(seq, "update_IRQ\t: %s\n",
+ 			(imr & AT91_RTC_ACKUPD) ? "yes" : "no");
+@@ -232,7 +247,7 @@ static irqreturn_t at91_rtc_interrupt(in
+ 	unsigned int rtsr;
+ 	unsigned long events = 0;
  
- module_spi_driver(m41t94_driver);
+-	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_read(AT91_RTC_IMR);
++	rtsr = at91_rtc_read(AT91_RTC_SR) & at91_rtc_read_imr();
+ 	if (rtsr) {		/* this interrupt is shared!  Is it ours? */
+ 		if (rtsr & AT91_RTC_ALARM)
+ 			events |= (RTC_AF | RTC_IRQF);
+@@ -327,7 +342,7 @@ static int __init at91_rtc_probe(struct
+ 	at91_rtc_write(AT91_RTC_MR, 0);		/* 24 hour mode */
+ 
+ 	/* Disable all interrupts */
+-	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
++	at91_rtc_write_idr(AT91_RTC_ACKUPD | AT91_RTC_ALARM |
+ 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
+ 					AT91_RTC_CALEV);
+ 
+@@ -372,7 +387,7 @@ static int __exit at91_rtc_remove(struct
+ 	struct rtc_device *rtc = platform_get_drvdata(pdev);
+ 
+ 	/* Disable all interrupts */
+-	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
++	at91_rtc_write_idr(AT91_RTC_ACKUPD | AT91_RTC_ALARM |
+ 					AT91_RTC_SECEV | AT91_RTC_TIMEV |
+ 					AT91_RTC_CALEV);
+ 	free_irq(irq, pdev);
+@@ -394,13 +409,13 @@ static int at91_rtc_suspend(struct devic
+ 	/* this IRQ is shared with DBGU and other hardware which isn't
+ 	 * necessarily doing PM like we are...
+ 	 */
+-	at91_rtc_imr = at91_rtc_read(AT91_RTC_IMR)
++	at91_rtc_imr = at91_rtc_read_imr()
+ 			& (AT91_RTC_ALARM|AT91_RTC_SECEV);
+ 	if (at91_rtc_imr) {
+ 		if (device_may_wakeup(dev))
+ 			enable_irq_wake(irq);
+ 		else
+-			at91_rtc_write(AT91_RTC_IDR, at91_rtc_imr);
++			at91_rtc_write_idr(at91_rtc_imr);
+ 	}
+ 	return 0;
+ }
+@@ -411,7 +426,7 @@ static int at91_rtc_resume(struct device
+ 		if (device_may_wakeup(dev))
+ 			disable_irq_wake(irq);
+ 		else
+-			at91_rtc_write(AT91_RTC_IER, at91_rtc_imr);
++			at91_rtc_write_ier(at91_rtc_imr);
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
-origin.patch
-linux-next.patch
-video-smscufx-use-null-instead-of-0.patch
-video-udlfb-use-null-instead-of-0.patch
-video-udlfb-make-local-symbol-static.patch
-video-imxfb-make-local-symbols-static.patch
-drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
-drivers-rtc-interfacec-fix-checkpatch-errors.patch
-drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
-drivers-rtc-rtc-at91rm9200c-include-linux-uaccessh.patch
-drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch
-drivers-rtc-rtc-davincic-fix-whitespace-warning.patch
-drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch
-drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
-drivers-rtc-rtc-ds1511c-fix-issues-related-to-spaces-and-braces.patch
-drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch
-drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch
-drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch
-drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch
-drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
-drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch
-drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
-drivers-rtc-rtc-msm6242c-use-pr_warn.patch
-drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
-drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
-drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch
-drivers-rtc-rtc-pcf8583c-move-assignment-outside-if-condition.patch
-drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
-drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
-drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
-drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
-drivers-rtc-rtc-x1205c-fix-checkpatch-issues.patch
-drivers-rtc-rtc-m48t86c-remove-empty-function.patch
-drivers-rtc-rtc-tilec-remove-empty-function.patch
-drivers-rtc-rtc-nuc900c-remove-empty-function.patch
-drivers-rtc-rtc-msm6242c-remove-empty-function.patch
-drivers-rtc-rtc-max8998c-remove-empty-function.patch
-drivers-rtc-rtc-max8925c-remove-empty-function.patch
-drivers-rtc-rtc-ls1xc-remove-empty-function.patch
-drivers-rtc-rtc-lp8788c-remove-empty-function.patch
-drivers-rtc-rtc-ds1302c-remove-empty-function.patch
-drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
-drivers-rtc-rtc-da9055c-remove-empty-function.patch
-drivers-rtc-rtc-da9052c-remove-empty-function.patch
-drivers-rtc-rtc-bq4802c-remove-empty-function.patch
-drivers-rtc-rtc-au1xxxc-remove-empty-function.patch
-drivers-rtc-rtc-ab3100c-remove-empty-function.patch
-drivers-rtc-rtc-bq32kc-remove-empty-function.patch
-drivers-rtc-rtc-ds1216c-remove-empty-function.patch
-drivers-rtc-rtc-ds1286c-remove-empty-function.patch
-drivers-rtc-rtc-ds1672c-remove-empty-function.patch
-drivers-rtc-rtc-ds3234c-remove-empty-function.patch
-drivers-rtc-rtc-ds1390c-remove-empty-function.patch
-drivers-rtc-rtc-efic-remove-empty-function.patch
-drivers-rtc-rtc-em3027c-remove-empty-function.patch
-drivers-rtc-rtc-fm3130c-remove-empty-function.patch
-drivers-rtc-rtc-isl12022c-remove-empty-function.patch
-drivers-rtc-rtc-m41t93c-remove-empty-function.patch
-drivers-rtc-rtc-m48t35c-remove-empty-function.patch
-drivers-rtc-rtc-genericc-remove-empty-function.patch
-drivers-rtc-rtc-m41t94c-remove-empty-function.patch
-drivers-rtc-rtc-max6902c-remove-empty-function.patch
-drivers-rtc-rtc-max6900c-remove-empty-function.patch
-drivers-rtc-rtc-max8907c-remove-empty-function.patch
-drivers-rtc-rtc-max77686c-remove-empty-function.patch
-drivers-rtc-rtc-max8997c-remove-empty-function.patch
-drivers-rtc-rtc-pcf8523c-remove-empty-function.patch
-drivers-rtc-rtc-pcf8563c-remove-empty-function.patch
-drivers-rtc-rtc-pcf8583c-remove-empty-function.patch
-drivers-rtc-rtc-ps3c-remove-empty-function.patch
-drivers-rtc-rtc-rs5c313c-remove-empty-function.patch
-drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch
-drivers-rtc-rtc-rx4581c-remove-empty-function.patch
-drivers-rtc-rtc-rs5c348c-remove-empty-function.patch
-drivers-rtc-rtc-rx8581c-remove-empty-function.patch
-drivers-rtc-rtc-snvsc-remove-empty-function.patch
-drivers-rtc-rtc-starfirec-remove-empty-function.patch
-drivers-rtc-rtc-sun4vc-remove-empty-function.patch
-drivers-rtc-rtc-tps80031c-remove-empty-function.patch
-drivers-rtc-rtc-wm831xc-remove-empty-function.patch
+rtc-at91rm9200-add-match-table-compile-guard.patch
+rtc-at91rm9200-add-configuration-support.patch
+rtc-at91rm9200-refactor-interrupt-register-handling.patch
+rtc-at91rm9200-add-shadow-interrupt-mask.patch
+rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch
 
