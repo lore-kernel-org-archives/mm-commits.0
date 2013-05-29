@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + s390-remove-setting-for-saved_max_pfn.patch added to -mm tree
-Date: Wed, 29 May 2013 15:20:26 -0700
-Message-ID: <51a67f2a.oMU1aXEWY8BFi3/H%akpm@linux-foundation.org>
+Subject: + dev-oldmem-remove-the-interface-fix.patch added to -mm tree
+Date: Wed, 29 May 2013 15:20:21 -0700
+Message-ID: <51a67f25.JlH8ebx67EC7rkDG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50849 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50801 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966122Ab3E2WU1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 18:20:27 -0400
+	with ESMTP id S935301Ab3E2WUW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 May 2013 18:20:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgoyal@redhat.com, tony.luck@intel.com, schwidefsky@de.ibm.com, ralf@linux-mips.org, paulus@samba.org, matt.fleming@intel.com, hpa@zytor.com, holzheu@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, ebiederm@xmission.com, dave@sr71.net, benh@kernel.crashing.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, tony.luck@intel.com, schwidefsky@de.ibm.com, ralf@linux-mips.org, paulus@samba.org, matt.fleming@intel.com, hpa@zytor.com, holzheu@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, dave@sr71.net, benh@kernel.crashing.org, akpm@linux-foundation.org
 
-Subject: + s390-remove-setting-for-saved_max_pfn.patch added to -mm tree
-To: zhangyanfei@cn.fujitsu.com,benh@kernel.crashing.org,dave@sr71.net,ebiederm@xmission.com,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,holzheu@linux.vnet.ibm.com,hpa@zytor.com,matt.fleming@intel.com,paulus@samba.org,ralf@linux-mips.org,schwidefsky@de.ibm.com,tony.luck@intel.com,vgoyal@redhat.com
+Subject: + dev-oldmem-remove-the-interface-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,benh@kernel.crashing.org,dave@sr71.net,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,holzheu@linux.vnet.ibm.com,hpa@zytor.com,matt.fleming@intel.com,paulus@samba.org,ralf@linux-mips.org,schwidefsky@de.ibm.com,tony.luck@intel.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 May 2013 15:20:26 -0700
+Date: Wed, 29 May 2013 15:20:21 -0700
 
 
 The patch titled
-     Subject: s390: remove setting for saved_max_pfn
+     Subject: dev-oldmem-remove-the-interface-fix
 has been added to the -mm tree.  Its filename is
-     s390-remove-setting-for-saved_max_pfn.patch
+     dev-oldmem-remove-the-interface-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,73 +38,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: s390: remove setting for saved_max_pfn
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dev-oldmem-remove-the-interface-fix
 
-The only user of saved_max_pfn in s390 is read_oldmem interface but we
-have removed that interface, so saved_max_pfn is now unneeded in s390, and
-we needn't set it anymore.
+Mention /dev/oldmem obsolescence in devices.txt
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dave Hansen <dave@sr71.net>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/setup.c |    4 ----
- 1 file changed, 4 deletions(-)
+ Documentation/devices.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/s390/kernel/setup.c~s390-remove-setting-for-saved_max_pfn arch/s390/kernel/setup.c
---- a/arch/s390/kernel/setup.c~s390-remove-setting-for-saved_max_pfn
-+++ a/arch/s390/kernel/setup.c
-@@ -719,10 +719,6 @@ static void reserve_oldmem(void)
- 	}
- 	create_mem_hole(memory_chunk, OLDMEM_BASE, OLDMEM_SIZE);
- 	create_mem_hole(memory_chunk, OLDMEM_SIZE, real_size - OLDMEM_SIZE);
--	if (OLDMEM_BASE + OLDMEM_SIZE == real_size)
--		saved_max_pfn = PFN_DOWN(OLDMEM_BASE) - 1;
--	else
--		saved_max_pfn = PFN_DOWN(real_size) - 1;
- #endif
- }
+diff -puN Documentation/devices.txt~dev-oldmem-remove-the-interface-fix Documentation/devices.txt
+--- a/Documentation/devices.txt~dev-oldmem-remove-the-interface-fix
++++ a/Documentation/devices.txt
+@@ -102,6 +102,7 @@ Your cooperation is appreciated.
+ 					export the buffered printk records.
+ 		 12 = /dev/oldmem	Used by crashdump kernels to access
+ 					the memory of the kernel that crashed.
++					(obsolete)
  
+   1 block	RAM disk
+ 		  0 = /dev/ram0		First RAM disk
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
 vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
 vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
-dev-oldmem-remove-the-interface.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 dev-oldmem-remove-the-interface-fix.patch
-documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
-mips-remove-savemaxmem-parameter-setup.patch
-powerpc-remove-savemaxmem-parameter-setup.patch
-ia64-remove-setting-for-saved_max_pfn.patch
-s390-remove-setting-for-saved_max_pfn.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
