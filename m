@@ -1,105 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 30 May 2013 12:20:08 -0700
-Message-ID: <51a7a668.FJu4EPTh8M0mJ7bo%akpm@linux-foundation.org>
+Subject: [merged] pktcdvd-silence-static-checker-warning.patch removed
+ from -mm tree
+Date: Thu, 30 May 2013 12:20:55 -0700
+Message-ID: <51a7a697.Ud1EhQ+EBVA6gD8T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59287 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278Ab3E3TUJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 15:20:09 -0400
+	with ESMTP id S1751278Ab3E3TU4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 15:20:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jkosina@suse.cz, dan.carpenter@oracle.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] pktcdvd-silence-static-checker-warning.patch removed from -mm tree
+To: dan.carpenter@oracle.com,jkosina@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 30 May 2013 12:20:08 -0700
+Date: Thu, 30 May 2013 12:20:55 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: pktcdvd: silence static checker warning
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     pktcdvd-silence-static-checker-warning.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: pktcdvd: silence static checker warning
 
+Static checkers complain about widening the binary "not" operations here
+because sectors are u64 and "(pd)->settings.size" is unsigned int.  It
+unintentionally clears the high 32 bits of the sector.  This means that
+the driver won't work for devices with over 2TB of space.  Since this is a
+DVD drive, we're unlikely to reach that limit, but we may as well silence
+the warning.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/exynos5250.dtsi |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/block/pktcdvd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/boot/dts/exynos5250.dtsi~linux-next-git-rejects arch/arm/boot/dts/exynos5250.dtsi
---- a/arch/arm/boot/dts/exynos5250.dtsi~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/exynos5250.dtsi
-@@ -527,11 +527,7 @@
- 		clock-names = "usbhost";
- 	};
+diff -puN drivers/block/pktcdvd.c~pktcdvd-silence-static-checker-warning drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-silence-static-checker-warning
++++ a/drivers/block/pktcdvd.c
+@@ -83,7 +83,8 @@
  
--<<<<<<< HEAD
--	usbphy@12130000 {
--=======
- 	usb2_phy: usbphy@12130000 {
-->>>>>>> linux-next/akpm-base
- 		compatible = "samsung,exynos5250-usb2phy";
- 		reg = <0x12130000 0x100>;
- 		clocks = <&clock 1>, <&clock 285>;
+ #define MAX_SPEED 0xffff
+ 
+-#define ZONE(sector, pd) (((sector) + (pd)->offset) & ~((pd)->settings.size - 1))
++#define ZONE(sector, pd) (((sector) + (pd)->offset) & \
++			~(sector_t)((pd)->settings.size - 1))
+ 
+ static DEFINE_MUTEX(pktcdvd_mutex);
+ static struct pktcdvd_device *pkt_devs[MAX_WRITERS];
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-lib-bitmapc-speed-up-bitmap_find_free_region-fix.patch
+configfs-use-capped-length-for-store_attribute.patch
+errh-is_err-can-accept-__user-pointers.patch
+rbtree-remove-unneeded-include.patch
 rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+minix-bug-widening-a-binary-not-operation.patch
+documentation-codingstyle-allow-multiple-return-statements-per-function.patch
+mwave-fix-info-leak-in-mwave_ioctl.patch
 
