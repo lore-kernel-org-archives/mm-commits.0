@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch added to -mm tree
-Date: Thu, 30 May 2013 12:55:07 -0700
-Message-ID: <51a7ae9b.vvp7qVZN3L6Z4zlH%akpm@linux-foundation.org>
+ mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch added to -mm tree
+Date: Thu, 30 May 2013 12:55:04 -0700
+Message-ID: <51a7ae98.QTK4p55oI86jQTZp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59537 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757131Ab3E3TzJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 15:55:09 -0400
+	with ESMTP id S1756423Ab3E3TzF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 15:55:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, trond.myklebust@fys.uio.no, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
 
-Subject: + fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch added to -mm tree
+Subject: + mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch added to -mm tree
 To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,trond.myklebust@fys.uio.no,zcalusic@bitsync.net
 From: akpm@linux-foundation.org
-Date: Thu, 30 May 2013 12:55:07 -0700
+Date: Thu, 30 May 2013 12:55:04 -0700
 
 
 The patch titled
-     Subject: fs: nfs: inform the VM about pages being committed or unstable
+     Subject: mm: vmscan: treat pages marked for immediate reclaim as zone congestion
 has been added to the -mm tree.  Its filename is
-     fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
+     mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: fs: nfs: inform the VM about pages being committed or unstable
+Subject: mm: vmscan: treat pages marked for immediate reclaim as zone congestion
 
-VM page reclaim uses dirty and writeback page states to determine if
-flushers are cleaning pages too slowly and that page reclaim should stall
-waiting on flushers to catch up.  Page state in NFS is a bit more complex
-and a clean page can be unreclaimable due to being unstable which is
-effectively "dirty" from the perspective of the VM from reclaim context. 
-Similarly, if the inode is currently being committed then it's similar to
-being under writeback.
-
-This patch adds a is_dirty_writeback() handled for NFS that checks if a
-pages backing inode is being committed and should be accounted as
-writeback and if a page has private state indicating that it is
-effectively dirty.
+Currently a zone will only be marked congested if the underlying BDI is
+congested but if dirty pages are spread across zones it is possible that
+an individual zone is full of dirty pages without being congested.  The
+impact is that zone gets scanned very quickly potentially reclaiming
+really clean pages.  This patch treats pages marked for immediate reclaim
+as congested for the purposes of marking a zone ZONE_CONGESTED and
+stalling in wait_iff_congested.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -68,56 +63,30 @@ Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/file.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ mm/vmscan.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfs/file.c~fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable fs/nfs/file.c
---- a/fs/nfs/file.c~fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable
-+++ a/fs/nfs/file.c
-@@ -495,6 +495,35 @@ static int nfs_release_page(struct page
- 	return nfs_fscache_release_page(page, gfp);
- }
+diff -puN mm/vmscan.c~mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion
++++ a/mm/vmscan.c
+@@ -761,9 +761,15 @@ static unsigned long shrink_page_list(st
+ 		if (dirty && !writeback)
+ 			nr_unqueued_dirty++;
  
-+static void nfs_check_dirty_writeback(struct page *page,
-+				bool *dirty, bool *writeback)
-+{
-+	struct nfs_inode *nfsi;
-+	struct address_space *mapping = page_file_mapping(page);
-+
-+	if (!mapping || PageSwapCache(page))
-+		return;
-+
-+	/*
-+	 * Check if an unstable page is currently being committed and
-+	 * if so, have the VM treat it as if the page is under writeback
-+	 * so it will not block due to pages that will shortly be freeable.
-+	 */
-+	nfsi = NFS_I(mapping->host);
-+	if (test_bit(NFS_INO_COMMIT, &nfsi->flags)) {
-+		*writeback = true;
-+		return;
-+	}
-+
-+	/*
-+	 * If PagePrivate() is set, then the page is not freeable and as the
-+	 * inode is not being committed, it's not going to be cleaned in the
-+	 * near future so treat it as dirty
-+	 */
-+	if (PagePrivate(page))
-+		*dirty = true;
-+}
-+
- /*
-  * Attempt to clear the private state associated with a page when an error
-  * occurs that requires the cached contents of an inode to be written back or
-@@ -542,6 +571,7 @@ const struct address_space_operations nf
- 	.direct_IO = nfs_direct_IO,
- 	.migratepage = nfs_migrate_page,
- 	.launder_page = nfs_launder_page,
-+	.is_dirty_writeback = nfs_check_dirty_writeback,
- 	.error_remove_page = generic_error_remove_page,
- #ifdef CONFIG_NFS_SWAP
- 	.swap_activate = nfs_swap_activate,
+-		/* Treat this page as congested if underlying BDI is */
++		/*
++		 * Treat this page as congested if the underlying BDI is or if
++		 * pages are cycling through the LRU so quickly that the
++		 * pages marked for immediate reclaim are making it to the
++		 * end of the LRU a second time.
++		 */
+ 		mapping = page_mapping(page);
+-		if (mapping && bdi_write_congested(mapping->backing_dev_info))
++		if ((mapping && bdi_write_congested(mapping->backing_dev_info)) ||
++		    (writeback && PageReclaim(page)))
+ 			nr_congested++;
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
