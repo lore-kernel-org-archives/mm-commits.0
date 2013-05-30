@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-tape-driver-file-mappings.patch added to -mm
- tree
-Date: Thu, 30 May 2013 15:28:50 -0700
-Message-ID: <51a7d2a2.JrNY4eB3KIKPaTPR%akpm@linux-foundation.org>
+Subject: +
+ coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch added
+ to -mm tree
+Date: Thu, 30 May 2013 15:49:49 -0700
+Message-ID: <51a7d78d.yhmKn7UzfLJbwXSg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60699 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60816 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759981Ab3E3W2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 18:28:51 -0400
+	with ESMTP id S1750724Ab3E3Wtu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 18:49:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, osst@riede.org, Kai.Makisara@kolumbus.fi, JBottomley@parallels.com, jdelvare@suse.de
+To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: + maintainers-fix-tape-driver-file-mappings.patch added to -mm tree
-To: jdelvare@suse.de,JBottomley@parallels.com,Kai.Makisara@kolumbus.fi,osst@riede.org
+Subject: + coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch added to -mm tree
+To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org
 From: akpm@linux-foundation.org
-Date: Thu, 30 May 2013 15:28:50 -0700
+Date: Thu, 30 May 2013 15:49:49 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: fix tape driver file mappings
+     Subject: coredump: avoid the uninitialized cn->corename if core_pattern is empty
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-tape-driver-file-mappings.patch
+     coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +40,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: MAINTAINERS: fix tape driver file mappings
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: avoid the uninitialized cn->corename if core_pattern is empty
 
-The masks for the st and osst tape drivers in MAINTAINERS are too
-broad and include unrelated files. Make the file list accurate so that
-maintainers of these drivers aren't bothered with unrelated work.
+If core_pattern is "" or "|", cn->corename is used uninitialized by
+filp_open() or call_usermodehelper_exec().
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Willem Riede <osst@riede.org>
-Cc: Kai Mäkisara <Kai.Makisara@kolumbus.fi>
-Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Colin Walters <walters@verbum.org>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/coredump.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-fix-tape-driver-file-mappings MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-tape-driver-file-mappings
-+++ a/MAINTAINERS
-@@ -5936,8 +5936,10 @@ M:	Willem Riede <osst@riede.org>
- L:	osst-users@lists.sourceforge.net
- L:	linux-scsi@vger.kernel.org
- S:	Maintained
--F:	drivers/scsi/osst*
--F:	drivers/scsi/st*
-+F:	Documentation/scsi/osst.txt
-+F:	drivers/scsi/osst.*
-+F:	drivers/scsi/osst_*.h
-+F:	drivers/scsi/st.h
+diff -puN fs/coredump.c~coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix fs/coredump.c
+--- a/fs/coredump.c~coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix
++++ a/fs/coredump.c
+@@ -165,6 +165,7 @@ static int format_corename(struct core_n
+ 	cn->corename = NULL;
+ 	if (expand_corename(cn, core_name_size))
+ 		return -ENOMEM;
++	cn->corename[0] = '\0';
  
- OPENCORES I2C BUS DRIVER
- M:	Peter Korsgaard <jacmet@sunsite.dk>
-@@ -7077,7 +7079,8 @@ M:	Kai MÃ¤kisara <Kai.Makisara@kolumbus.
- L:	linux-scsi@vger.kernel.org
- S:	Maintained
- F:	Documentation/scsi/st.txt
--F:	drivers/scsi/st*
-+F:	drivers/scsi/st.*
-+F:	drivers/scsi/st_*.h
- 
- SCTP PROTOCOL
- M:	Vlad Yasevich <vyasevich@gmail.com>
+ 	if (ispipe)
+ 		++pat_ptr;
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-maintainers-fix-tape-driver-file-mappings.patch
-idr-print-a-stack-dump-after-ida_remove-warning.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+audit-wait_for_auditd-should-use-task_uninterruptible.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
+x86-kill-tif_debug.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+usermodehelper-kill-the-sub_info-path-check.patch
+coredump-format_corename-can-leak-cn-corename.patch
+coredump-introduce-cn_vprintf.patch
+coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
+coredump-kill-cn_escape-introduce-cn_esc_printf.patch
+coredump-kill-call_count-add-core_name_size.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch
+fs-execc-do_execve_common-use-current_user.patch
 
