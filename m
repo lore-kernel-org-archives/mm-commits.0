@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1302c-handle-write-protection.patch added to
- -mm tree
-Date: Thu, 30 May 2013 13:37:50 -0700
-Message-ID: <51a7b89e.9zui7FZUtCyjYcrY%akpm@linux-foundation.org>
+Subject: + kernel-auditfilterc-fixing-build-warning.patch added to -mm
+ tree
+Date: Thu, 30 May 2013 13:42:45 -0700
+Message-ID: <51a7b9c5.NgSWvJKihVvklJGN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59748 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757722Ab3E3Uhw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 16:37:52 -0400
+	with ESMTP id S1758281Ab3E3Umq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 16:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org, maz@misterjones.org, jg1.han@samsung.com, a.zummo@towertech.it, ynvich@gmail.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, eparis@redhat.com, raphael.scarv@gmail.com
 
-Subject: + drivers-rtc-rtc-ds1302c-handle-write-protection.patch added to -mm tree
-To: ynvich@gmail.com,a.zummo@towertech.it,jg1.han@samsung.com,maz@misterjones.org,sachin.kamat@linaro.org
+Subject: + kernel-auditfilterc-fixing-build-warning.patch added to -mm tree
+To: raphael.scarv@gmail.com,eparis@redhat.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 30 May 2013 13:37:50 -0700
+Date: Thu, 30 May 2013 13:42:45 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1302.c: handle write protection
+     Subject: kernel/auditfilter.c: fixing build warning
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1302c-handle-write-protection.patch
+     kernel-auditfilterc-fixing-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Yanovich <ynvich@gmail.com>
-Subject: drivers/rtc/rtc-ds1302.c: handle write protection
+From: "Raphael S. Carvalho" <raphael.scarv@gmail.com>
+Subject: kernel/auditfilter.c: fixing build warning
 
-This chip has a control register and can prevent altering saved clock.
-Without this patch we could have:
+kernel/auditfilter.c:426: warning: this decimal constant is unsigned only in ISO C90
 
-(arm)root@pac14:~# date
-Tue May 21 03:08:27 MSK 2013
-(arm)root@pac14:~# /etc/init.d/hwclock.sh show
-Tue May 21 11:13:58 2013  -0.067322 seconds
-(arm)root@pac14:~# /etc/init.d/hwclock.sh stop
-[info] Saving the system clock.
-[info] Hardware Clock updated to Tue May 21 03:09:01 MSK 2013.
-(arm)root@pac14:~# /etc/init.d/hwclock.sh show
-Tue May 21 11:14:15 2013  -0.624272 seconds
-
-The patch enables write access to rtc before the driver tries to write
-time and re-disables when time data is written.
-
-Signed-off-by: Sergey Yanovich <ynvich@gmail.com>
-Cc: Marc Zyngier <maz@misterjones.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Raphael S. Carvalho <raphael.scarv@gmail.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1302.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/auditfilter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-handle-write-protection drivers/rtc/rtc-ds1302.c
---- a/drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-handle-write-protection
-+++ a/drivers/rtc/rtc-ds1302.c
-@@ -23,8 +23,12 @@
- #define	RTC_CMD_READ	0x81		/* Read command */
- #define	RTC_CMD_WRITE	0x80		/* Write command */
+diff -puN kernel/auditfilter.c~kernel-auditfilterc-fixing-build-warning kernel/auditfilter.c
+--- a/kernel/auditfilter.c~kernel-auditfilterc-fixing-build-warning
++++ a/kernel/auditfilter.c
+@@ -423,7 +423,7 @@ static struct audit_entry *audit_data_to
+ 		f->lsm_rule = NULL;
  
-+#define	RTC_CMD_WRITE_ENABLE	0x00		/* Write enable */
-+#define	RTC_CMD_WRITE_DISABLE	0x80		/* Write disable */
-+
- #define RTC_ADDR_RAM0	0x20		/* Address of RAM0 */
- #define RTC_ADDR_TCR	0x08		/* Address of trickle charge register */
-+#define	RTC_ADDR_CTRL	0x07		/* Address of control register */
- #define	RTC_ADDR_YEAR	0x06		/* Address of year register */
- #define	RTC_ADDR_DAY	0x05		/* Address of day of week register */
- #define	RTC_ADDR_MON	0x04		/* Address of month register */
-@@ -161,6 +165,7 @@ static int ds1302_rtc_read_time(struct d
- 
- static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *tm)
- {
-+	ds1302_writebyte(RTC_ADDR_CTRL, RTC_CMD_WRITE_ENABLE);
- 	/* Stop RTC */
- 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) | 0x80);
- 
-@@ -175,6 +180,8 @@ static int ds1302_rtc_set_time(struct de
- 	/* Start RTC */
- 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) & ~0x80);
- 
-+	ds1302_writebyte(RTC_ADDR_CTRL, RTC_CMD_WRITE_DISABLE);
-+
- 	return 0;
- }
- 
+ 		/* Support legacy tests for a valid loginuid */
+-		if ((f->type == AUDIT_LOGINUID) && (f->val == 4294967295)) {
++		if ((f->type == AUDIT_LOGINUID) && (f->val == 4294967295U)) {
+ 			f->type = AUDIT_LOGINUID_SET;
+ 			f->val = 0;
+ 		}
 _
 
-Patches currently in -mm which might be from ynvich@gmail.com are
+Patches currently in -mm which might be from raphael.scarv@gmail.com are
 
-drivers-rtc-rtc-ds1302c-handle-write-protection.patch
+kernel-auditfilterc-fixing-build-warning.patch
 
