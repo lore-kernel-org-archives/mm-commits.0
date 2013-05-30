@@ -1,34 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account.patch
- removed from -mm tree
-Date: Thu, 30 May 2013 12:44:52 -0700
-Message-ID: <51a7ac34.w6kBvnCfPsEXiDFS%akpm@linux-foundation.org>
+Subject: +
+ mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account.patch added to -mm tree
+Date: Thu, 30 May 2013 12:46:24 -0700
+Message-ID: <51a7ac90.628dQmvg8KLinSQe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59368 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759885Ab3E3Tox (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 15:44:53 -0400
+	with ESMTP id S1756237Ab3E3TqZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 May 2013 15:46:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
 
-Subject: [to-be-updated] mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account.patch removed from -mm tree
-To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,zcalusic@bitsync.net,mm-commits@vger.kernel.org
+Subject: + mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account.patch added to -mm tree
+To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,zcalusic@bitsync.net
 From: akpm@linux-foundation.org
-Date: Thu, 30 May 2013 12:44:52 -0700
+Date: Thu, 30 May 2013 12:46:24 -0700
 
 
 The patch titled
      Subject: mm: vmscan: take page buffers dirty and locked state into account
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
@@ -165,7 +173,7 @@ diff -puN include/linux/fs.h~mm-vmscan-take-page-buffers-dirty-and-locked-state-
 diff -puN mm/vmscan.c~mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account mm/vmscan.c
 --- a/mm/vmscan.c~mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account
 +++ a/mm/vmscan.c
-@@ -688,6 +688,14 @@ static void page_check_dirty_writeback(s
+@@ -686,6 +686,14 @@ static void page_check_dirty_writeback(s
  	/* By default assume that the page flags are accurate */
  	*dirty = PageDirty(page);
  	*writeback = PageWriteback(page);
@@ -208,6 +216,7 @@ mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch
 mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
 mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
 mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
+mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account.patch
 mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed.patch
 mm-add-tracepoints-for-lru-activation-and-insertions.patch
 mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
