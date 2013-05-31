@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-c6x-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-Date: Fri, 31 May 2013 13:32:41 -0700
-Message-ID: <51a908e9.s4IbRuSKjsUCitk/%akpm@linux-foundation.org>
+ mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ added to -mm tree
+Date: Fri, 31 May 2013 13:32:44 -0700
+Message-ID: <51a908ec.2PaL2k4s5+qbX6Ee%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40317 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755609Ab3EaUcm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:42 -0400
+	with ESMTP id S1754895Ab3EaUcp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, msalter@redhat.com, jiang.liu@huawei.com, a-jacquiot@ti.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, ysato@users.sourceforge.jp, jiang.liu@huawei.com, geert@linux-m68k.org, liuj97@gmail.com
 
-Subject: + mm-c6x-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,a-jacquiot@ti.com,jiang.liu@huawei.com,msalter@redhat.com
+Subject: + mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,geert@linux-m68k.org,jiang.liu@huawei.com,ysato@users.sourceforge.jp
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:41 -0700
+Date: Fri, 31 May 2013 13:32:44 -0700
 
 
 The patch titled
-     Subject: mm/c6x: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/h8300: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-c6x-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +41,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/c6x: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/h8300: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/mm/init.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ arch/h8300/mm/init.c |   36 ++++++++----------------------------
+ 1 file changed, 8 insertions(+), 28 deletions(-)
 
-diff -puN arch/c6x/mm/init.c~mm-c6x-prepare-for-removing-num_physpages-and-simplify-mem_init arch/c6x/mm/init.c
---- a/arch/c6x/mm/init.c~mm-c6x-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/c6x/mm/init.c
-@@ -57,21 +57,12 @@ void __init paging_init(void)
+diff -puN arch/h8300/mm/init.c~mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init arch/h8300/mm/init.c
+--- a/arch/h8300/mm/init.c~mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/h8300/mm/init.c
+@@ -121,40 +121,20 @@ void __init paging_init(void)
  
  void __init mem_init(void)
  {
--	int codek, datak;
+-	int codek = 0, datak = 0, initk = 0;
+-	/* DAVIDM look at setup memory map generically with reserved area */
 -	unsigned long tmp;
--	unsigned long len = memory_end - memory_start;
+-	extern unsigned long  _ramend, _ramstart;
+-	unsigned long len = &_ramend - &_ramstart;
+-	unsigned long start_mem = memory_start; /* DAVIDM - these must start at end of kernel */
+-	unsigned long end_mem   = memory_end; /* DAVIDM - this must not include kernel stack at top */
 -
- 	high_memory = (void *)(memory_end & PAGE_MASK);
+-#ifdef DEBUG
+-	printk(KERN_DEBUG "Mem_init: start=%lx, end=%lx\n", start_mem, end_mem);
+-#endif
++	unsigned long codesize = _etext - _stext;
  
- 	/* this will put all memory onto the freelists */
+-	end_mem &= PAGE_MASK;
+-	high_memory = (void *) end_mem;
++	pr_devel("Mem_init: start=%lx, end=%lx\n", memory_start, memory_end);
+ 
+-	start_mem = PAGE_ALIGN(start_mem);
+-	max_mapnr = num_physpages = MAP_NR(high_memory);
++	high_memory = (void *) (memory_end & PAGE_MASK);
++	max_mapnr = MAP_NR(high_memory);
+ 
+ 	/* this will put all low memory onto the freelists */
  	free_all_bootmem();
  
 -	codek = (_etext - _stext) >> 10;
--	datak = (_end - _sdata) >> 10;
+-	datak = (__bss_stop - _sdata) >> 10;
+-	initk = (__init_begin - __init_end) >> 10;
 -
 -	tmp = nr_free_pages() << PAGE_SHIFT;
--	printk(KERN_INFO "Memory: %luk/%luk RAM (%dk kernel code, %dk data)\n",
--	       tmp >> 10, len >> 10, codek, datak);
+-	printk(KERN_INFO "Memory available: %luk/%luk RAM, %luk/%luk ROM (%dk kernel code, %dk data)\n",
+-	       tmp >> 10,
+-	       len >> 10,
+-	       (rom_length > 0) ? ((rom_length >> 10) - codek) : 0,
+-	       rom_length >> 10,
+-	       codek,
+-	       datak
+-	       );
 +	mem_init_print_info(NULL);
++	if (rom_length > 0 && rom_length > codesize)
++		pr_info("Memory available: %luK/%luK ROM\n",
++			(rom_length - codesize) >> 10, rom_length >> 10);
  }
  
- #ifdef CONFIG_BLK_DEV_INITRD
+ 
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
