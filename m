@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-m68k-fix-build-warning-of-unused-variable.patch added to -mm tree
-Date: Fri, 31 May 2013 14:03:51 -0700
-Message-ID: <51a91037.fiaoQdn3rpSFyXb1%akpm@linux-foundation.org>
+Subject: + mm-alpha-clean-up-unused-valid_page.patch added to -mm tree
+Date: Fri, 31 May 2013 14:06:17 -0700
+Message-ID: <51a910c9.V+MYcP+G0mZ25C4r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754890Ab3EaVDw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:52 -0400
+	with ESMTP id S1753375Ab3EaVGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sergei.shtylyov@cogentembedded.com, jiang.liu@huawei.com, gerg@uclinux.org, geert@linux-m68k.org, cascardo@holoscopio.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, rth@twiddle.net, nyc@holomorphy.com, mattst88@gmail.com, jkosina@suse.cz, jiang.liu@huawei.com, ink@jurassic.park.msu.ru, liuj97@gmail.com
 
-Subject: + mm-m68k-fix-build-warning-of-unused-variable.patch added to -mm tree
-To: liuj97@gmail.com,cascardo@holoscopio.com,geert@linux-m68k.org,gerg@uclinux.org,jiang.liu@huawei.com,sergei.shtylyov@cogentembedded.com
+Subject: + mm-alpha-clean-up-unused-valid_page.patch added to -mm tree
+To: liuj97@gmail.com,ink@jurassic.park.msu.ru,jiang.liu@huawei.com,jkosina@suse.cz,mattst88@gmail.com,nyc@holomorphy.com,rth@twiddle.net
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:51 -0700
+Date: Fri, 31 May 2013 14:06:17 -0700
 
 
 The patch titled
-     Subject: mm/m68k: fix build warning of unused variable
+     Subject: mm/ALPHA: clean up unused VALID_PAGE()
 has been added to the -mm tree.  Its filename is
-     mm-m68k-fix-build-warning-of-unused-variable.patch
+     mm-alpha-clean-up-unused-valid_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/m68k: fix build warning of unused variable
+Subject: mm/ALPHA: clean up unused VALID_PAGE()
 
-Fix build warning of unused variable: arch/m68k/mm/init.c: In function
-'mem_init': arch/m68k/mm/init.c:151:6: warning: unused variable 'i'
-[-Wunused-variable]
+VALID_PAGE() has been removed from kernel long time ago, so clean up it.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mm/init.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ arch/alpha/include/asm/mmzone.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/m68k/mm/init.c~mm-m68k-fix-build-warning-of-unused-variable arch/m68k/mm/init.c
---- a/arch/m68k/mm/init.c~mm-m68k-fix-build-warning-of-unused-variable
-+++ a/arch/m68k/mm/init.c
-@@ -146,14 +146,11 @@ void __init print_memmap(void)
- 		MLK_ROUNDUP(__bss_start, __bss_stop));
- }
+diff -puN arch/alpha/include/asm/mmzone.h~mm-alpha-clean-up-unused-valid_page arch/alpha/include/asm/mmzone.h
+--- a/arch/alpha/include/asm/mmzone.h~mm-alpha-clean-up-unused-valid_page
++++ a/arch/alpha/include/asm/mmzone.h
+@@ -71,8 +71,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
  
--void __init mem_init(void)
-+static inline void init_pointer_tables(void)
- {
-+#if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
- 	int i;
+ #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
  
--	/* this will put all memory onto the freelists */
--	free_all_bootmem();
+-#define VALID_PAGE(page)	(((page) - mem_map) < max_mapnr)
 -
--#if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
- 	/* insert pointer tables allocated so far into the tablelist */
- 	init_pointer_table((unsigned long)kernel_pg_dir);
- 	for (i = 0; i < PTRS_PER_PGD; i++) {
-@@ -165,7 +162,13 @@ void __init mem_init(void)
- 	if (zero_pgtable)
- 		init_pointer_table((unsigned long)zero_pgtable);
- #endif
-+}
- 
-+void __init mem_init(void)
-+{
-+	/* this will put all memory onto the freelists */
-+	free_all_bootmem();
-+	init_pointer_tables();
- 	mem_init_print_info(NULL);
- 	print_memmap();
- }
+ #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> 32))
+ #define pgd_page(pgd)		(pfn_to_page(pgd_val(pgd) >> 32))
+ #define pte_pfn(pte)		(pte_val(pte) >> 32)
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
@@ -163,4 +140,9 @@ mm-sh-prepare-for-killing-free_all_bootmem_node.patch
 mm-kill-free_all_bootmem_node.patch
 mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch
 mm-m68k-fix-build-warning-of-unused-variable.patch
+mm-alpha-clean-up-unused-valid_page.patch
+mm-arm-fix-stale-comment-about-valid_page.patch
+mm-cris-clean-up-unused-valid_page.patch
+mm-microblaze-clean-up-unused-valid_page.patch
+mm-unicore32-fix-stale-comment-about-valid_page.patch
 
