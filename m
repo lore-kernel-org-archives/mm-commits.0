@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-metag-prepare-for-killing-free_all_bootmem_node.patch added
- to -mm tree
-Date: Fri, 31 May 2013 14:03:44 -0700
-Message-ID: <51a91030.vQxNmVRyjJrSJgUi%akpm@linux-foundation.org>
+Subject: + mm-parisc-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
+Date: Fri, 31 May 2013 14:03:46 -0700
+Message-ID: <51a91032.OPUAjw7xp5OTp5ad%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40584 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754738Ab3EaVDp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:45 -0400
+	with ESMTP id S1754752Ab3EaVDr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, james.hogan@imgtec.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, jiang.liu@huawei.com, jejb@parisc-linux.org, deller@gmx.de, liuj97@gmail.com
 
-Subject: + mm-metag-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
-To: liuj97@gmail.com,james.hogan@imgtec.com,jiang.liu@huawei.com
+Subject: + mm-parisc-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
+To: liuj97@gmail.com,deller@gmx.de,jejb@parisc-linux.org,jiang.liu@huawei.com,mhocko@suse.cz,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:44 -0700
+Date: Fri, 31 May 2013 14:03:46 -0700
 
 
 The patch titled
-     Subject: mm/metag: prepare for killing free_all_bootmem_node()
+     Subject: mm/PARISC: prepare for killing free_all_bootmem_node()
 has been added to the -mm tree.  Its filename is
-     mm-metag-prepare-for-killing-free_all_bootmem_node.patch
+     mm-parisc-prepare-for-killing-free_all_bootmem_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,55 +39,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/metag: prepare for killing free_all_bootmem_node()
+Subject: mm/PARISC: prepare for killing free_all_bootmem_node()
 
 Prepare for killing free_all_bootmem_node() by using free_all_bootmem().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: James Hogan <james.hogan@imgtec.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/metag/mm/init.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ arch/parisc/mm/init.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN arch/metag/mm/init.c~mm-metag-prepare-for-killing-free_all_bootmem_node arch/metag/mm/init.c
---- a/arch/metag/mm/init.c~mm-metag-prepare-for-killing-free_all_bootmem_node
-+++ a/arch/metag/mm/init.c
-@@ -376,31 +376,21 @@ void __init paging_init(unsigned long me
+diff -puN arch/parisc/mm/init.c~mm-parisc-prepare-for-killing-free_all_bootmem_node arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~mm-parisc-prepare-for-killing-free_all_bootmem_node
++++ a/arch/parisc/mm/init.c
+@@ -585,18 +585,8 @@ void __init mem_init(void)
+ 			> BITS_PER_LONG);
  
- void __init mem_init(void)
- {
--	int nid;
+ 	high_memory = __va((max_pfn << PAGE_SHIFT));
 -
- #ifdef CONFIG_HIGHMEM
- 	unsigned long tmp;
- 
- 	/*
- 	 * Explicitly reset zone->managed_pages because highmem pages are
--	 * freed before calling free_all_bootmem_node();
-+	 * freed before calling free_all_bootmem();
- 	 */
- 	reset_all_zones_managed_pages();
- 	for (tmp = highstart_pfn; tmp < highend_pfn; tmp++)
- 		free_highmem_page(pfn_to_page(tmp));
- #endif /* CONFIG_HIGHMEM */
- 
--	for_each_online_node(nid) {
--		pg_data_t *pgdat = NODE_DATA(nid);
+-#ifndef CONFIG_DISCONTIGMEM
+-	max_mapnr = page_to_pfn(virt_to_page(high_memory - 1)) + 1;
++	set_max_mapnr(page_to_pfn(virt_to_page(high_memory - 1)) + 1);
+ 	free_all_bootmem();
+-#else
+-	{
+-		int i;
 -
--		if (pgdat->node_spanned_pages)
--			free_all_bootmem_node(pgdat);
+-		for (i = 0; i < npmem_ranges; i++)
+-			free_all_bootmem_node(NODE_DATA(i));
 -	}
--
-+	free_all_bootmem();
- 	mem_init_print_info(NULL);
- 	show_mem(0);
--
--	return;
- }
+-#endif
  
- void free_initmem(void)
+ #ifdef CONFIG_PA11
+ 	if (hppa_dma_ops == &pcxl_dma_ops) {
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
