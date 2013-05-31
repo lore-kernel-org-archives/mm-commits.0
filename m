@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ mm-s390-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
  added to -mm tree
-Date: Fri, 31 May 2013 13:32:57 -0700
-Message-ID: <51a908f9.mu4X5ni09J43TG5N%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 13:32:56 -0700
+Message-ID: <51a908f8.KXJbkoboA9VZEBZi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755913Ab3EaUc6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:58 -0400
+	with ESMTP id S1754895Ab3EaUc5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, liqin.chen@sunplusct.com, lennox.wu@gmail.com, jiang.liu@huawei.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, jiang.liu@huawei.com, heiko.carstens@de.ibm.com, liuj97@gmail.com
 
-Subject: + mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,jiang.liu@huawei.com,lennox.wu@gmail.com,liqin.chen@sunplusct.com
+Subject: + mm-s390-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,heiko.carstens@de.ibm.com,jiang.liu@huawei.com,schwidefsky@de.ibm.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:57 -0700
+Date: Fri, 31 May 2013 13:32:56 -0700
 
 
 The patch titled
-     Subject: mm/score: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/s390: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-s390-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,57 +41,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/score: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/s390: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Chen Liqin <liqin.chen@sunplusct.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/mm/init.c |   24 +-----------------------
- 1 file changed, 1 insertion(+), 23 deletions(-)
+ arch/s390/mm/init.c |   17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-diff -puN arch/score/mm/init.c~mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init arch/score/mm/init.c
---- a/arch/score/mm/init.c~mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/score/mm/init.c
-@@ -75,33 +75,11 @@ void __init paging_init(void)
+diff -puN arch/s390/mm/init.c~mm-s390-prepare-for-removing-num_physpages-and-simplify-mem_init arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~mm-s390-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/s390/mm/init.c
+@@ -135,9 +135,7 @@ void __init paging_init(void)
  
  void __init mem_init(void)
  {
 -	unsigned long codesize, reservedpages, datasize, initsize;
--	unsigned long tmp, ram = 0;
 -
- 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+-        max_mapnr = num_physpages = max_low_pfn;
++        max_mapnr = max_low_pfn;
+         high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+ 
+ 	/* Setup guest page hinting */
+@@ -147,18 +145,7 @@ void __init mem_init(void)
  	free_all_bootmem();
- 	setup_zero_page();	/* Setup zeroed pages. */
+ 	setup_zero_pages();	/* Setup zeroed pages. */
+ 
 -	reservedpages = 0;
 -
--	for (tmp = 0; tmp < max_low_pfn; tmp++)
--		if (page_is_ram(tmp)) {
--			ram++;
--			if (PageReserved(pfn_to_page(tmp)))
--				reservedpages++;
--		}
--
--	num_physpages = ram;
--	codesize = (unsigned long) &_etext - (unsigned long) &_text;
--	datasize = (unsigned long) &_edata - (unsigned long) &_etext;
--	initsize = (unsigned long) &__init_end - (unsigned long) &__init_begin;
- 
--	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
--			"%ldk reserved, %ldk data, %ldk init, %ldk highmem)\n",
--			(unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
--			ram << (PAGE_SHIFT-10), codesize >> 10,
--			reservedpages << (PAGE_SHIFT-10), datasize >> 10,
--			initsize >> 10,
--			totalhigh_pages << (PAGE_SHIFT-10));
+-	codesize =  (unsigned long) &_etext - (unsigned long) &_text;
+-	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+-	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+-        printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, %ldk data, %ldk init)\n",
+-		nr_free_pages() << (PAGE_SHIFT-10),
+-                max_mapnr << (PAGE_SHIFT-10),
+-                codesize >> 10,
+-                reservedpages << (PAGE_SHIFT-10),
+-                datasize >>10,
+-                initsize >> 10);
 +	mem_init_print_info(NULL);
- }
- #endif /* !CONFIG_NEED_MULTIPLE_NODES */
- 
+ 	printk("Write protected kernel read-only data: %#lx - %#lx\n",
+ 	       (unsigned long)&_stext,
+ 	       PFN_ALIGN((unsigned long)&_eshared) - 1);
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
