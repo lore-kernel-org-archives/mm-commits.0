@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch added to
- -mm tree
-Date: Fri, 31 May 2013 14:03:50 -0700
-Message-ID: <51a91036.pY9pgJp67xdKYA2l%akpm@linux-foundation.org>
+Subject: + mm-m68k-fix-build-warning-of-unused-variable.patch added to -mm tree
+Date: Fri, 31 May 2013 14:03:51 -0700
+Message-ID: <51a91037.fiaoQdn3rpSFyXb1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40606 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754337Ab3EaVDv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:51 -0400
+	with ESMTP id S1754890Ab3EaVDw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rth@twiddle.net, mattst88@gmail.com, jiang.liu@huawei.com, ink@jurassic.park.msu.ru, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, sergei.shtylyov@cogentembedded.com, jiang.liu@huawei.com, gerg@uclinux.org, geert@linux-m68k.org, cascardo@holoscopio.com, liuj97@gmail.com
 
-Subject: + mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch added to -mm tree
-To: liuj97@gmail.com,ink@jurassic.park.msu.ru,jiang.liu@huawei.com,mattst88@gmail.com,rth@twiddle.net
+Subject: + mm-m68k-fix-build-warning-of-unused-variable.patch added to -mm tree
+To: liuj97@gmail.com,cascardo@holoscopio.com,geert@linux-m68k.org,gerg@uclinux.org,jiang.liu@huawei.com,sergei.shtylyov@cogentembedded.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:50 -0700
+Date: Fri, 31 May 2013 14:03:51 -0700
 
 
 The patch titled
-     Subject: mm/alpha: unify mem_init() for both UMA and NUMA architectures
+     Subject: mm/m68k: fix build warning of unused variable
 has been added to the -mm tree.  Its filename is
-     mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch
+     mm-m68k-fix-build-warning-of-unused-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,62 +39,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/alpha: unify mem_init() for both UMA and NUMA architectures
+Subject: mm/m68k: fix build warning of unused variable
 
-Now mem_init() for both Alpha UMA and Alpha NUMA are the same, so unify it
-to reduce duplicated code.
+Fix build warning of unused variable: arch/m68k/mm/init.c: In function
+'mem_init': arch/m68k/mm/init.c:151:6: warning: unused variable 'i'
+[-Wunused-variable]
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/init.c |    7 ++-----
- arch/alpha/mm/numa.c |   10 ----------
- 2 files changed, 2 insertions(+), 15 deletions(-)
+ arch/m68k/mm/init.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/alpha/mm/init.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures arch/alpha/mm/init.c
---- a/arch/alpha/mm/init.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures
-+++ a/arch/alpha/mm/init.c
-@@ -276,17 +276,14 @@ srm_paging_stop (void)
+diff -puN arch/m68k/mm/init.c~mm-m68k-fix-build-warning-of-unused-variable arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~mm-m68k-fix-build-warning-of-unused-variable
++++ a/arch/m68k/mm/init.c
+@@ -146,14 +146,11 @@ void __init print_memmap(void)
+ 		MLK_ROUNDUP(__bss_start, __bss_stop));
  }
- #endif
  
--#ifndef CONFIG_DISCONTIGMEM
- void __init
- mem_init(void)
- {
--	max_mapnr = max_low_pfn;
--	free_all_bootmem();
-+	set_max_mapnr(max_low_pfn);
- 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
--
-+	free_all_bootmem();
- 	mem_init_print_info(NULL);
- }
--#endif /* CONFIG_DISCONTIGMEM */
- 
- void
- free_initmem(void)
-diff -puN arch/alpha/mm/numa.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures arch/alpha/mm/numa.c
---- a/arch/alpha/mm/numa.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures
-+++ a/arch/alpha/mm/numa.c
-@@ -319,13 +319,3 @@ void __init paging_init(void)
- 	/* Initialize the kernel's ZERO_PGE. */
- 	memset((void *)ZERO_PGE, 0, PAGE_SIZE);
- }
--
 -void __init mem_init(void)
--{
--	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
++static inline void init_pointer_tables(void)
+ {
++#if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
+ 	int i;
+ 
+-	/* this will put all memory onto the freelists */
 -	free_all_bootmem();
--	mem_init_print_info(NULL);
--#if 0
--	mem_stress();
--#endif
--}
+-
+-#if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
+ 	/* insert pointer tables allocated so far into the tablelist */
+ 	init_pointer_table((unsigned long)kernel_pg_dir);
+ 	for (i = 0; i < PTRS_PER_PGD; i++) {
+@@ -165,7 +162,13 @@ void __init mem_init(void)
+ 	if (zero_pgtable)
+ 		init_pointer_table((unsigned long)zero_pgtable);
+ #endif
++}
+ 
++void __init mem_init(void)
++{
++	/* this will put all memory onto the freelists */
++	free_all_bootmem();
++	init_pointer_tables();
+ 	mem_init_print_info(NULL);
+ 	print_memmap();
+ }
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
