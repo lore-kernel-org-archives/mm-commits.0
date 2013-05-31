@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-ia64-prepare-for-killing-free_all_bootmem_node.patch added
+Subject: + mm-avr32-prepare-for-killing-free_all_bootmem_node.patch added
  to -mm tree
-Date: Fri, 31 May 2013 14:03:41 -0700
-Message-ID: <51a9102d.8ZmfXfPaoNkqAuTp%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 14:03:40 -0700
+Message-ID: <51a9102c.53oK6/DZwE+Xxuh8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294Ab3EaVDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:42 -0400
+	with ESMTP id S1753780Ab3EaVDl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, tangchen@cn.fujitsu.com, rientjes@google.com, jiang.liu@huawei.com, fenghua.yu@intel.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, liuj97@gmail.com
 
-Subject: + mm-ia64-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
-To: liuj97@gmail.com,fenghua.yu@intel.com,jiang.liu@huawei.com,rientjes@google.com,tangchen@cn.fujitsu.com,tony.luck@intel.com
+Subject: + mm-avr32-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
+To: liuj97@gmail.com,egtvedt@samfundet.no,hskinnemoen@gmail.com,jiang.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:41 -0700
+Date: Fri, 31 May 2013 14:03:40 -0700
 
 
 The patch titled
-     Subject: mm/IA64: prepare for killing free_all_bootmem_node()
+     Subject: mm/AVR32: prepare for killing free_all_bootmem_node()
 has been added to the -mm tree.  Its filename is
-     mm-ia64-prepare-for-killing-free_all_bootmem_node.patch
+     mm-avr32-prepare-for-killing-free_all_bootmem_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +40,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/IA64: prepare for killing free_all_bootmem_node()
+Subject: mm/AVR32: prepare for killing free_all_bootmem_node()
 
-Prepare for killing free_all_bootmem_node() by using free_all_bootmem().
+Prepare for killing free_all_bootmem_node() by using free_all_bootmem()
+instead.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ arch/avr32/mm/init.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~mm-ia64-prepare-for-killing-free_all_bootmem_node arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-ia64-prepare-for-killing-free_all_bootmem_node
-+++ a/arch/ia64/mm/init.c
-@@ -583,7 +583,6 @@ __setup("nolwsys", nolwsys_setup);
- void __init
- mem_init (void)
- {
--	pg_data_t *pgdat;
- 	int i;
+diff -puN arch/avr32/mm/init.c~mm-avr32-prepare-for-killing-free_all_bootmem_node arch/avr32/mm/init.c
+--- a/arch/avr32/mm/init.c~mm-avr32-prepare-for-killing-free_all_bootmem_node
++++ a/arch/avr32/mm/init.c
+@@ -103,23 +103,12 @@ void __init mem_init(void)
+ 	pg_data_t *pgdat;
  
- 	BUG_ON(PTRS_PER_PGD * sizeof(pgd_t) != PAGE_SIZE);
-@@ -601,15 +600,11 @@ mem_init (void)
+ 	high_memory = NULL;
++	for_each_online_pgdat(pgdat)
++		high_memory = max_t(void *, high_memory,
++				    __va(pgdat_end_pfn(pgdat) << PAGE_SHIFT));
  
- #ifdef CONFIG_FLATMEM
- 	BUG_ON(!mem_map);
--	max_mapnr = max_low_pfn;
- #endif
- 
-+	set_max_mapnr(max_low_pfn);
- 	high_memory = __va(max_low_pfn * PAGE_SIZE);
+-	/* this will put all low memory onto the freelists */
+-	for_each_online_pgdat(pgdat) {
+-		void *node_high_memory;
 -
--	for_each_online_pgdat(pgdat)
--		if (pgdat->bdata->node_bootmem_map)
+-		if (pgdat->node_spanned_pages != 0)
 -			free_all_bootmem_node(pgdat);
 -
+-		node_high_memory = (void *)((pgdat->node_start_pfn
+-					     + pgdat->node_spanned_pages)
+-					    << PAGE_SHIFT);
+-		if (node_high_memory > high_memory)
+-			high_memory = node_high_memory;
+-	}
+-
+-	max_mapnr = MAP_NR(high_memory);
+-
++	set_max_mapnr(MAP_NR(high_memory));
 +	free_all_bootmem();
  	mem_init_print_info(NULL);
+ }
  
- 	/*
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
