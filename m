@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-kill-free_all_bootmem_node.patch added to -mm tree
-Date: Fri, 31 May 2013 14:03:49 -0700
-Message-ID: <51a91035.+ToCc5bKHAFsBM6A%akpm@linux-foundation.org>
+Subject: +
+ mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch added to
+ -mm tree
+Date: Fri, 31 May 2013 14:03:50 -0700
+Message-ID: <51a91036.pY9pgJp67xdKYA2l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754337Ab3EaVDu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:50 -0400
+	with ESMTP id S1754337Ab3EaVDv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, jiang.liu@huawei.com, hannes@cmpxchg.org, davem@davemloft.net, akpm@linux-foundation.org, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, rth@twiddle.net, mattst88@gmail.com, jiang.liu@huawei.com, ink@jurassic.park.msu.ru, liuj97@gmail.com
 
-Subject: + mm-kill-free_all_bootmem_node.patch added to -mm tree
-To: liuj97@gmail.com,akpm@linux-foundation.org,davem@davemloft.net,hannes@cmpxchg.org,jiang.liu@huawei.com,tj@kernel.org,yinghai@kernel.org
+Subject: + mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch added to -mm tree
+To: liuj97@gmail.com,ink@jurassic.park.msu.ru,jiang.liu@huawei.com,mattst88@gmail.com,rth@twiddle.net
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:49 -0700
+Date: Fri, 31 May 2013 14:03:50 -0700
 
 
 The patch titled
-     Subject: mm: kill free_all_bootmem_node()
+     Subject: mm/alpha: unify mem_init() for both UMA and NUMA architectures
 has been added to the -mm tree.  Its filename is
-     mm-kill-free_all_bootmem_node.patch
+     mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +41,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm: kill free_all_bootmem_node()
+Subject: mm/alpha: unify mem_init() for both UMA and NUMA architectures
 
-Now nobody makes use of free_all_bootmem_node(), kill it.
+Now mem_init() for both Alpha UMA and Alpha NUMA are the same, so unify it
+to reduce duplicated code.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 -
- mm/bootmem.c            |   18 ------------------
- 2 files changed, 19 deletions(-)
+ arch/alpha/mm/init.c |    7 ++-----
+ arch/alpha/mm/numa.c |   10 ----------
+ 2 files changed, 2 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-kill-free_all_bootmem_node include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-kill-free_all_bootmem_node
-+++ a/include/linux/bootmem.h
-@@ -44,7 +44,6 @@ extern unsigned long init_bootmem_node(p
- 				       unsigned long endpfn);
- extern unsigned long init_bootmem(unsigned long addr, unsigned long memend);
- 
--extern unsigned long free_all_bootmem_node(pg_data_t *pgdat);
- extern unsigned long free_all_bootmem(void);
- extern void reset_all_zones_managed_pages(void);
- 
-diff -puN mm/bootmem.c~mm-kill-free_all_bootmem_node mm/bootmem.c
---- a/mm/bootmem.c~mm-kill-free_all_bootmem_node
-+++ a/mm/bootmem.c
-@@ -264,24 +264,6 @@ void __init reset_all_zones_managed_page
+diff -puN arch/alpha/mm/init.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures arch/alpha/mm/init.c
+--- a/arch/alpha/mm/init.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures
++++ a/arch/alpha/mm/init.c
+@@ -276,17 +276,14 @@ srm_paging_stop (void)
  }
+ #endif
  
- /**
-- * free_all_bootmem_node - release a node's free pages to the buddy allocator
-- * @pgdat: node to be released
-- *
-- * Returns the number of pages actually released.
-- */
--unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
+-#ifndef CONFIG_DISCONTIGMEM
+ void __init
+ mem_init(void)
+ {
+-	max_mapnr = max_low_pfn;
+-	free_all_bootmem();
++	set_max_mapnr(max_low_pfn);
+ 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+-
++	free_all_bootmem();
+ 	mem_init_print_info(NULL);
+ }
+-#endif /* CONFIG_DISCONTIGMEM */
+ 
+ void
+ free_initmem(void)
+diff -puN arch/alpha/mm/numa.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures arch/alpha/mm/numa.c
+--- a/arch/alpha/mm/numa.c~mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures
++++ a/arch/alpha/mm/numa.c
+@@ -319,13 +319,3 @@ void __init paging_init(void)
+ 	/* Initialize the kernel's ZERO_PGE. */
+ 	memset((void *)ZERO_PGE, 0, PAGE_SIZE);
+ }
+-
+-void __init mem_init(void)
 -{
--	unsigned long pages;
--
--	register_page_bootmem_info_node(pgdat);
--	reset_node_managed_pages(pgdat);
--	pages = free_all_bootmem_core(pgdat->bdata);
--	totalram_pages += pages;
--
--	return pages;
+-	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+-	free_all_bootmem();
+-	mem_init_print_info(NULL);
+-#if 0
+-	mem_stress();
+-#endif
 -}
--
--/**
-  * free_all_bootmem - release free pages to the buddy allocator
-  *
-  * Returns the number of pages actually released.
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
