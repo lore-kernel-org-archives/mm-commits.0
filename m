@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-helper-function-set_max_mapnr.patch added to -mm
- tree
-Date: Fri, 31 May 2013 14:03:39 -0700
-Message-ID: <51a9102b.xtUWt2GNaViqSucv%akpm@linux-foundation.org>
+Subject: + mm-metag-prepare-for-killing-free_all_bootmem_node.patch added
+ to -mm tree
+Date: Fri, 31 May 2013 14:03:44 -0700
+Message-ID: <51a91030.vQxNmVRyjJrSJgUi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40551 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294Ab3EaVDk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:40 -0400
+	with ESMTP id S1754738Ab3EaVDp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mchehab@redhat.com, jiang.liu@huawei.com, gregkh@linuxfoundation.org, davem@davemloft.net, broonie@opensource.wolfsonmicro.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, james.hogan@imgtec.com, liuj97@gmail.com
 
-Subject: + mm-introduce-helper-function-set_max_mapnr.patch added to -mm tree
-To: liuj97@gmail.com,broonie@opensource.wolfsonmicro.com,davem@davemloft.net,gregkh@linuxfoundation.org,jiang.liu@huawei.com,mchehab@redhat.com
+Subject: + mm-metag-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
+To: liuj97@gmail.com,james.hogan@imgtec.com,jiang.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:39 -0700
+Date: Fri, 31 May 2013 14:03:44 -0700
 
 
 The patch titled
-     Subject: mm: introduce helper function set_max_mapnr()
+     Subject: mm/metag: prepare for killing free_all_bootmem_node()
 has been added to the -mm tree.  Its filename is
-     mm-introduce-helper-function-set_max_mapnr.patch
+     mm-metag-prepare-for-killing-free_all_bootmem_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +40,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm: introduce helper function set_max_mapnr()
+Subject: mm/metag: prepare for killing free_all_bootmem_node()
 
-Introduce a helper function set_max_mapnr() to set global variable
-max_mapnr.
-
-Also unify condition compilation for max_mapnr with
-CONFIG_NEED_MULTIPLE_NODES instead of CONFIG_DISCONTIGMEM.
+Prepare for killing free_all_bootmem_node() by using free_all_bootmem().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/metag/mm/init.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introduce-helper-function-set_max_mapnr include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-helper-function-set_max_mapnr
-+++ a/include/linux/mm.h
-@@ -25,8 +25,15 @@ struct file_ra_state;
- struct user_struct;
- struct writeback_control;
+diff -puN arch/metag/mm/init.c~mm-metag-prepare-for-killing-free_all_bootmem_node arch/metag/mm/init.c
+--- a/arch/metag/mm/init.c~mm-metag-prepare-for-killing-free_all_bootmem_node
++++ a/arch/metag/mm/init.c
+@@ -376,31 +376,21 @@ void __init paging_init(unsigned long me
  
--#ifndef CONFIG_DISCONTIGMEM          /* Don't use mapnrs, do it properly */
-+#ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */
- extern unsigned long max_mapnr;
-+
-+static inline void set_max_mapnr(unsigned long limit)
-+{
-+	max_mapnr = limit;
-+}
-+#else
-+static inline void set_max_mapnr(unsigned long limit) { }
- #endif
+ void __init mem_init(void)
+ {
+-	int nid;
+-
+ #ifdef CONFIG_HIGHMEM
+ 	unsigned long tmp;
  
- extern unsigned long totalram_pages;
+ 	/*
+ 	 * Explicitly reset zone->managed_pages because highmem pages are
+-	 * freed before calling free_all_bootmem_node();
++	 * freed before calling free_all_bootmem();
+ 	 */
+ 	reset_all_zones_managed_pages();
+ 	for (tmp = highstart_pfn; tmp < highend_pfn; tmp++)
+ 		free_highmem_page(pfn_to_page(tmp));
+ #endif /* CONFIG_HIGHMEM */
+ 
+-	for_each_online_node(nid) {
+-		pg_data_t *pgdat = NODE_DATA(nid);
+-
+-		if (pgdat->node_spanned_pages)
+-			free_all_bootmem_node(pgdat);
+-	}
+-
++	free_all_bootmem();
+ 	mem_init_print_info(NULL);
+ 	show_mem(0);
+-
+-	return;
+ }
+ 
+ void free_initmem(void)
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
