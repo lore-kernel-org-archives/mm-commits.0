@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- vmlinuxlds-add-comments-for-global-variables-and-clean-up-useless-declarations.patch added to -mm tree
-Date: Fri, 31 May 2013 13:32:24 -0700
-Message-ID: <51a908d8.iFoz5Vu1X0vS7w/F%akpm@linux-foundation.org>
+Subject: + avr32-normalize-global-variables-exported-by-vmlinuxlds.patch
+ added to -mm tree
+Date: Fri, 31 May 2013 13:32:25 -0700
+Message-ID: <51a908d9.bCGKogc3Jax5hKel%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40217 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40221 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754847Ab3EaUcZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:25 -0400
+	with ESMTP id S1754847Ab3EaUc0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, arnd@arndb.de, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, liuj97@gmail.com
 
-Subject: + vmlinuxlds-add-comments-for-global-variables-and-clean-up-useless-declarations.patch added to -mm tree
-To: liuj97@gmail.com,arnd@arndb.de,jiang.liu@huawei.com
+Subject: + avr32-normalize-global-variables-exported-by-vmlinuxlds.patch added to -mm tree
+To: liuj97@gmail.com,egtvedt@samfundet.no,hskinnemoen@gmail.com,jiang.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:24 -0700
+Date: Fri, 31 May 2013 13:32:25 -0700
 
 
 The patch titled
-     Subject: vmlinux.lds: add comments for global variables and clean up useless declarations
+     Subject: avr32: normalize global variables exported by vmlinux.lds
 has been added to the -mm tree.  Its filename is
-     vmlinuxlds-add-comments-for-global-variables-and-clean-up-useless-declarations.patch
+     avr32-normalize-global-variables-exported-by-vmlinuxlds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +40,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: vmlinux.lds: add comments for global variables and clean up useless declarations
+Subject: avr32: normalize global variables exported by vmlinux.lds
 
-Document global variables exported from vmlinux.lds.
+Normalize global variables exported by vmlinux.lds to conform usage
+guidelines from include/asm-generic/sections.h.
 
-1) Add comments about usage guidelines for global variables exported
-   from vmlinux.lds.S.
-2) Remove unused __initdata_begin[] and __initdata_end[].
+Use _text to mark the start of the kernel image including the head text,
+and _stext to mark the start of the .text section.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/sections.h |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ arch/avr32/kernel/setup.c       |    2 +-
+ arch/avr32/kernel/vmlinux.lds.S |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/sections.h~vmlinuxlds-add-comments-for-global-variables-and-clean-up-useless-declarations include/asm-generic/sections.h
---- a/include/asm-generic/sections.h~vmlinuxlds-add-comments-for-global-variables-and-clean-up-useless-declarations
-+++ a/include/asm-generic/sections.h
-@@ -3,6 +3,26 @@
+diff -puN arch/avr32/kernel/setup.c~avr32-normalize-global-variables-exported-by-vmlinuxlds arch/avr32/kernel/setup.c
+--- a/arch/avr32/kernel/setup.c~avr32-normalize-global-variables-exported-by-vmlinuxlds
++++ a/arch/avr32/kernel/setup.c
+@@ -555,7 +555,7 @@ void __init setup_arch (char **cmdline_p
+ {
+ 	struct clk *cpu_clk;
  
- /* References to section boundaries */
+-	init_mm.start_code = (unsigned long)_text;
++	init_mm.start_code = (unsigned long)_stext;
+ 	init_mm.end_code = (unsigned long)_etext;
+ 	init_mm.end_data = (unsigned long)_edata;
+ 	init_mm.brk = (unsigned long)_end;
+diff -puN arch/avr32/kernel/vmlinux.lds.S~avr32-normalize-global-variables-exported-by-vmlinuxlds arch/avr32/kernel/vmlinux.lds.S
+--- a/arch/avr32/kernel/vmlinux.lds.S~avr32-normalize-global-variables-exported-by-vmlinuxlds
++++ a/arch/avr32/kernel/vmlinux.lds.S
+@@ -23,7 +23,7 @@ SECTIONS
+ {
+ 	. = CONFIG_ENTRY_ADDRESS;
+ 	.init		: AT(ADDR(.init) - LOAD_OFFSET) {
+-		_stext = .;
++		_text = .;
+ 		__init_begin = .;
+ 			_sinittext = .;
+ 			*(.text.reset)
+@@ -46,7 +46,7 @@ SECTIONS
  
-+/*
-+ * Usage guidelines:
-+ * _text, _data: architecture specific, don't use them in arch-independent code
-+ * [_stext, _etext]: contains .text.* sections, may also contain .rodata.*
-+ *                   and/or .init.* sections
-+ * [_sdata, _edata]: contains .data.* sections, may also contain .rodata.*
-+ *                   and/or .init.* sections.
-+ * [__start_rodata, __end_rodata]: contains .rodata.* sections
-+ * [__init_begin, __init_end]: contains .init.* sections, but .init.text.*
-+ *                   may be out of this range on some architectures.
-+ * [_sinittext, _einittext]: contains .init.text.* sections
-+ * [__bss_start, __bss_stop]: contains BSS sections
-+ *
-+ * Following global variables are optional and may be unavailable on some
-+ * architectures and/or kernel configurations.
-+ *	_text, _data
-+ *	__kprobes_text_start, __kprobes_text_end
-+ *	__entry_text_start, __entry_text_end
-+ *	__ctors_start, __ctors_end
-+ */
- extern char _text[], _stext[], _etext[];
- extern char _data[], _sdata[], _edata[];
- extern char __bss_start[], __bss_stop[];
-@@ -12,7 +32,6 @@ extern char _end[];
- extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
- extern char __kprobes_text_start[], __kprobes_text_end[];
- extern char __entry_text_start[], __entry_text_end[];
--extern char __initdata_begin[], __initdata_end[];
- extern char __start_rodata[], __end_rodata[];
- 
- /* Start and end of .ctors section - used for constructor calls. */
+ 	.text		: AT(ADDR(.text) - LOAD_OFFSET) {
+ 		_evba = .;
+-		_text = .;
++		_stext = .;
+ 		*(.ex.text)
+ 		*(.irq.text)
+ 		KPROBES_TEXT
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
