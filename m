@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-Date: Fri, 31 May 2013 13:32:43 -0700
-Message-ID: <51a908eb.PGYdORLkVxyuB9Lw%akpm@linux-foundation.org>
+ mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ added to -mm tree
+Date: Fri, 31 May 2013 13:32:48 -0700
+Message-ID: <51a908f0.aaU9ZyQ5l2dnx/jD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40309 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40330 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab3EaUco (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:44 -0400
+	with ESMTP id S1755345Ab3EaUct (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, gregkh@linuxfoundation.org, geert@linux-m68k.org, dhowells@redhat.com, ak@linux.intel.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, gerg@uclinux.org, geert@linux-m68k.org, liuj97@gmail.com
 
-Subject: + mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,ak@linux.intel.com,dhowells@redhat.com,geert@linux-m68k.org,gregkh@linuxfoundation.org,jiang.liu@huawei.com
+Subject: + mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,geert@linux-m68k.org,gerg@uclinux.org,jiang.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:43 -0700
+Date: Fri, 31 May 2013 13:32:48 -0700
 
 
 The patch titled
-     Subject: mm/frv: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/m68k: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,147 +41,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/frv: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/m68k: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/setup.c |   13 +++++----
- arch/frv/mm/init.c      |   51 +++++++++++---------------------------
- 2 files changed, 22 insertions(+), 42 deletions(-)
+ arch/m68k/mm/init.c |   31 ++-----------------------------
+ 1 file changed, 2 insertions(+), 29 deletions(-)
 
-diff -puN arch/frv/kernel/setup.c~mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init arch/frv/kernel/setup.c
---- a/arch/frv/kernel/setup.c~mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/frv/kernel/setup.c
-@@ -876,6 +876,7 @@ late_initcall(setup_arch_serial);
- static void __init setup_linux_memory(void)
- {
- 	unsigned long bootmap_size, low_top_pfn, kstart, kend, high_mem;
-+	unsigned long physpages;
- 
- 	kstart	= (unsigned long) &__kernel_image_start - PAGE_OFFSET;
- 	kend	= (unsigned long) &__kernel_image_end - PAGE_OFFSET;
-@@ -893,19 +894,19 @@ static void __init setup_linux_memory(vo
- 					 );
- 
- 	/* pass the memory that the kernel can immediately use over to the bootmem allocator */
--	max_mapnr = num_physpages = (memory_end - memory_start) >> PAGE_SHIFT;
-+	max_mapnr = physpages = (memory_end - memory_start) >> PAGE_SHIFT;
- 	low_top_pfn = (KERNEL_LOWMEM_END - KERNEL_LOWMEM_START) >> PAGE_SHIFT;
- 	high_mem = 0;
- 
--	if (num_physpages > low_top_pfn) {
-+	if (physpages > low_top_pfn) {
- #ifdef CONFIG_HIGHMEM
--		high_mem = num_physpages - low_top_pfn;
-+		high_mem = physpages - low_top_pfn;
- #else
--		max_mapnr = num_physpages = low_top_pfn;
-+		max_mapnr = physpages = low_top_pfn;
- #endif
- 	}
- 	else {
--		low_top_pfn = num_physpages;
-+		low_top_pfn = physpages;
- 	}
- 
- 	min_low_pfn = memory_start >> PAGE_SHIFT;
-@@ -979,7 +980,7 @@ static void __init setup_uclinux_memory(
- 	free_bootmem(memory_start, memory_end - memory_start);
- 
- 	high_memory = (void *) (memory_end & PAGE_MASK);
--	max_mapnr = num_physpages = ((unsigned long) high_memory - PAGE_OFFSET) >> PAGE_SHIFT;
-+	max_mapnr = ((unsigned long) high_memory - PAGE_OFFSET) >> PAGE_SHIFT;
- 
- 	min_low_pfn = memory_start >> PAGE_SHIFT;
- 	max_low_pfn = memory_end >> PAGE_SHIFT;
-diff -puN arch/frv/mm/init.c~mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init arch/frv/mm/init.c
---- a/arch/frv/mm/init.c~mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/frv/mm/init.c
-@@ -78,7 +78,7 @@ void __init paging_init(void)
- 	memset((void *) empty_zero_page, 0, PAGE_SIZE);
- 
- #ifdef CONFIG_HIGHMEM
--	if (num_physpages - num_mappedpages) {
-+	if (get_num_physpages() - num_mappedpages) {
- 		pgd_t *pge;
- 		pud_t *pue;
- 		pmd_t *pme;
-@@ -96,7 +96,7 @@ void __init paging_init(void)
- 	 */
- 	zones_size[ZONE_NORMAL]  = max_low_pfn - min_low_pfn;
- #ifdef CONFIG_HIGHMEM
--	zones_size[ZONE_HIGHMEM] = num_physpages - num_mappedpages;
-+	zones_size[ZONE_HIGHMEM] = get_num_physpages() - num_mappedpages;
- #endif
- 
- 	free_area_init(zones_size);
-@@ -114,45 +114,24 @@ void __init paging_init(void)
-  */
+diff -puN arch/m68k/mm/init.c~mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/m68k/mm/init.c
+@@ -149,33 +149,11 @@ void __init print_memmap(void)
  void __init mem_init(void)
  {
--	unsigned long npages = (memory_end - memory_start) >> PAGE_SHIFT;
--	unsigned long tmp;
--#ifdef CONFIG_MMU
--	unsigned long loop, pfn;
+ 	pg_data_t *pgdat;
+-	int codepages = 0;
 -	int datapages = 0;
--#endif
--	int codek = 0, datak = 0;
-+	unsigned long code_size = _etext - _stext;
+-	int initpages = 0;
+ 	int i;
  
- 	/* this will put all low memory onto the freelists */
- 	free_all_bootmem();
+ 	/* this will put all memory onto the freelists */
+-	num_physpages = 0;
+-	for_each_online_pgdat(pgdat) {
+-		num_physpages += pgdat->node_present_pages;
 -
--#ifdef CONFIG_MMU
--	for (loop = 0 ; loop < npages ; loop++)
--		if (PageReserved(&mem_map[loop]))
--			datapages++;
++	for_each_online_pgdat(pgdat)
+ 		free_all_bootmem_node(pgdat);
+-		for (i = 0; i < pgdat->node_spanned_pages; i++) {
+-			struct page *page = pgdat->node_mem_map + i;
+-			char *addr = page_to_virt(page);
 -
--#ifdef CONFIG_HIGHMEM
--	for (pfn = num_physpages - 1; pfn >= num_mappedpages; pfn--)
--		free_highmem_page(&mem_map[pfn]);
--#endif
--
--	codek = ((unsigned long) &_etext - (unsigned long) &_stext) >> 10;
--	datak = datapages << (PAGE_SHIFT - 10);
--
--#else
--	codek = (_etext - _stext) >> 10;
--	datak = 0; //(__bss_stop - _sdata) >> 10;
-+#if defined(CONFIG_MMU) && defined(CONFIG_HIGHMEM)
-+	{
-+		unsigned long pfn;
-+
-+		for (pfn = get_num_physpages() - 1;
-+		     pfn >= num_mappedpages; pfn--)
-+			free_highmem_page(&mem_map[pfn]);
-+	}
+-			if (!PageReserved(page))
+-				continue;
+-			if (addr >= _text &&
+-			    addr < _etext)
+-				codepages++;
+-			else if (addr >= __init_begin &&
+-				 addr < __init_end)
+-				initpages++;
+-			else
+-				datapages++;
+-		}
+-	}
+ 
+ #if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
+ 	/* insert pointer tables allocated so far into the tablelist */
+@@ -190,12 +168,7 @@ void __init mem_init(void)
+ 		init_pointer_table((unsigned long)zero_pgtable);
  #endif
  
--	tmp = nr_free_pages() << PAGE_SHIFT;
--	printk("Memory available: %luKiB/%luKiB RAM, %luKiB/%luKiB ROM (%dKiB kernel code, %dKiB data)\n",
--	       tmp >> 10,
--	       npages << (PAGE_SHIFT - 10),
--	       (rom_length > 0) ? ((rom_length >> 10) - codek) : 0,
--	       rom_length >> 10,
--	       codek,
--	       datak
--	       );
--
+-	pr_info("Memory: %luk/%luk available (%dk kernel code, %dk data, %dk init)\n",
+-	       nr_free_pages() << (PAGE_SHIFT-10),
+-	       totalram_pages << (PAGE_SHIFT-10),
+-	       codepages << (PAGE_SHIFT-10),
+-	       datapages << (PAGE_SHIFT-10),
+-	       initpages << (PAGE_SHIFT-10));
 +	mem_init_print_info(NULL);
-+	if (rom_length > 0 && rom_length >= code_size)
-+		printk("Memory available:  %luKiB/%luKiB ROM\n",
-+			(rom_length - code_size) >> 10, rom_length >> 10);
- } /* end mem_init() */
+ 	print_memmap();
+ }
  
- /*****************************************************************************/
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
