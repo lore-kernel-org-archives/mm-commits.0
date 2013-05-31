@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware.patch
+Subject: +
+ sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2.patch
  added to -mm tree
-Date: Fri, 31 May 2013 14:30:46 -0700
-Message-ID: <51a91686.SlErq7GubWx+QF0w%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 14:36:35 -0700
+Message-ID: <51a917e3.U29spI3CNbUcisry%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40761 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756720Ab3EaVaw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:30:52 -0400
+	with ESMTP id S1754715Ab3EaVgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, axboe@kernel.dk, jonathan.salwan@gmail.com
+To: mm-commits@vger.kernel.org, liuj97@gmail.com, dave.hansen@linux.intel.com, cody@linux.vnet.ibm.com
 
-Subject: + drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware.patch added to -mm tree
-To: jonathan.salwan@gmail.com,axboe@kernel.dk,dan.carpenter@oracle.com
+Subject: + sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2.patch added to -mm tree
+To: cody@linux.vnet.ibm.com,dave.hansen@linux.intel.com,liuj97@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:30:46 -0700
+Date: Fri, 31 May 2013 14:36:35 -0700
 
 
 The patch titled
-     Subject: drivers/cdrom/cdrom.c: use kzalloc() for failing hardware
+     Subject: sparsemem: add BUILD_BUG_ON when sizeof mem_section is non-power-of-2
 has been added to the -mm tree.  Its filename is
-     drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware.patch
+     sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +40,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jonathan Salwan <jonathan.salwan@gmail.com>
-Subject: drivers/cdrom/cdrom.c: use kzalloc() for failing hardware
+From: Cody P Schafer <cody@linux.vnet.ibm.com>
+Subject: sparsemem: add BUILD_BUG_ON when sizeof mem_section is non-power-of-2
 
-In drivers/cdrom/cdrom.c mmc_ioctl_cdrom_read_data() allocates a memory
-area with kmalloc in line 2885.
+Instead of leaving a hidden trap for the next person who comes along and
+wants to add something to mem_section, add a big fat warning about it
+needing to be a power-of-2, and insert a BUILD_BUG_ON() in sparse_init()
+to catch mistakes.
 
-2885         cgc->buffer = kmalloc(blocksize, GFP_KERNEL);
-2886         if (cgc->buffer == NULL)
-2887                 return -ENOMEM;
+Right now non-power-of-2 mem_sections cause a number of WARNs at boot
+(which don't clearly point to the size of mem_section as an issue), but
+the system limps on (temporarily, at least).
 
-In line 2908 we can find the copy_to_user function:
+This is based upon Dave Hansen's earlier RFC where he ran into the same
+issue:
+	"sparsemem: fix boot when SECTIONS_PER_ROOT is not power-of-2"
+	http://lkml.indiana.edu/hypermail/linux/kernel/1205.2/03077.html
 
-2908         if (!ret && copy_to_user(arg, cgc->buffer, blocksize))
-
-The cgc->buffer is never cleaned and initialized before this function.  If
-ret = 0 with the previous basic block, it's possible to display some
-memory bytes in kernel space from userspace.
-
-When we read a block from the disk it normally fills the ->buffer but if
-the drive is malfunctioning there is a chance that it would only be
-partially filled.  The result is an leak information to userspace.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Jiang Liu <liuj97@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmzone.h |    4 ++++
+ mm/sparse.c            |    3 +++
+ 2 files changed, 7 insertions(+)
 
-diff -puN drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware
-+++ a/drivers/cdrom/cdrom.c
-@@ -2882,7 +2882,7 @@ static noinline int mmc_ioctl_cdrom_read
- 	if (lba < 0)
- 		return -EINVAL;
+diff -puN include/linux/mmzone.h~sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2 include/linux/mmzone.h
+--- a/include/linux/mmzone.h~sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2
++++ a/include/linux/mmzone.h
+@@ -1137,6 +1137,10 @@ struct mem_section {
+ 	struct page_cgroup *page_cgroup;
+ 	unsigned long pad;
+ #endif
++	/*
++	 * WARNING: mem_section must be a power-of-2 in size for the
++	 * calculation and use of SECTION_ROOT_MASK to make sense.
++	 */
+ };
  
--	cgc->buffer = kmalloc(blocksize, GFP_KERNEL);
-+	cgc->buffer = kzalloc(blocksize, GFP_KERNEL);
- 	if (cgc->buffer == NULL)
- 		return -ENOMEM;
+ #ifdef CONFIG_SPARSEMEM_EXTREME
+diff -puN mm/sparse.c~sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2 mm/sparse.c
+--- a/mm/sparse.c~sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2
++++ a/mm/sparse.c
+@@ -480,6 +480,9 @@ void __init sparse_init(void)
+ 	struct page **map_map;
+ #endif
+ 
++	/* see include/linux/mmzone.h 'struct mem_section' definition */
++	BUILD_BUG_ON(!is_power_of_2(sizeof(struct mem_section)));
++
+ 	/* Setup pageblock_order for HUGETLB_PAGE_SIZE_VARIABLE */
+ 	set_pageblock_order();
  
 _
 
-Patches currently in -mm which might be from jonathan.salwan@gmail.com are
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
 
-drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware.patch
+mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch
+mm-page_alloc-prevent-concurrent-updaters-of-pcp-batch-and-high.patch
+mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch
+mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
+mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch
+mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
+mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch
+mm-page_alloc-relocate-comment-to-be-directly-above-code-it-refers-to.patch
+mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch
+mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch
+mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch
+mm-fix-comment-referring-to-non-existent-size_seqlock-change-to-span_seqlock.patch
+mmzone-note-that-node_size_lock-should-be-manipulated-via-pgdat_resize_lock.patch
+memory_hotplug-use-pgdat_resize_lock-in-online_pages.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2.patch
 
