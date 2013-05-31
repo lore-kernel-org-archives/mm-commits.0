@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ mm-cris-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
  added to -mm tree
-Date: Fri, 31 May 2013 13:32:44 -0700
-Message-ID: <51a908ec.2PaL2k4s5+qbX6Ee%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 13:32:42 -0700
+Message-ID: <51a908ea.ctCMF+pdIRFE4GYy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab3EaUcp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:45 -0400
+	with ESMTP id S1755721Ab3EaUcn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ysato@users.sourceforge.jp, jiang.liu@huawei.com, geert@linux-m68k.org, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, starvik@axis.com, jiang.liu@huawei.com, jesper.nilsson@axis.com, liuj97@gmail.com
 
-Subject: + mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,geert@linux-m68k.org,jiang.liu@huawei.com,ysato@users.sourceforge.jp
+Subject: + mm-cris-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,jesper.nilsson@axis.com,jiang.liu@huawei.com,starvik@axis.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:44 -0700
+Date: Fri, 31 May 2013 13:32:42 -0700
 
 
 The patch titled
-     Subject: mm/h8300: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/cris: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-cris-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,71 +41,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/h8300: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/cris: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/mm/init.c |   36 ++++++++----------------------------
- 1 file changed, 8 insertions(+), 28 deletions(-)
+ arch/cris/mm/init.c |   33 ++-------------------------------
+ 1 file changed, 2 insertions(+), 31 deletions(-)
 
-diff -puN arch/h8300/mm/init.c~mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init arch/h8300/mm/init.c
---- a/arch/h8300/mm/init.c~mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/h8300/mm/init.c
-@@ -121,40 +121,20 @@ void __init paging_init(void)
- 
- void __init mem_init(void)
+diff -puN arch/cris/mm/init.c~mm-cris-prepare-for-removing-num_physpages-and-simplify-mem_init arch/cris/mm/init.c
+--- a/arch/cris/mm/init.c~mm-cris-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/cris/mm/init.c
+@@ -19,9 +19,6 @@ unsigned long empty_zero_page;
+ void __init
+ mem_init(void)
  {
--	int codek = 0, datak = 0, initk = 0;
--	/* DAVIDM look at setup memory map generically with reserved area */
+-	int codesize, reservedpages, datasize, initsize;
 -	unsigned long tmp;
--	extern unsigned long  _ramend, _ramstart;
--	unsigned long len = &_ramend - &_ramstart;
--	unsigned long start_mem = memory_start; /* DAVIDM - these must start at end of kernel */
--	unsigned long end_mem   = memory_end; /* DAVIDM - this must not include kernel stack at top */
 -
--#ifdef DEBUG
--	printk(KERN_DEBUG "Mem_init: start=%lx, end=%lx\n", start_mem, end_mem);
--#endif
-+	unsigned long codesize = _etext - _stext;
+ 	BUG_ON(!mem_map);
  
--	end_mem &= PAGE_MASK;
--	high_memory = (void *) end_mem;
-+	pr_devel("Mem_init: start=%lx, end=%lx\n", memory_start, memory_end);
- 
--	start_mem = PAGE_ALIGN(start_mem);
--	max_mapnr = num_physpages = MAP_NR(high_memory);
-+	high_memory = (void *) (memory_end & PAGE_MASK);
-+	max_mapnr = MAP_NR(high_memory);
- 
- 	/* this will put all low memory onto the freelists */
- 	free_all_bootmem();
- 
--	codek = (_etext - _stext) >> 10;
--	datak = (__bss_stop - _sdata) >> 10;
--	initk = (__init_begin - __init_end) >> 10;
+ 	/* max/min_low_pfn was set by setup.c
+@@ -29,35 +26,9 @@ mem_init(void)
+ 	 *
+ 	 * high_memory was also set in setup.c
+ 	 */
 -
--	tmp = nr_free_pages() << PAGE_SHIFT;
--	printk(KERN_INFO "Memory available: %luk/%luk RAM, %luk/%luk ROM (%dk kernel code, %dk data)\n",
--	       tmp >> 10,
--	       len >> 10,
--	       (rom_length > 0) ? ((rom_length >> 10) - codek) : 0,
--	       rom_length >> 10,
--	       codek,
--	       datak
--	       );
+-	max_mapnr = num_physpages = max_low_pfn - min_low_pfn;
+- 
+-	/* this will put all memory onto the freelists */
++	max_mapnr = max_low_pfn - min_low_pfn;
+         free_all_bootmem();
+-
+-	reservedpages = 0;
+-	for (tmp = 0; tmp < max_mapnr; tmp++) {
+-		/*
+-                 * Only count reserved RAM pages
+-                 */
+-		if (PageReserved(mem_map + tmp))
+-			reservedpages++;
+-	}
+-
+-	codesize =  (unsigned long) &_etext - (unsigned long) &_stext;
+-        datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
+-        initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+-	
+-        printk(KERN_INFO
+-               "Memory: %luk/%luk available (%dk kernel code, %dk reserved, %dk data, "
+-	       "%dk init)\n" ,
+-	       nr_free_pages() << (PAGE_SHIFT-10),
+-	       max_mapnr << (PAGE_SHIFT-10),
+-	       codesize >> 10,
+-	       reservedpages << (PAGE_SHIFT-10),
+-	       datasize >> 10,
+-	       initsize >> 10
+-               );
 +	mem_init_print_info(NULL);
-+	if (rom_length > 0 && rom_length > codesize)
-+		pr_info("Memory available: %luK/%luK ROM\n",
-+			(rom_length - codesize) >> 10, rom_length >> 10);
  }
  
- 
+ /* free the pages occupied by initialization code */
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
