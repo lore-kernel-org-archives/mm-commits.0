@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + c6x-normalize-global-variables-exported-by-vmlinuxlds.patch
+Subject: + score-normalize-global-variables-exported-by-vmlinuxlds.patch
  added to -mm tree
-Date: Fri, 31 May 2013 13:32:26 -0700
-Message-ID: <51a908da.ChLtMvdun3MiIxgL%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 13:32:28 -0700
+Message-ID: <51a908dc.ESvCESqhD26Ccl8w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40232 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755055Ab3EaUc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:27 -0400
+	with ESMTP id S1755349Ab3EaUc3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, msalter@redhat.com, jiang.liu@huawei.com, a-jacquiot@ti.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, liqin.chen@sunplusct.com, lennox.wu@gmail.com, jiang.liu@huawei.com, liuj97@gmail.com
 
-Subject: + c6x-normalize-global-variables-exported-by-vmlinuxlds.patch added to -mm tree
-To: liuj97@gmail.com,a-jacquiot@ti.com,jiang.liu@huawei.com,msalter@redhat.com
+Subject: + score-normalize-global-variables-exported-by-vmlinuxlds.patch added to -mm tree
+To: liuj97@gmail.com,jiang.liu@huawei.com,lennox.wu@gmail.com,liqin.chen@sunplusct.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:26 -0700
+Date: Fri, 31 May 2013 13:32:28 -0700
 
 
 The patch titled
-     Subject: c6x: normalize global variables exported by vmlinux.lds
+     Subject: score: normalize global variables exported by vmlinux.lds
 has been added to the -mm tree.  Its filename is
-     c6x-normalize-global-variables-exported-by-vmlinuxlds.patch
+     score-normalize-global-variables-exported-by-vmlinuxlds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,56 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: c6x: normalize global variables exported by vmlinux.lds
+Subject: score: normalize global variables exported by vmlinux.lds
 
-Normalize global variables exported by vmlinux.lds to conform usage
-guidelines from include/asm-generic/sections.h.
-
-Use _text to mark the start of the kernel image including the head text,
-and _stext to mark the start of the .text section.
-
-This patch also fixes possible bugs due to current address layout that
-[__init_begin, __init_end] is a sub-range of [_stext, _etext] and pages
-within range [__init_begin, __init_end] will be freed by free_initmem().
+Generate mandatory global variables _sdata in file vmlinux.lds.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/kernel/vmlinux.lds.S |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/score/kernel/vmlinux.lds.S |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/c6x/kernel/vmlinux.lds.S~c6x-normalize-global-variables-exported-by-vmlinuxlds arch/c6x/kernel/vmlinux.lds.S
---- a/arch/c6x/kernel/vmlinux.lds.S~c6x-normalize-global-variables-exported-by-vmlinuxlds
-+++ a/arch/c6x/kernel/vmlinux.lds.S
-@@ -54,16 +54,15 @@ SECTIONS
+diff -puN arch/score/kernel/vmlinux.lds.S~score-normalize-global-variables-exported-by-vmlinuxlds arch/score/kernel/vmlinux.lds.S
+--- a/arch/score/kernel/vmlinux.lds.S~score-normalize-global-variables-exported-by-vmlinuxlds
++++ a/arch/score/kernel/vmlinux.lds.S
+@@ -49,6 +49,7 @@ SECTIONS
  	}
  
- 	. = ALIGN(PAGE_SIZE);
-+	__init_begin = .;
- 	.init :
- 	{
--		_stext = .;
- 		_sinittext = .;
- 		HEAD_TEXT
- 		INIT_TEXT
- 		_einittext = .;
- 	}
+ 	. = ALIGN(16);
++	_sdata =  .;			/* Start of data section */
+ 	RODATA
  
--	__init_begin = _stext;
- 	INIT_DATA_SECTION(16)
- 
- 	PERCPU_SECTION(128)
-@@ -74,6 +73,7 @@ SECTIONS
- 	.text :
- 	{
- 		_text = .;
-+		_stext = .;
- 		TEXT_TEXT
- 		SCHED_TEXT
- 		LOCK_TEXT
+ 	EXCEPTION_TABLE(16)
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
