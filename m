@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-Date: Fri, 31 May 2013 13:32:37 -0700
-Message-ID: <51a908e5.0bRrLnSZRSlWdGnX%akpm@linux-foundation.org>
+ mm-arm64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ added to -mm tree
+Date: Fri, 31 May 2013 13:32:38 -0700
+Message-ID: <51a908e6.s0AdfEP3GWdYpG5D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40290 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755080Ab3EaUci (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:38 -0400
+	with ESMTP id S1755080Ab3EaUcj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, will.deacon@arm.com, linux@arm.linux.org.uk, jiang.liu@huawei.com, catalin.marinas@arm.com, liuj97@gmail.com
 
-Subject: + mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+Subject: + mm-arm64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
 To: liuj97@gmail.com,catalin.marinas@arm.com,jiang.liu@huawei.com,linux@arm.linux.org.uk,will.deacon@arm.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:37 -0700
+Date: Fri, 31 May 2013 13:32:38 -0700
 
 
 The patch titled
-     Subject: mm/ARM: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/ARM64: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-arm64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/ARM: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/ARM64: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
@@ -51,35 +52,39 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c |   47 +------------------------------------------
- 1 file changed, 2 insertions(+), 45 deletions(-)
+ arch/arm64/mm/init.c |   48 ++---------------------------------------
+ 1 file changed, 3 insertions(+), 45 deletions(-)
 
-diff -puN arch/arm/mm/init.c~mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/arm/mm/init.c
-@@ -582,9 +582,6 @@ static void __init free_highpages(void)
+diff -puN arch/arm64/mm/init.c~mm-arm64-prepare-for-removing-num_physpages-and-simplify-mem_init arch/arm64/mm/init.c
+--- a/arch/arm64/mm/init.c~mm-arm64-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/arm64/mm/init.c
+@@ -272,59 +272,17 @@ static void __init free_unused_memmap(vo
   */
  void __init mem_init(void)
  {
 -	unsigned long reserved_pages, free_pages;
 -	struct memblock_region *reg;
--	int i;
- #ifdef CONFIG_HAVE_TCM
- 	/* These pointers are filled in on TCM detection */
- 	extern u32 dtcm_end;
-@@ -604,47 +601,7 @@ void __init mem_init(void)
+-
+ 	arm64_swiotlb_init();
  
- 	free_highpages();
+ 	max_mapnr   = pfn_to_page(max_pfn + PHYS_PFN_OFFSET) - mem_map;
+ 
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+-	/* this will put all unused low memory onto the freelists */
+ 	free_unused_memmap();
+ #endif
+-
++	/* this will put all unused low memory onto the freelists */
+ 	free_all_bootmem();
  
 -	reserved_pages = free_pages = 0;
 -
--	for_each_bank(i, &meminfo) {
--		struct membank *bank = &meminfo.bank[i];
+-	for_each_memblock(memory, reg) {
 -		unsigned int pfn1, pfn2;
 -		struct page *page, *end;
 -
--		pfn1 = bank_pfn_start(bank);
--		pfn2 = bank_pfn_end(bank);
+-		pfn1 = __phys_to_pfn(reg->base);
+-		pfn2 = pfn1 + __phys_to_pfn(reg->size);
 -
 -		page = pfn_to_page(pfn1);
 -		end  = pfn_to_page(pfn2 - 1) + 1;
@@ -94,10 +99,10 @@ diff -puN arch/arm/mm/init.c~mm-arm-prepare-for-removing-num_physpages-and-simpl
 -	}
 -
 -	/*
--	 * Since our memory may not be contiguous, calculate the
--	 * real number of pages we have in this system
+-	 * Since our memory may not be contiguous, calculate the real number
+-	 * of pages we have in this system.
 -	 */
--	printk(KERN_INFO "Memory:");
+-	pr_info("Memory:");
 -	num_physpages = 0;
 -	for_each_memblock(memory, reg) {
 -		unsigned long pages = memblock_region_memory_end_pfn(reg) -
@@ -107,24 +112,23 @@ diff -puN arch/arm/mm/init.c~mm-arm-prepare-for-removing-num_physpages-and-simpl
 -	}
 -	printk(" = %luMB total\n", num_physpages >> (20 - PAGE_SHIFT));
 -
--	printk(KERN_NOTICE "Memory: %luk/%luk available, %luk reserved, %luK highmem\n",
--		nr_free_pages() << (PAGE_SHIFT-10),
--		free_pages << (PAGE_SHIFT-10),
--		reserved_pages << (PAGE_SHIFT-10),
--		totalhigh_pages << (PAGE_SHIFT-10));
-+	mem_init_print_info(NULL);
+-	pr_notice("Memory: %luk/%luk available, %luk reserved\n",
+-		  nr_free_pages() << (PAGE_SHIFT-10),
+-		  free_pages << (PAGE_SHIFT-10),
+-		  reserved_pages << (PAGE_SHIFT-10));
++	mem_init_print_info();
  
  #define MLK(b, t) b, t, ((t) - (b)) >> 10
  #define MLM(b, t) b, t, ((t) - (b)) >> 20
-@@ -710,7 +667,7 @@ void __init mem_init(void)
- 	BUG_ON(PKMAP_BASE + LAST_PKMAP * PAGE_SIZE	> PAGE_OFFSET);
- #endif
+@@ -366,7 +324,7 @@ void __init mem_init(void)
+ 	BUILD_BUG_ON(TASK_SIZE_64			> MODULES_VADDR);
+ 	BUG_ON(TASK_SIZE_64				> MODULES_VADDR);
  
 -	if (PAGE_SIZE >= 16384 && num_physpages <= 128) {
 +	if (PAGE_SIZE >= 16384 && get_num_physpages() <= 128) {
  		extern int sysctl_overcommit_memory;
  		/*
- 		 * On a machine this small we won't get
+ 		 * On a machine this small we won't get anywhere without
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
