@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-support-split-page-table-lock.patch added to -mm tree
-Date: Fri, 31 May 2013 12:30:18 -0700
-Message-ID: <51a8fa4a.1vf3gDTJ+jcKPrsa%akpm@linux-foundation.org>
+Subject: + migrate-add-migrate_entry_wait_huge.patch added to -mm tree
+Date: Fri, 31 May 2013 12:30:20 -0700
+Message-ID: <51a8fa4c.uaMrhxUcLTjWj5I5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39959 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757229Ab3EaTaT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 15:30:19 -0400
+	with ESMTP id S1757234Ab3EaTaV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 15:30:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
 
-Subject: + hugetlbfs-support-split-page-table-lock.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,andi@firstfloor.org,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com
+Subject: + migrate-add-migrate_entry_wait_huge.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,andi@firstfloor.org,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 12:30:18 -0700
+Date: Fri, 31 May 2013 12:30:20 -0700
 
 
 The patch titled
-     Subject: hugetlbfs: support split page table lock
+     Subject: migrate: add migrate_entry_wait_huge()
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-support-split-page-table-lock.patch
+     migrate-add-migrate_entry_wait_huge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,406 +39,112 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: hugetlbfs: support split page table lock
+Subject: migrate: add migrate_entry_wait_huge()
 
-Currently all of page table handling by hugetlbfs code are done under
-mm->page_table_lock.  This is not optimal because there can be lock
-contentions between unrelated components using this lock.
+When we have a page fault for the address which is backed by a hugepage
+under migration, the kernel can't wait correctly and do busy looping on
+hugepage fault until the migration finishes.  This is because
+pte_offset_map_lock() can't get a correct migration entry or a correct
+page table lock for hugepage.  This patch introduces
+migration_entry_wait_huge() to solve this.
 
-This patch makes hugepage support split page table lock so that we use
-page->ptl of the leaf node of page table tree which is pte for normal
-pages but can be pmd and/or pud for hugepages of some architectures.
+Note that the caller, hugetlb_fault(), gets the pointer to the "leaf"
+entry with huge_pte_offset() inside which all the arch-dependency of the
+page table structure are.  So migration_entry_wait_huge() and
+__migration_entry_wait() are free from arch-dependency.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>	[2.6.35+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |    6 +-
- include/linux/hugetlb.h   |   18 +++++++
- mm/hugetlb.c              |   84 +++++++++++++++++++++---------------
- 3 files changed, 73 insertions(+), 35 deletions(-)
+ include/linux/swapops.h |    3 +++
+ mm/hugetlb.c            |    2 +-
+ mm/migrate.c            |   23 ++++++++++++++++++-----
+ 3 files changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~hugetlbfs-support-split-page-table-lock arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~hugetlbfs-support-split-page-table-lock
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -75,6 +75,7 @@ huge_pmd_share(struct mm_struct *mm, uns
- 	unsigned long saddr;
- 	pte_t *spte = NULL;
- 	pte_t *pte;
-+	spinlock_t *ptl;
+diff -puN include/linux/swapops.h~migrate-add-migrate_entry_wait_huge include/linux/swapops.h
+--- a/include/linux/swapops.h~migrate-add-migrate_entry_wait_huge
++++ a/include/linux/swapops.h
+@@ -137,6 +137,7 @@ static inline void make_migration_entry_
  
- 	if (!vma_shareable(vma, addr))
- 		return (pte_t *)pmd_alloc(mm, pud, addr);
-@@ -89,6 +90,7 @@ huge_pmd_share(struct mm_struct *mm, uns
- 			spte = huge_pte_offset(svma->vm_mm, saddr);
- 			if (spte) {
- 				get_page(virt_to_page(spte));
-+				ptl = huge_pte_lockptr(mm, spte);
- 				break;
- 			}
- 		}
-@@ -97,12 +99,12 @@ huge_pmd_share(struct mm_struct *mm, uns
- 	if (!spte)
- 		goto out;
+ extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					unsigned long address);
++extern void migration_entry_wait_huge(struct mm_struct *mm, pte_t *pte);
+ #else
  
--	spin_lock(&mm->page_table_lock);
-+	spin_lock(ptl);
- 	if (pud_none(*pud))
- 		pud_populate(mm, pud, (pmd_t *)((unsigned long)spte & PAGE_MASK));
- 	else
- 		put_page(virt_to_page(spte));
--	spin_unlock(&mm->page_table_lock);
-+	spin_unlock(ptl);
- out:
- 	pte = (pte_t *)pmd_alloc(mm, pud, addr);
- 	mutex_unlock(&mapping->i_mmap_mutex);
-diff -puN include/linux/hugetlb.h~hugetlbfs-support-split-page-table-lock include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-support-split-page-table-lock
-+++ a/include/linux/hugetlb.h
-@@ -32,6 +32,24 @@ void hugepage_put_subpool(struct hugepag
- 
- int PageHuge(struct page *page);
- 
-+#if USE_SPLIT_PTLOCKS
-+#define huge_pte_lockptr(mm, ptep) ({__pte_lockptr(virt_to_page(ptep)); })
-+#else	/* !USE_SPLIT_PTLOCKS */
-+#define huge_pte_lockptr(mm, ptep) ({&(mm)->page_table_lock; })
-+#endif	/* USE_SPLIT_PTLOCKS */
-+
-+#define huge_pte_offset_lock(mm, address, ptlp)		\
-+({							\
-+	pte_t *__pte = huge_pte_offset(mm, address);	\
-+	spinlock_t *__ptl = NULL;			\
-+	if (__pte) {					\
-+		__ptl = huge_pte_lockptr(mm, __pte);	\
-+		*(ptlp) = __ptl;			\
-+		spin_lock(__ptl);			\
-+	}						\
-+	__pte;						\
-+})
-+
- void reset_vma_resv_huge_pages(struct vm_area_struct *vma);
- int hugetlb_sysctl_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
- int hugetlb_overcommit_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
-diff -puN mm/hugetlb.c~hugetlbfs-support-split-page-table-lock mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-support-split-page-table-lock
-+++ a/mm/hugetlb.c
-@@ -2299,6 +2299,7 @@ int copy_hugetlb_page_range(struct mm_st
- 	cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
- 
- 	for (addr = vma->vm_start; addr < vma->vm_end; addr += sz) {
-+		spinlock_t *srcptl, *dstptl;
- 		src_pte = huge_pte_offset(src, addr);
- 		if (!src_pte)
- 			continue;
-@@ -2310,8 +2311,10 @@ int copy_hugetlb_page_range(struct mm_st
- 		if (dst_pte == src_pte)
- 			continue;
- 
--		spin_lock(&dst->page_table_lock);
--		spin_lock_nested(&src->page_table_lock, SINGLE_DEPTH_NESTING);
-+		dstptl = huge_pte_lockptr(dst, dst_pte);
-+		srcptl = huge_pte_lockptr(src, src_pte);
-+		spin_lock(dstptl);
-+		spin_lock_nested(srcptl, SINGLE_DEPTH_NESTING);
- 		if (!huge_pte_none(huge_ptep_get(src_pte))) {
- 			if (cow)
- 				huge_ptep_set_wrprotect(src, addr, src_pte);
-@@ -2321,8 +2324,8 @@ int copy_hugetlb_page_range(struct mm_st
- 			page_dup_rmap(ptepage);
- 			set_huge_pte_at(dst, addr, dst_pte, entry);
- 		}
--		spin_unlock(&src->page_table_lock);
--		spin_unlock(&dst->page_table_lock);
-+		spin_unlock(srcptl);
-+		spin_unlock(dstptl);
- 	}
- 	return 0;
- 
-@@ -2365,6 +2368,7 @@ void __unmap_hugepage_range(struct mmu_g
- 	unsigned long address;
- 	pte_t *ptep;
- 	pte_t pte;
-+	spinlock_t *ptl;
- 	struct page *page;
- 	struct hstate *h = hstate_vma(vma);
- 	unsigned long sz = huge_page_size(h);
-@@ -2378,25 +2382,24 @@ void __unmap_hugepage_range(struct mmu_g
- 	tlb_start_vma(tlb, vma);
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- again:
--	spin_lock(&mm->page_table_lock);
- 	for (address = start; address < end; address += sz) {
--		ptep = huge_pte_offset(mm, address);
-+		ptep = huge_pte_offset_lock(mm, address, &ptl);
- 		if (!ptep)
- 			continue;
- 
- 		if (huge_pmd_unshare(mm, &address, ptep))
--			continue;
-+			goto unlock;
- 
- 		pte = huge_ptep_get(ptep);
- 		if (huge_pte_none(pte))
--			continue;
-+			goto unlock;
- 
- 		/*
- 		 * HWPoisoned hugepage is already unmapped and dropped reference
- 		 */
- 		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
- 			huge_pte_clear(mm, address, ptep);
--			continue;
-+			goto unlock;
- 		}
- 
- 		page = pte_page(pte);
-@@ -2407,7 +2410,7 @@ again:
- 		 */
- 		if (ref_page) {
- 			if (page != ref_page)
--				continue;
-+				goto unlock;
- 
- 			/*
- 			 * Mark the VMA as having unmapped its page so that
-@@ -2424,13 +2427,18 @@ again:
- 
- 		page_remove_rmap(page);
- 		force_flush = !__tlb_remove_page(tlb, page);
--		if (force_flush)
-+		if (force_flush) {
-+			spin_unlock(ptl);
- 			break;
-+		}
- 		/* Bail out after unmapping reference page if supplied */
--		if (ref_page)
-+		if (ref_page) {
-+			spin_unlock(ptl);
- 			break;
-+		}
-+unlock:
-+		spin_unlock(ptl);
- 	}
--	spin_unlock(&mm->page_table_lock);
- 	/*
- 	 * mmu_gather ran out of room to batch pages, we break out of
- 	 * the PTE lock to avoid doing the potential expensive TLB invalidate
-@@ -2544,6 +2552,7 @@ static int hugetlb_cow(struct mm_struct
- 	int outside_reserve = 0;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
-+	spinlock_t *ptl = huge_pte_lockptr(mm, ptep);
- 
- 	old_page = pte_page(pte);
- 
-@@ -2575,7 +2584,7 @@ retry_avoidcopy:
- 	page_cache_get(old_page);
- 
- 	/* Drop page_table_lock as buddy allocator may be called */
--	spin_unlock(&mm->page_table_lock);
-+	spin_unlock(ptl);
- 	new_page = alloc_huge_page(vma, address, outside_reserve);
- 
- 	if (IS_ERR(new_page)) {
-@@ -2593,7 +2602,7 @@ retry_avoidcopy:
- 			BUG_ON(huge_pte_none(pte));
- 			if (unmap_ref_private(mm, vma, old_page, address)) {
- 				BUG_ON(huge_pte_none(pte));
--				spin_lock(&mm->page_table_lock);
-+				spin_lock(ptl);
- 				ptep = huge_pte_offset(mm, address & huge_page_mask(h));
- 				if (likely(pte_same(huge_ptep_get(ptep), pte)))
- 					goto retry_avoidcopy;
-@@ -2607,7 +2616,7 @@ retry_avoidcopy:
- 		}
- 
- 		/* Caller expects lock to be held */
--		spin_lock(&mm->page_table_lock);
-+		spin_lock(ptl);
- 		if (err == -ENOMEM)
- 			return VM_FAULT_OOM;
- 		else
-@@ -2622,7 +2631,7 @@ retry_avoidcopy:
- 		page_cache_release(new_page);
- 		page_cache_release(old_page);
- 		/* Caller expects lock to be held */
--		spin_lock(&mm->page_table_lock);
-+		spin_lock(ptl);
- 		return VM_FAULT_OOM;
- 	}
- 
-@@ -2637,7 +2646,7 @@ retry_avoidcopy:
- 	 * Retake the page_table_lock to check for racing updates
- 	 * before the page tables are altered
- 	 */
--	spin_lock(&mm->page_table_lock);
-+	spin_lock(ptl);
- 	ptep = huge_pte_offset(mm, address & huge_page_mask(h));
- 	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
- 		/* Break COW */
-@@ -2649,10 +2658,10 @@ retry_avoidcopy:
- 		/* Make the old page be freed below */
- 		new_page = old_page;
- 	}
--	spin_unlock(&mm->page_table_lock);
-+	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 	/* Caller expects lock to be held */
--	spin_lock(&mm->page_table_lock);
-+	spin_lock(ptl);
- 	page_cache_release(new_page);
- 	page_cache_release(old_page);
- 	return 0;
-@@ -2702,6 +2711,7 @@ static int hugetlb_no_page(struct mm_str
- 	struct page *page;
- 	struct address_space *mapping;
- 	pte_t new_pte;
-+	spinlock_t *ptl;
- 
- 	/*
- 	 * Currently, we are forced to kill the process in the event the
-@@ -2787,7 +2797,8 @@ retry:
- 			goto backout_unlocked;
- 		}
- 
--	spin_lock(&mm->page_table_lock);
-+	ptl = huge_pte_lockptr(mm, ptep);
-+	spin_lock(ptl);
- 	size = i_size_read(mapping->host) >> huge_page_shift(h);
- 	if (idx >= size)
- 		goto backout;
-@@ -2809,13 +2820,13 @@ retry:
- 		ret = hugetlb_cow(mm, vma, address, ptep, new_pte, page);
- 	}
- 
--	spin_unlock(&mm->page_table_lock);
-+	spin_unlock(ptl);
- 	unlock_page(page);
- out:
- 	return ret;
- 
- backout:
--	spin_unlock(&mm->page_table_lock);
-+	spin_unlock(ptl);
- backout_unlocked:
- 	unlock_page(page);
- 	put_page(page);
-@@ -2827,6 +2838,7 @@ int hugetlb_fault(struct mm_struct *mm,
+ #define make_migration_entry(page, write) swp_entry(0, 0)
+@@ -148,6 +149,8 @@ static inline int is_migration_entry(swp
+ static inline void make_migration_entry_read(swp_entry_t *entryp) { }
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					 unsigned long address) { }
++static inline void migration_entry_wait_huge(struct mm_struct *mm,
++					pte_t *pte) { }
+ static inline int is_write_migration_entry(swp_entry_t entry)
  {
- 	pte_t *ptep;
- 	pte_t entry;
-+	spinlock_t *ptl;
- 	int ret;
- 	struct page *page = NULL;
- 	struct page *pagecache_page = NULL;
-@@ -2895,7 +2907,8 @@ int hugetlb_fault(struct mm_struct *mm,
- 	if (page != pagecache_page)
- 		lock_page(page);
+ 	return 0;
+diff -puN mm/hugetlb.c~migrate-add-migrate_entry_wait_huge mm/hugetlb.c
+--- a/mm/hugetlb.c~migrate-add-migrate_entry_wait_huge
++++ a/mm/hugetlb.c
+@@ -2851,7 +2851,7 @@ int hugetlb_fault(struct mm_struct *mm,
+ 	if (ptep) {
+ 		entry = huge_ptep_get(ptep);
+ 		if (unlikely(is_hugetlb_entry_migration(entry))) {
+-			migration_entry_wait(mm, (pmd_t *)ptep, address);
++			migration_entry_wait_huge(mm, ptep);
+ 			return 0;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
+ 			return VM_FAULT_HWPOISON_LARGE |
+diff -puN mm/migrate.c~migrate-add-migrate_entry_wait_huge mm/migrate.c
+--- a/mm/migrate.c~migrate-add-migrate_entry_wait_huge
++++ a/mm/migrate.c
+@@ -200,15 +200,14 @@ static void remove_migration_ptes(struct
+  * get to the page and wait until migration is finished.
+  * When we return from this function the fault will be retried.
+  */
+-void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+-				unsigned long address)
++static void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
++				spinlock_t *ptl)
+ {
+-	pte_t *ptep, pte;
+-	spinlock_t *ptl;
++	pte_t pte;
+ 	swp_entry_t entry;
+ 	struct page *page;
  
--	spin_lock(&mm->page_table_lock);
-+	ptl = huge_pte_lockptr(mm, ptep);
+-	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
 +	spin_lock(ptl);
- 	/* Check for a racing update before calling hugetlb_cow */
- 	if (unlikely(!pte_same(entry, huge_ptep_get(ptep))))
- 		goto out_page_table_lock;
-@@ -2915,7 +2928,7 @@ int hugetlb_fault(struct mm_struct *mm,
- 		update_mmu_cache(vma, address, ptep);
+ 	pte = *ptep;
+ 	if (!is_swap_pte(pte))
+ 		goto out;
+@@ -236,6 +235,20 @@ out:
+ 	pte_unmap_unlock(ptep, ptl);
+ }
  
- out_page_table_lock:
--	spin_unlock(&mm->page_table_lock);
-+	spin_unlock(ptl);
- 
- 	if (pagecache_page) {
- 		unlock_page(pagecache_page);
-@@ -2950,9 +2963,9 @@ long follow_hugetlb_page(struct mm_struc
- 	unsigned long remainder = *nr_pages;
- 	struct hstate *h = hstate_vma(vma);
- 
--	spin_lock(&mm->page_table_lock);
- 	while (vaddr < vma->vm_end && remainder) {
- 		pte_t *pte;
-+		spinlock_t *ptl = NULL;
- 		int absent;
- 		struct page *page;
- 
-@@ -2960,8 +2973,10 @@ long follow_hugetlb_page(struct mm_struc
- 		 * Some archs (sparc64, sh*) have multiple pte_ts to
- 		 * each hugepage.  We have to make sure we get the
- 		 * first, for the page indexing below to work.
-+		 *
-+		 * Note that page table lock is not held when pte is null.
- 		 */
--		pte = huge_pte_offset(mm, vaddr & huge_page_mask(h));
-+		pte = huge_pte_offset_lock(mm, vaddr & huge_page_mask(h), &ptl);
- 		absent = !pte || huge_pte_none(huge_ptep_get(pte));
- 
- 		/*
-@@ -2973,6 +2988,8 @@ long follow_hugetlb_page(struct mm_struc
- 		 */
- 		if (absent && (flags & FOLL_DUMP) &&
- 		    !hugetlbfs_pagecache_present(h, vma, vaddr)) {
-+			if (pte)
-+				spin_unlock(ptl);
- 			remainder = 0;
- 			break;
- 		}
-@@ -2992,10 +3009,10 @@ long follow_hugetlb_page(struct mm_struc
- 		      !huge_pte_write(huge_ptep_get(pte)))) {
- 			int ret;
- 
--			spin_unlock(&mm->page_table_lock);
-+			if (pte)
-+				spin_unlock(ptl);
- 			ret = hugetlb_fault(mm, vma, vaddr,
- 				(flags & FOLL_WRITE) ? FAULT_FLAG_WRITE : 0);
--			spin_lock(&mm->page_table_lock);
- 			if (!(ret & VM_FAULT_ERROR))
- 				continue;
- 
-@@ -3026,8 +3043,8 @@ same_page:
- 			 */
- 			goto same_page;
- 		}
-+		spin_unlock(ptl);
- 	}
--	spin_unlock(&mm->page_table_lock);
- 	*nr_pages = remainder;
- 	*position = vaddr;
- 
-@@ -3048,13 +3065,14 @@ unsigned long hugetlb_change_protection(
- 	flush_cache_range(vma, address, end);
- 
- 	mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
--	spin_lock(&mm->page_table_lock);
- 	for (; address < end; address += huge_page_size(h)) {
--		ptep = huge_pte_offset(mm, address);
-+		spinlock_t *ptl;
-+		ptep = huge_pte_offset_lock(mm, address, &ptl);
- 		if (!ptep)
- 			continue;
- 		if (huge_pmd_unshare(mm, &address, ptep)) {
- 			pages++;
-+			spin_unlock(ptl);
- 			continue;
- 		}
- 		if (!huge_pte_none(huge_ptep_get(ptep))) {
-@@ -3064,8 +3082,8 @@ unsigned long hugetlb_change_protection(
- 			set_huge_pte_at(mm, address, ptep, pte);
- 			pages++;
- 		}
-+		spin_unlock(ptl);
- 	}
--	spin_unlock(&mm->page_table_lock);
- 	/*
- 	 * Must flush TLB before releasing i_mmap_mutex: x86's huge_pmd_unshare
- 	 * may have cleared our pud entry and done put_page on the page table:
++void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
++				unsigned long address)
++{
++	spinlock_t *ptl = pte_lockptr(mm, pmd);
++	pte_t *ptep = pte_offset_map(pmd, address);
++	__migration_entry_wait(mm, ptep, ptl);
++}
++
++void migration_entry_wait_huge(struct mm_struct *mm, pte_t *pte)
++{
++	spinlock_t *ptl = huge_pte_lockptr(mm, pte);
++	__migration_entry_wait(mm, pte, ptl);
++}
++
+ #ifdef CONFIG_BLOCK
+ /* Returns true if all buffers are successfully locked */
+ static bool buffer_migrate_lock_buffers(struct buffer_head *head,
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
