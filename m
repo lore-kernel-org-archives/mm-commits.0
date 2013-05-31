@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-openrisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
  added to -mm tree
-Date: Fri, 31 May 2013 13:32:53 -0700
-Message-ID: <51a908f5.z7Szy3A0g4Mg4RQk%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 13:32:57 -0700
+Message-ID: <51a908f9.mu4X5ni09J43TG5N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40356 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40378 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755086Ab3EaUcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:54 -0400
+	with ESMTP id S1755913Ab3EaUc6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jonas@southpole.se, jiang.liu@huawei.com, dhowells@redhat.com, arnd@arndb.de, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, liqin.chen@sunplusct.com, lennox.wu@gmail.com, jiang.liu@huawei.com, liuj97@gmail.com
 
-Subject: + mm-openrisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,arnd@arndb.de,dhowells@redhat.com,jiang.liu@huawei.com,jonas@southpole.se
+Subject: + mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,jiang.liu@huawei.com,lennox.wu@gmail.com,liqin.chen@sunplusct.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:53 -0700
+Date: Fri, 31 May 2013 13:32:57 -0700
 
 
 The patch titled
-     Subject: mm/openrisc: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/score: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-openrisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,84 +41,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/openrisc: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/score: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Jonas Bonn <jonas@southpole.se>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/mm/init.c |   44 +++-----------------------------------
- 1 file changed, 4 insertions(+), 40 deletions(-)
+ arch/score/mm/init.c |   24 +-----------------------
+ 1 file changed, 1 insertion(+), 23 deletions(-)
 
-diff -puN arch/openrisc/mm/init.c~mm-openrisc-prepare-for-removing-num_physpages-and-simplify-mem_init arch/openrisc/mm/init.c
---- a/arch/openrisc/mm/init.c~mm-openrisc-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/openrisc/mm/init.c
-@@ -202,56 +202,20 @@ void __init paging_init(void)
+diff -puN arch/score/mm/init.c~mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init arch/score/mm/init.c
+--- a/arch/score/mm/init.c~mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/score/mm/init.c
+@@ -75,33 +75,11 @@ void __init paging_init(void)
  
- /* References to section boundaries */
- 
--static int __init free_pages_init(void)
--{
--	int reservedpages, pfn;
--
--	/* this will put all low memory onto the freelists */
--	free_all_bootmem();
--
--	reservedpages = 0;
--	for (pfn = 0; pfn < max_low_pfn; pfn++) {
--		/*
--		 * Only count reserved RAM pages
--		 */
--		if (PageReserved(mem_map + pfn))
--			reservedpages++;
--	}
--
--	return reservedpages;
--}
--
--static void __init set_max_mapnr_init(void)
--{
--	max_mapnr = num_physpages = max_low_pfn;
--}
--
  void __init mem_init(void)
  {
--	int codesize, reservedpages, datasize, initsize;
+-	unsigned long codesize, reservedpages, datasize, initsize;
+-	unsigned long tmp, ram = 0;
 -
- 	BUG_ON(!mem_map);
- 
--	set_max_mapnr_init();
+ 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+ 	free_all_bootmem();
+ 	setup_zero_page();	/* Setup zeroed pages. */
+-	reservedpages = 0;
 -
-+	max_mapnr = max_low_pfn;
- 	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
- 
- 	/* clear the zero-page */
- 	memset((void *)empty_zero_page, 0, PAGE_SIZE);
- 
--	reservedpages = free_pages_init();
-+	/* this will put all low memory onto the freelists */
-+	free_all_bootmem();
- 
--	codesize = (unsigned long)&_etext - (unsigned long)&_stext;
--	datasize = (unsigned long)&_edata - (unsigned long)&_etext;
--	initsize = (unsigned long)&__init_end - (unsigned long)&__init_begin;
+-	for (tmp = 0; tmp < max_low_pfn; tmp++)
+-		if (page_is_ram(tmp)) {
+-			ram++;
+-			if (PageReserved(pfn_to_page(tmp)))
+-				reservedpages++;
+-		}
 -
--	printk(KERN_INFO
--	       "Memory: %luk/%luk available (%dk kernel code, %dk reserved, %dk data, %dk init, %ldk highmem)\n",
--	       (unsigned long)nr_free_pages() << (PAGE_SHIFT - 10),
--	       max_mapnr << (PAGE_SHIFT - 10), codesize >> 10,
--	       reservedpages << (PAGE_SHIFT - 10), datasize >> 10,
--	       initsize >> 10, (unsigned long)(0 << (PAGE_SHIFT - 10))
--	    );
+-	num_physpages = ram;
+-	codesize = (unsigned long) &_etext - (unsigned long) &_text;
+-	datasize = (unsigned long) &_edata - (unsigned long) &_etext;
+-	initsize = (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+-	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
+-			"%ldk reserved, %ldk data, %ldk init, %ldk highmem)\n",
+-			(unsigned long) nr_free_pages() << (PAGE_SHIFT-10),
+-			ram << (PAGE_SHIFT-10), codesize >> 10,
+-			reservedpages << (PAGE_SHIFT-10), datasize >> 10,
+-			initsize >> 10,
+-			totalhigh_pages << (PAGE_SHIFT-10));
 +	mem_init_print_info(NULL);
+ }
+ #endif /* !CONFIG_NEED_MULTIPLE_NODES */
  
- 	printk("mem_init_done ...........................................\n");
- 	mem_init_done = 1;
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
