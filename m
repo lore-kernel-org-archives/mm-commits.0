@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-unicore32-fix-stale-comment-about-valid_page.patch added to
- -mm tree
-Date: Fri, 31 May 2013 14:06:21 -0700
-Message-ID: <51a910cd.fjkcJsjjvpRvZtwe%akpm@linux-foundation.org>
+Subject: +
+ drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info.patch
+ added to -mm tree
+Date: Fri, 31 May 2013 14:26:42 -0700
+Message-ID: <51a91592.LUMGIFMn42mb1DEz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754325Ab3EaVGW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:22 -0400
+	with ESMTP id S1755010Ab3EaV0n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:26:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, gxt@mprc.pku.edu.cn, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, sivanich@sgi.com, holt@sgi.com, dan.carpenter@oracle.com
 
-Subject: + mm-unicore32-fix-stale-comment-about-valid_page.patch added to -mm tree
-To: liuj97@gmail.com,gxt@mprc.pku.edu.cn,jiang.liu@huawei.com
+Subject: + drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info.patch added to -mm tree
+To: dan.carpenter@oracle.com,holt@sgi.com,sivanich@sgi.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:06:21 -0700
+Date: Fri, 31 May 2013 14:26:42 -0700
 
 
 The patch titled
-     Subject: mm/unicore32: fix stale comment about VALID_PAGE()
+     Subject: drivers/misc/sgi-gru/grufile.c: fix info leak in gru_get_config_info()
 has been added to the -mm tree.  Its filename is
-     mm-unicore32-fix-stale-comment-about-valid_page.patch
+     drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,112 +40,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/unicore32: fix stale comment about VALID_PAGE()
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/misc/sgi-gru/grufile.c: fix info leak in gru_get_config_info()
 
-VALID_PAGE() has been removed from kernel long time ago,
-so fix the comment.
+The "info.fill" array isn't initialized so it can leak uninitialized stack
+information to user space.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Robin Holt <holt@sgi.com>
+Acked-by: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/include/asm/memory.h |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/misc/sgi-gru/grufile.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/unicore32/include/asm/memory.h~mm-unicore32-fix-stale-comment-about-valid_page arch/unicore32/include/asm/memory.h
---- a/arch/unicore32/include/asm/memory.h~mm-unicore32-fix-stale-comment-about-valid_page
-+++ a/arch/unicore32/include/asm/memory.h
-@@ -98,12 +98,6 @@
- /*
-  * Conversion between a struct page and a physical address.
-  *
-- * Note: when converting an unknown physical address to a
-- * struct page, the resulting pointer must be validated
-- * using VALID_PAGE().  It must return an invalid struct page
-- * for any physical address not corresponding to a system
-- * RAM address.
-- *
-  *  page_to_pfn(page)	convert a struct page * to a PFN number
-  *  pfn_to_page(pfn)	convert a _valid_ PFN number to struct page *
-  *
+diff -puN drivers/misc/sgi-gru/grufile.c~drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -172,6 +172,7 @@ static long gru_get_config_info(unsigned
+ 		nodesperblade = 2;
+ 	else
+ 		nodesperblade = 1;
++	memset(&info, 0, sizeof(info));
+ 	info.cpus = num_online_cpus();
+ 	info.nodes = num_online_nodes();
+ 	info.blades = info.nodes / nodesperblade;
 _
 
-Patches currently in -mm which might be from liuj97@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
+origin.patch
 linux-next.patch
-mm-change-signature-of-free_reserved_area-to-fix-building-warnings.patch
-mm-enhance-free_reserved_area-to-support-poisoning-memory-with-zero.patch
-mm-arm64-kill-poison_init_mem.patch
-mm-x86-use-free_reserved_area-to-simplify-code.patch
-mm-tile-use-common-help-functions-to-free-reserved-pages.patch
-mm-fix-some-trivial-typos-in-comments.patch
-mm-use-managed_pages-to-calculate-default-zonelist-order.patch
-mm-accurately-calculate-zone-managed_pages-for-highmem-zones.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages.patch
-mm-make-__free_pages_bootmem-only-available-at-boot-time.patch
-mm-correctly-update-zone-managed_pages.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-concentrate-modification-of-totalram_pages-into-the-mm-core.patch
-mm-report-available-pages-as-memtotal-for-each-numa-node.patch
-vmlinuxlds-add-comments-for-global-variables-and-clean-up-useless-declarations.patch
-avr32-normalize-global-variables-exported-by-vmlinuxlds.patch
-c6x-normalize-global-variables-exported-by-vmlinuxlds.patch
-h8300-normalize-global-variables-exported-by-vmlinuxlds.patch
-score-normalize-global-variables-exported-by-vmlinuxlds.patch
-tile-normalize-global-variables-exported-by-vmlinuxlds.patch
-uml-normalize-global-variables-exported-by-vmlinuxlds.patch
-mm-introduce-helper-function-mem_init_print_info-to-simplify-mem_init.patch
-mm-use-totalram_pages-instead-of-num_physpages-at-runtime.patch
-mm-hotplug-prepare-for-removing-num_physpages.patch
-mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-arc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-arm64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-avr32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-c6x-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-cris-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-hexagon-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-metag-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-mips-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-mn10300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-openrisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-parisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-ppc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-s390-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-sh-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-tile-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-um-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-xtensa-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-kill-global-variable-num_physpages.patch
-mm-introduce-helper-function-set_max_mapnr.patch
-mm-avr32-prepare-for-killing-free_all_bootmem_node.patch
-mm-ia64-prepare-for-killing-free_all_bootmem_node.patch
-mm-m32r-prepare-for-killing-free_all_bootmem_node.patch
-mm-m68k-prepare-for-killing-free_all_bootmem_node.patch
-mm-metag-prepare-for-killing-free_all_bootmem_node.patch
-mm-mips-prepare-for-killing-free_all_bootmem_node.patch
-mm-parisc-prepare-for-killing-free_all_bootmem_node.patch
-mm-ppc-prepare-for-killing-free_all_bootmem_node.patch
-mm-sh-prepare-for-killing-free_all_bootmem_node.patch
-mm-kill-free_all_bootmem_node.patch
-mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch
-mm-m68k-fix-build-warning-of-unused-variable.patch
-mm-alpha-clean-up-unused-valid_page.patch
-mm-arm-fix-stale-comment-about-valid_page.patch
-mm-cris-clean-up-unused-valid_page.patch
-mm-microblaze-clean-up-unused-valid_page.patch
-mm-unicore32-fix-stale-comment-about-valid_page.patch
+drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info.patch
+configfs-use-capped-length-for-store_attribute.patch
+errh-is_err-can-accept-__user-pointers.patch
+rbtree-remove-unneeded-include.patch
+rbtree-remove-unneeded-include-fix.patch
+minix-bug-widening-a-binary-not-operation.patch
+documentation-codingstyle-allow-multiple-return-statements-per-function.patch
+mwave-fix-info-leak-in-mwave_ioctl.patch
 
