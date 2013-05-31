@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
  added to -mm tree
-Date: Fri, 31 May 2013 13:32:46 -0700
-Message-ID: <51a908ee.mfZhSmADQ/d/OO3q%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 13:32:40 -0700
+Message-ID: <51a908e8.M4prrVKj5T5GbkOH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40323 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755721Ab3EaUcr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:47 -0400
+	with ESMTP id S1755961Ab3EaUcl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tony.luck@intel.com, jiang.liu@huawei.com, fenghua.yu@intel.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, vapier@gentoo.org, lliubbo@gmail.com, jiang.liu@huawei.com, liuj97@gmail.com
 
-Subject: + mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,fenghua.yu@intel.com,jiang.liu@huawei.com,tony.luck@intel.com,zhangyanfei@cn.fujitsu.com
+Subject: + mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,jiang.liu@huawei.com,lliubbo@gmail.com,vapier@gentoo.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:46 -0700
+Date: Fri, 31 May 2013 13:32:40 -0700
 
 
 The patch titled
-     Subject: mm/IA64: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/blackfin: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,128 +41,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/IA64: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/blackfin: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Bob Liu <lliubbo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/contig.c    |   11 -----------
- arch/ia64/mm/discontig.c |    3 ---
- arch/ia64/mm/init.c      |   27 +--------------------------
- 3 files changed, 1 insertion(+), 40 deletions(-)
+ arch/blackfin/mm/init.c |   38 ++++++--------------------------------
+ 1 file changed, 6 insertions(+), 32 deletions(-)
 
-diff -puN arch/ia64/mm/contig.c~mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/ia64/mm/contig.c
-@@ -295,14 +295,6 @@ find_memory (void)
- 	alloc_per_cpu_data();
+diff -puN arch/blackfin/mm/init.c~mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init arch/blackfin/mm/init.c
+--- a/arch/blackfin/mm/init.c~mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/blackfin/mm/init.c
+@@ -90,43 +90,17 @@ asmlinkage void __init init_pda(void)
+ 
+ void __init mem_init(void)
+ {
+-	unsigned int codek = 0, datak = 0, initk = 0;
+-	unsigned int reservedpages = 0, freepages = 0;
+-	unsigned long tmp;
+-	unsigned long start_mem = memory_start;
+-	unsigned long end_mem = memory_end;
++	char buf[64];
+ 
+-	end_mem &= PAGE_MASK;
+-	high_memory = (void *)end_mem;
+-
+-	start_mem = PAGE_ALIGN(start_mem);
+-	max_mapnr = num_physpages = MAP_NR(high_memory);
+-	printk(KERN_DEBUG "Kernel managed physical pages: %lu\n", num_physpages);
++	high_memory = (void *)(memory_end & PAGE_MASK);
++	max_mapnr = MAP_NR(high_memory);
++	printk(KERN_DEBUG "Kernel managed physical pages: %lu\n", max_mapnr);
+ 
+ 	/* This will put all low memory onto the freelists. */
+ 	free_all_bootmem();
+ 
+-	reservedpages = 0;
+-	for (tmp = ARCH_PFN_OFFSET; tmp < max_mapnr; tmp++)
+-		if (PageReserved(pfn_to_page(tmp)))
+-			reservedpages++;
+-	freepages =  max_mapnr - ARCH_PFN_OFFSET - reservedpages;
+-
+-	/* do not count in kernel image between _rambase and _ramstart */
+-	reservedpages -= (_ramstart - _rambase) >> PAGE_SHIFT;
+-#if (defined(CONFIG_BFIN_EXTMEM_ICACHEABLE) && ANOMALY_05000263)
+-	reservedpages += (_ramend - memory_end - DMA_UNCACHED_REGION) >> PAGE_SHIFT;
+-#endif
+-
+-	codek = (_etext - _stext) >> 10;
+-	initk = (__init_end - __init_begin) >> 10;
+-	datak = ((_ramstart - _rambase) >> 10) - codek - initk;
+-
+-	printk(KERN_INFO
+-	     "Memory available: %luk/%luk RAM, "
+-		"(%uk init code, %uk kernel code, %uk data, %uk dma, %uk reserved)\n",
+-		(unsigned long) freepages << (PAGE_SHIFT-10), (_ramend - CONFIG_PHY_RAM_BASE_ADDRESS) >> 10,
+-		initk, codek, datak, DMA_UNCACHED_REGION >> 10, (reservedpages << (PAGE_SHIFT-10)));
++	snprintf(buf, sizeof(buf) - 1, "%uK DMA", DMA_UNCACHED_REGION >> 10);
++	mem_init_print_info(buf);
  }
  
--static int count_pages(u64 start, u64 end, void *arg)
--{
--	unsigned long *count = arg;
--
--	*count += (end - start) >> PAGE_SHIFT;
--	return 0;
--}
--
- /*
-  * Set up the page tables.
-  */
-@@ -313,9 +305,6 @@ paging_init (void)
- 	unsigned long max_dma;
- 	unsigned long max_zone_pfns[MAX_NR_ZONES];
- 
--	num_physpages = 0;
--	efi_memmap_walk(count_pages, &num_physpages);
--
- 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
- #ifdef CONFIG_ZONE_DMA
- 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
-diff -puN arch/ia64/mm/discontig.c~mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init arch/ia64/mm/discontig.c
---- a/arch/ia64/mm/discontig.c~mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/ia64/mm/discontig.c
-@@ -37,7 +37,6 @@ struct early_node_data {
- 	struct ia64_node_data *node_data;
- 	unsigned long pernode_addr;
- 	unsigned long pernode_size;
--	unsigned long num_physpages;
- #ifdef CONFIG_ZONE_DMA
- 	unsigned long num_dma_physpages;
- #endif
-@@ -732,7 +731,6 @@ static __init int count_node_pages(unsig
- {
- 	unsigned long end = start + len;
- 
--	mem_data[node].num_physpages += len >> PAGE_SHIFT;
- #ifdef CONFIG_ZONE_DMA
- 	if (start <= __pa(MAX_DMA_ADDRESS))
- 		mem_data[node].num_dma_physpages +=
-@@ -778,7 +776,6 @@ void __init paging_init(void)
- #endif
- 
- 	for_each_online_node(node) {
--		num_physpages += mem_data[node].num_physpages;
- 		pfn_offset = mem_data[node].min_pfn;
- 
- #ifdef CONFIG_VIRTUAL_MEM_MAP
-diff -puN arch/ia64/mm/init.c~mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/ia64/mm/init.c
-@@ -545,19 +545,6 @@ int __init register_active_ranges(u64 st
- 	return 0;
- }
- 
--static int __init
--count_reserved_pages(u64 start, u64 end, void *arg)
--{
--	unsigned long num_reserved = 0;
--	unsigned long *count = arg;
--
--	for (; start < end; start += PAGE_SIZE)
--		if (PageReserved(virt_to_page(start)))
--			++num_reserved;
--	*count += num_reserved;
--	return 0;
--}
--
- int
- find_max_min_low_pfn (u64 start, u64 end, void *arg)
- {
-@@ -596,7 +583,6 @@ __setup("nolwsys", nolwsys_setup);
- void __init
- mem_init (void)
- {
--	long reserved_pages, codesize, datasize, initsize;
- 	pg_data_t *pgdat;
- 	int i;
- 
-@@ -624,18 +610,7 @@ mem_init (void)
- 		if (pgdat->bdata->node_bootmem_map)
- 			free_all_bootmem_node(pgdat);
- 
--	reserved_pages = 0;
--	efi_memmap_walk(count_reserved_pages, &reserved_pages);
--
--	codesize =  (unsigned long) _etext - (unsigned long) _stext;
--	datasize =  (unsigned long) _edata - (unsigned long) _etext;
--	initsize =  (unsigned long) __init_end - (unsigned long) __init_begin;
--
--	printk(KERN_INFO "Memory: %luk/%luk available (%luk code, %luk reserved, "
--	       "%luk data, %luk init)\n", nr_free_pages() << (PAGE_SHIFT - 10),
--	       num_physpages << (PAGE_SHIFT - 10), codesize >> 10,
--	       reserved_pages << (PAGE_SHIFT - 10), datasize >> 10, initsize >> 10);
--
-+	mem_init_print_info(NULL);
- 
- 	/*
- 	 * For fsyscall entrpoints with no light-weight handler, use the ordinary
+ #ifdef CONFIG_BLK_DEV_INITRD
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
