@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-alpha-clean-up-unused-valid_page.patch added to -mm tree
-Date: Fri, 31 May 2013 14:06:17 -0700
-Message-ID: <51a910c9.V+MYcP+G0mZ25C4r%akpm@linux-foundation.org>
+Subject: + mm-cris-clean-up-unused-valid_page.patch added to -mm tree
+Date: Fri, 31 May 2013 14:06:19 -0700
+Message-ID: <51a910cb.2JeZwP5DZPfxIO9o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40634 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753375Ab3EaVGS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:18 -0400
+	with ESMTP id S1754325Ab3EaVGU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rth@twiddle.net, nyc@holomorphy.com, mattst88@gmail.com, jkosina@suse.cz, jiang.liu@huawei.com, ink@jurassic.park.msu.ru, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, starvik@axis.com, jiang.liu@huawei.com, jesper.nilsson@axis.com, liuj97@gmail.com
 
-Subject: + mm-alpha-clean-up-unused-valid_page.patch added to -mm tree
-To: liuj97@gmail.com,ink@jurassic.park.msu.ru,jiang.liu@huawei.com,jkosina@suse.cz,mattst88@gmail.com,nyc@holomorphy.com,rth@twiddle.net
+Subject: + mm-cris-clean-up-unused-valid_page.patch added to -mm tree
+To: liuj97@gmail.com,jesper.nilsson@axis.com,jiang.liu@huawei.com,starvik@axis.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:06:17 -0700
+Date: Fri, 31 May 2013 14:06:19 -0700
 
 
 The patch titled
-     Subject: mm/ALPHA: clean up unused VALID_PAGE()
+     Subject: mm/CRIS: clean up unused VALID_PAGE()
 has been added to the -mm tree.  Its filename is
-     mm-alpha-clean-up-unused-valid_page.patch
+     mm-cris-clean-up-unused-valid_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/ALPHA: clean up unused VALID_PAGE()
+Subject: mm/CRIS: clean up unused VALID_PAGE()
 
 VALID_PAGE() has been removed from kernel long time ago, so clean up it.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mmzone.h |    2 --
- 1 file changed, 2 deletions(-)
+ arch/cris/include/asm/page.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/mmzone.h~mm-alpha-clean-up-unused-valid_page arch/alpha/include/asm/mmzone.h
---- a/arch/alpha/include/asm/mmzone.h~mm-alpha-clean-up-unused-valid_page
-+++ a/arch/alpha/include/asm/mmzone.h
-@@ -71,8 +71,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p,
+diff -puN arch/cris/include/asm/page.h~mm-cris-clean-up-unused-valid_page arch/cris/include/asm/page.h
+--- a/arch/cris/include/asm/page.h~mm-cris-clean-up-unused-valid_page
++++ a/arch/cris/include/asm/page.h
+@@ -51,7 +51,6 @@ typedef struct page *pgtable_t;
+  */ 
  
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+ #define virt_to_page(kaddr)    (mem_map + (((unsigned long)(kaddr) - PAGE_OFFSET) >> PAGE_SHIFT))
+-#define VALID_PAGE(page)       (((page) - mem_map) < max_mapnr)
+ #define virt_addr_valid(kaddr)	pfn_valid((unsigned)(kaddr) >> PAGE_SHIFT)
  
--#define VALID_PAGE(page)	(((page) - mem_map) < max_mapnr)
--
- #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> 32))
- #define pgd_page(pgd)		(pfn_to_page(pgd_val(pgd) >> 32))
- #define pte_pfn(pte)		(pte_val(pte) >> 32)
+ /* convert a page (based on mem_map and forward) to a physical address
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
