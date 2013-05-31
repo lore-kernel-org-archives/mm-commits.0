@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-cpuc-fix-maxcpus-boot-option.patch added to -mm
- tree
-Date: Fri, 31 May 2013 14:54:49 -0700
-Message-ID: <51a91c29.MdilbnYVjcp5+mJO%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch added
+ to -mm tree
+Date: Fri, 31 May 2013 15:25:39 -0700
+Message-ID: <51a92363.I89AXMSQekF4CWbt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40870 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40984 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017Ab3EaVyu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:54:50 -0400
+	with ESMTP id S1757821Ab3EaWZk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 18:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, greg@kroah.com, youquan.song@intel.com
+To: mm-commits@vger.kernel.org, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
 
-Subject: + drivers-base-cpuc-fix-maxcpus-boot-option.patch added to -mm tree
-To: youquan.song@intel.com,greg@kroah.com
+Subject: + ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch added to -mm tree
+To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:54:49 -0700
+Date: Fri, 31 May 2013 15:25:39 -0700
 
 
 The patch titled
-     Subject: drivers/base/cpu.c: fix maxcpus boot option
+     Subject: ocfs2: should not use le32_add_cpu to set ocfs2_dinode i_flags
 has been added to the -mm tree.  Its filename is
-     drivers-base-cpuc-fix-maxcpus-boot-option.patch
+     ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +40,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Youquan Song <youquan.song@intel.com>
-Subject: drivers/base/cpu.c: fix maxcpus boot option
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: should not use le32_add_cpu to set ocfs2_dinode i_flags
 
-The maxcpus boot option limits the maximum number of CPUs in the system,
-but this option is broken in recent kernels.  Though we use maxcpus to
-limit CPUs number, the current kernel will register all of the present
-CPUs in sysfs.  udev will enumerate all registered cpu in sysfs, and it
-will bring up the CPU if the CPU is offline.  So the maxcpus option is
-broken.
+If we use le32_add_cpu to set ocfs2_dinode i_flags, it may lead to the
+corresponding flag corrupted.  So we should change it to bitwise and/or
+operation.
 
-This patch will only register a CPU which is not over the limit of the
-maxcpus option in sysfs.  So it will keep the maxcpus limitation during
-udev enumeration or other bringup of CPUs over the limitation by methods
-such as echo 1 > /sys/devices/system/cpu/online
-
-Signed-off-by: Youquan Song <youquan.song@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: shencanquan <shencanquan@huawei.com
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/cpu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ocfs2/namei.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option drivers/base/cpu.c
---- a/drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option
-+++ a/drivers/base/cpu.c
-@@ -275,6 +275,10 @@ int __cpuinit register_cpu(struct cpu *c
- {
- 	int error;
+diff -puN fs/ocfs2/namei.c~ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags
++++ a/fs/ocfs2/namei.c
+@@ -522,7 +522,7 @@ static int __ocfs2_mknod_locked(struct i
  
-+	/* return when cpu number greater than maximum number of CPUs */
-+	if (num >= setup_max_cpus)
-+		return 0;
-+
- 	cpu->node_id = cpu_to_node(num);
- 	memset(&cpu->dev, 0x00, sizeof(struct device));
- 	cpu->dev.id = num;
+ 	fe->i_last_eb_blk = 0;
+ 	strcpy(fe->i_signature, OCFS2_INODE_SIGNATURE);
+-	le32_add_cpu(&fe->i_flags, OCFS2_VALID_FL);
++	fe->i_flags |= cpu_to_le32(OCFS2_VALID_FL);
+ 	fe->i_atime = fe->i_ctime = fe->i_mtime =
+ 		cpu_to_le64(CURRENT_TIME.tv_sec);
+ 	fe->i_mtime_nsec = fe->i_ctime_nsec = fe->i_atime_nsec =
+@@ -2044,7 +2044,7 @@ static int ocfs2_orphan_add(struct ocfs2
+ 		goto leave;
+ 	}
+ 
+-	le32_add_cpu(&fe->i_flags, OCFS2_ORPHANED_FL);
++	fe->i_flags |= cpu_to_le32(OCFS2_ORPHANED_FL);
+ 	OCFS2_I(inode)->ip_flags &= ~OCFS2_INODE_SKIP_ORPHAN_DIR;
+ 
+ 	/* Record which orphan dir our inode now resides
+@@ -2434,7 +2434,7 @@ int ocfs2_mv_orphaned_inode_to_new(struc
+ 	}
+ 
+ 	di = (struct ocfs2_dinode *)di_bh->b_data;
+-	le32_add_cpu(&di->i_flags, -OCFS2_ORPHANED_FL);
++	di->i_flags &= ~cpu_to_le32(OCFS2_ORPHANED_FL);
+ 	di->i_orphaned_slot = 0;
+ 	set_nlink(inode, 1);
+ 	ocfs2_set_links_count(di, inode->i_nlink);
 _
 
-Patches currently in -mm which might be from youquan.song@intel.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-drivers-base-cpuc-fix-maxcpus-boot-option.patch
+fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch
+fs-ocfs2-dlm-dlmrecoveryc-dlm_request_all_locks-ret-should-be-int-instead-of-enum.patch
+ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch
 
