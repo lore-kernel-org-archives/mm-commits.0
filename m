@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-isl12022c-use-ptr_ret.patch added to -mm tree
-Date: Fri, 31 May 2013 16:16:37 -0700
-Message-ID: <51a92f55.FnVJVJtl1OPjfyBj%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch added to -mm tree
+Date: Fri, 31 May 2013 16:16:39 -0700
+Message-ID: <51a92f57.VvIOE7vr8aaExQX/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41299 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41303 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753187Ab3EaXQi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 19:16:38 -0400
+	with ESMTP id S1753187Ab3EaXQk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 19:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, roman.fietze@telemotive.de, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-isl12022c-use-ptr_ret.patch added to -mm tree
-To: sachin.kamat@linaro.org,roman.fietze@telemotive.de
+Subject: + drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 16:16:37 -0700
+Date: Fri, 31 May 2013 16:16:39 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-isl12022.c: use PTR_RET()
+     Subject: drivers/rtc/rtc-pcf8563.c: use PTR_RET()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-isl12022c-use-ptr_ret.patch
+     drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +39,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-isl12022.c: use PTR_RET()
+Subject: drivers/rtc/rtc-pcf8563.c: use PTR_RET()
 
 Use of PTR_RET() simplifies the code.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Roman Fietze <roman.fietze@telemotive.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl12022.c |    6 ++----
+ drivers/rtc/rtc-pcf8563.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl12022.c~drivers-rtc-rtc-isl12022c-use-ptr_ret drivers/rtc/rtc-isl12022.c
---- a/drivers/rtc/rtc-isl12022.c~drivers-rtc-rtc-isl12022c-use-ptr_ret
-+++ a/drivers/rtc/rtc-isl12022.c
-@@ -16,6 +16,7 @@
- #include <linux/rtc.h>
+diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-use-ptr_ret drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-use-ptr_ret
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -20,6 +20,7 @@
  #include <linux/slab.h>
  #include <linux/module.h>
+ #include <linux/of.h>
 +#include <linux/err.h>
  
- #define DRV_VERSION "0.1"
+ #define DRV_VERSION "0.4.3"
  
-@@ -267,10 +268,7 @@ static int isl12022_probe(struct i2c_cli
- 	isl12022->rtc = devm_rtc_device_register(&client->dev,
- 					isl12022_driver.driver.name,
- 					&isl12022_rtc_ops, THIS_MODULE);
--	if (IS_ERR(isl12022->rtc))
--		return PTR_ERR(isl12022->rtc);
+@@ -263,10 +264,7 @@ static int pcf8563_probe(struct i2c_clie
+ 				pcf8563_driver.driver.name,
+ 				&pcf8563_rtc_ops, THIS_MODULE);
+ 
+-	if (IS_ERR(pcf8563->rtc))
+-		return PTR_ERR(pcf8563->rtc);
 -
 -	return 0;
-+	return PTR_RET(isl12022->rtc);
++	return PTR_RET(pcf8563->rtc);
  }
  
- static const struct i2c_device_id isl12022_id[] = {
+ static const struct i2c_device_id pcf8563_id[] = {
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
