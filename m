@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-arm-fix-stale-comment-about-valid_page.patch added to -mm
+Subject: + mm-microblaze-clean-up-unused-valid_page.patch added to -mm
  tree
-Date: Fri, 31 May 2013 14:06:18 -0700
-Message-ID: <51a910ca.8R4TsVDCvEjSeqIc%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 14:06:20 -0700
+Message-ID: <51a910cc.AcFA1AdDCzzUTH1G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754325Ab3EaVGT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:19 -0400
+	with ESMTP id S1754325Ab3EaVGV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will.deacon@arm.com, sboyd@codeaurora.org, nico@linaro.org, linux@arm.linux.org.uk, jiang.liu@huawei.com, giancarlo.asnaghi@st.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, monstr@monstr.eu, jiang.liu@huawei.com, liuj97@gmail.com
 
-Subject: + mm-arm-fix-stale-comment-about-valid_page.patch added to -mm tree
-To: liuj97@gmail.com,giancarlo.asnaghi@st.com,jiang.liu@huawei.com,linux@arm.linux.org.uk,nico@linaro.org,sboyd@codeaurora.org,will.deacon@arm.com
+Subject: + mm-microblaze-clean-up-unused-valid_page.patch added to -mm tree
+To: liuj97@gmail.com,jiang.liu@huawei.com,monstr@monstr.eu
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:06:18 -0700
+Date: Fri, 31 May 2013 14:06:20 -0700
 
 
 The patch titled
-     Subject: mm/ARM: fix stale comment about VALID_PAGE()
+     Subject: mm/microblaze: clean up unused VALID_PAGE()
 has been added to the -mm tree.  Its filename is
-     mm-arm-fix-stale-comment-about-valid_page.patch
+     mm-microblaze-clean-up-unused-valid_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/ARM: fix stale comment about VALID_PAGE()
+Subject: mm/microblaze: clean up unused VALID_PAGE()
 
-VALID_PAGE() has been removed from kernel long time ago,
-so fix the comment.
+VALID_PAGE() has been removed from kernel long time ago, so clean up it.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Nicolas Pitre <nico@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/memory.h |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/microblaze/include/asm/page.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/arm/include/asm/memory.h~mm-arm-fix-stale-comment-about-valid_page arch/arm/include/asm/memory.h
---- a/arch/arm/include/asm/memory.h~mm-arm-fix-stale-comment-about-valid_page
-+++ a/arch/arm/include/asm/memory.h
-@@ -260,12 +260,6 @@ static inline __deprecated void *bus_to_
- /*
-  * Conversion between a struct page and a physical address.
-  *
-- * Note: when converting an unknown physical address to a
-- * struct page, the resulting pointer must be validated
-- * using VALID_PAGE().  It must return an invalid struct page
-- * for any physical address not corresponding to a system
-- * RAM address.
-- *
-  *  page_to_pfn(page)	convert a struct page * to a PFN number
-  *  pfn_to_page(pfn)	convert a _valid_ PFN number to struct page *
-  *
+diff -puN arch/microblaze/include/asm/page.h~mm-microblaze-clean-up-unused-valid_page arch/microblaze/include/asm/page.h
+--- a/arch/microblaze/include/asm/page.h~mm-microblaze-clean-up-unused-valid_page
++++ a/arch/microblaze/include/asm/page.h
+@@ -168,7 +168,6 @@ extern int page_is_ram(unsigned long pfn
+ #  else /* CONFIG_MMU */
+ #  define ARCH_PFN_OFFSET	(memory_start >> PAGE_SHIFT)
+ #  define pfn_valid(pfn)	((pfn) < (max_mapnr + ARCH_PFN_OFFSET))
+-#  define VALID_PAGE(page) 	((page - mem_map) < max_mapnr)
+ #  endif /* CONFIG_MMU */
+ 
+ # endif /* __ASSEMBLY__ */
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
