@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
- added to -mm tree
-Date: Fri, 31 May 2013 13:32:35 -0700
-Message-ID: <51a908e3.qDZ52IYHdfgWZXga%akpm@linux-foundation.org>
+Subject: + mm-use-totalram_pages-instead-of-num_physpages-at-runtime.patch added to -mm tree
+Date: Fri, 31 May 2013 13:32:33 -0700
+Message-ID: <51a908e1.0vDf+oELXL2bm5og%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40271 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40258 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755080Ab3EaUcg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:36 -0400
+	with ESMTP id S1754847Ab3EaUce (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rth@twiddle.net, mattst88@gmail.com, jiang.liu@huawei.com, ink@jurassic.park.msu.ru, dhowells@redhat.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, yoshfuji@linux-ipv6.org, miklos@szeredi.hu, kuznet@ms2.inr.ac.ru, kaber@trash.net, jmorris@namei.org, jiang.liu@huawei.com, davem@davemloft.net, liuj97@gmail.com
 
-Subject: + mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,dhowells@redhat.com,ink@jurassic.park.msu.ru,jiang.liu@huawei.com,mattst88@gmail.com,rth@twiddle.net
+Subject: + mm-use-totalram_pages-instead-of-num_physpages-at-runtime.patch added to -mm tree
+To: liuj97@gmail.com,davem@davemloft.net,jiang.liu@huawei.com,jmorris@namei.org,kaber@trash.net,kuznet@ms2.inr.ac.ru,miklos@szeredi.hu,yoshfuji@linux-ipv6.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:35 -0700
+Date: Fri, 31 May 2013 13:32:33 -0700
 
 
 The patch titled
-     Subject: mm/alpha: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm: use totalram_pages instead of num_physpages at runtime
 has been added to the -mm tree.  Its filename is
-     mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-use-totalram_pages-instead-of-num_physpages-at-runtime.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,122 +39,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/alpha: prepare for removing num_physpages and simplify mem_init()
+Subject: mm: use totalram_pages instead of num_physpages at runtime
 
-Prepare for removing num_physpages and simplify mem_init().
+The global variable num_physpages is scheduled to be removed, so use
+totalram_pages instead of num_physpages at runtime.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: James Morris <jmorris@namei.org>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/init.c |   32 ++------------------------------
- arch/alpha/mm/numa.c |   34 ++--------------------------------
- 2 files changed, 4 insertions(+), 62 deletions(-)
+ fs/fuse/inode.c          |    2 +-
+ kernel/power/snapshot.c  |    4 ++--
+ net/ipv4/inet_fragment.c |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/mm/init.c~mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init arch/alpha/mm/init.c
---- a/arch/alpha/mm/init.c~mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/alpha/mm/init.c
-@@ -277,42 +277,14 @@ srm_paging_stop (void)
- #endif
- 
- #ifndef CONFIG_DISCONTIGMEM
--static void __init
--printk_memory_info(void)
--{
--	unsigned long codesize, reservedpages, datasize, initsize, tmp;
--	extern int page_is_ram(unsigned long) __init;
--
--	/* printk all informations */
--	reservedpages = 0;
--	for (tmp = 0; tmp < max_low_pfn; tmp++)
--		/*
--		 * Only count reserved RAM pages
--		 */
--		if (page_is_ram(tmp) && PageReserved(mem_map+tmp))
--			reservedpages++;
--
--	codesize =  (unsigned long) &_etext - (unsigned long) &_text;
--	datasize =  (unsigned long) &_edata - (unsigned long) &_data;
--	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
--
--	printk("Memory: %luk/%luk available (%luk kernel code, %luk reserved, %luk data, %luk init)\n",
--	       nr_free_pages() << (PAGE_SHIFT-10),
--	       max_mapnr << (PAGE_SHIFT-10),
--	       codesize >> 10,
--	       reservedpages << (PAGE_SHIFT-10),
--	       datasize >> 10,
--	       initsize >> 10);
--}
--
- void __init
- mem_init(void)
+diff -puN fs/fuse/inode.c~mm-use-totalram_pages-instead-of-num_physpages-at-runtime fs/fuse/inode.c
+--- a/fs/fuse/inode.c~mm-use-totalram_pages-instead-of-num_physpages-at-runtime
++++ a/fs/fuse/inode.c
+@@ -785,7 +785,7 @@ static const struct super_operations fus
+ static void sanitize_global_limit(unsigned *limit)
  {
--	max_mapnr = num_physpages = max_low_pfn;
-+	max_mapnr = max_low_pfn;
- 	free_all_bootmem();
- 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+ 	if (*limit == 0)
+-		*limit = ((num_physpages << PAGE_SHIFT) >> 13) /
++		*limit = ((totalram_pages << PAGE_SHIFT) >> 13) /
+ 			 sizeof(struct fuse_req);
  
--	printk_memory_info();
-+	mem_init_print_info(NULL);
- }
- #endif /* CONFIG_DISCONTIGMEM */
- 
-diff -puN arch/alpha/mm/numa.c~mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init arch/alpha/mm/numa.c
---- a/arch/alpha/mm/numa.c~mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/alpha/mm/numa.c
-@@ -129,8 +129,6 @@ setup_memory_node(int nid, void *kernel_
- 	if (node_max_pfn > max_low_pfn)
- 		max_pfn = max_low_pfn = node_max_pfn;
- 
--	num_physpages += node_max_pfn - node_min_pfn;
--
- #if 0 /* we'll try this one again in a little while */
- 	/* Cute trick to make sure our local node data is on local memory */
- 	node_data[nid] = (pg_data_t *)(__va(node_min_pfn << PAGE_SHIFT));
-@@ -324,37 +322,9 @@ void __init paging_init(void)
- 
- void __init mem_init(void)
+ 	if (*limit >= 1 << 16)
+diff -puN kernel/power/snapshot.c~mm-use-totalram_pages-instead-of-num_physpages-at-runtime kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~mm-use-totalram_pages-instead-of-num_physpages-at-runtime
++++ a/kernel/power/snapshot.c
+@@ -1651,7 +1651,7 @@ unsigned long snapshot_get_image_size(vo
+ static int init_header(struct swsusp_info *info)
  {
--	unsigned long codesize, reservedpages, datasize, initsize, pfn;
--	extern int page_is_ram(unsigned long) __init;
--	unsigned long nid, i;
- 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
--
--	reservedpages = 0;
--	for_each_online_node(nid) {
--		/*
--		 * This will free up the bootmem, ie, slot 0 memory
--		 */
--		free_all_bootmem_node(NODE_DATA(nid));
--
--		pfn = NODE_DATA(nid)->node_start_pfn;
--		for (i = 0; i < node_spanned_pages(nid); i++, pfn++)
--			if (page_is_ram(pfn) &&
--			    PageReserved(nid_page_nr(nid, i)))
--				reservedpages++;
--	}
--
--	codesize =  (unsigned long) &_etext - (unsigned long) &_text;
--	datasize =  (unsigned long) &_edata - (unsigned long) &_data;
--	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
--
--	printk("Memory: %luk/%luk available (%luk kernel code, %luk reserved, "
--	       "%luk data, %luk init)\n",
--	       nr_free_pages() << (PAGE_SHIFT-10),
--	       num_physpages << (PAGE_SHIFT-10),
--	       codesize >> 10,
--	       reservedpages << (PAGE_SHIFT-10),
--	       datasize >> 10,
--	       initsize >> 10);
-+	free_all_bootmem();
-+	mem_init_print_info(NULL);
- #if 0
- 	mem_stress();
- #endif
+ 	memset(info, 0, sizeof(struct swsusp_info));
+-	info->num_physpages = num_physpages;
++	info->num_physpages = get_num_physpages();
+ 	info->image_pages = nr_copy_pages;
+ 	info->pages = snapshot_get_image_size();
+ 	info->size = info->pages;
+@@ -1795,7 +1795,7 @@ static int check_header(struct swsusp_in
+ 	char *reason;
+ 
+ 	reason = check_image_kernel(info);
+-	if (!reason && info->num_physpages != num_physpages)
++	if (!reason && info->num_physpages != get_num_physpages())
+ 		reason = "memory size";
+ 	if (reason) {
+ 		printk(KERN_ERR "PM: Image mismatch: %s\n", reason);
+diff -puN net/ipv4/inet_fragment.c~mm-use-totalram_pages-instead-of-num_physpages-at-runtime net/ipv4/inet_fragment.c
+--- a/net/ipv4/inet_fragment.c~mm-use-totalram_pages-instead-of-num_physpages-at-runtime
++++ a/net/ipv4/inet_fragment.c
+@@ -93,7 +93,7 @@ void inet_frags_init(struct inet_frags *
+ 	}
+ 	rwlock_init(&f->lock);
+ 
+-	f->rnd = (u32) ((num_physpages ^ (num_physpages>>7)) ^
++	f->rnd = (u32) ((totalram_pages ^ (totalram_pages >> 7)) ^
+ 				   (jiffies ^ (jiffies >> 6)));
+ 
+ 	setup_timer(&f->secret_timer, inet_frag_secret_rebuild,
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
