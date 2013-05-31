@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch
- added to -mm tree
-Date: Fri, 31 May 2013 14:49:03 -0700
-Message-ID: <51a91acf.sl6LwZJz04y8eyxA%akpm@linux-foundation.org>
+Subject: + drivers-base-cpuc-fix-maxcpus-boot-option.patch added to -mm
+ tree
+Date: Fri, 31 May 2013 14:54:49 -0700
+Message-ID: <51a91c29.MdilbnYVjcp5+mJO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017Ab3EaVtD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:49:03 -0400
+	with ESMTP id S1752017Ab3EaVyu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:54:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dhowells@redhat.com, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, greg@kroah.com, youquan.song@intel.com
 
-Subject: + arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch added to -mm tree
-To: gang.chen@asianux.com,dhowells@redhat.com
+Subject: + drivers-base-cpuc-fix-maxcpus-boot-option.patch added to -mm tree
+To: youquan.song@intel.com,greg@kroah.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:49:03 -0700
+Date: Fri, 31 May 2013 14:54:49 -0700
 
 
 The patch titled
-     Subject: arch/frv/kernel/setup.c: use strncmp() instead of memcmp()
+     Subject: drivers/base/cpu.c: fix maxcpus boot option
 has been added to the -mm tree.  Its filename is
-     arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch
+     drivers-base-cpuc-fix-maxcpus-boot-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: arch/frv/kernel/setup.c: use strncmp() instead of memcmp()
+From: Youquan Song <youquan.song@intel.com>
+Subject: drivers/base/cpu.c: fix maxcpus boot option
 
-'cmdline' is a NUL terminated string, when its length < 4, memcmp()
-will cause memory access out of boundary.
+The maxcpus boot option limits the maximum number of CPUs in the system,
+but this option is broken in recent kernels.  Though we use maxcpus to
+limit CPUs number, the current kernel will register all of the present
+CPUs in sysfs.  udev will enumerate all registered cpu in sysfs, and it
+will bring up the CPU if the CPU is offline.  So the maxcpus option is
+broken.
 
-So use strncmp() instead of memcmp().
+This patch will only register a CPU which is not over the limit of the
+maxcpus option in sysfs.  So it will keep the maxcpus limitation during
+udev enumeration or other bringup of CPUs over the limitation by methods
+such as echo 1 > /sys/devices/system/cpu/online
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Youquan Song <youquan.song@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/cpu.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/frv/kernel/setup.c~arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp arch/frv/kernel/setup.c
---- a/arch/frv/kernel/setup.c~arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp
-+++ a/arch/frv/kernel/setup.c
-@@ -735,7 +735,7 @@ static void __init parse_cmdline_early(c
- 		/* "mem=XXX[kKmM]" sets SDRAM size to <mem>, overriding the value we worked
- 		 * out from the SDRAM controller mask register
- 		 */
--		if (!memcmp(cmdline, "mem=", 4)) {
-+		if (!strncmp(cmdline, "mem=", 4)) {
- 			unsigned long long mem_size;
+diff -puN drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option drivers/base/cpu.c
+--- a/drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option
++++ a/drivers/base/cpu.c
+@@ -275,6 +275,10 @@ int __cpuinit register_cpu(struct cpu *c
+ {
+ 	int error;
  
- 			mem_size = memparse(cmdline + 4, &cmdline);
++	/* return when cpu number greater than maximum number of CPUs */
++	if (num >= setup_max_cpus)
++		return 0;
++
+ 	cpu->node_id = cpu_to_node(num);
+ 	memset(&cpu->dev, 0x00, sizeof(struct device));
+ 	cpu->dev.id = num;
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from youquan.song@intel.com are
 
-linux-next.patch
-lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch
-kernel-audit_treec-audit_add_tree_rule-protect-rule-from-kill_rules.patch
-kernel-auditfilterc-fix-leak-in-audit_add_rule-error-path.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-vfs-fix-invalid-ida_remove-call.patch
-mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
-mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
-arch-frv-kernel-trapsc-using-vsnprintf-instead-of-vsprintf.patch
-arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch
+drivers-base-cpuc-fix-maxcpus-boot-option.patch
 
