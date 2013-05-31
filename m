@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mips-prepare-for-killing-free_all_bootmem_node.patch added
- to -mm tree
-Date: Fri, 31 May 2013 14:03:45 -0700
-Message-ID: <51a91031.MW52B0gm1WR4gZe1%akpm@linux-foundation.org>
+Subject: + mm-ppc-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
+Date: Fri, 31 May 2013 14:03:47 -0700
+Message-ID: <51a91033.SSRz7mTJOAcCeYRc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40577 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40590 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754801Ab3EaVDq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:46 -0400
+	with ESMTP id S1754715Ab3EaVDs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ralf@linux-mips.org, minchan@kernel.org, jiang.liu@huawei.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, suzuki@in.ibm.com, paulus@samba.org, jiang.liu@huawei.com, benh@kernel.crashing.org, agraf@suse.de, liuj97@gmail.com
 
-Subject: + mm-mips-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
-To: liuj97@gmail.com,jiang.liu@huawei.com,minchan@kernel.org,ralf@linux-mips.org
+Subject: + mm-ppc-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
+To: liuj97@gmail.com,agraf@suse.de,benh@kernel.crashing.org,jiang.liu@huawei.com,paulus@samba.org,suzuki@in.ibm.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:45 -0700
+Date: Fri, 31 May 2013 14:03:47 -0700
 
 
 The patch titled
-     Subject: mm/MIPS: prepare for killing free_all_bootmem_node()
+     Subject: mm/PPC: prepare for killing free_all_bootmem_node()
 has been added to the -mm tree.  Its filename is
-     mm-mips-prepare-for-killing-free_all_bootmem_node.patch
+     mm-ppc-prepare-for-killing-free_all_bootmem_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +39,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/MIPS: prepare for killing free_all_bootmem_node()
+Subject: mm/PPC: prepare for killing free_all_bootmem_node()
 
 Prepare for killing free_all_bootmem_node() by using free_all_bootmem().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Alexander Graf <agraf@suse.de>
+Cc: "Suzuki K. Poulose" <suzuki@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/sgi-ip27/ip27-memory.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ arch/powerpc/mm/mem.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN arch/mips/sgi-ip27/ip27-memory.c~mm-mips-prepare-for-killing-free_all_bootmem_node arch/mips/sgi-ip27/ip27-memory.c
---- a/arch/mips/sgi-ip27/ip27-memory.c~mm-mips-prepare-for-killing-free_all_bootmem_node
-+++ a/arch/mips/sgi-ip27/ip27-memory.c
-@@ -477,18 +477,8 @@ void __init paging_init(void)
+diff -puN arch/powerpc/mm/mem.c~mm-ppc-prepare-for-killing-free_all_bootmem_node arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~mm-ppc-prepare-for-killing-free_all_bootmem_node
++++ a/arch/powerpc/mm/mem.c
+@@ -304,22 +304,8 @@ void __init mem_init(void)
+ #endif
  
- void __init mem_init(void)
- {
--	unsigned node;
+ 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
 -
- 	high_memory = (void *) __va(get_num_physpages() << PAGE_SHIFT);
+-#ifdef CONFIG_NEED_MULTIPLE_NODES
+-	{
+-		pg_data_t *pgdat;
 -
--	for_each_online_node(node) {
--		/*
--		 * This will free up the bootmem, ie, slot 0 memory.
--		 */
--		free_all_bootmem_node(NODE_DATA(node));
+-		for_each_online_pgdat(pgdat)
+-			if (pgdat->node_spanned_pages != 0) {
+-				printk("freeing bootmem node %d\n",
+-					pgdat->node_id);
+-				free_all_bootmem_node(pgdat);
+-			}
 -	}
--
-+	free_all_bootmem();
- 	setup_zero_pages();	/* This comes from node 0 */
--
- 	mem_init_print_info(NULL);
- }
+-#else
+-	max_mapnr = max_pfn;
++	set_max_mapnr(max_pfn);
+ 	free_all_bootmem();
+-#endif
+ 
+ #ifdef CONFIG_HIGHMEM
+ 	{
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
