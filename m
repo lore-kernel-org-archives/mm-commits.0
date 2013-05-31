@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sh-prepare-for-killing-free_all_bootmem_node.patch added to
- -mm tree
-Date: Fri, 31 May 2013 14:03:48 -0700
-Message-ID: <51a91034.kZ2xtjWz6mrHpThu%akpm@linux-foundation.org>
+Subject: + mm-kill-free_all_bootmem_node.patch added to -mm tree
+Date: Fri, 31 May 2013 14:03:49 -0700
+Message-ID: <51a91035.+ToCc5bKHAFsBM6A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40595 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40602 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753375Ab3EaVDu (ORCPT
+	with ESMTP id S1754337Ab3EaVDu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, lethal@linux-sh.org, jiang.liu@huawei.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, jiang.liu@huawei.com, hannes@cmpxchg.org, davem@davemloft.net, akpm@linux-foundation.org, liuj97@gmail.com
 
-Subject: + mm-sh-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
-To: liuj97@gmail.com,jiang.liu@huawei.com,lethal@linux-sh.org,tangchen@cn.fujitsu.com,wency@cn.fujitsu.com
+Subject: + mm-kill-free_all_bootmem_node.patch added to -mm tree
+To: liuj97@gmail.com,akpm@linux-foundation.org,davem@davemloft.net,hannes@cmpxchg.org,jiang.liu@huawei.com,tj@kernel.org,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:48 -0700
+Date: Fri, 31 May 2013 14:03:49 -0700
 
 
 The patch titled
-     Subject: mm/SH: prepare for killing free_all_bootmem_node()
+     Subject: mm: kill free_all_bootmem_node()
 has been added to the -mm tree.  Its filename is
-     mm-sh-prepare-for-killing-free_all_bootmem_node.patch
+     mm-kill-free_all_bootmem_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,47 +39,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/SH: prepare for killing free_all_bootmem_node()
+Subject: mm: kill free_all_bootmem_node()
 
-Prepare for killing free_all_bootmem_node() by using free_all_bootmem().
+Now nobody makes use of free_all_bootmem_node(), kill it.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ include/linux/bootmem.h |    1 -
+ mm/bootmem.c            |   18 ------------------
+ 2 files changed, 19 deletions(-)
 
-diff -puN arch/sh/mm/init.c~mm-sh-prepare-for-killing-free_all_bootmem_node arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~mm-sh-prepare-for-killing-free_all_bootmem_node
-+++ a/arch/sh/mm/init.c
-@@ -412,19 +412,11 @@ void __init mem_init(void)
- 	iommu_init();
+diff -puN include/linux/bootmem.h~mm-kill-free_all_bootmem_node include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-kill-free_all_bootmem_node
++++ a/include/linux/bootmem.h
+@@ -44,7 +44,6 @@ extern unsigned long init_bootmem_node(p
+ 				       unsigned long endpfn);
+ extern unsigned long init_bootmem(unsigned long addr, unsigned long memend);
  
- 	high_memory = NULL;
-+	for_each_online_pgdat(pgdat)
-+		high_memory = max_t(void *, high_memory,
-+				    __va(pgdat_end_pfn(pgdat) << PAGE_SHIFT));
+-extern unsigned long free_all_bootmem_node(pg_data_t *pgdat);
+ extern unsigned long free_all_bootmem(void);
+ extern void reset_all_zones_managed_pages(void);
  
--	for_each_online_pgdat(pgdat) {
--		void *node_high_memory;
+diff -puN mm/bootmem.c~mm-kill-free_all_bootmem_node mm/bootmem.c
+--- a/mm/bootmem.c~mm-kill-free_all_bootmem_node
++++ a/mm/bootmem.c
+@@ -264,24 +264,6 @@ void __init reset_all_zones_managed_page
+ }
+ 
+ /**
+- * free_all_bootmem_node - release a node's free pages to the buddy allocator
+- * @pgdat: node to be released
+- *
+- * Returns the number of pages actually released.
+- */
+-unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
+-{
+-	unsigned long pages;
 -
--		if (pgdat->node_spanned_pages)
--			free_all_bootmem_node(pgdat);
+-	register_page_bootmem_info_node(pgdat);
+-	reset_node_managed_pages(pgdat);
+-	pages = free_all_bootmem_core(pgdat->bdata);
+-	totalram_pages += pages;
 -
--		node_high_memory = (void *)__va((pgdat->node_start_pfn +
--						 pgdat->node_spanned_pages) <<
--						 PAGE_SHIFT);
--		if (node_high_memory > high_memory)
--			high_memory = node_high_memory;
--	}
-+	free_all_bootmem();
- 
- 	/* Set this up early, so we can take care of the zero page */
- 	cpu_cache_init();
+-	return pages;
+-}
+-
+-/**
+  * free_all_bootmem - release free pages to the buddy allocator
+  *
+  * Returns the number of pages actually released.
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
