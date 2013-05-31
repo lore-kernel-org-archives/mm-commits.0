@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
  added to -mm tree
-Date: Fri, 31 May 2013 13:32:48 -0700
-Message-ID: <51a908f0.aaU9ZyQ5l2dnx/jD%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 13:32:47 -0700
+Message-ID: <51a908ef.NriXCZUS43CELoY5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40330 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40326 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755345Ab3EaUct (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:49 -0400
+	with ESMTP id S1755721Ab3EaUcs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, gerg@uclinux.org, geert@linux-m68k.org, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, takata@linux-m32r.org, jiang.liu@huawei.com, liuj97@gmail.com
 
-Subject: + mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,geert@linux-m68k.org,gerg@uclinux.org,jiang.liu@huawei.com
+Subject: + mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,jiang.liu@huawei.com,takata@linux-m32r.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:48 -0700
+Date: Fri, 31 May 2013 13:32:47 -0700
 
 
 The patch titled
-     Subject: mm/m68k: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/m32r: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,71 +41,152 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/m68k: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/m32r: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mm/init.c |   31 ++-----------------------------
- 1 file changed, 2 insertions(+), 29 deletions(-)
+ arch/m32r/mm/discontig.c |    6 ----
+ arch/m32r/mm/init.c      |   49 +++----------------------------------
+ 2 files changed, 6 insertions(+), 49 deletions(-)
 
-diff -puN arch/m68k/mm/init.c~mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init arch/m68k/mm/init.c
---- a/arch/m68k/mm/init.c~mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/m68k/mm/init.c
-@@ -149,33 +149,11 @@ void __init print_memmap(void)
- void __init mem_init(void)
+diff -puN arch/m32r/mm/discontig.c~mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init arch/m32r/mm/discontig.c
+--- a/arch/m32r/mm/discontig.c~mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/m32r/mm/discontig.c
+@@ -129,11 +129,10 @@ unsigned long __init setup_memory(void)
+ #define START_PFN(nid)		(NODE_DATA(nid)->bdata->node_min_pfn)
+ #define MAX_LOW_PFN(nid)	(NODE_DATA(nid)->bdata->node_low_pfn)
+ 
+-unsigned long __init zone_sizes_init(void)
++void __init zone_sizes_init(void)
  {
- 	pg_data_t *pgdat;
--	int codepages = 0;
--	int datapages = 0;
--	int initpages = 0;
- 	int i;
+ 	unsigned long zones_size[MAX_NR_ZONES], zholes_size[MAX_NR_ZONES];
+ 	unsigned long low, start_pfn;
+-	unsigned long holes = 0;
+ 	int nid, i;
+ 	mem_prof_t *mp;
  
- 	/* this will put all memory onto the freelists */
--	num_physpages = 0;
--	for_each_online_pgdat(pgdat) {
--		num_physpages += pgdat->node_present_pages;
--
-+	for_each_online_pgdat(pgdat)
- 		free_all_bootmem_node(pgdat);
--		for (i = 0; i < pgdat->node_spanned_pages; i++) {
--			struct page *page = pgdat->node_mem_map + i;
--			char *addr = page_to_virt(page);
--
--			if (!PageReserved(page))
--				continue;
--			if (addr >= _text &&
--			    addr < _etext)
--				codepages++;
--			else if (addr >= __init_begin &&
--				 addr < __init_end)
--				initpages++;
--			else
--				datapages++;
--		}
--	}
+@@ -147,7 +146,6 @@ unsigned long __init zone_sizes_init(voi
+ 		low = MAX_LOW_PFN(nid);
+ 		zones_size[ZONE_DMA] = low - start_pfn;
+ 		zholes_size[ZONE_DMA] = mp->holes;
+-		holes += zholes_size[ZONE_DMA];
  
- #if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
- 	/* insert pointer tables allocated so far into the tablelist */
-@@ -190,12 +168,7 @@ void __init mem_init(void)
- 		init_pointer_table((unsigned long)zero_pgtable);
+ 		node_set_state(nid, N_NORMAL_MEMORY);
+ 		free_area_init_node(nid, zones_size, start_pfn, zholes_size);
+@@ -161,6 +159,4 @@ unsigned long __init zone_sizes_init(voi
+ 	NODE_DATA(1)->node_zones->watermark[WMARK_MIN] = 0;
+ 	NODE_DATA(1)->node_zones->watermark[WMARK_LOW] = 0;
+ 	NODE_DATA(1)->node_zones->watermark[WMARK_HIGH] = 0;
+-
+-	return holes;
+ }
+diff -puN arch/m32r/mm/init.c~mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init arch/m32r/mm/init.c
+--- a/arch/m32r/mm/init.c~mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/m32r/mm/init.c
+@@ -40,7 +40,6 @@ unsigned long mmu_context_cache_dat;
+ #else
+ unsigned long mmu_context_cache_dat[NR_CPUS];
  #endif
+-static unsigned long hole_pages;
  
--	pr_info("Memory: %luk/%luk available (%dk kernel code, %dk data, %dk init)\n",
--	       nr_free_pages() << (PAGE_SHIFT-10),
--	       totalram_pages << (PAGE_SHIFT-10),
--	       codepages << (PAGE_SHIFT-10),
--	       datapages << (PAGE_SHIFT-10),
--	       initpages << (PAGE_SHIFT-10));
-+	mem_init_print_info(NULL);
- 	print_memmap();
+ /*
+  * function prototype
+@@ -57,7 +56,7 @@ void free_initrd_mem(unsigned long, unsi
+ #define MAX_LOW_PFN(nid)	(NODE_DATA(nid)->bdata->node_low_pfn)
+ 
+ #ifndef CONFIG_DISCONTIGMEM
+-unsigned long __init zone_sizes_init(void)
++void __init zone_sizes_init(void)
+ {
+ 	unsigned long  zones_size[MAX_NR_ZONES] = {0, };
+ 	unsigned long  max_dma;
+@@ -83,11 +82,9 @@ unsigned long __init zone_sizes_init(voi
+ #endif /* CONFIG_MMU */
+ 
+ 	free_area_init_node(0, zones_size, start_pfn, 0);
+-
+-	return 0;
+ }
+ #else	/* CONFIG_DISCONTIGMEM */
+-extern unsigned long zone_sizes_init(void);
++extern void zone_sizes_init(void);
+ #endif	/* CONFIG_DISCONTIGMEM */
+ 
+ /*======================================================================*
+@@ -105,24 +102,7 @@ void __init paging_init(void)
+ 	for (i = 0 ; i < USER_PTRS_PER_PGD * 2 ; i++)
+ 		pgd_val(pg_dir[i]) = 0;
+ #endif /* CONFIG_MMU */
+-	hole_pages = zone_sizes_init();
+-}
+-
+-int __init reservedpages_count(void)
+-{
+-	int reservedpages, nid, i;
+-
+-	reservedpages = 0;
+-	for_each_online_node(nid) {
+-		unsigned long flags;
+-		pgdat_resize_lock(NODE_DATA(nid), &flags);
+-		for (i = 0 ; i < MAX_LOW_PFN(nid) - START_PFN(nid) ; i++)
+-			if (PageReserved(nid_page_nr(nid, i)))
+-				reservedpages++;
+-		pgdat_resize_unlock(NODE_DATA(nid), &flags);
+-	}
+-
+-	return reservedpages;
++	zone_sizes_init();
  }
  
+ /*======================================================================*
+@@ -131,20 +111,13 @@ int __init reservedpages_count(void)
+  *======================================================================*/
+ void __init mem_init(void)
+ {
+-	int codesize, reservedpages, datasize, initsize;
+ 	int nid;
+ #ifndef CONFIG_MMU
+ 	extern unsigned long memory_end;
+ #endif
+ 
+-	num_physpages = 0;
+-	for_each_online_node(nid)
+-		num_physpages += MAX_LOW_PFN(nid) - START_PFN(nid) + 1;
+-
+-	num_physpages -= hole_pages;
+-
+ #ifndef CONFIG_DISCONTIGMEM
+-	max_mapnr = num_physpages;
++	max_mapnr = get_num_physpages();
+ #endif	/* CONFIG_DISCONTIGMEM */
+ 
+ #ifdef CONFIG_MMU
+@@ -160,19 +133,7 @@ void __init mem_init(void)
+ 	for_each_online_node(nid)
+ 		free_all_bootmem_node(NODE_DATA(nid));
+ 
+-	reservedpages = reservedpages_count() - hole_pages;
+-	codesize = (unsigned long) &_etext - (unsigned long)&_text;
+-	datasize = (unsigned long) &_edata - (unsigned long)&_etext;
+-	initsize = (unsigned long) &__init_end - (unsigned long)&__init_begin;
+-
+-	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
+-		"%dk reserved, %dk data, %dk init)\n",
+-		nr_free_pages() << (PAGE_SHIFT-10),
+-		num_physpages << (PAGE_SHIFT-10),
+-		codesize >> 10,
+-		reservedpages << (PAGE_SHIFT-10),
+-		datasize >> 10,
+-		initsize >> 10);
++	mem_init_print_info(NULL);
+ }
+ 
+ /*======================================================================*
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
