@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-m68k-prepare-for-killing-free_all_bootmem_node.patch added
- to -mm tree
-Date: Fri, 31 May 2013 14:03:43 -0700
-Message-ID: <51a9102f.3fGD3Ib33lnsTban%akpm@linux-foundation.org>
+Subject: + mm-introduce-helper-function-set_max_mapnr.patch added to -mm
+ tree
+Date: Fri, 31 May 2013 14:03:39 -0700
+Message-ID: <51a9102b.xtUWt2GNaViqSucv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40569 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40551 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754715Ab3EaVDo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:44 -0400
+	with ESMTP id S1753294Ab3EaVDk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, gerg@uclinux.org, geert@linux-m68k.org, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, mchehab@redhat.com, jiang.liu@huawei.com, gregkh@linuxfoundation.org, davem@davemloft.net, broonie@opensource.wolfsonmicro.com, liuj97@gmail.com
 
-Subject: + mm-m68k-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
-To: liuj97@gmail.com,geert@linux-m68k.org,gerg@uclinux.org,jiang.liu@huawei.com
+Subject: + mm-introduce-helper-function-set_max_mapnr.patch added to -mm tree
+To: liuj97@gmail.com,broonie@opensource.wolfsonmicro.com,davem@davemloft.net,gregkh@linuxfoundation.org,jiang.liu@huawei.com,mchehab@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:43 -0700
+Date: Fri, 31 May 2013 14:03:39 -0700
 
 
 The patch titled
-     Subject: mm/m68k: prepare for killing free_all_bootmem_node()
+     Subject: mm: introduce helper function set_max_mapnr()
 has been added to the -mm tree.  Its filename is
-     mm-m68k-prepare-for-killing-free_all_bootmem_node.patch
+     mm-introduce-helper-function-set_max_mapnr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +40,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/m68k: prepare for killing free_all_bootmem_node()
+Subject: mm: introduce helper function set_max_mapnr()
 
-Prepare for killing free_all_bootmem_node() by using free_all_bootmem().
+Introduce a helper function set_max_mapnr() to set global variable
+max_mapnr.
+
+Also unify condition compilation for max_mapnr with
+CONFIG_NEED_MULTIPLE_NODES instead of CONFIG_DISCONTIGMEM.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mm/init.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/mm.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/m68k/mm/init.c~mm-m68k-prepare-for-killing-free_all_bootmem_node arch/m68k/mm/init.c
---- a/arch/m68k/mm/init.c~mm-m68k-prepare-for-killing-free_all_bootmem_node
-+++ a/arch/m68k/mm/init.c
-@@ -148,12 +148,10 @@ void __init print_memmap(void)
+diff -puN include/linux/mm.h~mm-introduce-helper-function-set_max_mapnr include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-helper-function-set_max_mapnr
++++ a/include/linux/mm.h
+@@ -25,8 +25,15 @@ struct file_ra_state;
+ struct user_struct;
+ struct writeback_control;
  
- void __init mem_init(void)
- {
--	pg_data_t *pgdat;
- 	int i;
+-#ifndef CONFIG_DISCONTIGMEM          /* Don't use mapnrs, do it properly */
++#ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */
+ extern unsigned long max_mapnr;
++
++static inline void set_max_mapnr(unsigned long limit)
++{
++	max_mapnr = limit;
++}
++#else
++static inline void set_max_mapnr(unsigned long limit) { }
+ #endif
  
- 	/* this will put all memory onto the freelists */
--	for_each_online_pgdat(pgdat)
--		free_all_bootmem_node(pgdat);
-+	free_all_bootmem();
- 
- #if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
- 	/* insert pointer tables allocated so far into the tablelist */
+ extern unsigned long totalram_pages;
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
