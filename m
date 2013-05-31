@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-Date: Fri, 31 May 2013 13:33:03 -0700
-Message-ID: <51a908ff.CnDl+DeBJv0n/o+3%akpm@linux-foundation.org>
+ mm-xtensa-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ added to -mm tree
+Date: Fri, 31 May 2013 13:33:05 -0700
+Message-ID: <51a90901.qOGhv4TDdRoVcDXL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40411 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40417 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756732Ab3EaUdE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:33:04 -0400
+	with ESMTP id S1756744Ab3EaUdG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:33:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wujianguo@huawei.com, wency@cn.fujitsu.com, tglx@linutronix.de, tangchen@cn.fujitsu.com, mingo@redhat.com, jiang.liu@huawei.com, hpa@zytor.com, andreas.herrmann3@amd.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, jcmvbkbc@gmail.com, geert@linux-m68k.org, chris@zankel.net, liuj97@gmail.com
 
-Subject: + mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,andreas.herrmann3@amd.com,hpa@zytor.com,jiang.liu@huawei.com,mingo@redhat.com,tangchen@cn.fujitsu.com,tglx@linutronix.de,wency@cn.fujitsu.com,wujianguo@huawei.com
+Subject: + mm-xtensa-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,chris@zankel.net,geert@linux-m68k.org,jcmvbkbc@gmail.com,jiang.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:33:03 -0700
+Date: Fri, 31 May 2013 13:33:05 -0700
 
 
 The patch titled
-     Subject: mm/x86: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/xtensa: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-xtensa-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,174 +41,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/x86: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/xtensa: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andreas Herrmann <andreas.herrmann3@amd.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/amd.c |    2 +-
- arch/x86/kernel/setup.c   |    2 --
- arch/x86/mm/init_32.c     |   30 ++----------------------------
- arch/x86/mm/init_64.c     |   20 +-------------------
- arch/x86/mm/numa_32.c     |    2 --
- 5 files changed, 4 insertions(+), 52 deletions(-)
+ arch/xtensa/mm/init.c |   27 ++-------------------------
+ 1 file changed, 2 insertions(+), 25 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/amd.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init arch/x86/kernel/cpu/amd.c
---- a/arch/x86/kernel/cpu/amd.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/x86/kernel/cpu/amd.c
-@@ -90,7 +90,7 @@ static void __cpuinit init_amd_k5(struct
- static void __cpuinit init_amd_k6(struct cpuinfo_x86 *c)
- {
- 	u32 l, h;
--	int mbytes = num_physpages >> (20-PAGE_SHIFT);
-+	int mbytes = get_num_physpages() >> (20-PAGE_SHIFT);
- 
- 	if (c->x86_model < 6) {
- 		/* Based on AMD doc 20734R - June 2000 */
-diff -puN arch/x86/kernel/setup.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/x86/kernel/setup.c
-@@ -1040,8 +1040,6 @@ void __init setup_arch(char **cmdline_p)
- 	/* max_low_pfn get updated here */
- 	find_low_pfn_range();
- #else
--	num_physpages = max_pfn;
--
- 	check_x2apic();
- 
- 	/* How many end-of-memory variables you have, grandma! */
-diff -puN arch/x86/mm/init_32.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/x86/mm/init_32.c
-@@ -660,10 +660,8 @@ void __init initmem_init(void)
- 		highstart_pfn = max_low_pfn;
- 	printk(KERN_NOTICE "%ldMB HIGHMEM available.\n",
- 		pages_to_mb(highend_pfn - highstart_pfn));
--	num_physpages = highend_pfn;
- 	high_memory = (void *) __va(highstart_pfn * PAGE_SIZE - 1) + 1;
- #else
--	num_physpages = max_low_pfn;
- 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE - 1) + 1;
- #endif
- 
-@@ -671,7 +669,7 @@ void __init initmem_init(void)
- 	sparse_memory_present_with_active_regions(0);
- 
- #ifdef CONFIG_FLATMEM
--	max_mapnr = num_physpages;
-+	max_mapnr = IS_ENABLED(CONFIG_HIGHMEM) ? highend_pfn : max_low_pfn;
- #endif
- 	__vmalloc_start_set = true;
- 
-@@ -739,9 +737,6 @@ static void __init test_wp_bit(void)
+diff -puN arch/xtensa/mm/init.c~mm-xtensa-prepare-for-removing-num_physpages-and-simplify-mem_init arch/xtensa/mm/init.c
+--- a/arch/xtensa/mm/init.c~mm-xtensa-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/xtensa/mm/init.c
+@@ -173,12 +173,8 @@ void __init zones_init(void)
  
  void __init mem_init(void)
  {
--	int codesize, reservedpages, datasize, initsize;
--	int tmp;
+-	unsigned long codesize, reservedpages, datasize, initsize;
+-	unsigned long highmemsize, tmp, ram;
 -
- 	pci_iommu_alloc();
+-	max_mapnr = num_physpages = max_low_pfn - ARCH_PFN_OFFSET;
++	max_mapnr = max_low_pfn - ARCH_PFN_OFFSET;
+ 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+-	highmemsize = 0;
  
- #ifdef CONFIG_FLATMEM
-@@ -761,30 +756,9 @@ void __init mem_init(void)
- 	/* this will put all low memory onto the freelists */
- 	free_all_bootmem();
- 
--	reservedpages = 0;
--	for (tmp = 0; tmp < max_low_pfn; tmp++)
--		/*
--		 * Only count reserved RAM pages:
--		 */
--		if (page_is_ram(tmp) && PageReserved(pfn_to_page(tmp)))
--			reservedpages++;
--
- 	after_bootmem = 1;
- 
--	codesize =  (unsigned long) &_etext - (unsigned long) &_text;
--	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
--	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
--
--	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
--			"%dk reserved, %dk data, %dk init, %ldk highmem)\n",
--		nr_free_pages() << (PAGE_SHIFT-10),
--		num_physpages << (PAGE_SHIFT-10),
--		codesize >> 10,
--		reservedpages << (PAGE_SHIFT-10),
--		datasize >> 10,
--		initsize >> 10,
--		totalhigh_pages << (PAGE_SHIFT-10));
--
-+	mem_init_print_info(NULL);
- 	printk(KERN_INFO "virtual kernel memory layout:\n"
- 		"    fixmap  : 0x%08lx - 0x%08lx   (%4ld kB)\n"
  #ifdef CONFIG_HIGHMEM
-diff -puN arch/x86/mm/init_64.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/x86/mm/init_64.c
-@@ -1044,9 +1044,6 @@ static void __init register_page_bootmem
+ #error HIGHGMEM not implemented in init.c
+@@ -186,26 +182,7 @@ void __init mem_init(void)
  
- void __init mem_init(void)
- {
--	long codesize, reservedpages, datasize, initsize;
--	unsigned long absent_pages;
--
- 	pci_iommu_alloc();
- 
- 	/* clear_bss() already clear the empty_zero_page */
-@@ -1055,28 +1052,13 @@ void __init mem_init(void)
- 
- 	/* this will put all memory onto the freelists */
  	free_all_bootmem();
--
--	absent_pages = absent_pages_in_range(0, max_pfn);
--	reservedpages = max_pfn - totalram_pages - absent_pages;
- 	after_bootmem = 1;
  
--	codesize =  (unsigned long) &_etext - (unsigned long) &_text;
--	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
--	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+-	reservedpages = ram = 0;
+-	for (tmp = 0; tmp < max_mapnr; tmp++) {
+-		ram++;
+-		if (PageReserved(mem_map+tmp))
+-			reservedpages++;
+-	}
 -
- 	/* Register memory areas for /proc/kcore */
- 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_START,
- 			 VSYSCALL_END - VSYSCALL_START, KCORE_OTHER);
- 
--	printk(KERN_INFO "Memory: %luk/%luk available (%ldk kernel code, "
--			 "%ldk absent, %ldk reserved, %ldk data, %ldk init)\n",
--		nr_free_pages() << (PAGE_SHIFT-10),
--		max_pfn << (PAGE_SHIFT-10),
--		codesize >> 10,
--		absent_pages << (PAGE_SHIFT-10),
--		reservedpages << (PAGE_SHIFT-10),
--		datasize >> 10,
--		initsize >> 10);
+-	codesize =  (unsigned long) _etext - (unsigned long) _stext;
+-	datasize =  (unsigned long) _edata - (unsigned long) _sdata;
+-	initsize =  (unsigned long) __init_end - (unsigned long) __init_begin;
+-
+-	printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, "
+-	       "%ldk data, %ldk init %ldk highmem)\n",
+-	       nr_free_pages() << (PAGE_SHIFT-10),
+-	       ram << (PAGE_SHIFT-10),
+-	       codesize >> 10,
+-	       reservedpages << (PAGE_SHIFT-10),
+-	       datasize >> 10,
+-	       initsize >> 10,
+-	       highmemsize >> 10);
 +	mem_init_print_info(NULL);
  }
  
- #ifdef CONFIG_DEBUG_RODATA
-diff -puN arch/x86/mm/numa_32.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init arch/x86/mm/numa_32.c
---- a/arch/x86/mm/numa_32.c~mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/x86/mm/numa_32.c
-@@ -83,10 +83,8 @@ void __init initmem_init(void)
- 		highstart_pfn = max_low_pfn;
- 	printk(KERN_NOTICE "%ldMB HIGHMEM available.\n",
- 	       pages_to_mb(highend_pfn - highstart_pfn));
--	num_physpages = highend_pfn;
- 	high_memory = (void *) __va(highstart_pfn * PAGE_SIZE - 1) + 1;
- #else
--	num_physpages = max_low_pfn;
- 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE - 1) + 1;
- #endif
- 	printk(KERN_NOTICE "%ldMB LOWMEM available.\n",
+ #ifdef CONFIG_BLK_DEV_INITRD
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
