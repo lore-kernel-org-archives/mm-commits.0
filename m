@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch added to -mm tree
-Date: Fri, 31 May 2013 12:40:53 -0700
-Message-ID: <51a8fcc5.UopgST5apNaW6+JG%akpm@linux-foundation.org>
+Subject: +
+ memory-hotplug-move-alternative-function-definitions-to-header.patch added
+ to -mm tree
+Date: Fri, 31 May 2013 12:44:10 -0700
+Message-ID: <51a8fd8a.ojjt2evMufmax8KX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40049 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556Ab3EaTky (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 15:40:54 -0400
+	with ESMTP id S1753780Ab3EaToL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 15:44:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zab@redhat.com, viro@zeniv.linux.org.uk, smani@micron.com, sbradshaw@micron.com, rusty@rustcorp.com.au, mfasheh@suse.com, jmoyer@redhat.com, jlbec@evilplan.org, gregkh@linuxfoundation.org, bcrl@kvack.org, balbi@ti.com, axboe@kernel.dk, asamymuthupa@micron.com, koverstreet@google.com
+To: mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com
 
-Subject: + aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch added to -mm tree
-To: koverstreet@google.com,asamymuthupa@micron.com,axboe@kernel.dk,balbi@ti.com,bcrl@kvack.org,gregkh@linuxfoundation.org,jlbec@evilplan.org,jmoyer@redhat.com,mfasheh@suse.com,rusty@rustcorp.com.au,sbradshaw@micron.com,smani@micron.com,viro@zeniv.linux.org.uk,zab@redhat.com
+Subject: + memory-hotplug-move-alternative-function-definitions-to-header.patch added to -mm tree
+To: rafael.j.wysocki@intel.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 12:40:53 -0700
+Date: Fri, 31 May 2013 12:44:10 -0700
 
 
 The patch titled
-     Subject: aio: Use call_rcu() instead of synchronize_rcu() in kill_ioctx()
+     Subject: memory hotplug: move alternative function definitions to header
 has been added to the -mm tree.  Its filename is
-     aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch
+     memory-hotplug-move-alternative-function-definitions-to-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,108 +40,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: Use call_rcu() instead of synchronize_rcu() in kill_ioctx()
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: memory hotplug: move alternative function definitions to header
 
-Just making ioctx shutdown asynchronous so as not to block io_destroy()
-- and percpu refcounts for the ioctx are going to need a RCU barrier in
-the same place anyways.
+Move the definitions of offline_pages() and remove_memory() for
+CONFIG_MEMORY_HOTREMOVE to memory_hotplug.h, where they belong, and make
+them static inline.
 
-Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Zach Brown <zab@redhat.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-Cc: Asai Thambi S P <asamymuthupa@micron.com>
-Cc: Selvan Mani <smani@micron.com>
-Cc: Sam Bradshaw <sbradshaw@micron.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Tested-by: Benjamin LaHaise <bcrl@kvack.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   36 ++++++++++++++++--------------------
- 1 file changed, 16 insertions(+), 20 deletions(-)
+ include/linux/memory_hotplug.h |    9 +++++++++
+ mm/memory_hotplug.c            |    8 +-------
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/aio.c~aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx fs/aio.c
---- a/fs/aio.c~aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx
-+++ a/fs/aio.c
-@@ -141,9 +141,6 @@ static void aio_free_ring(struct kioctx
- 	for (i = 0; i < ctx->nr_pages; i++)
- 		put_page(ctx->ring_pages[i]);
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-move-alternative-function-definitions-to-header include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-move-alternative-function-definitions-to-header
++++ a/include/linux/memory_hotplug.h
+@@ -234,6 +234,8 @@ static inline void unlock_memory_hotplug
  
--	if (ctx->mmap_size)
--		vm_munmap(ctx->mmap_base, ctx->mmap_size);
--
- 	if (ctx->ring_pages && ctx->ring_pages != ctx->internal_pages)
- 		kfree(ctx->ring_pages);
+ extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+ extern void try_offline_node(int nid);
++extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
++extern void remove_memory(int nid, u64 start, u64 size);
+ 
+ #else
+ static inline int is_mem_section_removable(unsigned long pfn,
+@@ -243,6 +245,13 @@ static inline int is_mem_section_removab
  }
-@@ -322,11 +319,6 @@ static void free_ioctx(struct kioctx *ct
  
- 	aio_free_ring(ctx);
- 
--	spin_lock(&aio_nr_lock);
--	BUG_ON(aio_nr - ctx->max_reqs > aio_nr);
--	aio_nr -= ctx->max_reqs;
--	spin_unlock(&aio_nr_lock);
--
- 	pr_debug("freeing %p\n", ctx);
- 
- 	/*
-@@ -435,17 +427,24 @@ static void kill_ioctx(struct kioctx *ct
- {
- 	if (!atomic_xchg(&ctx->dead, 1)) {
- 		hlist_del_rcu(&ctx->list);
--		/* Between hlist_del_rcu() and dropping the initial ref */
--		synchronize_rcu();
- 
- 		/*
--		 * We can't punt to workqueue here because put_ioctx() ->
--		 * free_ioctx() will unmap the ringbuffer, and that has to be
--		 * done in the original process's context. kill_ioctx_rcu/work()
--		 * exist for exit_aio(), as in that path free_ioctx() won't do
--		 * the unmap.
-+		 * It'd be more correct to do this in free_ioctx(), after all
-+		 * the outstanding kiocbs have finished - but by then io_destroy
-+		 * has already returned, so io_setup() could potentially return
-+		 * -EAGAIN with no ioctxs actually in use (as far as userspace
-+		 *  could tell).
- 		 */
--		kill_ioctx_work(&ctx->rcu_work);
-+		spin_lock(&aio_nr_lock);
-+		BUG_ON(aio_nr - ctx->max_reqs > aio_nr);
-+		aio_nr -= ctx->max_reqs;
-+		spin_unlock(&aio_nr_lock);
+ static inline void try_offline_node(int nid) {}
 +
-+		if (ctx->mmap_size)
-+			vm_munmap(ctx->mmap_base, ctx->mmap_size);
++static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
++{
++	return -EINVAL;
++}
 +
-+		/* Between hlist_del_rcu() and dropping the initial ref */
-+		call_rcu(&ctx->rcu_head, kill_ioctx_rcu);
- 	}
++static inline void remove_memory(int nid, u64 start, u64 size) {}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+diff -puN mm/memory_hotplug.c~memory-hotplug-move-alternative-function-definitions-to-header mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-move-alternative-function-definitions-to-header
++++ a/mm/memory_hotplug.c
+@@ -1813,11 +1813,5 @@ void __ref remove_memory(int nid, u64 st
+ 
+ 	unlock_memory_hotplug();
  }
- 
-@@ -495,10 +494,7 @@ void exit_aio(struct mm_struct *mm)
- 		 */
- 		ctx->mmap_size = 0;
- 
--		if (!atomic_xchg(&ctx->dead, 1)) {
--			hlist_del_rcu(&ctx->list);
--			call_rcu(&ctx->rcu_head, kill_ioctx_rcu);
--		}
-+		kill_ioctx(ctx);
- 	}
- }
- 
+-#else
+-int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+-{
+-	return -EINVAL;
+-}
+-void remove_memory(int nid, u64 start, u64 size) {}
+-#endif /* CONFIG_MEMORY_HOTREMOVE */
+ EXPORT_SYMBOL_GPL(remove_memory);
++#endif /* CONFIG_MEMORY_HOTREMOVE */
 _
 
-Patches currently in -mm which might be from koverstreet@google.com are
+Patches currently in -mm which might be from rafael.j.wysocki@intel.com are
 
 linux-next.patch
-aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch
+memory-hotplug-move-alternative-function-definitions-to-header.patch
 
