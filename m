@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cris-clean-up-unused-valid_page.patch added to -mm tree
-Date: Fri, 31 May 2013 14:06:19 -0700
-Message-ID: <51a910cb.2JeZwP5DZPfxIO9o%akpm@linux-foundation.org>
+Subject: + mm-arm-fix-stale-comment-about-valid_page.patch added to -mm
+ tree
+Date: Fri, 31 May 2013 14:06:18 -0700
+Message-ID: <51a910ca.8R4TsVDCvEjSeqIc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40630 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754325Ab3EaVGU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:20 -0400
+	with ESMTP id S1754325Ab3EaVGT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:06:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, starvik@axis.com, jiang.liu@huawei.com, jesper.nilsson@axis.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, will.deacon@arm.com, sboyd@codeaurora.org, nico@linaro.org, linux@arm.linux.org.uk, jiang.liu@huawei.com, giancarlo.asnaghi@st.com, liuj97@gmail.com
 
-Subject: + mm-cris-clean-up-unused-valid_page.patch added to -mm tree
-To: liuj97@gmail.com,jesper.nilsson@axis.com,jiang.liu@huawei.com,starvik@axis.com
+Subject: + mm-arm-fix-stale-comment-about-valid_page.patch added to -mm tree
+To: liuj97@gmail.com,giancarlo.asnaghi@st.com,jiang.liu@huawei.com,linux@arm.linux.org.uk,nico@linaro.org,sboyd@codeaurora.org,will.deacon@arm.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:06:19 -0700
+Date: Fri, 31 May 2013 14:06:18 -0700
 
 
 The patch titled
-     Subject: mm/CRIS: clean up unused VALID_PAGE()
+     Subject: mm/ARM: fix stale comment about VALID_PAGE()
 has been added to the -mm tree.  Its filename is
-     mm-cris-clean-up-unused-valid_page.patch
+     mm-arm-fix-stale-comment-about-valid_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +40,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/CRIS: clean up unused VALID_PAGE()
+Subject: mm/ARM: fix stale comment about VALID_PAGE()
 
-VALID_PAGE() has been removed from kernel long time ago, so clean up it.
+VALID_PAGE() has been removed from kernel long time ago,
+so fix the comment.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Nicolas Pitre <nico@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/include/asm/page.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/include/asm/memory.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN arch/cris/include/asm/page.h~mm-cris-clean-up-unused-valid_page arch/cris/include/asm/page.h
---- a/arch/cris/include/asm/page.h~mm-cris-clean-up-unused-valid_page
-+++ a/arch/cris/include/asm/page.h
-@@ -51,7 +51,6 @@ typedef struct page *pgtable_t;
-  */ 
- 
- #define virt_to_page(kaddr)    (mem_map + (((unsigned long)(kaddr) - PAGE_OFFSET) >> PAGE_SHIFT))
--#define VALID_PAGE(page)       (((page) - mem_map) < max_mapnr)
- #define virt_addr_valid(kaddr)	pfn_valid((unsigned)(kaddr) >> PAGE_SHIFT)
- 
- /* convert a page (based on mem_map and forward) to a physical address
+diff -puN arch/arm/include/asm/memory.h~mm-arm-fix-stale-comment-about-valid_page arch/arm/include/asm/memory.h
+--- a/arch/arm/include/asm/memory.h~mm-arm-fix-stale-comment-about-valid_page
++++ a/arch/arm/include/asm/memory.h
+@@ -260,12 +260,6 @@ static inline __deprecated void *bus_to_
+ /*
+  * Conversion between a struct page and a physical address.
+  *
+- * Note: when converting an unknown physical address to a
+- * struct page, the resulting pointer must be validated
+- * using VALID_PAGE().  It must return an invalid struct page
+- * for any physical address not corresponding to a system
+- * RAM address.
+- *
+  *  page_to_pfn(page)	convert a struct page * to a PFN number
+  *  pfn_to_page(pfn)	convert a _valid_ PFN number to struct page *
+  *
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
