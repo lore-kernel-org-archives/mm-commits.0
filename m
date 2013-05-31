@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + migrate-add-migrate_entry_wait_huge.patch added to -mm tree
-Date: Fri, 31 May 2013 12:30:20 -0700
-Message-ID: <51a8fa4c.uaMrhxUcLTjWj5I5%akpm@linux-foundation.org>
+Subject: + aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch added to -mm tree
+Date: Fri, 31 May 2013 12:40:53 -0700
+Message-ID: <51a8fcc5.UopgST5apNaW6+JG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39959 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40049 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757234Ab3EaTaV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 15:30:21 -0400
+	with ESMTP id S1752556Ab3EaTky (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 15:40:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, zab@redhat.com, viro@zeniv.linux.org.uk, smani@micron.com, sbradshaw@micron.com, rusty@rustcorp.com.au, mfasheh@suse.com, jmoyer@redhat.com, jlbec@evilplan.org, gregkh@linuxfoundation.org, bcrl@kvack.org, balbi@ti.com, axboe@kernel.dk, asamymuthupa@micron.com, koverstreet@google.com
 
-Subject: + migrate-add-migrate_entry_wait_huge.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,andi@firstfloor.org,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,stable@vger.kernel.org
+Subject: + aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch added to -mm tree
+To: koverstreet@google.com,asamymuthupa@micron.com,axboe@kernel.dk,balbi@ti.com,bcrl@kvack.org,gregkh@linuxfoundation.org,jlbec@evilplan.org,jmoyer@redhat.com,mfasheh@suse.com,rusty@rustcorp.com.au,sbradshaw@micron.com,smani@micron.com,viro@zeniv.linux.org.uk,zab@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 12:30:20 -0700
+Date: Fri, 31 May 2013 12:40:53 -0700
 
 
 The patch titled
-     Subject: migrate: add migrate_entry_wait_huge()
+     Subject: aio: Use call_rcu() instead of synchronize_rcu() in kill_ioctx()
 has been added to the -mm tree.  Its filename is
-     migrate-add-migrate_entry_wait_huge.patch
+     aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,118 +38,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: migrate: add migrate_entry_wait_huge()
+From: Kent Overstreet <koverstreet@google.com>
+Subject: aio: Use call_rcu() instead of synchronize_rcu() in kill_ioctx()
 
-When we have a page fault for the address which is backed by a hugepage
-under migration, the kernel can't wait correctly and do busy looping on
-hugepage fault until the migration finishes.  This is because
-pte_offset_map_lock() can't get a correct migration entry or a correct
-page table lock for hugepage.  This patch introduces
-migration_entry_wait_huge() to solve this.
+Just making ioctx shutdown asynchronous so as not to block io_destroy()
+- and percpu refcounts for the ioctx are going to need a RCU barrier in
+the same place anyways.
 
-Note that the caller, hugetlb_fault(), gets the pointer to the "leaf"
-entry with huge_pte_offset() inside which all the arch-dependency of the
-page table structure are.  So migration_entry_wait_huge() and
-__migration_entry_wait() are free from arch-dependency.
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>	[2.6.35+]
+Signed-off-by: Kent Overstreet <koverstreet@google.com>
+Cc: Zach Brown <zab@redhat.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Tested-by: Jens Axboe <axboe@kernel.dk>
+Cc: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Selvan Mani <smani@micron.com>
+Cc: Sam Bradshaw <sbradshaw@micron.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
+Tested-by: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    3 +++
- mm/hugetlb.c            |    2 +-
- mm/migrate.c            |   23 ++++++++++++++++++-----
- 3 files changed, 22 insertions(+), 6 deletions(-)
+ fs/aio.c |   36 ++++++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/swapops.h~migrate-add-migrate_entry_wait_huge include/linux/swapops.h
---- a/include/linux/swapops.h~migrate-add-migrate_entry_wait_huge
-+++ a/include/linux/swapops.h
-@@ -137,6 +137,7 @@ static inline void make_migration_entry_
+diff -puN fs/aio.c~aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx fs/aio.c
+--- a/fs/aio.c~aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx
++++ a/fs/aio.c
+@@ -141,9 +141,6 @@ static void aio_free_ring(struct kioctx
+ 	for (i = 0; i < ctx->nr_pages; i++)
+ 		put_page(ctx->ring_pages[i]);
  
- extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
- 					unsigned long address);
-+extern void migration_entry_wait_huge(struct mm_struct *mm, pte_t *pte);
- #else
+-	if (ctx->mmap_size)
+-		vm_munmap(ctx->mmap_base, ctx->mmap_size);
+-
+ 	if (ctx->ring_pages && ctx->ring_pages != ctx->internal_pages)
+ 		kfree(ctx->ring_pages);
+ }
+@@ -322,11 +319,6 @@ static void free_ioctx(struct kioctx *ct
  
- #define make_migration_entry(page, write) swp_entry(0, 0)
-@@ -148,6 +149,8 @@ static inline int is_migration_entry(swp
- static inline void make_migration_entry_read(swp_entry_t *entryp) { }
- static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
- 					 unsigned long address) { }
-+static inline void migration_entry_wait_huge(struct mm_struct *mm,
-+					pte_t *pte) { }
- static inline int is_write_migration_entry(swp_entry_t entry)
+ 	aio_free_ring(ctx);
+ 
+-	spin_lock(&aio_nr_lock);
+-	BUG_ON(aio_nr - ctx->max_reqs > aio_nr);
+-	aio_nr -= ctx->max_reqs;
+-	spin_unlock(&aio_nr_lock);
+-
+ 	pr_debug("freeing %p\n", ctx);
+ 
+ 	/*
+@@ -435,17 +427,24 @@ static void kill_ioctx(struct kioctx *ct
  {
- 	return 0;
-diff -puN mm/hugetlb.c~migrate-add-migrate_entry_wait_huge mm/hugetlb.c
---- a/mm/hugetlb.c~migrate-add-migrate_entry_wait_huge
-+++ a/mm/hugetlb.c
-@@ -2851,7 +2851,7 @@ int hugetlb_fault(struct mm_struct *mm,
- 	if (ptep) {
- 		entry = huge_ptep_get(ptep);
- 		if (unlikely(is_hugetlb_entry_migration(entry))) {
--			migration_entry_wait(mm, (pmd_t *)ptep, address);
-+			migration_entry_wait_huge(mm, ptep);
- 			return 0;
- 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
- 			return VM_FAULT_HWPOISON_LARGE |
-diff -puN mm/migrate.c~migrate-add-migrate_entry_wait_huge mm/migrate.c
---- a/mm/migrate.c~migrate-add-migrate_entry_wait_huge
-+++ a/mm/migrate.c
-@@ -200,15 +200,14 @@ static void remove_migration_ptes(struct
-  * get to the page and wait until migration is finished.
-  * When we return from this function the fault will be retried.
-  */
--void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
--				unsigned long address)
-+static void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
-+				spinlock_t *ptl)
- {
--	pte_t *ptep, pte;
--	spinlock_t *ptl;
-+	pte_t pte;
- 	swp_entry_t entry;
- 	struct page *page;
+ 	if (!atomic_xchg(&ctx->dead, 1)) {
+ 		hlist_del_rcu(&ctx->list);
+-		/* Between hlist_del_rcu() and dropping the initial ref */
+-		synchronize_rcu();
  
--	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
-+	spin_lock(ptl);
- 	pte = *ptep;
- 	if (!is_swap_pte(pte))
- 		goto out;
-@@ -236,6 +235,20 @@ out:
- 	pte_unmap_unlock(ptep, ptl);
+ 		/*
+-		 * We can't punt to workqueue here because put_ioctx() ->
+-		 * free_ioctx() will unmap the ringbuffer, and that has to be
+-		 * done in the original process's context. kill_ioctx_rcu/work()
+-		 * exist for exit_aio(), as in that path free_ioctx() won't do
+-		 * the unmap.
++		 * It'd be more correct to do this in free_ioctx(), after all
++		 * the outstanding kiocbs have finished - but by then io_destroy
++		 * has already returned, so io_setup() could potentially return
++		 * -EAGAIN with no ioctxs actually in use (as far as userspace
++		 *  could tell).
+ 		 */
+-		kill_ioctx_work(&ctx->rcu_work);
++		spin_lock(&aio_nr_lock);
++		BUG_ON(aio_nr - ctx->max_reqs > aio_nr);
++		aio_nr -= ctx->max_reqs;
++		spin_unlock(&aio_nr_lock);
++
++		if (ctx->mmap_size)
++			vm_munmap(ctx->mmap_base, ctx->mmap_size);
++
++		/* Between hlist_del_rcu() and dropping the initial ref */
++		call_rcu(&ctx->rcu_head, kill_ioctx_rcu);
+ 	}
  }
  
-+void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
-+				unsigned long address)
-+{
-+	spinlock_t *ptl = pte_lockptr(mm, pmd);
-+	pte_t *ptep = pte_offset_map(pmd, address);
-+	__migration_entry_wait(mm, ptep, ptl);
-+}
-+
-+void migration_entry_wait_huge(struct mm_struct *mm, pte_t *pte)
-+{
-+	spinlock_t *ptl = huge_pte_lockptr(mm, pte);
-+	__migration_entry_wait(mm, pte, ptl);
-+}
-+
- #ifdef CONFIG_BLOCK
- /* Returns true if all buffers are successfully locked */
- static bool buffer_migrate_lock_buffers(struct buffer_head *head,
+@@ -495,10 +494,7 @@ void exit_aio(struct mm_struct *mm)
+ 		 */
+ 		ctx->mmap_size = 0;
+ 
+-		if (!atomic_xchg(&ctx->dead, 1)) {
+-			hlist_del_rcu(&ctx->list);
+-			call_rcu(&ctx->rcu_head, kill_ioctx_rcu);
+-		}
++		kill_ioctx(ctx);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from koverstreet@google.com are
 
-mm-memory-failurec-fix-memory-leak-in-successful-soft-offlining.patch
-hugetlbfs-support-split-page-table-lock.patch
-migrate-add-migrate_entry_wait_huge.patch
+linux-next.patch
+aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch
 
