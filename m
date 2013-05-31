@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avr32-prepare-for-killing-free_all_bootmem_node.patch added
+Subject: + mm-m68k-prepare-for-killing-free_all_bootmem_node.patch added
  to -mm tree
-Date: Fri, 31 May 2013 14:03:40 -0700
-Message-ID: <51a9102c.53oK6/DZwE+Xxuh8%akpm@linux-foundation.org>
+Date: Fri, 31 May 2013 14:03:43 -0700
+Message-ID: <51a9102f.3fGD3Ib33lnsTban%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40569 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780Ab3EaVDl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:41 -0400
+	with ESMTP id S1754715Ab3EaVDo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 17:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, gerg@uclinux.org, geert@linux-m68k.org, liuj97@gmail.com
 
-Subject: + mm-avr32-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
-To: liuj97@gmail.com,egtvedt@samfundet.no,hskinnemoen@gmail.com,jiang.liu@huawei.com
+Subject: + mm-m68k-prepare-for-killing-free_all_bootmem_node.patch added to -mm tree
+To: liuj97@gmail.com,geert@linux-m68k.org,gerg@uclinux.org,jiang.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 14:03:40 -0700
+Date: Fri, 31 May 2013 14:03:43 -0700
 
 
 The patch titled
-     Subject: mm/AVR32: prepare for killing free_all_bootmem_node()
+     Subject: mm/m68k: prepare for killing free_all_bootmem_node()
 has been added to the -mm tree.  Its filename is
-     mm-avr32-prepare-for-killing-free_all_bootmem_node.patch
+     mm-m68k-prepare-for-killing-free_all_bootmem_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/AVR32: prepare for killing free_all_bootmem_node()
+Subject: mm/m68k: prepare for killing free_all_bootmem_node()
 
-Prepare for killing free_all_bootmem_node() by using free_all_bootmem()
-instead.
+Prepare for killing free_all_bootmem_node() by using free_all_bootmem().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/mm/init.c |   21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ arch/m68k/mm/init.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/avr32/mm/init.c~mm-avr32-prepare-for-killing-free_all_bootmem_node arch/avr32/mm/init.c
---- a/arch/avr32/mm/init.c~mm-avr32-prepare-for-killing-free_all_bootmem_node
-+++ a/arch/avr32/mm/init.c
-@@ -103,23 +103,12 @@ void __init mem_init(void)
- 	pg_data_t *pgdat;
+diff -puN arch/m68k/mm/init.c~mm-m68k-prepare-for-killing-free_all_bootmem_node arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~mm-m68k-prepare-for-killing-free_all_bootmem_node
++++ a/arch/m68k/mm/init.c
+@@ -148,12 +148,10 @@ void __init print_memmap(void)
  
- 	high_memory = NULL;
-+	for_each_online_pgdat(pgdat)
-+		high_memory = max_t(void *, high_memory,
-+				    __va(pgdat_end_pfn(pgdat) << PAGE_SHIFT));
+ void __init mem_init(void)
+ {
+-	pg_data_t *pgdat;
+ 	int i;
  
--	/* this will put all low memory onto the freelists */
--	for_each_online_pgdat(pgdat) {
--		void *node_high_memory;
--
--		if (pgdat->node_spanned_pages != 0)
--			free_all_bootmem_node(pgdat);
--
--		node_high_memory = (void *)((pgdat->node_start_pfn
--					     + pgdat->node_spanned_pages)
--					    << PAGE_SHIFT);
--		if (node_high_memory > high_memory)
--			high_memory = node_high_memory;
--	}
--
--	max_mapnr = MAP_NR(high_memory);
--
-+	set_max_mapnr(MAP_NR(high_memory));
+ 	/* this will put all memory onto the freelists */
+-	for_each_online_pgdat(pgdat)
+-		free_all_bootmem_node(pgdat);
 +	free_all_bootmem();
- 	mem_init_print_info(NULL);
- }
  
+ #if defined(CONFIG_MMU) && !defined(CONFIG_SUN3) && !defined(CONFIG_COLDFIRE)
+ 	/* insert pointer tables allocated so far into the tablelist */
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
