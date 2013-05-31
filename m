@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix.patch
- added to -mm tree
-Date: Fri, 31 May 2013 16:13:19 -0700
-Message-ID: <51a92e8f.Sxw+j+c2yyhgRIrb%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-da9052c-use-ptr_ret.patch added to -mm tree
+Date: Fri, 31 May 2013 16:16:36 -0700
+Message-ID: <51a92f54.JCK/K4YAn7YHJEok%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756836Ab3EaXNU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 19:13:20 -0400
+	with ESMTP id S1753187Ab3EaXQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 19:16:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, dchen@diasemi.com, sachin.kamat@linaro.org
 
-Subject: + mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix.patch added to -mm tree
-To: mhocko@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,rientjes@google.com
+Subject: + drivers-rtc-rtc-da9052c-use-ptr_ret.patch added to -mm tree
+To: sachin.kamat@linaro.org,dchen@diasemi.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 16:13:19 -0700
+Date: Fri, 31 May 2013 16:16:36 -0700
 
 
 The patch titled
-     Subject: mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix
+     Subject: drivers/rtc/rtc-da9052.c: use PTR_RET()
 has been added to the -mm tree.  Its filename is
-     mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix.patch
+     drivers-rtc-rtc-da9052c-use-ptr_ret.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,72 +38,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-da9052.c: use PTR_RET()
 
-Fix CONFIG_HIGHMEM=n build
+Use of PTR_RET() simplifies the code.
 
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: David Dajun Chen <dchen@diasemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-da9052.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix
-+++ a/mm/page_alloc.c
-@@ -6196,8 +6196,10 @@ __offline_isolated_pages(unsigned long s
- 		list_del(&page->lru);
- 		rmv_page_order(page);
- 		zone->free_area[order].nr_free--;
-+#ifdef CONFIG_HIGHMEM
- 		if (PageHighMem(page))
- 			totalhigh_pages -= 1 << order;
-+#endif
- 		for (i = 0; i < (1 << order); i++)
- 			SetPageReserved((page+i));
- 		pfn += (1 << order);
+diff -puN drivers/rtc/rtc-da9052.c~drivers-rtc-rtc-da9052c-use-ptr_ret drivers/rtc/rtc-da9052.c
+--- a/drivers/rtc/rtc-da9052.c~drivers-rtc-rtc-da9052c-use-ptr_ret
++++ a/drivers/rtc/rtc-da9052.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/rtc.h>
++#include <linux/err.h>
+ 
+ #include <linux/mfd/da9052/da9052.h>
+ #include <linux/mfd/da9052/reg.h>
+@@ -249,10 +250,7 @@ static int da9052_rtc_probe(struct platf
+ 
+ 	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				       &da9052_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtc->rtc))
+-		return PTR_ERR(rtc->rtc);
+-
+-	return 0;
++	return PTR_RET(rtc->rtc);
+ }
+ 
+ static struct platform_driver da9052_rtc_driver = {
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
+origin.patch
 linux-next.patch
-memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
-migrate-add-migrate_entry_wait_huge.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
-mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
-mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
-mm-vmscan-flatten-kswapd-priority-loop.patch
-mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
-mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
-mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
-mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
-mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
-mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
-mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
-mm-vmscan-set-zone-flags-before-blocking.patch
-mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
-mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
-mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
-fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
-memcg-update-todo-list-in-documentation.patch
-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix.patch
-mm-pageblock-remove-get-set_pageblock_flags.patch
-mm-hugetlb-remove-hugetlb_prefault.patch
-mm-hugetlb-use-already-exist-interface-huge_page_shift.patch
-memcg-kconfig-info-update.patch
-hugetlbfs-support-split-page-table-lock.patch
-mm-parisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-parisc-prepare-for-killing-free_all_bootmem_node.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+video-smscufx-use-null-instead-of-0.patch
+video-udlfb-use-null-instead-of-0.patch
+video-udlfb-make-local-symbol-static.patch
+video-imxfb-make-local-symbols-static.patch
+drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
+drivers-rtc-interfacec-fix-checkpatch-errors.patch
+drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
+drivers-rtc-rtc-at91rm9200c-include-linux-uaccessh.patch
+drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch
+drivers-rtc-rtc-davincic-fix-whitespace-warning.patch
+drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch
+drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
+drivers-rtc-rtc-ds1511c-fix-issues-related-to-spaces-and-braces.patch
+drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch
+drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch
+drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch
+drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch
+drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
+drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch
+drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
+drivers-rtc-rtc-msm6242c-use-pr_warn.patch
+drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
+drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
+drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch
+drivers-rtc-rtc-pcf8583c-move-assignment-outside-if-condition.patch
+drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
+drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
+drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
+drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
+drivers-rtc-rtc-x1205c-fix-checkpatch-issues.patch
+drivers-rtc-rtc-m48t86c-remove-empty-function.patch
+drivers-rtc-rtc-tilec-remove-empty-function.patch
+drivers-rtc-rtc-nuc900c-remove-empty-function.patch
+drivers-rtc-rtc-msm6242c-remove-empty-function.patch
+drivers-rtc-rtc-max8998c-remove-empty-function.patch
+drivers-rtc-rtc-max8925c-remove-empty-function.patch
+drivers-rtc-rtc-ls1xc-remove-empty-function.patch
+drivers-rtc-rtc-lp8788c-remove-empty-function.patch
+drivers-rtc-rtc-ds1302c-remove-empty-function.patch
+drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
+drivers-rtc-rtc-da9055c-remove-empty-function.patch
+drivers-rtc-rtc-da9052c-remove-empty-function.patch
+drivers-rtc-rtc-bq4802c-remove-empty-function.patch
+drivers-rtc-rtc-au1xxxc-remove-empty-function.patch
+drivers-rtc-rtc-ab3100c-remove-empty-function.patch
+drivers-rtc-rtc-bq32kc-remove-empty-function.patch
+drivers-rtc-rtc-ds1216c-remove-empty-function.patch
+drivers-rtc-rtc-ds1286c-remove-empty-function.patch
+drivers-rtc-rtc-ds1672c-remove-empty-function.patch
+drivers-rtc-rtc-ds3234c-remove-empty-function.patch
+drivers-rtc-rtc-ds1390c-remove-empty-function.patch
+drivers-rtc-rtc-efic-remove-empty-function.patch
+drivers-rtc-rtc-em3027c-remove-empty-function.patch
+drivers-rtc-rtc-fm3130c-remove-empty-function.patch
+drivers-rtc-rtc-isl12022c-remove-empty-function.patch
+drivers-rtc-rtc-m41t93c-remove-empty-function.patch
+drivers-rtc-rtc-m48t35c-remove-empty-function.patch
+drivers-rtc-rtc-genericc-remove-empty-function.patch
+drivers-rtc-rtc-m41t94c-remove-empty-function.patch
+drivers-rtc-rtc-max6902c-remove-empty-function.patch
+drivers-rtc-rtc-max6900c-remove-empty-function.patch
+drivers-rtc-rtc-max8907c-remove-empty-function.patch
+drivers-rtc-rtc-max77686c-remove-empty-function.patch
+drivers-rtc-rtc-max8997c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8523c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8563c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8583c-remove-empty-function.patch
+drivers-rtc-rtc-ps3c-remove-empty-function.patch
+drivers-rtc-rtc-rs5c313c-remove-empty-function.patch
+drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch
+drivers-rtc-rtc-rx4581c-remove-empty-function.patch
+drivers-rtc-rtc-rs5c348c-remove-empty-function.patch
+drivers-rtc-rtc-rx8581c-remove-empty-function.patch
+drivers-rtc-rtc-snvsc-remove-empty-function.patch
+drivers-rtc-rtc-starfirec-remove-empty-function.patch
+drivers-rtc-rtc-sun4vc-remove-empty-function.patch
+drivers-rtc-rtc-tps80031c-remove-empty-function.patch
+drivers-rtc-rtc-wm831xc-remove-empty-function.patch
+drivers-rtc-rtc-ds1302c-handle-write-protection.patch
+drivers-rtc-rtc-da9052c-use-ptr_ret.patch
+drivers-rtc-rtc-isl12022c-use-ptr_ret.patch
+drivers-rtc-rtc-m48t35c-use-ptr_ret.patch
+drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch
+drivers-rtc-rtc-pcf8583c-use-ptr_ret.patch
 
