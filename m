@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-sh-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added
- to -mm tree
-Date: Fri, 31 May 2013 13:32:58 -0700
-Message-ID: <51a908fa.aIDXnxBp1jBvyQsQ%akpm@linux-foundation.org>
+ mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+Date: Fri, 31 May 2013 13:33:02 -0700
+Message-ID: <51a908fe.toV6Kx6VnovePEs1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40383 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40403 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755913Ab3EaUc7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:32:59 -0400
+	with ESMTP id S1756720Ab3EaUdD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 May 2013 16:33:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wency@cn.fujitsu.com, tangchen@cn.fujitsu.com, lethal@linux-sh.org, jiang.liu@huawei.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, jiang.liu@huawei.com, gxt@mprc.pku.edu.cn, liuj97@gmail.com
 
-Subject: + mm-sh-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
-To: liuj97@gmail.com,jiang.liu@huawei.com,lethal@linux-sh.org,tangchen@cn.fujitsu.com,wency@cn.fujitsu.com
+Subject: + mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch added to -mm tree
+To: liuj97@gmail.com,gxt@mprc.pku.edu.cn,jiang.liu@huawei.com,mhocko@suse.cz,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 May 2013 13:32:58 -0700
+Date: Fri, 31 May 2013 13:33:02 -0700
 
 
 The patch titled
-     Subject: mm/SH: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/unicore32: prepare for removing num_physpages and simplify mem_init()
 has been added to the -mm tree.  Its filename is
-     mm-sh-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,72 +40,93 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/SH: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/unicore32: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c |   25 ++++---------------------
- 1 file changed, 4 insertions(+), 21 deletions(-)
+ arch/unicore32/mm/init.c |   49 +------------------------------------
+ 1 file changed, 2 insertions(+), 47 deletions(-)
 
-diff -puN arch/sh/mm/init.c~mm-sh-prepare-for-removing-num_physpages-and-simplify-mem_init arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~mm-sh-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/sh/mm/init.c
-@@ -407,24 +407,18 @@ unsigned int mem_init_done = 0;
- 
+diff -puN arch/unicore32/mm/init.c~mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init arch/unicore32/mm/init.c
+--- a/arch/unicore32/mm/init.c~mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/unicore32/mm/init.c
+@@ -383,10 +383,6 @@ static void __init free_unused_memmap(st
+  */
  void __init mem_init(void)
  {
--	int codesize, datasize, initsize;
--	int nid;
-+	pg_data_t *pgdat;
+-	unsigned long reserved_pages, free_pages;
+-	struct memblock_region *reg;
+-	int i;
+-
+ 	max_mapnr   = pfn_to_page(max_pfn + PHYS_PFN_OFFSET) - mem_map;
  
- 	iommu_init();
+ 	free_unused_memmap(&meminfo);
+@@ -394,48 +390,7 @@ void __init mem_init(void)
+ 	/* this will put all unused low memory onto the freelists */
+ 	free_all_bootmem();
  
+-	reserved_pages = free_pages = 0;
+-
+-	for_each_bank(i, &meminfo) {
+-		struct membank *bank = &meminfo.bank[i];
+-		unsigned int pfn1, pfn2;
+-		struct page *page, *end;
+-
+-		pfn1 = bank_pfn_start(bank);
+-		pfn2 = bank_pfn_end(bank);
+-
+-		page = pfn_to_page(pfn1);
+-		end  = pfn_to_page(pfn2 - 1) + 1;
+-
+-		do {
+-			if (PageReserved(page))
+-				reserved_pages++;
+-			else if (!page_count(page))
+-				free_pages++;
+-			page++;
+-		} while (page < end);
+-	}
+-
+-	/*
+-	 * Since our memory may not be contiguous, calculate the
+-	 * real number of pages we have in this system
+-	 */
+-	printk(KERN_INFO "Memory:");
 -	num_physpages = 0;
- 	high_memory = NULL;
- 
--	for_each_online_node(nid) {
--		pg_data_t *pgdat = NODE_DATA(nid);
-+	for_each_online_pgdat(pgdat) {
- 		void *node_high_memory;
- 
--		num_physpages += pgdat->node_present_pages;
+-	for_each_memblock(memory, reg) {
+-		unsigned long pages = memblock_region_memory_end_pfn(reg) -
+-			memblock_region_memory_base_pfn(reg);
+-		num_physpages += pages;
+-		printk(" %ldMB", pages >> (20 - PAGE_SHIFT));
+-	}
+-	printk(" = %luMB total\n", num_physpages >> (20 - PAGE_SHIFT));
 -
- 		if (pgdat->node_spanned_pages)
- 			free_all_bootmem_node(pgdat);
- 
--
- 		node_high_memory = (void *)__va((pgdat->node_start_pfn +
- 						 pgdat->node_spanned_pages) <<
- 						 PAGE_SHIFT);
-@@ -441,19 +435,8 @@ void __init mem_init(void)
- 
- 	vsyscall_init();
- 
--	codesize =  (unsigned long) &_etext - (unsigned long) &_text;
--	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
--	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
--
--	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, "
--	       "%dk data, %dk init)\n",
+-	printk(KERN_NOTICE "Memory: %luk/%luk available, %luk reserved, %luK highmem\n",
 -		nr_free_pages() << (PAGE_SHIFT-10),
--		num_physpages << (PAGE_SHIFT-10),
--		codesize >> 10,
--		datasize >> 10,
--		initsize >> 10);
+-		free_pages << (PAGE_SHIFT-10),
+-		reserved_pages << (PAGE_SHIFT-10),
+-		totalhigh_pages << (PAGE_SHIFT-10));
 -
--	printk(KERN_INFO "virtual kernel memory layout:\n"
 +	mem_init_print_info(NULL);
-+	pr_info("virtual kernel memory layout:\n"
- 		"    fixmap  : 0x%08lx - 0x%08lx   (%4ld kB)\n"
- #ifdef CONFIG_HIGHMEM
- 		"    pkmap   : 0x%08lx - 0x%08lx   (%4ld kB)\n"
+ 	printk(KERN_NOTICE "Virtual kernel memory layout:\n"
+ 		"    vector  : 0x%08lx - 0x%08lx   (%4ld kB)\n"
+ 		"    vmalloc : 0x%08lx - 0x%08lx   (%4ld MB)\n"
+@@ -464,7 +419,7 @@ void __init mem_init(void)
+ 	BUILD_BUG_ON(TASK_SIZE				> MODULES_VADDR);
+ 	BUG_ON(TASK_SIZE				> MODULES_VADDR);
+ 
+-	if (PAGE_SIZE >= 16384 && num_physpages <= 128) {
++	if (PAGE_SIZE >= 16384 && get_num_physpages() <= 128) {
+ 		/*
+ 		 * On a machine this small we won't get
+ 		 * anywhere without overcommit, so turn
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
