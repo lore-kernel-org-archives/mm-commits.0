@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch
- added to -mm tree
-Date: Mon, 03 Jun 2013 15:01:21 -0700
-Message-ID: <51ad1231.iFEBrwArx+72vTu6%akpm@linux-foundation.org>
+ drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver.patch added to -mm tree
+Date: Mon, 03 Jun 2013 15:01:24 -0700
+Message-ID: <51ad1234.sIDHk6OKcVOdOSh7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40673 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40667 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758814Ab3FCWB1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:27 -0400
+	with ESMTP id S1758763Ab3FCWBZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mchehab@redhat.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
 
-Subject: + drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch added to -mm tree
+Subject: + drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver.patch added to -mm tree
 To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,mchehab@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:01:21 -0700
+Date: Mon, 03 Jun 2013 15:01:24 -0700
 
 
 The patch titled
-     Subject: drivers/media/pci/mantis/mantis_cards.c: convert to module_pci_driver
+     Subject: drivers/media/pci/pluto2/pluto2.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch
+     drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,39 +40,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/media/pci/mantis/mantis_cards.c: convert to module_pci_driver
+Subject: drivers/media/pci/pluto2/pluto2.c: convert to module_pci_driver
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/pci/mantis/mantis_cards.c |   13 +------------
+ drivers/media/pci/pluto2/pluto2.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/media/pci/mantis/mantis_cards.c~drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver drivers/media/pci/mantis/mantis_cards.c
---- a/drivers/media/pci/mantis/mantis_cards.c~drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver
-+++ a/drivers/media/pci/mantis/mantis_cards.c
-@@ -290,18 +290,7 @@ static struct pci_driver mantis_pci_driv
- 	.remove		= mantis_pci_remove,
+diff -puN drivers/media/pci/pluto2/pluto2.c~drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver drivers/media/pci/pluto2/pluto2.c
+--- a/drivers/media/pci/pluto2/pluto2.c~drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver
++++ a/drivers/media/pci/pluto2/pluto2.c
+@@ -796,18 +796,7 @@ static struct pci_driver pluto2_driver =
+ 	.remove = pluto2_remove,
  };
  
--static int mantis_init(void)
+-static int __init pluto2_init(void)
 -{
--	return pci_register_driver(&mantis_pci_driver);
+-	return pci_register_driver(&pluto2_driver);
 -}
 -
--static void mantis_exit(void)
+-static void __exit pluto2_exit(void)
 -{
--	return pci_unregister_driver(&mantis_pci_driver);
+-	pci_unregister_driver(&pluto2_driver);
 -}
 -
--module_init(mantis_init);
--module_exit(mantis_exit);
-+module_pci_driver(mantis_pci_driver);
+-module_init(pluto2_init);
+-module_exit(pluto2_exit);
++module_pci_driver(pluto2_driver);
  
- MODULE_DESCRIPTION("MANTIS driver");
- MODULE_AUTHOR("Manu Abraham");
+ MODULE_AUTHOR("Andreas Oberritter <obi@linuxtv.org>");
+ MODULE_DESCRIPTION("Pluto2 driver");
 _
 
 Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
