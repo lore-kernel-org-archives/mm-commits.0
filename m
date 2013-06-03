@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch added to -mm tree
-Date: Mon, 03 Jun 2013 15:01:18 -0700
-Message-ID: <51ad122e.YVD0I9B9iwKX3+Q9%akpm@linux-foundation.org>
+Subject: +
+ drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver.patch added to -mm tree
+Date: Mon, 03 Jun 2013 15:01:22 -0700
+Message-ID: <51ad1232.ORqkKz97Ia0X1/p2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40663 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40657 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758763Ab3FCWBY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:24 -0400
+	with ESMTP id S1758713Ab3FCWBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, richardcochran@gmail.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
+To: mm-commits@vger.kernel.org, mchehab@redhat.com, libo.chen@huawei.com, kosio.dimitrov@gmail.com, clbchenlibo.chen@huawei.com
 
-Subject: + drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch added to -mm tree
-To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,richardcochran@gmail.com
+Subject: + drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver.patch added to -mm tree
+To: clbchenlibo.chen@huawei.com,kosio.dimitrov@gmail.com,libo.chen@huawei.com,mchehab@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:01:18 -0700
+Date: Mon, 03 Jun 2013 15:01:22 -0700
 
 
 The patch titled
-     Subject: drivers/ptp/ptp_pch.c: convert to module_pci_driver
+     Subject: drivers/media/pci/dm1105/dm1105.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch
+     drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +40,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/ptp/ptp_pch.c: convert to module_pci_driver
+Subject: drivers/media/pci/dm1105/dm1105.c: convert to module_pci_driver
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
-Cc: Richard Cochran <richardcochran@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ptp/ptp_pch.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ drivers/media/pci/b2c2/flexcop-pci.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/ptp/ptp_pch.c~drivers-ptp-ptp_pch-convert-to-module_pci_driver drivers/ptp/ptp_pch.c
---- a/drivers/ptp/ptp_pch.c~drivers-ptp-ptp_pch-convert-to-module_pci_driver
-+++ a/drivers/ptp/ptp_pch.c
-@@ -707,23 +707,7 @@ static struct pci_driver pch_driver = {
- 	.resume = pch_resume,
+diff -puN drivers/media/pci/b2c2/flexcop-pci.c~drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver drivers/media/pci/b2c2/flexcop-pci.c
+--- a/drivers/media/pci/b2c2/flexcop-pci.c~drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver
++++ a/drivers/media/pci/b2c2/flexcop-pci.c
+@@ -432,18 +432,7 @@ static struct pci_driver flexcop_pci_dri
+ 	.remove   = flexcop_pci_remove,
  };
  
--static void __exit ptp_pch_exit(void)
+-static int __init flexcop_pci_module_init(void)
 -{
--	pci_unregister_driver(&pch_driver);
+-	return pci_register_driver(&flexcop_pci_driver);
 -}
 -
--static s32 __init ptp_pch_init(void)
+-static void __exit flexcop_pci_module_exit(void)
 -{
--	s32 ret;
--
--	/* register the driver with the pci core */
--	ret = pci_register_driver(&pch_driver);
--
--	return ret;
+-	pci_unregister_driver(&flexcop_pci_driver);
 -}
 -
--module_init(ptp_pch_init);
--module_exit(ptp_pch_exit);
-+module_pci_driver(pch_driver);
+-module_init(flexcop_pci_module_init);
+-module_exit(flexcop_pci_module_exit);
++module_pci_driver(flexcop_pci_driver);
  
- module_param_string(station,
- 		    pch_param.station, sizeof(pch_param.station), 0444);
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_NAME);
 _
 
 Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
