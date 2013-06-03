@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch added to -mm tree
-Date: Mon, 03 Jun 2013 14:49:09 -0700
-Message-ID: <51ad0f55.roka+2syt9euy3GB%akpm@linux-foundation.org>
+Subject: + drivers-scsi-initio-convert-to-module_pci_driver.patch added to -mm tree
+Date: Mon, 03 Jun 2013 15:01:12 -0700
+Message-ID: <51ad1228.kLiRfLko9wsxMvFS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40563 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40639 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753676Ab3FCVtK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 17:49:10 -0400
+	with ESMTP id S1758784Ab3FCWBN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, xuejiufei@huawei.com
+To: mm-commits@vger.kernel.org, libo.chen@huawei.com, James.Bottomley@HansenPartnership.com, clbchenlibo.chen@huawei.com
 
-Subject: + ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch added to -mm tree
-To: xuejiufei@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + drivers-scsi-initio-convert-to-module_pci_driver.patch added to -mm tree
+To: clbchenlibo.chen@huawei.com,James.Bottomley@HansenPartnership.com,libo.chen@huawei.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 14:49:09 -0700
+Date: Mon, 03 Jun 2013 15:01:12 -0700
 
 
 The patch titled
-     Subject: ocfs2: add missing dlm_put() in dlm_begin_reco_handler()
+     Subject: drivers/scsi/initio.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch
+     drivers-scsi-initio-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,37 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: add missing dlm_put() in dlm_begin_reco_handler()
+From: Libo Chen <clbchenlibo.chen@huawei.com>
+Subject: drivers/scsi/initio.c: convert to module_pci_driver
 
-dlm_begin_reco_handler() returns without putting dlm when dlm recovery
-state is DLM_RECO_STATE_FINALIZE.
-
-Signed-off-by: joyce <xuejiufei@huawei.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/initio.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2698,6 +2698,7 @@ int dlm_begin_reco_handler(struct o2net_
- 		     dlm->name, br->node_idx, br->dead_node,
- 		     dlm->reco.dead_node, dlm->reco.new_master);
- 		spin_unlock(&dlm->spinlock);
-+		dlm_put(dlm);
- 		return -EAGAIN;
- 	}
- 	spin_unlock(&dlm->spinlock);
+diff -puN drivers/scsi/initio.c~drivers-scsi-initio-convert-to-module_pci_driver drivers/scsi/initio.c
+--- a/drivers/scsi/initio.c~drivers-scsi-initio-convert-to-module_pci_driver
++++ a/drivers/scsi/initio.c
+@@ -2995,19 +2995,8 @@ static struct pci_driver initio_pci_driv
+ 	.remove		= initio_remove_one,
+ };
+ 
+-static int __init initio_init_driver(void)
+-{
+-	return pci_register_driver(&initio_pci_driver);
+-}
+-
+-static void __exit initio_exit_driver(void)
+-{
+-	pci_unregister_driver(&initio_pci_driver);
+-}
++module_pci_driver(initio_pci_driver);
+ 
+ MODULE_DESCRIPTION("Initio INI-9X00U/UW SCSI device driver");
+ MODULE_AUTHOR("Initio Corporation");
+ MODULE_LICENSE("GPL");
+-
+-module_init(initio_init_driver);
+-module_exit(initio_exit_driver);
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
 
-linux-next.patch
-ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+drivers-cdrom-gdromc-fix-device-number-leak.patch
+drivers-scsi-a100u2w-convert-to-module_pci_driver.patch
+drivers-scsi-dc395x-convert-to-module_pci_driver.patch
+drivers-scsi-dmx3191d-convert-to-module_pci_driver.patch
+drivers-scsi-initio-convert-to-module_pci_driver.patch
+drivers-scsi-mvumi-convert-to-module_pci_driver.patch
+drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
+drivers-ide-delkin_cb-convert-to-module_pci_driver.patch
+drivers-atm-he-convert-to-module_pci_driver.patch
+drivers-mfd-lpc_ich-convert-to-module_pci_driver.patch
+drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch
+drivers-memstick-host-r592-convert-to-module_pci_driver.patch
+drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch
+drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch
+drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver.patch
+drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver.patch
+drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver.patch
+drivers-media-pci-pt1-pt1-convert-to-module_pci_driver.patch
 
