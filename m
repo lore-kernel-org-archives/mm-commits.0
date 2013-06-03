@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-dc395x-convert-to-module_pci_driver.patch added to -mm tree
-Date: Mon, 03 Jun 2013 15:01:10 -0700
-Message-ID: <51ad1226.oXsHukxTZ+3NLwfK%akpm@linux-foundation.org>
+Subject: + drivers-scsi-a100u2w-convert-to-module_pci_driver.patch added
+ to -mm tree
+Date: Mon, 03 Jun 2013 15:01:09 -0700
+Message-ID: <51ad1225.0O5XzKmXut9jkMT6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40641 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758630Ab3FCWBL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:11 -0400
+	with ESMTP id S1758784Ab3FCWBP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, libo.chen@huawei.com, James.Bottomley@HansenPartnership.com, clbchenlibo.chen@huawei.com
 
-Subject: + drivers-scsi-dc395x-convert-to-module_pci_driver.patch added to -mm tree
+Subject: + drivers-scsi-a100u2w-convert-to-module_pci_driver.patch added to -mm tree
 To: clbchenlibo.chen@huawei.com,James.Bottomley@HansenPartnership.com,libo.chen@huawei.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:01:10 -0700
+Date: Mon, 03 Jun 2013 15:01:09 -0700
 
 
 The patch titled
-     Subject: drivers/scsi/dc395x.c: convert to module_pci_driver
+     Subject: drivers/scsi/a100u2w.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-dc395x-convert-to-module_pci_driver.patch
+     drivers-scsi-a100u2w-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/scsi/dc395x.c: convert to module_pci_driver
+Subject: drivers/scsi/a100u2w.c: convert to module_pci_driver
+
+Use module_pci_driver instead of init/exit, make code clean.
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/dc395x.c |   24 +-----------------------
- 1 file changed, 1 insertion(+), 23 deletions(-)
+ drivers/scsi/a100u2w.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/scsi/dc395x.c~drivers-scsi-dc395x-convert-to-module_pci_driver drivers/scsi/dc395x.c
---- a/drivers/scsi/dc395x.c~drivers-scsi-dc395x-convert-to-module_pci_driver
-+++ a/drivers/scsi/dc395x.c
-@@ -4882,29 +4882,7 @@ static struct pci_driver dc395x_driver =
- 	.remove         = dc395x_remove_one,
+diff -puN drivers/scsi/a100u2w.c~drivers-scsi-a100u2w-convert-to-module_pci_driver drivers/scsi/a100u2w.c
+--- a/drivers/scsi/a100u2w.c~drivers-scsi-a100u2w-convert-to-module_pci_driver
++++ a/drivers/scsi/a100u2w.c
+@@ -1227,19 +1227,9 @@ static struct pci_driver inia100_pci_dri
+ 	.remove		= inia100_remove_one,
  };
  
--
--/**
-- * dc395x_module_init - Module initialization function
-- *
-- * Used by both module and built-in driver to initialise this driver.
-- **/
--static int __init dc395x_module_init(void)
+-static int __init inia100_init(void)
 -{
--	return pci_register_driver(&dc395x_driver);
+-	return pci_register_driver(&inia100_pci_driver);
 -}
 -
--
--/**
-- * dc395x_module_exit - Module cleanup function.
-- **/
--static void __exit dc395x_module_exit(void)
+-static void __exit inia100_exit(void)
 -{
--	pci_unregister_driver(&dc395x_driver);
+-	pci_unregister_driver(&inia100_pci_driver);
 -}
--
--
--module_init(dc395x_module_init);
--module_exit(dc395x_module_exit);
-+module_pci_driver(dc395x_driver);
++module_pci_driver(inia100_pci_driver);
  
- MODULE_AUTHOR("C.L. Huang / Erich Chen / Kurt Garloff");
- MODULE_DESCRIPTION("SCSI host adapter driver for Tekram TRM-S1040 based adapters: Tekram DC395 and DC315 series");
+ MODULE_DESCRIPTION("Initio A100U2W SCSI driver");
+ MODULE_AUTHOR("Initio Corporation");
+ MODULE_LICENSE("Dual BSD/GPL");
+ 
+-module_init(inia100_init);
+-module_exit(inia100_exit);
 _
 
 Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
