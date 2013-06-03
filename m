@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch added to
+Subject: + fs-fs-writebackc-make-wb_do_writeback-as-static.patch added to
  -mm tree
-Date: Mon, 03 Jun 2013 16:36:37 -0700
-Message-ID: <51ad2885.vN45k6yrwumtic+o%akpm@linux-foundation.org>
+Date: Mon, 03 Jun 2013 16:45:05 -0700
+Message-ID: <51ad2a81.9iB2FBURi2k29TeN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41131 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41215 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758747Ab3FCXgi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 19:36:38 -0400
+	with ESMTP id S1756402Ab3FCXpG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 19:45:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, snanda@chromium.org, rostedt@goodmis.org, john.stultz@linaro.org, jg1.han@samsung.com, a.zummo@towertech.it, dbasehore@chromium.org
+To: mm-commits@vger.kernel.org, jack@suse.cz, fengguang.wu@intel.com, haicheng.li@linux.intel.com
 
-Subject: + drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch added to -mm tree
-To: dbasehore@chromium.org,a.zummo@towertech.it,jg1.han@samsung.com,john.stultz@linaro.org,rostedt@goodmis.org,snanda@chromium.org
+Subject: + fs-fs-writebackc-make-wb_do_writeback-as-static.patch added to -mm tree
+To: haicheng.li@linux.intel.com,fengguang.wu@intel.com,jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 16:36:37 -0700
+Date: Mon, 03 Jun 2013 16:45:05 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-cmos.c: work around bios clearing rtc control
+     Subject: fs/fs-writeback.c: : make wb_do_writeback() as static
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch
+     fs-fs-writebackc-make-wb_do_writeback-as-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,83 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Derek Basehore <dbasehore@chromium.org>
-Subject: drivers/rtc/rtc-cmos.c: work around bios clearing rtc control
+From: Haicheng Li <haicheng.li@linux.intel.com>
+Subject: fs/fs-writeback.c: : make wb_do_writeback() as static
 
-The bios may clear the rtc control register when resuming the system. Since the
-cmos interrupt handler may now be run before the rtc_cmos is resumed, this can
-cause the interrupt handler to ignore an alarm since the alarm bit is not set in
-the rtc control register. To work around this, check if the rtc_cmos is
-suspended and use the stored value for the rtc control register.
+It's not used globally and could be static.
 
-Signed-off-by: Derek Basehore <dbasehore@chromium.org>
-Reviewed-by: Sameer Nanda <snanda@chromium.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Haicheng Li <haicheng.li@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |   35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ fs/fs-writeback.c         |    2 +-
+ include/linux/writeback.h |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -556,17 +556,24 @@ static irqreturn_t cmos_interrupt(int ir
- 	rtc_control = CMOS_READ(RTC_CONTROL);
- 	if (is_hpet_enabled())
- 		irqstat = (unsigned long)irq & 0xF0;
--	irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
-+
-+	/* If we were suspended, RTC_CONTROL may not be accurate since the
-+	 * bios may have cleared it.
-+	 */
-+	if (!cmos_rtc.suspend_ctrl)
-+		irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
-+	else
-+		irqstat &= (cmos_rtc.suspend_ctrl & RTC_IRQMASK) | RTC_IRQF;
- 
- 	/* All Linux RTC alarms should be treated as if they were oneshot.
- 	 * Similar code may be needed in system wakeup paths, in case the
- 	 * alarm woke the system.
- 	 */
- 	if (irqstat & RTC_AIE) {
-+		cmos_rtc.suspend_ctrl &= ~RTC_AIE;
- 		rtc_control &= ~RTC_AIE;
- 		CMOS_WRITE(rtc_control, RTC_CONTROL);
- 		hpet_mask_rtc_irq_bit(RTC_AIE);
--
- 		CMOS_READ(RTC_INTR_FLAGS);
- 	}
- 	spin_unlock(&rtc_lock);
-@@ -839,21 +846,23 @@ static inline int cmos_poweroff(struct d
- static int cmos_resume(struct device *dev)
+diff -puN fs/fs-writeback.c~fs-fs-writebackc-make-wb_do_writeback-as-static fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-fs-writebackc-make-wb_do_writeback-as-static
++++ a/fs/fs-writeback.c
+@@ -959,7 +959,7 @@ static long wb_check_old_data_flush(stru
+ /*
+  * Retrieve work items and do the writeback they describe
+  */
+-long wb_do_writeback(struct bdi_writeback *wb, int force_wait)
++static long wb_do_writeback(struct bdi_writeback *wb, int force_wait)
  {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
--	unsigned char	tmp = cmos->suspend_ctrl;
-+	unsigned char tmp;
-+
-+	if (cmos->enabled_wake) {
-+		if (cmos->wake_off)
-+			cmos->wake_off(dev);
-+		else
-+			disable_irq_wake(cmos->irq);
-+		cmos->enabled_wake = 0;
-+	}
+ 	struct backing_dev_info *bdi = wb->bdi;
+ 	struct wb_writeback_work *work;
+diff -puN include/linux/writeback.h~fs-fs-writebackc-make-wb_do_writeback-as-static include/linux/writeback.h
+--- a/include/linux/writeback.h~fs-fs-writebackc-make-wb_do_writeback-as-static
++++ a/include/linux/writeback.h
+@@ -94,7 +94,6 @@ int try_to_writeback_inodes_sb_nr(struct
+ void sync_inodes_sb(struct super_block *);
+ long writeback_inodes_wb(struct bdi_writeback *wb, long nr_pages,
+ 				enum wb_reason reason);
+-long wb_do_writeback(struct bdi_writeback *wb, int force_wait);
+ void wakeup_flusher_threads(long nr_pages, enum wb_reason reason);
+ void inode_wait_for_writeback(struct inode *inode);
  
-+	spin_lock_irq(&rtc_lock);
-+	tmp = cmos->suspend_ctrl;
-+	cmos->suspend_ctrl = 0;
- 	/* re-enable any irqs previously active */
- 	if (tmp & RTC_IRQMASK) {
- 		unsigned char	mask;
- 
--		if (cmos->enabled_wake) {
--			if (cmos->wake_off)
--				cmos->wake_off(dev);
--			else
--				disable_irq_wake(cmos->irq);
--			cmos->enabled_wake = 0;
--		}
+_
+
+Patches currently in -mm which might be from haicheng.li@linux.intel.com are
+
+linux-next.patch
+fs-fs-writebackc-make-wb_do_writeback-as-static.patch
+
