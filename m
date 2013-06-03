@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch added to
- -mm tree
-Date: Mon, 03 Jun 2013 15:32:39 -0700
-Message-ID: <51ad1987.NN2vFj+fyXKkQye+%akpm@linux-foundation.org>
+Subject: + pps-gpio-add-device-tree-binding-and-support.patch added to -mm tree
+Date: Mon, 03 Jun 2013 15:57:10 -0700
+Message-ID: <51ad1f46.G6tloEFruFXSMPe/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40976 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759262Ab3FCWcl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:32:41 -0400
+	with ESMTP id S1757635Ab3FCW5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shuahkhan@gmail.com, jg1.han@samsung.com, a.zummo@towertech.it, shuah.kh@samsung.com
+To: mm-commits@vger.kernel.org, rob.herring@calxeda.com, grant.likely@linaro.org, giometti@enneenne.com, arnd@arndb.de, jlu@pengutronix.de
 
-Subject: + drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch added to -mm tree
-To: shuah.kh@samsung.com,a.zummo@towertech.it,jg1.han@samsung.com,shuahkhan@gmail.com
+Subject: + pps-gpio-add-device-tree-binding-and-support.patch added to -mm tree
+To: jlu@pengutronix.de,arnd@arndb.de,giometti@enneenne.com,grant.likely@linaro.org,rob.herring@calxeda.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:32:39 -0700
+Date: Mon, 03 Jun 2013 15:57:10 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
+     Subject: pps-gpio: add device-tree binding and support
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
+     pps-gpio-add-device-tree-binding-and-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,63 +38,274 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.kh@samsung.com>
-Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
+From: Jan Luebbe <jlu@pengutronix.de>
+Subject: pps-gpio: add device-tree binding and support
 
-Convert drivers/rtc/class to use dev_pm_ops for power management and
-remove Legacy PM ops hooks.  With this change, rtc class registers
-suspend/resume callbacks via class->pm (dev_pm_ops) instead of Legacy
-class->suspend/resume.  When __device_suspend() runs call-backs, it will
-find class->pm ops for the rtc class.
+Instead of allocating a struct pps_gpio_platform_data in the DT case,
+store the necessary information in struct pps_gpio_device_data itself. 
+This avoids an additional allocation and the ifdef.  It also gets rid of
+some indirection.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-Cc: Shuah Khan <shuahkhan@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Also use dev_err instead of pr_err in the changed code.
+
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ Documentation/devicetree/bindings/pps/pps-gpio.txt |   20 +
+ drivers/pps/clients/pps-gpio.c                     |  127 ++++++-----
+ 2 files changed, 93 insertions(+), 54 deletions(-)
 
-diff -puN drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops drivers/rtc/class.c
---- a/drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops
-+++ a/drivers/rtc/class.c
-@@ -47,7 +47,7 @@ int rtc_hctosys_ret = -ENODEV;
- static struct timespec old_rtc, old_system, old_delta;
+diff -puN /dev/null Documentation/devicetree/bindings/pps/pps-gpio.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/pps/pps-gpio.txt
+@@ -0,0 +1,20 @@
++Device-Tree Bindings for a PPS Signal on GPIO
++
++These properties describe a PPS (pulse-per-second) signal connected to
++a GPIO pin.
++
++Required properties:
++- compatible: should be "pps-gpio"
++- gpios: one PPS GPIO in the format described by ../gpio/gpio.txt
++
++Optional properties:
++- assert-falling-edge: when present, assert is indicated by a falling edge
++                       (instead of by a rising edge)
++
++Example:
++	pps {
++		compatible = "pps-gpio";
++		gpios = <&gpio2 6 0>;
++
++		assert-falling-edge;
++	};
+diff -puN drivers/pps/clients/pps-gpio.c~pps-gpio-add-device-tree-binding-and-support drivers/pps/clients/pps-gpio.c
+--- a/drivers/pps/clients/pps-gpio.c~pps-gpio-add-device-tree-binding-and-support
++++ a/drivers/pps/clients/pps-gpio.c
+@@ -33,13 +33,17 @@
+ #include <linux/pps-gpio.h>
+ #include <linux/gpio.h>
+ #include <linux/list.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
  
+ /* Info for each registered platform device */
+ struct pps_gpio_device_data {
+ 	int irq;			/* IRQ used as PPS source */
+ 	struct pps_device *pps;		/* PPS source device */
+ 	struct pps_source_info info;	/* PPS source information */
+-	const struct pps_gpio_platform_data *pdata;
++	bool assert_falling_edge;
++	bool capture_clear;
++	unsigned int gpio_pin;
+ };
  
--static int rtc_suspend(struct device *dev, pm_message_t mesg)
-+static int rtc_suspend(struct device *dev)
+ /*
+@@ -57,45 +61,25 @@ static irqreturn_t pps_gpio_irq_handler(
+ 
+ 	info = data;
+ 
+-	rising_edge = gpio_get_value(info->pdata->gpio_pin);
+-	if ((rising_edge && !info->pdata->assert_falling_edge) ||
+-			(!rising_edge && info->pdata->assert_falling_edge))
++	rising_edge = gpio_get_value(info->gpio_pin);
++	if ((rising_edge && !info->assert_falling_edge) ||
++			(!rising_edge && info->assert_falling_edge))
+ 		pps_event(info->pps, &ts, PPS_CAPTUREASSERT, NULL);
+-	else if (info->pdata->capture_clear &&
+-			((rising_edge && info->pdata->assert_falling_edge) ||
+-			 (!rising_edge && !info->pdata->assert_falling_edge)))
++	else if (info->capture_clear &&
++			((rising_edge && info->assert_falling_edge) ||
++			 (!rising_edge && !info->assert_falling_edge)))
+ 		pps_event(info->pps, &ts, PPS_CAPTURECLEAR, NULL);
+ 
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int pps_gpio_setup(struct platform_device *pdev)
+-{
+-	int ret;
+-	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
+-
+-	ret = devm_gpio_request(&pdev->dev, pdata->gpio_pin, pdata->gpio_label);
+-	if (ret) {
+-		pr_warning("failed to request GPIO %u\n", pdata->gpio_pin);
+-		return -EINVAL;
+-	}
+-
+-	ret = gpio_direction_input(pdata->gpio_pin);
+-	if (ret) {
+-		pr_warning("failed to set pin direction\n");
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ static unsigned long
+-get_irqf_trigger_flags(const struct pps_gpio_platform_data *pdata)
++get_irqf_trigger_flags(const struct pps_gpio_device_data *data)
  {
- 	struct rtc_device	*rtc = to_rtc_device(dev);
- 	struct rtc_time		tm;
-@@ -135,9 +135,9 @@ static int rtc_resume(struct device *dev
+-	unsigned long flags = pdata->assert_falling_edge ?
++	unsigned long flags = data->assert_falling_edge ?
+ 		IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING;
+ 
+-	if (pdata->capture_clear) {
++	if (data->capture_clear) {
+ 		flags |= ((flags & IRQF_TRIGGER_RISING) ?
+ 				IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING);
+ 	}
+@@ -106,34 +90,63 @@ get_irqf_trigger_flags(const struct pps_
+ static int pps_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct pps_gpio_device_data *data;
+-	int irq;
++	const char *gpio_label;
+ 	int ret;
+ 	int pps_default_params;
+ 	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
++	struct device_node *np = pdev->dev.of_node;
+ 
++	/* allocate space for device info */
++	data = devm_kzalloc(&pdev->dev, sizeof(struct pps_gpio_device_data),
++			GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	if (pdata) {
++		data->gpio_pin = pdata->gpio_pin;
++		gpio_label = pdata->gpio_label;
++
++		data->assert_falling_edge = pdata->assert_falling_edge;
++		data->capture_clear = pdata->capture_clear;
++	} else {
++		ret = of_get_gpio(np, 0);
++		if (ret < 0) {
++			dev_err(&pdev->dev, "failed to get GPIO from device tree\n");
++			return ret;
++		}
++		data->gpio_pin = ret;
++		gpio_label = PPS_GPIO_NAME;
++
++		if (of_get_property(np, "assert-falling-edge", NULL))
++			data->assert_falling_edge = true;
++	}
+ 
+ 	/* GPIO setup */
+-	ret = pps_gpio_setup(pdev);
+-	if (ret)
++	ret = devm_gpio_request(&pdev->dev, data->gpio_pin, gpio_label);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to request GPIO %u\n",
++			data->gpio_pin);
++		return ret;
++	}
++
++	ret = gpio_direction_input(data->gpio_pin);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to set pin direction\n");
+ 		return -EINVAL;
++	}
+ 
+ 	/* IRQ setup */
+-	irq = gpio_to_irq(pdata->gpio_pin);
+-	if (irq < 0) {
+-		pr_err("failed to map GPIO to IRQ: %d\n", irq);
++	ret = gpio_to_irq(data->gpio_pin);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "failed to map GPIO to IRQ: %d\n", ret);
+ 		return -EINVAL;
+ 	}
+-
+-	/* allocate space for device info */
+-	data = devm_kzalloc(&pdev->dev, sizeof(struct pps_gpio_device_data),
+-			    GFP_KERNEL);
+-	if (data == NULL)
+-		return -ENOMEM;
++	data->irq = ret;
+ 
+ 	/* initialize PPS specific parts of the bookkeeping data structure. */
+ 	data->info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
+ 		PPS_ECHOASSERT | PPS_CANWAIT | PPS_TSFMT_TSPEC;
+-	if (pdata->capture_clear)
++	if (data->capture_clear)
+ 		data->info.mode |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR |
+ 			PPS_ECHOCLEAR;
+ 	data->info.owner = THIS_MODULE;
+@@ -142,28 +155,27 @@ static int pps_gpio_probe(struct platfor
+ 
+ 	/* register PPS source */
+ 	pps_default_params = PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
+-	if (pdata->capture_clear)
++	if (data->capture_clear)
+ 		pps_default_params |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR;
+ 	data->pps = pps_register_source(&data->info, pps_default_params);
+ 	if (data->pps == NULL) {
+-		pr_err("failed to register IRQ %d as PPS source\n", irq);
++		dev_err(&pdev->dev, "failed to register IRQ %d as PPS source\n",
++			data->irq);
+ 		return -EINVAL;
+ 	}
+ 
+-	data->irq = irq;
+-	data->pdata = pdata;
+-
+ 	/* register IRQ interrupt handler */
+-	ret = devm_request_irq(&pdev->dev, irq, pps_gpio_irq_handler,
+-			get_irqf_trigger_flags(pdata), data->info.name, data);
++	ret = devm_request_irq(&pdev->dev, data->irq, pps_gpio_irq_handler,
++			get_irqf_trigger_flags(data), data->info.name, data);
+ 	if (ret) {
+ 		pps_unregister_source(data->pps);
+-		pr_err("failed to acquire IRQ %d\n", irq);
++		dev_err(&pdev->dev, "failed to acquire IRQ %d\n", data->irq);
+ 		return -EINVAL;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, data);
+-	dev_info(data->pps->dev, "Registered IRQ %d as PPS source\n", irq);
++	dev_info(data->pps->dev, "Registered IRQ %d as PPS source\n",
++		 data->irq);
+ 
+ 	return 0;
+ }
+@@ -174,16 +186,23 @@ static int pps_gpio_remove(struct platfo
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 	pps_unregister_source(data->pps);
+-	pr_info("removed IRQ %d as PPS source\n", data->irq);
++	dev_info(&pdev->dev, "removed IRQ %d as PPS source\n", data->irq);
  	return 0;
  }
  
-+static SIMPLE_DEV_PM_OPS(rtc_class_dev_pm_ops, rtc_suspend, rtc_resume);
- #else
--#define rtc_suspend	NULL
--#define rtc_resume	NULL
-+#define rtc_class_dev_pm_ops	NULL
- #endif
++static const struct of_device_id pps_gpio_dt_ids[] = {
++	{ .compatible = "pps-gpio", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, pps_gpio_dt_ids);
++
+ static struct platform_driver pps_gpio_driver = {
+ 	.probe		= pps_gpio_probe,
+ 	.remove		= pps_gpio_remove,
+ 	.driver		= {
+ 		.name	= PPS_GPIO_NAME,
+-		.owner	= THIS_MODULE
++		.owner	= THIS_MODULE,
++		.of_match_table	= of_match_ptr(pps_gpio_dt_ids),
+ 	},
+ };
  
- 
-@@ -336,8 +336,7 @@ static int __init rtc_init(void)
- 		pr_err("couldn't create class\n");
- 		return PTR_ERR(rtc_class);
- 	}
--	rtc_class->suspend = rtc_suspend;
--	rtc_class->resume = rtc_resume;
-+	rtc_class->pm = &rtc_class_dev_pm_ops;
- 	rtc_dev_init();
- 	rtc_sysfs_init(rtc_class);
- 	return 0;
 _
 
-Patches currently in -mm which might be from shuah.kh@samsung.com are
+Patches currently in -mm which might be from jlu@pengutronix.de are
 
-linux-next.patch
-drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
+drivers-pps-clients-pps-gpioc-convert-to-devm_-helpers.patch
+drivers-pps-clients-pps-gpioc-convert-to-module_platform_driver.patch
+pps-gpio-add-device-tree-binding-and-support.patch
 
