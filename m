@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch added to -mm tree
-Date: Mon, 03 Jun 2013 16:31:31 -0700
-Message-ID: <51ad2753.dgkzFQqy60J77x9v%akpm@linux-foundation.org>
+ drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch added to
+ -mm tree
+Date: Mon, 03 Jun 2013 16:36:37 -0700
+Message-ID: <51ad2885.vN45k6yrwumtic+o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757860Ab3FCXbm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 19:31:42 -0400
+	with ESMTP id S1758747Ab3FCXgi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 19:36:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, konrad.wilk@oracle.com, akinobu.mita@gmail.com
+To: mm-commits@vger.kernel.org, snanda@chromium.org, rostedt@goodmis.org, john.stultz@linaro.org, jg1.han@samsung.com, a.zummo@towertech.it, dbasehore@chromium.org
 
-Subject: + frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch added to -mm tree
-To: akinobu.mita@gmail.com,konrad.wilk@oracle.com
+Subject: + drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch added to -mm tree
+To: dbasehore@chromium.org,a.zummo@towertech.it,jg1.han@samsung.com,john.stultz@linaro.org,rostedt@goodmis.org,snanda@chromium.org
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 16:31:31 -0700
+Date: Mon, 03 Jun 2013 16:36:37 -0700
 
 
 The patch titled
-     Subject: frontswap: fix incorrect zeroing and allocation size for frontswap_map
+     Subject: drivers/rtc/rtc-cmos.c: work around bios clearing rtc control
 has been added to the -mm tree.  Its filename is
-     frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch
+     drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +40,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: frontswap: fix incorrect zeroing and allocation size for frontswap_map
+From: Derek Basehore <dbasehore@chromium.org>
+Subject: drivers/rtc/rtc-cmos.c: work around bios clearing rtc control
 
-The bitmap accessed by bitops must have enough size to hold the required
-numbers of bits rounded up to a multiple of BITS_PER_LONG.  And the bitmap
-must not be zeroed by memset() if the number of bits cleared is not a
-multiple of BITS_PER_LONG.
+The bios may clear the rtc control register when resuming the system. Since the
+cmos interrupt handler may now be run before the rtc_cmos is resumed, this can
+cause the interrupt handler to ignore an alarm since the alarm bit is not set in
+the rtc control register. To work around this, check if the rtc_cmos is
+suspended and use the stored value for the rtc control register.
 
-This fixes incorrect zeroing and allocation size for frontswap_map.  The
-incorrect zeroing part doesn't cause any problem because frontswap_map is
-freed just after zeroing.  But the wrongly calculated allocation size may
-cause the problem.
-
-For 32bit systems, the allocation size of frontswap_map is about twice as
-large as required size.  For 64bit systems, the allocation size is smaller
-than requeired if the number of bits is not a multiple of BITS_PER_LONG.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Derek Basehore <dbasehore@chromium.org>
+Reviewed-by: Sameer Nanda <snanda@chromium.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frontswap.c |    2 +-
- mm/swapfile.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-cmos.c |   35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN mm/frontswap.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map mm/frontswap.c
---- a/mm/frontswap.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map
-+++ a/mm/frontswap.c
-@@ -319,7 +319,7 @@ void __frontswap_invalidate_area(unsigne
- 			return;
- 		frontswap_ops->invalidate_area(type);
- 		atomic_set(&sis->frontswap_pages, 0);
--		memset(sis->frontswap_map, 0, sis->max / sizeof(long));
-+		bitmap_zero(sis->frontswap_map, sis->max);
- 	}
- 	clear_bit(type, need_init);
- }
-diff -puN mm/swapfile.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map mm/swapfile.c
---- a/mm/swapfile.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map
-+++ a/mm/swapfile.c
-@@ -2130,7 +2130,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	}
- 	/* frontswap enabled? set up bit-per-page map for frontswap */
- 	if (frontswap_enabled)
--		frontswap_map = vzalloc(maxpages / sizeof(long));
-+		frontswap_map = vzalloc(BITS_TO_LONGS(maxpages) * sizeof(long));
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control
++++ a/drivers/rtc/rtc-cmos.c
+@@ -556,17 +556,24 @@ static irqreturn_t cmos_interrupt(int ir
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
+ 	if (is_hpet_enabled())
+ 		irqstat = (unsigned long)irq & 0xF0;
+-	irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
++
++	/* If we were suspended, RTC_CONTROL may not be accurate since the
++	 * bios may have cleared it.
++	 */
++	if (!cmos_rtc.suspend_ctrl)
++		irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
++	else
++		irqstat &= (cmos_rtc.suspend_ctrl & RTC_IRQMASK) | RTC_IRQF;
  
- 	if (p->bdev) {
- 		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
-_
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-linux-next.patch
-frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch
-
+ 	/* All Linux RTC alarms should be treated as if they were oneshot.
+ 	 * Similar code may be needed in system wakeup paths, in case the
+ 	 * alarm woke the system.
+ 	 */
+ 	if (irqstat & RTC_AIE) {
++		cmos_rtc.suspend_ctrl &= ~RTC_AIE;
+ 		rtc_control &= ~RTC_AIE;
+ 		CMOS_WRITE(rtc_control, RTC_CONTROL);
+ 		hpet_mask_rtc_irq_bit(RTC_AIE);
+-
+ 		CMOS_READ(RTC_INTR_FLAGS);
+ 	}
+ 	spin_unlock(&rtc_lock);
+@@ -839,21 +846,23 @@ static inline int cmos_poweroff(struct d
+ static int cmos_resume(struct device *dev)
+ {
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+-	unsigned char	tmp = cmos->suspend_ctrl;
++	unsigned char tmp;
++
++	if (cmos->enabled_wake) {
++		if (cmos->wake_off)
++			cmos->wake_off(dev);
++		else
++			disable_irq_wake(cmos->irq);
++		cmos->enabled_wake = 0;
++	}
+ 
++	spin_lock_irq(&rtc_lock);
++	tmp = cmos->suspend_ctrl;
++	cmos->suspend_ctrl = 0;
+ 	/* re-enable any irqs previously active */
+ 	if (tmp & RTC_IRQMASK) {
+ 		unsigned char	mask;
+ 
+-		if (cmos->enabled_wake) {
+-			if (cmos->wake_off)
+-				cmos->wake_off(dev);
+-			else
+-				disable_irq_wake(cmos->irq);
+-			cmos->enabled_wake = 0;
+-		}
