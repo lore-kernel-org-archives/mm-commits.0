@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ide-delkin_cb-convert-to-module_pci_driver.patch added
- to -mm tree
-Date: Mon, 03 Jun 2013 15:01:15 -0700
-Message-ID: <51ad122b.FG1+Vk0k3X9IBunf%akpm@linux-foundation.org>
+Subject: +
+ drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch added to
+ -mm tree
+Date: Mon, 03 Jun 2013 15:01:20 -0700
+Message-ID: <51ad1230.9P0ogU2JIwbqDUDI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40655 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758801Ab3FCWBQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:16 -0400
+	with ESMTP id S1758804Ab3FCWBV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, libo.chen@huawei.com, davem@davemloft.net, clbchenlibo.chen@huawei.com
+To: mm-commits@vger.kernel.org, matthew.garrett@nebula.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
 
-Subject: + drivers-ide-delkin_cb-convert-to-module_pci_driver.patch added to -mm tree
-To: clbchenlibo.chen@huawei.com,davem@davemloft.net,libo.chen@huawei.com
+Subject: + drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch added to -mm tree
+To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,matthew.garrett@nebula.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:01:15 -0700
+Date: Mon, 03 Jun 2013 15:01:20 -0700
 
 
 The patch titled
-     Subject: drivers/ide/delkin_cb.c: convert to module_pci_driver
+     Subject: drivers/platform/x86/intel_ips.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     drivers-ide-delkin_cb-convert-to-module_pci_driver.patch
+     drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +41,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/ide/delkin_cb.c: convert to module_pci_driver
+Subject: drivers/platform/x86/intel_ips.c: convert to module_pci_driver
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/delkin_cb.c |   13 +------------
+ drivers/platform/x86/intel_ips.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/ide/delkin_cb.c~drivers-ide-delkin_cb-convert-to-module_pci_driver drivers/ide/delkin_cb.c
---- a/drivers/ide/delkin_cb.c~drivers-ide-delkin_cb-convert-to-module_pci_driver
-+++ a/drivers/ide/delkin_cb.c
-@@ -173,18 +173,7 @@ static struct pci_driver delkin_cb_pci_d
- 	.resume		= delkin_cb_resume,
+diff -puN drivers/platform/x86/intel_ips.c~drivers-platform-x86-intel_ips-convert-to-module_pci_driver drivers/platform/x86/intel_ips.c
+--- a/drivers/platform/x86/intel_ips.c~drivers-platform-x86-intel_ips-convert-to-module_pci_driver
++++ a/drivers/platform/x86/intel_ips.c
+@@ -1731,18 +1731,7 @@ static struct pci_driver ips_pci_driver
+ 	.shutdown = ips_shutdown,
  };
  
--static int __init delkin_cb_init(void)
+-static int __init ips_init(void)
 -{
--	return pci_register_driver(&delkin_cb_pci_driver);
+-	return pci_register_driver(&ips_pci_driver);
 -}
+-module_init(ips_init);
 -
--static void __exit delkin_cb_exit(void)
+-static void ips_exit(void)
 -{
--	pci_unregister_driver(&delkin_cb_pci_driver);
+-	pci_unregister_driver(&ips_pci_driver);
+-	return;
 -}
--
--module_init(delkin_cb_init);
--module_exit(delkin_cb_exit);
-+module_pci_driver(delkin_cb_pci_driver);
+-module_exit(ips_exit);
++module_pci_driver(ips_pci_driver);
  
- MODULE_AUTHOR("Mark Lord");
- MODULE_DESCRIPTION("Basic support for Delkin/ASKA/Workbit Cardbus IDE");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jesse Barnes <jbarnes@virtuousgeek.org>");
 _
 
 Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
