@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-a100u2w-convert-to-module_pci_driver.patch added
- to -mm tree
-Date: Mon, 03 Jun 2013 15:01:09 -0700
-Message-ID: <51ad1225.0O5XzKmXut9jkMT6%akpm@linux-foundation.org>
+Subject: + drivers-scsi-mvumi-convert-to-module_pci_driver.patch added to
+ -mm tree
+Date: Mon, 03 Jun 2013 15:01:13 -0700
+Message-ID: <51ad1229.auBkVink7TeY/6t5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40641 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40652 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758784Ab3FCWBP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:15 -0400
+	with ESMTP id S1758784Ab3FCWBT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, libo.chen@huawei.com, James.Bottomley@HansenPartnership.com, clbchenlibo.chen@huawei.com
 
-Subject: + drivers-scsi-a100u2w-convert-to-module_pci_driver.patch added to -mm tree
+Subject: + drivers-scsi-mvumi-convert-to-module_pci_driver.patch added to -mm tree
 To: clbchenlibo.chen@huawei.com,James.Bottomley@HansenPartnership.com,libo.chen@huawei.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:01:09 -0700
+Date: Mon, 03 Jun 2013 15:01:13 -0700
 
 
 The patch titled
-     Subject: drivers/scsi/a100u2w.c: convert to module_pci_driver
+     Subject: drivers/scsi/mvumi.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-a100u2w-convert-to-module_pci_driver.patch
+     drivers-scsi-mvumi-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/scsi/a100u2w.c: convert to module_pci_driver
-
-Use module_pci_driver instead of init/exit, make code clean.
+Subject: drivers/scsi/mvumi.c: convert to module_pci_driver
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/a100u2w.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/scsi/mvumi.c |   20 +-------------------
+ 1 file changed, 1 insertion(+), 19 deletions(-)
 
-diff -puN drivers/scsi/a100u2w.c~drivers-scsi-a100u2w-convert-to-module_pci_driver drivers/scsi/a100u2w.c
---- a/drivers/scsi/a100u2w.c~drivers-scsi-a100u2w-convert-to-module_pci_driver
-+++ a/drivers/scsi/a100u2w.c
-@@ -1227,19 +1227,9 @@ static struct pci_driver inia100_pci_dri
- 	.remove		= inia100_remove_one,
+diff -puN drivers/scsi/mvumi.c~drivers-scsi-mvumi-convert-to-module_pci_driver drivers/scsi/mvumi.c
+--- a/drivers/scsi/mvumi.c~drivers-scsi-mvumi-convert-to-module_pci_driver
++++ a/drivers/scsi/mvumi.c
+@@ -2735,22 +2735,4 @@ static struct pci_driver mvumi_pci_drive
+ #endif
  };
  
--static int __init inia100_init(void)
+-/**
+- * mvumi_init - Driver load entry point
+- */
+-static int __init mvumi_init(void)
 -{
--	return pci_register_driver(&inia100_pci_driver);
+-	return pci_register_driver(&mvumi_pci_driver);
 -}
 -
--static void __exit inia100_exit(void)
+-/**
+- * mvumi_exit - Driver unload entry point
+- */
+-static void __exit mvumi_exit(void)
 -{
--	pci_unregister_driver(&inia100_pci_driver);
+-
+-	pci_unregister_driver(&mvumi_pci_driver);
 -}
-+module_pci_driver(inia100_pci_driver);
- 
- MODULE_DESCRIPTION("Initio A100U2W SCSI driver");
- MODULE_AUTHOR("Initio Corporation");
- MODULE_LICENSE("Dual BSD/GPL");
- 
--module_init(inia100_init);
--module_exit(inia100_exit);
+-
+-module_init(mvumi_init);
+-module_exit(mvumi_exit);
++module_pci_driver(mvumi_pci_driver);
 _
 
 Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
