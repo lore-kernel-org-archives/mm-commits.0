@@ -1,173 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 03 Jun 2013 13:02:37 -0700
-Message-ID: <51acf65d.pnw6EvEm605mWaWL%akpm@linux-foundation.org>
+Subject: [merged] drivers-staging-zcache-fix-compile-error.patch removed
+ from -mm tree
+Date: Mon, 03 Jun 2013 13:29:57 -0700
+Message-ID: <51acfcc5.UoQXNzZw+LPrsVuQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39974 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759764Ab3FCUCi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 16:02:38 -0400
+	with ESMTP id S1754544Ab3FCU37 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 16:29:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, konrad.wilk@oracle.com, greg@kroah.com, fengguang.wu@intel.com, dan.magenheimer@oracle.com, bob.liu@oracle.com, lliubbo@gmail.com
 
-Subject: + linux-next-git-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [merged] drivers-staging-zcache-fix-compile-error.patch removed from -mm tree
+To: lliubbo@gmail.com,bob.liu@oracle.com,dan.magenheimer@oracle.com,fengguang.wu@intel.com,greg@kroah.com,konrad.wilk@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 13:02:37 -0700
+Date: Mon, 03 Jun 2013 13:29:57 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: drivers: staging: zcache: fix compile error
+has been removed from the -mm tree.  Its filename was
+     drivers-staging-zcache-fix-compile-error.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Bob Liu <lliubbo@gmail.com>
+Subject: drivers: staging: zcache: fix compile error
 
+Fix below compile error:
+drivers/built-in.o: In function `zcache_pampd_free':
+>> zcache-main.c:(.text+0xb1c8a): undefined reference to `ramster_pampd_free'
+>> zcache-main.c:(.text+0xb1cbc): undefined reference to `ramster_count_foreign_pages'
+drivers/built-in.o: In function `zcache_pampd_get_data_and_free':
+>> zcache-main.c:(.text+0xb1f05): undefined reference to `ramster_count_foreign_pages'
+drivers/built-in.o: In function `zcache_cpu_notifier':
+>> zcache-main.c:(.text+0xb228d): undefined reference to `ramster_cpu_up'
+>> zcache-main.c:(.text+0xb2339): undefined reference to `ramster_cpu_down'
+drivers/built-in.o: In function `zcache_pampd_create':
+>> (.text+0xb26ce): undefined reference to `ramster_count_foreign_pages'
+drivers/built-in.o: In function `zcache_pampd_create':
+>> (.text+0xb27ef): undefined reference to `ramster_count_foreign_pages'
+drivers/built-in.o: In function `zcache_put_page':
+>> (.text+0xb299f): undefined reference to `ramster_do_preload_flnode'
+drivers/built-in.o: In function `zcache_flush_page':
+>> (.text+0xb2ea3): undefined reference to `ramster_do_preload_flnode'
+drivers/built-in.o: In function `zcache_flush_object':
+>> (.text+0xb307c): undefined reference to `ramster_do_preload_flnode'
+drivers/built-in.o: In function `zcache_init':
+>> zcache-main.c:(.text+0xb3629): undefined reference to `ramster_register_pamops'
+>> zcache-main.c:(.text+0xb3868): undefined reference to `ramster_init'
+>> drivers/built-in.o:(.rodata+0x15058): undefined reference to `ramster_foreign_eph_pages'
+>> drivers/built-in.o:(.rodata+0x15078): undefined reference to `ramster_foreign_pers_pages'
+
+Signed-off-by: Bob Liu <bob.liu@oracle.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/smp.c  |    5 -----
- drivers/ata/sata_rcar.c |   12 ------------
- kernel/cgroup.c         |    6 ------
- 3 files changed, 23 deletions(-)
+ drivers/staging/zcache/ramster.h         |    4 ----
+ drivers/staging/zcache/ramster/debug.c   |    2 ++
+ drivers/staging/zcache/ramster/ramster.c |    6 ++++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/s390/kernel/smp.c~linux-next-git-rejects arch/s390/kernel/smp.c
---- a/arch/s390/kernel/smp.c~linux-next-git-rejects
-+++ a/arch/s390/kernel/smp.c
-@@ -437,11 +437,6 @@ static void smp_handle_ext_call(void)
- 		smp_stop_cpu();
- 	if (test_bit(ec_schedule, &bits))
- 		scheduler_ipi();
--<<<<<<< HEAD
--	if (test_bit(ec_call_function, &bits))
--		generic_smp_call_function_interrupt();
--=======
-->>>>>>> linux-next/akpm-base
- 	if (test_bit(ec_call_function_single, &bits))
- 		generic_smp_call_function_single_interrupt();
- }
-diff -puN drivers/ata/sata_rcar.c~linux-next-git-rejects drivers/ata/sata_rcar.c
---- a/drivers/ata/sata_rcar.c~linux-next-git-rejects
-+++ a/drivers/ata/sata_rcar.c
-@@ -544,11 +544,7 @@ static void sata_rcar_bmdma_start(struct
- 	u32 dmactl;
+diff -puN drivers/staging/zcache/ramster.h~drivers-staging-zcache-fix-compile-error drivers/staging/zcache/ramster.h
+--- a/drivers/staging/zcache/ramster.h~drivers-staging-zcache-fix-compile-error
++++ a/drivers/staging/zcache/ramster.h
+@@ -11,10 +11,6 @@
+ #ifndef _ZCACHE_RAMSTER_H_
+ #define _ZCACHE_RAMSTER_H_
  
- 	/* start host DMA transaction */
--<<<<<<< HEAD
--	dmactl = ioread32(priv->base + ATAPI_CONTROL1_REG);
--=======
- 	dmactl = ioread32(base + ATAPI_CONTROL1_REG);
-->>>>>>> linux-next/akpm-base
- 	dmactl &= ~ATAPI_CONTROL1_STOP;
- 	dmactl |= ATAPI_CONTROL1_START;
- 	iowrite32(dmactl, base + ATAPI_CONTROL1_REG);
-@@ -684,20 +680,12 @@ static irqreturn_t sata_rcar_interrupt(i
+-#ifdef CONFIG_RAMSTER_MODULE
+-#define CONFIG_RAMSTER
+-#endif
+-
+ #ifdef CONFIG_RAMSTER
+ #include "ramster/ramster.h"
+ #else
+diff -puN drivers/staging/zcache/ramster/debug.c~drivers-staging-zcache-fix-compile-error drivers/staging/zcache/ramster/debug.c
+--- a/drivers/staging/zcache/ramster/debug.c~drivers-staging-zcache-fix-compile-error
++++ a/drivers/staging/zcache/ramster/debug.c
+@@ -1,6 +1,8 @@
+ #include <linux/atomic.h>
+ #include "debug.h"
  
- 	spin_lock_irqsave(&host->lock, flags);
++ssize_t ramster_foreign_eph_pages;
++ssize_t ramster_foreign_pers_pages;
+ #ifdef CONFIG_DEBUG_FS
+ #include <linux/debugfs.h>
  
--<<<<<<< HEAD
--	sataintstat = ioread32(priv->base + SATAINTSTAT_REG);
--=======
- 	sataintstat = ioread32(base + SATAINTSTAT_REG);
-->>>>>>> linux-next/akpm-base
- 	sataintstat &= SATA_RCAR_INT_MASK;
- 	if (!sataintstat)
- 		goto done;
- 	/* ack */
--<<<<<<< HEAD
--	iowrite32(~sataintstat & 0x7ff, priv->base + SATAINTSTAT_REG);
--=======
- 	iowrite32(~sataintstat & 0x7ff, base + SATAINTSTAT_REG);
-->>>>>>> linux-next/akpm-base
+diff -puN drivers/staging/zcache/ramster/ramster.c~drivers-staging-zcache-fix-compile-error drivers/staging/zcache/ramster/ramster.c
+--- a/drivers/staging/zcache/ramster/ramster.c~drivers-staging-zcache-fix-compile-error
++++ a/drivers/staging/zcache/ramster/ramster.c
+@@ -66,8 +66,6 @@ static int ramster_remote_target_nodenum
  
- 	ap = host->ports[0];
+ /* Used by this code. */
+ long ramster_flnodes;
+-ssize_t ramster_foreign_eph_pages;
+-ssize_t ramster_foreign_pers_pages;
+ /* FIXME frontswap selfshrinking knobs in debugfs? */
  
-diff -puN kernel/cgroup.c~linux-next-git-rejects kernel/cgroup.c
---- a/kernel/cgroup.c~linux-next-git-rejects
-+++ a/kernel/cgroup.c
-@@ -3058,14 +3058,8 @@ struct cgroup *cgroup_next_descendant_pr
- 
- 	/* no child, visit my or the closest ancestor's next sibling */
- 	while (pos != cgroup) {
--<<<<<<< HEAD
--		next = list_entry_rcu(pos->sibling.next, struct cgroup,
--				      sibling);
--		if (&next->sibling != &pos->parent->children)
--=======
- 		next = cgroup_next_sibling(pos);
- 		if (next)
-->>>>>>> linux-next/akpm-base
- 			return next;
- 		pos = pos->parent;
+ static LIST_HEAD(ramster_rem_op_list);
+@@ -399,14 +397,18 @@ void ramster_count_foreign_pages(bool ep
+ 			inc_ramster_foreign_eph_pages();
+ 		} else {
+ 			dec_ramster_foreign_eph_pages();
++#ifdef CONFIG_RAMSTER_DEBUG
+ 			WARN_ON_ONCE(ramster_foreign_eph_pages < 0);
++#endif
+ 		}
+ 	} else {
+ 		if (count > 0) {
+ 			inc_ramster_foreign_pers_pages();
+ 		} else {
+ 			dec_ramster_foreign_pers_pages();
++#ifdef CONFIG_RAMSTER_DEBUG
+ 			WARN_ON_ONCE(ramster_foreign_pers_pages < 0);
++#endif
+ 		}
  	}
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
