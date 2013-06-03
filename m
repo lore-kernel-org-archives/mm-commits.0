@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-atm-he-convert-to-module_pci_driver.patch added to -mm
- tree
-Date: Mon, 03 Jun 2013 15:01:16 -0700
-Message-ID: <51ad122c.uQP2hDVfC0x+fgBX%akpm@linux-foundation.org>
+Subject: +
+ drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver.patch
+ added to -mm tree
+Date: Mon, 03 Jun 2013 15:01:23 -0700
+Message-ID: <51ad1233.56e9gldJBm1/GLVt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40649 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40666 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758784Ab3FCWBR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:17 -0400
+	with ESMTP id S1758784Ab3FCWBY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, libo.chen@huawei.com, chas@cmf.nrl.navy.mil, clbchenlibo.chen@huawei.com
+To: mm-commits@vger.kernel.org, mchehab@redhat.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
 
-Subject: + drivers-atm-he-convert-to-module_pci_driver.patch added to -mm tree
-To: clbchenlibo.chen@huawei.com,chas@cmf.nrl.navy.mil,libo.chen@huawei.com
+Subject: + drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver.patch added to -mm tree
+To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,mchehab@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:01:16 -0700
+Date: Mon, 03 Jun 2013 15:01:23 -0700
 
 
 The patch titled
-     Subject: drivers/atm/he.c: convert to module_pci_driver
+     Subject: drivers/media/pci/mantis/hopper_cards.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     drivers-atm-he-convert-to-module_pci_driver.patch
+     drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +41,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/atm/he.c: convert to module_pci_driver
+Subject: drivers/media/pci/mantis/hopper_cards.c: convert to module_pci_driver
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/he.c |   13 +------------
+ drivers/media/pci/mantis/hopper_cards.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/atm/he.c~drivers-atm-he-convert-to-module_pci_driver drivers/atm/he.c
---- a/drivers/atm/he.c~drivers-atm-he-convert-to-module_pci_driver
-+++ a/drivers/atm/he.c
-@@ -2872,15 +2872,4 @@ static struct pci_driver he_driver = {
- 	.id_table =	he_pci_tbl,
+diff -puN drivers/media/pci/mantis/hopper_cards.c~drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver drivers/media/pci/mantis/hopper_cards.c
+--- a/drivers/media/pci/mantis/hopper_cards.c~drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver
++++ a/drivers/media/pci/mantis/hopper_cards.c
+@@ -260,18 +260,7 @@ static struct pci_driver hopper_pci_driv
+ 	.remove		= hopper_pci_remove,
  };
  
--static int __init he_init(void)
+-static int hopper_init(void)
 -{
--	return pci_register_driver(&he_driver);
+-	return pci_register_driver(&hopper_pci_driver);
 -}
 -
--static void __exit he_cleanup(void)
+-static void hopper_exit(void)
 -{
--	pci_unregister_driver(&he_driver);
+-	return pci_unregister_driver(&hopper_pci_driver);
 -}
 -
--module_init(he_init);
--module_exit(he_cleanup);
-+module_pci_driver(he_driver);
+-module_init(hopper_init);
+-module_exit(hopper_exit);
++module_pci_driver(hopper_pci_driver);
+ 
+ MODULE_DESCRIPTION("HOPPER driver");
+ MODULE_AUTHOR("Manu Abraham");
 _
 
 Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
