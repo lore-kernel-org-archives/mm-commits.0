@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- kprobes-handle-empty-invalid-input-to-debugfs-enabled-file.patch added to
- -mm tree
-Date: Mon, 03 Jun 2013 15:58:29 -0700
-Message-ID: <51ad1f95.e0MfXMZy9CC47e1h%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-twlc-ensure-irq-is-wakeup-enabled.patch added
+ to -mm tree
+Date: Mon, 03 Jun 2013 16:13:16 -0700
+Message-ID: <51ad230c.w3QL8eWmo9gd7aSu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41097 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757635Ab3FCW6a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:58:30 -0400
+	with ESMTP id S1759150Ab3FCXNR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 19:13:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, masami.hiramatsu.pt@hitachi.com, davem@davemloft.net, anil.s.keshavamurthy@intel.com, ananth@in.ibm.com, minipli@googlemail.com
+To: mm-commits@vger.kernel.org, tony@atomide.com, a.zummo@towertech.it, khilman@linaro.org
 
-Subject: + kprobes-handle-empty-invalid-input-to-debugfs-enabled-file.patch added to -mm tree
-To: minipli@googlemail.com,ananth@in.ibm.com,anil.s.keshavamurthy@intel.com,davem@davemloft.net,masami.hiramatsu.pt@hitachi.com
+Subject: + drivers-rtc-rtc-twlc-ensure-irq-is-wakeup-enabled.patch added to -mm tree
+To: khilman@linaro.org,a.zummo@towertech.it,tony@atomide.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:58:29 -0700
+Date: Mon, 03 Jun 2013 16:13:16 -0700
 
 
 The patch titled
-     Subject: kprobes: handle empty/invalid input to debugfs "enabled" file
+     Subject: drivers/rtc/rtc-twl.c: ensure IRQ is wakeup enabled
 has been added to the -mm tree.  Its filename is
-     kprobes-handle-empty-invalid-input-to-debugfs-enabled-file.patch
+     drivers-rtc-rtc-twlc-ensure-irq-is-wakeup-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mathias Krause <minipli@googlemail.com>
-Subject: kprobes: handle empty/invalid input to debugfs "enabled" file
+From: Kevin Hilman <khilman@linaro.org>
+Subject: drivers/rtc/rtc-twl.c: ensure IRQ is wakeup enabled
 
-When writing invalid input to 'debug/kprobes/enabled' it'll silently be
-ignored.  Even worse, when writing an empty string to this file, the
-outcome is purely random as the switch statement will make its decision
-based on the value of an uninitialized stack variable.
+Currently, the RTC IRQ is never wakeup-enabled so is not capable of
+bringing the system out of suspend.
 
-Fix this by handling invalid/empty input as error returning -EINVAL.
+On OMAP platforms, we have gotten by without this because the TWL RTC is
+on an I2C-connected chip which is capable of waking up the OMAP via the IO
+ring when the OMAP is in low-power states.
 
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+However, if the OMAP suspends without hitting the low-power states (and
+the IO ring is not enabled), RTC wakeups will not work because the IRQ is
+not wakeup enabled.
+
+To fix, ensure the RTC IRQ is wakeup enabled whenever the RTC alarm is
+set.
+
+Signed-off-by: Kevin Hilman <khilman@linaro.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/rtc/rtc-twl.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-handle-empty-invalid-input-to-debugfs-enabled-file kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-handle-empty-invalid-input-to-debugfs-enabled-file
-+++ a/kernel/kprobes.c
-@@ -2322,6 +2322,7 @@ static ssize_t write_enabled_file_bool(s
- 	if (copy_from_user(buf, user_buf, buf_size))
- 		return -EFAULT;
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-ensure-irq-is-wakeup-enabled drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-ensure-irq-is-wakeup-enabled
++++ a/drivers/rtc/rtc-twl.c
+@@ -213,12 +213,24 @@ static int mask_rtc_irq_bit(unsigned cha
  
-+	buf[buf_size] = '\0';
- 	switch (buf[0]) {
- 	case 'y':
- 	case 'Y':
-@@ -2333,6 +2334,8 @@ static ssize_t write_enabled_file_bool(s
- 	case '0':
- 		disarm_all_kprobes();
- 		break;
-+	default:
-+		return -EINVAL;
- 	}
+ static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
+ {
++	struct platform_device *pdev = to_platform_device(dev);
++	int irq = platform_get_irq(pdev, 0);
++	static bool twl_rtc_wake_enabled;
+ 	int ret;
  
- 	return count;
+-	if (enabled)
++	if (enabled) {
+ 		ret = set_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
+-	else
++		if (device_can_wakeup(dev) && !twl_rtc_wake_enabled) {
++			enable_irq_wake(irq);
++			twl_rtc_wake_enabled = true;
++		}
++	} else {
+ 		ret = mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
++		if (twl_rtc_wake_enabled) {
++			disable_irq_wake(irq);
++			twl_rtc_wake_enabled = false;
++		}
++	}
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from minipli@googlemail.com are
+Patches currently in -mm which might be from khilman@linaro.org are
 
-kprobes-handle-empty-invalid-input-to-debugfs-enabled-file.patch
+linux-next.patch
+drivers-rtc-rtc-twlc-fix-missing-device_init_wakeup-when-booted-with-device-tree.patch
+drivers-rtc-rtc-twlc-ensure-irq-is-wakeup-enabled.patch
 
