@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-lpc_ich-convert-to-module_pci_driver.patch added to -mm tree
-Date: Mon, 03 Jun 2013 15:01:17 -0700
-Message-ID: <51ad122d.gKksz8SE3tJtdK8S%akpm@linux-foundation.org>
+Subject: +
+ drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch
+ added to -mm tree
+Date: Mon, 03 Jun 2013 15:01:21 -0700
+Message-ID: <51ad1231.iFEBrwArx+72vTu6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40675 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40673 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758815Ab3FCWB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:28 -0400
+	with ESMTP id S1758814Ab3FCWB1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jun 2013 18:01:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sameo@linux.intel.com, ptyser@xes-inc.com, libo.chen@huawei.com, lee.jones@linaro.org, clbchenlibo.chen@huawei.com
+To: mm-commits@vger.kernel.org, mchehab@redhat.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
 
-Subject: + drivers-mfd-lpc_ich-convert-to-module_pci_driver.patch added to -mm tree
-To: clbchenlibo.chen@huawei.com,lee.jones@linaro.org,libo.chen@huawei.com,ptyser@xes-inc.com,sameo@linux.intel.com
+Subject: + drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch added to -mm tree
+To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,mchehab@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Jun 2013 15:01:17 -0700
+Date: Mon, 03 Jun 2013 15:01:21 -0700
 
 
 The patch titled
-     Subject: drivers/mfd/lpc_ich.c: convert to module_pci_driver
+     Subject: drivers/media/pci/mantis/mantis_cards.c: convert to module_pci_driver
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-lpc_ich-convert-to-module_pci_driver.patch
+     drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +41,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/mfd/lpc_ich.c: convert to module_pci_driver
+Subject: drivers/media/pci/mantis/mantis_cards.c: convert to module_pci_driver
 
 Signed-off-by: Libo Chen <libo.chen@huawei.com>
-Cc: Peter Tyser <ptyser@xes-inc.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/lpc_ich.c |   13 +------------
+ drivers/media/pci/mantis/mantis_cards.c |   13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/mfd/lpc_ich.c~drivers-mfd-lpc_ich-convert-to-module_pci_driver drivers/mfd/lpc_ich.c
---- a/drivers/mfd/lpc_ich.c~drivers-mfd-lpc_ich-convert-to-module_pci_driver
-+++ a/drivers/mfd/lpc_ich.c
-@@ -983,18 +983,7 @@ static struct pci_driver lpc_ich_driver
- 	.remove		= lpc_ich_remove,
+diff -puN drivers/media/pci/mantis/mantis_cards.c~drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver drivers/media/pci/mantis/mantis_cards.c
+--- a/drivers/media/pci/mantis/mantis_cards.c~drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver
++++ a/drivers/media/pci/mantis/mantis_cards.c
+@@ -290,18 +290,7 @@ static struct pci_driver mantis_pci_driv
+ 	.remove		= mantis_pci_remove,
  };
  
--static int __init lpc_ich_init(void)
+-static int mantis_init(void)
 -{
--	return pci_register_driver(&lpc_ich_driver);
+-	return pci_register_driver(&mantis_pci_driver);
 -}
 -
--static void __exit lpc_ich_exit(void)
+-static void mantis_exit(void)
 -{
--	pci_unregister_driver(&lpc_ich_driver);
+-	return pci_unregister_driver(&mantis_pci_driver);
 -}
 -
--module_init(lpc_ich_init);
--module_exit(lpc_ich_exit);
-+module_pci_driver(lpc_ich_driver);
+-module_init(mantis_init);
+-module_exit(mantis_exit);
++module_pci_driver(mantis_pci_driver);
  
- MODULE_AUTHOR("Aaron Sierra <asierra@xes-inc.com>");
- MODULE_DESCRIPTION("LPC interface for Intel ICH");
+ MODULE_DESCRIPTION("MANTIS driver");
+ MODULE_AUTHOR("Manu Abraham");
 _
 
 Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
