@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch added
- to -mm tree
-Date: Tue, 04 Jun 2013 13:56:02 -0700
-Message-ID: <51ae5462.DAK5PRXfzpqRBsbp%akpm@linux-foundation.org>
+Subject: + mm-vmalloc-remove-insert_vmalloc_vm.patch added to -mm tree
+Date: Tue, 04 Jun 2013 13:56:03 -0700
+Message-ID: <51ae5463.ih87baM4Rybkz83G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51313 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51314 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387Ab3FDU4D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jun 2013 16:56:03 -0400
+	with ESMTP id S1751404Ab3FDU4E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jun 2013 16:56:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, iamjoonsoo.kim@lge.com, zhangyanfei@cn.fujitsu.com
 
-Subject: + mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch added to -mm tree
+Subject: + mm-vmalloc-remove-insert_vmalloc_vm.patch added to -mm tree
 To: zhangyanfei@cn.fujitsu.com,iamjoonsoo.kim@lge.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Jun 2013 13:56:02 -0700
+Date: Tue, 04 Jun 2013 13:56:03 -0700
 
 
 The patch titled
-     Subject: mm, vmalloc: call setup_vmalloc_vm() instead of insert_vmalloc_vm()
+     Subject: mm, vmalloc: remove insert_vmalloc_vm()
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
+     mm-vmalloc-remove-insert_vmalloc_vm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,34 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm, vmalloc: call setup_vmalloc_vm() instead of insert_vmalloc_vm()
+Subject: mm, vmalloc: remove insert_vmalloc_vm()
 
-Here we pass flags with only VM_ALLOC bit set, it is unnecessary to call
-clear_vm_unlist to clear VM_UNLIST bit.  So use setup_vmalloc_vm instead
-of insert_vmalloc_vm.
+Now this function is nowhere used, we can remove it directly.
 
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm
+diff -puN mm/vmalloc.c~mm-vmalloc-remove-insert_vmalloc_vm mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-remove-insert_vmalloc_vm
 +++ a/mm/vmalloc.c
-@@ -2526,8 +2526,8 @@ found:
+@@ -1322,13 +1322,6 @@ static void clear_vm_unlist(struct vm_st
+ 	vm->flags &= ~VM_UNLIST;
+ }
  
- 	/* insert all vm's */
- 	for (area = 0; area < nr_vms; area++)
--		insert_vmalloc_vm(vms[area], vas[area], VM_ALLOC,
--				  pcpu_get_vm_areas);
-+		setup_vmalloc_vm(vms[area], vas[area], VM_ALLOC,
-+				 pcpu_get_vm_areas);
- 
- 	kfree(vas);
- 	return vms;
+-static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
+-			      unsigned long flags, const void *caller)
+-{
+-	setup_vmalloc_vm(vm, va, flags, caller);
+-	clear_vm_unlist(vm);
+-}
+-
+ static struct vm_struct *__get_vm_area_node(unsigned long size,
+ 		unsigned long align, unsigned long flags, unsigned long start,
+ 		unsigned long end, int node, gfp_t gfp_mask, const void *caller)
 _
 
 Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
