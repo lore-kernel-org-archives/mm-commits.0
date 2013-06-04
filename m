@@ -1,162 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 04 Jun 2013 13:02:18 -0700
-Message-ID: <51ae47ca.XxdK9pvFczyp8yLt%akpm@linux-foundation.org>
+Subject: [merged] w1-add-family-based-automatic-module-loading.patch
+ removed from -mm tree
+Date: Tue, 04 Jun 2013 13:05:15 -0700
+Message-ID: <51ae487b.K6fzO7Gdz/9T+WWt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51034 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750808Ab3FDUCT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jun 2013 16:02:19 -0400
+	with ESMTP id S1750808Ab3FDUFV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jun 2013 16:05:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zbr@ioremap.net, rob@landley.net, gregkh@linuxfoundation.org, alexander.stein@informatik.tu-chemnitz.de
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] w1-add-family-based-automatic-module-loading.patch removed from -mm tree
+To: alexander.stein@informatik.tu-chemnitz.de,gregkh@linuxfoundation.org,rob@landley.net,zbr@ioremap.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Jun 2013 13:02:18 -0700
+Date: Tue, 04 Jun 2013 13:05:15 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: w1: add family based automatic module loading
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     w1-add-family-based-automatic-module-loading.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Alexander Stein <alexander.stein@informatik.tu-chemnitz.de>
+Subject: w1: add family based automatic module loading
 
+Allow the 1-wire bus to autoload the corresponding module for each slave
+being attached.  This works similar to bluetooth protocols.
+
+Signed-off-by: Alexander Stein <alexander.stein@informatik.tu-chemnitz.de>
+Cc: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/smp.c  |    5 -----
- drivers/ata/sata_rcar.c |   12 ------------
- kernel/cgroup.c         |    6 ------
- 3 files changed, 23 deletions(-)
+ Documentation/w1/w1.generic    |    4 ++--
+ drivers/w1/slaves/w1_ds2408.c  |    1 +
+ drivers/w1/slaves/w1_ds2413.c  |    1 +
+ drivers/w1/slaves/w1_ds2423.c  |    1 +
+ drivers/w1/slaves/w1_ds2431.c  |    1 +
+ drivers/w1/slaves/w1_ds2433.c  |    1 +
+ drivers/w1/slaves/w1_ds2760.c  |    1 +
+ drivers/w1/slaves/w1_ds2780.c  |    1 +
+ drivers/w1/slaves/w1_ds2781.c  |    1 +
+ drivers/w1/slaves/w1_ds28e04.c |    1 +
+ drivers/w1/slaves/w1_smem.c    |    2 ++
+ drivers/w1/slaves/w1_therm.c   |    5 +++++
+ drivers/w1/w1.c                |    2 ++
+ 13 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/kernel/smp.c~linux-next-git-rejects arch/s390/kernel/smp.c
---- a/arch/s390/kernel/smp.c~linux-next-git-rejects
-+++ a/arch/s390/kernel/smp.c
-@@ -437,11 +437,6 @@ static void smp_handle_ext_call(void)
- 		smp_stop_cpu();
- 	if (test_bit(ec_schedule, &bits))
- 		scheduler_ipi();
--<<<<<<< HEAD
--	if (test_bit(ec_call_function, &bits))
--		generic_smp_call_function_interrupt();
--=======
-->>>>>>> linux-next/akpm-base
- 	if (test_bit(ec_call_function_single, &bits))
- 		generic_smp_call_function_single_interrupt();
- }
-diff -puN drivers/ata/sata_rcar.c~linux-next-git-rejects drivers/ata/sata_rcar.c
---- a/drivers/ata/sata_rcar.c~linux-next-git-rejects
-+++ a/drivers/ata/sata_rcar.c
-@@ -544,11 +544,7 @@ static void sata_rcar_bmdma_start(struct
- 	u32 dmactl;
+diff -puN Documentation/w1/w1.generic~w1-add-family-based-automatic-module-loading Documentation/w1/w1.generic
+--- a/Documentation/w1/w1.generic~w1-add-family-based-automatic-module-loading
++++ a/Documentation/w1/w1.generic
+@@ -25,8 +25,8 @@ When a w1 master driver registers with t
+  - sysfs entries for that w1 master are created
+  - the w1 bus is periodically searched for new slave devices
  
- 	/* start host DMA transaction */
--<<<<<<< HEAD
--	dmactl = ioread32(priv->base + ATAPI_CONTROL1_REG);
--=======
- 	dmactl = ioread32(base + ATAPI_CONTROL1_REG);
-->>>>>>> linux-next/akpm-base
- 	dmactl &= ~ATAPI_CONTROL1_STOP;
- 	dmactl |= ATAPI_CONTROL1_START;
- 	iowrite32(dmactl, base + ATAPI_CONTROL1_REG);
-@@ -684,20 +680,12 @@ static irqreturn_t sata_rcar_interrupt(i
+-When a device is found on the bus, w1 core checks if driver for its family is
+-loaded. If so, the family driver is attached to the slave.
++When a device is found on the bus, w1 core tries to load the driver for its family
++and check if it is loaded. If so, the family driver is attached to the slave.
+ If there is no driver for the family, default one is assigned, which allows to perform
+ almost any kind of operations. Each logical operation is a transaction
+ in nature, which can contain several (two or one) low-level operations.
+diff -puN drivers/w1/slaves/w1_ds2408.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2408.c
+--- a/drivers/w1/slaves/w1_ds2408.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2408.c
+@@ -22,6 +22,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jean-Francois Dagenais <dagenaisj@sonatest.com>");
+ MODULE_DESCRIPTION("w1 family 29 driver for DS2408 8 Pin IO");
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_DS2408));
  
- 	spin_lock_irqsave(&host->lock, flags);
  
--<<<<<<< HEAD
--	sataintstat = ioread32(priv->base + SATAINTSTAT_REG);
--=======
- 	sataintstat = ioread32(base + SATAINTSTAT_REG);
-->>>>>>> linux-next/akpm-base
- 	sataintstat &= SATA_RCAR_INT_MASK;
- 	if (!sataintstat)
- 		goto done;
- 	/* ack */
--<<<<<<< HEAD
--	iowrite32(~sataintstat & 0x7ff, priv->base + SATAINTSTAT_REG);
--=======
- 	iowrite32(~sataintstat & 0x7ff, base + SATAINTSTAT_REG);
-->>>>>>> linux-next/akpm-base
+ #define W1_F29_RETRIES		3
+diff -puN drivers/w1/slaves/w1_ds2413.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2413.c
+--- a/drivers/w1/slaves/w1_ds2413.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2413.c
+@@ -23,6 +23,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Mariusz Bialonczyk <manio@skyboo.net>");
+ MODULE_DESCRIPTION("w1 family 3a driver for DS2413 2 Pin IO");
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_DS2413));
  
- 	ap = host->ports[0];
+ #define W1_F3A_RETRIES                     3
+ #define W1_F3A_FUNC_PIO_ACCESS_READ        0xF5
+diff -puN drivers/w1/slaves/w1_ds2423.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2423.c
+--- a/drivers/w1/slaves/w1_ds2423.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2423.c
+@@ -164,3 +164,4 @@ module_exit(w1_f1d_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Mika Laitio <lamikr@pilppa.org>");
+ MODULE_DESCRIPTION("w1 family 1d driver for DS2423, 4 counters and 4kb ram");
++MODULE_ALIAS("w1-family-" __stringify(W1_COUNTER_DS2423));
+diff -puN drivers/w1/slaves/w1_ds2431.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2431.c
+--- a/drivers/w1/slaves/w1_ds2431.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2431.c
+@@ -310,3 +310,4 @@ module_exit(w1_f2d_fini);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Bernhard Weirich <bernhard.weirich@riedel.net>");
+ MODULE_DESCRIPTION("w1 family 2d driver for DS2431, 1kb EEPROM");
++MODULE_ALIAS("w1-family-" __stringify(W1_EEPROM_DS2431));
+diff -puN drivers/w1/slaves/w1_ds2433.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2433.c
+--- a/drivers/w1/slaves/w1_ds2433.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2433.c
+@@ -29,6 +29,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Ben Gardner <bgardner@wabtec.com>");
+ MODULE_DESCRIPTION("w1 family 23 driver for DS2433, 4kb EEPROM");
++MODULE_ALIAS("w1-family-" __stringify(W1_EEPROM_DS2433));
  
-diff -puN kernel/cgroup.c~linux-next-git-rejects kernel/cgroup.c
---- a/kernel/cgroup.c~linux-next-git-rejects
-+++ a/kernel/cgroup.c
-@@ -3058,14 +3058,8 @@ struct cgroup *cgroup_next_descendant_pr
+ #define W1_EEPROM_SIZE		512
+ #define W1_PAGE_COUNT		16
+diff -puN drivers/w1/slaves/w1_ds2760.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2760.c
+--- a/drivers/w1/slaves/w1_ds2760.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2760.c
+@@ -203,3 +203,4 @@ module_exit(w1_ds2760_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>");
+ MODULE_DESCRIPTION("1-wire Driver Dallas 2760 battery monitor chip");
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_DS2760));
+diff -puN drivers/w1/slaves/w1_ds2780.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2780.c
+--- a/drivers/w1/slaves/w1_ds2780.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2780.c
+@@ -188,3 +188,4 @@ module_exit(w1_ds2780_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Clifton Barnes <cabarnes@indesign-llc.com>");
+ MODULE_DESCRIPTION("1-wire Driver for Maxim/Dallas DS2780 Stand-Alone Fuel Gauge IC");
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_DS2780));
+diff -puN drivers/w1/slaves/w1_ds2781.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds2781.c
+--- a/drivers/w1/slaves/w1_ds2781.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds2781.c
+@@ -186,3 +186,4 @@ module_exit(w1_ds2781_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Renata Sayakhova <renata@oktetlabs.ru>");
+ MODULE_DESCRIPTION("1-wire Driver for Maxim/Dallas DS2781 Stand-Alone Fuel Gauge IC");
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_DS2781));
+diff -puN drivers/w1/slaves/w1_ds28e04.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_ds28e04.c
+--- a/drivers/w1/slaves/w1_ds28e04.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_ds28e04.c
+@@ -27,6 +27,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Markus Franke <franke.m@sebakmt.com>, <franm@hrz.tu-chemnitz.de>");
+ MODULE_DESCRIPTION("w1 family 1C driver for DS28E04, 4kb EEPROM and PIO");
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_DS28E04));
  
- 	/* no child, visit my or the closest ancestor's next sibling */
- 	while (pos != cgroup) {
--<<<<<<< HEAD
--		next = list_entry_rcu(pos->sibling.next, struct cgroup,
--				      sibling);
--		if (&next->sibling != &pos->parent->children)
--=======
- 		next = cgroup_next_sibling(pos);
- 		if (next)
-->>>>>>> linux-next/akpm-base
- 			return next;
- 		pos = pos->parent;
- 	}
+ /* Allow the strong pullup to be disabled, but default to enabled.
+  * If it was disabled a parasite powered device might not get the required
+diff -puN drivers/w1/slaves/w1_smem.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_smem.c
+--- a/drivers/w1/slaves/w1_smem.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_smem.c
+@@ -34,6 +34,8 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, 64bit memory family.");
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_SMEM_01));
++MODULE_ALIAS("w1-family-" __stringify(W1_FAMILY_SMEM_81));
+ 
+ static struct w1_family w1_smem_family_01 = {
+ 	.fid = W1_FAMILY_SMEM_01,
+diff -puN drivers/w1/slaves/w1_therm.c~w1-add-family-based-automatic-module-loading drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -36,6 +36,11 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
++MODULE_ALIAS("w1-family-" __stringify(W1_THERM_DS18S20));
++MODULE_ALIAS("w1-family-" __stringify(W1_THERM_DS1822));
++MODULE_ALIAS("w1-family-" __stringify(W1_THERM_DS18B20));
++MODULE_ALIAS("w1-family-" __stringify(W1_THERM_DS1825));
++MODULE_ALIAS("w1-family-" __stringify(W1_THERM_DS28EA00));
+ 
+ /* Allow the strong pullup to be disabled, but default to enabled.
+  * If it was disabled a parasite powered device might not get the require
+diff -puN drivers/w1/w1.c~w1-add-family-based-automatic-module-loading drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-add-family-based-automatic-module-loading
++++ a/drivers/w1/w1.c
+@@ -680,6 +680,8 @@ static int w1_attach_slave_device(struct
+ 	atomic_set(&sl->refcnt, 0);
+ 	init_completion(&sl->released);
+ 
++	request_module("w1-family-0x%0x", rn->family);
++
+ 	spin_lock(&w1_flock);
+ 	f = w1_family_registered(rn->family);
+ 	if (!f) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alexander.stein@informatik.tu-chemnitz.de are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
