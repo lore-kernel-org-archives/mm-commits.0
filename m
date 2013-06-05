@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 05 Jun 2013 12:15:52 -0700
-Message-ID: <51af8e68.QsJUDuuWilneyuuF%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch
+ added to -mm tree
+Date: Wed, 05 Jun 2013 16:05:17 -0700
+Message-ID: <51afc42d.HW/OCOFTLwoOWk3A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34761 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40056 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755354Ab3FETPx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 15:15:53 -0400
+	with ESMTP id S1757729Ab3FEXFS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, stable@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, glommer@parallels.com, hannes@cmpxchg.org
 
-Subject: + linux-next-git-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: + mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch added to -mm tree
+To: hannes@cmpxchg.org,glommer@parallels.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,stable@kernel.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Jun 2013 12:15:52 -0700
+Date: Wed, 05 Jun 2013 16:05:17 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm: memcontrol: fix lockless reclaim hierarchy iterator
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,119 +39,142 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: fix lockless reclaim hierarchy iterator
 
+The lockless reclaim hierarchy iterator currently has a misplaced barrier
+that can lead to use-after-free crashes.
+
+The reclaim hierarchy iterator consist of a sequence count and a position
+pointer that are read and written locklessly, with memory barriers
+enforcing ordering.
+
+The write side sets the position pointer first, then updates the sequence
+count to "publish" the new position.  Likewise, the read side must read
+the sequence count first, then the position.  If the sequence count is up
+to date, it's guaranteed that the position is up to date as well:
+
+  writer:                         reader:
+  iter->position = position       if iter->sequence == expected:
+  smp_wmb()                           smp_rmb()
+  iter->sequence = sequence           position = iter->position
+
+However, the read side barrier is currently misplaced, which can lead to
+dereferencing stale position pointers that no longer point to valid
+memory.  Fix this.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: <stable@kernel.org>		[3.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/iface.c |   15 ---------------
- 1 file changed, 15 deletions(-)
+ mm/memcontrol.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN net/mac80211/iface.c~linux-next-git-rejects net/mac80211/iface.c
---- a/net/mac80211/iface.c~linux-next-git-rejects
-+++ a/net/mac80211/iface.c
-@@ -159,12 +159,8 @@ static int ieee80211_change_mtu(struct n
- 	return 0;
- }
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator
++++ a/mm/memcontrol.c
+@@ -1199,7 +1199,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
  
--<<<<<<< HEAD
--static int ieee80211_verify_mac(struct ieee80211_sub_if_data *sdata, u8 *addr)
--=======
- static int ieee80211_verify_mac(struct ieee80211_sub_if_data *sdata, u8 *addr,
- 				bool check_dup)
-->>>>>>> linux-next/akpm-base
- {
- 	struct ieee80211_local *local = sdata->local;
- 	struct ieee80211_sub_if_data *iter;
-@@ -191,20 +187,13 @@ static int ieee80211_verify_mac(struct i
- 	mutex_lock(&local->iflist_mtx);
- 	list_for_each_entry(iter, &local->interfaces, list) {
- 		if (iter == sdata)
--<<<<<<< HEAD
- 			continue;
--
--		if (iter->vif.type == NL80211_IFTYPE_MONITOR)
--			continue;
--
--=======
- 			continue;
- 
- 		if (iter->vif.type == NL80211_IFTYPE_MONITOR &&
- 		    !(iter->u.mntr_flags & MONITOR_FLAG_ACTIVE))
- 			continue;
- 
-->>>>>>> linux-next/akpm-base
- 		m = iter->vif.addr;
- 		tmp =	((u64)m[0] << 5*8) | ((u64)m[1] << 4*8) |
- 			((u64)m[2] << 3*8) | ((u64)m[3] << 2*8) |
-@@ -230,15 +219,11 @@ static int ieee80211_change_mac(struct n
- 	if (ieee80211_sdata_running(sdata))
- 		return -EBUSY;
- 
--<<<<<<< HEAD
--	ret = ieee80211_verify_mac(sdata, sa->sa_data);
--=======
- 	if (sdata->vif.type == NL80211_IFTYPE_MONITOR &&
- 	    !(sdata->u.mntr_flags & MONITOR_FLAG_ACTIVE))
- 		check_dup = false;
- 
- 	ret = ieee80211_verify_mac(sdata, sa->sa_data, check_dup);
-->>>>>>> linux-next/akpm-base
- 	if (ret)
- 		return ret;
+ 			mz = mem_cgroup_zoneinfo(root, nid, zid);
+ 			iter = &mz->reclaim_iter[reclaim->priority];
+-			last_visited = iter->last_visited;
+ 			if (prev && reclaim->generation != iter->generation) {
+ 				iter->last_visited = NULL;
+ 				goto out_unlock;
+@@ -1218,13 +1217,12 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 			 * is alive.
+ 			 */
+ 			dead_count = atomic_read(&root->dead_count);
+-			smp_rmb();
+-			last_visited = iter->last_visited;
+-			if (last_visited) {
+-				if ((dead_count != iter->last_dead_count) ||
+-					!css_tryget(&last_visited->css)) {
++			if (dead_count == iter->last_dead_count) {
++				smp_rmb();
++				last_visited = iter->last_visited;
++				if (last_visited &&
++				    !css_tryget(&last_visited->css))
+ 					last_visited = NULL;
+-				}
+ 			}
+ 		}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
+memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch
+mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch
+mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch
+mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
+mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
+mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
+mm-vmscan-flatten-kswapd-priority-loop.patch
+mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
+mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
+mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
+mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
+mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
+mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
+mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
+mm-vmscan-set-zone-flags-before-blocking.patch
+mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
+mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
+mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
+fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
+memcg-update-todo-list-in-documentation.patch
+mm-add-tracepoints-for-lru-activation-and-insertions.patch
+mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
+mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
+mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
-mm-new-shrinker-api-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
+memcg-kconfig-info-update.patch
+mm-kill-free_all_bootmem_node.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
+fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+dentry-move-to-per-sb-lru-locks.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+list-add-a-new-lru-list-type.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code.patch
+dcache-convert-to-use-new-lru-list-infrastructure.patch
+list_lru-per-node-list-infrastructure.patch
+shrinker-add-node-awareness.patch
+vmscan-per-node-deferred-work.patch
+list_lru-per-node-api.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+vmscan-also-shrink-slab-in-memcg-pressure.patch
+memcglist_lru-duplicate-lrus-upon-kmemcg-creation.patch
+lru-add-an-element-to-a-memcg-list.patch
+list_lru-per-memcg-walks.patch
+memcg-per-memcg-kmem-shrinking.patch
+memcg-scan-cache-objects-hierarchically.patch
+vmscan-take-at-least-one-pass-with-shrinkers.patch
+super-targeted-memcg-reclaim.patch
+memcg-move-initialization-to-memcg-creation.patch
+vmpressure-in-kernel-notifications.patch
+memcg-reap-dead-memcgs-upon-global-memory-pressure.patch
+mm-memmap_init_zone-performance-improvement.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-linux-next-git-rejects.patch
 
