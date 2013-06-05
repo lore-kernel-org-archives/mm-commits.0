@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-convert-dquot-cache-lru-to-list_lru.patch added to -mm tree
-Date: Wed, 05 Jun 2013 16:11:05 -0700
-Message-ID: <51afc589.seE9m4iDfEb/YX6o%akpm@linux-foundation.org>
+Subject: + xfs-rework-buffer-dispose-list-tracking.patch added to -mm tree
+Date: Wed, 05 Jun 2013 16:11:03 -0700
+Message-ID: <51afc587.SIFvV0ycEDDDboaL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40711 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757997Ab3FEXLH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:11:07 -0400
+	with ESMTP id S1758083Ab3FEXLF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:11:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, riel@redhat.com, penberg@kernel.org, mtosatti@redhat.com, mhocko@suse.cz, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, js1304@gmail.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hughd@google.com, hch@lst.de, hannes@cmpxchg.org, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, anton@enomsg.org, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
 
-Subject: + xfs-convert-dquot-cache-lru-to-list_lru.patch added to -mm tree
+Subject: + xfs-rework-buffer-dispose-list-tracking.patch added to -mm tree
 To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,anton@enomsg.org,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hannes@cmpxchg.org,hch@lst.de,hughd@google.com,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,js1304@gmail.com,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mhocko@suse.cz,mtosatti@redhat.com,penberg@kernel.org,riel@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 05 Jun 2013 16:11:05 -0700
+Date: Wed, 05 Jun 2013 16:11:03 -0700
 
 
 The patch titled
-     Subject: xfs: convert dquot cache lru to list_lru
+     Subject: xfs: rework buffer dispose list tracking
 has been added to the -mm tree.  Its filename is
-     xfs-convert-dquot-cache-lru-to-list_lru.patch
+     xfs-rework-buffer-dispose-list-tracking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dave Chinner <dchinner@redhat.com>
-Subject: xfs: convert dquot cache lru to list_lru
+Subject: xfs: rework buffer dispose list tracking
 
-Convert the XFS dquot lru to use the list_lru construct and convert the
-shrinker to being node aware.
+In converting the buffer lru lists to use the generic code, the locking
+for marking the buffers as on the dispose list was lost.  This results in
+confusion in LRU buffer tracking and acocunting, resulting in reference
+counts being mucked up and filesystem beig unmountable.
 
-[glommer@openvz.org: edited for conflicts + warning fixes]
+To fix this, introduce an internal buffer spinlock to protect the state
+field that holds the dispose list information.  Because there is now
+locking needed around xfs_buf_lru_add/del, and they are used in exactly
+one place each two lines apart, get rid of the wrappers and code the logic
+directly in place.
+
+Further, the LRU emptying code used on unmount is less than optimal. 
+Convert it to use a dispose list as per a normal shrinker walk, and repeat
+the walk that fills the dispose list until the LRU is empty.  Thi avoids
+needing to drop and regain the LRU lock for every item being freed, and
+allows the same logic as the shrinker isolate call to be used.  Simpler,
+easier to understand.
+
 Signed-off-by: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Glauber Costa <glommer@openvz.org>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
@@ -81,369 +95,241 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_dquot.c |    7 -
- fs/xfs/xfs_qm.c    |  277 ++++++++++++++++++++++---------------------
- fs/xfs/xfs_qm.h    |    4 
- 3 files changed, 144 insertions(+), 144 deletions(-)
+ fs/xfs/xfs_buf.c |  125 +++++++++++++++++++++++++--------------------
+ fs/xfs/xfs_buf.h |   12 ++--
+ 2 files changed, 79 insertions(+), 58 deletions(-)
 
-diff -puN fs/xfs/xfs_dquot.c~xfs-convert-dquot-cache-lru-to-list_lru fs/xfs/xfs_dquot.c
---- a/fs/xfs/xfs_dquot.c~xfs-convert-dquot-cache-lru-to-list_lru
-+++ a/fs/xfs/xfs_dquot.c
-@@ -939,13 +939,8 @@ xfs_qm_dqput_final(
+diff -puN fs/xfs/xfs_buf.c~xfs-rework-buffer-dispose-list-tracking fs/xfs/xfs_buf.c
+--- a/fs/xfs/xfs_buf.c~xfs-rework-buffer-dispose-list-tracking
++++ a/fs/xfs/xfs_buf.c
+@@ -80,37 +80,6 @@ xfs_buf_vmap_len(
+ }
  
- 	trace_xfs_dqput_free(dqp);
- 
--	mutex_lock(&qi->qi_lru_lock);
--	if (list_empty(&dqp->q_lru)) {
--		list_add_tail(&dqp->q_lru, &qi->qi_lru_list);
--		qi->qi_lru_count++;
-+	if (list_lru_add(&qi->qi_lru, &dqp->q_lru))
- 		XFS_STATS_INC(xs_qm_dquot_unused);
+ /*
+- * xfs_buf_lru_add - add a buffer to the LRU.
+- *
+- * The LRU takes a new reference to the buffer so that it will only be freed
+- * once the shrinker takes the buffer off the LRU.
+- */
+-static void
+-xfs_buf_lru_add(
+-	struct xfs_buf	*bp)
+-{
+-	if (list_lru_add(&bp->b_target->bt_lru, &bp->b_lru)) {
+-		bp->b_lru_flags &= ~_XBF_LRU_DISPOSE;
+-		atomic_inc(&bp->b_hold);
 -	}
--	mutex_unlock(&qi->qi_lru_lock);
+-}
+-
+-/*
+- * xfs_buf_lru_del - remove a buffer from the LRU
+- *
+- * The unlocked check is safe here because it only occurs when there are not
+- * b_lru_ref counts left on the inode under the pag->pag_buf_lock. it is there
+- * to optimise the shrinker removing the buffer from the LRU and calling
+- * xfs_buf_free().
+- */
+-static void
+-xfs_buf_lru_del(
+-	struct xfs_buf	*bp)
+-{
+-	list_lru_del(&bp->b_target->bt_lru, &bp->b_lru);
+-}
+-
+-/*
+  * When we mark a buffer stale, we remove the buffer from the LRU and clear the
+  * b_lru_ref count so that the buffer is freed immediately when the buffer
+  * reference count falls to zero. If the buffer is already on the LRU, we need
+@@ -133,12 +102,14 @@ xfs_buf_stale(
+ 	 */
+ 	bp->b_flags &= ~_XBF_DELWRI_Q;
+ 
+-	atomic_set(&(bp)->b_lru_ref, 0);
+-	if (!(bp->b_lru_flags & _XBF_LRU_DISPOSE) &&
++	spin_lock(&bp->b_lock);
++	atomic_set(&bp->b_lru_ref, 0);
++	if (!(bp->b_state & XFS_BSTATE_DISPOSE) &&
+ 	    (list_lru_del(&bp->b_target->bt_lru, &bp->b_lru)))
+ 		atomic_dec(&bp->b_hold);
+ 
+ 	ASSERT(atomic_read(&bp->b_hold) >= 1);
++	spin_unlock(&bp->b_lock);
+ }
+ 
+ static int
+@@ -202,6 +173,7 @@ _xfs_buf_alloc(
+ 	INIT_LIST_HEAD(&bp->b_list);
+ 	RB_CLEAR_NODE(&bp->b_rbnode);
+ 	sema_init(&bp->b_sema, 0); /* held, no waiters */
++	spin_lock_init(&bp->b_lock);
+ 	XB_SET_OWNER(bp);
+ 	bp->b_target = target;
+ 	bp->b_flags = flags;
+@@ -891,12 +863,33 @@ xfs_buf_rele(
+ 
+ 	ASSERT(atomic_read(&bp->b_hold) > 0);
+ 	if (atomic_dec_and_lock(&bp->b_hold, &pag->pag_buf_lock)) {
+-		if (!(bp->b_flags & XBF_STALE) &&
+-			   atomic_read(&bp->b_lru_ref)) {
+-			xfs_buf_lru_add(bp);
++		spin_lock(&bp->b_lock);
++		if (!(bp->b_flags & XBF_STALE) && atomic_read(&bp->b_lru_ref)) {
++			/*
++			 * If the buffer is added to the LRU take a new
++			 * reference to the buffer for the LRU and clear the
++			 * (now stale) dispose list state flag
++			 */
++			if (list_lru_add(&bp->b_target->bt_lru, &bp->b_lru)) {
++				bp->b_state &= ~XFS_BSTATE_DISPOSE;
++				atomic_inc(&bp->b_hold);
++			}
++			spin_unlock(&bp->b_lock);
+ 			spin_unlock(&pag->pag_buf_lock);
+ 		} else {
+-			xfs_buf_lru_del(bp);
++			/*
++			 * most of the time buffers will already be removed from
++			 * the LRU, so optimise that case by checking for the
++			 * XFS_BSTATE_DISPOSE flag indicating the last list the
++			 * buffer was on was the disposal list
++			 */
++			if (!(bp->b_state & XFS_BSTATE_DISPOSE)) {
++				list_lru_del(&bp->b_target->bt_lru, &bp->b_lru);
++			} else {
++				ASSERT(list_empty(&bp->b_lru));
++			}
++			spin_unlock(&bp->b_lock);
++
+ 			ASSERT(!(bp->b_flags & _XBF_DELWRI_Q));
+ 			rb_erase(&bp->b_rbnode, &pag->pag_buf_tree);
+ 			spin_unlock(&pag->pag_buf_lock);
+@@ -1484,33 +1477,48 @@ xfs_buftarg_wait_rele(
+ 
+ {
+ 	struct xfs_buf		*bp = container_of(item, struct xfs_buf, b_lru);
++	struct list_head	*dispose = arg;
+ 
+ 	if (atomic_read(&bp->b_hold) > 1) {
+-		/* need to wait */
++		/* need to wait, so skip it this pass */
+ 		trace_xfs_buf_wait_buftarg(bp, _RET_IP_);
+-		spin_unlock(lru_lock);
+-		delay(100);
+-	} else {
+-		/*
+-		 * clear the LRU reference count so the buffer doesn't get
+-		 * ignored in xfs_buf_rele().
+-		 */
+-		atomic_set(&bp->b_lru_ref, 0);
+-		spin_unlock(lru_lock);
+-		xfs_buf_rele(bp);
++		return LRU_SKIP;
+ 	}
++	if (!spin_trylock(&bp->b_lock))
++		return LRU_SKIP;
+ 
+-	spin_lock(lru_lock);
+-	return LRU_RETRY;
++	/*
++	 * clear the LRU reference count so the buffer doesn't get
++	 * ignored in xfs_buf_rele().
++	 */
++	atomic_set(&bp->b_lru_ref, 0);
++	bp->b_state |= XFS_BSTATE_DISPOSE;
++	list_move(item, dispose);
++	spin_unlock(&bp->b_lock);
++	return LRU_REMOVED;
+ }
+ 
+ void
+ xfs_wait_buftarg(
+ 	struct xfs_buftarg	*btp)
+ {
+-	while (list_lru_count(&btp->bt_lru))
++	LIST_HEAD(dispose);
++	int loop = 0;
++
++	/* loop until there is nothing left on the lru list. */
++	while (list_lru_count(&btp->bt_lru)) {
+ 		list_lru_walk(&btp->bt_lru, xfs_buftarg_wait_rele,
+-			      NULL, LONG_MAX);
++			      &dispose, LONG_MAX);
++
++		while (!list_empty(&dispose)) {
++			struct xfs_buf *bp;
++			bp = list_first_entry(&dispose, struct xfs_buf, b_lru);
++			list_del_init(&bp->b_lru);
++			xfs_buf_rele(bp);
++		}
++		if (loop++ != 0)
++			delay(100);
++	}
+ }
+ 
+ static enum lru_status
+@@ -1523,15 +1531,24 @@ xfs_buftarg_isolate(
+ 	struct list_head	*dispose = arg;
  
  	/*
- 	 * If we just added a udquot to the freelist, then we want to release
-diff -puN fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru fs/xfs/xfs_qm.c
---- a/fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru
-+++ a/fs/xfs/xfs_qm.c
-@@ -51,8 +51,9 @@
-  */
- STATIC int	xfs_qm_init_quotainos(xfs_mount_t *);
- STATIC int	xfs_qm_init_quotainfo(xfs_mount_t *);
--STATIC int	xfs_qm_shake(struct shrinker *, struct shrink_control *);
- 
-+
-+STATIC void	xfs_qm_dqfree_one(struct xfs_dquot *dqp);
- /*
-  * We use the batch lookup interface to iterate over the dquots as it
-  * currently is the only interface into the radix tree code that allows
-@@ -197,12 +198,9 @@ xfs_qm_dqpurge(
- 	 * We move dquots to the freelist as soon as their reference count
- 	 * hits zero, so it really should be on the freelist here.
++	 * we are inverting the lru lock/bp->b_lock here, so use a trylock.
++	 * If we fail to get the lock, just skip it.
++	 */
++	if (!spin_trylock(&bp->b_lock))
++		return LRU_SKIP;
++	/*
+ 	 * Decrement the b_lru_ref count unless the value is already
+ 	 * zero. If the value is already zero, we need to reclaim the
+ 	 * buffer, otherwise it gets another trip through the LRU.
  	 */
--	mutex_lock(&qi->qi_lru_lock);
- 	ASSERT(!list_empty(&dqp->q_lru));
--	list_del_init(&dqp->q_lru);
--	qi->qi_lru_count--;
-+	list_lru_del(&qi->qi_lru, &dqp->q_lru);
- 	XFS_STATS_DEC(xs_qm_dquot_unused);
--	mutex_unlock(&qi->qi_lru_lock);
+-	if (!atomic_add_unless(&bp->b_lru_ref, -1, 0))
++	if (!atomic_add_unless(&bp->b_lru_ref, -1, 0)) {
++		spin_unlock(&bp->b_lock);
+ 		return LRU_ROTATE;
++	}
  
- 	xfs_qm_dqdestroy(dqp);
- 
-@@ -632,6 +630,141 @@ xfs_qm_calc_dquots_per_chunk(
- 	return ndquots;
+-	bp->b_lru_flags |= _XBF_LRU_DISPOSE;
++	bp->b_state |= XFS_BSTATE_DISPOSE;
+ 	list_move(item, dispose);
++	spin_unlock(&bp->b_lock);
+ 	return LRU_REMOVED;
  }
  
-+struct xfs_qm_isolate {
-+	struct list_head	buffers;
-+	struct list_head	dispose;
-+};
-+
-+static enum lru_status
-+xfs_qm_dquot_isolate(
-+	struct list_head	*item,
-+	spinlock_t		*lru_lock,
-+	void			*arg)
-+{
-+	struct xfs_dquot	*dqp = container_of(item,
-+						struct xfs_dquot, q_lru);
-+	struct xfs_qm_isolate	*isol = arg;
-+
-+	if (!xfs_dqlock_nowait(dqp))
-+		goto out_miss_busy;
-+
-+	/*
-+	 * This dquot has acquired a reference in the meantime remove it from
-+	 * the freelist and try again.
-+	 */
-+	if (dqp->q_nrefs) {
-+		xfs_dqunlock(dqp);
-+		XFS_STATS_INC(xs_qm_dqwants);
-+
-+		trace_xfs_dqreclaim_want(dqp);
-+		list_del_init(&dqp->q_lru);
-+		XFS_STATS_DEC(xs_qm_dquot_unused);
-+		return 0;
-+	}
-+
-+	/*
-+	 * If the dquot is dirty, flush it. If it's already being flushed, just
-+	 * skip it so there is time for the IO to complete before we try to
-+	 * reclaim it again on the next LRU pass.
-+	 */
-+	if (!xfs_dqflock_nowait(dqp)) {
-+		xfs_dqunlock(dqp);
-+		goto out_miss_busy;
-+	}
-+
-+	if (XFS_DQ_IS_DIRTY(dqp)) {
-+		struct xfs_buf	*bp = NULL;
-+		int		error;
-+
-+		trace_xfs_dqreclaim_dirty(dqp);
-+
-+		/* we have to drop the LRU lock to flush the dquot */
-+		spin_unlock(lru_lock);
-+
-+		error = xfs_qm_dqflush(dqp, &bp);
-+		if (error) {
-+			xfs_warn(dqp->q_mount, "%s: dquot %p flush failed",
-+				 __func__, dqp);
-+			goto out_unlock_dirty;
-+		}
-+
-+		xfs_buf_delwri_queue(bp, &isol->buffers);
-+		xfs_buf_relse(bp);
-+		goto out_unlock_dirty;
-+	}
-+	xfs_dqfunlock(dqp);
-+
-+	/*
-+	 * Prevent lookups now that we are past the point of no return.
-+	 */
-+	dqp->dq_flags |= XFS_DQ_FREEING;
-+	xfs_dqunlock(dqp);
-+
-+	ASSERT(dqp->q_nrefs == 0);
-+	list_move_tail(&dqp->q_lru, &isol->dispose);
-+	XFS_STATS_DEC(xs_qm_dquot_unused);
-+	trace_xfs_dqreclaim_done(dqp);
-+	XFS_STATS_INC(xs_qm_dqreclaims);
-+	return 0;
-+
-+out_miss_busy:
-+	trace_xfs_dqreclaim_busy(dqp);
-+	XFS_STATS_INC(xs_qm_dqreclaim_misses);
-+	return 2;
-+
-+out_unlock_dirty:
-+	trace_xfs_dqreclaim_busy(dqp);
-+	XFS_STATS_INC(xs_qm_dqreclaim_misses);
-+	return 3;
-+}
-+
-+static long
-+xfs_qm_shrink_scan(
-+	struct shrinker		*shrink,
-+	struct shrink_control	*sc)
-+{
-+	struct xfs_quotainfo	*qi = container_of(shrink,
-+					struct xfs_quotainfo, qi_shrinker);
-+	struct xfs_qm_isolate	isol;
-+	long			freed;
-+	int			error;
-+	unsigned long		nr_to_scan = sc->nr_to_scan;
-+
-+	if ((sc->gfp_mask & (__GFP_FS|__GFP_WAIT)) != (__GFP_FS|__GFP_WAIT))
-+		return 0;
-+
-+	INIT_LIST_HEAD(&isol.buffers);
-+	INIT_LIST_HEAD(&isol.dispose);
-+
-+	freed = list_lru_walk_node(&qi->qi_lru, sc->nid, xfs_qm_dquot_isolate, &isol,
-+					&nr_to_scan);
-+
-+	error = xfs_buf_delwri_submit(&isol.buffers);
-+	if (error)
-+		xfs_warn(NULL, "%s: dquot reclaim failed", __func__);
-+
-+	while (!list_empty(&isol.dispose)) {
-+		struct xfs_dquot	*dqp;
-+
-+		dqp = list_first_entry(&isol.dispose, struct xfs_dquot, q_lru);
-+		list_del_init(&dqp->q_lru);
-+		xfs_qm_dqfree_one(dqp);
-+	}
-+
-+	return freed;
-+}
-+
-+static long
-+xfs_qm_shrink_count(
-+	struct shrinker		*shrink,
-+	struct shrink_control	*sc)
-+{
-+	struct xfs_quotainfo	*qi = container_of(shrink,
-+					struct xfs_quotainfo, qi_shrinker);
-+
-+	return list_lru_count_node(&qi->qi_lru, sc->nid);
-+}
-+
- /*
-  * This initializes all the quota information that's kept in the
-  * mount structure
-@@ -662,9 +795,7 @@ xfs_qm_init_quotainfo(
- 	INIT_RADIX_TREE(&qinf->qi_gquota_tree, GFP_NOFS);
- 	mutex_init(&qinf->qi_tree_lock);
+diff -puN fs/xfs/xfs_buf.h~xfs-rework-buffer-dispose-list-tracking fs/xfs/xfs_buf.h
+--- a/fs/xfs/xfs_buf.h~xfs-rework-buffer-dispose-list-tracking
++++ a/fs/xfs/xfs_buf.h
+@@ -60,7 +60,6 @@ typedef enum {
+ #define _XBF_KMEM	 (1 << 21)/* backed by heap memory */
+ #define _XBF_DELWRI_Q	 (1 << 22)/* buffer on a delwri queue */
+ #define _XBF_COMPOUND	 (1 << 23)/* compound buffer */
+-#define _XBF_LRU_DISPOSE (1 << 24)/* buffer being discarded */
  
--	INIT_LIST_HEAD(&qinf->qi_lru_list);
--	qinf->qi_lru_count = 0;
--	mutex_init(&qinf->qi_lru_lock);
-+	list_lru_init(&qinf->qi_lru);
+ typedef unsigned int xfs_buf_flags_t;
  
- 	/* mutex used to serialize quotaoffs */
- 	mutex_init(&qinf->qi_quotaofflock);
-@@ -730,8 +861,10 @@ xfs_qm_init_quotainfo(
- 		qinf->qi_rtbwarnlimit = XFS_QM_RTBWARNLIMIT;
- 	}
+@@ -79,8 +78,12 @@ typedef unsigned int xfs_buf_flags_t;
+ 	{ _XBF_PAGES,		"PAGES" }, \
+ 	{ _XBF_KMEM,		"KMEM" }, \
+ 	{ _XBF_DELWRI_Q,	"DELWRI_Q" }, \
+-	{ _XBF_COMPOUND,	"COMPOUND" }, \
+-	{ _XBF_LRU_DISPOSE,	"LRU_DISPOSE" }
++	{ _XBF_COMPOUND,	"COMPOUND" }
++
++/*
++ * Internal state flags.
++ */
++#define XFS_BSTATE_DISPOSE	 (1 << 0)	/* buffer being discarded */
  
--	qinf->qi_shrinker.shrink = xfs_qm_shake;
-+	qinf->qi_shrinker.count_objects = xfs_qm_shrink_count;
-+	qinf->qi_shrinker.scan_objects = xfs_qm_shrink_scan;
- 	qinf->qi_shrinker.seeks = DEFAULT_SEEKS;
-+	qinf->qi_shrinker.flags = SHRINKER_NUMA_AWARE;
- 	register_shrinker(&qinf->qi_shrinker);
- 	return 0;
- }
-@@ -1482,132 +1615,6 @@ xfs_qm_dqfree_one(
- 	xfs_qm_dqdestroy(dqp);
- }
- 
--STATIC void
--xfs_qm_dqreclaim_one(
--	struct xfs_dquot	*dqp,
--	struct list_head	*buffer_list,
--	struct list_head	*dispose_list)
--{
--	struct xfs_mount	*mp = dqp->q_mount;
--	struct xfs_quotainfo	*qi = mp->m_quotainfo;
--	int			error;
--
--	if (!xfs_dqlock_nowait(dqp))
--		goto out_move_tail;
--
--	/*
--	 * This dquot has acquired a reference in the meantime remove it from
--	 * the freelist and try again.
--	 */
--	if (dqp->q_nrefs) {
--		xfs_dqunlock(dqp);
--
--		trace_xfs_dqreclaim_want(dqp);
--		XFS_STATS_INC(xs_qm_dqwants);
--
--		list_del_init(&dqp->q_lru);
--		qi->qi_lru_count--;
--		XFS_STATS_DEC(xs_qm_dquot_unused);
--		return;
--	}
--
--	/*
--	 * Try to grab the flush lock. If this dquot is in the process of
--	 * getting flushed to disk, we don't want to reclaim it.
--	 */
--	if (!xfs_dqflock_nowait(dqp))
--		goto out_unlock_move_tail;
--
--	if (XFS_DQ_IS_DIRTY(dqp)) {
--		struct xfs_buf	*bp = NULL;
--
--		trace_xfs_dqreclaim_dirty(dqp);
--
--		error = xfs_qm_dqflush(dqp, &bp);
--		if (error) {
--			xfs_warn(mp, "%s: dquot %p flush failed",
--				 __func__, dqp);
--			goto out_unlock_move_tail;
--		}
--
--		xfs_buf_delwri_queue(bp, buffer_list);
--		xfs_buf_relse(bp);
--		/*
--		 * Give the dquot another try on the freelist, as the
--		 * flushing will take some time.
--		 */
--		goto out_unlock_move_tail;
--	}
--	xfs_dqfunlock(dqp);
--
--	/*
--	 * Prevent lookups now that we are past the point of no return.
--	 */
--	dqp->dq_flags |= XFS_DQ_FREEING;
--	xfs_dqunlock(dqp);
--
--	ASSERT(dqp->q_nrefs == 0);
--	list_move_tail(&dqp->q_lru, dispose_list);
--	qi->qi_lru_count--;
--	XFS_STATS_DEC(xs_qm_dquot_unused);
--
--	trace_xfs_dqreclaim_done(dqp);
--	XFS_STATS_INC(xs_qm_dqreclaims);
--	return;
--
--	/*
--	 * Move the dquot to the tail of the list so that we don't spin on it.
--	 */
--out_unlock_move_tail:
--	xfs_dqunlock(dqp);
--out_move_tail:
--	list_move_tail(&dqp->q_lru, &qi->qi_lru_list);
--	trace_xfs_dqreclaim_busy(dqp);
--	XFS_STATS_INC(xs_qm_dqreclaim_misses);
--}
--
--STATIC int
--xfs_qm_shake(
--	struct shrinker		*shrink,
--	struct shrink_control	*sc)
--{
--	struct xfs_quotainfo	*qi =
--		container_of(shrink, struct xfs_quotainfo, qi_shrinker);
--	int			nr_to_scan = sc->nr_to_scan;
--	LIST_HEAD		(buffer_list);
--	LIST_HEAD		(dispose_list);
--	struct xfs_dquot	*dqp;
--	int			error;
--
--	if ((sc->gfp_mask & (__GFP_FS|__GFP_WAIT)) != (__GFP_FS|__GFP_WAIT))
--		return 0;
--	if (!nr_to_scan)
--		goto out;
--
--	mutex_lock(&qi->qi_lru_lock);
--	while (!list_empty(&qi->qi_lru_list)) {
--		if (nr_to_scan-- <= 0)
--			break;
--		dqp = list_first_entry(&qi->qi_lru_list, struct xfs_dquot,
--				       q_lru);
--		xfs_qm_dqreclaim_one(dqp, &buffer_list, &dispose_list);
--	}
--	mutex_unlock(&qi->qi_lru_lock);
--
--	error = xfs_buf_delwri_submit(&buffer_list);
--	if (error)
--		xfs_warn(NULL, "%s: dquot reclaim failed", __func__);
--
--	while (!list_empty(&dispose_list)) {
--		dqp = list_first_entry(&dispose_list, struct xfs_dquot, q_lru);
--		list_del_init(&dqp->q_lru);
--		xfs_qm_dqfree_one(dqp);
--	}
--
--out:
--	return vfs_pressure_ratio(qi->qi_lru_count);
--}
--
- /*
-  * Start a transaction and write the incore superblock changes to
-  * disk. flags parameter indicates which fields have changed.
-diff -puN fs/xfs/xfs_qm.h~xfs-convert-dquot-cache-lru-to-list_lru fs/xfs/xfs_qm.h
---- a/fs/xfs/xfs_qm.h~xfs-convert-dquot-cache-lru-to-list_lru
-+++ a/fs/xfs/xfs_qm.h
-@@ -47,9 +47,7 @@ typedef struct xfs_quotainfo {
- 	struct mutex qi_tree_lock;
- 	xfs_inode_t	*qi_uquotaip;	 /* user quota inode */
- 	xfs_inode_t	*qi_gquotaip;	 /* group quota inode */
--	struct list_head qi_lru_list;
--	struct mutex	 qi_lru_lock;
--	int		 qi_lru_count;
-+	struct list_lru	 qi_lru;
- 	int		 qi_dquots;
- 	time_t		 qi_btimelimit;	 /* limit for blks timer */
- 	time_t		 qi_itimelimit;	 /* limit for inodes timer */
+ typedef struct xfs_buftarg {
+ 	dev_t			bt_dev;
+@@ -136,7 +139,8 @@ typedef struct xfs_buf {
+ 	 * bt_lru_lock and not by b_sema
+ 	 */
+ 	struct list_head	b_lru;		/* lru list */
+-	xfs_buf_flags_t		b_lru_flags;	/* internal lru status flags */
++	spinlock_t		b_lock;		/* internal state lock */
++	unsigned int		b_state;	/* internal state flags */
+ 	wait_queue_head_t	b_waiters;	/* unpin waiters */
+ 	struct list_head	b_list;
+ 	struct xfs_perag	*b_pag;		/* contains rbtree root */
 _
 
 Patches currently in -mm which might be from dchinner@redhat.com are
