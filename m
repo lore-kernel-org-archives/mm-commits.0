@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch added
+ super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch added
  to -mm tree
-Date: Wed, 05 Jun 2013 16:05:18 -0700
-Message-ID: <51afc42e.tZ5k4vfXcwC9gb0Y%akpm@linux-foundation.org>
+Date: Wed, 05 Jun 2013 16:10:32 -0700
+Message-ID: <51afc568.QJzeIxeg5Sq2shzr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40398 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757773Ab3FEXFT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:05:19 -0400
+	with ESMTP id S1757580Ab3FEXKd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:10:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, glommer@parallels.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, riel@redhat.com, penberg@kernel.org, mtosatti@redhat.com, mhocko@suse.cz, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, js1304@gmail.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hughd@google.com, hch@lst.de, hannes@cmpxchg.org, gthelen@google.com, gleb@redhat.com, david@fromorbit.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, anton@enomsg.org, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
 
-Subject: + mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch added to -mm tree
-To: hannes@cmpxchg.org,glommer@parallels.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,tj@kernel.org
+Subject: + super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch added to -mm tree
+To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,anton@enomsg.org,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,david@fromorbit.com,gleb@redhat.com,gthelen@google.com,hannes@cmpxchg.org,hch@lst.de,hughd@google.com,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,js1304@gmail.com,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mhocko@suse.cz,mtosatti@redhat.com,penberg@kernel.org,riel@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 05 Jun 2013 16:05:18 -0700
+Date: Wed, 05 Jun 2013 16:10:32 -0700
 
 
 The patch titled
-     Subject: mm: memcontrol: factor out reclaim iterator loading and updating
+     Subject: super: fix calculation of shrinkable objects for small numbers
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch
+     super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,201 +40,197 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: factor out reclaim iterator loading and updating
+From: Glauber Costa <glommer@openvz.org>
+Subject: super: fix calculation of shrinkable objects for small numbers
 
-mem_cgroup_iter() is too hard to follow.  Factor out the lockless reclaim
-iterator loading and updating so it's easier to follow the big picture.
+The sysctl knob sysctl_vfs_cache_pressure is used to determine which
+percentage of the shrinkable objects in our cache we should actively try
+to shrink.
 
-Also document the iterator invalidation mechanism a bit more extensively.
+It works great in situations in which we have many objects (at least more
+than 100), because the aproximation errors will be negligible.  But if
+this is not the case, specially when total_objects < 100, we may end up
+concluding that we have no objects at all (total / 100 = 0, if total <
+100).
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Tejun Heo <tj@kernel.org>
+This is certainly not the biggest killer in the world, but may matter in
+very low kernel memory situations.
+
+Signed-off-by: Glauber Costa <glommer@openvz.org>
+Reviewed-by: Carlos Maiolino <cmaiolino@redhat.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: Arve Hjønnevåg <arve@android.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gleb Natapov <gleb@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: J. Bruce Fields <bfields@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Glauber Costa <glommer@parallels.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   86 ++++++++++++++++++++++++++++++----------------
- 1 file changed, 57 insertions(+), 29 deletions(-)
+ fs/gfs2/glock.c        |    2 +-
+ fs/gfs2/quota.c        |    2 +-
+ fs/mbcache.c           |    2 +-
+ fs/nfs/dir.c           |    2 +-
+ fs/quota/dquot.c       |    5 ++---
+ fs/super.c             |   14 +++++++-------
+ fs/xfs/xfs_qm.c        |    2 +-
+ include/linux/dcache.h |    4 ++++
+ 8 files changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating
-+++ a/mm/memcontrol.c
-@@ -1148,6 +1148,58 @@ skip_node:
- 	return NULL;
+diff -puN fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/fs/gfs2/glock.c
+@@ -1463,7 +1463,7 @@ static int gfs2_shrink_glock_memory(stru
+ 		gfs2_scan_glock_lru(sc->nr_to_scan);
+ 	}
+ 
+-	return (atomic_read(&lru_count) / 100) * sysctl_vfs_cache_pressure;
++	return vfs_pressure_ratio(atomic_read(&lru_count));
  }
  
-+static void mem_cgroup_iter_invalidate(struct mem_cgroup *root)
-+{
-+	/*
-+	 * When a group in the hierarchy below root is destroyed, the
-+	 * hierarchy iterator can no longer be trusted since it might
-+	 * have pointed to the destroyed group.  Invalidate it.
-+	 */
-+	atomic_inc(&root->dead_count);
-+}
-+
-+static struct mem_cgroup *
-+mem_cgroup_iter_load(struct mem_cgroup_reclaim_iter *iter,
-+		     struct mem_cgroup *root,
-+		     int *sequence)
-+{
-+	struct mem_cgroup *position = NULL;
-+	/*
-+	 * A cgroup destruction happens in two stages: offlining and
-+	 * release.  They are separated by a RCU grace period.
-+	 *
-+	 * If the iterator is valid, we may still race with an
-+	 * offlining.  The RCU lock ensures the object won't be
-+	 * released, tryget will fail if we lost the race.
-+	 */
-+	*sequence = atomic_read(&root->dead_count);
-+	if (iter->last_dead_count == *sequence) {
-+		smp_rmb();
-+		position = iter->last_visited;
-+		if (position && !css_tryget(&position->css))
-+			position = NULL;
-+	}
-+	return position;
-+}
-+
-+static void mem_cgroup_iter_update(struct mem_cgroup_reclaim_iter *iter,
-+				   struct mem_cgroup *last_visited,
-+				   struct mem_cgroup *new_position,
-+				   int sequence)
-+{
-+	if (last_visited)
-+		css_put(&last_visited->css);
-+	/*
-+	 * We store the sequence count from the time @last_visited was
-+	 * loaded successfully instead of rereading it here so that we
-+	 * don't lose destruction events in between.  We could have
-+	 * raced with the destruction of @new_position after all.
-+	 */
-+	iter->last_visited = new_position;
-+	smp_wmb();
-+	iter->last_dead_count = sequence;
-+}
-+
- /**
-  * mem_cgroup_iter - iterate over memory cgroup hierarchy
-  * @root: hierarchy root
-@@ -1171,7 +1223,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
- {
- 	struct mem_cgroup *memcg = NULL;
- 	struct mem_cgroup *last_visited = NULL;
--	unsigned long uninitialized_var(dead_count);
+ static struct shrinker glock_shrinker = {
+diff -puN fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/quota.c
+--- a/fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/fs/gfs2/quota.c
+@@ -114,7 +114,7 @@ int gfs2_shrink_qd_memory(struct shrinke
+ 	spin_unlock(&qd_lru_lock);
  
- 	if (mem_cgroup_disabled())
- 		return NULL;
-@@ -1191,6 +1242,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	rcu_read_lock();
- 	while (!memcg) {
- 		struct mem_cgroup_reclaim_iter *uninitialized_var(iter);
-+		int uninitialized_var(seq);
- 
- 		if (reclaim) {
- 			int nid = zone_to_nid(reclaim->zone);
-@@ -1204,37 +1256,13 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 				goto out_unlock;
- 			}
- 
--			/*
--			 * If the dead_count mismatches, a destruction
--			 * has happened or is happening concurrently.
--			 * If the dead_count matches, a destruction
--			 * might still happen concurrently, but since
--			 * we checked under RCU, that destruction
--			 * won't free the object until we release the
--			 * RCU reader lock.  Thus, the dead_count
--			 * check verifies the pointer is still valid,
--			 * css_tryget() verifies the cgroup pointed to
--			 * is alive.
--			 */
--			dead_count = atomic_read(&root->dead_count);
--			if (dead_count == iter->last_dead_count) {
--				smp_rmb();
--				last_visited = iter->last_visited;
--				if (last_visited &&
--				    !css_tryget(&last_visited->css))
--					last_visited = NULL;
--			}
-+			last_visited = mem_cgroup_iter_load(iter, root, &seq);
- 		}
- 
- 		memcg = __mem_cgroup_iter_next(root, last_visited);
- 
- 		if (reclaim) {
--			if (last_visited)
--				css_put(&last_visited->css);
--
--			iter->last_visited = memcg;
--			smp_wmb();
--			iter->last_dead_count = dead_count;
-+			mem_cgroup_iter_update(iter, last_visited, memcg, seq);
- 
- 			if (!memcg)
- 				iter->generation++;
-@@ -6317,14 +6345,14 @@ static void mem_cgroup_invalidate_reclai
- 	struct mem_cgroup *parent = memcg;
- 
- 	while ((parent = parent_mem_cgroup(parent)))
--		atomic_inc(&parent->dead_count);
-+		mem_cgroup_iter_invalidate(parent);
- 
- 	/*
- 	 * if the root memcg is not hierarchical we have to check it
- 	 * explicitely.
- 	 */
- 	if (!root_mem_cgroup->use_hierarchy)
--		atomic_inc(&root_mem_cgroup->dead_count);
-+		mem_cgroup_iter_invalidate(root_mem_cgroup);
+ out:
+-	return (atomic_read(&qd_lru_count) * sysctl_vfs_cache_pressure) / 100;
++	return vfs_pressure_ratio(atomic_read(&qd_lru_count));
  }
  
- static void mem_cgroup_css_offline(struct cgroup *cont)
+ static u64 qd2index(struct gfs2_quota_data *qd)
+diff -puN fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/mbcache.c
+--- a/fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/fs/mbcache.c
+@@ -189,7 +189,7 @@ mb_cache_shrink_fn(struct shrinker *shri
+ 	list_for_each_entry_safe(entry, tmp, &free_list, e_lru_list) {
+ 		__mb_cache_entry_forget(entry, gfp_mask);
+ 	}
+-	return (count / 100) * sysctl_vfs_cache_pressure;
++	return vfs_pressure_ratio(count);
+ }
+ 
+ 
+diff -puN fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/nfs/dir.c
+--- a/fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/fs/nfs/dir.c
+@@ -2004,7 +2004,7 @@ remove_lru_entry:
+ 	}
+ 	spin_unlock(&nfs_access_lru_lock);
+ 	nfs_access_free_list(&head);
+-	return (atomic_long_read(&nfs_access_nr_entries) / 100) * sysctl_vfs_cache_pressure;
++	return vfs_pressure_ratio(atomic_long_read(&nfs_access_nr_entries));
+ }
+ 
+ static void __nfs_access_zap_cache(struct nfs_inode *nfsi, struct list_head *head)
+diff -puN fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/quota/dquot.c
+--- a/fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/fs/quota/dquot.c
+@@ -719,9 +719,8 @@ static int shrink_dqcache_memory(struct
+ 		prune_dqcache(nr);
+ 		spin_unlock(&dq_list_lock);
+ 	}
+-	return ((unsigned)
+-		percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS])
+-		/100) * sysctl_vfs_cache_pressure;
++	return vfs_pressure_ratio(
++	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
+ }
+ 
+ static struct shrinker dqcache_shrinker = {
+diff -puN fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/super.c
+--- a/fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/fs/super.c
+@@ -82,13 +82,13 @@ static int prune_super(struct shrinker *
+ 		int	inodes;
+ 
+ 		/* proportion the scan between the caches */
+-		dentries = (sc->nr_to_scan * sb->s_nr_dentry_unused) /
+-							total_objects;
+-		inodes = (sc->nr_to_scan * sb->s_nr_inodes_unused) /
+-							total_objects;
++		dentries = mult_frac(sc->nr_to_scan, sb->s_nr_dentry_unused,
++							total_objects);
++		inodes = mult_frac(sc->nr_to_scan, sb->s_nr_inodes_unused,
++							total_objects);
+ 		if (fs_objects)
+-			fs_objects = (sc->nr_to_scan * fs_objects) /
+-							total_objects;
++			fs_objects = mult_frac(sc->nr_to_scan, fs_objects,
++							total_objects);
+ 		/*
+ 		 * prune the dcache first as the icache is pinned by it, then
+ 		 * prune the icache, followed by the filesystem specific caches
+@@ -104,7 +104,7 @@ static int prune_super(struct shrinker *
+ 				sb->s_nr_inodes_unused + fs_objects;
+ 	}
+ 
+-	total_objects = (total_objects / 100) * sysctl_vfs_cache_pressure;
++	total_objects = vfs_pressure_ratio(total_objects);
+ 	drop_super(sb);
+ 	return total_objects;
+ }
+diff -puN fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/xfs/xfs_qm.c
+--- a/fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/fs/xfs/xfs_qm.c
+@@ -1605,7 +1605,7 @@ xfs_qm_shake(
+ 	}
+ 
+ out:
+-	return (qi->qi_lru_count / 100) * sysctl_vfs_cache_pressure;
++	return vfs_pressure_ratio(qi->qi_lru_count);
+ }
+ 
+ /*
+diff -puN include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers include/linux/dcache.h
+--- a/include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers
++++ a/include/linux/dcache.h
+@@ -411,4 +411,8 @@ static inline bool d_mountpoint(struct d
+ 
+ extern int sysctl_vfs_cache_pressure;
+ 
++static inline unsigned long vfs_pressure_ratio(unsigned long val)
++{
++	return mult_frac(val, sysctl_vfs_cache_pressure, 100);
++}
+ #endif	/* __LINUX_DCACHE_H */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from glommer@openvz.org are
 
-memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
-swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch
-mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch
-mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch
-mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
-mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
-mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
-mm-vmscan-flatten-kswapd-priority-loop.patch
-mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
-mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
-mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
-mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
-mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
-mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
-mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
-mm-vmscan-set-zone-flags-before-blocking.patch
-mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
-mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
-mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
-fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
-memcg-update-todo-list-in-documentation.patch
-mm-add-tracepoints-for-lru-activation-and-insertions.patch
-mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
-mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
-mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-memcg-kconfig-info-update.patch
-mm-kill-free_all_bootmem_node.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
 fs-bump-inode-and-dentry-counters-to-long.patch
 super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
 dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
 dentry-move-to-per-sb-lru-locks.patch
 dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
 shrinker-convert-superblock-shrinkers-to-new-api.patch
 list-add-a-new-lru-list-type.patch
 inode-convert-inode-lru-list-to-generic-lru-list-code.patch
@@ -243,7 +239,6 @@ list_lru-per-node-list-infrastructure.patch
 shrinker-add-node-awareness.patch
 vmscan-per-node-deferred-work.patch
 list_lru-per-node-api.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
 xfs-convert-buftarg-lru-to-generic-code.patch
 xfs-rework-buffer-dispose-list-tracking.patch
 xfs-convert-dquot-cache-lru-to-list_lru.patch
@@ -264,6 +259,4 @@ super-targeted-memcg-reclaim.patch
 memcg-move-initialization-to-memcg-creation.patch
 vmpressure-in-kernel-notifications.patch
 memcg-reap-dead-memcgs-upon-global-memory-pressure.patch
-mm-memmap_init_zone-performance-improvement.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
