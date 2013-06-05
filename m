@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch added
- to -mm tree
-Date: Wed, 05 Jun 2013 16:10:32 -0700
-Message-ID: <51afc568.QJzeIxeg5Sq2shzr%akpm@linux-foundation.org>
+ dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
+ added to -mm tree
+Date: Wed, 05 Jun 2013 16:10:39 -0700
+Message-ID: <51afc56f.KkQT0c98YyCfQlVy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40398 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757580Ab3FEXKd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:10:33 -0400
+	with ESMTP id S1757580Ab3FEXKk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:10:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, riel@redhat.com, penberg@kernel.org, mtosatti@redhat.com, mhocko@suse.cz, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, js1304@gmail.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hughd@google.com, hch@lst.de, hannes@cmpxchg.org, gthelen@google.com, gleb@redhat.com, david@fromorbit.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, anton@enomsg.org, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
+To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
 
-Subject: + super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch added to -mm tree
-To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,anton@enomsg.org,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,david@fromorbit.com,gleb@redhat.com,gthelen@google.com,hannes@cmpxchg.org,hch@lst.de,hughd@google.com,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,js1304@gmail.com,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mhocko@suse.cz,mtosatti@redhat.com,penberg@kernel.org,riel@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
+Subject: + dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Jun 2013 16:10:32 -0700
+Date: Wed, 05 Jun 2013 16:10:39 -0700
 
 
 The patch titled
-     Subject: super: fix calculation of shrinkable objects for small numbers
+     Subject: dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix
 has been added to the -mm tree.  Its filename is
-     super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+     dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,223 +40,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@openvz.org>
-Subject: super: fix calculation of shrinkable objects for small numbers
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix
 
-The sysctl knob sysctl_vfs_cache_pressure is used to determine which
-percentage of the shrinkable objects in our cache we should actively try
-to shrink.
+no XFSisms where others have to look at it please ;)
 
-It works great in situations in which we have many objects (at least more
-than 100), because the aproximation errors will be negligible.  But if
-this is not the case, specially when total_objects < 100, we may end up
-concluding that we have no objects at all (total / 100 = 0, if total <
-100).
-
-This is certainly not the biggest killer in the world, but may matter in
-very low kernel memory situations.
-
-Signed-off-by: Glauber Costa <glommer@openvz.org>
-Reviewed-by: Carlos Maiolino <cmaiolino@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: Arve Hjønnevåg <arve@android.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gleb Natapov <gleb@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: J. Bruce Fields <bfields@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Glauber Costa <glommer@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glock.c        |    2 +-
- fs/gfs2/quota.c        |    2 +-
- fs/mbcache.c           |    2 +-
- fs/nfs/dir.c           |    2 +-
- fs/quota/dquot.c       |    5 ++---
- fs/super.c             |   14 +++++++-------
- fs/xfs/xfs_qm.c        |    2 +-
- include/linux/dcache.h |    4 ++++
- 8 files changed, 18 insertions(+), 15 deletions(-)
+ fs/dcache.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/gfs2/glock.c
-@@ -1463,7 +1463,7 @@ static int gfs2_shrink_glock_memory(stru
- 		gfs2_scan_glock_lru(sc->nr_to_scan);
- 	}
+diff -puN fs/dcache.c~dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix fs/dcache.c
+--- a/fs/dcache.c~dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix
++++ a/fs/dcache.c
+@@ -902,9 +902,7 @@ relock:
+  * still on the LRU if we try to kill them from ascending the parent chain in
+  * try_prune_one_dentry() rather than directly from the dispose list.
+  */
+-static void
+-shrink_dcache_list(
+-	struct list_head *dispose)
++static void shrink_dcache_list(struct list_head *dispose)
+ {
+ 	struct dentry *dentry;
  
--	return (atomic_read(&lru_count) / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(atomic_read(&lru_count));
- }
- 
- static struct shrinker glock_shrinker = {
-diff -puN fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/quota.c
---- a/fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/gfs2/quota.c
-@@ -114,7 +114,7 @@ int gfs2_shrink_qd_memory(struct shrinke
- 	spin_unlock(&qd_lru_lock);
- 
- out:
--	return (atomic_read(&qd_lru_count) * sysctl_vfs_cache_pressure) / 100;
-+	return vfs_pressure_ratio(atomic_read(&qd_lru_count));
- }
- 
- static u64 qd2index(struct gfs2_quota_data *qd)
-diff -puN fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/mbcache.c
---- a/fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/mbcache.c
-@@ -189,7 +189,7 @@ mb_cache_shrink_fn(struct shrinker *shri
- 	list_for_each_entry_safe(entry, tmp, &free_list, e_lru_list) {
- 		__mb_cache_entry_forget(entry, gfp_mask);
- 	}
--	return (count / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(count);
- }
- 
- 
-diff -puN fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/nfs/dir.c
---- a/fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/nfs/dir.c
-@@ -2004,7 +2004,7 @@ remove_lru_entry:
- 	}
- 	spin_unlock(&nfs_access_lru_lock);
- 	nfs_access_free_list(&head);
--	return (atomic_long_read(&nfs_access_nr_entries) / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(atomic_long_read(&nfs_access_nr_entries));
- }
- 
- static void __nfs_access_zap_cache(struct nfs_inode *nfsi, struct list_head *head)
-diff -puN fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/quota/dquot.c
---- a/fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/quota/dquot.c
-@@ -719,9 +719,8 @@ static int shrink_dqcache_memory(struct
- 		prune_dqcache(nr);
- 		spin_unlock(&dq_list_lock);
- 	}
--	return ((unsigned)
--		percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS])
--		/100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(
-+	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
- }
- 
- static struct shrinker dqcache_shrinker = {
-diff -puN fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/super.c
---- a/fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/super.c
-@@ -82,13 +82,13 @@ static int prune_super(struct shrinker *
- 		int	inodes;
- 
- 		/* proportion the scan between the caches */
--		dentries = (sc->nr_to_scan * sb->s_nr_dentry_unused) /
--							total_objects;
--		inodes = (sc->nr_to_scan * sb->s_nr_inodes_unused) /
--							total_objects;
-+		dentries = mult_frac(sc->nr_to_scan, sb->s_nr_dentry_unused,
-+							total_objects);
-+		inodes = mult_frac(sc->nr_to_scan, sb->s_nr_inodes_unused,
-+							total_objects);
- 		if (fs_objects)
--			fs_objects = (sc->nr_to_scan * fs_objects) /
--							total_objects;
-+			fs_objects = mult_frac(sc->nr_to_scan, fs_objects,
-+							total_objects);
- 		/*
- 		 * prune the dcache first as the icache is pinned by it, then
- 		 * prune the icache, followed by the filesystem specific caches
-@@ -104,7 +104,7 @@ static int prune_super(struct shrinker *
- 				sb->s_nr_inodes_unused + fs_objects;
- 	}
- 
--	total_objects = (total_objects / 100) * sysctl_vfs_cache_pressure;
-+	total_objects = vfs_pressure_ratio(total_objects);
- 	drop_super(sb);
- 	return total_objects;
- }
-diff -puN fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/xfs/xfs_qm.c
---- a/fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/xfs/xfs_qm.c
-@@ -1605,7 +1605,7 @@ xfs_qm_shake(
- 	}
- 
- out:
--	return (qi->qi_lru_count / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(qi->qi_lru_count);
- }
- 
- /*
-diff -puN include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers include/linux/dcache.h
---- a/include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/include/linux/dcache.h
-@@ -411,4 +411,8 @@ static inline bool d_mountpoint(struct d
- 
- extern int sysctl_vfs_cache_pressure;
- 
-+static inline unsigned long vfs_pressure_ratio(unsigned long val)
-+{
-+	return mult_frac(val, sysctl_vfs_cache_pressure, 100);
-+}
- #endif	/* __LINUX_DCACHE_H */
 _
 
-Patches currently in -mm which might be from glommer@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-list_lru-per-node-api.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-vmscan-also-shrink-slab-in-memcg-pressure.patch
-memcglist_lru-duplicate-lrus-upon-kmemcg-creation.patch
-lru-add-an-element-to-a-memcg-list.patch
-list_lru-per-memcg-walks.patch
-memcg-per-memcg-kmem-shrinking.patch
-memcg-scan-cache-objects-hierarchically.patch
-vmscan-take-at-least-one-pass-with-shrinkers.patch
-super-targeted-memcg-reclaim.patch
-memcg-move-initialization-to-memcg-creation.patch
-vmpressure-in-kernel-notifications.patch
-memcg-reap-dead-memcgs-upon-global-memory-pressure.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
