@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dcache-convert-to-use-new-lru-list-infrastructure.patch added
- to -mm tree
-Date: Wed, 05 Jun 2013 16:10:49 -0700
-Message-ID: <51afc579.J0JljZDMQBrHHwWL%akpm@linux-foundation.org>
+Subject: + vmscan-per-node-deferred-work.patch added to -mm tree
+Date: Wed, 05 Jun 2013 16:10:55 -0700
+Message-ID: <51afc57f.CFfHJDaoBK/Eh8s8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40630 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757580Ab3FEXKu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:10:50 -0400
+	with ESMTP id S1757580Ab3FEXK4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:10:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, riel@redhat.com, penberg@kernel.org, mtosatti@redhat.com, mhocko@suse.cz, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, js1304@gmail.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hughd@google.com, hch@lst.de, hannes@cmpxchg.org, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, anton@enomsg.org, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, riel@redhat.com, penberg@kernel.org, mtosatti@redhat.com, mhocko@suse.cz, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, js1304@gmail.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hughd@google.com, hch@lst.de, hannes@cmpxchg.org, gthelen@google.com, gleb@redhat.com, dchinner@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, anton@enomsg.org, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
 
-Subject: + dcache-convert-to-use-new-lru-list-infrastructure.patch added to -mm tree
-To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,anton@enomsg.org,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hannes@cmpxchg.org,hch@lst.de,hughd@google.com,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,js1304@gmail.com,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mhocko@suse.cz,mtosatti@redhat.com,penberg@kernel.org,riel@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
+Subject: + vmscan-per-node-deferred-work.patch added to -mm tree
+To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,anton@enomsg.org,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,dchinner@redhat.com,gleb@redhat.com,gthelen@google.com,hannes@cmpxchg.org,hch@lst.de,hughd@google.com,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,js1304@gmail.com,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mhocko@suse.cz,mtosatti@redhat.com,penberg@kernel.org,riel@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 05 Jun 2013 16:10:49 -0700
+Date: Wed, 05 Jun 2013 16:10:55 -0700
 
 
 The patch titled
-     Subject: dcache: convert to use new lru list infrastructure
+     Subject: vmscan: per-node deferred work
 has been added to the -mm tree.  Its filename is
-     dcache-convert-to-use-new-lru-list-infrastructure.patch
+     vmscan-per-node-deferred-work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +38,26 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Chinner <dchinner@redhat.com>
-Subject: dcache: convert to use new lru list infrastructure
+From: Glauber Costa <glommer@openvz.org>
+Subject: vmscan: per-node deferred work
 
-[glommer@openvz.org: don't reintroduce double decrement of nr_unused_dentries, adapted for new LRU return codes]
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
+We already keep per-node LRU lists for objects being shrunk, but the work
+that is deferred from one run to another is kept global.  This creates an
+impedance problem, where upon node pressure, work deferred will accumulate
+and end up being flushed in other nodes.
+
+In large machines, many nodes can accumulate at the same time, all adding
+to the global counter.  As we accumulate more and more, we start to ask
+for the caches to flush even bigger numbers.  The result is that the
+caches are depleted and do not stabilize.  To achieve stable steady state
+behavior, we need to tackle it differently.
+
+In this patch we keep the deferred count per-node, and will never
+accumulate that to other nodes.
+
 Signed-off-by: Glauber Costa <glommer@openvz.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -69,7 +82,6 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Kent Overstreet <koverstreet@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
@@ -79,316 +91,359 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c        |  165 +++++++++++++++++++------------------------
- fs/super.c         |   11 +-
- include/linux/fs.h |   15 +--
- 3 files changed, 87 insertions(+), 104 deletions(-)
+ include/linux/shrinker.h |   30 ++++
+ mm/vmscan.c              |  247 ++++++++++++++++++++++---------------
+ 2 files changed, 176 insertions(+), 101 deletions(-)
 
-diff -puN fs/dcache.c~dcache-convert-to-use-new-lru-list-infrastructure fs/dcache.c
---- a/fs/dcache.c~dcache-convert-to-use-new-lru-list-infrastructure
-+++ a/fs/dcache.c
-@@ -37,6 +37,7 @@
- #include <linux/rculist_bl.h>
- #include <linux/prefetch.h>
- #include <linux/ratelimit.h>
-+#include <linux/list_lru.h>
- #include "internal.h"
- #include "mount.h"
+diff -puN include/linux/shrinker.h~vmscan-per-node-deferred-work include/linux/shrinker.h
+--- a/include/linux/shrinker.h~vmscan-per-node-deferred-work
++++ a/include/linux/shrinker.h
+@@ -19,6 +19,8 @@ struct shrink_control {
  
-@@ -319,20 +320,8 @@ static void dentry_unlink_inode(struct d
+ 	/* shrink from these nodes */
+ 	nodemask_t nodes_to_scan;
++	/* current node being shrunk (for NUMA aware shrinkers) */
++	int nid;
+ };
+ 
+ /*
+@@ -42,6 +44,8 @@ struct shrink_control {
+  * objects freed during the scan, or -1 if progress cannot be made due to
+  * potential deadlocks. If -1 is returned, then no further attempts to call the
+  * @scan_objects will be made from the current reclaim context.
++ *
++ * @flags determine the shrinker abilities, like numa awareness
   */
- static void dentry_lru_add(struct dentry *dentry)
- {
--	if (list_empty(&dentry->d_lru)) {
--		spin_lock(&dentry->d_sb->s_dentry_lru_lock);
--		list_add(&dentry->d_lru, &dentry->d_sb->s_dentry_lru);
--		dentry->d_sb->s_nr_dentry_unused++;
-+	if (list_lru_add(&dentry->d_sb->s_dentry_lru, &dentry->d_lru))
- 		this_cpu_inc(nr_dentry_unused);
--		spin_unlock(&dentry->d_sb->s_dentry_lru_lock);
--	}
--}
--
--static void __dentry_lru_del(struct dentry *dentry)
--{
--	list_del_init(&dentry->d_lru);
--	dentry->d_sb->s_nr_dentry_unused--;
--	this_cpu_dec(nr_dentry_unused);
+ struct shrinker {
+ 	int (*shrink)(struct shrinker *, struct shrink_control *sc);
+@@ -50,12 +54,34 @@ struct shrinker {
+ 
+ 	int seeks;	/* seeks to recreate an obj */
+ 	long batch;	/* reclaim batch size, 0 = default */
++	unsigned long flags;
+ 
+ 	/* These are for internal use */
+ 	struct list_head list;
+-	atomic_long_t nr_in_batch; /* objs pending delete */
++	/*
++	 * We would like to avoid allocating memory when registering a new
++	 * shrinker. All shrinkers will need to keep track of deferred objects,
++	 * and we need a counter for this. If the shrinkers are not NUMA aware,
++	 * this is a small and bounded space that fits into an atomic_long_t.
++	 * This is because that the deferring decisions are global, and we will
++	 * not allocate in this case.
++	 *
++	 * When the shrinker is NUMA aware, we will need this to be a per-node
++	 * array. Numerically speaking, the minority of shrinkers are NUMA
++	 * aware, so this saves quite a bit.
++	 */
++	union {
++		/* objs pending delete */
++		atomic_long_t nr_deferred;
++		/* objs pending delete, per node */
++		atomic_long_t *nr_deferred_node;
++	};
+ };
+ #define DEFAULT_SEEKS 2 /* A good number if you don't know better. */
+-extern void register_shrinker(struct shrinker *);
++
++/* Flags */
++#define SHRINKER_NUMA_AWARE (1 << 0)
++
++extern int register_shrinker(struct shrinker *);
+ extern void unregister_shrinker(struct shrinker *);
+ #endif
+diff -puN mm/vmscan.c~vmscan-per-node-deferred-work mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-per-node-deferred-work
++++ a/mm/vmscan.c
+@@ -155,14 +155,36 @@ static unsigned long get_lru_size(struct
  }
  
  /*
-@@ -350,26 +339,8 @@ static void dentry_lru_del(struct dentry
- 		return;
- 	}
+- * Add a shrinker callback to be called from the vm
++ * Add a shrinker callback to be called from the vm.
++ *
++ * It cannot fail, unless the flag SHRINKER_NUMA_AWARE is specified.
++ * With this flag set, this function will allocate memory and may fail.
+  */
+-void register_shrinker(struct shrinker *shrinker)
++int register_shrinker(struct shrinker *shrinker)
+ {
+-	atomic_long_set(&shrinker->nr_in_batch, 0);
++	/*
++	 * If we only have one possible node in the system anyway, save
++	 * ourselves the trouble and disable NUMA aware behavior. This way we
++	 * will allocate nothing and save memory and some small loop time
++	 * later.
++	 */
++	if (nr_node_ids == 1)
++		shrinker->flags &= ~SHRINKER_NUMA_AWARE;
++
++	if (shrinker->flags & SHRINKER_NUMA_AWARE) {
++		size_t size;
++
++		size = sizeof(*shrinker->nr_deferred_node) * nr_node_ids;
++		shrinker->nr_deferred_node = kzalloc(size, GFP_KERNEL);
++		if (!shrinker->nr_deferred_node)
++			return -ENOMEM;
++	} else
++		atomic_long_set(&shrinker->nr_deferred, 0);
++
+ 	down_write(&shrinker_rwsem);
+ 	list_add_tail(&shrinker->list, &shrinker_list);
+ 	up_write(&shrinker_rwsem);
++	return 0;
+ }
+ EXPORT_SYMBOL(register_shrinker);
  
--	if (!list_empty(&dentry->d_lru)) {
--		spin_lock(&dentry->d_sb->s_dentry_lru_lock);
--		__dentry_lru_del(dentry);
--		spin_unlock(&dentry->d_sb->s_dentry_lru_lock);
--	}
--}
--
--static void dentry_lru_move_list(struct dentry *dentry, struct list_head *list)
--{
--	BUG_ON(dentry->d_flags & DCACHE_SHRINK_LIST);
--
--	spin_lock(&dentry->d_sb->s_dentry_lru_lock);
--	if (list_empty(&dentry->d_lru)) {
--		list_add_tail(&dentry->d_lru, list);
--	} else {
--		list_move_tail(&dentry->d_lru, list);
--		dentry->d_sb->s_nr_dentry_unused--;
-+	if (list_lru_del(&dentry->d_sb->s_dentry_lru, &dentry->d_lru))
- 		this_cpu_dec(nr_dentry_unused);
--	}
--	spin_unlock(&dentry->d_sb->s_dentry_lru_lock);
+@@ -186,6 +208,116 @@ static inline int do_shrinker_shrink(str
  }
  
- /**
-@@ -844,12 +815,72 @@ static void shrink_dentry_list(struct li
- 	rcu_read_unlock();
- }
- 
-+static enum lru_status
-+dentry_lru_isolate(struct list_head *item, spinlock_t *lru_lock, void *arg)
+ #define SHRINK_BATCH 128
++
++static unsigned long
++shrink_slab_node(struct shrink_control *shrinkctl, struct shrinker *shrinker,
++		 unsigned long nr_pages_scanned, unsigned long lru_pages,
++		 atomic_long_t *deferred)
 +{
-+	struct list_head *freeable = arg;
-+	struct dentry	*dentry = container_of(item, struct dentry, d_lru);
++	unsigned long freed = 0;
++	unsigned long long delta;
++	long total_scan;
++	long max_pass;
++	long nr;
++	long new_nr;
++	long batch_size = shrinker->batch ? shrinker->batch
++					  : SHRINK_BATCH;
 +
++	if (shrinker->scan_objects) {
++		max_pass = shrinker->count_objects(shrinker, shrinkctl);
++		WARN_ON(max_pass < 0);
++	} else
++		max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
++	if (max_pass <= 0)
++		return 0;
 +
 +	/*
-+	 * we are inverting the lru lock/dentry->d_lock here,
-+	 * so use a trylock. If we fail to get the lock, just skip
-+	 * it
++	 * copy the current shrinker scan count into a local variable
++	 * and zero it so that other concurrent shrinker invocations
++	 * don't also do this scanning work.
 +	 */
-+	if (!spin_trylock(&dentry->d_lock))
-+		return LRU_SKIP;
++	nr = atomic_long_xchg(deferred, 0);
++
++	total_scan = nr;
++	delta = (4 * nr_pages_scanned) / shrinker->seeks;
++	delta *= max_pass;
++	do_div(delta, lru_pages + 1);
++	total_scan += delta;
++	if (total_scan < 0) {
++		printk(KERN_ERR
++		"shrink_slab: %pF negative objects to delete nr=%ld\n",
++		       shrinker->shrink, total_scan);
++		total_scan = max_pass;
++	}
 +
 +	/*
-+	 * Referenced dentries are still in use. If they have active
-+	 * counts, just remove them from the LRU. Otherwise give them
-+	 * another pass through the LRU.
++	 * We need to avoid excessive windup on filesystem shrinkers
++	 * due to large numbers of GFP_NOFS allocations causing the
++	 * shrinkers to return -1 all the time. This results in a large
++	 * nr being built up so when a shrink that can do some work
++	 * comes along it empties the entire cache due to nr >>>
++	 * max_pass.  This is bad for sustaining a working set in
++	 * memory.
++	 *
++	 * Hence only allow the shrinker to scan the entire cache when
++	 * a large delta change is calculated directly.
 +	 */
-+	if (dentry->d_count) {
-+		list_del_init(&dentry->d_lru);
-+		spin_unlock(&dentry->d_lock);
-+		return LRU_REMOVED;
++	if (delta < max_pass / 4)
++		total_scan = min(total_scan, max_pass / 2);
++
++	/*
++	 * Avoid risking looping forever due to too large nr value:
++	 * never try to free more than twice the estimate number of
++	 * freeable entries.
++	 */
++	if (total_scan > max_pass * 2)
++		total_scan = max_pass * 2;
++
++	trace_mm_shrink_slab_start(shrinker, shrinkctl, nr,
++				nr_pages_scanned, lru_pages,
++				max_pass, delta, total_scan);
++
++	while (total_scan >= batch_size) {
++		long ret;
++
++		if (shrinker->scan_objects) {
++			shrinkctl->nr_to_scan = batch_size;
++			ret = shrinker->scan_objects(shrinker, shrinkctl);
++
++			if (ret == -1)
++				break;
++			freed += ret;
++		} else {
++			int nr_before;
++			nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
++			ret = do_shrinker_shrink(shrinker, shrinkctl,
++							batch_size);
++			if (ret == -1)
++				break;
++			if (ret < nr_before)
++				freed += nr_before - ret;
++		}
++
++		count_vm_events(SLABS_SCANNED, batch_size);
++		total_scan -= batch_size;
++
++		cond_resched();
 +	}
 +
-+	if (dentry->d_flags & DCACHE_REFERENCED) {
-+		dentry->d_flags &= ~DCACHE_REFERENCED;
-+		spin_unlock(&dentry->d_lock);
++	/*
++	 * move the unused scan count back into the shrinker in a
++	 * manner that handles concurrent updates. If we exhausted the
++	 * scan, there is no need to do an update.
++	 */
++	if (total_scan > 0)
++		new_nr = atomic_long_add_return(total_scan, deferred);
++	else
++		new_nr = atomic_long_read(deferred);
 +
-+		/*
-+		 * The list move itself will be made by the common LRU code. At
-+		 * this point, we've dropped the dentry->d_lock but keep the
-+		 * lru lock. This is safe to do, since every list movement is
-+		 * protected by the lru lock even if both locks are held.
-+		 *
-+		 * This is guaranteed by the fact that all LRU management
-+		 * functions are intermediated by the LRU API calls like
-+		 * list_lru_add and list_lru_del. List movement in this file
-+		 * only ever occur through this functions or through callbacks
-+		 * like this one, that are called from the LRU API.
-+		 *
-+		 * The only exceptions to this are functions like
-+		 * shrink_dentry_list, and code that first checks for the
-+		 * DCACHE_SHRINK_LIST flag.  Those are guaranteed to be
-+		 * operating only with stack provided lists after they are
-+		 * properly isolated from the main list.  It is thus, always a
-+		 * local access.
-+		 */
-+		return LRU_ROTATE;
-+	}
-+
-+	dentry->d_flags |= DCACHE_SHRINK_LIST;
-+	list_move_tail(&dentry->d_lru, freeable);
-+	this_cpu_dec(nr_dentry_unused);
-+	spin_unlock(&dentry->d_lock);
-+
-+	return LRU_REMOVED;
++	trace_mm_shrink_slab_end(shrinker, freed, nr, new_nr);
++	return freed;
 +}
 +
- /**
-  * prune_dcache_sb - shrink the dcache
-  * @sb: superblock
-- * @count: number of entries to try to free
-+ * @nr_to_scan : number of entries to try to free
+ /*
+  * Call the shrink functions to age shrinkable caches
   *
-- * Attempt to shrink the superblock dcache LRU by @count entries. This is
-+ * Attempt to shrink the superblock dcache LRU by @nr_to_scan entries. This is
-  * done when we need more memory an called from the superblock shrinker
-  * function.
-  *
-@@ -858,45 +889,12 @@ static void shrink_dentry_list(struct li
-  */
- long prune_dcache_sb(struct super_block *sb, unsigned long nr_to_scan)
- {
--	struct dentry *dentry;
--	LIST_HEAD(referenced);
--	LIST_HEAD(tmp);
--	long freed = 0;
-+	LIST_HEAD(dispose);
-+	long freed;
+@@ -222,107 +354,24 @@ unsigned long shrink_slab(struct shrink_
+ 	}
  
--relock:
--	spin_lock(&sb->s_dentry_lru_lock);
--	while (!list_empty(&sb->s_dentry_lru)) {
--		dentry = list_entry(sb->s_dentry_lru.prev,
--				struct dentry, d_lru);
--		BUG_ON(dentry->d_sb != sb);
--
--		if (!spin_trylock(&dentry->d_lock)) {
--			spin_unlock(&sb->s_dentry_lru_lock);
--			cpu_relax();
--			goto relock;
--		}
--
--		if (dentry->d_flags & DCACHE_REFERENCED) {
--			dentry->d_flags &= ~DCACHE_REFERENCED;
--			list_move(&dentry->d_lru, &referenced);
--			spin_unlock(&dentry->d_lock);
--		} else {
--			list_move(&dentry->d_lru, &tmp);
--			dentry->d_flags |= DCACHE_SHRINK_LIST;
--			this_cpu_dec(nr_dentry_unused);
--			sb->s_nr_dentry_unused--;
--			spin_unlock(&dentry->d_lock);
--			freed++;
--			if (!--nr_to_scan)
--				break;
--		}
--		cond_resched_lock(&sb->s_dentry_lru_lock);
--	}
--	if (!list_empty(&referenced))
--		list_splice(&referenced, &sb->s_dentry_lru);
--	spin_unlock(&sb->s_dentry_lru_lock);
--
--	shrink_dentry_list(&tmp);
-+	freed = list_lru_walk(&sb->s_dentry_lru, dentry_lru_isolate,
-+			      &dispose, nr_to_scan);
-+	shrink_dentry_list(&dispose);
- 	return freed;
- }
+ 	list_for_each_entry(shrinker, &shrinker_list, list) {
+-		unsigned long long delta;
+-		long total_scan;
+-		long max_pass;
+-		long nr;
+-		long new_nr;
+-		long batch_size = shrinker->batch ? shrinker->batch
+-						  : SHRINK_BATCH;
  
-@@ -928,24 +926,10 @@ static void shrink_dcache_list(struct li
-  */
- void shrink_dcache_sb(struct super_block *sb)
- {
--	LIST_HEAD(tmp);
-+	long disposed;
+-		if (shrinker->scan_objects) {
+-			max_pass = shrinker->count_objects(shrinker, shrinkctl);
+-			WARN_ON(max_pass < 0);
+-		} else
+-			max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
+-		if (max_pass <= 0)
+-			continue;
++		if (!(shrinker->flags & SHRINKER_NUMA_AWARE)) {
++			shrinkctl->nid = 0;
  
--	spin_lock(&sb->s_dentry_lru_lock);
--	while (!list_empty(&sb->s_dentry_lru)) {
 -		/*
--		 * account for removal here so we don't need to handle it later
--		 * even though the dentry is no longer on the lru list.
+-		 * copy the current shrinker scan count into a local variable
+-		 * and zero it so that other concurrent shrinker invocations
+-		 * don't also do this scanning work.
 -		 */
--		list_splice_init(&sb->s_dentry_lru, &tmp);
--		this_cpu_sub(nr_dentry_unused, sb->s_nr_dentry_unused);
--		sb->s_nr_dentry_unused = 0;
--		spin_unlock(&sb->s_dentry_lru_lock);
+-		nr = atomic_long_xchg(&shrinker->nr_in_batch, 0);
 -
--		shrink_dcache_list(&tmp);
--
--		spin_lock(&sb->s_dentry_lru_lock);
--	}
--	spin_unlock(&sb->s_dentry_lru_lock);
-+	disposed = list_lru_dispose_all(&sb->s_dentry_lru, shrink_dcache_list);
-+	this_cpu_sub(nr_dentry_unused, disposed);
- }
- EXPORT_SYMBOL(shrink_dcache_sb);
- 
-@@ -1218,7 +1202,8 @@ resume:
- 		if (dentry->d_count) {
- 			dentry_lru_del(dentry);
- 		} else if (!(dentry->d_flags & DCACHE_SHRINK_LIST)) {
--			dentry_lru_move_list(dentry, dispose);
-+			dentry_lru_del(dentry);
-+			list_add_tail(&dentry->d_lru, dispose);
- 			dentry->d_flags |= DCACHE_SHRINK_LIST;
- 			found++;
+-		total_scan = nr;
+-		delta = (4 * nr_pages_scanned) / shrinker->seeks;
+-		delta *= max_pass;
+-		do_div(delta, lru_pages + 1);
+-		total_scan += delta;
+-		if (total_scan < 0) {
+-			printk(KERN_ERR
+-			"shrink_slab: %pF negative objects to delete nr=%ld\n",
+-			       shrinker->shrink, total_scan);
+-			total_scan = max_pass;
++			freed += shrink_slab_node(shrinkctl, shrinker,
++				 nr_pages_scanned, lru_pages,
++				 &shrinker->nr_deferred);
++			continue;
  		}
-diff -puN fs/super.c~dcache-convert-to-use-new-lru-list-infrastructure fs/super.c
---- a/fs/super.c~dcache-convert-to-use-new-lru-list-infrastructure
-+++ a/fs/super.c
-@@ -78,11 +78,11 @@ static long super_cache_scan(struct shri
- 		fs_objects = sb->s_op->nr_cached_objects(sb);
  
- 	inodes = list_lru_count(&sb->s_inode_lru);
--	total_objects = sb->s_nr_dentry_unused + inodes + fs_objects + 1;
-+	dentries = list_lru_count(&sb->s_dentry_lru);
-+	total_objects = dentries + inodes + fs_objects + 1;
- 
- 	/* proportion the scan between the caches */
--	dentries = mult_frac(sc->nr_to_scan, sb->s_nr_dentry_unused,
--								total_objects);
-+	dentries = mult_frac(sc->nr_to_scan, dentries, total_objects);
- 	inodes = mult_frac(sc->nr_to_scan, inodes, total_objects);
- 
- 	/*
-@@ -115,7 +115,7 @@ static long super_cache_count(struct shr
- 	if (sb->s_op && sb->s_op->nr_cached_objects)
- 		total_objects = sb->s_op->nr_cached_objects(sb);
- 
--	total_objects += sb->s_nr_dentry_unused;
-+	total_objects += list_lru_count(&sb->s_dentry_lru);
- 	total_objects += list_lru_count(&sb->s_inode_lru);
- 
- 	total_objects = vfs_pressure_ratio(total_objects);
-@@ -195,8 +195,7 @@ static struct super_block *alloc_super(s
- 		INIT_HLIST_NODE(&s->s_instances);
- 		INIT_HLIST_BL_HEAD(&s->s_anon);
- 		INIT_LIST_HEAD(&s->s_inodes);
--		INIT_LIST_HEAD(&s->s_dentry_lru);
--		spin_lock_init(&s->s_dentry_lru_lock);
-+		list_lru_init(&s->s_dentry_lru);
- 		list_lru_init(&s->s_inode_lru);
- 		INIT_LIST_HEAD(&s->s_mounts);
- 		init_rwsem(&s->s_umount);
-diff -puN include/linux/fs.h~dcache-convert-to-use-new-lru-list-infrastructure include/linux/fs.h
---- a/include/linux/fs.h~dcache-convert-to-use-new-lru-list-infrastructure
-+++ a/include/linux/fs.h
-@@ -1265,14 +1265,6 @@ struct super_block {
- 	struct list_head	s_files;
- #endif
- 	struct list_head	s_mounts;	/* list of mounts; _not_ for fs use */
+-		/*
+-		 * We need to avoid excessive windup on filesystem shrinkers
+-		 * due to large numbers of GFP_NOFS allocations causing the
+-		 * shrinkers to return -1 all the time. This results in a large
+-		 * nr being built up so when a shrink that can do some work
+-		 * comes along it empties the entire cache due to nr >>>
+-		 * max_pass.  This is bad for sustaining a working set in
+-		 * memory.
+-		 *
+-		 * Hence only allow the shrinker to scan the entire cache when
+-		 * a large delta change is calculated directly.
+-		 */
+-		if (delta < max_pass / 4)
+-			total_scan = min(total_scan, max_pass / 2);
 -
--	/* s_dentry_lru_lock protects s_dentry_lru and s_nr_dentry_unused */
--	spinlock_t		s_dentry_lru_lock ____cacheline_aligned_in_smp;
--	struct list_head	s_dentry_lru;	/* unused dentry lru */
--	long			s_nr_dentry_unused;	/* # of dentry on lru */
+-		/*
+-		 * Avoid risking looping forever due to too large nr value:
+-		 * never try to free more than twice the estimate number of
+-		 * freeable entries.
+-		 */
+-		if (total_scan > max_pass * 2)
+-			total_scan = max_pass * 2;
 -
--	struct list_lru		s_inode_lru ____cacheline_aligned_in_smp;
+-		trace_mm_shrink_slab_start(shrinker, shrinkctl, nr,
+-					nr_pages_scanned, lru_pages,
+-					max_pass, delta, total_scan);
 -
- 	struct block_device	*s_bdev;
- 	struct backing_dev_info *s_bdi;
- 	struct mtd_info		*s_mtd;
-@@ -1323,6 +1315,13 @@ struct super_block {
- 
- 	/* Being remounted read-only */
- 	int s_readonly_remount;
+-		while (total_scan >= batch_size) {
+-			long ret;
+-
+-			if (shrinker->scan_objects) {
+-				shrinkctl->nr_to_scan = batch_size;
+-				ret = shrinker->scan_objects(shrinker, shrinkctl);
+-
+-				if (ret == -1)
+-					break;
+-				freed += ret;
+-			} else {
+-				int nr_before;
+-				nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
+-				ret = do_shrinker_shrink(shrinker, shrinkctl,
+-								batch_size);
+-				if (ret == -1)
+-					break;
+-				if (ret < nr_before)
+-					freed += nr_before - ret;
+-			}
+-
+-			count_vm_events(SLABS_SCANNED, batch_size);
+-			total_scan -= batch_size;
+-
+-			cond_resched();
++		for_each_node_mask(shrinkctl->nid, shrinkctl->nodes_to_scan) {
++			if (!node_online(shrinkctl->nid))
++				continue;
 +
-+	/*
-+	 * Keep the lru lists last in the structure so they always sit on their
-+	 * own individual cachelines.
-+	 */
-+	struct list_lru		s_dentry_lru ____cacheline_aligned_in_smp;
-+	struct list_lru		s_inode_lru ____cacheline_aligned_in_smp;
- };
- 
- extern struct timespec current_fs_time(struct super_block *sb);
++			freed += shrink_slab_node(shrinkctl, shrinker,
++				 nr_pages_scanned, lru_pages,
++				 &shrinker->nr_deferred_node[shrinkctl->nid]);
+ 		}
+-
+-		/*
+-		 * move the unused scan count back into the shrinker in a
+-		 * manner that handles concurrent updates. If we exhausted the
+-		 * scan, there is no need to do an update.
+-		 */
+-		if (total_scan > 0)
+-			new_nr = atomic_long_add_return(total_scan,
+-					&shrinker->nr_in_batch);
+-		else
+-			new_nr = atomic_long_read(&shrinker->nr_in_batch);
+-
+-		trace_mm_shrink_slab_end(shrinker, freed, nr, new_nr);
+ 	}
+ 	up_read(&shrinker_rwsem);
+ out:
 _
 
-Patches currently in -mm which might be from dchinner@redhat.com are
+Patches currently in -mm which might be from glommer@openvz.org are
 
-linux-next.patch
 fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
 dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
 dentry-move-to-per-sb-lru-locks.patch
 dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
 dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
-mm-new-shrinker-api.patch
 shrinker-convert-superblock-shrinkers-to-new-api.patch
 list-add-a-new-lru-list-type.patch
 inode-convert-inode-lru-list-to-generic-lru-list-code.patch
@@ -397,7 +452,6 @@ list_lru-per-node-list-infrastructure.patch
 shrinker-add-node-awareness.patch
 vmscan-per-node-deferred-work.patch
 list_lru-per-node-api.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
 xfs-convert-buftarg-lru-to-generic-code.patch
 xfs-rework-buffer-dispose-list-tracking.patch
 xfs-convert-dquot-cache-lru-to-list_lru.patch
@@ -413,7 +467,9 @@ lru-add-an-element-to-a-memcg-list.patch
 list_lru-per-memcg-walks.patch
 memcg-per-memcg-kmem-shrinking.patch
 memcg-scan-cache-objects-hierarchically.patch
+vmscan-take-at-least-one-pass-with-shrinkers.patch
 super-targeted-memcg-reclaim.patch
 memcg-move-initialization-to-memcg-creation.patch
+vmpressure-in-kernel-notifications.patch
 memcg-reap-dead-memcgs-upon-global-memory-pressure.patch
 
