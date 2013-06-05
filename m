@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch added to
- -mm tree
-Date: Wed, 05 Jun 2013 16:28:48 -0700
-Message-ID: <51afc9b0.Tt6yULo/KlYDRlkW%akpm@linux-foundation.org>
+Subject: + clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch added to -mm tree
+Date: Wed, 05 Jun 2013 16:48:12 -0700
+Message-ID: <51afce3c.XTDQrlKlBllZtIkg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41371 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757412Ab3FEX2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:28:49 -0400
+	with ESMTP id S1753347Ab3FEXsN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:48:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, youquan.song@intel.com, greg@kroah.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, ursula.braun@de.ibm.com, schwidefsky@de.ibm.com, richard@nod.at, rafael.j.wysocki@intel.com, keescook@chromium.org, heiko.carstens@de.ibm.com, gregkh@linuxfoundation.org, blaschka@linux.vnet.ibm.com, akpm@linux-foundation.org
 
-Subject: + drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,greg@kroah.com,youquan.song@intel.com
+Subject: + clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,blaschka@linux.vnet.ibm.com,gregkh@linuxfoundation.org,heiko.carstens@de.ibm.com,keescook@chromium.org,rafael.j.wysocki@intel.com,richard@nod.at,schwidefsky@de.ibm.com,ursula.braun@de.ibm.com
 From: akpm@linux-foundation.org
-Date: Wed, 05 Jun 2013 16:28:48 -0700
+Date: Wed, 05 Jun 2013 16:48:12 -0700
 
 
 The patch titled
-     Subject: drivers-base-cpuc-fix-maxcpus-boot-option-fix
+     Subject: clean-up-scary-strncpydst-src-strlensrc-uses-fix
 has been added to the -mm tree.  Its filename is
-     drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+     clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +39,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-base-cpuc-fix-maxcpus-boot-option-fix
+Subject: clean-up-scary-strncpydst-src-strlensrc-uses-fix
 
-fix CONFIG_SMP=n build
+revert getdelays.c part due to missing bsd/string.h
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Youquan Song <youquan.song@intel.com>
+Cc: Frank Blaschka <blaschka@linux.vnet.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>	[staging]
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>	[acpi]
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Ursula Braun <ursula.braun@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/cpu.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/accounting/getdelays.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option-fix drivers/base/cpu.c
---- a/drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option-fix
-+++ a/drivers/base/cpu.c
-@@ -275,9 +275,11 @@ int __cpuinit register_cpu(struct cpu *c
- {
- 	int error;
+diff -puN Documentation/accounting/getdelays.c~clean-up-scary-strncpydst-src-strlensrc-uses-fix Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~clean-up-scary-strncpydst-src-strlensrc-uses-fix
++++ a/Documentation/accounting/getdelays.c
+@@ -23,7 +23,6 @@
+ #include <sys/socket.h>
+ #include <sys/wait.h>
+ #include <signal.h>
+-#include <bsd/string.h>
  
-+#ifdef CONFIG_SMP
- 	/* return when cpu number greater than maximum number of CPUs */
- 	if (num >= setup_max_cpus)
- 		return 0;
-+#endif
- 
- 	cpu->node_id = cpu_to_node(num);
- 	memset(&cpu->dev, 0x00, sizeof(struct device));
+ #include <linux/genetlink.h>
+ #include <linux/taskstats.h>
+@@ -300,7 +299,7 @@ int main(int argc, char *argv[])
+ 			break;
+ 		case 'C':
+ 			containerset = 1;
+-			strlcpy(containerpath, optarg, sizeof(containerpath));
++			strncpy(containerpath, optarg, strlen(optarg) + 1);
+ 			break;
+ 		case 'w':
+ 			logfile = strdup(optarg);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +109,7 @@ dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
 include-linux-mmzoneh-cleanups.patch
 include-linux-mmzoneh-cleanups-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
 dump_stack-serialize-the-output-from-dump_stack-fix.patch
 panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
 rbtree-remove-unneeded-include-fix.patch
