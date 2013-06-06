@@ -1,134 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch added to -mm tree
-Date: Wed, 05 Jun 2013 16:48:12 -0700
-Message-ID: <51afce3c.XTDQrlKlBllZtIkg%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch removed from -mm tree
+Date: Wed, 05 Jun 2013 17:13:14 -0700
+Message-ID: <51afd41a.YTOKXuK6GazYqIsK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41371 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41501 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753347Ab3FEXsN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 19:48:13 -0400
+	with ESMTP id S1754194Ab3FFANP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jun 2013 20:13:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ursula.braun@de.ibm.com, schwidefsky@de.ibm.com, richard@nod.at, rafael.j.wysocki@intel.com, keescook@chromium.org, heiko.carstens@de.ibm.com, gregkh@linuxfoundation.org, blaschka@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, aneesh.kumar@linux.vnet.ibm.com
 
-Subject: + clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,blaschka@linux.vnet.ibm.com,gregkh@linuxfoundation.org,heiko.carstens@de.ibm.com,keescook@chromium.org,rafael.j.wysocki@intel.com,richard@nod.at,schwidefsky@de.ibm.com,ursula.braun@de.ibm.com
+Subject: [folded-merged] mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch removed from -mm tree
+To: aneesh.kumar@linux.vnet.ibm.com,fengguang.wu@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Jun 2013 16:48:12 -0700
+Date: Wed, 05 Jun 2013 17:13:14 -0700
 
 
 The patch titled
-     Subject: clean-up-scary-strncpydst-src-strlensrc-uses-fix
-has been added to the -mm tree.  Its filename is
-     clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+     Subject: mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
+has been removed from the -mm tree.  Its filename was
+     mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: clean-up-scary-strncpydst-src-strlensrc-uses-fix
+From: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
 
-revert getdelays.c part due to missing bsd/string.h
+s390: Fix build error
 
-Cc: Frank Blaschka <blaschka@linux.vnet.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>	[staging]
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>	[acpi]
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Ursula Braun <ursula.braun@de.ibm.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/s390/include/asm/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/accounting/getdelays.c~clean-up-scary-strncpydst-src-strlensrc-uses-fix Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~clean-up-scary-strncpydst-src-strlensrc-uses-fix
-+++ a/Documentation/accounting/getdelays.c
-@@ -23,7 +23,6 @@
- #include <sys/socket.h>
- #include <sys/wait.h>
- #include <signal.h>
--#include <bsd/string.h>
+diff -puN arch/s390/include/asm/pgtable.h~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~mm-thp-withdraw-the-pgtable-after-pmdp-related-operations-fix
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1348,7 +1348,7 @@ static inline pmd_t pmd_mkwrite(pmd_t pm
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
  
- #include <linux/genetlink.h>
- #include <linux/taskstats.h>
-@@ -300,7 +299,7 @@ int main(int argc, char *argv[])
- 			break;
- 		case 'C':
- 			containerset = 1;
--			strlcpy(containerpath, optarg, sizeof(containerpath));
-+			strncpy(containerpath, optarg, strlen(optarg) + 1);
- 			break;
- 		case 'w':
- 			logfile = strdup(optarg);
+ #define __HAVE_ARCH_PGTABLE_DEPOSIT
+-extern void pgtable_trans_huge_deposit(struct mm_struct *mm, , pmd_t *pmdp,
++extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 				       pgtable_t pgtable);
+ 
+ #define __HAVE_ARCH_PGTABLE_WITHDRAW
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-thp-use-the-right-function-when-updating-access-flags.patch
+mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch
+mm-thp-withdraw-the-pgtable-after-pmdp-related-operations.patch
+mm-thp-dont-use-hpage_shift-in-transparent-hugepage-code.patch
+mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch
 
