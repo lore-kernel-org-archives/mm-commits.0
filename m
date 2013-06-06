@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-rework-buffer-dispose-list-tracking.patch added to -mm tree
-Date: Thu, 06 Jun 2013 14:11:43 -0700
-Message-ID: <51b0fb0f.Y8v+mYZedRSg36Ia%akpm@linux-foundation.org>
+Subject: + fs-convert-fs-shrinkers-to-new-scan-count-api.patch added to
+ -mm tree
+Date: Thu, 06 Jun 2013 14:11:48 -0700
+Message-ID: <51b0fb14.DLrlHEea1xNaKEqy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53300 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53335 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752981Ab3FFVLp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:11:45 -0400
+	with ESMTP id S1753117Ab3FFVLt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:11:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
 
-Subject: + xfs-rework-buffer-dispose-list-tracking.patch added to -mm tree
+Subject: + fs-convert-fs-shrinkers-to-new-scan-count-api.patch added to -mm tree
 To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 14:11:43 -0700
+Date: Thu, 06 Jun 2013 14:11:48 -0700
 
 
 The patch titled
-     Subject: xfs: rework buffer dispose list tracking
+     Subject: fs: convert fs shrinkers to new scan/count API
 has been added to the -mm tree.  Its filename is
-     xfs-rework-buffer-dispose-list-tracking.patch
+     fs-convert-fs-shrinkers-to-new-scan-count-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +40,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dave Chinner <dchinner@redhat.com>
-Subject: xfs: rework buffer dispose list tracking
+Subject: fs: convert fs shrinkers to new scan/count API
 
-In converting the buffer lru lists to use the generic code, the locking
-for marking the buffers as on the dispose list was lost.  This results in
-confusion in LRU buffer tracking and acocunting, resulting in reference
-counts being mucked up and filesystem beig unmountable.
+Convert the filesystem shrinkers to use the new API, and standardise some
+of the behaviours of the shrinkers at the same time.  For example,
+nr_to_scan means the number of objects to scan, not the number of objects
+to free.
 
-To fix this, introduce an internal buffer spinlock to protect the state
-field that holds the dispose list information.  Because there is now
-locking needed around xfs_buf_lru_add/del, and they are used in exactly
-one place each two lines apart, get rid of the wrappers and code the logic
-directly in place.
+I refactored the CIFS idmap shrinker a little - it really needs to be
+broken up into a shrinker per tree and keep an item count with the tree
+root so that we don't need to walk the tree every time the shrinker needs
+to count the number of objects in the tree (i.e.  all the time under
+memory pressure).
 
-Further, the LRU emptying code used on unmount is less than optimal. 
-Convert it to use a dispose list as per a normal shrinker walk, and repeat
-the walk that fills the dispose list until the LRU is empty.  Thi avoids
-needing to drop and regain the LRU lock for every item being freed, and
-allows the same logic as the shrinker isolate call to be used.  Simpler,
-easier to understand.
-
+[glommer@openvz.org: fixes for ext4, ubifs, nfs, cifs and glock. Fixes are needed mainly due to new code merged in the tree]
 Signed-off-by: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Glauber Costa <glommer@openvz.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Acked-by: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -88,241 +88,601 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_buf.c |  125 +++++++++++++++++++++++++--------------------
- fs/xfs/xfs_buf.h |   12 ++--
- 2 files changed, 79 insertions(+), 58 deletions(-)
+ fs/ext4/extents_status.c |   30 ++++++++++++++---------
+ fs/gfs2/glock.c          |   28 +++++++++++++---------
+ fs/gfs2/main.c           |    3 +-
+ fs/gfs2/quota.c          |   14 ++++++-----
+ fs/gfs2/quota.h          |    4 ++-
+ fs/mbcache.c             |   47 ++++++++++++++++++++-----------------
+ fs/nfs/dir.c             |   14 ++++++++---
+ fs/nfs/internal.h        |    4 ++-
+ fs/nfs/super.c           |    3 +-
+ fs/nfsd/nfscache.c       |   31 +++++++++++++++++-------
+ fs/quota/dquot.c         |   29 ++++++++--------------
+ fs/ubifs/shrinker.c      |   22 ++++++++++-------
+ fs/ubifs/super.c         |    3 +-
+ fs/ubifs/ubifs.h         |    3 +-
+ 14 files changed, 140 insertions(+), 95 deletions(-)
 
-diff -puN fs/xfs/xfs_buf.c~xfs-rework-buffer-dispose-list-tracking fs/xfs/xfs_buf.c
---- a/fs/xfs/xfs_buf.c~xfs-rework-buffer-dispose-list-tracking
-+++ a/fs/xfs/xfs_buf.c
-@@ -80,37 +80,6 @@ xfs_buf_vmap_len(
+diff -puN fs/ext4/extents_status.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/ext4/extents_status.c
+--- a/fs/ext4/extents_status.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/ext4/extents_status.c
+@@ -878,20 +878,26 @@ int ext4_es_zeroout(struct inode *inode,
+ 				     EXTENT_STATUS_WRITTEN);
  }
+ 
+-static int ext4_es_shrink(struct shrinker *shrink, struct shrink_control *sc)
++
++static long ext4_es_count(struct shrinker *shrink, struct shrink_control *sc)
++{
++	long nr;
++	struct ext4_sb_info *sbi = container_of(shrink,
++					struct ext4_sb_info, s_es_shrinker);
++
++	nr = percpu_counter_read_positive(&sbi->s_extent_cache_cnt);
++	trace_ext4_es_shrink_enter(sbi->s_sb, sc->nr_to_scan, nr);
++	return nr;
++}
++
++static long ext4_es_scan(struct shrinker *shrink, struct shrink_control *sc)
+ {
+ 	struct ext4_sb_info *sbi = container_of(shrink,
+ 					struct ext4_sb_info, s_es_shrinker);
+ 	struct ext4_inode_info *ei;
+ 	struct list_head *cur, *tmp, scanned;
+ 	int nr_to_scan = sc->nr_to_scan;
+-	int ret, nr_shrunk = 0;
+-
+-	ret = percpu_counter_read_positive(&sbi->s_extent_cache_cnt);
+-	trace_ext4_es_shrink_enter(sbi->s_sb, nr_to_scan, ret);
+-
+-	if (!nr_to_scan)
+-		return ret;
++	int ret = 0, nr_shrunk = 0;
+ 
+ 	INIT_LIST_HEAD(&scanned);
+ 
+@@ -920,9 +926,8 @@ static int ext4_es_shrink(struct shrinke
+ 	list_splice_tail(&scanned, &sbi->s_es_lru);
+ 	spin_unlock(&sbi->s_es_lru_lock);
+ 
+-	ret = percpu_counter_read_positive(&sbi->s_extent_cache_cnt);
+ 	trace_ext4_es_shrink_exit(sbi->s_sb, nr_shrunk, ret);
+-	return ret;
++	return nr_shrunk;
+ }
+ 
+ void ext4_es_register_shrinker(struct super_block *sb)
+@@ -932,7 +937,8 @@ void ext4_es_register_shrinker(struct su
+ 	sbi = EXT4_SB(sb);
+ 	INIT_LIST_HEAD(&sbi->s_es_lru);
+ 	spin_lock_init(&sbi->s_es_lru_lock);
+-	sbi->s_es_shrinker.shrink = ext4_es_shrink;
++	sbi->s_es_shrinker.scan_objects = ext4_es_scan;
++	sbi->s_es_shrinker.count_objects = ext4_es_count;
+ 	sbi->s_es_shrinker.seeks = DEFAULT_SEEKS;
+ 	register_shrinker(&sbi->s_es_shrinker);
+ }
+@@ -973,7 +979,7 @@ static int __es_try_to_reclaim_extents(s
+ 	struct ext4_es_tree *tree = &ei->i_es_tree;
+ 	struct rb_node *node;
+ 	struct extent_status *es;
+-	int nr_shrunk = 0;
++	long nr_shrunk = 0;
+ 
+ 	if (ei->i_es_lru_nr == 0)
+ 		return 0;
+diff -puN fs/gfs2/glock.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/gfs2/glock.c
+@@ -1428,21 +1428,22 @@ __acquires(&lru_lock)
+  * gfs2_dispose_glock_lru() above.
+  */
+ 
+-static void gfs2_scan_glock_lru(int nr)
++static long gfs2_scan_glock_lru(int nr)
+ {
+ 	struct gfs2_glock *gl;
+ 	LIST_HEAD(skipped);
+ 	LIST_HEAD(dispose);
++	long freed = 0;
+ 
+ 	spin_lock(&lru_lock);
+-	while(nr && !list_empty(&lru_list)) {
++	while ((nr-- >= 0) && !list_empty(&lru_list)) {
+ 		gl = list_entry(lru_list.next, struct gfs2_glock, gl_lru);
+ 
+ 		/* Test for being demotable */
+ 		if (!test_and_set_bit(GLF_LOCK, &gl->gl_flags)) {
+ 			list_move(&gl->gl_lru, &dispose);
+ 			atomic_dec(&lru_count);
+-			nr--;
++			freed++;
+ 			continue;
+ 		}
+ 
+@@ -1452,23 +1453,28 @@ static void gfs2_scan_glock_lru(int nr)
+ 	if (!list_empty(&dispose))
+ 		gfs2_dispose_glock_lru(&dispose);
+ 	spin_unlock(&lru_lock);
++
++	return freed;
+ }
+ 
+-static int gfs2_shrink_glock_memory(struct shrinker *shrink,
+-				    struct shrink_control *sc)
++static long gfs2_glock_shrink_scan(struct shrinker *shrink,
++				   struct shrink_control *sc)
+ {
+-	if (sc->nr_to_scan) {
+-		if (!(sc->gfp_mask & __GFP_FS))
+-			return -1;
+-		gfs2_scan_glock_lru(sc->nr_to_scan);
+-	}
++	if (!(sc->gfp_mask & __GFP_FS))
++		return SHRINK_STOP;
++	return gfs2_scan_glock_lru(sc->nr_to_scan);
++}
+ 
++static long gfs2_glock_shrink_count(struct shrinker *shrink,
++				    struct shrink_control *sc)
++{
+ 	return vfs_pressure_ratio(atomic_read(&lru_count));
+ }
+ 
+ static struct shrinker glock_shrinker = {
+-	.shrink = gfs2_shrink_glock_memory,
+ 	.seeks = DEFAULT_SEEKS,
++	.count_objects = gfs2_glock_shrink_count,
++	.scan_objects = gfs2_glock_shrink_scan,
+ };
+ 
+ /**
+diff -puN fs/gfs2/main.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/gfs2/main.c
+--- a/fs/gfs2/main.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/gfs2/main.c
+@@ -32,7 +32,8 @@
+ struct workqueue_struct *gfs2_control_wq;
+ 
+ static struct shrinker qd_shrinker = {
+-	.shrink = gfs2_shrink_qd_memory,
++	.count_objects = gfs2_qd_shrink_count,
++	.scan_objects = gfs2_qd_shrink_scan,
+ 	.seeks = DEFAULT_SEEKS,
+ };
+ 
+diff -puN fs/gfs2/quota.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/gfs2/quota.c
+--- a/fs/gfs2/quota.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/gfs2/quota.c
+@@ -75,17 +75,15 @@ static LIST_HEAD(qd_lru_list);
+ static atomic_t qd_lru_count = ATOMIC_INIT(0);
+ static DEFINE_SPINLOCK(qd_lru_lock);
+ 
+-int gfs2_shrink_qd_memory(struct shrinker *shrink, struct shrink_control *sc)
++long gfs2_qd_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
+ {
+ 	struct gfs2_quota_data *qd;
+ 	struct gfs2_sbd *sdp;
+ 	int nr_to_scan = sc->nr_to_scan;
+-
+-	if (nr_to_scan == 0)
+-		goto out;
++	long freed = 0;
+ 
+ 	if (!(sc->gfp_mask & __GFP_FS))
+-		return -1;
++		return SHRINK_STOP;
+ 
+ 	spin_lock(&qd_lru_lock);
+ 	while (nr_to_scan && !list_empty(&qd_lru_list)) {
+@@ -110,10 +108,14 @@ int gfs2_shrink_qd_memory(struct shrinke
+ 		kmem_cache_free(gfs2_quotad_cachep, qd);
+ 		spin_lock(&qd_lru_lock);
+ 		nr_to_scan--;
++		freed++;
+ 	}
+ 	spin_unlock(&qd_lru_lock);
++	return freed;
++}
+ 
+-out:
++long gfs2_qd_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
++{
+ 	return vfs_pressure_ratio(atomic_read(&qd_lru_count));
+ }
+ 
+diff -puN fs/gfs2/quota.h~fs-convert-fs-shrinkers-to-new-scan-count-api fs/gfs2/quota.h
+--- a/fs/gfs2/quota.h~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/gfs2/quota.h
+@@ -53,7 +53,9 @@ static inline int gfs2_quota_lock_check(
+ 	return ret;
+ }
+ 
+-extern int gfs2_shrink_qd_memory(struct shrinker *shrink,
++extern long gfs2_qd_shrink_count(struct shrinker *shrink,
++				 struct shrink_control *sc);
++extern long gfs2_qd_shrink_scan(struct shrinker *shrink,
+ 				 struct shrink_control *sc);
+ extern const struct quotactl_ops gfs2_quotactl_ops;
+ 
+diff -puN fs/mbcache.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/mbcache.c
+--- a/fs/mbcache.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/mbcache.c
+@@ -86,18 +86,6 @@ static LIST_HEAD(mb_cache_list);
+ static LIST_HEAD(mb_cache_lru_list);
+ static DEFINE_SPINLOCK(mb_cache_spinlock);
+ 
+-/*
+- * What the mbcache registers as to get shrunk dynamically.
+- */
+-
+-static int mb_cache_shrink_fn(struct shrinker *shrink,
+-			      struct shrink_control *sc);
+-
+-static struct shrinker mb_cache_shrinker = {
+-	.shrink = mb_cache_shrink_fn,
+-	.seeks = DEFAULT_SEEKS,
+-};
+-
+ static inline int
+ __mb_cache_entry_is_hashed(struct mb_cache_entry *ce)
+ {
+@@ -151,7 +139,7 @@ forget:
+ 
  
  /*
-- * xfs_buf_lru_add - add a buffer to the LRU.
-- *
-- * The LRU takes a new reference to the buffer so that it will only be freed
-- * once the shrinker takes the buffer off the LRU.
-- */
--static void
--xfs_buf_lru_add(
--	struct xfs_buf	*bp)
--{
--	if (list_lru_add(&bp->b_target->bt_lru, &bp->b_lru)) {
--		bp->b_lru_flags &= ~_XBF_LRU_DISPOSE;
--		atomic_inc(&bp->b_hold);
--	}
--}
--
--/*
-- * xfs_buf_lru_del - remove a buffer from the LRU
-- *
-- * The unlocked check is safe here because it only occurs when there are not
-- * b_lru_ref counts left on the inode under the pag->pag_buf_lock. it is there
-- * to optimise the shrinker removing the buffer from the LRU and calling
-- * xfs_buf_free().
-- */
--static void
--xfs_buf_lru_del(
--	struct xfs_buf	*bp)
--{
--	list_lru_del(&bp->b_target->bt_lru, &bp->b_lru);
--}
--
--/*
-  * When we mark a buffer stale, we remove the buffer from the LRU and clear the
-  * b_lru_ref count so that the buffer is freed immediately when the buffer
-  * reference count falls to zero. If the buffer is already on the LRU, we need
-@@ -133,12 +102,14 @@ xfs_buf_stale(
- 	 */
- 	bp->b_flags &= ~_XBF_DELWRI_Q;
- 
--	atomic_set(&(bp)->b_lru_ref, 0);
--	if (!(bp->b_lru_flags & _XBF_LRU_DISPOSE) &&
-+	spin_lock(&bp->b_lock);
-+	atomic_set(&bp->b_lru_ref, 0);
-+	if (!(bp->b_state & XFS_BSTATE_DISPOSE) &&
- 	    (list_lru_del(&bp->b_target->bt_lru, &bp->b_lru)))
- 		atomic_dec(&bp->b_hold);
- 
- 	ASSERT(atomic_read(&bp->b_hold) >= 1);
-+	spin_unlock(&bp->b_lock);
- }
- 
- static int
-@@ -202,6 +173,7 @@ _xfs_buf_alloc(
- 	INIT_LIST_HEAD(&bp->b_list);
- 	RB_CLEAR_NODE(&bp->b_rbnode);
- 	sema_init(&bp->b_sema, 0); /* held, no waiters */
-+	spin_lock_init(&bp->b_lock);
- 	XB_SET_OWNER(bp);
- 	bp->b_target = target;
- 	bp->b_flags = flags;
-@@ -891,12 +863,33 @@ xfs_buf_rele(
- 
- 	ASSERT(atomic_read(&bp->b_hold) > 0);
- 	if (atomic_dec_and_lock(&bp->b_hold, &pag->pag_buf_lock)) {
--		if (!(bp->b_flags & XBF_STALE) &&
--			   atomic_read(&bp->b_lru_ref)) {
--			xfs_buf_lru_add(bp);
-+		spin_lock(&bp->b_lock);
-+		if (!(bp->b_flags & XBF_STALE) && atomic_read(&bp->b_lru_ref)) {
-+			/*
-+			 * If the buffer is added to the LRU take a new
-+			 * reference to the buffer for the LRU and clear the
-+			 * (now stale) dispose list state flag
-+			 */
-+			if (list_lru_add(&bp->b_target->bt_lru, &bp->b_lru)) {
-+				bp->b_state &= ~XFS_BSTATE_DISPOSE;
-+				atomic_inc(&bp->b_hold);
-+			}
-+			spin_unlock(&bp->b_lock);
- 			spin_unlock(&pag->pag_buf_lock);
- 		} else {
--			xfs_buf_lru_del(bp);
-+			/*
-+			 * most of the time buffers will already be removed from
-+			 * the LRU, so optimise that case by checking for the
-+			 * XFS_BSTATE_DISPOSE flag indicating the last list the
-+			 * buffer was on was the disposal list
-+			 */
-+			if (!(bp->b_state & XFS_BSTATE_DISPOSE)) {
-+				list_lru_del(&bp->b_target->bt_lru, &bp->b_lru);
-+			} else {
-+				ASSERT(list_empty(&bp->b_lru));
-+			}
-+			spin_unlock(&bp->b_lock);
-+
- 			ASSERT(!(bp->b_flags & _XBF_DELWRI_Q));
- 			rb_erase(&bp->b_rbnode, &pag->pag_buf_tree);
- 			spin_unlock(&pag->pag_buf_lock);
-@@ -1484,33 +1477,48 @@ xfs_buftarg_wait_rele(
- 
+- * mb_cache_shrink_fn()  memory pressure callback
++ * mb_cache_shrink_scan()  memory pressure callback
+  *
+  * This function is called by the kernel memory management when memory
+  * gets low.
+@@ -159,17 +147,16 @@ forget:
+  * @shrink: (ignored)
+  * @sc: shrink_control passed from reclaim
+  *
+- * Returns the number of objects which are present in the cache.
++ * Returns the number of objects freed.
+  */
+-static int
+-mb_cache_shrink_fn(struct shrinker *shrink, struct shrink_control *sc)
++static long
++mb_cache_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
  {
- 	struct xfs_buf		*bp = container_of(item, struct xfs_buf, b_lru);
-+	struct list_head	*dispose = arg;
+ 	LIST_HEAD(free_list);
+-	struct mb_cache *cache;
+ 	struct mb_cache_entry *entry, *tmp;
+-	int count = 0;
+ 	int nr_to_scan = sc->nr_to_scan;
+ 	gfp_t gfp_mask = sc->gfp_mask;
++	long freed = 0;
  
- 	if (atomic_read(&bp->b_hold) > 1) {
--		/* need to wait */
-+		/* need to wait, so skip it this pass */
- 		trace_xfs_buf_wait_buftarg(bp, _RET_IP_);
--		spin_unlock(lru_lock);
--		delay(100);
--	} else {
--		/*
--		 * clear the LRU reference count so the buffer doesn't get
--		 * ignored in xfs_buf_rele().
--		 */
--		atomic_set(&bp->b_lru_ref, 0);
--		spin_unlock(lru_lock);
--		xfs_buf_rele(bp);
-+		return LRU_SKIP;
- 	}
-+	if (!spin_trylock(&bp->b_lock))
-+		return LRU_SKIP;
- 
--	spin_lock(lru_lock);
--	return LRU_RETRY;
-+	/*
-+	 * clear the LRU reference count so the buffer doesn't get
-+	 * ignored in xfs_buf_rele().
-+	 */
-+	atomic_set(&bp->b_lru_ref, 0);
-+	bp->b_state |= XFS_BSTATE_DISPOSE;
-+	list_move(item, dispose);
-+	spin_unlock(&bp->b_lock);
-+	return LRU_REMOVED;
- }
- 
- void
- xfs_wait_buftarg(
- 	struct xfs_buftarg	*btp)
- {
--	while (list_lru_count(&btp->bt_lru))
-+	LIST_HEAD(dispose);
-+	int loop = 0;
-+
-+	/* loop until there is nothing left on the lru list. */
-+	while (list_lru_count(&btp->bt_lru)) {
- 		list_lru_walk(&btp->bt_lru, xfs_buftarg_wait_rele,
--			      NULL, LONG_MAX);
-+			      &dispose, LONG_MAX);
-+
-+		while (!list_empty(&dispose)) {
-+			struct xfs_buf *bp;
-+			bp = list_first_entry(&dispose, struct xfs_buf, b_lru);
-+			list_del_init(&bp->b_lru);
-+			xfs_buf_rele(bp);
-+		}
-+		if (loop++ != 0)
-+			delay(100);
+ 	mb_debug("trying to free %d entries", nr_to_scan);
+ 	spin_lock(&mb_cache_spinlock);
+@@ -179,19 +166,37 @@ mb_cache_shrink_fn(struct shrinker *shri
+ 				   struct mb_cache_entry, e_lru_list);
+ 		list_move_tail(&ce->e_lru_list, &free_list);
+ 		__mb_cache_entry_unhash(ce);
++		freed++;
 +	}
++	spin_unlock(&mb_cache_spinlock);
++	list_for_each_entry_safe(entry, tmp, &free_list, e_lru_list) {
++		__mb_cache_entry_forget(entry, gfp_mask);
+ 	}
++	return freed;
++}
++
++static long
++mb_cache_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
++{
++	struct mb_cache *cache;
++	long count = 0;
++
++	spin_lock(&mb_cache_spinlock);
+ 	list_for_each_entry(cache, &mb_cache_list, c_cache_list) {
+ 		mb_debug("cache %s (%d)", cache->c_name,
+ 			  atomic_read(&cache->c_entry_count));
+ 		count += atomic_read(&cache->c_entry_count);
+ 	}
+ 	spin_unlock(&mb_cache_spinlock);
+-	list_for_each_entry_safe(entry, tmp, &free_list, e_lru_list) {
+-		__mb_cache_entry_forget(entry, gfp_mask);
+-	}
++
+ 	return vfs_pressure_ratio(count);
  }
  
- static enum lru_status
-@@ -1523,15 +1531,24 @@ xfs_buftarg_isolate(
- 	struct list_head	*dispose = arg;
++static struct shrinker mb_cache_shrinker = {
++	.count_objects = mb_cache_shrink_count,
++	.scan_objects = mb_cache_shrink_scan,
++	.seeks = DEFAULT_SEEKS,
++};
+ 
+ /*
+  * mb_cache_create()  create a new cache
+diff -puN fs/nfs/dir.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/nfs/dir.c
+--- a/fs/nfs/dir.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/nfs/dir.c
+@@ -1964,17 +1964,18 @@ static void nfs_access_free_list(struct
+ 	}
+ }
+ 
+-int nfs_access_cache_shrinker(struct shrinker *shrink,
+-			      struct shrink_control *sc)
++long
++nfs_access_cache_scan(struct shrinker *shrink, struct shrink_control *sc)
+ {
+ 	LIST_HEAD(head);
+ 	struct nfs_inode *nfsi, *next;
+ 	struct nfs_access_entry *cache;
+ 	int nr_to_scan = sc->nr_to_scan;
+ 	gfp_t gfp_mask = sc->gfp_mask;
++	long freed = 0;
+ 
+ 	if ((gfp_mask & GFP_KERNEL) != GFP_KERNEL)
+-		return (nr_to_scan == 0) ? 0 : -1;
++		return SHRINK_STOP;
+ 
+ 	spin_lock(&nfs_access_lru_lock);
+ 	list_for_each_entry_safe(nfsi, next, &nfs_access_lru_list, access_cache_inode_lru) {
+@@ -1990,6 +1991,7 @@ int nfs_access_cache_shrinker(struct shr
+ 				struct nfs_access_entry, lru);
+ 		list_move(&cache->lru, &head);
+ 		rb_erase(&cache->rb_node, &nfsi->access_cache);
++		freed++;
+ 		if (!list_empty(&nfsi->access_cache_entry_lru))
+ 			list_move_tail(&nfsi->access_cache_inode_lru,
+ 					&nfs_access_lru_list);
+@@ -2004,6 +2006,12 @@ remove_lru_entry:
+ 	}
+ 	spin_unlock(&nfs_access_lru_lock);
+ 	nfs_access_free_list(&head);
++	return freed;
++}
++
++long
++nfs_access_cache_count(struct shrinker *shrink, struct shrink_control *sc)
++{
+ 	return vfs_pressure_ratio(atomic_long_read(&nfs_access_nr_entries));
+ }
+ 
+diff -puN fs/nfs/internal.h~fs-convert-fs-shrinkers-to-new-scan-count-api fs/nfs/internal.h
+--- a/fs/nfs/internal.h~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/nfs/internal.h
+@@ -269,7 +269,9 @@ extern struct nfs_client *nfs_init_clien
+ 			   const char *ip_addr, rpc_authflavor_t authflavour);
+ 
+ /* dir.c */
+-extern int nfs_access_cache_shrinker(struct shrinker *shrink,
++extern long nfs_access_cache_count(struct shrinker *shrink,
++					struct shrink_control *sc);
++extern long nfs_access_cache_scan(struct shrinker *shrink,
+ 					struct shrink_control *sc);
+ struct dentry *nfs_lookup(struct inode *, struct dentry *, unsigned int);
+ int nfs_create(struct inode *, struct dentry *, umode_t, bool);
+diff -puN fs/nfs/super.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/nfs/super.c
+--- a/fs/nfs/super.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/nfs/super.c
+@@ -360,7 +360,8 @@ static void unregister_nfs4_fs(void)
+ #endif
+ 
+ static struct shrinker acl_shrinker = {
+-	.shrink		= nfs_access_cache_shrinker,
++	.count_objects	= nfs_access_cache_count,
++	.scan_objects	= nfs_access_cache_scan,
+ 	.seeks		= DEFAULT_SEEKS,
+ };
+ 
+diff -puN fs/nfsd/nfscache.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/nfsd/nfscache.c
+--- a/fs/nfsd/nfscache.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/nfsd/nfscache.c
+@@ -59,11 +59,14 @@ static unsigned int		longest_chain_cache
+ 
+ static int	nfsd_cache_append(struct svc_rqst *rqstp, struct kvec *vec);
+ static void	cache_cleaner_func(struct work_struct *unused);
+-static int 	nfsd_reply_cache_shrink(struct shrinker *shrink,
+-					struct shrink_control *sc);
++static long	nfsd_reply_cache_count(struct shrinker *shrink,
++				       struct shrink_control *sc);
++static long	nfsd_reply_cache_scan(struct shrinker *shrink,
++				      struct shrink_control *sc);
+ 
+ static struct shrinker nfsd_reply_cache_shrinker = {
+-	.shrink	= nfsd_reply_cache_shrink,
++	.scan_objects = nfsd_reply_cache_scan,
++	.count_objects = nfsd_reply_cache_count,
+ 	.seeks	= 1,
+ };
+ 
+@@ -232,16 +235,18 @@ nfsd_cache_entry_expired(struct svc_cach
+  * Walk the LRU list and prune off entries that are older than RC_EXPIRE.
+  * Also prune the oldest ones when the total exceeds the max number of entries.
+  */
+-static void
++static long
+ prune_cache_entries(void)
+ {
+ 	struct svc_cacherep *rp, *tmp;
++	long freed = 0;
+ 
+ 	list_for_each_entry_safe(rp, tmp, &lru_head, c_lru) {
+ 		if (!nfsd_cache_entry_expired(rp) &&
+ 		    num_drc_entries <= max_drc_entries)
+ 			break;
+ 		nfsd_reply_cache_free_locked(rp);
++		freed++;
+ 	}
  
  	/*
-+	 * we are inverting the lru lock/bp->b_lock here, so use a trylock.
-+	 * If we fail to get the lock, just skip it.
-+	 */
-+	if (!spin_trylock(&bp->b_lock))
-+		return LRU_SKIP;
-+	/*
- 	 * Decrement the b_lru_ref count unless the value is already
- 	 * zero. If the value is already zero, we need to reclaim the
- 	 * buffer, otherwise it gets another trip through the LRU.
- 	 */
--	if (!atomic_add_unless(&bp->b_lru_ref, -1, 0))
-+	if (!atomic_add_unless(&bp->b_lru_ref, -1, 0)) {
-+		spin_unlock(&bp->b_lock);
- 		return LRU_ROTATE;
-+	}
- 
--	bp->b_lru_flags |= _XBF_LRU_DISPOSE;
-+	bp->b_state |= XFS_BSTATE_DISPOSE;
- 	list_move(item, dispose);
-+	spin_unlock(&bp->b_lock);
- 	return LRU_REMOVED;
+@@ -254,6 +259,7 @@ prune_cache_entries(void)
+ 		cancel_delayed_work(&cache_cleaner);
+ 	else
+ 		mod_delayed_work(system_wq, &cache_cleaner, RC_EXPIRE);
++	return freed;
  }
  
-diff -puN fs/xfs/xfs_buf.h~xfs-rework-buffer-dispose-list-tracking fs/xfs/xfs_buf.h
---- a/fs/xfs/xfs_buf.h~xfs-rework-buffer-dispose-list-tracking
-+++ a/fs/xfs/xfs_buf.h
-@@ -60,7 +60,6 @@ typedef enum {
- #define _XBF_KMEM	 (1 << 21)/* backed by heap memory */
- #define _XBF_DELWRI_Q	 (1 << 22)/* buffer on a delwri queue */
- #define _XBF_COMPOUND	 (1 << 23)/* compound buffer */
--#define _XBF_LRU_DISPOSE (1 << 24)/* buffer being discarded */
+ static void
+@@ -264,20 +270,27 @@ cache_cleaner_func(struct work_struct *u
+ 	spin_unlock(&cache_lock);
+ }
  
- typedef unsigned int xfs_buf_flags_t;
+-static int
+-nfsd_reply_cache_shrink(struct shrinker *shrink, struct shrink_control *sc)
++static long
++nfsd_reply_cache_count(struct shrinker *shrink, struct shrink_control *sc)
+ {
+-	unsigned int num;
++	long num;
  
-@@ -79,8 +78,12 @@ typedef unsigned int xfs_buf_flags_t;
- 	{ _XBF_PAGES,		"PAGES" }, \
- 	{ _XBF_KMEM,		"KMEM" }, \
- 	{ _XBF_DELWRI_Q,	"DELWRI_Q" }, \
--	{ _XBF_COMPOUND,	"COMPOUND" }, \
--	{ _XBF_LRU_DISPOSE,	"LRU_DISPOSE" }
-+	{ _XBF_COMPOUND,	"COMPOUND" }
+ 	spin_lock(&cache_lock);
+-	if (sc->nr_to_scan)
+-		prune_cache_entries();
+ 	num = num_drc_entries;
+ 	spin_unlock(&cache_lock);
+ 
+ 	return num;
+ }
+ 
++static long
++nfsd_reply_cache_scan(struct shrinker *shrink, struct shrink_control *sc)
++{
++	long freed;
++	spin_lock(&cache_lock);
++	freed = prune_cache_entries();
++	spin_unlock(&cache_lock);
++	return freed;
++}
+ /*
+  * Walk an xdr_buf and get a CRC for at most the first RC_CSUMLEN bytes
+  */
+diff -puN fs/quota/dquot.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/quota/dquot.c
+--- a/fs/quota/dquot.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/quota/dquot.c
+@@ -687,44 +687,37 @@ int dquot_quota_sync(struct super_block
+ }
+ EXPORT_SYMBOL(dquot_quota_sync);
+ 
+-/* Free unused dquots from cache */
+-static void prune_dqcache(int count)
++static long
++dqcache_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
+ {
+ 	struct list_head *head;
+ 	struct dquot *dquot;
++	long freed = 0;
+ 
+ 	head = free_dquots.prev;
+-	while (head != &free_dquots && count) {
++	while (head != &free_dquots && sc->nr_to_scan) {
+ 		dquot = list_entry(head, struct dquot, dq_free);
+ 		remove_dquot_hash(dquot);
+ 		remove_free_dquot(dquot);
+ 		remove_inuse(dquot);
+ 		do_destroy_dquot(dquot);
+-		count--;
++		sc->nr_to_scan--;
++		freed++;
+ 		head = free_dquots.prev;
+ 	}
++	return freed;
+ }
+ 
+-/*
+- * This is called from kswapd when we think we need some
+- * more memory
+- */
+-static int shrink_dqcache_memory(struct shrinker *shrink,
+-				 struct shrink_control *sc)
++static long
++dqcache_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
+ {
+-	int nr = sc->nr_to_scan;
+-
+-	if (nr) {
+-		spin_lock(&dq_list_lock);
+-		prune_dqcache(nr);
+-		spin_unlock(&dq_list_lock);
+-	}
+ 	return vfs_pressure_ratio(
+ 	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
+ }
+ 
+ static struct shrinker dqcache_shrinker = {
+-	.shrink = shrink_dqcache_memory,
++	.count_objects = dqcache_shrink_count,
++	.scan_objects = dqcache_shrink_scan,
+ 	.seeks = DEFAULT_SEEKS,
+ };
+ 
+diff -puN fs/ubifs/shrinker.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/ubifs/shrinker.c
+--- a/fs/ubifs/shrinker.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/ubifs/shrinker.c
+@@ -277,19 +277,23 @@ static int kick_a_thread(void)
+ 	return 0;
+ }
+ 
+-int ubifs_shrinker(struct shrinker *shrink, struct shrink_control *sc)
++long ubifs_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
++{
++	long clean_zn_cnt = atomic_long_read(&ubifs_clean_zn_cnt);
 +
-+/*
-+ * Internal state flags.
-+ */
-+#define XFS_BSTATE_DISPOSE	 (1 << 0)	/* buffer being discarded */
++	/*
++	 * Due to the way UBIFS updates the clean znode counter it may
++	 * temporarily be negative.
++	 */
++	return clean_zn_cnt >= 0 ? clean_zn_cnt : 1;
++}
++
++long ubifs_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
+ {
+ 	int nr = sc->nr_to_scan;
+ 	int freed, contention = 0;
+ 	long clean_zn_cnt = atomic_long_read(&ubifs_clean_zn_cnt);
  
- typedef struct xfs_buftarg {
- 	dev_t			bt_dev;
-@@ -136,7 +139,8 @@ typedef struct xfs_buf {
- 	 * bt_lru_lock and not by b_sema
- 	 */
- 	struct list_head	b_lru;		/* lru list */
--	xfs_buf_flags_t		b_lru_flags;	/* internal lru status flags */
-+	spinlock_t		b_lock;		/* internal state lock */
-+	unsigned int		b_state;	/* internal state flags */
- 	wait_queue_head_t	b_waiters;	/* unpin waiters */
- 	struct list_head	b_list;
- 	struct xfs_perag	*b_pag;		/* contains rbtree root */
+-	if (nr == 0)
+-		/*
+-		 * Due to the way UBIFS updates the clean znode counter it may
+-		 * temporarily be negative.
+-		 */
+-		return clean_zn_cnt >= 0 ? clean_zn_cnt : 1;
+-
+ 	if (!clean_zn_cnt) {
+ 		/*
+ 		 * No clean znodes, nothing to reap. All we can do in this case
+@@ -316,7 +320,7 @@ int ubifs_shrinker(struct shrinker *shri
+ 
+ 	if (!freed && contention) {
+ 		dbg_tnc("freed nothing, but contention");
+-		return -1;
++		return SHRINK_STOP;
+ 	}
+ 
+ out:
+diff -puN fs/ubifs/super.c~fs-convert-fs-shrinkers-to-new-scan-count-api fs/ubifs/super.c
+--- a/fs/ubifs/super.c~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/ubifs/super.c
+@@ -49,7 +49,8 @@ struct kmem_cache *ubifs_inode_slab;
+ 
+ /* UBIFS TNC shrinker description */
+ static struct shrinker ubifs_shrinker_info = {
+-	.shrink = ubifs_shrinker,
++	.scan_objects = ubifs_shrink_scan,
++	.count_objects = ubifs_shrink_count,
+ 	.seeks = DEFAULT_SEEKS,
+ };
+ 
+diff -puN fs/ubifs/ubifs.h~fs-convert-fs-shrinkers-to-new-scan-count-api fs/ubifs/ubifs.h
+--- a/fs/ubifs/ubifs.h~fs-convert-fs-shrinkers-to-new-scan-count-api
++++ a/fs/ubifs/ubifs.h
+@@ -1624,7 +1624,8 @@ int ubifs_tnc_start_commit(struct ubifs_
+ int ubifs_tnc_end_commit(struct ubifs_info *c);
+ 
+ /* shrinker.c */
+-int ubifs_shrinker(struct shrinker *shrink, struct shrink_control *sc);
++long ubifs_shrink_scan(struct shrinker *shrink, struct shrink_control *sc);
++long ubifs_shrink_count(struct shrinker *shrink, struct shrink_control *sc);
+ 
+ /* commit.c */
+ int ubifs_bg_thread(void *info);
 _
 
 Patches currently in -mm which might be from dchinner@redhat.com are
