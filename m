@@ -1,226 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch removed from -mm
- tree
-Date: Thu, 06 Jun 2013 13:10:25 -0700
-Message-ID: <51b0ecb1.vR7H+MKZcbgV76W5%akpm@linux-foundation.org>
+Subject: +
+ mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch added to -mm tree
+Date: Thu, 06 Jun 2013 13:14:03 -0700
+Message-ID: <51b0ed8b.squpnOT69iQrIKGB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754194Ab3FFUK0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:10:26 -0400
+	with ESMTP id S1752830Ab3FFUOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, monstr@monstr.eu, liuj97@gmail.com, jiang.liu@huawei.com, fengguang.wu@intel.com, akpm@linux-foundation.org
 
-Subject: [failures] mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch removed from -mm tree
-To: zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: + mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,fengguang.wu@intel.com,jiang.liu@huawei.com,liuj97@gmail.com,monstr@monstr.eu
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 13:10:25 -0700
+Date: Thu, 06 Jun 2013 13:14:03 -0700
 
 
 The patch titled
-     Subject: mm: remove duplicated call to get_pfn_range_for_nid()
-has been removed from the -mm tree.  Its filename was
-     mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+     Subject: mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix
+has been added to the -mm tree.  Its filename is
+     mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm: remove duplicated call to get_pfn_range_for_nid()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix
 
-When calculating pages in a node,
-for each zone in that node, we will have
-  zone_spanned_pages_in_node
-    --> get_pfn_range_for_nid
-  zone_absent_pages_in_node
-    --> get_pfn_range_for_nid
+fix build
 
-That is to say, we call get_pfn_range_for_nid() to get start_pfn and
-end_pfn of the node for MAX_NR_ZONES * 2 times.  And this is totally
-unnecessary if we call get_pfn_range_for_nid() before zone_*_pages_in_node
-add two extra arguments node_start_pfn and node_end_pfn for
-zone_*_pages_in_node, then we can remove the get_pfn_range_in_node() in
-zone_*_pages_in_node.
-
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   40 +++++++++++++++++++++++++++++-----------
- 1 file changed, 29 insertions(+), 11 deletions(-)
+ arch/microblaze/mm/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid
-+++ a/mm/page_alloc.c
-@@ -4418,13 +4418,13 @@ static void __meminit adjust_zone_range_
-  */
- static unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long zone_type,
-+					unsigned long node_start_pfn,
-+					unsigned long node_end_pfn,
- 					unsigned long *ignored)
- {
--	unsigned long node_start_pfn, node_end_pfn;
- 	unsigned long zone_start_pfn, zone_end_pfn;
- 
--	/* Get the start and end of the node and zone */
--	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
-+	/* Get the start and end of the zone */
- 	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
- 	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
- 	adjust_zone_range_for_zone_movable(nid, zone_type,
-@@ -4479,14 +4479,14 @@ unsigned long __init absent_pages_in_ran
- /* Return the number of page frames in holes in a zone on a node */
- static unsigned long __meminit zone_absent_pages_in_node(int nid,
- 					unsigned long zone_type,
-+					unsigned long node_start_pfn,
-+					unsigned long node_end_pfn,
- 					unsigned long *ignored)
- {
- 	unsigned long zone_low = arch_zone_lowest_possible_pfn[zone_type];
- 	unsigned long zone_high = arch_zone_highest_possible_pfn[zone_type];
--	unsigned long node_start_pfn, node_end_pfn;
- 	unsigned long zone_start_pfn, zone_end_pfn;
- 
--	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
- 	zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
- 	zone_end_pfn = clamp(node_end_pfn, zone_low, zone_high);
- 
-@@ -4499,6 +4499,8 @@ static unsigned long __meminit zone_abse
- #else /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long zone_type,
-+					unsigned long node_start_pfn,
-+					unsigned long node_end_pfn,
- 					unsigned long *zones_size)
- {
- 	return zones_size[zone_type];
-@@ -4506,6 +4508,8 @@ static inline unsigned long __meminit zo
- 
- static inline unsigned long __meminit zone_absent_pages_in_node(int nid,
- 						unsigned long zone_type,
-+						unsigned long node_start_pfn,
-+						unsigned long node_end_pfn,
- 						unsigned long *zholes_size)
- {
- 	if (!zholes_size)
-@@ -4517,21 +4521,27 @@ static inline unsigned long __meminit zo
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- 
- static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
--		unsigned long *zones_size, unsigned long *zholes_size)
-+						unsigned long node_start_pfn,
-+						unsigned long node_end_pfn,
-+						unsigned long *zones_size,
-+						unsigned long *zholes_size)
- {
- 	unsigned long realtotalpages, totalpages = 0;
- 	enum zone_type i;
- 
- 	for (i = 0; i < MAX_NR_ZONES; i++)
- 		totalpages += zone_spanned_pages_in_node(pgdat->node_id, i,
--								zones_size);
-+							 node_start_pfn,
-+							 node_end_pfn,
-+							 zones_size);
- 	pgdat->node_spanned_pages = totalpages;
- 
- 	realtotalpages = totalpages;
- 	for (i = 0; i < MAX_NR_ZONES; i++)
- 		realtotalpages -=
- 			zone_absent_pages_in_node(pgdat->node_id, i,
--								zholes_size);
-+						  node_start_pfn, node_end_pfn,
-+						  zholes_size);
- 	pgdat->node_present_pages = realtotalpages;
- 	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
- 							realtotalpages);
-@@ -4640,6 +4650,7 @@ static unsigned long __paginginit calc_m
-  * NOTE: pgdat should get zeroed by caller.
-  */
- static void __paginginit free_area_init_core(struct pglist_data *pgdat,
-+		unsigned long node_start_pfn, unsigned long node_end_pfn,
- 		unsigned long *zones_size, unsigned long *zholes_size)
- {
- 	enum zone_type j;
-@@ -4661,8 +4672,11 @@ static void __paginginit free_area_init_
- 		struct zone *zone = pgdat->node_zones + j;
- 		unsigned long size, realsize, freesize, memmap_pages;
- 
--		size = zone_spanned_pages_in_node(nid, j, zones_size);
-+		size = zone_spanned_pages_in_node(nid, j, node_start_pfn,
-+						  node_end_pfn, zones_size);
- 		realsize = freesize = size - zone_absent_pages_in_node(nid, j,
-+								node_start_pfn,
-+								node_end_pfn,
- 								zholes_size);
- 
- 		/*
-@@ -4776,6 +4790,7 @@ void __paginginit free_area_init_node(in
- 		unsigned long node_start_pfn, unsigned long *zholes_size)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
-+	unsigned long start_pfn, end_pfn;
- 
- 	/* pg_data_t should be reset to zero when it's allocated */
- 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
-@@ -4783,7 +4798,9 @@ void __paginginit free_area_init_node(in
- 	pgdat->node_id = nid;
- 	pgdat->node_start_pfn = node_start_pfn;
- 	init_zone_allows_reclaim(nid);
--	calculate_node_totalpages(pgdat, zones_size, zholes_size);
-+	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-+	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
-+				  zones_size, zholes_size);
- 
- 	alloc_node_mem_map(pgdat);
- #ifdef CONFIG_FLAT_NODE_MEM_MAP
-@@ -4792,7 +4809,8 @@ void __paginginit free_area_init_node(in
- 		(unsigned long)pgdat->node_mem_map);
+diff -puN arch/microblaze/mm/init.c~mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix arch/microblaze/mm/init.c
+--- a/arch/microblaze/mm/init.c~mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix
++++ a/arch/microblaze/mm/init.c
+@@ -246,7 +246,7 @@ void __init mem_init(void)
+ 	highmem_setup();
  #endif
  
--	free_area_init_core(pgdat, zones_size, zholes_size);
-+	free_area_init_core(pgdat, start_pfn, end_pfn,
-+			    zones_size, zholes_size);
- }
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+-	mem_init_print_info(str);
++	mem_init_print_info(NULL);
+ #ifdef CONFIG_MMU
+ 	pr_info("Kernel virtual memory layout:\n");
+ 	pr_info("  * 0x%08lx..0x%08lx  : fixmap\n", FIXADDR_START, FIXADDR_TOP);
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
 vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
 vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-vmalloc-only-call-setup_vmalloc_vm-only-in-__get_vm_area_node.patch
-mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
-mm-vmalloc-remove-insert_vmalloc_vm.patch
-mm-vmalloc-use-clamp-to-simplify-code.patch
-dev-oldmem-remove-the-interface.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 dev-oldmem-remove-the-interface-fix.patch
-documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
-mips-remove-savemaxmem-parameter-setup.patch
-powerpc-remove-savemaxmem-parameter-setup.patch
-ia64-remove-setting-for-saved_max_pfn.patch
-s390-remove-setting-for-saved_max_pfn.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
