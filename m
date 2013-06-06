@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
- added to -mm tree
-Date: Thu, 06 Jun 2013 15:59:37 -0700
-Message-ID: <51b11459.CvjjtUlCAlbTTo7C%akpm@linux-foundation.org>
+Subject: + xfs-convert-dquot-cache-lru-to-list_lru-fix.patch added to -mm
+ tree
+Date: Thu, 06 Jun 2013 16:01:58 -0700
+Message-ID: <51b114e6.goDjLKARdS6OL0HM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54495 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908Ab3FFW7i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 18:59:38 -0400
+	with ESMTP id S1751136Ab3FFXCF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 19:02:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
 
-Subject: + drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch added to -mm tree
+Subject: + xfs-convert-dquot-cache-lru-to-list_lru-fix.patch added to -mm tree
 To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 15:59:37 -0700
+Date: Thu, 06 Jun 2013 16:01:58 -0700
 
 
 The patch titled
-     Subject: drivers-convert-shrinkers-to-new-count-scan-api-fix-2
+     Subject: xfs-convert-dquot-cache-lru-to-list_lru-fix
 has been added to the -mm tree.  Its filename is
-     drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+     xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-convert-shrinkers-to-new-count-scan-api-fix-2
+Subject: xfs-convert-dquot-cache-lru-to-list_lru-fix
 
 fix warnings
 
@@ -49,53 +49,39 @@ Cc: Glauber Costa <glommer@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ttm/ttm_page_alloc_dma.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/xfs/xfs_qm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpu/drm/ttm/ttm_page_alloc_dma.c~drivers-convert-shrinkers-to-new-count-scan-api-fix-2 drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
---- a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c~drivers-convert-shrinkers-to-new-count-scan-api-fix-2
-+++ a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
-@@ -1000,7 +1000,7 @@ EXPORT_SYMBOL_GPL(ttm_dma_unpopulate);
-  * I'm getting sadder as I hear more pathetical whimpers about needing per-pool
-  * shrinkers
-  */
+diff -puN fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru-fix fs/xfs/xfs_qm.c
+--- a/fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru-fix
++++ a/fs/xfs/xfs_qm.c
+@@ -718,7 +718,7 @@ out_unlock_dirty:
+ 	return 3;
+ }
+ 
 -static long
 +static unsigned long
- ttm_dma_pool_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
- {
- 	static atomic_t start_pool = ATOMIC_INIT(0);
-@@ -1008,7 +1008,7 @@ ttm_dma_pool_shrink_scan(struct shrinker
- 	unsigned pool_offset = atomic_add_return(1, &start_pool);
- 	unsigned shrink_pages = sc->nr_to_scan;
- 	struct device_pools *p;
--	long freed = 0;
-+	unsigned long freed = 0;
+ xfs_qm_shrink_scan(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
+@@ -726,7 +726,7 @@ xfs_qm_shrink_scan(
+ 	struct xfs_quotainfo	*qi = container_of(shrink,
+ 					struct xfs_quotainfo, qi_shrinker);
+ 	struct xfs_qm_isolate	isol;
+-	long			freed;
++	unsigned long		freed;
+ 	int			error;
+ 	unsigned long		nr_to_scan = sc->nr_to_scan;
  
- 	if (list_empty(&_manager->pools))
- 		return SHRINK_STOP;
-@@ -1037,11 +1037,11 @@ ttm_dma_pool_shrink_scan(struct shrinker
+@@ -754,7 +754,7 @@ xfs_qm_shrink_scan(
  	return freed;
  }
  
 -static long
 +static unsigned long
- ttm_dma_pool_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
- {
- 	struct device_pools *p;
--	long count = 0;
-+	unsigned long count = 0;
- 
- 	mutex_lock(&_manager->lock);
- 	list_for_each_entry(p, &_manager->pools, pools)
-@@ -1052,7 +1052,7 @@ ttm_dma_pool_shrink_count(struct shrinke
- 
- static void ttm_dma_pool_mm_shrink_init(struct ttm_pool_manager *manager)
- {
--	manager->mm_shrink.count_objects = &ttm_dma_pool_shrink_count;
-+	manager->mm_shrink.count_objects = ttm_dma_pool_shrink_count;
- 	manager->mm_shrink.scan_objects = &ttm_dma_pool_shrink_scan;
- 	manager->mm_shrink.seeks = 1;
- 	register_shrinker(&manager->mm_shrink);
+ xfs_qm_shrink_count(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,6 +112,7 @@ swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
 mm-correctly-update-zone-managed_pages-fix.patch
 shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
 xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
 fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
 drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
 drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
