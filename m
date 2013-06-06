@@ -1,50 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch removed from -mm tree
-Date: Thu, 06 Jun 2013 13:14:23 -0700
-Message-ID: <51b0ed9f.UAjVNxlop6l5JwY+%akpm@linux-foundation.org>
+Subject: +
+ mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch added to -mm tree
+Date: Thu, 06 Jun 2013 13:15:03 -0700
+Message-ID: <51b0edc7.X2SkWnRbld6fA1Cy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52543 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830Ab3FFUOY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:14:24 -0400
+	with ESMTP id S1752996Ab3FFUPD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:15:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, monstr@monstr.eu, liuj97@gmail.com, jiang.liu@huawei.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jiang.liu@huawei.com, liuj97@gmail.com
 
-Subject: [to-be-updated] mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,fengguang.wu@intel.com,jiang.liu@huawei.com,liuj97@gmail.com,monstr@monstr.eu,mm-commits@vger.kernel.org
+Subject: + mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch added to -mm tree
+To: liuj97@gmail.com,jiang.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 13:14:23 -0700
+Date: Thu, 06 Jun 2013 13:15:03 -0700
 
 
 The patch titled
-     Subject: mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix
-has been removed from the -mm tree.  Its filename was
+     Subject: mm, arch: fix two errors in calling mem_init_print_info()
+has been added to the -mm tree.  Its filename is
      mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix
+From: Jiang Liu <liuj97@gmail.com>
+Subject: mm, arch: fix two errors in calling mem_init_print_info()
 
-fix build
+Fix two errors in calling mem_init_print_info() caused by incidents.
 
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Michal Simek <monstr@monstr.eu>
+All error/warnings:
+
+   arch/microblaze/mm/init.c: In function 'mem_init':
+>> arch/microblaze/mm/init.c:249:22: error: 'str' undeclared (first use in this function)
+   arch/microblaze/mm/init.c:249:22: note: each undeclared identifier is reported only once for each function it appears in
+
+vim +/str +249 arch/microblaze/mm/init.c
+
+   243		/* this will put all memory onto the freelists */
+   244		free_all_bootmem();
+   245	#ifdef CONFIG_HIGHMEM
+   246		highmem_setup();
+   247	#endif
+   248
+ > 249		mem_init_print_info(str);
+   250	#ifdef CONFIG_MMU
+   251		pr_info("Kernel virtual memory layout:\n");
+   252		pr_info("  * 0x%08lx..0x%08lx  : fixmap\n", FIXADDR_START, FIXADDR_TOP);
+
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/arm64/mm/init.c      |    2 +-
  arch/microblaze/mm/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
+diff -puN arch/arm64/mm/init.c~mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix arch/arm64/mm/init.c
+--- a/arch/arm64/mm/init.c~mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix
++++ a/arch/arm64/mm/init.c
+@@ -282,7 +282,7 @@ void __init mem_init(void)
+ 	/* this will put all unused low memory onto the freelists */
+ 	free_all_bootmem();
+ 
+-	mem_init_print_info();
++	mem_init_print_info(NULL);
+ 
+ #define MLK(b, t) b, t, ((t) - (b)) >> 10
+ #define MLM(b, t) b, t, ((t) - (b)) >> 20
 diff -puN arch/microblaze/mm/init.c~mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix arch/microblaze/mm/init.c
 --- a/arch/microblaze/mm/init.c~mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix
 +++ a/arch/microblaze/mm/init.c
@@ -59,55 +97,83 @@ diff -puN arch/microblaze/mm/init.c~mm-microblaze-prepare-for-removing-num_physp
  	pr_info("  * 0x%08lx..0x%08lx  : fixmap\n", FIXADDR_START, FIXADDR_TOP);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liuj97@gmail.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-change-signature-of-free_reserved_area-to-fix-building-warnings.patch
+mm-enhance-free_reserved_area-to-support-poisoning-memory-with-zero.patch
+mm-arm64-kill-poison_init_mem.patch
+mm-x86-use-free_reserved_area-to-simplify-code.patch
+mm-tile-use-common-help-functions-to-free-reserved-pages.patch
+mm-fix-some-trivial-typos-in-comments.patch
+mm-use-managed_pages-to-calculate-default-zonelist-order.patch
+mm-accurately-calculate-zone-managed_pages-for-highmem-zones.patch
+mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages.patch
+mm-make-__free_pages_bootmem-only-available-at-boot-time.patch
+mm-correctly-update-zone-managed_pages.patch
 mm-correctly-update-zone-managed_pages-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-correctly-update-zone-managed_pages-fix-fix.patch
+mm-concentrate-modification-of-totalram_pages-into-the-mm-core.patch
+mm-report-available-pages-as-memtotal-for-each-numa-node.patch
+vmlinuxlds-add-comments-for-global-variables-and-clean-up-useless-declarations.patch
+avr32-normalize-global-variables-exported-by-vmlinuxlds.patch
+c6x-normalize-global-variables-exported-by-vmlinuxlds.patch
+h8300-normalize-global-variables-exported-by-vmlinuxlds.patch
+score-normalize-global-variables-exported-by-vmlinuxlds.patch
+tile-normalize-global-variables-exported-by-vmlinuxlds.patch
+uml-normalize-global-variables-exported-by-vmlinuxlds.patch
+mm-introduce-helper-function-mem_init_print_info-to-simplify-mem_init.patch
+mm-use-totalram_pages-instead-of-num_physpages-at-runtime.patch
+mm-hotplug-prepare-for-removing-num_physpages.patch
+mm-alpha-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-arc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-arm64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-avr32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-blackfin-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-c6x-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-cris-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-frv-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-h8300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-hexagon-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-m32r-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-m68k-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-metag-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-microblaze-prepare-for-removing-num_physpages-and-simplify-mem_init-fix.patch
+mm-mips-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-mn10300-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-openrisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-parisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-ppc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-s390-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-score-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-sh-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-tile-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-um-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-x86-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-xtensa-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-kill-global-variable-num_physpages.patch
+mm-introduce-helper-function-set_max_mapnr.patch
+mm-avr32-prepare-for-killing-free_all_bootmem_node.patch
+mm-ia64-prepare-for-killing-free_all_bootmem_node.patch
+mm-m32r-prepare-for-killing-free_all_bootmem_node.patch
+mm-m68k-prepare-for-killing-free_all_bootmem_node.patch
+mm-metag-prepare-for-killing-free_all_bootmem_node.patch
+mm-mips-prepare-for-killing-free_all_bootmem_node.patch
+mm-parisc-prepare-for-killing-free_all_bootmem_node.patch
+mm-ppc-prepare-for-killing-free_all_bootmem_node.patch
+mm-sh-prepare-for-killing-free_all_bootmem_node.patch
+mm-kill-free_all_bootmem_node.patch
+mm-alpha-unify-mem_init-for-both-uma-and-numa-architectures.patch
+mm-m68k-fix-build-warning-of-unused-variable.patch
+mm-alpha-clean-up-unused-valid_page.patch
+mm-arm-fix-stale-comment-about-valid_page.patch
+mm-cris-clean-up-unused-valid_page.patch
+mm-microblaze-clean-up-unused-valid_page.patch
+mm-unicore32-fix-stale-comment-about-valid_page.patch
+sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2.patch
 
