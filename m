@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch added
- to -mm tree
-Date: Thu, 06 Jun 2013 14:10:51 -0700
-Message-ID: <51b0fadb.0WQ5iN7czBqLVEu/%akpm@linux-foundation.org>
+Subject: + dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+ added to -mm tree
+Date: Thu, 06 Jun 2013 14:11:12 -0700
+Message-ID: <51b0faf0.qbKOO2KtFvVZf5FM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53041 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53053 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754119Ab3FFVKw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:10:52 -0400
+	with ESMTP id S1752101Ab3FFVLO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:11:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, gleb@redhat.com, david@fromorbit.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
 
-Subject: + super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch added to -mm tree
-To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,david@fromorbit.com,gleb@redhat.com,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
+Subject: + dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch added to -mm tree
+To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 14:10:51 -0700
+Date: Thu, 06 Jun 2013 14:11:12 -0700
 
 
 The patch titled
-     Subject: super: fix calculation of shrinkable objects for small numbers
+     Subject: dcache: convert dentry_stat.nr_unused to per-cpu counters
 has been added to the -mm tree.  Its filename is
-     super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+     dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +39,17 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@openvz.org>
-Subject: super: fix calculation of shrinkable objects for small numbers
+From: Dave Chinner <dchinner@redhat.com>
+Subject: dcache: convert dentry_stat.nr_unused to per-cpu counters
 
-The sysctl knob sysctl_vfs_cache_pressure is used to determine which
-percentage of the shrinkable objects in our cache we should actively try
-to shrink.
+Before we split up the dcache_lru_lock, the unused dentry counter needs to
+be made independent of the global dcache_lru_lock.  Convert it to per-cpu
+counters to do this.
 
-It works great in situations in which we have many objects (at least more
-than 100), because the aproximation errors will be negligible.  But if
-this is not the case, specially when total_objects < 100, we may end up
-concluding that we have no objects at all (total / 100 = 0, if total <
-100).
-
-This is certainly not the biggest killer in the world, but may matter in
-very low kernel memory situations.
-
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Glauber Costa <glommer@openvz.org>
-Reviewed-by: Carlos Maiolino <cmaiolino@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: eodore Ts'o" <tytso@mit.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -90,144 +77,93 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glock.c        |    2 +-
- fs/gfs2/quota.c        |    2 +-
- fs/mbcache.c           |    2 +-
- fs/nfs/dir.c           |    2 +-
- fs/quota/dquot.c       |    5 ++---
- fs/super.c             |   14 +++++++-------
- fs/xfs/xfs_qm.c        |    2 +-
- include/linux/dcache.h |    4 ++++
- 8 files changed, 18 insertions(+), 15 deletions(-)
+ fs/dcache.c |   30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
-diff -puN fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/gfs2/glock.c
-@@ -1463,7 +1463,7 @@ static int gfs2_shrink_glock_memory(stru
- 		gfs2_scan_glock_lru(sc->nr_to_scan);
- 	}
+diff -puN fs/dcache.c~dcache-convert-dentry_statnr_unused-to-per-cpu-counters fs/dcache.c
+--- a/fs/dcache.c~dcache-convert-dentry_statnr_unused-to-per-cpu-counters
++++ a/fs/dcache.c
+@@ -118,8 +118,22 @@ struct dentry_stat_t dentry_stat = {
+ };
  
--	return (atomic_read(&lru_count) / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(atomic_read(&lru_count));
+ static DEFINE_PER_CPU(long, nr_dentry);
++static DEFINE_PER_CPU(long, nr_dentry_unused);
+ 
+ #if defined(CONFIG_SYSCTL) && defined(CONFIG_PROC_FS)
++
++/*
++ * Here we resort to our own counters instead of using generic per-cpu counters
++ * for consistency with what the vfs inode code does. We are expected to harvest
++ * better code and performance by having our own specialized counters.
++ *
++ * Please note that the loop is done over all possible CPUs, not over all online
++ * CPUs. The reason for this is that we don't want to play games with CPUs going
++ * on and off. If one of them goes off, we will just keep their counters.
++ *
++ * glommer: See cffbc8a for details, and if you ever intend to change this,
++ * please update all vfs counters to match.
++ */
+ static long get_nr_dentry(void)
+ {
+ 	int i;
+@@ -129,10 +143,20 @@ static long get_nr_dentry(void)
+ 	return sum < 0 ? 0 : sum;
  }
  
- static struct shrinker glock_shrinker = {
-diff -puN fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/quota.c
---- a/fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/gfs2/quota.c
-@@ -114,7 +114,7 @@ int gfs2_shrink_qd_memory(struct shrinke
- 	spin_unlock(&qd_lru_lock);
- 
- out:
--	return (atomic_read(&qd_lru_count) * sysctl_vfs_cache_pressure) / 100;
-+	return vfs_pressure_ratio(atomic_read(&qd_lru_count));
++static long get_nr_dentry_unused(void)
++{
++	int i;
++	long sum = 0;
++	for_each_possible_cpu(i)
++		sum += per_cpu(nr_dentry_unused, i);
++	return sum < 0 ? 0 : sum;
++}
++
+ int proc_nr_dentry(ctl_table *table, int write, void __user *buffer,
+ 		   size_t *lenp, loff_t *ppos)
+ {
+ 	dentry_stat.nr_dentry = get_nr_dentry();
++	dentry_stat.nr_unused = get_nr_dentry_unused();
+ 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
  }
- 
- static u64 qd2index(struct gfs2_quota_data *qd)
-diff -puN fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/mbcache.c
---- a/fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/mbcache.c
-@@ -189,7 +189,7 @@ mb_cache_shrink_fn(struct shrinker *shri
- 	list_for_each_entry_safe(entry, tmp, &free_list, e_lru_list) {
- 		__mb_cache_entry_forget(entry, gfp_mask);
+ #endif
+@@ -312,7 +336,7 @@ static void dentry_lru_add(struct dentry
+ 		spin_lock(&dcache_lru_lock);
+ 		list_add(&dentry->d_lru, &dentry->d_sb->s_dentry_lru);
+ 		dentry->d_sb->s_nr_dentry_unused++;
+-		dentry_stat.nr_unused++;
++		this_cpu_inc(nr_dentry_unused);
+ 		spin_unlock(&dcache_lru_lock);
  	}
--	return (count / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(count);
  }
- 
- 
-diff -puN fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/nfs/dir.c
---- a/fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/nfs/dir.c
-@@ -2004,7 +2004,7 @@ remove_lru_entry:
- 	}
- 	spin_unlock(&nfs_access_lru_lock);
- 	nfs_access_free_list(&head);
--	return (atomic_long_read(&nfs_access_nr_entries) / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(atomic_long_read(&nfs_access_nr_entries));
- }
- 
- static void __nfs_access_zap_cache(struct nfs_inode *nfsi, struct list_head *head)
-diff -puN fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/quota/dquot.c
---- a/fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/quota/dquot.c
-@@ -719,9 +719,8 @@ static int shrink_dqcache_memory(struct
- 		prune_dqcache(nr);
- 		spin_unlock(&dq_list_lock);
- 	}
--	return ((unsigned)
--		percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS])
--		/100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(
-+	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
- }
- 
- static struct shrinker dqcache_shrinker = {
-diff -puN fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/super.c
---- a/fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/super.c
-@@ -82,13 +82,13 @@ static int prune_super(struct shrinker *
- 		int	inodes;
- 
- 		/* proportion the scan between the caches */
--		dentries = (sc->nr_to_scan * sb->s_nr_dentry_unused) /
--							total_objects;
--		inodes = (sc->nr_to_scan * sb->s_nr_inodes_unused) /
--							total_objects;
-+		dentries = mult_frac(sc->nr_to_scan, sb->s_nr_dentry_unused,
-+							total_objects);
-+		inodes = mult_frac(sc->nr_to_scan, sb->s_nr_inodes_unused,
-+							total_objects);
- 		if (fs_objects)
--			fs_objects = (sc->nr_to_scan * fs_objects) /
--							total_objects;
-+			fs_objects = mult_frac(sc->nr_to_scan, fs_objects,
-+							total_objects);
- 		/*
- 		 * prune the dcache first as the icache is pinned by it, then
- 		 * prune the icache, followed by the filesystem specific caches
-@@ -104,7 +104,7 @@ static int prune_super(struct shrinker *
- 				sb->s_nr_inodes_unused + fs_objects;
- 	}
- 
--	total_objects = (total_objects / 100) * sysctl_vfs_cache_pressure;
-+	total_objects = vfs_pressure_ratio(total_objects);
- 	drop_super(sb);
- 	return total_objects;
- }
-diff -puN fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/xfs/xfs_qm.c
---- a/fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/xfs/xfs_qm.c
-@@ -1605,7 +1605,7 @@ xfs_qm_shake(
- 	}
- 
- out:
--	return (qi->qi_lru_count / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(qi->qi_lru_count);
+@@ -322,7 +346,7 @@ static void __dentry_lru_del(struct dent
+ 	list_del_init(&dentry->d_lru);
+ 	dentry->d_flags &= ~DCACHE_SHRINK_LIST;
+ 	dentry->d_sb->s_nr_dentry_unused--;
+-	dentry_stat.nr_unused--;
++	this_cpu_dec(nr_dentry_unused);
  }
  
  /*
-diff -puN include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers include/linux/dcache.h
---- a/include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/include/linux/dcache.h
-@@ -411,4 +411,8 @@ static inline bool d_mountpoint(struct d
- 
- extern int sysctl_vfs_cache_pressure;
- 
-+static inline unsigned long vfs_pressure_ratio(unsigned long val)
-+{
-+	return mult_frac(val, sysctl_vfs_cache_pressure, 100);
-+}
- #endif	/* __LINUX_DCACHE_H */
+@@ -343,7 +367,7 @@ static void dentry_lru_move_list(struct
+ 	if (list_empty(&dentry->d_lru)) {
+ 		list_add_tail(&dentry->d_lru, list);
+ 		dentry->d_sb->s_nr_dentry_unused++;
+-		dentry_stat.nr_unused++;
++		this_cpu_inc(nr_dentry_unused);
+ 	} else {
+ 		list_move_tail(&dentry->d_lru, list);
+ 	}
 _
 
-Patches currently in -mm which might be from glommer@openvz.org are
+Patches currently in -mm which might be from dchinner@redhat.com are
 
+linux-next.patch
 fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
 dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
 dentry-move-to-per-sb-lru-locks.patch
 dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
 shrinker-convert-superblock-shrinkers-to-new-api.patch
 list-add-a-new-lru-list-type.patch
 inode-convert-inode-lru-list-to-generic-lru-list-code.patch
@@ -236,6 +172,7 @@ list_lru-per-node-list-infrastructure.patch
 list_lru-per-node-api.patch
 shrinker-add-node-awareness.patch
 vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
 xfs-convert-buftarg-lru-to-generic-code.patch
 xfs-rework-buffer-dispose-list-tracking.patch
 xfs-convert-dquot-cache-lru-to-list_lru.patch
