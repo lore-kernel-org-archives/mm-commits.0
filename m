@@ -1,95 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: [failures] drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch removed from -mm tree
-Date: Thu, 06 Jun 2013 13:09:14 -0700
-Message-ID: <51b0ec6a.eQzF6LTukCKS/fnX%akpm@linux-foundation.org>
+Subject: [failures]
+ mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch removed from -mm
+ tree
+Date: Thu, 06 Jun 2013 13:10:25 -0700
+Message-ID: <51b0ecb1.vR7H+MKZcbgV76W5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52424 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244Ab3FFUJP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:09:15 -0400
+	with ESMTP id S1754194Ab3FFUK0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:10:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, richardcochran@gmail.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com
 
-Subject: [failures] drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch removed from -mm tree
-To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,richardcochran@gmail.com,mm-commits@vger.kernel.org
+Subject: [failures] mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch removed from -mm tree
+To: zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 13:09:14 -0700
+Date: Thu, 06 Jun 2013 13:10:25 -0700
 
 
 The patch titled
-     Subject: drivers/ptp/ptp_pch.c: convert to module_pci_driver
+     Subject: mm: remove duplicated call to get_pfn_range_for_nid()
 has been removed from the -mm tree.  Its filename was
-     drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch
+     mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/ptp/ptp_pch.c: convert to module_pci_driver
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: mm: remove duplicated call to get_pfn_range_for_nid()
 
-Signed-off-by: Libo Chen <libo.chen@huawei.com>
-Cc: Richard Cochran <richardcochran@gmail.com>
+When calculating pages in a node,
+for each zone in that node, we will have
+  zone_spanned_pages_in_node
+    --> get_pfn_range_for_nid
+  zone_absent_pages_in_node
+    --> get_pfn_range_for_nid
+
+That is to say, we call get_pfn_range_for_nid() to get start_pfn and
+end_pfn of the node for MAX_NR_ZONES * 2 times.  And this is totally
+unnecessary if we call get_pfn_range_for_nid() before zone_*_pages_in_node
+add two extra arguments node_start_pfn and node_end_pfn for
+zone_*_pages_in_node, then we can remove the get_pfn_range_in_node() in
+zone_*_pages_in_node.
+
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ptp/ptp_pch.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ mm/page_alloc.c |   40 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 29 insertions(+), 11 deletions(-)
 
-diff -puN drivers/ptp/ptp_pch.c~drivers-ptp-ptp_pch-convert-to-module_pci_driver drivers/ptp/ptp_pch.c
---- a/drivers/ptp/ptp_pch.c~drivers-ptp-ptp_pch-convert-to-module_pci_driver
-+++ a/drivers/ptp/ptp_pch.c
-@@ -707,23 +707,7 @@ static struct pci_driver pch_driver = {
- 	.resume = pch_resume,
- };
+diff -puN mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid
++++ a/mm/page_alloc.c
+@@ -4418,13 +4418,13 @@ static void __meminit adjust_zone_range_
+  */
+ static unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
++					unsigned long node_start_pfn,
++					unsigned long node_end_pfn,
+ 					unsigned long *ignored)
+ {
+-	unsigned long node_start_pfn, node_end_pfn;
+ 	unsigned long zone_start_pfn, zone_end_pfn;
  
--static void __exit ptp_pch_exit(void)
--{
--	pci_unregister_driver(&pch_driver);
--}
--
--static s32 __init ptp_pch_init(void)
--{
--	s32 ret;
--
--	/* register the driver with the pci core */
--	ret = pci_register_driver(&pch_driver);
--
--	return ret;
--}
--
--module_init(ptp_pch_init);
--module_exit(ptp_pch_exit);
-+module_pci_driver(pch_driver);
+-	/* Get the start and end of the node and zone */
+-	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
++	/* Get the start and end of the zone */
+ 	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
+ 	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
+ 	adjust_zone_range_for_zone_movable(nid, zone_type,
+@@ -4479,14 +4479,14 @@ unsigned long __init absent_pages_in_ran
+ /* Return the number of page frames in holes in a zone on a node */
+ static unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 					unsigned long zone_type,
++					unsigned long node_start_pfn,
++					unsigned long node_end_pfn,
+ 					unsigned long *ignored)
+ {
+ 	unsigned long zone_low = arch_zone_lowest_possible_pfn[zone_type];
+ 	unsigned long zone_high = arch_zone_highest_possible_pfn[zone_type];
+-	unsigned long node_start_pfn, node_end_pfn;
+ 	unsigned long zone_start_pfn, zone_end_pfn;
  
- module_param_string(station,
- 		    pch_param.station, sizeof(pch_param.station), 0444);
+-	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
+ 	zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
+ 	zone_end_pfn = clamp(node_end_pfn, zone_low, zone_high);
+ 
+@@ -4499,6 +4499,8 @@ static unsigned long __meminit zone_abse
+ #else /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
++					unsigned long node_start_pfn,
++					unsigned long node_end_pfn,
+ 					unsigned long *zones_size)
+ {
+ 	return zones_size[zone_type];
+@@ -4506,6 +4508,8 @@ static inline unsigned long __meminit zo
+ 
+ static inline unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 						unsigned long zone_type,
++						unsigned long node_start_pfn,
++						unsigned long node_end_pfn,
+ 						unsigned long *zholes_size)
+ {
+ 	if (!zholes_size)
+@@ -4517,21 +4521,27 @@ static inline unsigned long __meminit zo
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 
+ static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
+-		unsigned long *zones_size, unsigned long *zholes_size)
++						unsigned long node_start_pfn,
++						unsigned long node_end_pfn,
++						unsigned long *zones_size,
++						unsigned long *zholes_size)
+ {
+ 	unsigned long realtotalpages, totalpages = 0;
+ 	enum zone_type i;
+ 
+ 	for (i = 0; i < MAX_NR_ZONES; i++)
+ 		totalpages += zone_spanned_pages_in_node(pgdat->node_id, i,
+-								zones_size);
++							 node_start_pfn,
++							 node_end_pfn,
++							 zones_size);
+ 	pgdat->node_spanned_pages = totalpages;
+ 
+ 	realtotalpages = totalpages;
+ 	for (i = 0; i < MAX_NR_ZONES; i++)
+ 		realtotalpages -=
+ 			zone_absent_pages_in_node(pgdat->node_id, i,
+-								zholes_size);
++						  node_start_pfn, node_end_pfn,
++						  zholes_size);
+ 	pgdat->node_present_pages = realtotalpages;
+ 	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
+ 							realtotalpages);
+@@ -4640,6 +4650,7 @@ static unsigned long __paginginit calc_m
+  * NOTE: pgdat should get zeroed by caller.
+  */
+ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
++		unsigned long node_start_pfn, unsigned long node_end_pfn,
+ 		unsigned long *zones_size, unsigned long *zholes_size)
+ {
+ 	enum zone_type j;
+@@ -4661,8 +4672,11 @@ static void __paginginit free_area_init_
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, freesize, memmap_pages;
+ 
+-		size = zone_spanned_pages_in_node(nid, j, zones_size);
++		size = zone_spanned_pages_in_node(nid, j, node_start_pfn,
++						  node_end_pfn, zones_size);
+ 		realsize = freesize = size - zone_absent_pages_in_node(nid, j,
++								node_start_pfn,
++								node_end_pfn,
+ 								zholes_size);
+ 
+ 		/*
+@@ -4776,6 +4790,7 @@ void __paginginit free_area_init_node(in
+ 		unsigned long node_start_pfn, unsigned long *zholes_size)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
++	unsigned long start_pfn, end_pfn;
+ 
+ 	/* pg_data_t should be reset to zero when it's allocated */
+ 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
+@@ -4783,7 +4798,9 @@ void __paginginit free_area_init_node(in
+ 	pgdat->node_id = nid;
+ 	pgdat->node_start_pfn = node_start_pfn;
+ 	init_zone_allows_reclaim(nid);
+-	calculate_node_totalpages(pgdat, zones_size, zholes_size);
++	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
++	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
++				  zones_size, zholes_size);
+ 
+ 	alloc_node_mem_map(pgdat);
+ #ifdef CONFIG_FLAT_NODE_MEM_MAP
+@@ -4792,7 +4809,8 @@ void __paginginit free_area_init_node(in
+ 		(unsigned long)pgdat->node_mem_map);
+ #endif
+ 
+-	free_area_init_core(pgdat, zones_size, zholes_size);
++	free_area_init_core(pgdat, start_pfn, end_pfn,
++			    zones_size, zholes_size);
+ }
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
 _
 
-Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
 linux-next.patch
-drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch
-drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch
-drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver.patch
-drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver.patch
-drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver.patch
-drivers-media-pci-pt1-pt1-convert-to-module_pci_driver.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-drivers-ide-delkin_cb-convert-to-module_pci_driver.patch
-drivers-mfd-lpc_ich-convert-to-module_pci_driver.patch
-drivers-atm-he-convert-to-module_pci_driver.patch
-drivers-scsi-a100u2w-convert-to-module_pci_driver.patch
-drivers-scsi-dc395x-convert-to-module_pci_driver.patch
-drivers-scsi-dmx3191d-convert-to-module_pci_driver.patch
-drivers-scsi-initio-convert-to-module_pci_driver.patch
-drivers-scsi-mvumi-convert-to-module_pci_driver.patch
-drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
-drivers-cdrom-gdromc-fix-device-number-leak.patch
-drivers-memstick-host-r592-convert-to-module_pci_driver.patch
+ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
+vmcore-clean-up-read_vmcore.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
+vmalloc-make-find_vm_area-check-in-range.patch
+vmalloc-introduce-remap_vmalloc_range_partial.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
+vmcore-support-mmap-on-proc-vmcore.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-vmalloc-only-call-setup_vmalloc_vm-only-in-__get_vm_area_node.patch
+mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
+mm-vmalloc-remove-insert_vmalloc_vm.patch
+mm-vmalloc-use-clamp-to-simplify-code.patch
+dev-oldmem-remove-the-interface.patch
+dev-oldmem-remove-the-interface-fix.patch
+documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
+mips-remove-savemaxmem-parameter-setup.patch
+powerpc-remove-savemaxmem-parameter-setup.patch
+ia64-remove-setting-for-saved_max_pfn.patch
+s390-remove-setting-for-saved_max_pfn.patch
 
