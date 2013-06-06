@@ -1,202 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] shrinker-kill-old-shrink-api.patch removed from
- -mm tree
-Date: Thu, 06 Jun 2013 12:35:07 -0700
-Message-ID: <51b0e46b.lT59MXcotFEBnS/5%akpm@linux-foundation.org>
+Subject: + mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+ added to -mm tree
+Date: Thu, 06 Jun 2013 12:57:26 -0700
+Message-ID: <51b0e9a6.ElWsZAUUsbGxwIOK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51979 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340Ab3FFTfH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 15:35:07 -0400
+	with ESMTP id S1752830Ab3FFT51 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 15:57:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, tim.c.chen@linux.intel.com, fengguang.wu@intel.com, eric.dumazet@gmail.com, dave.hansen@intel.com, ak@linux.intel.com, akpm@linux-foundation.org
 
-Subject: [to-be-updated] shrinker-kill-old-shrink-api.patch removed from -mm tree
-To: dchinner@redhat.com,glommer@openvz.org,mm-commits@vger.kernel.org
+Subject: + mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,ak@linux.intel.com,dave.hansen@intel.com,eric.dumazet@gmail.com,fengguang.wu@intel.com,tim.c.chen@linux.intel.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 12:35:07 -0700
+Date: Thu, 06 Jun 2013 12:57:26 -0700
 
 
 The patch titled
-     Subject: shrinker: Kill old ->shrink API
-has been removed from the -mm tree.  Its filename was
-     shrinker-kill-old-shrink-api.patch
+     Subject: mm-tune-vm_committed_as-percpu_counter-batching-size-fix
+has been added to the -mm tree.  Its filename is
+     mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Chinner <dchinner@redhat.com>
-Subject: shrinker: Kill old ->shrink API
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-tune-vm_committed_as-percpu_counter-batching-size-fix
 
-There are no more users of this API, so kill it dead, dead, dead and
-quietly bury the corpse in a shallow, unmarked grave in a dark forest deep
-in the hills...
+fix section mismatch
 
-[glommer@openvz.org: added flowers to the grave]
-Cc: Glauber Costa <glommer@openvz.org>
-Cc: Dave Chinner <dchinner@redhat.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h      |   15 ++++--------
- include/trace/events/vmscan.h |    4 +--
- mm/vmscan.c                   |   40 +++++++-------------------------
- 3 files changed, 16 insertions(+), 43 deletions(-)
+ mm/mm_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/shrinker.h~shrinker-kill-old-shrink-api include/linux/shrinker.h
---- a/include/linux/shrinker.h~shrinker-kill-old-shrink-api
-+++ a/include/linux/shrinker.h
-@@ -7,14 +7,15 @@
-  *
-  * The 'gfpmask' refers to the allocation we are currently trying to
-  * fulfil.
-- *
-- * Note that 'shrink' will be passed nr_to_scan == 0 when the VM is
-- * querying the cache size, so a fastpath for that case is appropriate.
-  */
- struct shrink_control {
- 	gfp_t gfp_mask;
- 
--	/* How many slab objects shrinker() should scan and try to reclaim */
-+	/*
-+	 * How many objects scan_objects should scan and try to reclaim.
-+	 * This is reset before every call, so it is safe for callees
-+	 * to modify.
-+	 */
- 	long nr_to_scan;
- 
- 	/* shrink from these nodes */
-@@ -26,11 +27,6 @@ struct shrink_control {
- /*
-  * A callback you can register to apply pressure to ageable caches.
-  *
-- * @shrink() should look through the least-recently-used 'nr_to_scan' entries
-- * and attempt to free them up.  It should return the number of objects which
-- * remain in the cache.  If it returns -1, it means it cannot do any scanning at
-- * this time (eg. there is a risk of deadlock).
-- *
-  * @count_objects should return the number of freeable items in the cache. If
-  * there are no objects to free or the number of freeable items cannot be
-  * determined, it should return 0. No deadlock checks should be done during the
-@@ -48,7 +44,6 @@ struct shrink_control {
-  * @flags determine the shrinker abilities, like numa awareness
-  */
- struct shrinker {
--	int (*shrink)(struct shrinker *, struct shrink_control *sc);
- 	long (*count_objects)(struct shrinker *, struct shrink_control *sc);
- 	long (*scan_objects)(struct shrinker *, struct shrink_control *sc);
- 
-diff -puN include/trace/events/vmscan.h~shrinker-kill-old-shrink-api include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~shrinker-kill-old-shrink-api
-+++ a/include/trace/events/vmscan.h
-@@ -202,7 +202,7 @@ TRACE_EVENT(mm_shrink_slab_start,
- 
- 	TP_fast_assign(
- 		__entry->shr = shr;
--		__entry->shrink = shr->shrink;
-+		__entry->shrink = shr->scan_objects;
- 		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
- 		__entry->gfp_flags = sc->gfp_mask;
- 		__entry->pgs_scanned = pgs_scanned;
-@@ -241,7 +241,7 @@ TRACE_EVENT(mm_shrink_slab_end,
- 
- 	TP_fast_assign(
- 		__entry->shr = shr;
--		__entry->shrink = shr->shrink;
-+		__entry->shrink = shr->scan_objects;
- 		__entry->unused_scan = unused_scan_cnt;
- 		__entry->new_scan = new_scan_cnt;
- 		__entry->retval = shrinker_retval;
-diff -puN mm/vmscan.c~shrinker-kill-old-shrink-api mm/vmscan.c
---- a/mm/vmscan.c~shrinker-kill-old-shrink-api
-+++ a/mm/vmscan.c
-@@ -199,14 +199,6 @@ void unregister_shrinker(struct shrinker
+diff -puN mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size-fix mm/mm_init.c
+--- a/mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size-fix
++++ a/mm/mm_init.c
+@@ -177,7 +177,7 @@ static int __meminit mm_compute_batch_no
+ 	return NOTIFY_OK;
  }
- EXPORT_SYMBOL(unregister_shrinker);
  
--static inline int do_shrinker_shrink(struct shrinker *shrinker,
--				     struct shrink_control *sc,
--				     unsigned long nr_to_scan)
--{
--	sc->nr_to_scan = nr_to_scan;
--	return (*shrinker->shrink)(shrinker, sc);
--}
--
- #define SHRINK_BATCH 128
- 
- static unsigned long
-@@ -223,11 +215,8 @@ shrink_slab_node(struct shrink_control *
- 	long batch_size = shrinker->batch ? shrinker->batch
- 					  : SHRINK_BATCH;
- 
--	if (shrinker->scan_objects) {
--		max_pass = shrinker->count_objects(shrinker, shrinkctl);
--		WARN_ON(max_pass < 0);
--	} else
--		max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
-+	max_pass = shrinker->count_objects(shrinker, shrinkctl);
-+	WARN_ON(max_pass < 0);
- 	if (max_pass <= 0)
- 		return 0;
- 
-@@ -246,7 +235,7 @@ shrink_slab_node(struct shrink_control *
- 	if (total_scan < 0) {
- 		printk(KERN_ERR
- 		"shrink_slab: %pF negative objects to delete nr=%ld\n",
--		       shrinker->shrink, total_scan);
-+		       shrinker->scan_objects, total_scan);
- 		total_scan = max_pass;
- 	}
- 
-@@ -280,23 +269,12 @@ shrink_slab_node(struct shrink_control *
- 	while (total_scan >= batch_size) {
- 		long ret;
- 
--		if (shrinker->scan_objects) {
--			shrinkctl->nr_to_scan = batch_size;
--			ret = shrinker->scan_objects(shrinker, shrinkctl);
--
--			if (ret == -1)
--				break;
--			freed += ret;
--		} else {
--			int nr_before;
--			nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
--			ret = do_shrinker_shrink(shrinker, shrinkctl,
--							batch_size);
--			if (ret == -1)
--				break;
--			if (ret < nr_before)
--				freed += nr_before - ret;
--		}
-+		shrinkctl->nr_to_scan = batch_size;
-+		ret = shrinker->scan_objects(shrinker, shrinkctl);
-+
-+		if (ret == -1)
-+			break;
-+		freed += ret;
- 
- 		count_vm_events(SLABS_SCANNED, batch_size);
- 		total_scan -= batch_size;
+-static struct notifier_block compute_batch_nb = {
++static struct notifier_block compute_batch_nb __meminitdata = {
+ 	.notifier_call = mm_compute_batch_notifier,
+ 	.priority = IPC_CALLBACK_PRI, /* use lowest priority */
+ };
 _
 
-Patches currently in -mm which might be from dchinner@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-vmscan-also-shrink-slab-in-memcg-pressure.patch
-memcglist_lru-duplicate-lrus-upon-kmemcg-creation.patch
-lru-add-an-element-to-a-memcg-list.patch
-list_lru-per-memcg-walks.patch
-memcg-per-memcg-kmem-shrinking.patch
-memcg-scan-cache-objects-hierarchically.patch
-vmscan-take-at-least-one-pass-with-shrinkers.patch
-super-targeted-memcg-reclaim.patch
-memcg-move-initialization-to-memcg-creation.patch
-vmpressure-in-kernel-notifications.patch
-memcg-reap-dead-memcgs-upon-global-memory-pressure.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
