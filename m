@@ -1,68 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-tlb_fast_mode-check-missing-in-tlb_finish_mmu.patch removed from -mm tree
-Date: Thu, 06 Jun 2013 14:24:33 -0700
-Message-ID: <51b0fe11.UYhdbJn2c/6X/XYi%akpm@linux-foundation.org>
+Subject: +
+ hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+ added to -mm tree
+Date: Thu, 06 Jun 2013 14:50:45 -0700
+Message-ID: <51b10435.lbXb3sBgRtx1tH9M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53653 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53899 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197Ab3FFVYe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:24:34 -0400
+	with ESMTP id S1752157Ab3FFVuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:50:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgupta@synopsys.com, rientjes@google.com, riel@redhat.com, peterz@infradead.org, mgorman@suse.de, hughd@google.com, Vineet.Gupta1@synopsys.com
+To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
 
-Subject: [obsolete] mm-tlb_fast_mode-check-missing-in-tlb_finish_mmu.patch removed from -mm tree
-To: Vineet.Gupta1@synopsys.com,hughd@google.com,mgorman@suse.de,peterz@infradead.org,riel@redhat.com,rientjes@google.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
+Subject: + hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 14:24:33 -0700
+Date: Thu, 06 Jun 2013 14:50:45 -0700
 
 
 The patch titled
-     Subject: mm: tlb_fast_mode check missing in tlb_finish_mmu()
-has been removed from the -mm tree.  Its filename was
-     mm-tlb_fast_mode-check-missing-in-tlb_finish_mmu.patch
+     Subject: hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
+has been added to the -mm tree.  Its filename is
+     hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Subject: mm: tlb_fast_mode check missing in tlb_finish_mmu()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
 
-This removes some unused generated code for tlb_fast_mode() == true
+fix warnings
 
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Glauber Costa <glommer@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-tlb_fast_mode-check-missing-in-tlb_finish_mmu mm/memory.c
---- a/mm/memory.c~mm-tlb_fast_mode-check-missing-in-tlb_finish_mmu
-+++ a/mm/memory.c
-@@ -267,6 +267,9 @@ void tlb_finish_mmu(struct mmu_gather *t
- 	/* keep the page table cache within bounds */
- 	check_pgt_cache();
+diff -puN mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
++++ a/mm/huge_memory.c
+@@ -211,14 +211,14 @@ static void put_huge_zero_page(void)
+ 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
+ }
  
-+	if (tlb_fast_mode(tlb))
-+		return;
-+
- 	for (batch = tlb->local.next; batch; batch = next) {
- 		next = batch->next;
- 		free_pages((unsigned long)batch, 0);
+-static long shrink_huge_zero_page_count(struct shrinker *shrink,
++static unsigned long shrink_huge_zero_page_count(struct shrinker *shrink,
+ 					struct shrink_control *sc)
+ {
+ 	/* we can free zero page only if last reference remains */
+ 	return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
+ }
+ 
+-static long shrink_huge_zero_page_scan(struct shrinker *shrink,
++static unsigned long shrink_huge_zero_page_scan(struct shrinker *shrink,
+ 				       struct shrink_control *sc)
+ {
+ 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
 _
 
-Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-the-tlb-range-flushed-when-__tlb_remove_page-runs-out-of-slots.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
