@@ -1,124 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
- added to -mm tree
-Date: Thu, 06 Jun 2013 12:57:26 -0700
-Message-ID: <51b0e9a6.ElWsZAUUsbGxwIOK%akpm@linux-foundation.org>
+Subject: [failures]
+ drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch removed
+ from -mm tree
+Date: Thu, 06 Jun 2013 13:07:22 -0700
+Message-ID: <51b0ebfa.WdIuCjilk99wdLZq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52165 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52284 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830Ab3FFT51 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 15:57:27 -0400
+	with ESMTP id S1753423Ab3FFUHX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:07:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tim.c.chen@linux.intel.com, fengguang.wu@intel.com, eric.dumazet@gmail.com, dave.hansen@intel.com, ak@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, shuahkhan@gmail.com, jg1.han@samsung.com, a.zummo@towertech.it, shuah.kh@samsung.com
 
-Subject: + mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,ak@linux.intel.com,dave.hansen@intel.com,eric.dumazet@gmail.com,fengguang.wu@intel.com,tim.c.chen@linux.intel.com,tj@kernel.org
+Subject: [failures] drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch removed from -mm tree
+To: shuah.kh@samsung.com,a.zummo@towertech.it,jg1.han@samsung.com,shuahkhan@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 12:57:26 -0700
+Date: Thu, 06 Jun 2013 13:07:22 -0700
 
 
 The patch titled
-     Subject: mm-tune-vm_committed_as-percpu_counter-batching-size-fix
-has been added to the -mm tree.  Its filename is
-     mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+     Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
+has been removed from the -mm tree.  Its filename was
+     drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-tune-vm_committed_as-percpu_counter-batching-size-fix
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
 
-fix section mismatch
+Convert drivers/rtc/class to use dev_pm_ops for power management and
+remove Legacy PM ops hooks.  With this change, rtc class registers
+suspend/resume callbacks via class->pm (dev_pm_ops) instead of Legacy
+class->suspend/resume.  When __device_suspend() runs call-backs, it will
+find class->pm ops for the rtc class.
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Cc: Shuah Khan <shuahkhan@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/class.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size-fix mm/mm_init.c
---- a/mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size-fix
-+++ a/mm/mm_init.c
-@@ -177,7 +177,7 @@ static int __meminit mm_compute_batch_no
- 	return NOTIFY_OK;
+diff -puN drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops drivers/rtc/class.c
+--- a/drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops
++++ a/drivers/rtc/class.c
+@@ -47,7 +47,7 @@ int rtc_hctosys_ret = -ENODEV;
+ static struct timespec old_rtc, old_system, old_delta;
+ 
+ 
+-static int rtc_suspend(struct device *dev, pm_message_t mesg)
++static int rtc_suspend(struct device *dev)
+ {
+ 	struct rtc_device	*rtc = to_rtc_device(dev);
+ 	struct rtc_time		tm;
+@@ -135,9 +135,9 @@ static int rtc_resume(struct device *dev
+ 	return 0;
  }
  
--static struct notifier_block compute_batch_nb = {
-+static struct notifier_block compute_batch_nb __meminitdata = {
- 	.notifier_call = mm_compute_batch_notifier,
- 	.priority = IPC_CALLBACK_PRI, /* use lowest priority */
- };
++static SIMPLE_DEV_PM_OPS(rtc_class_dev_pm_ops, rtc_suspend, rtc_resume);
+ #else
+-#define rtc_suspend	NULL
+-#define rtc_resume	NULL
++#define rtc_class_dev_pm_ops	NULL
+ #endif
+ 
+ 
+@@ -336,8 +336,7 @@ static int __init rtc_init(void)
+ 		pr_err("couldn't create class\n");
+ 		return PTR_ERR(rtc_class);
+ 	}
+-	rtc_class->suspend = rtc_suspend;
+-	rtc_class->resume = rtc_resume;
++	rtc_class->pm = &rtc_class_dev_pm_ops;
+ 	rtc_dev_init();
+ 	rtc_sysfs_init(rtc_class);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shuah.kh@samsung.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
-drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+backlight-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
 
