@@ -1,93 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch removed
- from -mm tree
-Date: Thu, 06 Jun 2013 13:07:22 -0700
-Message-ID: <51b0ebfa.WdIuCjilk99wdLZq%akpm@linux-foundation.org>
+Subject: [failures] drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch removed from -mm tree
+Date: Thu, 06 Jun 2013 13:09:14 -0700
+Message-ID: <51b0ec6a.eQzF6LTukCKS/fnX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753423Ab3FFUHX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:07:23 -0400
+	with ESMTP id S1753244Ab3FFUJP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 16:09:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shuahkhan@gmail.com, jg1.han@samsung.com, a.zummo@towertech.it, shuah.kh@samsung.com
+To: mm-commits@vger.kernel.org, richardcochran@gmail.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
 
-Subject: [failures] drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch removed from -mm tree
-To: shuah.kh@samsung.com,a.zummo@towertech.it,jg1.han@samsung.com,shuahkhan@gmail.com,mm-commits@vger.kernel.org
+Subject: [failures] drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch removed from -mm tree
+To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,richardcochran@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 13:07:22 -0700
+Date: Thu, 06 Jun 2013 13:09:14 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
+     Subject: drivers/ptp/ptp_pch.c: convert to module_pci_driver
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
+     drivers-ptp-ptp_pch-convert-to-module_pci_driver.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.kh@samsung.com>
-Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
+From: Libo Chen <clbchenlibo.chen@huawei.com>
+Subject: drivers/ptp/ptp_pch.c: convert to module_pci_driver
 
-Convert drivers/rtc/class to use dev_pm_ops for power management and
-remove Legacy PM ops hooks.  With this change, rtc class registers
-suspend/resume callbacks via class->pm (dev_pm_ops) instead of Legacy
-class->suspend/resume.  When __device_suspend() runs call-backs, it will
-find class->pm ops for the rtc class.
-
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-Cc: Shuah Khan <shuahkhan@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+Cc: Richard Cochran <richardcochran@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/ptp/ptp_pch.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff -puN drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops drivers/rtc/class.c
---- a/drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops
-+++ a/drivers/rtc/class.c
-@@ -47,7 +47,7 @@ int rtc_hctosys_ret = -ENODEV;
- static struct timespec old_rtc, old_system, old_delta;
+diff -puN drivers/ptp/ptp_pch.c~drivers-ptp-ptp_pch-convert-to-module_pci_driver drivers/ptp/ptp_pch.c
+--- a/drivers/ptp/ptp_pch.c~drivers-ptp-ptp_pch-convert-to-module_pci_driver
++++ a/drivers/ptp/ptp_pch.c
+@@ -707,23 +707,7 @@ static struct pci_driver pch_driver = {
+ 	.resume = pch_resume,
+ };
  
+-static void __exit ptp_pch_exit(void)
+-{
+-	pci_unregister_driver(&pch_driver);
+-}
+-
+-static s32 __init ptp_pch_init(void)
+-{
+-	s32 ret;
+-
+-	/* register the driver with the pci core */
+-	ret = pci_register_driver(&pch_driver);
+-
+-	return ret;
+-}
+-
+-module_init(ptp_pch_init);
+-module_exit(ptp_pch_exit);
++module_pci_driver(pch_driver);
  
--static int rtc_suspend(struct device *dev, pm_message_t mesg)
-+static int rtc_suspend(struct device *dev)
- {
- 	struct rtc_device	*rtc = to_rtc_device(dev);
- 	struct rtc_time		tm;
-@@ -135,9 +135,9 @@ static int rtc_resume(struct device *dev
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(rtc_class_dev_pm_ops, rtc_suspend, rtc_resume);
- #else
--#define rtc_suspend	NULL
--#define rtc_resume	NULL
-+#define rtc_class_dev_pm_ops	NULL
- #endif
- 
- 
-@@ -336,8 +336,7 @@ static int __init rtc_init(void)
- 		pr_err("couldn't create class\n");
- 		return PTR_ERR(rtc_class);
- 	}
--	rtc_class->suspend = rtc_suspend;
--	rtc_class->resume = rtc_resume;
-+	rtc_class->pm = &rtc_class_dev_pm_ops;
- 	rtc_dev_init();
- 	rtc_sysfs_init(rtc_class);
- 	return 0;
+ module_param_string(station,
+ 		    pch_param.station, sizeof(pch_param.station), 0444);
 _
 
-Patches currently in -mm which might be from shuah.kh@samsung.com are
+Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
 
 linux-next.patch
-backlight-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
+drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch
+drivers-media-pci-mantis-mantis_cards-convert-to-module_pci_driver.patch
+drivers-media-pci-dm1105-dm1105-convert-to-module_pci_driver.patch
+drivers-media-pci-mantis-hopper_cards-convert-to-module_pci_driver.patch
+drivers-media-pci-pluto2-pluto2-convert-to-module_pci_driver.patch
+drivers-media-pci-pt1-pt1-convert-to-module_pci_driver.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+drivers-ide-delkin_cb-convert-to-module_pci_driver.patch
+drivers-mfd-lpc_ich-convert-to-module_pci_driver.patch
+drivers-atm-he-convert-to-module_pci_driver.patch
+drivers-scsi-a100u2w-convert-to-module_pci_driver.patch
+drivers-scsi-dc395x-convert-to-module_pci_driver.patch
+drivers-scsi-dmx3191d-convert-to-module_pci_driver.patch
+drivers-scsi-initio-convert-to-module_pci_driver.patch
+drivers-scsi-mvumi-convert-to-module_pci_driver.patch
+drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
+drivers-cdrom-gdromc-fix-device-number-leak.patch
+drivers-memstick-host-r592-convert-to-module_pci_driver.patch
 
