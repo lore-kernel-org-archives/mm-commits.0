@@ -1,189 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch removed from -mm tree
-Date: Thu, 06 Jun 2013 12:34:21 -0700
-Message-ID: <51b0e43d.WxlCXvHcEcYim3ry%akpm@linux-foundation.org>
+Subject: [to-be-updated] fs-bump-inode-and-dentry-counters-to-long.patch
+ removed from -mm tree
+Date: Thu, 06 Jun 2013 12:34:19 -0700
+Message-ID: <51b0e43b.cesF8LudcLlP11eC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51909 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51905 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244Ab3FFTeW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 15:34:22 -0400
+	with ESMTP id S1752789Ab3FFTeU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 15:34:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, dchinner@redhat.com, glommer@openvz.org
 
-Subject: [to-be-updated] super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch removed from -mm tree
+Subject: [to-be-updated] fs-bump-inode-and-dentry-counters-to-long.patch removed from -mm tree
 To: glommer@openvz.org,dchinner@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 12:34:21 -0700
+Date: Thu, 06 Jun 2013 12:34:19 -0700
 
 
 The patch titled
-     Subject: super: fix calculation of shrinkable objects for small numbers
+     Subject: fs: bump inode and dentry counters to long
 has been removed from the -mm tree.  Its filename was
-     super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+     fs-bump-inode-and-dentry-counters-to-long.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@openvz.org>
-Subject: super: fix calculation of shrinkable objects for small numbers
+Subject: fs: bump inode and dentry counters to long
 
-The sysctl knob sysctl_vfs_cache_pressure is used to determine which
-percentage of the shrinkable objects in our cache we should actively try
-to shrink.
+This patchset implements targeted shrinking for memcg when kmem limits are
+present.  So far, we've been accounting kernel objects but failing
+allocations when short of memory.  This is because our only option would
+be to call the global shrinker, depleting objects from all caches and
+breaking isolation.
 
-It works great in situations in which we have many objects (at least more
-than 100), because the aproximation errors will be negligible.  But if
-this is not the case, specially when total_objects < 100, we may end up
-concluding that we have no objects at all (total / 100 = 0, if total <
-100).
+The main idea is to associate per-memcg lists with each of the LRUs.  The
+main LRU still provides a single entry point and when adding or removing
+an element from the LRU, we use the page information to figure out which
+memcg it belongs to and relay it to the right list.
 
-This is certainly not the biggest killer in the world, but may matter in
-very low kernel memory situations.
+Note that this builds upon the recent work from Dave Chinner that
+sanitizes the LRU shrinking API and make the shrinkers node aware.  Node
+awareness is not *strictly* needed for my work, but I still perceive it as
+an advantage.  The API unification is a major need, and I build upon it
+heavily.  That allows us to manipulate the LRUs without knowledge of the
+underlying objects with ease.  This time, I am including that work here as
+a baseline.
+
+
+
+This patch (of 35):
+
+There are situations in very large machines in which we can have a large
+quantity of dirty inodes, unused dentries, etc.  This is particularly true
+when umounting a filesystem, where eventually since every live object will
+eventually be discarded.
+
+Dave Chinner reported a problem with this while experimenting with the
+shrinker revamp patchset.  So we believe it is time for a change.  This
+patch just moves int to longs.  Machines where it matters should have a
+big long anyway.
 
 Cc: Glauber Costa <glommer@openvz.org>
 Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glock.c        |    2 +-
- fs/gfs2/quota.c        |    2 +-
- fs/mbcache.c           |    2 +-
- fs/nfs/dir.c           |    2 +-
- fs/quota/dquot.c       |    5 ++---
- fs/super.c             |   14 +++++++-------
- fs/xfs/xfs_qm.c        |    2 +-
- include/linux/dcache.h |    4 ++++
- 8 files changed, 18 insertions(+), 15 deletions(-)
+ fs/dcache.c             |    8 ++++----
+ fs/inode.c              |   18 +++++++++---------
+ fs/internal.h           |    2 +-
+ include/linux/dcache.h  |   10 +++++-----
+ include/linux/fs.h      |    4 ++--
+ include/uapi/linux/fs.h |    6 +++---
+ kernel/sysctl.c         |    6 +++---
+ 7 files changed, 27 insertions(+), 27 deletions(-)
 
-diff -puN fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/gfs2/glock.c
-@@ -1463,7 +1463,7 @@ static int gfs2_shrink_glock_memory(stru
- 		gfs2_scan_glock_lru(sc->nr_to_scan);
- 	}
+diff -puN fs/dcache.c~fs-bump-inode-and-dentry-counters-to-long fs/dcache.c
+--- a/fs/dcache.c~fs-bump-inode-and-dentry-counters-to-long
++++ a/fs/dcache.c
+@@ -117,13 +117,13 @@ struct dentry_stat_t dentry_stat = {
+ 	.age_limit = 45,
+ };
  
--	return (atomic_read(&lru_count) / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(atomic_read(&lru_count));
+-static DEFINE_PER_CPU(unsigned int, nr_dentry);
++static DEFINE_PER_CPU(long, nr_dentry);
+ 
+ #if defined(CONFIG_SYSCTL) && defined(CONFIG_PROC_FS)
+-static int get_nr_dentry(void)
++static long get_nr_dentry(void)
+ {
+ 	int i;
+-	int sum = 0;
++	long sum = 0;
+ 	for_each_possible_cpu(i)
+ 		sum += per_cpu(nr_dentry, i);
+ 	return sum < 0 ? 0 : sum;
+@@ -133,7 +133,7 @@ int proc_nr_dentry(ctl_table *table, int
+ 		   size_t *lenp, loff_t *ppos)
+ {
+ 	dentry_stat.nr_dentry = get_nr_dentry();
+-	return proc_dointvec(table, write, buffer, lenp, ppos);
++	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+ }
+ #endif
+ 
+diff -puN fs/inode.c~fs-bump-inode-and-dentry-counters-to-long fs/inode.c
+--- a/fs/inode.c~fs-bump-inode-and-dentry-counters-to-long
++++ a/fs/inode.c
+@@ -70,33 +70,33 @@ EXPORT_SYMBOL(empty_aops);
+  */
+ struct inodes_stat_t inodes_stat;
+ 
+-static DEFINE_PER_CPU(unsigned int, nr_inodes);
+-static DEFINE_PER_CPU(unsigned int, nr_unused);
++static DEFINE_PER_CPU(unsigned long, nr_inodes);
++static DEFINE_PER_CPU(unsigned long, nr_unused);
+ 
+ static struct kmem_cache *inode_cachep __read_mostly;
+ 
+-static int get_nr_inodes(void)
++static long get_nr_inodes(void)
+ {
+ 	int i;
+-	int sum = 0;
++	long sum = 0;
+ 	for_each_possible_cpu(i)
+ 		sum += per_cpu(nr_inodes, i);
+ 	return sum < 0 ? 0 : sum;
  }
  
- static struct shrinker glock_shrinker = {
-diff -puN fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/gfs2/quota.c
---- a/fs/gfs2/quota.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/gfs2/quota.c
-@@ -114,7 +114,7 @@ int gfs2_shrink_qd_memory(struct shrinke
- 	spin_unlock(&qd_lru_lock);
- 
- out:
--	return (atomic_read(&qd_lru_count) * sysctl_vfs_cache_pressure) / 100;
-+	return vfs_pressure_ratio(atomic_read(&qd_lru_count));
+-static inline int get_nr_inodes_unused(void)
++static inline long get_nr_inodes_unused(void)
+ {
+ 	int i;
+-	int sum = 0;
++	long sum = 0;
+ 	for_each_possible_cpu(i)
+ 		sum += per_cpu(nr_unused, i);
+ 	return sum < 0 ? 0 : sum;
  }
  
- static u64 qd2index(struct gfs2_quota_data *qd)
-diff -puN fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/mbcache.c
---- a/fs/mbcache.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/mbcache.c
-@@ -189,7 +189,7 @@ mb_cache_shrink_fn(struct shrinker *shri
- 	list_for_each_entry_safe(entry, tmp, &free_list, e_lru_list) {
- 		__mb_cache_entry_forget(entry, gfp_mask);
- 	}
--	return (count / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(count);
+-int get_nr_dirty_inodes(void)
++long get_nr_dirty_inodes(void)
+ {
+ 	/* not actually dirty inodes, but a wild approximation */
+-	int nr_dirty = get_nr_inodes() - get_nr_inodes_unused();
++	long nr_dirty = get_nr_inodes() - get_nr_inodes_unused();
+ 	return nr_dirty > 0 ? nr_dirty : 0;
  }
  
- 
-diff -puN fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/nfs/dir.c
---- a/fs/nfs/dir.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/nfs/dir.c
-@@ -2004,7 +2004,7 @@ remove_lru_entry:
- 	}
- 	spin_unlock(&nfs_access_lru_lock);
- 	nfs_access_free_list(&head);
--	return (atomic_long_read(&nfs_access_nr_entries) / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(atomic_long_read(&nfs_access_nr_entries));
+@@ -109,7 +109,7 @@ int proc_nr_inodes(ctl_table *table, int
+ {
+ 	inodes_stat.nr_inodes = get_nr_inodes();
+ 	inodes_stat.nr_unused = get_nr_inodes_unused();
+-	return proc_dointvec(table, write, buffer, lenp, ppos);
++	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
  }
+ #endif
  
- static void __nfs_access_zap_cache(struct nfs_inode *nfsi, struct list_head *head)
-diff -puN fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/quota/dquot.c
---- a/fs/quota/dquot.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/quota/dquot.c
-@@ -719,9 +719,8 @@ static int shrink_dqcache_memory(struct
- 		prune_dqcache(nr);
- 		spin_unlock(&dq_list_lock);
- 	}
--	return ((unsigned)
--		percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS])
--		/100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(
-+	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
- }
+diff -puN fs/internal.h~fs-bump-inode-and-dentry-counters-to-long fs/internal.h
+--- a/fs/internal.h~fs-bump-inode-and-dentry-counters-to-long
++++ a/fs/internal.h
+@@ -117,7 +117,7 @@ extern void inode_add_lru(struct inode *
+  */
+ extern void inode_wb_list_del(struct inode *inode);
  
- static struct shrinker dqcache_shrinker = {
-diff -puN fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/super.c
---- a/fs/super.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/super.c
-@@ -82,13 +82,13 @@ static int prune_super(struct shrinker *
- 		int	inodes;
+-extern int get_nr_dirty_inodes(void);
++extern long get_nr_dirty_inodes(void);
+ extern void evict_inodes(struct super_block *);
+ extern int invalidate_inodes(struct super_block *, bool);
  
- 		/* proportion the scan between the caches */
--		dentries = (sc->nr_to_scan * sb->s_nr_dentry_unused) /
--							total_objects;
--		inodes = (sc->nr_to_scan * sb->s_nr_inodes_unused) /
--							total_objects;
-+		dentries = mult_frac(sc->nr_to_scan, sb->s_nr_dentry_unused,
-+							total_objects);
-+		inodes = mult_frac(sc->nr_to_scan, sb->s_nr_inodes_unused,
-+							total_objects);
- 		if (fs_objects)
--			fs_objects = (sc->nr_to_scan * fs_objects) /
--							total_objects;
-+			fs_objects = mult_frac(sc->nr_to_scan, fs_objects,
-+							total_objects);
- 		/*
- 		 * prune the dcache first as the icache is pinned by it, then
- 		 * prune the icache, followed by the filesystem specific caches
-@@ -104,7 +104,7 @@ static int prune_super(struct shrinker *
- 				sb->s_nr_inodes_unused + fs_objects;
- 	}
- 
--	total_objects = (total_objects / 100) * sysctl_vfs_cache_pressure;
-+	total_objects = vfs_pressure_ratio(total_objects);
- 	drop_super(sb);
- 	return total_objects;
- }
-diff -puN fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers fs/xfs/xfs_qm.c
---- a/fs/xfs/xfs_qm.c~super-fix-calculation-of-shrinkable-objects-for-small-numbers
-+++ a/fs/xfs/xfs_qm.c
-@@ -1605,7 +1605,7 @@ xfs_qm_shake(
- 	}
- 
- out:
--	return (qi->qi_lru_count / 100) * sysctl_vfs_cache_pressure;
-+	return vfs_pressure_ratio(qi->qi_lru_count);
- }
- 
- /*
-diff -puN include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers include/linux/dcache.h
---- a/include/linux/dcache.h~super-fix-calculation-of-shrinkable-objects-for-small-numbers
+diff -puN include/linux/dcache.h~fs-bump-inode-and-dentry-counters-to-long include/linux/dcache.h
+--- a/include/linux/dcache.h~fs-bump-inode-and-dentry-counters-to-long
 +++ a/include/linux/dcache.h
-@@ -411,4 +411,8 @@ static inline bool d_mountpoint(struct d
+@@ -54,11 +54,11 @@ struct qstr {
+ #define hashlen_len(hashlen)  ((u32)((hashlen) >> 32))
  
- extern int sysctl_vfs_cache_pressure;
+ struct dentry_stat_t {
+-	int nr_dentry;
+-	int nr_unused;
+-	int age_limit;          /* age in seconds */
+-	int want_pages;         /* pages requested by system */
+-	int dummy[2];
++	long nr_dentry;
++	long nr_unused;
++	long age_limit;          /* age in seconds */
++	long want_pages;         /* pages requested by system */
++	long dummy[2];
+ };
+ extern struct dentry_stat_t dentry_stat;
  
-+static inline unsigned long vfs_pressure_ratio(unsigned long val)
-+{
-+	return mult_frac(val, sysctl_vfs_cache_pressure, 100);
-+}
- #endif	/* __LINUX_DCACHE_H */
+diff -puN include/linux/fs.h~fs-bump-inode-and-dentry-counters-to-long include/linux/fs.h
+--- a/include/linux/fs.h~fs-bump-inode-and-dentry-counters-to-long
++++ a/include/linux/fs.h
+@@ -1266,12 +1266,12 @@ struct super_block {
+ 	struct list_head	s_mounts;	/* list of mounts; _not_ for fs use */
+ 	/* s_dentry_lru, s_nr_dentry_unused protected by dcache.c lru locks */
+ 	struct list_head	s_dentry_lru;	/* unused dentry lru */
+-	int			s_nr_dentry_unused;	/* # of dentry on lru */
++	long			s_nr_dentry_unused;	/* # of dentry on lru */
+ 
+ 	/* s_inode_lru_lock protects s_inode_lru and s_nr_inodes_unused */
+ 	spinlock_t		s_inode_lru_lock ____cacheline_aligned_in_smp;
+ 	struct list_head	s_inode_lru;		/* unused inode lru */
+-	int			s_nr_inodes_unused;	/* # of inodes on lru */
++	long			s_nr_inodes_unused;	/* # of inodes on lru */
+ 
+ 	struct block_device	*s_bdev;
+ 	struct backing_dev_info *s_bdi;
+diff -puN include/uapi/linux/fs.h~fs-bump-inode-and-dentry-counters-to-long include/uapi/linux/fs.h
+--- a/include/uapi/linux/fs.h~fs-bump-inode-and-dentry-counters-to-long
++++ a/include/uapi/linux/fs.h
+@@ -49,9 +49,9 @@ struct files_stat_struct {
+ };
+ 
+ struct inodes_stat_t {
+-	int nr_inodes;
+-	int nr_unused;
+-	int dummy[5];		/* padding for sysctl ABI compatibility */
++	long nr_inodes;
++	long nr_unused;
++	long dummy[5];		/* padding for sysctl ABI compatibility */
+ };
+ 
+ 
+diff -puN kernel/sysctl.c~fs-bump-inode-and-dentry-counters-to-long kernel/sysctl.c
+--- a/kernel/sysctl.c~fs-bump-inode-and-dentry-counters-to-long
++++ a/kernel/sysctl.c
+@@ -1456,14 +1456,14 @@ static struct ctl_table fs_table[] = {
+ 	{
+ 		.procname	= "inode-nr",
+ 		.data		= &inodes_stat,
+-		.maxlen		= 2*sizeof(int),
++		.maxlen		= 2*sizeof(long),
+ 		.mode		= 0444,
+ 		.proc_handler	= proc_nr_inodes,
+ 	},
+ 	{
+ 		.procname	= "inode-state",
+ 		.data		= &inodes_stat,
+-		.maxlen		= 7*sizeof(int),
++		.maxlen		= 7*sizeof(long),
+ 		.mode		= 0444,
+ 		.proc_handler	= proc_nr_inodes,
+ 	},
+@@ -1493,7 +1493,7 @@ static struct ctl_table fs_table[] = {
+ 	{
+ 		.procname	= "dentry-state",
+ 		.data		= &dentry_stat,
+-		.maxlen		= 6*sizeof(int),
++		.maxlen		= 6*sizeof(long),
+ 		.mode		= 0444,
+ 		.proc_handler	= proc_nr_dentry,
+ 	},
 _
 
 Patches currently in -mm which might be from glommer@openvz.org are
 
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
 dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
 dentry-move-to-per-sb-lru-locks.patch
 dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
