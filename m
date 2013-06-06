@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch added to -mm tree
-Date: Thu, 06 Jun 2013 14:11:55 -0700
-Message-ID: <51b0fb1b.YVXf/w1x+R5oqVCN%akpm@linux-foundation.org>
+Subject: + shrinker-kill-old-shrink-api.patch added to -mm tree
+Date: Thu, 06 Jun 2013 14:12:08 -0700
+Message-ID: <51b0fb28.s+nI0aV8WvfmJe0I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53421 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989Ab3FFVL5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:11:57 -0400
+	with ESMTP id S1751989Ab3FFVMK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 17:12:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, gleb@redhat.com, dchinner@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
 
-Subject: + hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch added to -mm tree
-To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,dchinner@redhat.com,gleb@redhat.com,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
+Subject: + shrinker-kill-old-shrink-api.patch added to -mm tree
+To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 14:11:55 -0700
+Date: Thu, 06 Jun 2013 14:12:08 -0700
 
 
 The patch titled
-     Subject: hugepage: convert huge zero page shrinker to new shrinker API
+     Subject: shrinker: Kill old ->shrink API.
 has been added to the -mm tree.  Its filename is
-     hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+     shrinker-kill-old-shrink-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +38,18 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@openvz.org>
-Subject: hugepage: convert huge zero page shrinker to new shrinker API
+From: Dave Chinner <dchinner@redhat.com>
+Subject: shrinker: Kill old ->shrink API.
 
-It consists of:
+There are no more users of this API, so kill it dead, dead, dead and
+quietly bury the corpse in a shallow, unmarked grave in a dark forest deep
+in the hills...
 
-* returning long instead of int
-* separating count from scan
-* returning the number of freed entities in scan
-
+[glommer@openvz.org: added flowers to the grave]
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Glauber Costa <glommer@openvz.org>
 Reviewed-by: Greg Thelen <gthelen@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Chinner <dchinner@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -79,57 +77,158 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ include/linux/shrinker.h      |   15 +++--------
+ include/trace/events/vmscan.h |    4 +--
+ mm/vmscan.c                   |   42 ++++++--------------------------
+ 3 files changed, 16 insertions(+), 45 deletions(-)
 
-diff -puN mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api mm/huge_memory.c
---- a/mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api
-+++ a/mm/huge_memory.c
-@@ -211,24 +211,29 @@ static void put_huge_zero_page(void)
- 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
+diff -puN include/linux/shrinker.h~shrinker-kill-old-shrink-api include/linux/shrinker.h
+--- a/include/linux/shrinker.h~shrinker-kill-old-shrink-api
++++ a/include/linux/shrinker.h
+@@ -7,14 +7,15 @@
+  *
+  * The 'gfpmask' refers to the allocation we are currently trying to
+  * fulfil.
+- *
+- * Note that 'shrink' will be passed nr_to_scan == 0 when the VM is
+- * querying the cache size, so a fastpath for that case is appropriate.
+  */
+ struct shrink_control {
+ 	gfp_t gfp_mask;
+ 
+-	/* How many slab objects shrinker() should scan and try to reclaim */
++	/*
++	 * How many objects scan_objects should scan and try to reclaim.
++	 * This is reset before every call, so it is safe for callees
++	 * to modify.
++	 */
+ 	unsigned long nr_to_scan;
+ 
+ 	/* shrink from these nodes */
+@@ -27,11 +28,6 @@ struct shrink_control {
+ /*
+  * A callback you can register to apply pressure to ageable caches.
+  *
+- * @shrink() should look through the least-recently-used 'nr_to_scan' entries
+- * and attempt to free them up.  It should return the number of objects which
+- * remain in the cache.  If it returns -1, it means it cannot do any scanning at
+- * this time (eg. there is a risk of deadlock).
+- *
+  * @count_objects should return the number of freeable items in the cache. If
+  * there are no objects to free or the number of freeable items cannot be
+  * determined, it should return 0. No deadlock checks should be done during the
+@@ -50,7 +46,6 @@ struct shrink_control {
+  * @flags determine the shrinker abilities, like numa awareness
+  */
+ struct shrinker {
+-	int (*shrink)(struct shrinker *, struct shrink_control *sc);
+ 	unsigned long (*count_objects)(struct shrinker *,
+ 				       struct shrink_control *sc);
+ 	unsigned long (*scan_objects)(struct shrinker *,
+diff -puN include/trace/events/vmscan.h~shrinker-kill-old-shrink-api include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~shrinker-kill-old-shrink-api
++++ a/include/trace/events/vmscan.h
+@@ -202,7 +202,7 @@ TRACE_EVENT(mm_shrink_slab_start,
+ 
+ 	TP_fast_assign(
+ 		__entry->shr = shr;
+-		__entry->shrink = shr->shrink;
++		__entry->shrink = shr->scan_objects;
+ 		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
+ 		__entry->gfp_flags = sc->gfp_mask;
+ 		__entry->pgs_scanned = pgs_scanned;
+@@ -241,7 +241,7 @@ TRACE_EVENT(mm_shrink_slab_end,
+ 
+ 	TP_fast_assign(
+ 		__entry->shr = shr;
+-		__entry->shrink = shr->shrink;
++		__entry->shrink = shr->scan_objects;
+ 		__entry->unused_scan = unused_scan_cnt;
+ 		__entry->new_scan = new_scan_cnt;
+ 		__entry->retval = shrinker_retval;
+diff -puN mm/vmscan.c~shrinker-kill-old-shrink-api mm/vmscan.c
+--- a/mm/vmscan.c~shrinker-kill-old-shrink-api
++++ a/mm/vmscan.c
+@@ -194,14 +194,6 @@ void unregister_shrinker(struct shrinker
  }
+ EXPORT_SYMBOL(unregister_shrinker);
  
--static int shrink_huge_zero_page(struct shrinker *shrink,
--		struct shrink_control *sc)
-+static long shrink_huge_zero_page_count(struct shrinker *shrink,
-+					struct shrink_control *sc)
- {
--	if (!sc->nr_to_scan)
--		/* we can free zero page only if last reference remains */
--		return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
-+	/* we can free zero page only if last reference remains */
-+	return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
-+}
+-static inline int do_shrinker_shrink(struct shrinker *shrinker,
+-				     struct shrink_control *sc,
+-				     unsigned long nr_to_scan)
+-{
+-	sc->nr_to_scan = nr_to_scan;
+-	return (*shrinker->shrink)(shrinker, sc);
+-}
+-
+ #define SHRINK_BATCH 128
  
-+static long shrink_huge_zero_page_scan(struct shrinker *shrink,
-+				       struct shrink_control *sc)
-+{
- 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
- 		struct page *zero_page = xchg(&huge_zero_page, NULL);
- 		BUG_ON(zero_page == NULL);
- 		__free_page(zero_page);
-+		return HPAGE_PMD_NR;
+ static unsigned long
+@@ -218,10 +210,7 @@ shrink_slab_node(struct shrink_control *
+ 	long batch_size = shrinker->batch ? shrinker->batch
+ 					  : SHRINK_BATCH;
+ 
+-	if (shrinker->count_objects)
+-		max_pass = shrinker->count_objects(shrinker, shrinkctl);
+-	else
+-		max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
++	max_pass = shrinker->count_objects(shrinker, shrinkctl);
+ 	if (max_pass == 0)
+ 		return 0;
+ 
+@@ -240,7 +229,7 @@ shrink_slab_node(struct shrink_control *
+ 	if (total_scan < 0) {
+ 		printk(KERN_ERR
+ 		"shrink_slab: %pF negative objects to delete nr=%ld\n",
+-		       shrinker->shrink, total_scan);
++		       shrinker->scan_objects, total_scan);
+ 		total_scan = max_pass;
  	}
  
- 	return 0;
- }
+@@ -273,26 +262,13 @@ shrink_slab_node(struct shrink_control *
  
- static struct shrinker huge_zero_page_shrinker = {
--	.shrink = shrink_huge_zero_page,
-+	.count_objects = shrink_huge_zero_page_count,
-+	.scan_objects = shrink_huge_zero_page_scan,
- 	.seeks = DEFAULT_SEEKS,
- };
+ 	while (total_scan >= batch_size) {
  
+-		if (shrinker->scan_objects) {
+-			unsigned long ret;
+-			shrinkctl->nr_to_scan = batch_size;
+-			ret = shrinker->scan_objects(shrinker, shrinkctl);
+-
+-			if (ret == SHRINK_STOP)
+-				break;
+-			freed += ret;
+-		} else {
+-			int nr_before;
+-			long ret;
+-
+-			nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
+-			ret = do_shrinker_shrink(shrinker, shrinkctl,
+-							batch_size);
+-			if (ret == -1)
+-				break;
+-			if (ret < nr_before)
+-				freed += nr_before - ret;
+-		}
++		unsigned long ret;
++		shrinkctl->nr_to_scan = batch_size;
++		ret = shrinker->scan_objects(shrinker, shrinkctl);
++
++		if (ret == SHRINK_STOP)
++			break;
++		freed += ret;
+ 
+ 		count_vm_events(SLABS_SCANNED, batch_size);
+ 		total_scan -= batch_size;
 _
 
-Patches currently in -mm which might be from glommer@openvz.org are
+Patches currently in -mm which might be from dchinner@redhat.com are
 
+linux-next.patch
 fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
 dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
 dentry-move-to-per-sb-lru-locks.patch
 dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
 shrinker-convert-superblock-shrinkers-to-new-api.patch
 list-add-a-new-lru-list-type.patch
 inode-convert-inode-lru-list-to-generic-lru-list-code.patch
@@ -138,6 +237,7 @@ list_lru-per-node-list-infrastructure.patch
 list_lru-per-node-api.patch
 shrinker-add-node-awareness.patch
 vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
 xfs-convert-buftarg-lru-to-generic-code.patch
 xfs-rework-buffer-dispose-list-tracking.patch
 xfs-convert-dquot-cache-lru-to-list_lru.patch
