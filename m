@@ -1,201 +1,277 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] vmpressure-in-kernel-notifications.patch removed
- from -mm tree
-Date: Thu, 06 Jun 2013 12:35:27 -0700
-Message-ID: <51b0e47f.SkBD6UEEcuUSZf+q%akpm@linux-foundation.org>
+Subject: [to-be-updated] list_lru-per-memcg-walks.patch removed from -mm
+ tree
+Date: Thu, 06 Jun 2013 12:35:15 -0700
+Message-ID: <51b0e473.SO8wbv8tAa8QNxeX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52011 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51991 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753803Ab3FFTf2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 15:35:28 -0400
+	with ESMTP id S1753691Ab3FFTfP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jun 2013 15:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, glommer@parallels.com
+To: mm-commits@vger.kernel.org, dchinner@redhat.com, glommer@openvz.org
 
-Subject: [to-be-updated] vmpressure-in-kernel-notifications.patch removed from -mm tree
-To: glommer@parallels.com,dchinner@redhat.com,glommer@openvz.org,mm-commits@vger.kernel.org
+Subject: [to-be-updated] list_lru-per-memcg-walks.patch removed from -mm tree
+To: glommer@openvz.org,dchinner@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Jun 2013 12:35:27 -0700
+Date: Thu, 06 Jun 2013 12:35:15 -0700
 
 
 The patch titled
-     Subject: vmpressure: in-kernel notifications
+     Subject: list_lru: per-memcg walks
 has been removed from the -mm tree.  Its filename was
-     vmpressure-in-kernel-notifications.patch
+     list_lru-per-memcg-walks.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@parallels.com>
-Subject: vmpressure: in-kernel notifications
+From: Glauber Costa <glommer@openvz.org>
+Subject: list_lru: per-memcg walks
 
-During the past weeks, it became clear to us that the shrinker interface
-we have right now works very well for some particular types of users, but
-not that well for others.  The later are usually people interested in
-one-shot notifications, that were forced to adapt themselves to the
-count+scan behavior of shrinkers.  To do so, they had no choice than to
-greatly abuse the shrinker interface producing little monsters all over.
-
-During LSF/MM, one of the proposals that popped out during our session was
-to reuse Anton Voronstsov's vmpressure for this.  They are designed for
-userspace consumption, but also provide a well-stablished, cgroup-aware
-entry point for notifications.
-
-This patch extends that to also support in-kernel users.  Events that
-should be generated for in-kernel consumption will be marked as such, and
-for those, we will call a registered function instead of triggering an
-eventfd notification.
-
-Please note that due to my lack of understanding of each shrinker user, I
-will stay away from converting the actual users, you are all welcome to do
-so.
+This patch extend the list_lru interfaces to allow for a memcg parameter. 
+Because most of its users won't need it, instead of modifying the function
+signatures we create a new set of _memcg() functions and write the old API
+ontop of that.
 
 Cc: Glauber Costa <glommer@openvz.org>
 Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmpressure.h |    6 ++++
- mm/vmpressure.c            |   52 ++++++++++++++++++++++++++++++++---
- 2 files changed, 55 insertions(+), 3 deletions(-)
+ include/linux/list_lru.h   |   26 +++++++--
+ include/linux/memcontrol.h |    2 
+ lib/list_lru.c             |   97 ++++++++++++++++++++++++++---------
+ 3 files changed, 97 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/vmpressure.h~vmpressure-in-kernel-notifications include/linux/vmpressure.h
---- a/include/linux/vmpressure.h~vmpressure-in-kernel-notifications
-+++ a/include/linux/vmpressure.h
-@@ -19,6 +19,9 @@ struct vmpressure {
- 	/* Have to grab the lock on events traversal or modifications. */
- 	struct mutex events_lock;
+diff -puN include/linux/list_lru.h~list_lru-per-memcg-walks include/linux/list_lru.h
+--- a/include/linux/list_lru.h~list_lru-per-memcg-walks
++++ a/include/linux/list_lru.h
+@@ -100,7 +100,15 @@ static inline int list_lru_init_memcg(st
+ int list_lru_add(struct list_lru *lru, struct list_head *item);
+ int list_lru_del(struct list_lru *lru, struct list_head *item);
  
-+	/* False if only kernel users want to be notified, true otherwise. */
-+	bool notify_userspace;
+-unsigned long list_lru_count_node(struct list_lru *lru, int nid);
++unsigned long list_lru_count_node_memcg(struct list_lru *lru, int nid,
++					struct mem_cgroup *memcg);
 +
- 	struct work_struct work;
- };
- 
-@@ -36,6 +39,9 @@ extern struct vmpressure *css_to_vmpress
- extern int vmpressure_register_event(struct cgroup *cg, struct cftype *cft,
- 				     struct eventfd_ctx *eventfd,
- 				     const char *args);
-+
-+extern int vmpressure_register_kernel_event(struct cgroup *cg,
-+					    void (*fn)(void));
- extern void vmpressure_unregister_event(struct cgroup *cg, struct cftype *cft,
- 					struct eventfd_ctx *eventfd);
- #else
-diff -puN mm/vmpressure.c~vmpressure-in-kernel-notifications mm/vmpressure.c
---- a/mm/vmpressure.c~vmpressure-in-kernel-notifications
-+++ a/mm/vmpressure.c
-@@ -135,8 +135,12 @@ static enum vmpressure_levels vmpressure
- }
- 
- struct vmpressure_event {
--	struct eventfd_ctx *efd;
-+	union {
-+		struct eventfd_ctx *efd;
-+		void (*fn)(void);
-+	};
- 	enum vmpressure_levels level;
-+	bool kernel_event;
- 	struct list_head node;
- };
- 
-@@ -152,12 +156,15 @@ static bool vmpressure_event(struct vmpr
- 	mutex_lock(&vmpr->events_lock);
- 
- 	list_for_each_entry(ev, &vmpr->events, node) {
--		if (level >= ev->level) {
-+		if (ev->kernel_event) {
-+			ev->fn();
-+		} else if (vmpr->notify_userspace && level >= ev->level) {
- 			eventfd_signal(ev->efd, 1);
- 			signalled = true;
- 		}
- 	}
- 
-+	vmpr->notify_userspace = false;
- 	mutex_unlock(&vmpr->events_lock);
- 
- 	return signalled;
-@@ -227,7 +234,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
- 	 * we account it too.
- 	 */
- 	if (!(gfp & (__GFP_HIGHMEM | __GFP_MOVABLE | __GFP_IO | __GFP_FS)))
--		return;
-+		goto schedule;
- 
- 	/*
- 	 * If we got here with no pages scanned, then that is an indicator
-@@ -244,8 +251,15 @@ void vmpressure(gfp_t gfp, struct mem_cg
- 	vmpr->scanned += scanned;
- 	vmpr->reclaimed += reclaimed;
- 	scanned = vmpr->scanned;
-+	/*
-+	 * If we didn't reach this point, only kernel events will be triggered.
-+	 * It is the job of the worker thread to clean this up once the
-+	 * notifications are all delivered.
-+	 */
-+	vmpr->notify_userspace = true;
- 	mutex_unlock(&vmpr->sr_lock);
- 
-+schedule:
- 	if (scanned < vmpressure_win || work_pending(&vmpr->work))
- 		return;
- 	schedule_work(&vmpr->work);
-@@ -327,6 +341,38 @@ int vmpressure_register_event(struct cgr
- 	return 0;
- }
- 
-+/**
-+ * vmpressure_register_kernel_event() - Register kernel-side notification
-+ * @cg:		cgroup that is interested in vmpressure notifications
-+ * @fn:		function to be called when pressure happens
-+ *
-+ * This function register in-kernel users interested in receiving notifications
-+ * about pressure conditions. Pressure notifications will be triggered at the
-+ * same time as userspace notifications (with no particular ordering relative
-+ * to it).
-+ *
-+ * Pressure notifications are a alternative method to shrinkers and will serve
-+ * well users that are interested in a one-shot notification, with a
-+ * well-defined cgroup aware interface.
-+ */
-+int vmpressure_register_kernel_event(struct cgroup *cg, void (*fn)(void))
++static inline unsigned long
++list_lru_count_node(struct list_lru *lru, int nid)
 +{
-+	struct vmpressure *vmpr = cg_to_vmpressure(cg);
-+	struct vmpressure_event *ev;
-+
-+	ev = kzalloc(sizeof(*ev), GFP_KERNEL);
-+	if (!ev)
-+		return -ENOMEM;
-+
-+	ev->kernel_event = true;
-+	ev->fn = fn;
-+
-+	mutex_lock(&vmpr->events_lock);
-+	list_add(&ev->node, &vmpr->events);
-+	mutex_unlock(&vmpr->events_lock);
-+	return 0;
++	return list_lru_count_node_memcg(lru, nid, NULL);
 +}
 +
- /**
-  * vmpressure_unregister_event() - Unbind eventfd from vmpressure
-  * @cg:		cgroup handle
+ static inline unsigned long list_lru_count(struct list_lru *lru)
+ {
+ 	long count = 0;
+@@ -118,9 +126,19 @@ typedef enum lru_status
+ typedef void (*list_lru_dispose_cb)(struct list_head *dispose_list);
+ 
+ 
+-unsigned long list_lru_walk_node(struct list_lru *lru, int nid,
+-				 list_lru_walk_cb isolate, void *cb_arg,
+-				 unsigned long *nr_to_walk);
++unsigned long
++list_lru_walk_node_memcg(struct list_lru *lru, int nid,
++			 list_lru_walk_cb isolate, void *cb_arg,
++			 unsigned long *nr_to_walk, struct mem_cgroup *memcg);
++
++static inline unsigned long
++list_lru_walk_node(struct list_lru *lru, int nid,
++		 list_lru_walk_cb isolate, void *cb_arg,
++		 unsigned long *nr_to_walk)
++{
++	return list_lru_walk_node_memcg(lru, nid, isolate, cb_arg,
++					nr_to_walk, NULL);
++}
+ 
+ static inline unsigned long
+ list_lru_walk(struct list_lru *lru, list_lru_walk_cb isolate,
+diff -puN include/linux/memcontrol.h~list_lru-per-memcg-walks include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~list_lru-per-memcg-walks
++++ a/include/linux/memcontrol.h
+@@ -593,6 +593,8 @@ static inline bool memcg_kmem_is_active(
+ #define for_each_memcg_cache_index(_idx)	\
+ 	for (; NULL; )
+ 
++#define memcg_limited_groups_array_size 0
++
+ static inline bool memcg_kmem_enabled(void)
+ {
+ 	return false;
+diff -puN lib/list_lru.c~list_lru-per-memcg-walks lib/list_lru.c
+--- a/lib/list_lru.c~list_lru-per-memcg-walks
++++ a/lib/list_lru.c
+@@ -50,13 +50,16 @@ lru_node_of_index(struct list_lru *lru,
+ 	rcu_read_lock();
+ 	rmb();
+ 	/*
+-	 * The array exist, but the particular memcg does not. That is an
+-	 * impossible situation: it would mean we are trying to add to a list
+-	 * belonging to a memcg that does not exist. Either wasn't created or
+-	 * has been already freed. In both cases it should no longer have
+-	 * objects. BUG_ON to avoid a NULL dereference.
++	 * The array exist, but the particular memcg does not. This cannot
++	 * happen when we are called from memcg_kmem_lru_of_page with a
++	 * definite memcg, but it can happen when we are iterating over all
++	 * memcgs (for instance, when disposing all lists.
+ 	 */
+-	BUG_ON(!lru->memcg_lrus[index]);
++	if (!lru->memcg_lrus[index]) {
++		rcu_read_unlock();
++		return NULL;
++	}
++
+ 	nlru = &lru->memcg_lrus[index]->node[nid];
+ 	rcu_read_unlock();
+ 	return nlru;
+@@ -80,6 +83,23 @@ memcg_kmem_lru_of_page(struct list_lru *
+ 	return lru_node_of_index(lru, memcg_id, nid);
+ }
+ 
++/*
++ * This helper will loop through all node-data in the LRU, either global or
++ * per-memcg.  If memcg is either not present or not used,
++ * memcg_limited_groups_array_size will be 0. _idx starts at -1, and it will
++ * still be allowed to execute once.
++ *
++ * We convention that for _idx = -1, the global node info should be used.
++ * After that, we will go through each of the memcgs, starting at 0.
++ *
++ * We don't need any kind of locking for the loop because
++ * memcg_limited_groups_array_size can only grow, gaining new fields at the
++ * end. The old ones are just copied, and any interesting manipulation happen
++ * in the node list itself, and we already lock the list.
++ */
++#define for_each_memcg_lru_index(_idx)	\
++	for ((_idx) = -1; ((_idx) < memcg_limited_groups_array_size); (_idx)++)
++
+ int
+ list_lru_add(
+ 	struct list_lru	*lru,
+@@ -139,10 +159,19 @@ list_lru_del(
+ EXPORT_SYMBOL_GPL(list_lru_del);
+ 
+ unsigned long
+-list_lru_count_node(struct list_lru *lru, int nid)
++list_lru_count_node_memcg(struct list_lru *lru, int nid,
++			  struct mem_cgroup *memcg)
+ {
+ 	long count = 0;
+-	struct list_lru_node *nlru = &lru->node[nid];
++	int memcg_id = -1;
++	struct list_lru_node *nlru;
++
++	if (memcg && memcg_kmem_is_active(memcg))
++		memcg_id = memcg_cache_id(memcg);
++
++	nlru = lru_node_of_index(lru, memcg_id, nid);
++	if (!nlru)
++		return 0;
+ 
+ 	spin_lock(&nlru->lock);
+ 	BUG_ON(nlru->nr_items < 0);
+@@ -151,19 +180,28 @@ list_lru_count_node(struct list_lru *lru
+ 
+ 	return count;
+ }
+-EXPORT_SYMBOL_GPL(list_lru_count_node);
++EXPORT_SYMBOL_GPL(list_lru_count_node_memcg);
+ 
+ unsigned long
+-list_lru_walk_node(
++list_lru_walk_node_memcg(
+ 	struct list_lru		*lru,
+ 	int			nid,
+ 	list_lru_walk_cb	isolate,
+ 	void			*cb_arg,
+-	unsigned long		*nr_to_walk)
++	unsigned long		*nr_to_walk,
++	struct mem_cgroup	*memcg)
+ {
+-	struct list_lru_node	*nlru = &lru->node[nid];
+ 	struct list_head *item, *n;
+ 	unsigned long isolated = 0;
++	struct list_lru_node *nlru;
++	int memcg_id = -1;
++
++	if (memcg && memcg_kmem_is_active(memcg))
++		memcg_id = memcg_cache_id(memcg);
++
++	nlru = lru_node_of_index(lru, memcg_id, nid);
++	if (!nlru)
++		return 0;
+ 
+ 	spin_lock(&nlru->lock);
+ 	list_for_each_safe(item, n, &nlru->list) {
+@@ -200,7 +238,7 @@ restart:
+ 	spin_unlock(&nlru->lock);
+ 	return isolated;
+ }
+-EXPORT_SYMBOL_GPL(list_lru_walk_node);
++EXPORT_SYMBOL_GPL(list_lru_walk_node_memcg);
+ 
+ static unsigned long
+ list_lru_dispose_all_node(
+@@ -208,23 +246,34 @@ list_lru_dispose_all_node(
+ 	int			nid,
+ 	list_lru_dispose_cb	dispose)
+ {
+-	struct list_lru_node	*nlru = &lru->node[nid];
++	struct list_lru_node *nlru;
+ 	LIST_HEAD(dispose_list);
+ 	unsigned long disposed = 0;
++	int idx;
+ 
+-	spin_lock(&nlru->lock);
+-	while (!list_empty(&nlru->list)) {
+-		list_splice_init(&nlru->list, &dispose_list);
+-		disposed += nlru->nr_items;
+-		nlru->nr_items = 0;
+-		node_clear(nid, lru->active_nodes);
+-		spin_unlock(&nlru->lock);
+-
+-		dispose(&dispose_list);
++	for_each_memcg_lru_index(idx) {
++		nlru = lru_node_of_index(lru, idx, nid);
++		if (!nlru)
++			continue;
+ 
+ 		spin_lock(&nlru->lock);
++		while (!list_empty(&nlru->list)) {
++			list_splice_init(&nlru->list, &dispose_list);
++
++			if (atomic_long_sub_and_test(nlru->nr_items,
++							&lru->node_totals[nid]))
++				node_clear(nid, lru->active_nodes);
++			disposed += nlru->nr_items;
++			nlru->nr_items = 0;
++			spin_unlock(&nlru->lock);
++
++			dispose(&dispose_list);
++
++			spin_lock(&nlru->lock);
++		}
++		spin_unlock(&nlru->lock);
+ 	}
+-	spin_unlock(&nlru->lock);
++
+ 	return disposed;
+ }
+ 
 _
 
-Patches currently in -mm which might be from glommer@parallels.com are
+Patches currently in -mm which might be from glommer@openvz.org are
 
-memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
-mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-clear_refs-introduce-private-struct-for-mm_walk.patch
-pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
-pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch
-mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
-mm-soft-dirty-bits-for-user-memory-changes-tracking-call-mmu-notifiers-when-write-protecting-ptes.patch
-pagemap-prepare-to-reuse-constant-bits-with-page-shift.patch
-mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch
+memcg-per-memcg-kmem-shrinking.patch
+memcg-scan-cache-objects-hierarchically.patch
+vmscan-take-at-least-one-pass-with-shrinkers.patch
+super-targeted-memcg-reclaim.patch
+memcg-move-initialization-to-memcg-creation.patch
+vmpressure-in-kernel-notifications.patch
+memcg-reap-dead-memcgs-upon-global-memory-pressure.patch
 
