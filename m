@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot-fix.patch
+Subject: + ocfs2-add-missing-lockres-put-in-dlm_mig_lockres_handler.patch
  added to -mm tree
-Date: Fri, 07 Jun 2013 13:49:41 -0700
-Message-ID: <51b24765.K1ZRXaCWhG3GgHWK%akpm@linux-foundation.org>
+Date: Fri, 07 Jun 2013 14:11:15 -0700
+Message-ID: <51b24c73.+az/j2B0p1e9ZlP3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36329 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756923Ab3FGUtm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jun 2013 16:49:42 -0400
+	with ESMTP id S1752900Ab3FGVLQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jun 2013 17:11:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holler@ahsoftware.de
+To: mm-commits@vger.kernel.org, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: + rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot-fix.patch added to -mm tree
-To: holler@ahsoftware.de
+Subject: + ocfs2-add-missing-lockres-put-in-dlm_mig_lockres_handler.patch added to -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 07 Jun 2013 13:49:41 -0700
+Date: Fri, 07 Jun 2013 14:11:15 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-hid-sensor-time: fix possible bug on driver_remove
+     Subject: ocfs2: add missing lockres put in dlm_mig_lockres_handler
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot-fix.patch
+     ocfs2-add-missing-lockres-put-in-dlm_mig_lockres_handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +39,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: rtc: rtc-hid-sensor-time: fix possible bug on driver_remove
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: add missing lockres put in dlm_mig_lockres_handler
 
-The work we schedule on register deletes himself. Therefor we cannot
-use cancel_work_sync() because that calls flush_work() but still uses
-the pointer to the (now deleted) work afterwards (for clear_work_data)
-which ends up in a bug.
-Replacing cancel_work_sync() with flush_work() fixes that.
+dlm_mig_lockres_handler() is missing a dlm_lockres_put() on an error path.
 
-Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+Signed-off-by: joyce <xuejiufei@huawei.com>
+Reviewed-by: shencanquan <shencanquan@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hid-sensor-time.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot-fix drivers/rtc/rtc-hid-sensor-time.c
---- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot-fix
-+++ a/drivers/rtc/rtc-hid-sensor-time.c
-@@ -385,9 +385,8 @@ static int hid_time_remove(struct platfo
- 	struct hid_time_state *time_state = platform_get_drvdata(pdev);
- 
- 	if (time_state->workts) {
--		cancel_work_sync(&time_state->workts->work);
--		kfree(time_state->workts);
--		time_state->workts = NULL;
-+		flush_work(&time_state->workts->work);
-+		BUG_ON(time_state->workts != NULL);
- 	}
- 	sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
- 
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-lockres-put-in-dlm_mig_lockres_handler fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-lockres-put-in-dlm_mig_lockres_handler
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1404,6 +1404,7 @@ int dlm_mig_lockres_handler(struct o2net
+ 				     mres->lockname_len, mres->lockname);
+ 				ret = -EFAULT;
+ 				spin_unlock(&res->spinlock);
++				dlm_lockres_put(res);
+ 				goto leave;
+ 			}
+ 			res->state |= DLM_LOCK_RES_MIGRATING;
 _
 
-Patches currently in -mm which might be from holler@ahsoftware.de are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-rtc-rtc-hid-sensor-time-allow-full-years-16bit-in-hid-reports.patch
-rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes.patch
-rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot.patch
-rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot-fix.patch
-rtc-rtc-hid-sensor-time-add-support-for-milliseconds.patch
+linux-next.patch
+ocfs2-add-missing-lockres-put-in-dlm_mig_lockres_handler.patch
+ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch
 
