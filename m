@@ -1,141 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch removed from -mm
- tree
-Date: Fri, 07 Jun 2013 12:45:25 -0700
-Message-ID: <51b23855.QcVGZNtUV1Qp3uB4%akpm@linux-foundation.org>
+Subject: + mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+ added to -mm tree
+Date: Fri, 07 Jun 2013 13:43:34 -0700
+Message-ID: <51b245f6.xPSqbz5srxsm1+SI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36204 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754902Ab3FGTp0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jun 2013 15:45:26 -0400
+	with ESMTP id S1757018Ab3FGUnf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jun 2013 16:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ja@ssi.bg, horms@verge.net.au, davem@davemloft.net, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, shli@kernel.org, ngupta@vflare.org, minchan@kernel.org, konrad@darnok.org, hughd@google.com, dan.magenheimer@oracle.com, artem.savkov@gmail.com, akpm@linux-foundation.org
 
-Subject: [merged] ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch removed from -mm tree
-To: zhangyanfei@cn.fujitsu.com,davem@davemloft.net,horms@verge.net.au,ja@ssi.bg,mm-commits@vger.kernel.org
+Subject: + mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,artem.savkov@gmail.com,dan.magenheimer@oracle.com,hughd@google.com,konrad@darnok.org,minchan@kernel.org,ngupta@vflare.org,shli@kernel.org,sjenning@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Fri, 07 Jun 2013 12:45:25 -0700
+Date: Fri, 07 Jun 2013 13:43:34 -0700
 
 
 The patch titled
-     Subject: ipvs: change type of netns_ipvs->sysctl_sync_qlen_max
-has been removed from the -mm tree.  Its filename was
-     ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max.patch
+     Subject: mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix
+has been added to the -mm tree.  Its filename is
+     mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: ipvs: change type of netns_ipvs->sysctl_sync_qlen_max
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix
 
-This member of struct netns_ipvs is calculated from nr_free_buffer_pages
-so change its type to unsigned long in case of overflow.  Also, type of
-its related proc var sync_qlen_max and the return type of function
-sysctl_sync_qlen_max() should be changed to unsigned long, too.
+invert unlikely() test, augment comment, 80-col cleanup
 
-Besides, the type of ipvs_master_sync_state->sync_queue_len should be
-changed to unsigned long accordingly.
-
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Julian Anastasov <ja@ssi.bg>
-Cc: David Miller <davem@davemloft.net>
+Cc: Artem Savkov <artem.savkov@gmail.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/ip_vs.h            |    8 ++++----
- net/netfilter/ipvs/ip_vs_ctl.c |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/page_io.c |   83 +++++++++++++++++++++++++------------------------
+ 1 file changed, 43 insertions(+), 40 deletions(-)
 
-diff -puN include/net/ip_vs.h~ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max include/net/ip_vs.h
---- a/include/net/ip_vs.h~ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max
-+++ a/include/net/ip_vs.h
-@@ -905,7 +905,7 @@ struct ip_vs_app {
- struct ipvs_master_sync_state {
- 	struct list_head	sync_queue;
- 	struct ip_vs_sync_buff	*sync_buff;
--	int			sync_queue_len;
-+	unsigned long		sync_queue_len;
- 	unsigned int		sync_queue_delay;
- 	struct task_struct	*master_thread;
- 	struct delayed_work	master_wakeup_work;
-@@ -998,7 +998,7 @@ struct netns_ipvs {
- 	int			sysctl_snat_reroute;
- 	int			sysctl_sync_ver;
- 	int			sysctl_sync_ports;
--	int			sysctl_sync_qlen_max;
-+	unsigned long		sysctl_sync_qlen_max;
- 	int			sysctl_sync_sock_size;
- 	int			sysctl_cache_bypass;
- 	int			sysctl_expire_nodest_conn;
-@@ -1085,7 +1085,7 @@ static inline int sysctl_sync_ports(stru
- 	return ACCESS_ONCE(ipvs->sysctl_sync_ports);
- }
+diff -puN mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix mm/page_io.c
+--- a/mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix
++++ a/mm/page_io.c
+@@ -81,51 +81,54 @@ void end_swap_bio_read(struct bio *bio,
+ 				imajor(bio->bi_bdev->bd_inode),
+ 				iminor(bio->bi_bdev->bd_inode),
+ 				(unsigned long long)bio->bi_sector);
+-	} else {
+-		SetPageUptodate(page);
++		goto out;
++	}
++
++	SetPageUptodate(page);
++
++	/*
++	 * There is no guarantee that the page is in swap cache - the software
++	 * suspend code (at least) uses end_swap_bio_read() against a non-
++	 * swapcache page.  So we must check PG_swapcache before proceeding with
++	 * this optimization.
++	 */
++	if (likely(PageSwapCache(page))) {
++		struct swap_info_struct *sis;
++
++		sis = page_swap_info(page);
++		if (sis->flags & SWP_BLKDEV) {
++			/*
++			 * The swap subsystem performs lazy swap slot freeing,
++			 * expecting that the page will be swapped out again.
++			 * So we can avoid an unnecessary write if the page
++			 * isn't redirtied.
++			 * This is good for real swap storage because we can
++			 * reduce unnecessary I/O and enhance wear-leveling
++			 * if an SSD is used as the as swap device.
++			 * But if in-memory swap device (eg zram) is used,
++			 * this causes a duplicated copy between uncompressed
++			 * data in VM-owned memory and compressed data in
++			 * zram-owned memory.  So let's free zram-owned memory
++			 * and make the VM-owned decompressed page *dirty*,
++			 * so the page should be swapped out somewhere again if
++			 * we again wish to reclaim it.
++			 */
++			struct gendisk *disk = sis->bdev->bd_disk;
++			if (disk->fops->swap_slot_free_notify) {
++				swp_entry_t entry;
++				unsigned long offset;
++
++				entry.val = page_private(page);
++				offset = swp_offset(entry);
  
--static inline int sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
-+static inline unsigned long sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
- {
- 	return ipvs->sysctl_sync_qlen_max;
- }
-@@ -1138,7 +1138,7 @@ static inline int sysctl_sync_ports(stru
- 	return 1;
- }
+-		/*
+-		 * There is no guarantee that the page is in swap cache, so
+-		 * we need to check PG_swapcache before proceeding with this
+-		 * optimization.
+-		 */
+-		if (unlikely(PageSwapCache(page))) {
+-			struct swap_info_struct *sis;
+-
+-			sis = page_swap_info(page);
+-			if (sis->flags & SWP_BLKDEV) {
+-				/*
+-				 * The swap subsystem performs lazy swap slot freeing,
+-				 * expecting that the page will be swapped out again.
+-				 * So we can avoid an unnecessary write if the page
+-				 * isn't redirtied.
+-				 * This is good for real swap storage because we can
+-				 * reduce unnecessary I/O and enhance wear-leveling
+-				 * if an SSD is used as the as swap device.
+-				 * But if in-memory swap device (eg zram) is used,
+-				 * this causes a duplicated copy between uncompressed
+-				 * data in VM-owned memory and compressed data in
+-				 * zram-owned memory.  So let's free zram-owned memory
+-				 * and make the VM-owned decompressed page *dirty*,
+-				 * so the page should be swapped out somewhere again if
+-				 * we again wish to reclaim it.
+-				 */
+-				struct gendisk *disk = sis->bdev->bd_disk;
+-				if (disk->fops->swap_slot_free_notify) {
+-					swp_entry_t entry;
+-					unsigned long offset;
+-
+-					entry.val = page_private(page);
+-					offset = swp_offset(entry);
+-
+-					SetPageDirty(page);
+-					disk->fops->swap_slot_free_notify(sis->bdev,
+-							offset);
+-				}
++				SetPageDirty(page);
++				disk->fops->swap_slot_free_notify(sis->bdev,
++						offset);
+ 			}
+ 		}
+ 	}
  
--static inline int sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
-+static inline unsigned long sysctl_sync_qlen_max(struct netns_ipvs *ipvs)
- {
- 	return IPVS_SYNC_QLEN_MAX;
++out:
+ 	unlock_page(page);
+ 	bio_put(bio);
  }
-diff -puN net/netfilter/ipvs/ip_vs_ctl.c~ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max net/netfilter/ipvs/ip_vs_ctl.c
---- a/net/netfilter/ipvs/ip_vs_ctl.c~ipvs-change-type-of-netns_ipvs-sysctl_sync_qlen_max
-+++ a/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1716,9 +1716,9 @@ static struct ctl_table vs_vars[] = {
- 	},
- 	{
- 		.procname	= "sync_qlen_max",
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(unsigned long),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_doulongvec_minmax,
- 	},
- 	{
- 		.procname	= "sync_sock_size",
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
 vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
 vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-vmalloc-only-call-setup_vmalloc_vm-only-in-__get_vm_area_node.patch
-mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
-mm-vmalloc-remove-insert_vmalloc_vm.patch
-mm-vmalloc-use-clamp-to-simplify-code.patch
-dev-oldmem-remove-the-interface.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 dev-oldmem-remove-the-interface-fix.patch
-documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
-mips-remove-savemaxmem-parameter-setup.patch
-powerpc-remove-savemaxmem-parameter-setup.patch
-ia64-remove-setting-for-saved_max_pfn.patch
-s390-remove-setting-for-saved_max_pfn.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
