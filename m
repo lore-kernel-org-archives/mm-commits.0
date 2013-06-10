@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + reboot-checkpatchpl-the-new-kernel-rebootc-file.patch added to
- -mm tree
-Date: Mon, 10 Jun 2013 15:15:29 -0700
-Message-ID: <51b65001.AWCX3t2FvPpa+Tqy%akpm@linux-foundation.org>
+Subject: +
+ reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch added to -mm tree
+Date: Mon, 10 Jun 2013 15:15:31 -0700
+Message-ID: <51b65003.3MA4wSASgcafD7f0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60251 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab3FJWPa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 18:15:30 -0400
+	with ESMTP id S1751885Ab3FJWPc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 18:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, rja@sgi.com, mingo@kernel.org, hpa@zytor.com, gxt@mprc.pku.edu.cn, holt@sgi.com
+To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, rja@sgi.com, hpa@zytor.com, gxt@mprc.pku.edu.cn, holt@sgi.com
 
-Subject: + reboot-checkpatchpl-the-new-kernel-rebootc-file.patch added to -mm tree
-To: holt@sgi.com,gxt@mprc.pku.edu.cn,hpa@zytor.com,mingo@kernel.org,rja@sgi.com,rmk+kernel@arm.linux.org.uk
+Subject: + reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch added to -mm tree
+To: holt@sgi.com,gxt@mprc.pku.edu.cn,hpa@zytor.com,rja@sgi.com,rmk+kernel@arm.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Mon, 10 Jun 2013 15:15:29 -0700
+Date: Mon, 10 Jun 2013 15:15:31 -0700
 
 
 The patch titled
-     Subject: reboot: checkpatch.pl the new kernel/reboot.c file
+     Subject: reboot: unicore32: prepare reboot_mode for moving to generic kernel code
 has been added to the -mm tree.  Its filename is
-     reboot-checkpatchpl-the-new-kernel-rebootc-file.patch
+     reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,131 +40,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Robin Holt <holt@sgi.com>
-Subject: reboot: checkpatch.pl the new kernel/reboot.c file
+Subject: reboot: unicore32: prepare reboot_mode for moving to generic kernel code
 
-Get the new file to pass scripts/checkpatch.pl
+Prepare for the moving the parsing of reboot= to the generic kernel code
+by making reboot_mode into a more generic form.
 
 Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Cc: Russ Anderson <rja@sgi.com>
 Cc: Robin Holt <holt@sgi.com>
 Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Ingo Molnar <mingo@kernel.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reboot.h |    2 +-
- kernel/reboot.c        |   27 +++++++++++++--------------
- 2 files changed, 14 insertions(+), 15 deletions(-)
+ arch/unicore32/kernel/process.c |   10 +++++-----
+ arch/unicore32/kernel/setup.h   |    2 +-
+ arch/unicore32/mm/mmu.c         |    2 +-
+ include/linux/reboot.h          |    2 ++
+ 4 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/reboot.h~reboot-checkpatchpl-the-new-kernel-rebootc-file include/linux/reboot.h
---- a/include/linux/reboot.h~reboot-checkpatchpl-the-new-kernel-rebootc-file
-+++ a/include/linux/reboot.h
-@@ -26,7 +26,7 @@ extern void machine_shutdown(void);
- struct pt_regs;
- extern void machine_crash_shutdown(struct pt_regs *);
- 
--/* 
-+/*
-  * Architecture independent implemenations of sys_reboot commands.
-  */
- 
-diff -puN kernel/reboot.c~reboot-checkpatchpl-the-new-kernel-rebootc-file kernel/reboot.c
---- a/kernel/reboot.c~reboot-checkpatchpl-the-new-kernel-rebootc-file
-+++ a/kernel/reboot.c
-@@ -4,6 +4,8 @@
-  *  Copyright (C) 2013  Linus Torvalds
-  */
- 
-+#define pr_fmt(fmt)	"reboot: " fmt
-+
- #include <linux/export.h>
- #include <linux/kexec.h>
- #include <linux/kmod.h>
-@@ -114,9 +116,9 @@ void kernel_restart(char *cmd)
- 	migrate_to_reboot_cpu();
- 	syscore_shutdown();
- 	if (!cmd)
--		printk(KERN_EMERG "Restarting system.\n");
-+		pr_emerg("Restarting system\n");
- 	else
--		printk(KERN_EMERG "Restarting system with command '%s'.\n", cmd);
-+		pr_emerg("Restarting system with command '%s'\n", cmd);
- 	kmsg_dump(KMSG_DUMP_RESTART);
- 	machine_restart(cmd);
+diff -puN arch/unicore32/kernel/process.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/unicore32/kernel/process.c
+--- a/arch/unicore32/kernel/process.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/arch/unicore32/kernel/process.c
+@@ -51,14 +51,14 @@ void arch_cpu_idle(void)
+ 	local_irq_enable();
  }
-@@ -125,7 +127,7 @@ EXPORT_SYMBOL_GPL(kernel_restart);
- static void kernel_shutdown_prepare(enum system_states state)
+ 
+-static char reboot_mode = 'h';
++static enum reboot_mode reboot_mode = REBOOT_HARD;
+ 
+ int __init reboot_setup(char *str)
  {
- 	blocking_notifier_call_chain(&reboot_notifier_list,
--		(state == SYSTEM_HALT)?SYS_HALT:SYS_POWER_OFF, NULL);
-+		(state == SYSTEM_HALT) ? SYS_HALT : SYS_POWER_OFF, NULL);
- 	system_state = state;
- 	usermodehelper_disable();
- 	device_shutdown();
-@@ -140,11 +142,10 @@ void kernel_halt(void)
- 	kernel_shutdown_prepare(SYSTEM_HALT);
- 	migrate_to_reboot_cpu();
- 	syscore_shutdown();
--	printk(KERN_EMERG "System halted.\n");
-+	pr_emerg("System halted\n");
- 	kmsg_dump(KMSG_DUMP_HALT);
- 	machine_halt();
+-	reboot_mode = str[0];
++	if ('s' == str[0])
++		reboot_mode = REBOOT_SOFT;
+ 	return 1;
  }
 -
- EXPORT_SYMBOL_GPL(kernel_halt);
+ __setup("reboot=", reboot_setup);
  
- /**
-@@ -159,7 +160,7 @@ void kernel_power_off(void)
- 		pm_power_off_prepare();
- 	migrate_to_reboot_cpu();
- 	syscore_shutdown();
--	printk(KERN_EMERG "Power down.\n");
-+	pr_emerg("Power down\n");
- 	kmsg_dump(KMSG_DUMP_POWEROFF);
- 	machine_power_off();
- }
-@@ -188,10 +189,10 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
+ void machine_halt(void)
+@@ -88,7 +88,7 @@ void machine_restart(char *cmd)
+ 	 * we may need it to insert some 1:1 mappings so that
+ 	 * soft boot works.
+ 	 */
+-	setup_mm_for_reboot(reboot_mode);
++	setup_mm_for_reboot();
  
- 	/* For safety, we require "magic" arguments. */
- 	if (magic1 != LINUX_REBOOT_MAGIC1 ||
--	    (magic2 != LINUX_REBOOT_MAGIC2 &&
--	                magic2 != LINUX_REBOOT_MAGIC2A &&
-+			(magic2 != LINUX_REBOOT_MAGIC2 &&
-+			magic2 != LINUX_REBOOT_MAGIC2A &&
- 			magic2 != LINUX_REBOOT_MAGIC2B &&
--	                magic2 != LINUX_REBOOT_MAGIC2C))
-+			magic2 != LINUX_REBOOT_MAGIC2C))
- 		return -EINVAL;
- 
+ 	/* Clean and invalidate caches */
+ 	flush_cache_all();
+@@ -102,7 +102,7 @@ void machine_restart(char *cmd)
  	/*
-@@ -234,7 +235,8 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
- 		break;
- 
- 	case LINUX_REBOOT_CMD_RESTART2:
--		if (strncpy_from_user(&buffer[0], arg, sizeof(buffer) - 1) < 0) {
-+		ret = strncpy_from_user(&buffer[0], arg, sizeof(buffer) - 1);
-+		if (ret < 0) {
- 			ret = -EFAULT;
- 			break;
- 		}
-@@ -300,14 +302,11 @@ static int __orderly_poweroff(bool force
- 		ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
- 		argv_free(argv);
+ 	 * Now handle reboot code.
+ 	 */
+-	if (reboot_mode == 's') {
++	if (reboot_mode == REBOOT_SOFT) {
+ 		/* Jump into ROM at address 0xffff0000 */
+ 		cpu_reset(VECTORS_BASE);
  	} else {
--		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
--					 __func__, poweroff_cmd);
- 		ret = -ENOMEM;
- 	}
+diff -puN arch/unicore32/kernel/setup.h~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/unicore32/kernel/setup.h
+--- a/arch/unicore32/kernel/setup.h~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/arch/unicore32/kernel/setup.h
+@@ -22,7 +22,7 @@ extern void puv3_ps2_init(void);
+ extern void pci_puv3_preinit(void);
+ extern void __init puv3_init_gpio(void);
  
- 	if (ret && force) {
--		printk(KERN_WARNING "Failed to start orderly shutdown: "
--					"forcing the issue\n");
-+		pr_warn("Failed to start orderly shutdown: forcing the issue\n");
- 		/*
- 		 * I guess this should try to kick off some daemon to sync and
- 		 * poweroff asap.  Or not even bother syncing if we're doing an
+-extern void setup_mm_for_reboot(char mode);
++extern void setup_mm_for_reboot(void);
+ 
+ extern char __stubs_start[], __stubs_end[];
+ extern char __vectors_start[], __vectors_end[];
+diff -puN arch/unicore32/mm/mmu.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/unicore32/mm/mmu.c
+--- a/arch/unicore32/mm/mmu.c~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/arch/unicore32/mm/mmu.c
+@@ -445,7 +445,7 @@ void __init paging_init(void)
+  * the user-mode pages.  This will then ensure that we have predictable
+  * results when turning the mmu off
+  */
+-void setup_mm_for_reboot(char mode)
++void setup_mm_for_reboot(void)
+ {
+ 	unsigned long base_pmdval;
+ 	pgd_t *pgd;
+diff -puN include/linux/reboot.h~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code include/linux/reboot.h
+--- a/include/linux/reboot.h~reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/include/linux/reboot.h
+@@ -13,6 +13,8 @@
+ enum reboot_mode {
+ 	REBOOT_COLD = 0,
+ 	REBOOT_WARM,
++	REBOOT_HARD,
++	REBOOT_SOFT,
+ };
+ 
+ extern int register_reboot_notifier(struct notifier_block *);
 _
 
 Patches currently in -mm which might be from holt@sgi.com are
