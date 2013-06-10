@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mremap-validate-input-before-taking-lock.patch added to -mm
- tree
-Date: Mon, 10 Jun 2013 14:05:48 -0700
-Message-ID: <51b63fac.eSxvcoE/X4blHU0u%akpm@linux-foundation.org>
+Subject: +
+ documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool.patch
+ added to -mm tree
+Date: Mon, 10 Jun 2013 14:21:31 -0700
+Message-ID: <51b6435b.4fT5r8biYzr+n0ny%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59758 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298Ab3FJVFt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 17:05:49 -0400
+	with ESMTP id S1753386Ab3FJVVc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 17:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, linux@rasmusvillemoes.dk
+To: mm-commits@vger.kernel.org, schwab@linux-m68k.org, rob@landley.net, keescook@chromium.org
 
-Subject: + mm-mremap-validate-input-before-taking-lock.patch added to -mm tree
-To: linux@rasmusvillemoes.dk,kosaki.motohiro@jp.fujitsu.com,rientjes@google.com
+Subject: + documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool.patch added to -mm tree
+To: keescook@chromium.org,rob@landley.net,schwab@linux-m68k.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Jun 2013 14:05:48 -0700
+Date: Mon, 10 Jun 2013 14:21:31 -0700
 
 
 The patch titled
-     Subject: mm: mremap: validate input before taking lock
+     Subject: Documentation/accounting/getdelays.c: avoid strncpy in accounting tool
 has been added to the -mm tree.  Its filename is
-     mm-mremap-validate-input-before-taking-lock.patch
+     documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,68 +40,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm: mremap: validate input before taking lock
+From: Kees Cook <keescook@chromium.org>
+Subject: Documentation/accounting/getdelays.c: avoid strncpy in accounting tool
 
-This patch is very similar to 84d96d897671 ("mm: madvise: complete input
-validation before taking lock"): perform some basic validation of the
-input to mremap() before taking the &current->mm->mmap_sem lock.  This
-also makes the MREMAP_FIXED => MREMAP_MAYMOVE dependency slightly more
-explicit.
+Avoid strncpy anti-pattern.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Andreas Schwab <schwab@linux-m68k.org>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ Documentation/accounting/getdelays.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mremap.c~mm-mremap-validate-input-before-taking-lock mm/mremap.c
---- a/mm/mremap.c~mm-mremap-validate-input-before-taking-lock
-+++ a/mm/mremap.c
-@@ -456,13 +456,14 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	unsigned long charged = 0;
- 	bool locked = false;
- 
--	down_write(&current->mm->mmap_sem);
--
- 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
--		goto out;
-+		return ret;
-+
-+	if (flags & MREMAP_FIXED && !(flags & MREMAP_MAYMOVE))
-+		return ret;
- 
- 	if (addr & ~PAGE_MASK)
--		goto out;
-+		return ret;
- 
- 	old_len = PAGE_ALIGN(old_len);
- 	new_len = PAGE_ALIGN(new_len);
-@@ -473,12 +474,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	 * a zero new-len is nonsensical.
- 	 */
- 	if (!new_len)
--		goto out;
-+		return ret;
-+
-+	down_write(&current->mm->mmap_sem);
- 
- 	if (flags & MREMAP_FIXED) {
--		if (flags & MREMAP_MAYMOVE)
--			ret = mremap_to(addr, old_len, new_addr, new_len,
--					&locked);
-+		ret = mremap_to(addr, old_len, new_addr, new_len,
-+				&locked);
- 		goto out;
- 	}
- 
+diff -puN Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool
++++ a/Documentation/accounting/getdelays.c
+@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
+ 	char *logfile = NULL;
+ 	int loop = 0;
+ 	int containerset = 0;
+-	char containerpath[1024];
++	char *containerpath = NULL;
+ 	int cfd = 0;
+ 	int forking = 0;
+ 	sigset_t sigset;
+@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
+ 			break;
+ 		case 'C':
+ 			containerset = 1;
+-			strncpy(containerpath, optarg, strlen(optarg) + 1);
++			containerpath = strdup(optarg);
+ 			break;
+ 		case 'w':
+ 			logfile = strdup(optarg);
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 linux-next.patch
-mm-mremap-validate-input-before-taking-lock.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch
+clean-up-scary-strncpydst-src-strlensrc-uses.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
 
