@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul.patch added
- to -mm tree
-Date: Mon, 10 Jun 2013 16:28:14 -0700
-Message-ID: <51b6610e.OHD8JpZD8b9TeMuG%akpm@linux-foundation.org>
+Subject: + backlight-convert-from-legacy-pm-ops-to-dev_pm_ops-fix.patch
+ added to -mm tree
+Date: Mon, 10 Jun 2013 16:32:34 -0700
+Message-ID: <51b66212.2brehy3HiaCrCAqx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60610 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753606Ab3FJX2P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 19:28:15 -0400
+	with ESMTP id S1752084Ab3FJXcf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 19:32:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, shuahkhan@gmail.com, arnd@arndb.de, jg1.han@samsung.com
 
-Subject: + drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul.patch added to -mm tree
-To: jg1.han@samsung.com,andriy.shevchenko@linux.intel.com
+Subject: + backlight-convert-from-legacy-pm-ops-to-dev_pm_ops-fix.patch added to -mm tree
+To: jg1.han@samsung.com,arnd@arndb.de,shuahkhan@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Jun 2013 16:28:14 -0700
+Date: Mon, 10 Jun 2013 16:32:34 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf2123.c: replace strict_strtoul() with kstrtoul()
+     Subject: backlight: add CONFIG_PM_SLEEP to suspend/resume functions
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul.patch
+     backlight-convert-from-legacy-pm-ops-to-dev_pm_ops-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,51 +40,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-pcf2123.c: replace strict_strtoul() with kstrtoul()
+Subject: backlight: add CONFIG_PM_SLEEP to suspend/resume functions
 
-The usage of strict_strtoul() is not preferred, because strict_strtoul()
-is obsolete.  Thus, kstrtoul() should be used.
+Add CONFIG_PM_SLEEP to suspend/resume functions to fix the following build
+warning when CONFIG_PM_SLEEP is not selected.  This is because sleep PM
+callbacks defined by SIMPLE_DEV_PM_OPS are only used when the
+CONFIG_PM_SLEEP is enabled.
+
+drivers/video/backlight/backlight.c:211:12: warning: 'backlight_suspend' defined but not used [-Wunused-function]
+drivers/video/backlight/backlight.c:225:12: warning: 'backlight_resume' defined but not used [-Wunused-function]
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Shuah Khan <shuahkhan@gmail.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/video/backlight/backlight.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -94,8 +94,9 @@ static ssize_t pcf2123_show(struct devic
+diff -puN drivers/video/backlight/backlight.c~backlight-convert-from-legacy-pm-ops-to-dev_pm_ops-fix drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-convert-from-legacy-pm-ops-to-dev_pm_ops-fix
++++ a/drivers/video/backlight/backlight.c
+@@ -208,6 +208,7 @@ static ssize_t backlight_show_actual_bri
  
- 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
+ static struct class *backlight_class;
  
--	if (strict_strtoul(r->name, 16, &reg))
--		return -EINVAL;
-+	ret = kstrtoul(r->name, 16, &reg);
-+	if (ret)
-+		return ret;
++#ifdef CONFIG_PM_SLEEP
+ static int backlight_suspend(struct device *dev)
+ {
+ 	struct backlight_device *bd = to_backlight_device(dev);
+@@ -235,6 +236,7 @@ static int backlight_resume(struct devic
  
- 	txbuf[0] = PCF2123_READ | reg;
- 	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
-@@ -117,9 +118,13 @@ static ssize_t pcf2123_store(struct devi
+ 	return 0;
+ }
++#endif
  
- 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
- 
--	if (strict_strtoul(r->name, 16, &reg)
--		|| strict_strtoul(buffer, 10, &val))
--		return -EINVAL;
-+	ret = kstrtoul(r->name, 16, &reg);
-+	if (ret)
-+		return ret;
-+
-+	ret = kstrtoul(buffer, 10, &val);
-+	if (ret)
-+		return ret;
- 
- 	txbuf[0] = PCF2123_WRITE | reg;
- 	txbuf[1] = val;
+ static SIMPLE_DEV_PM_OPS(backlight_class_dev_pm_ops, backlight_suspend,
+ 			 backlight_resume);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -101,6 +94,7 @@ backlight-add-devm_backlight_device_registerunregister.patch
 lcd-add-devm_lcd_device_registerunregister.patch
 maintainers-add-backlight-subsystem-co-maintainer.patch
 backlight-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
+backlight-convert-from-legacy-pm-ops-to-dev_pm_ops-fix.patch
 rtc-rtc-88pm80x-remove-unnecessary-platform_set_drvdata.patch
 drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
 drivers-rtc-interfacec-fix-checkpatch-errors.patch
