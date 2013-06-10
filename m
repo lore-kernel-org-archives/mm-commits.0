@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-compressed-copy-from-zram-in-memory-fix-2.patch added to -mm tree
-Date: Mon, 10 Jun 2013 13:42:17 -0700
-Message-ID: <51b63a29.jEONnnp/LxDyhmzu%akpm@linux-foundation.org>
+Subject: + mm-mremap-validate-input-before-taking-lock.patch added to -mm
+ tree
+Date: Mon, 10 Jun 2013 14:05:48 -0700
+Message-ID: <51b63fac.eSxvcoE/X4blHU0u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59618 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826Ab3FJUmS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 16:42:18 -0400
+	with ESMTP id S1753298Ab3FJVFt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 17:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, shli@kernel.org, ngupta@vflare.org, minchan@kernel.org, konrad@darnok.org, hughd@google.com, dan.magenheimer@oracle.com, artem.savkov@gmail.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, linux@rasmusvillemoes.dk
 
-Subject: + mm-remove-compressed-copy-from-zram-in-memory-fix-2.patch added to -mm tree
-To: artem.savkov@gmail.com,dan.magenheimer@oracle.com,hughd@google.com,konrad@darnok.org,minchan@kernel.org,ngupta@vflare.org,shli@kernel.org,sjenning@linux.vnet.ibm.com
+Subject: + mm-mremap-validate-input-before-taking-lock.patch added to -mm tree
+To: linux@rasmusvillemoes.dk,kosaki.motohiro@jp.fujitsu.com,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Jun 2013 13:42:16 -0700
+Date: Mon, 10 Jun 2013 14:05:48 -0700
 
 
 The patch titled
-     Subject: non-swapcache pages in end_swap_bio_read()
+     Subject: mm: mremap: validate input before taking lock
 has been added to the -mm tree.  Its filename is
-     mm-remove-compressed-copy-from-zram-in-memory-fix-2.patch
+     mm-mremap-validate-input-before-taking-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,168 +39,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Artem Savkov <artem.savkov@gmail.com>
-Subject: non-swapcache pages in end_swap_bio_read()
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm: mremap: validate input before taking lock
 
-There is no guarantee that page in end_swap_bio_read is in swapcache so we
-need to check it before calling page_swap_info().  Otherwise kernel hits a
-bug on like the one below.  Introduced in "mm: remove compressed copy from
-zram in-memory"
+This patch is very similar to 84d96d897671 ("mm: madvise: complete input
+validation before taking lock"): perform some basic validation of the
+input to mremap() before taking the &current->mm->mmap_sem lock.  This
+also makes the MREMAP_FIXED => MREMAP_MAYMOVE dependency slightly more
+explicit.
 
-kernel BUG at mm/swapfile.c:2361!
-invalid opcode: 0000 [#1] SMP
-Modules linked in:
-CPU: 1 PID: 0 Comm: swapper/1 Not tainted 3.10.0-rc4-next-20130607+ #61
-Hardware name: Bochs Bochs, BIOS Bochs 01/01/2007
-task: ffff88001e5ccfc0 ti: ffff88001e5ea000 task.ti: ffff88001e5ea000
-RIP: 0010:[<ffffffff811462eb>]  [<ffffffff811462eb>] page_swap_info+0xab/0xb0
-RSP: 0000:ffff88001ec03c78  EFLAGS: 00010246
-RAX: 0100000000000009 RBX: ffffea0000794780 RCX: 0000000000000c0b
-RDX: 0000000000000046 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffff88001ec03c88 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: 0000000000000001 R14: ffff88001e7f6200 R15: 0000000000001000
-FS:  0000000000000000(0000) GS:ffff88001ec00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000000000 CR3: 000000000240b000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Stack:
-ffffea0000794780 ffff88001e7f6200 ffff88001ec03cb8 ffffffff81145486
-ffff88001e5cd5c0 ffff88001c02cd20 0000000000001000 0000000000000000
-ffff88001ec03cc8 ffffffff81199518 ffff88001ec03d28 ffffffff81518ec3
-Call Trace:
-<IRQ>
-[<ffffffff81145486>] end_swap_bio_read+0x96/0x130
-[<ffffffff81199518>] bio_endio+0x18/0x40
-[<ffffffff81518ec3>] blk_update_request+0x213/0x540
-[<ffffffff81518fa0>] ? blk_update_request+0x2f0/0x540
-[<ffffffff817986a6>] ? ata_hsm_qc_complete+0x46/0x130
-[<ffffffff81519212>] blk_update_bidi_request+0x22/0x90
-[<ffffffff8151b9ea>] blk_end_bidi_request+0x2a/0x80
-[<ffffffff8151ba8b>] blk_end_request+0xb/0x10
-[<ffffffff817693aa>] scsi_io_completion+0xaa/0x6b0
-[<ffffffff817608d8>] scsi_finish_command+0xc8/0x130
-[<ffffffff81769aff>] scsi_softirq_done+0x13f/0x160
-[<ffffffff81521ebc>] blk_done_softirq+0x7c/0x90
-[<ffffffff81049030>] __do_softirq+0x130/0x3f0
-[<ffffffff810d454e>] ? handle_irq_event+0x4e/0x70
-[<ffffffff81049405>] irq_exit+0xa5/0xb0
-[<ffffffff81003cb1>] do_IRQ+0x61/0xe0
-[<ffffffff81c2832f>] common_interrupt+0x6f/0x6f
-<EOI>
-[<ffffffff8107ebff>] ? local_clock+0x4f/0x60
-[<ffffffff81c27f85>] ? _raw_spin_unlock_irq+0x35/0x50
-[<ffffffff81c27f7b>] ? _raw_spin_unlock_irq+0x2b/0x50
-[<ffffffff81078bd0>] finish_task_switch+0x80/0x110
-[<ffffffff81078b93>] ? finish_task_switch+0x43/0x110
-[<ffffffff81c2525c>] __schedule+0x32c/0x8c0
-[<ffffffff81c2c010>] ? notifier_call_chain+0x150/0x150
-[<ffffffff81c259d4>] schedule+0x24/0x70
-[<ffffffff81c25d42>] schedule_preempt_disabled+0x22/0x30
-[<ffffffff81093645>] cpu_startup_entry+0x335/0x380
-[<ffffffff81c1ed7e>] start_secondary+0x217/0x219
-Code: 69 bc 16 82 48 c7 c7 77 bc 16 82 31 c0 49 c1 ec 39 49 c1 e9 10 41 83 e1 01 e8 6c d2 ad 00 5b 4a 8b 04 e5 e0 bf 14 83 41 5c c9 c3 <0f> 0b eb fe 90 48 8b 07 55 48 89 e5 a9 00 00 01 00 74 12 e8 3d
-RIP  [<ffffffff811462eb>] page_swap_info+0xab/0xb0
-RSP <ffff88001ec03c78>
-
-Signed-off-by: Artem Savkov <artem.savkov@gmail.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Cc: Shaohua Li <shli@kernel.org>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   66 +++++++++++++++++++++++++++----------------------
- 1 file changed, 37 insertions(+), 29 deletions(-)
+ mm/mremap.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory-fix-2 mm/page_io.c
---- a/mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory-fix-2
-+++ a/mm/page_io.c
-@@ -82,38 +82,46 @@ void end_swap_bio_read(struct bio *bio,
- 				iminor(bio->bi_bdev->bd_inode),
- 				(unsigned long long)bio->bi_sector);
- 	} else {
--		struct swap_info_struct *sis;
+diff -puN mm/mremap.c~mm-mremap-validate-input-before-taking-lock mm/mremap.c
+--- a/mm/mremap.c~mm-mremap-validate-input-before-taking-lock
++++ a/mm/mremap.c
+@@ -456,13 +456,14 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	unsigned long charged = 0;
+ 	bool locked = false;
+ 
+-	down_write(&current->mm->mmap_sem);
 -
- 		SetPageUptodate(page);
--		sis = page_swap_info(page);
--		if (sis->flags & SWP_BLKDEV) {
--			/*
--			 * The swap subsystem performs lazy swap slot freeing,
--			 * expecting that the page will be swapped out again.
--			 * So we can avoid an unnecessary write if the page
--			 * isn't redirtied.
--			 * This is good for real swap storage because we can
--			 * reduce unnecessary I/O and enhance wear-leveling
--			 * if an SSD is used as the as swap device.
--			 * But if in-memory swap device (eg zram) is used,
--			 * this causes a duplicated copy between uncompressed
--			 * data in VM-owned memory and compressed data in
--			 * zram-owned memory.  So let's free zram-owned memory
--			 * and make the VM-owned decompressed page *dirty*,
--			 * so the page should be swapped out somewhere again if
--			 * we again wish to reclaim it.
--			 */
--			struct gendisk *disk = sis->bdev->bd_disk;
--			if (disk->fops->swap_slot_free_notify) {
--				swp_entry_t entry;
--				unsigned long offset;
- 
--				entry.val = page_private(page);
--				offset = swp_offset(entry);
-+		/*
-+		 * There is no guarantee that the page is in swap cache, so
-+		 * we need to check PG_swapcache before proceeding with this
-+		 * optimization.
-+		 */
-+		if (unlikely(PageSwapCache(page))) {
-+			struct swap_info_struct *sis;
+ 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
+-		goto out;
++		return ret;
 +
-+			sis = page_swap_info(page);
-+			if (sis->flags & SWP_BLKDEV) {
-+				/*
-+				 * The swap subsystem performs lazy swap slot freeing,
-+				 * expecting that the page will be swapped out again.
-+				 * So we can avoid an unnecessary write if the page
-+				 * isn't redirtied.
-+				 * This is good for real swap storage because we can
-+				 * reduce unnecessary I/O and enhance wear-leveling
-+				 * if an SSD is used as the as swap device.
-+				 * But if in-memory swap device (eg zram) is used,
-+				 * this causes a duplicated copy between uncompressed
-+				 * data in VM-owned memory and compressed data in
-+				 * zram-owned memory.  So let's free zram-owned memory
-+				 * and make the VM-owned decompressed page *dirty*,
-+				 * so the page should be swapped out somewhere again if
-+				 * we again wish to reclaim it.
-+				 */
-+				struct gendisk *disk = sis->bdev->bd_disk;
-+				if (disk->fops->swap_slot_free_notify) {
-+					swp_entry_t entry;
-+					unsigned long offset;
-+
-+					entry.val = page_private(page);
-+					offset = swp_offset(entry);
++	if (flags & MREMAP_FIXED && !(flags & MREMAP_MAYMOVE))
++		return ret;
  
--				SetPageDirty(page);
--				disk->fops->swap_slot_free_notify(sis->bdev,
--						offset);
-+					SetPageDirty(page);
-+					disk->fops->swap_slot_free_notify(sis->bdev,
-+							offset);
-+				}
- 			}
- 		}
+ 	if (addr & ~PAGE_MASK)
+-		goto out;
++		return ret;
+ 
+ 	old_len = PAGE_ALIGN(old_len);
+ 	new_len = PAGE_ALIGN(new_len);
+@@ -473,12 +474,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	 * a zero new-len is nonsensical.
+ 	 */
+ 	if (!new_len)
+-		goto out;
++		return ret;
++
++	down_write(&current->mm->mmap_sem);
+ 
+ 	if (flags & MREMAP_FIXED) {
+-		if (flags & MREMAP_MAYMOVE)
+-			ret = mremap_to(addr, old_len, new_addr, new_len,
+-					&locked);
++		ret = mremap_to(addr, old_len, new_addr, new_len,
++				&locked);
+ 		goto out;
  	}
+ 
 _
 
-Patches currently in -mm which might be from artem.savkov@gmail.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-mm-remove-compressed-copy-from-zram-in-memory-fix-2.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+linux-next.patch
+mm-mremap-validate-input-before-taking-lock.patch
 
