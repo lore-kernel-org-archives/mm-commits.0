@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-remove-unecessary-variable-needs_checkpoint.patch added
- to -mm tree
-Date: Mon, 10 Jun 2013 16:36:35 -0700
-Message-ID: <51b66303.f+FtSJX3C1OIM+TN%akpm@linux-foundation.org>
+Subject: +
+ drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch added to
+ -mm tree
+Date: Mon, 10 Jun 2013 16:37:56 -0700
+Message-ID: <51b66354.VH3up3XsHNqJonFE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084Ab3FJXgg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 19:36:36 -0400
+	with ESMTP id S1752960Ab3FJXh5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 19:37:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, rgoldwyn@gmail.com
+To: mm-commits@vger.kernel.org, shuahkhan@gmail.com, jg1.han@samsung.com, a.zummo@towertech.it, shuah.kh@samsung.com
 
-Subject: + ocfs2-remove-unecessary-variable-needs_checkpoint.patch added to -mm tree
-To: rgoldwyn@gmail.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
+Subject: + drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch added to -mm tree
+To: shuah.kh@samsung.com,a.zummo@towertech.it,jg1.han@samsung.com,shuahkhan@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Jun 2013 16:36:35 -0700
+Date: Mon, 10 Jun 2013 16:37:56 -0700
 
 
 The patch titled
-     Subject: ocfs2: remove unecessary variable needs_checkpoint
+     Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-unecessary-variable-needs_checkpoint.patch
+     drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +40,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@gmail.com>
-Subject: ocfs2: remove unecessary variable needs_checkpoint
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: drivers/rtc/class: convert from Legacy pm ops to dev_pm_ops
 
-Code cleanup: needs_checkpoint is assigned to but never used.  Delete the
-variable.
+Convert drivers/rtc/class to use dev_pm_ops for power management and
+remove Legacy PM ops hooks.  With this change, rtc class registers
+suspend/resume callbacks via class->pm (dev_pm_ops) instead of Legacy
+class->suspend/resume.  When __device_suspend() runs call-backs, it will
+find class->pm ops for the rtc class.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Jeff Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Shuah Khan <shuahkhan@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.h |    1 -
- fs/ocfs2/ocfs2.h   |    1 -
- fs/ocfs2/super.c   |    6 ++----
- 3 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/rtc/class.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/journal.h~ocfs2-remove-unecessary-variable-needs_checkpoint fs/ocfs2/journal.h
---- a/fs/ocfs2/journal.h~ocfs2-remove-unecessary-variable-needs_checkpoint
-+++ a/fs/ocfs2/journal.h
-@@ -200,7 +200,6 @@ void ocfs2_complete_quota_recovery(struc
+diff -puN drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops drivers/rtc/class.c
+--- a/drivers/rtc/class.c~drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops
++++ a/drivers/rtc/class.c
+@@ -38,7 +38,7 @@ static void rtc_device_release(struct de
+ int rtc_hctosys_ret = -ENODEV;
+ #endif
  
- static inline void ocfs2_start_checkpoint(struct ocfs2_super *osb)
+-#if defined(CONFIG_PM) && defined(CONFIG_RTC_HCTOSYS_DEVICE)
++#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_RTC_HCTOSYS_DEVICE)
+ /*
+  * On suspend(), measure the delta between one RTC and the
+  * system's wall clock; restore it on resume().
+@@ -47,7 +47,7 @@ int rtc_hctosys_ret = -ENODEV;
+ static struct timespec old_rtc, old_system, old_delta;
+ 
+ 
+-static int rtc_suspend(struct device *dev, pm_message_t mesg)
++static int rtc_suspend(struct device *dev)
  {
--	atomic_set(&osb->needs_checkpoint, 1);
- 	wake_up(&osb->checkpoint_event);
+ 	struct rtc_device	*rtc = to_rtc_device(dev);
+ 	struct rtc_time		tm;
+@@ -135,9 +135,10 @@ static int rtc_resume(struct device *dev
+ 	return 0;
  }
  
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-remove-unecessary-variable-needs_checkpoint fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-remove-unecessary-variable-needs_checkpoint
-+++ a/fs/ocfs2/ocfs2.h
-@@ -347,7 +347,6 @@ struct ocfs2_super
- 	struct task_struct *recovery_thread_task;
- 	int disable_recovery;
- 	wait_queue_head_t checkpoint_event;
--	atomic_t needs_checkpoint;
- 	struct ocfs2_journal *journal;
- 	unsigned long osb_commit_interval;
++static SIMPLE_DEV_PM_OPS(rtc_class_dev_pm_ops, rtc_suspend, rtc_resume);
++#define RTC_CLASS_DEV_PM_OPS	(&rtc_class_dev_pm_ops)
+ #else
+-#define rtc_suspend	NULL
+-#define rtc_resume	NULL
++#define RTC_CLASS_DEV_PM_OPS	NULL
+ #endif
  
-diff -puN fs/ocfs2/super.c~ocfs2-remove-unecessary-variable-needs_checkpoint fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-remove-unecessary-variable-needs_checkpoint
-+++ a/fs/ocfs2/super.c
-@@ -286,10 +286,9 @@ static int ocfs2_osb_dump(struct ocfs2_s
- 	spin_unlock(&osb->osb_lock);
  
- 	out += snprintf(buf + out, len - out,
--			"%10s => Pid: %d  Interval: %lu  Needs: %d\n", "Commit",
-+			"%10s => Pid: %d  Interval: %lu\n", "Commit",
- 			(osb->commit_task ? task_pid_nr(osb->commit_task) : -1),
--			osb->osb_commit_interval,
--			atomic_read(&osb->needs_checkpoint));
-+			osb->osb_commit_interval);
- 
- 	out += snprintf(buf + out, len - out,
- 			"%10s => State: %d  TxnId: %lu  NumTxns: %d\n",
-@@ -2154,7 +2153,6 @@ static int ocfs2_initialize_super(struct
+@@ -336,8 +337,7 @@ static int __init rtc_init(void)
+ 		pr_err("couldn't create class\n");
+ 		return PTR_ERR(rtc_class);
  	}
- 
- 	init_waitqueue_head(&osb->checkpoint_event);
--	atomic_set(&osb->needs_checkpoint, 0);
- 
- 	osb->s_atime_quantum = OCFS2_DEFAULT_ATIME_QUANTUM;
- 
+-	rtc_class->suspend = rtc_suspend;
+-	rtc_class->resume = rtc_resume;
++	rtc_class->pm = RTC_CLASS_DEV_PM_OPS;
+ 	rtc_dev_init();
+ 	rtc_sysfs_init(rtc_class);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from rgoldwyn@gmail.com are
+Patches currently in -mm which might be from shuah.kh@samsung.com are
 
-fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch
-ocfs2-remove-unecessary-variable-needs_checkpoint.patch
+linux-next.patch
+backlight-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
+drivers-rtc-class-convert-from-legacy-pm-ops-to-dev_pm_ops.patch
 
