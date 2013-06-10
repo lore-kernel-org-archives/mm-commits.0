@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
- added to -mm tree
-Date: Mon, 10 Jun 2013 15:15:30 -0700
-Message-ID: <51b65002.oqFoY+FvvaDmYUMy%akpm@linux-foundation.org>
+Subject: + reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch added to -mm tree
+Date: Mon, 10 Jun 2013 15:15:37 -0700
+Message-ID: <51b65009.UBSTQZHB2pxzuWu4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60270 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab3FJWPg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 18:15:36 -0400
+	with ESMTP id S1752249Ab3FJWPi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 18:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, rja@sgi.com, mingo@kernel.org, mboton.lkml@gmail.com, hpa@zytor.com, gxt@mprc.pku.edu.cn, holt@sgi.com
+To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, rja@sgi.com, hpa@zytor.com, holt@sgi.com, gxt@mprc.pku.edu.cn, akpm@linux-foundation.org
 
-Subject: + reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch added to -mm tree
-To: holt@sgi.com,gxt@mprc.pku.edu.cn,hpa@zytor.com,mboton.lkml@gmail.com,mingo@kernel.org,rja@sgi.com,rmk+kernel@arm.linux.org.uk
+Subject: + reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,gxt@mprc.pku.edu.cn,holt@sgi.com,hpa@zytor.com,rja@sgi.com,rmk+kernel@arm.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Mon, 10 Jun 2013 15:15:30 -0700
+Date: Mon, 10 Jun 2013 15:15:37 -0700
 
 
 The patch titled
-     Subject: reboot: x86: prepare reboot_mode for moving to generic kernel code
+     Subject: reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix
 has been added to the -mm tree.  Its filename is
-     reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+     reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,116 +38,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Robin Holt <holt@sgi.com>
-Subject: reboot: x86: prepare reboot_mode for moving to generic kernel code
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix
 
-Prepare for the moving the parsing of reboot= to the generic kernel code
-by making reboot_mode into a more generic form.
+fix arch/arm/mach-socfpga/socfpga.c
 
-Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Miguel Boton <mboton.lkml@gmail.com>
-Cc: Russ Anderson <rja@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |   12 +++++++-----
- include/linux/reboot.h   |    5 +++++
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ arch/arm/mach-socfpga/socfpga.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/reboot.c~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code
-+++ a/arch/x86/kernel/reboot.c
-@@ -36,7 +36,7 @@ void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
+diff -puN arch/arm/mach-socfpga/socfpga.c~reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix arch/arm/mach-socfpga/socfpga.c
+--- a/arch/arm/mach-socfpga/socfpga.c~reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix
++++ a/arch/arm/mach-socfpga/socfpga.c
+@@ -97,7 +97,7 @@ static void socfpga_cyclone5_restart(enu
  
- static const struct desc_ptr no_idt = {};
--static int reboot_mode;
-+static enum reboot_mode reboot_mode;
- enum reboot_type reboot_type = BOOT_ACPI;
- int reboot_force;
+ 	temp = readl(rst_manager_base_addr + SOCFPGA_RSTMGR_CTRL);
  
-@@ -88,11 +88,11 @@ static int __init reboot_setup(char *str
- 
- 		switch (*str) {
- 		case 'w':
--			reboot_mode = 0x1234;
-+			reboot_mode = REBOOT_WARM;
- 			break;
- 
- 		case 'c':
--			reboot_mode = 0;
-+			reboot_mode = REBOOT_COLD;
- 			break;
- 
- #ifdef CONFIG_SMP
-@@ -536,6 +536,7 @@ static void native_machine_emergency_res
- 	int i;
- 	int attempt = 0;
- 	int orig_reboot_type = reboot_type;
-+	unsigned short mode;
- 
- 	if (reboot_emergency)
- 		emergency_vmx_disable_all();
-@@ -543,7 +544,8 @@ static void native_machine_emergency_res
- 	tboot_shutdown(TB_SHUTDOWN_REBOOT);
- 
- 	/* Tell the BIOS if we want cold or warm reboot */
--	*((unsigned short *)__va(0x472)) = reboot_mode;
-+	mode = reboot_mode == REBOOT_WARM ? 0x1234 : 0;
-+	*((unsigned short *)__va(0x472)) = mode;
- 
- 	for (;;) {
- 		/* Could also try the reset bit in the Hammer NB */
-@@ -585,7 +587,7 @@ static void native_machine_emergency_res
- 
- 		case BOOT_EFI:
- 			if (efi_enabled(EFI_RUNTIME_SERVICES))
--				efi.reset_system(reboot_mode ?
-+				efi.reset_system(reboot_mode == REBOOT_WARM ?
- 						 EFI_RESET_WARM :
- 						 EFI_RESET_COLD,
- 						 EFI_SUCCESS, 0, NULL);
-diff -puN include/linux/reboot.h~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code include/linux/reboot.h
---- a/include/linux/reboot.h~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code
-+++ a/include/linux/reboot.h
-@@ -10,6 +10,11 @@
- #define SYS_HALT	0x0002	/* Notify of system halt */
- #define SYS_POWER_OFF	0x0003	/* Notify of system power off */
- 
-+enum reboot_mode {
-+	REBOOT_COLD = 0,
-+	REBOOT_WARM,
-+};
-+
- extern int register_reboot_notifier(struct notifier_block *);
- extern int unregister_reboot_notifier(struct notifier_block *);
- 
+-	if (mode == 'h')
++	if (mode == REBOOT_HARD)
+ 		temp |= RSTMGR_CTRL_SWCOLDRSTREQ;
+ 	else
+ 		temp |= RSTMGR_CTRL_SWWARMRSTREQ;
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
-cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11.patch
-migrate-shutdown-reboot-to-boot-cpu.patch
-migrate-shutdown-reboot-to-boot-cpu-v11.patch
-drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info.patch
-dump_stack-serialize-the-output-from-dump_stack.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+include-linux-mmzoneh-cleanups.patch
+include-linux-mmzoneh-cleanups-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
 dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
-drivers-misc-sgi-gru-grufaultc-fix-a-sanity-test-in-gru_set_context_option.patch
-reboot-remove-stable-friendly-pf_thread_bound-define.patch
-reboot-move-shutdown-reboot-related-functions-to-kernel-rebootc.patch
-reboot-checkpatchpl-the-new-kernel-rebootc-file.patch
-reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
-reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
-reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs.patch
-reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
 reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-move-arch-x86-reboot=-handling-to-generic-kernel.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
