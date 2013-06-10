@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-rtc-interfacec-return-ebusy-not-eacces-when-device-is-busy.patch
- added to -mm tree
-Date: Mon, 10 Jun 2013 16:09:59 -0700
-Message-ID: <51b65cc7.Q7MNarmNOf9u25Ud%akpm@linux-foundation.org>
+ wait-introduce-wait_event_commonwq-condition-state-timeout.patch added to
+ -mm tree
+Date: Mon, 10 Jun 2013 16:13:25 -0700
+Message-ID: <51b65d95.9CUl5ow6JS4P7tvF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929Ab3FJXKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 19:10:00 -0400
+	with ESMTP id S1752960Ab3FJXN0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jun 2013 19:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, a.zummo@towertech.it, chris.brand@broadcom.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, lczerner@redhat.com, imre.deak@intel.com, daniel.vetter@ffwll.ch, oleg@redhat.com
 
-Subject: + drivers-rtc-interfacec-return-ebusy-not-eacces-when-device-is-busy.patch added to -mm tree
-To: chris.brand@broadcom.com,a.zummo@towertech.it
+Subject: + wait-introduce-wait_event_commonwq-condition-state-timeout.patch added to -mm tree
+To: oleg@redhat.com,daniel.vetter@ffwll.ch,imre.deak@intel.com,lczerner@redhat.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Jun 2013 16:09:59 -0700
+Date: Mon, 10 Jun 2013 16:13:25 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/interface.c: return -EBUSY, not -EACCES when device is busy
+     Subject: wait: introduce wait_event_common(wq, condition, state, timeout)
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-interfacec-return-ebusy-not-eacces-when-device-is-busy.patch
+     wait-introduce-wait_event_commonwq-condition-state-timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,51 +40,389 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Brand <chris.brand@broadcom.com>
-Subject: drivers/rtc/interface.c: return -EBUSY, not -EACCES when device is busy
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: wait: introduce wait_event_common(wq, condition, state, timeout)
 
-If rtc->irq_task is non-NULL and task is NULL, they always
-rtc_irq_set_freq(), whenever err is set to -EBUSY it will then immediately
-be set to -EACCES, misleading the caller as to the underlying problem.
+To remind, I think that 4c663cfc "wait: fix false timeouts when using
+wait_event_timeout()" is not enough, wait(wq, true, 0) still returns zero.
 
-Signed-off-by: Chris Brand <chris.brand@broadcom.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+But to me the main problem is that wait_event* macros duplicate the same
+code again and again.  Imho it would be nice to create a single helper. 
+To simplify the review, this is the code after 1/2:
+
+#define __wait_no_timeout(tout)	\
+	(__builtin_constant_p(tout) && (tout) == MAX_SCHEDULE_TIMEOUT)
+
+/* uglified signal_pending_state() optimized for constant state */
+#define __wait_signal_pending(state)					\
+	((state == TASK_INTERRUPTIBLE) ? signal_pending(current) :	\
+	 (state == TASK_KILLABLE) ? fatal_signal_pending(current) :	\
+	  0)
+
+#define __wait_event_common(wq, condition, state, tout)			\
+({									\
+	DEFINE_WAIT(__wait);						\
+	long __ret = 0, __tout = tout;					\
+									\
+	for (;;) {							\
+		prepare_to_wait(&wq, &__wait, state);			\
+		if (condition) {					\
+			__ret = __wait_no_timeout(tout) ?: __tout ?: 1;	\
+			break;						\
+		}							\
+									\
+		if (__wait_signal_pending(state)) {			\
+			__ret = -ERESTARTSYS;				\
+			break;						\
+		}							\
+									\
+		if (__wait_no_timeout(tout))				\
+			schedule();					\
+		else if (__tout)					\
+			__tout = schedule_timeout(__tout);		\
+		else							\
+			break;						\
+	}								\
+	finish_wait(&wq, &__wait);					\
+	__ret;								\
+})
+
+#define wait_event_common(wq, condition, state, tout)			\
+({									\
+	long __ret;							\
+	if (condition)							\
+		__ret = __wait_no_timeout(tout) ?: (tout) ?: 1;		\
+	else								\
+		__ret = __wait_event_common(wq, condition, state, tout);\
+	__ret;								\
+})
+
+2/2 doesn't look like a cleanup. But personally I think that it makes
+sense to shrink .text,
+
+	-	4977769 2930984 10104832        18013585        112dd91 vmlinux
+	+	4976847	2930984	10104832	18012663	112d9f7	vmlinux
+
+on my build.
+
+
+
+This patch:
+
+1. wait_event_timeout(wq, true, 0) returns zero, I think this is
+   wrong and should be fixed.
+
+   __wait_event_timeout() was already changed by 4c663cfc but we
+   need the same logic in wait_event_timeout() if the fast-path
+   check succeeds.
+
+2. wait_event_timeout/__wait_event_timeout interface do not match
+   wait_event(), you can't use __wait_event_timeout() instead of
+   wait_event_timeout() if you do not need the fast-path check.
+
+3. wait_event_* macros duplicate the same code.
+
+This patch adds a single helper wait_event_common() which hopefully
+does everything right. Compiler optimizes out the "dead" code when
+we do not need signal_pending/schedule_timeout.
+
+With this patch "size vmlinux" reports that .text/data shrinks but
+I think this depends on gcc/config.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Imre Deak <imre.deak@intel.com>
+Cc: Lukas Czerner <lczerner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/wait.h |  181 +++++++++++++++--------------------------
+ 1 file changed, 70 insertions(+), 111 deletions(-)
 
-diff -puN drivers/rtc/interface.c~drivers-rtc-interfacec-return-ebusy-not-eacces-when-device-is-busy drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~drivers-rtc-interfacec-return-ebusy-not-eacces-when-device-is-busy
-+++ a/drivers/rtc/interface.c
-@@ -698,9 +698,9 @@ retry:
- 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task != NULL && task == NULL)
- 		err = -EBUSY;
--	if (rtc->irq_task != task)
-+	else if (rtc->irq_task != task)
- 		err = -EACCES;
--	if (!err) {
-+	else {
- 		if (rtc_update_hrtimer(rtc, enabled) < 0) {
- 			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
- 			cpu_relax();
-@@ -734,9 +734,9 @@ retry:
- 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task != NULL && task == NULL)
- 		err = -EBUSY;
--	if (rtc->irq_task != task)
-+	else if (rtc->irq_task != task)
- 		err = -EACCES;
--	if (!err) {
-+	else {
- 		rtc->irq_freq = freq;
- 		if (rtc->pie_enabled && rtc_update_hrtimer(rtc, 1) < 0) {
- 			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
+diff -puN include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout include/linux/wait.h
+--- a/include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout
++++ a/include/linux/wait.h
+@@ -179,18 +179,52 @@ wait_queue_head_t *bit_waitqueue(void *,
+ #define wake_up_interruptible_sync_poll(x, m)				\
+ 	__wake_up_sync_key((x), TASK_INTERRUPTIBLE, 1, (void *) (m))
+ 
+-#define __wait_event(wq, condition) 					\
+-do {									\
++#define __wait_no_timeout(tout)	\
++	(__builtin_constant_p(tout) && (tout) == MAX_SCHEDULE_TIMEOUT)
++
++/* uglified signal_pending_state() optimized for constant state */
++#define __wait_signal_pending(state)					\
++	((state == TASK_INTERRUPTIBLE) ? signal_pending(current) :	\
++	 (state == TASK_KILLABLE) ? fatal_signal_pending(current) :	\
++	  0)
++
++#define __wait_event_common(wq, condition, state, tout)			\
++({									\
+ 	DEFINE_WAIT(__wait);						\
++	long __ret = 0, __tout = tout;					\
+ 									\
+ 	for (;;) {							\
+-		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);	\
+-		if (condition)						\
++		prepare_to_wait(&wq, &__wait, state);			\
++		if (condition) {					\
++			__ret = __wait_no_timeout(tout) ?: __tout ?: 1;	\
++			break;						\
++		}							\
++									\
++		if (__wait_signal_pending(state)) {			\
++			__ret = -ERESTARTSYS;				\
++			break;						\
++		}							\
++									\
++		if (__wait_no_timeout(tout))				\
++			schedule();					\
++		else if (__tout)					\
++			__tout = schedule_timeout(__tout);		\
++		else							\
+ 			break;						\
+-		schedule();						\
+ 	}								\
+ 	finish_wait(&wq, &__wait);					\
+-} while (0)
++	__ret;								\
++})
++
++#define wait_event_common(wq, condition, state, tout)			\
++({									\
++	long __ret;							\
++	if (condition)							\
++		__ret = __wait_no_timeout(tout) ?: (tout) ?: 1;		\
++	else								\
++		__ret = __wait_event_common(wq, condition, state, tout);\
++	__ret;								\
++})
+ 
+ /**
+  * wait_event - sleep until a condition gets true
+@@ -204,29 +238,13 @@ do {									\
+  * wake_up() has to be called after changing any variable that could
+  * change the result of the wait condition.
+  */
+-#define wait_event(wq, condition) 					\
+-do {									\
+-	if (condition)	 						\
+-		break;							\
+-	__wait_event(wq, condition);					\
+-} while (0)
++#define __wait_event(wq, condition) 					\
++	__wait_event_common(wq, condition,				\
++			TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)	\
+ 
+-#define __wait_event_timeout(wq, condition, ret)			\
+-do {									\
+-	DEFINE_WAIT(__wait);						\
+-									\
+-	for (;;) {							\
+-		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);	\
+-		if (condition)						\
+-			break;						\
+-		ret = schedule_timeout(ret);				\
+-		if (!ret)						\
+-			break;						\
+-	}								\
+-	if (!ret && (condition))					\
+-		ret = 1;						\
+-	finish_wait(&wq, &__wait);					\
+-} while (0)
++#define wait_event(wq, condition) 					\
++	wait_event_common(wq, condition,				\
++			TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)	\
+ 
+ /**
+  * wait_event_timeout - sleep until a condition gets true or a timeout elapses
+@@ -245,31 +263,13 @@ do {									\
+  * jiffies (at least 1) if the @condition evaluated to %true before
+  * the @timeout elapsed.
+  */
+-#define wait_event_timeout(wq, condition, timeout)			\
+-({									\
+-	long __ret = timeout;						\
+-	if (!(condition)) 						\
+-		__wait_event_timeout(wq, condition, __ret);		\
+-	__ret;								\
+-})
++#define __wait_event_timeout(wq, condition, timeout)			\
++	__wait_event_common(wq, condition,				\
++			TASK_UNINTERRUPTIBLE, timeout)
+ 
+-#define __wait_event_interruptible(wq, condition, ret)			\
+-do {									\
+-	DEFINE_WAIT(__wait);						\
+-									\
+-	for (;;) {							\
+-		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
+-		if (condition)						\
+-			break;						\
+-		if (!signal_pending(current)) {				\
+-			schedule();					\
+-			continue;					\
+-		}							\
+-		ret = -ERESTARTSYS;					\
+-		break;							\
+-	}								\
+-	finish_wait(&wq, &__wait);					\
+-} while (0)
++#define wait_event_timeout(wq, condition, timeout)			\
++	wait_event_common(wq, condition,				\
++			TASK_UNINTERRUPTIBLE, timeout)
+ 
+ /**
+  * wait_event_interruptible - sleep until a condition gets true
+@@ -286,35 +286,13 @@ do {									\
+  * The function will return -ERESTARTSYS if it was interrupted by a
+  * signal and 0 if @condition evaluated to true.
+  */
+-#define wait_event_interruptible(wq, condition)				\
+-({									\
+-	int __ret = 0;							\
+-	if (!(condition))						\
+-		__wait_event_interruptible(wq, condition, __ret);	\
+-	__ret;								\
+-})
++#define __wait_event_interruptible(wq, condition)			\
++	__wait_event_common(wq, condition,				\
++			TASK_INTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)
+ 
+-#define __wait_event_interruptible_timeout(wq, condition, ret)		\
+-do {									\
+-	DEFINE_WAIT(__wait);						\
+-									\
+-	for (;;) {							\
+-		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
+-		if (condition)						\
+-			break;						\
+-		if (!signal_pending(current)) {				\
+-			ret = schedule_timeout(ret);			\
+-			if (!ret)					\
+-				break;					\
+-			continue;					\
+-		}							\
+-		ret = -ERESTARTSYS;					\
+-		break;							\
+-	}								\
+-	if (!ret && (condition))					\
+-		ret = 1;						\
+-	finish_wait(&wq, &__wait);					\
+-} while (0)
++#define wait_event_interruptible(wq, condition)				\
++	wait_event_common(wq, condition,				\
++			TASK_INTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)
+ 
+ /**
+  * wait_event_interruptible_timeout - sleep until a condition gets true or a timeout elapses
+@@ -334,13 +312,13 @@ do {									\
+  * a signal, or the remaining jiffies (at least 1) if the @condition
+  * evaluated to %true before the @timeout elapsed.
+  */
++#define __wait_event_interruptible_timeout(wq, condition, timeout)	\
++	__wait_event_common(wq, condition,				\
++			TASK_INTERRUPTIBLE, timeout)
++
+ #define wait_event_interruptible_timeout(wq, condition, timeout)	\
+-({									\
+-	long __ret = timeout;						\
+-	if (!(condition))						\
+-		__wait_event_interruptible_timeout(wq, condition, __ret); \
+-	__ret;								\
+-})
++	wait_event_common(wq, condition,				\
++			TASK_INTERRUPTIBLE, timeout)
+ 
+ #define __wait_event_hrtimeout(wq, condition, timeout, state)		\
+ ({									\
+@@ -607,24 +585,6 @@ do {									\
+ 
+ 
+ 
+-#define __wait_event_killable(wq, condition, ret)			\
+-do {									\
+-	DEFINE_WAIT(__wait);						\
+-									\
+-	for (;;) {							\
+-		prepare_to_wait(&wq, &__wait, TASK_KILLABLE);		\
+-		if (condition)						\
+-			break;						\
+-		if (!fatal_signal_pending(current)) {			\
+-			schedule();					\
+-			continue;					\
+-		}							\
+-		ret = -ERESTARTSYS;					\
+-		break;							\
+-	}								\
+-	finish_wait(&wq, &__wait);					\
+-} while (0)
+-
+ /**
+  * wait_event_killable - sleep until a condition gets true
+  * @wq: the waitqueue to wait on
+@@ -640,14 +600,13 @@ do {									\
+  * The function will return -ERESTARTSYS if it was interrupted by a
+  * signal and 0 if @condition evaluated to true.
+  */
+-#define wait_event_killable(wq, condition)				\
+-({									\
+-	int __ret = 0;							\
+-	if (!(condition))						\
+-		__wait_event_killable(wq, condition, __ret);		\
+-	__ret;								\
+-})
++#define __wait_event_killable(wq, condition)				\
++	__wait_event_common(wq, condition,				\
++			TASK_KILLABLE, MAX_SCHEDULE_TIMEOUT)
+ 
++#define wait_event_killable(wq, condition)				\
++	wait_event_common(wq, condition,				\
++			TASK_KILLABLE, MAX_SCHEDULE_TIMEOUT)
+ 
+ #define __wait_event_lock_irq(wq, condition, lock, cmd)			\
+ do {									\
 _
 
-Patches currently in -mm which might be from chris.brand@broadcom.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-drivers-rtc-interfacec-return-ebusy-not-eacces-when-device-is-busy.patch
+linux-next.patch
+audit-wait_for_auditd-should-use-task_uninterruptible.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
+x86-kill-tif_debug.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+usermodehelper-kill-the-sub_info-path-check.patch
+coredump-format_corename-can-leak-cn-corename.patch
+coredump-introduce-cn_vprintf.patch
+coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
+coredump-kill-cn_escape-introduce-cn_esc_printf.patch
+coredump-kill-call_count-add-core_name_size.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch
+fs-execc-do_execve_common-use-current_user.patch
+wait-introduce-wait_event_commonwq-condition-state-timeout.patch
+wait-introduce-prepare_to_wait_event.patch
 
