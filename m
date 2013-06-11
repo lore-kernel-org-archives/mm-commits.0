@@ -1,49 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [obsolete]
- rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot.patch
- removed from -mm tree
-Date: Tue, 11 Jun 2013 13:27:01 -0700
-Message-ID: <51b78815.8JDAgBcFV1bXE6EY%akpm@linux-foundation.org>
+ rtc-rtc-hid-sensor-time-add-support-for-milliseconds.patch removed from -mm tree
+Date: Tue, 11 Jun 2013 13:27:05 -0700
+Message-ID: <51b78819.yXm3aRecc6LEFFVV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42159 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42176 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757377Ab3FKU1C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:27:02 -0400
+	with ESMTP id S1756572Ab3FKU1G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, lars@metafoo.de, john.stultz@linaro.org, jkosina@suse.cz, jic23@cam.ac.uk, jg1.han@samsung.com, a.zummo@towertech.it, holler@ahsoftware.de
 
-Subject: [obsolete] rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot.patch removed from -mm tree
+Subject: [obsolete] rtc-rtc-hid-sensor-time-add-support-for-milliseconds.patch removed from -mm tree
 To: holler@ahsoftware.de,a.zummo@towertech.it,jg1.han@samsung.com,jic23@cam.ac.uk,jkosina@suse.cz,john.stultz@linaro.org,lars@metafoo.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 13:27:01 -0700
+Date: Tue, 11 Jun 2013 13:27:05 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-hid-sensor-time: add option hctosys to set time at boot
+     Subject: rtc: rtc-hid-sensor-time: add support for milliseconds
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot.patch
+     rtc-rtc-hid-sensor-time-add-support-for-milliseconds.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Alexander Holler <holler@ahsoftware.de>
-Subject: rtc: rtc-hid-sensor-time: add option hctosys to set time at boot
+Subject: rtc: rtc-hid-sensor-time: add support for milliseconds
 
-drivers/rtc/hctosys (CONFIG_RTC_HCTOSYS) doesn't work for
-rtc-hid-sensor-time because it will be called in late_init, and thus before
-rtc-hid-sensor-time gets loaded. To set the time through
-rtc-hid-sensor-time at startup, the module now checks by default if the
-system time is before 1970-01-02 and sets the system time (once) if this is
-the case.
-
-To disable this behaviour, set the module option hctosys to zero, e.g. by
-using rtc-hid-sensor-time.hctosys=0 at the kernel command line if the
-driver is statically linked into the kernel.
+If a device sends milliseconds too, the driver will use them if it sets
+the system clock at startup (through module option hctosys).
 
 Signed-off-by: Alexander Holler <holler@ahsoftware.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -55,168 +46,155 @@ Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hid-sensor-time.c |   94 ++++++++++++++++++++++++++++
- 1 file changed, 94 insertions(+)
+ drivers/rtc/rtc-hid-sensor-time.c |   37 ++++++++++++++++++++++++----
+ include/linux/hid-sensor-ids.h    |    1 
+ 2 files changed, 34 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot drivers/rtc/rtc-hid-sensor-time.c
---- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot
+diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-add-support-for-milliseconds drivers/rtc/rtc-hid-sensor-time.c
+--- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-add-support-for-milliseconds
 +++ a/drivers/rtc/rtc-hid-sensor-time.c
-@@ -27,6 +27,12 @@
- /* Usage ID from spec for Time: 0x2000A0 */
- #define DRIVER_NAME "HID-SENSOR-2000a0" /* must be lowercase */
- 
-+static bool hid_time_hctosys_enabled = 1;
-+module_param_named(hctosys, hid_time_hctosys_enabled, bool, 0644);
-+MODULE_PARM_DESC(hctosys,
-+	"set the system time (once) if it is before 1970-01-02");
-+static bool hid_time_time_set_once;
-+
- enum hid_time_channel {
- 	CHANNEL_SCAN_INDEX_YEAR,
- 	CHANNEL_SCAN_INDEX_MONTH,
-@@ -37,6 +43,11 @@ enum hid_time_channel {
+@@ -40,6 +40,7 @@ enum hid_time_channel {
+ 	CHANNEL_SCAN_INDEX_HOUR,
+ 	CHANNEL_SCAN_INDEX_MINUTE,
+ 	CHANNEL_SCAN_INDEX_SECOND,
++	CHANNEL_SCAN_INDEX_MILLISECOND, /* optional */
  	TIME_RTC_CHANNEL_MAX,
  };
  
-+struct hid_time_workts {
-+	struct work_struct work;
-+	struct hid_time_state *time_state;
-+};
-+
- struct hid_time_state {
- 	struct hid_sensor_hub_callbacks callbacks;
+@@ -53,9 +54,11 @@ struct hid_time_state {
  	struct hid_sensor_common common_attributes;
-@@ -46,6 +57,7 @@ struct hid_time_state {
+ 	struct hid_sensor_hub_attribute_info info[TIME_RTC_CHANNEL_MAX];
+ 	struct rtc_time last_time;
++	unsigned last_ms; /* == UINT_MAX to indicate ms aren't supported */
+ 	spinlock_t lock_last_time;
  	struct completion comp_last_time;
  	struct rtc_time time_buf;
++	unsigned ms_buf;
  	struct rtc_device *rtc;
-+	struct hid_time_workts *workts;
+ 	struct hid_time_workts *workts;
+ };
+@@ -67,16 +70,18 @@ static const u32 hid_time_addresses[TIME
+ 	HID_USAGE_SENSOR_TIME_HOUR,
+ 	HID_USAGE_SENSOR_TIME_MINUTE,
+ 	HID_USAGE_SENSOR_TIME_SECOND,
++	HID_USAGE_SENSOR_TIME_MILLISECOND, /* optional */
  };
  
- static const u32 hid_time_addresses[TIME_RTC_CHANNEL_MAX] = {
-@@ -62,6 +74,49 @@ static const char * const hid_time_chann
- 	"year", "month", "day", "hour", "minute", "second",
+ /* Channel names for verbose error messages */
+ static const char * const hid_time_channel_names[TIME_RTC_CHANNEL_MAX] = {
+-	"year", "month", "day", "hour", "minute", "second",
++	"year", "month", "day", "hour", "minute", "second", "millisecond",
  };
  
-+static void hid_time_hctosys(struct hid_time_state *time_state)
-+{
-+	struct timespec ts;
-+	int rc = rtc_valid_tm(&time_state->last_time);
-+
-+	if (rc) {
-+		dev_err(time_state->rtc->dev.parent,
-+			"hctosys: invalid date/time\n");
-+		return;
+ static void hid_time_hctosys(struct hid_time_state *time_state)
+ {
+ 	struct timespec ts;
++	char msbuf[5];
+ 	int rc = rtc_valid_tm(&time_state->last_time);
+ 
+ 	if (rc) {
+@@ -102,18 +107,25 @@ static void hid_time_hctosys(struct hid_
+ 		 */
+ 		return;
+ 
+-	ts.tv_nsec = NSEC_PER_SEC >> 1;
++	if (time_state->last_ms != UINT_MAX) {
++		ts.tv_nsec = time_state->last_ms * NSEC_PER_MSEC;
++		snprintf(msbuf, sizeof(msbuf), ":%03d", time_state->last_ms);
++	} else {
++		ts.tv_nsec = NSEC_PER_SEC >> 1;
++		*msbuf = 0;
 +	}
-+
-+	getnstimeofday(&ts);
-+	if (ts.tv_sec >= 86400) /* 1970-01-02 00:00:00 UTC */
-+		/*
-+		 * Security: don't let a hot-pluggable device change
-+		 * a valid system time.
-+		 * In absence of a kernel-wide flag like 'systime_was_set',
-+		 * we check if the system time is earlier than 1970-01-02.
-+		 * Just using a flag inside the RTC subsystem (e.g. from
-+		 * hctosys) doesn't work, because the time could be set
-+		 * by userspace (NTP, date, user, ...) or something else
-+		 * in the kernel too.
-+		 * Using a whole day to decide if something else has set the
-+		 * time should be enough for even the longest boot to complete
-+		 * (including possible forced fscks) and load this module.
-+		 */
-+		return;
-+
-+	ts.tv_nsec = NSEC_PER_SEC >> 1;
-+	rtc_tm_to_time(&time_state->last_time, &ts.tv_sec);
-+	rc = do_settimeofday(&ts);
-+	dev_info(time_state->rtc->dev.parent,
-+		"hctosys: setting system clock to "
-+		"%d-%02d-%02d %02d:%02d:%02d UTC (%u)\n",
-+		time_state->last_time.tm_year + 1900,
-+		time_state->last_time.tm_mon + 1,
-+		time_state->last_time.tm_mday,
-+		time_state->last_time.tm_hour,
-+		time_state->last_time.tm_min,
-+		time_state->last_time.tm_sec,
-+		(unsigned int) ts.tv_sec);
-+}
-+
- /* Callback handler to send event after all samples are received and captured */
- static int hid_time_proc_event(struct hid_sensor_hub_device *hsdev,
- 				unsigned usage_id, void *priv)
-@@ -73,6 +128,10 @@ static int hid_time_proc_event(struct hi
+ 	rtc_tm_to_time(&time_state->last_time, &ts.tv_sec);
+ 	rc = do_settimeofday(&ts);
+ 	dev_info(time_state->rtc->dev.parent,
+ 		"hctosys: setting system clock to "
+-		"%d-%02d-%02d %02d:%02d:%02d UTC (%u)\n",
++		"%d-%02d-%02d %02d:%02d:%02d%s UTC (%u)\n",
+ 		time_state->last_time.tm_year + 1900,
+ 		time_state->last_time.tm_mon + 1,
+ 		time_state->last_time.tm_mday,
+ 		time_state->last_time.tm_hour,
+ 		time_state->last_time.tm_min,
+ 		time_state->last_time.tm_sec,
++		msbuf,
+ 		(unsigned int) ts.tv_sec);
+ }
+ 
+@@ -126,6 +138,8 @@ static int hid_time_proc_event(struct hi
+ 
+ 	spin_lock_irqsave(&time_state->lock_last_time, flags);
  	time_state->last_time = time_state->time_buf;
++	if (time_state->last_ms != UINT_MAX)
++		time_state->last_ms = time_state->ms_buf;
  	spin_unlock_irqrestore(&time_state->lock_last_time, flags);
  	complete(&time_state->comp_last_time);
-+	if (unlikely(!hid_time_time_set_once && hid_time_hctosys_enabled)) {
-+		hid_time_time_set_once = 1;
-+		hid_time_hctosys(time_state);
-+	}
- 	return 0;
- }
- 
-@@ -237,6 +296,19 @@ static const struct rtc_class_ops hid_ti
- 	.read_time = hid_rtc_read_time,
- };
- 
-+static void hid_time_request_report_work(struct work_struct *work)
-+{
-+	struct hid_time_state *time_state =
-+		container_of(work, struct hid_time_workts, work)
-+			->time_state;
-+	/* get a report with all values through requesting one value */
-+	sensor_hub_input_attr_get_raw_value(
-+		time_state->common_attributes.hsdev, HID_USAGE_SENSOR_TIME,
-+		hid_time_addresses[0], time_state->info[0].report_id);
-+	time_state->workts = NULL;
-+	kfree(work);
-+}
-+
- static int hid_time_probe(struct platform_device *pdev)
- {
- 	int ret = 0;
-@@ -288,13 +360,35 @@ static int hid_time_probe(struct platfor
- 		return PTR_ERR(time_state->rtc);
+ 	if (unlikely(!hid_time_time_set_once && hid_time_hctosys_enabled)) {
+@@ -188,6 +202,9 @@ static int hid_time_capture_sample(struc
+ 	case HID_USAGE_SENSOR_TIME_SECOND:
+ 		time_buf->tm_sec = (int)hid_time_value(raw_len, raw_data);
+ 		break;
++	case HID_USAGE_SENSOR_TIME_MILLISECOND:
++		time_state->ms_buf = hid_time_value(raw_len, raw_data);
++		break;
+ 	default:
+ 		return -EINVAL;
  	}
- 
-+	if (!hid_time_time_set_once && hid_time_hctosys_enabled) {
-+		/*
-+		 * Request a HID report to set the time.
-+		 * Calling sensor_hub_..._get_raw_value() here directly
-+		 * doesn't work, therefor we have to use a work.
-+		 */
-+		time_state->workts = kmalloc(sizeof(struct hid_time_workts),
-+			GFP_KERNEL);
-+		if (time_state->workts == NULL)
-+			return -ENOMEM;
-+		time_state->workts->time_state = time_state;
-+		INIT_WORK(&time_state->workts->work,
-+			hid_time_request_report_work);
-+		schedule_work(&time_state->workts->work);
-+	}
-+
- 	return ret;
- }
- 
- static int hid_time_remove(struct platform_device *pdev)
+@@ -214,12 +231,18 @@ static int hid_time_parse_report(struct
  {
- 	struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
-+	struct hid_time_state *time_state = platform_get_drvdata(pdev);
+ 	int report_id, i;
  
-+	if (time_state->workts) {
-+		cancel_work_sync(&time_state->workts->work);
-+		kfree(time_state->workts);
-+		time_state->workts = NULL;
+-	for (i = 0; i < TIME_RTC_CHANNEL_MAX; ++i)
++	/* Check if all required attributes are available */
++	for (i = 0; i < CHANNEL_SCAN_INDEX_MILLISECOND; ++i)
+ 		if (sensor_hub_input_get_attribute_info(hsdev,
+ 				HID_INPUT_REPORT, usage_id,
+ 				hid_time_addresses[i],
+ 				&time_state->info[i]) < 0)
+ 			return -EINVAL;
++	if (!sensor_hub_input_get_attribute_info(hsdev, HID_INPUT_REPORT,
++		usage_id, hid_time_addresses[i], &time_state->info[i])) {
++		dev_info(&pdev->dev, "milliseconds supported\n");
++		time_state->last_ms = 0;
 +	}
- 	sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
+ 	/* Check the (needed) attributes for sanity */
+ 	report_id = time_state->info[0].report_id;
+ 	if (report_id < 0) {
+@@ -227,6 +250,10 @@ static int hid_time_parse_report(struct
+ 		return -EINVAL;
+ 	}
+ 	for (i = 0; i < TIME_RTC_CHANNEL_MAX; ++i) {
++		if (time_state->info[i].attrib_id ==
++				HID_USAGE_SENSOR_TIME_MILLISECOND &&
++				time_state->last_ms == UINT_MAX)
++			continue;
+ 		if (time_state->info[i].report_id != report_id) {
+ 			dev_err(&pdev->dev,
+ 				"not all needed attributes inside the same report!\n");
+@@ -319,6 +346,8 @@ static int hid_time_probe(struct platfor
+ 	if (time_state == NULL)
+ 		return -ENOMEM;
  
- 	return 0;
++	time_state->last_ms = UINT_MAX;
++
+ 	platform_set_drvdata(pdev, time_state);
+ 
+ 	spin_lock_init(&time_state->lock_last_time);
+diff -puN include/linux/hid-sensor-ids.h~rtc-rtc-hid-sensor-time-add-support-for-milliseconds include/linux/hid-sensor-ids.h
+--- a/include/linux/hid-sensor-ids.h~rtc-rtc-hid-sensor-time-add-support-for-milliseconds
++++ a/include/linux/hid-sensor-ids.h
+@@ -74,6 +74,7 @@
+ #define HID_USAGE_SENSOR_TIME_HOUR				0x200525
+ #define HID_USAGE_SENSOR_TIME_MINUTE				0x200526
+ #define HID_USAGE_SENSOR_TIME_SECOND				0x200527
++#define HID_USAGE_SENSOR_TIME_MILLISECOND			0x200528
+ 
+ /* Units */
+ #define HID_USAGE_SENSOR_UNITS_NOT_SPECIFIED			0x00
 _
 
 Patches currently in -mm which might be from holler@ahsoftware.de are
 
 rtc-rtc-hid-sensor-time-allow-full-years-16bit-in-hid-reports.patch
 rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes.patch
-rtc-rtc-hid-sensor-time-add-option-hctosys-to-set-time-at-boot-fix.patch
-rtc-rtc-hid-sensor-time-add-support-for-milliseconds.patch
 
