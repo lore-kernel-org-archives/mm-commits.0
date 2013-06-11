@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue.patch added to -mm tree
-Date: Tue, 11 Jun 2013 13:11:54 -0700
-Message-ID: <51b7848a.dDSBm2HrX0+DYgOP%akpm@linux-foundation.org>
+Subject: + isdn-clean-up-debug-format-string-usage.patch added to -mm tree
+Date: Tue, 11 Jun 2013 13:11:58 -0700
+Message-ID: <51b7848e.rRByCR8E4+aL2nNy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42129 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756775Ab3FKULz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:11:55 -0400
+	with ESMTP id S1756734Ab3FKUL7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:11:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, keescook@chromium.org
+To: mm-commits@vger.kernel.org, isdn@linux-pingi.de, davem@davemloft.net, keescook@chromium.org
 
-Subject: + drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue.patch added to -mm tree
-To: keescook@chromium.org
+Subject: + isdn-clean-up-debug-format-string-usage.patch added to -mm tree
+To: keescook@chromium.org,davem@davemloft.net,isdn@linux-pingi.de
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 13:11:54 -0700
+Date: Tue, 11 Jun 2013 13:11:58 -0700
 
 
 The patch titled
-     Subject: drivers: avoid format strings in names passed to alloc_workqueue()
+     Subject: isdn: clean up debug format string usage
 has been added to the -mm tree.  Its filename is
-     drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue.patch
+     isdn-clean-up-debug-format-string-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,233 +39,625 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: drivers: avoid format strings in names passed to alloc_workqueue()
+Subject: isdn: clean up debug format string usage
 
-For the workqueue creation interfaces that do not expect format strings,
-make sure they cannot accidently be parsed that way.  Additionally, clean
-up calls made with a single parameter that would be handled as a format
-string.  Many callers are passing potentially dynamic string content, so
-use "%s" in those cases to avoid any potential accidents.
+Avoid unneeded local string buffers for constructing debug output.  Also
+cleans up debug calls that contain a single parameter so that they cannot
+be accidentally parsed as format strings.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/pcrypt.c                         |    4 ++--
- drivers/media/pci/cx18/cx18-driver.c    |    2 +-
- drivers/message/i2o/driver.c            |    4 ++--
- drivers/net/wireless/rt2x00/rt2x00dev.c |    2 +-
- drivers/net/wireless/rtlwifi/base.c     |    2 +-
- drivers/pci/hotplug/pciehp_hpc.c        |    4 +---
- drivers/pci/hotplug/shpchp_core.c       |    3 +--
- drivers/scsi/be2iscsi/be_main.c         |    2 +-
- drivers/scsi/qla4xxx/ql4_os.c           |    4 ++--
- drivers/scsi/scsi_transport_fc.c        |    6 +++---
- include/linux/workqueue.h               |    7 ++++---
- net/bluetooth/hci_core.c                |    9 ++++-----
- net/mac80211/main.c                     |    2 +-
- 13 files changed, 24 insertions(+), 27 deletions(-)
+ drivers/isdn/hisax/amd7930_fn.c |    4 +-
+ drivers/isdn/hisax/avm_pci.c    |    4 +-
+ drivers/isdn/hisax/config.c     |    2 -
+ drivers/isdn/hisax/diva.c       |    4 +-
+ drivers/isdn/hisax/elsa.c       |    2 -
+ drivers/isdn/hisax/elsa_ser.c   |    2 -
+ drivers/isdn/hisax/hfc_pci.c    |    2 -
+ drivers/isdn/hisax/hfc_sx.c     |    2 -
+ drivers/isdn/hisax/hscx_irq.c   |    4 +-
+ drivers/isdn/hisax/icc.c        |    4 +-
+ drivers/isdn/hisax/ipacx.c      |    8 ++--
+ drivers/isdn/hisax/isac.c       |    4 +-
+ drivers/isdn/hisax/isar.c       |    6 +--
+ drivers/isdn/hisax/jade.c       |   18 +++-------
+ drivers/isdn/hisax/jade_irq.c   |    4 +-
+ drivers/isdn/hisax/l3_1tr6.c    |   50 ++++++++++--------------------
+ drivers/isdn/hisax/netjet.c     |    2 -
+ drivers/isdn/hisax/q931.c       |    6 +--
+ drivers/isdn/hisax/w6692.c      |    8 ++--
+ 19 files changed, 57 insertions(+), 79 deletions(-)
 
-diff -puN crypto/pcrypt.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue crypto/pcrypt.c
---- a/crypto/pcrypt.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/crypto/pcrypt.c
-@@ -455,8 +455,8 @@ static int pcrypt_init_padata(struct pad
+diff -puN drivers/isdn/hisax/amd7930_fn.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/amd7930_fn.c
+--- a/drivers/isdn/hisax/amd7930_fn.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/amd7930_fn.c
+@@ -314,7 +314,7 @@ Amd7930_empty_Dfifo(struct IsdnCardState
  
- 	get_online_cpus();
+ 							t += sprintf(t, "Amd7930: empty_Dfifo cnt: %d |", cs->rcvidx);
+ 							QuickHex(t, cs->rcvbuf, cs->rcvidx);
+-							debugl1(cs, cs->dlog);
++							debugl1(cs, "%s", cs->dlog);
+ 						}
+ 						/* moves received data in sk-buffer */
+ 						memcpy(skb_put(skb, cs->rcvidx), cs->rcvbuf, cs->rcvidx);
+@@ -406,7 +406,7 @@ Amd7930_fill_Dfifo(struct IsdnCardState
  
--	pcrypt->wq = alloc_workqueue(name,
--				     WQ_MEM_RECLAIM | WQ_CPU_INTENSIVE, 1);
-+	pcrypt->wq = alloc_workqueue("%s", WQ_MEM_RECLAIM | WQ_CPU_INTENSIVE,
-+				     1, name);
- 	if (!pcrypt->wq)
- 		goto err;
- 
-diff -puN drivers/media/pci/cx18/cx18-driver.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/media/pci/cx18/cx18-driver.c
---- a/drivers/media/pci/cx18/cx18-driver.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/media/pci/cx18/cx18-driver.c
-@@ -695,7 +695,7 @@ static int cx18_create_in_workq(struct c
- {
- 	snprintf(cx->in_workq_name, sizeof(cx->in_workq_name), "%s-in",
- 		 cx->v4l2_dev.name);
--	cx->in_work_queue = alloc_ordered_workqueue(cx->in_workq_name, 0);
-+	cx->in_work_queue = alloc_ordered_workqueue("%s", 0, cx->in_workq_name);
- 	if (cx->in_work_queue == NULL) {
- 		CX18_ERR("Unable to create incoming mailbox handler thread\n");
- 		return -ENOMEM;
-diff -puN drivers/message/i2o/driver.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/message/i2o/driver.c
---- a/drivers/message/i2o/driver.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/message/i2o/driver.c
-@@ -84,8 +84,8 @@ int i2o_driver_register(struct i2o_drive
- 	osm_debug("Register driver %s\n", drv->name);
- 
- 	if (drv->event) {
--		drv->event_queue = alloc_workqueue(drv->name,
--						   WQ_MEM_RECLAIM, 1);
-+		drv->event_queue = alloc_workqueue("%s", WQ_MEM_RECLAIM, 1,
-+						   drv->name);
- 		if (!drv->event_queue) {
- 			osm_err("Could not initialize event queue for driver "
- 				"%s\n", drv->name);
-diff -puN drivers/net/wireless/rt2x00/rt2x00dev.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/net/wireless/rt2x00/rt2x00dev.c
---- a/drivers/net/wireless/rt2x00/rt2x00dev.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/net/wireless/rt2x00/rt2x00dev.c
-@@ -1304,7 +1304,7 @@ int rt2x00lib_probe_dev(struct rt2x00_de
- 	 * Initialize work.
- 	 */
- 	rt2x00dev->workqueue =
--	    alloc_ordered_workqueue(wiphy_name(rt2x00dev->hw->wiphy), 0);
-+	    alloc_ordered_workqueue("%s", 0, wiphy_name(rt2x00dev->hw->wiphy));
- 	if (!rt2x00dev->workqueue) {
- 		retval = -ENOMEM;
- 		goto exit;
-diff -puN drivers/net/wireless/rtlwifi/base.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/net/wireless/rtlwifi/base.c
---- a/drivers/net/wireless/rtlwifi/base.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/net/wireless/rtlwifi/base.c
-@@ -380,7 +380,7 @@ static void _rtl_init_deferred_work(stru
- 
- 	/* <2> work queue */
- 	rtlpriv->works.hw = hw;
--	rtlpriv->works.rtl_wq = alloc_workqueue(rtlpriv->cfg->name, 0, 0);
-+	rtlpriv->works.rtl_wq = alloc_workqueue("%s", 0, 0, rtlpriv->cfg->name);
- 	INIT_DELAYED_WORK(&rtlpriv->works.watchdog_wq,
- 			  (void *)rtl_watchdog_wq_callback);
- 	INIT_DELAYED_WORK(&rtlpriv->works.ips_nic_off_wq,
-diff -puN drivers/pci/hotplug/pciehp_hpc.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/pci/hotplug/pciehp_hpc.c
---- a/drivers/pci/hotplug/pciehp_hpc.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/pci/hotplug/pciehp_hpc.c
-@@ -773,14 +773,12 @@ static void pcie_shutdown_notification(s
- static int pcie_init_slot(struct controller *ctrl)
- {
- 	struct slot *slot;
--	char name[32];
- 
- 	slot = kzalloc(sizeof(*slot), GFP_KERNEL);
- 	if (!slot)
- 		return -ENOMEM;
- 
--	snprintf(name, sizeof(name), "pciehp-%u", PSN(ctrl));
--	slot->wq = alloc_workqueue(name, 0, 0);
-+	slot->wq = alloc_workqueue("pciehp-%u", 0, 0, PSN(ctrl));
- 	if (!slot->wq)
- 		goto abort;
- 
-diff -puN drivers/pci/hotplug/shpchp_core.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/pci/hotplug/shpchp_core.c
---- a/drivers/pci/hotplug/shpchp_core.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/pci/hotplug/shpchp_core.c
-@@ -128,8 +128,7 @@ static int init_slots(struct controller
- 		slot->hpc_ops = ctrl->hpc_ops;
- 		slot->number = ctrl->first_slot + (ctrl->slot_num_inc * i);
- 
--		snprintf(name, sizeof(name), "shpchp-%d", slot->number);
--		slot->wq = alloc_workqueue(name, 0, 0);
-+		slot->wq = alloc_workqueue("shpchp-%d", 0, 0, slot->number);
- 		if (!slot->wq) {
- 			retval = -ENOMEM;
- 			goto error_info;
-diff -puN drivers/scsi/be2iscsi/be_main.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/scsi/be2iscsi/be_main.c
---- a/drivers/scsi/be2iscsi/be_main.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/scsi/be2iscsi/be_main.c
-@@ -4996,7 +4996,7 @@ static int beiscsi_dev_probe(struct pci_
- 
- 	snprintf(phba->wq_name, sizeof(phba->wq_name), "beiscsi_%02x_wq",
- 		 phba->shost->host_no);
--	phba->wq = alloc_workqueue(phba->wq_name, WQ_MEM_RECLAIM, 1);
-+	phba->wq = alloc_workqueue("%s", WQ_MEM_RECLAIM, 1, phba->wq_name);
- 	if (!phba->wq) {
- 		beiscsi_log(phba, KERN_ERR, BEISCSI_LOG_INIT,
- 			    "BM_%d : beiscsi_dev_probe-"
-diff -puN drivers/scsi/qla4xxx/ql4_os.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/scsi/qla4xxx/ql4_os.c
---- a/drivers/scsi/qla4xxx/ql4_os.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/scsi/qla4xxx/ql4_os.c
-@@ -7060,8 +7060,8 @@ skip_retry_init:
+ 		t += sprintf(t, "Amd7930: fill_Dfifo cnt: %d |", count);
+ 		QuickHex(t, deb_ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
  	}
- 	INIT_WORK(&ha->dpc_work, qla4xxx_do_dpc);
- 
--	sprintf(buf, "qla4xxx_%lu_task", ha->host_no);
--	ha->task_wq = alloc_workqueue(buf, WQ_MEM_RECLAIM, 1);
-+	ha->task_wq = alloc_workqueue("qla4xxx_%lu_task", WQ_MEM_RECLAIM, 1,
-+				      ha->host_no);
- 	if (!ha->task_wq) {
- 		ql4_printk(KERN_WARNING, ha, "Unable to start task thread!\n");
- 		ret = -ENODEV;
-diff -puN drivers/scsi/scsi_transport_fc.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue drivers/scsi/scsi_transport_fc.c
---- a/drivers/scsi/scsi_transport_fc.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/drivers/scsi/scsi_transport_fc.c
-@@ -435,7 +435,7 @@ static int fc_host_setup(struct transpor
- 
- 	snprintf(fc_host->work_q_name, sizeof(fc_host->work_q_name),
- 		 "fc_wq_%d", shost->host_no);
--	fc_host->work_q = alloc_workqueue(fc_host->work_q_name, 0, 0);
-+	fc_host->work_q = alloc_workqueue("%s", 0, 0, fc_host->work_q_name);
- 	if (!fc_host->work_q)
- 		return -ENOMEM;
- 
-@@ -443,8 +443,8 @@ static int fc_host_setup(struct transpor
- 	snprintf(fc_host->devloss_work_q_name,
- 		 sizeof(fc_host->devloss_work_q_name),
- 		 "fc_dl_%d", shost->host_no);
--	fc_host->devloss_work_q =
--			alloc_workqueue(fc_host->devloss_work_q_name, 0, 0);
-+	fc_host->devloss_work_q = alloc_workqueue("%s", 0, 0,
-+					fc_host->devloss_work_q_name);
- 	if (!fc_host->devloss_work_q) {
- 		destroy_workqueue(fc_host->work_q);
- 		fc_host->work_q = NULL;
-diff -puN include/linux/workqueue.h~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue include/linux/workqueue.h
---- a/include/linux/workqueue.h~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/include/linux/workqueue.h
-@@ -445,11 +445,12 @@ __alloc_workqueue_key(const char *fmt, u
- 	alloc_workqueue(fmt, WQ_UNBOUND | __WQ_ORDERED | (flags), 1, ##args)
- 
- #define create_workqueue(name)						\
--	alloc_workqueue((name), WQ_MEM_RECLAIM, 1)
-+	alloc_workqueue("%s", WQ_MEM_RECLAIM, 1, (name))
- #define create_freezable_workqueue(name)				\
--	alloc_workqueue((name), WQ_FREEZABLE | WQ_UNBOUND | WQ_MEM_RECLAIM, 1)
-+	alloc_workqueue("%s", WQ_FREEZABLE | WQ_UNBOUND | WQ_MEM_RECLAIM, \
-+			1, (name))
- #define create_singlethread_workqueue(name)				\
--	alloc_workqueue((name), WQ_UNBOUND | WQ_MEM_RECLAIM, 1)
-+	alloc_workqueue("%s", WQ_UNBOUND | WQ_MEM_RECLAIM, 1, (name))
- 
- extern void destroy_workqueue(struct workqueue_struct *wq);
- 
-diff -puN net/bluetooth/hci_core.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue net/bluetooth/hci_core.c
---- a/net/bluetooth/hci_core.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/net/bluetooth/hci_core.c
-@@ -2156,16 +2156,15 @@ int hci_register_dev(struct hci_dev *hde
- 	list_add(&hdev->list, &hci_dev_list);
- 	write_unlock(&hci_dev_list_lock);
- 
--	hdev->workqueue = alloc_workqueue(hdev->name, WQ_HIGHPRI | WQ_UNBOUND |
--					  WQ_MEM_RECLAIM, 1);
-+	hdev->workqueue = alloc_workqueue("%s", WQ_HIGHPRI | WQ_UNBOUND |
-+					  WQ_MEM_RECLAIM, 1, hdev->name);
- 	if (!hdev->workqueue) {
- 		error = -ENOMEM;
- 		goto err;
+ 	/* AMD interrupts on */
+ 	AmdIrqOn(cs);
+diff -puN drivers/isdn/hisax/avm_pci.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/avm_pci.c
+--- a/drivers/isdn/hisax/avm_pci.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/avm_pci.c
+@@ -285,7 +285,7 @@ hdlc_empty_fifo(struct BCState *bcs, int
+ 		t += sprintf(t, "hdlc_empty_fifo %c cnt %d",
+ 			     bcs->channel ? 'B' : 'A', count);
+ 		QuickHex(t, p, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
  	}
+ }
  
--	hdev->req_workqueue = alloc_workqueue(hdev->name,
--					      WQ_HIGHPRI | WQ_UNBOUND |
--					      WQ_MEM_RECLAIM, 1);
-+	hdev->req_workqueue = alloc_workqueue("%s", WQ_HIGHPRI | WQ_UNBOUND |
-+					      WQ_MEM_RECLAIM, 1, hdev->name);
- 	if (!hdev->req_workqueue) {
- 		destroy_workqueue(hdev->workqueue);
- 		error = -ENOMEM;
-diff -puN net/mac80211/main.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue net/mac80211/main.c
---- a/net/mac80211/main.c~drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue
-+++ a/net/mac80211/main.c
-@@ -921,7 +921,7 @@ int ieee80211_register_hw(struct ieee802
- 		hw->queues = IEEE80211_MAX_QUEUES;
+@@ -345,7 +345,7 @@ hdlc_fill_fifo(struct BCState *bcs)
+ 		t += sprintf(t, "hdlc_fill_fifo %c cnt %d",
+ 			     bcs->channel ? 'B' : 'A', count);
+ 		QuickHex(t, p, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
  
- 	local->workqueue =
--		alloc_ordered_workqueue(wiphy_name(local->hw.wiphy), 0);
-+		alloc_ordered_workqueue("%s", 0, wiphy_name(local->hw.wiphy));
- 	if (!local->workqueue) {
- 		result = -ENOMEM;
- 		goto fail_workqueue;
+diff -puN drivers/isdn/hisax/config.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/config.c
+@@ -1896,7 +1896,7 @@ static void EChannel_proc_rcv(struct his
+ 				ptr--;
+ 				*ptr++ = '\n';
+ 				*ptr = 0;
+-				HiSax_putstatus(cs, NULL, cs->dlog);
++				HiSax_putstatus(cs, NULL, "%s", cs->dlog);
+ 			} else
+ 				HiSax_putstatus(cs, "LogEcho: ",
+ 						"warning Frame too big (%d)",
+diff -puN drivers/isdn/hisax/diva.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/diva.c
+--- a/drivers/isdn/hisax/diva.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/diva.c
+@@ -427,7 +427,7 @@ Memhscx_empty_fifo(struct BCState *bcs,
+ 		t += sprintf(t, "hscx_empty_fifo %c cnt %d",
+ 			     bcs->hw.hscx.hscx ? 'B' : 'A', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+@@ -469,7 +469,7 @@ Memhscx_fill_fifo(struct BCState *bcs)
+ 		t += sprintf(t, "hscx_fill_fifo %c cnt %d",
+ 			     bcs->hw.hscx.hscx ? 'B' : 'A', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+diff -puN drivers/isdn/hisax/elsa.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/elsa.c
+--- a/drivers/isdn/hisax/elsa.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/elsa.c
+@@ -535,7 +535,7 @@ check_arcofi(struct IsdnCardState *cs)
+ 		t = tmp;
+ 		t += sprintf(tmp, "Arcofi data");
+ 		QuickHex(t, p, cs->dc.isac.mon_rxp);
+-		debugl1(cs, tmp);
++		debugl1(cs, "%s", tmp);
+ 		if ((cs->dc.isac.mon_rxp == 2) && (cs->dc.isac.mon_rx[0] == 0xa0)) {
+ 			switch (cs->dc.isac.mon_rx[1]) {
+ 			case 0x80:
+diff -puN drivers/isdn/hisax/elsa_ser.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/elsa_ser.c
+--- a/drivers/isdn/hisax/elsa_ser.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/elsa_ser.c
+@@ -344,7 +344,7 @@ static inline void receive_chars(struct
+ 
+ 		t += sprintf(t, "modem read cnt %d", cs->hw.elsa.rcvcnt);
+ 		QuickHex(t, cs->hw.elsa.rcvbuf, cs->hw.elsa.rcvcnt);
+-		debugl1(cs, tmp);
++		debugl1(cs, "%s", tmp);
+ 	}
+ 	cs->hw.elsa.rcvcnt = 0;
+ }
+diff -puN drivers/isdn/hisax/hfc_pci.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/hfc_pci.c
+--- a/drivers/isdn/hisax/hfc_pci.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/hfc_pci.c
+@@ -901,7 +901,7 @@ Begin:
+ 					ptr--;
+ 					*ptr++ = '\n';
+ 					*ptr = 0;
+-					HiSax_putstatus(cs, NULL, cs->dlog);
++					HiSax_putstatus(cs, NULL, "%s", cs->dlog);
+ 				} else
+ 					HiSax_putstatus(cs, "LogEcho: ", "warning Frame too big (%d)", total - 3);
+ 			}
+diff -puN drivers/isdn/hisax/hfc_sx.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/hfc_sx.c
+--- a/drivers/isdn/hisax/hfc_sx.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/hfc_sx.c
+@@ -674,7 +674,7 @@ receive_emsg(struct IsdnCardState *cs)
+ 					ptr--;
+ 					*ptr++ = '\n';
+ 					*ptr = 0;
+-					HiSax_putstatus(cs, NULL, cs->dlog);
++					HiSax_putstatus(cs, NULL, "%s", cs->dlog);
+ 				} else
+ 					HiSax_putstatus(cs, "LogEcho: ", "warning Frame too big (%d)", skb->len);
+ 			}
+diff -puN drivers/isdn/hisax/hscx_irq.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/hscx_irq.c
+--- a/drivers/isdn/hisax/hscx_irq.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/hscx_irq.c
+@@ -75,7 +75,7 @@ hscx_empty_fifo(struct BCState *bcs, int
+ 		t += sprintf(t, "hscx_empty_fifo %c cnt %d",
+ 			     bcs->hw.hscx.hscx ? 'B' : 'A', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+@@ -115,7 +115,7 @@ hscx_fill_fifo(struct BCState *bcs)
+ 		t += sprintf(t, "hscx_fill_fifo %c cnt %d",
+ 			     bcs->hw.hscx.hscx ? 'B' : 'A', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+diff -puN drivers/isdn/hisax/icc.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/icc.c
+--- a/drivers/isdn/hisax/icc.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/icc.c
+@@ -134,7 +134,7 @@ icc_empty_fifo(struct IsdnCardState *cs,
+ 
+ 		t += sprintf(t, "icc_empty_fifo cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+@@ -176,7 +176,7 @@ icc_fill_fifo(struct IsdnCardState *cs)
+ 
+ 		t += sprintf(t, "icc_fill_fifo cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+diff -puN drivers/isdn/hisax/ipacx.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/ipacx.c
+--- a/drivers/isdn/hisax/ipacx.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/ipacx.c
+@@ -260,7 +260,7 @@ dch_empty_fifo(struct IsdnCardState *cs,
+ 
+ 		t += sprintf(t, "dch_empty_fifo() cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+@@ -307,7 +307,7 @@ dch_fill_fifo(struct IsdnCardState *cs)
+ 
+ 		t += sprintf(t, "dch_fill_fifo() cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+@@ -539,7 +539,7 @@ bch_empty_fifo(struct BCState *bcs, int
+ 
+ 		t += sprintf(t, "bch_empty_fifo() B-%d cnt %d", hscx, count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+@@ -582,7 +582,7 @@ bch_fill_fifo(struct BCState *bcs)
+ 
+ 		t += sprintf(t, "chb_fill_fifo() B-%d cnt %d", hscx, count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+diff -puN drivers/isdn/hisax/isac.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/isac.c
+--- a/drivers/isdn/hisax/isac.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/isac.c
+@@ -137,7 +137,7 @@ isac_empty_fifo(struct IsdnCardState *cs
+ 
+ 		t += sprintf(t, "isac_empty_fifo cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+@@ -179,7 +179,7 @@ isac_fill_fifo(struct IsdnCardState *cs)
+ 
+ 		t += sprintf(t, "isac_fill_fifo cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+diff -puN drivers/isdn/hisax/isar.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/isar.c
+--- a/drivers/isdn/hisax/isar.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/isar.c
+@@ -74,7 +74,7 @@ sendmsg(struct IsdnCardState *cs, u_char
+ 				t = tmp;
+ 				t += sprintf(t, "sendmbox cnt %d", len);
+ 				QuickHex(t, &msg[len-i], (i > 64) ? 64 : i);
+-				debugl1(cs, tmp);
++				debugl1(cs, "%s", tmp);
+ 				i -= 64;
+ 			}
+ 		}
+@@ -105,7 +105,7 @@ rcv_mbox(struct IsdnCardState *cs, struc
+ 				t = tmp;
+ 				t += sprintf(t, "rcv_mbox cnt %d", ireg->clsb);
+ 				QuickHex(t, &msg[ireg->clsb - i], (i > 64) ? 64 : i);
+-				debugl1(cs, tmp);
++				debugl1(cs, "%s", tmp);
+ 				i -= 64;
+ 			}
+ 		}
+@@ -1248,7 +1248,7 @@ isar_int_main(struct IsdnCardState *cs)
+ 			tp += sprintf(debbuf, "msg iis(%x) msb(%x)",
+ 				      ireg->iis, ireg->cmsb);
+ 			QuickHex(tp, (u_char *)ireg->par, ireg->clsb);
+-			debugl1(cs, debbuf);
++			debugl1(cs, "%s", debbuf);
+ 		}
+ 		break;
+ 	case ISAR_IIS_INVMSG:
+diff -puN drivers/isdn/hisax/jade.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/jade.c
+--- a/drivers/isdn/hisax/jade.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/jade.c
+@@ -81,10 +81,7 @@ modejade(struct BCState *bcs, int mode,
+ 	int jade = bcs->hw.hscx.hscx;
+ 
+ 	if (cs->debug & L1_DEB_HSCX) {
+-		char tmp[40];
+-		sprintf(tmp, "jade %c mode %d ichan %d",
+-			'A' + jade, mode, bc);
+-		debugl1(cs, tmp);
++		debugl1(cs, "jade %c mode %d ichan %d", 'A' + jade, mode, bc);
+ 	}
+ 	bcs->mode = mode;
+ 	bcs->channel = bc;
+@@ -257,23 +254,18 @@ void
+ clear_pending_jade_ints(struct IsdnCardState *cs)
+ {
+ 	int val;
+-	char tmp[64];
+ 
+ 	cs->BC_Write_Reg(cs, 0, jade_HDLC_IMR, 0x00);
+ 	cs->BC_Write_Reg(cs, 1, jade_HDLC_IMR, 0x00);
+ 
+ 	val = cs->BC_Read_Reg(cs, 1, jade_HDLC_ISR);
+-	sprintf(tmp, "jade B ISTA %x", val);
+-	debugl1(cs, tmp);
++	debugl1(cs, "jade B ISTA %x", val);
+ 	val = cs->BC_Read_Reg(cs, 0, jade_HDLC_ISR);
+-	sprintf(tmp, "jade A ISTA %x", val);
+-	debugl1(cs, tmp);
++	debugl1(cs, "jade A ISTA %x", val);
+ 	val = cs->BC_Read_Reg(cs, 1, jade_HDLC_STAR);
+-	sprintf(tmp, "jade B STAR %x", val);
+-	debugl1(cs, tmp);
++	debugl1(cs, "jade B STAR %x", val);
+ 	val = cs->BC_Read_Reg(cs, 0, jade_HDLC_STAR);
+-	sprintf(tmp, "jade A STAR %x", val);
+-	debugl1(cs, tmp);
++	debugl1(cs, "jade A STAR %x", val);
+ 	/* Unmask ints */
+ 	cs->BC_Write_Reg(cs, 0, jade_HDLC_IMR, 0xF8);
+ 	cs->BC_Write_Reg(cs, 1, jade_HDLC_IMR, 0xF8);
+diff -puN drivers/isdn/hisax/jade_irq.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/jade_irq.c
+--- a/drivers/isdn/hisax/jade_irq.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/jade_irq.c
+@@ -65,7 +65,7 @@ jade_empty_fifo(struct BCState *bcs, int
+ 		t += sprintf(t, "jade_empty_fifo %c cnt %d",
+ 			     bcs->hw.hscx.hscx ? 'B' : 'A', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+@@ -105,7 +105,7 @@ jade_fill_fifo(struct BCState *bcs)
+ 		t += sprintf(t, "jade_fill_fifo %c cnt %d",
+ 			     bcs->hw.hscx.hscx ? 'B' : 'A', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+diff -puN drivers/isdn/hisax/l3_1tr6.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/l3_1tr6.c
+--- a/drivers/isdn/hisax/l3_1tr6.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/l3_1tr6.c
+@@ -63,7 +63,7 @@ l3_1tr6_error(struct l3_process *pc, u_c
+ {
+ 	dev_kfree_skb(skb);
+ 	if (pc->st->l3.debug & L3_DEB_WARN)
+-		l3_debug(pc->st, msg);
++		l3_debug(pc->st, "%s", msg);
+ 	l3_1tr6_release_req(pc, 0, NULL);
+ }
+ 
+@@ -161,7 +161,6 @@ l3_1tr6_setup(struct l3_process *pc, u_c
+ {
+ 	u_char *p;
+ 	int bcfound = 0;
+-	char tmp[80];
+ 	struct sk_buff *skb = arg;
+ 
+ 	/* Channel Identification */
+@@ -214,10 +213,9 @@ l3_1tr6_setup(struct l3_process *pc, u_c
+ 	/* Signal all services, linklevel takes care of Service-Indicator */
+ 	if (bcfound) {
+ 		if ((pc->para.setup.si1 != 7) && (pc->st->l3.debug & L3_DEB_WARN)) {
+-			sprintf(tmp, "non-digital call: %s -> %s",
++			l3_debug(pc->st, "non-digital call: %s -> %s",
+ 				pc->para.setup.phone,
+ 				pc->para.setup.eazmsn);
+-			l3_debug(pc->st, tmp);
+ 		}
+ 		newl3state(pc, 6);
+ 		pc->st->l3.l3l4(pc->st, CC_SETUP | INDICATION, pc);
+@@ -301,7 +299,7 @@ l3_1tr6_info(struct l3_process *pc, u_ch
+ {
+ 	u_char *p;
+ 	int i, tmpcharge = 0;
+-	char a_charge[8], tmp[32];
++	char a_charge[8];
+ 	struct sk_buff *skb = arg;
+ 
+ 	p = skb->data;
+@@ -316,8 +314,8 @@ l3_1tr6_info(struct l3_process *pc, u_ch
+ 			pc->st->l3.l3l4(pc->st, CC_CHARGE | INDICATION, pc);
+ 		}
+ 		if (pc->st->l3.debug & L3_DEB_CHARGE) {
+-			sprintf(tmp, "charging info %d", pc->para.chargeinfo);
+-			l3_debug(pc->st, tmp);
++			l3_debug(pc->st, "charging info %d",
++				 pc->para.chargeinfo);
+ 		}
+ 	} else if (pc->st->l3.debug & L3_DEB_CHARGE)
+ 		l3_debug(pc->st, "charging info not found");
+@@ -399,7 +397,7 @@ l3_1tr6_disc(struct l3_process *pc, u_ch
+ 	struct sk_buff *skb = arg;
+ 	u_char *p;
+ 	int i, tmpcharge = 0;
+-	char a_charge[8], tmp[32];
++	char a_charge[8];
+ 
+ 	StopAllL3Timer(pc);
+ 	p = skb->data;
+@@ -414,8 +412,8 @@ l3_1tr6_disc(struct l3_process *pc, u_ch
+ 			pc->st->l3.l3l4(pc->st, CC_CHARGE | INDICATION, pc);
+ 		}
+ 		if (pc->st->l3.debug & L3_DEB_CHARGE) {
+-			sprintf(tmp, "charging info %d", pc->para.chargeinfo);
+-			l3_debug(pc->st, tmp);
++			l3_debug(pc->st, "charging info %d",
++				 pc->para.chargeinfo);
+ 		}
+ 	} else if (pc->st->l3.debug & L3_DEB_CHARGE)
+ 		l3_debug(pc->st, "charging info not found");
+@@ -746,7 +744,6 @@ up1tr6(struct PStack *st, int pr, void *
+ 	int i, mt, cr;
+ 	struct l3_process *proc;
+ 	struct sk_buff *skb = arg;
+-	char tmp[80];
+ 
+ 	switch (pr) {
+ 	case (DL_DATA | INDICATION):
+@@ -762,26 +759,23 @@ up1tr6(struct PStack *st, int pr, void *
+ 	}
+ 	if (skb->len < 4) {
+ 		if (st->l3.debug & L3_DEB_PROTERR) {
+-			sprintf(tmp, "up1tr6 len only %d", skb->len);
+-			l3_debug(st, tmp);
++			l3_debug(st, "up1tr6 len only %d", skb->len);
+ 		}
+ 		dev_kfree_skb(skb);
+ 		return;
+ 	}
+ 	if ((skb->data[0] & 0xfe) != PROTO_DIS_N0) {
+ 		if (st->l3.debug & L3_DEB_PROTERR) {
+-			sprintf(tmp, "up1tr6%sunexpected discriminator %x message len %d",
++			l3_debug(st, "up1tr6%sunexpected discriminator %x message len %d",
+ 				(pr == (DL_DATA | INDICATION)) ? " " : "(broadcast) ",
+ 				skb->data[0], skb->len);
+-			l3_debug(st, tmp);
+ 		}
+ 		dev_kfree_skb(skb);
+ 		return;
+ 	}
+ 	if (skb->data[1] != 1) {
+ 		if (st->l3.debug & L3_DEB_PROTERR) {
+-			sprintf(tmp, "up1tr6 CR len not 1");
+-			l3_debug(st, tmp);
++			l3_debug(st, "up1tr6 CR len not 1");
+ 		}
+ 		dev_kfree_skb(skb);
+ 		return;
+@@ -791,9 +785,8 @@ up1tr6(struct PStack *st, int pr, void *
+ 	if (skb->data[0] == PROTO_DIS_N0) {
+ 		dev_kfree_skb(skb);
+ 		if (st->l3.debug & L3_DEB_STATE) {
+-			sprintf(tmp, "up1tr6%s N0 mt %x unhandled",
++			l3_debug(st, "up1tr6%s N0 mt %x unhandled",
+ 				(pr == (DL_DATA | INDICATION)) ? " " : "(broadcast) ", mt);
+-			l3_debug(st, tmp);
+ 		}
+ 	} else if (skb->data[0] == PROTO_DIS_N1) {
+ 		if (!(proc = getl3proc(st, cr))) {
+@@ -801,8 +794,7 @@ up1tr6(struct PStack *st, int pr, void *
+ 				if (cr < 128) {
+ 					if (!(proc = new_l3_process(st, cr))) {
+ 						if (st->l3.debug & L3_DEB_PROTERR) {
+-							sprintf(tmp, "up1tr6 no roc mem");
+-							l3_debug(st, tmp);
++							l3_debug(st, "up1tr6 no roc mem");
+ 						}
+ 						dev_kfree_skb(skb);
+ 						return;
+@@ -821,8 +813,7 @@ up1tr6(struct PStack *st, int pr, void *
+ 			} else {
+ 				if (!(proc = new_l3_process(st, cr))) {
+ 					if (st->l3.debug & L3_DEB_PROTERR) {
+-						sprintf(tmp, "up1tr6 no roc mem");
+-						l3_debug(st, tmp);
++						l3_debug(st, "up1tr6 no roc mem");
+ 					}
+ 					dev_kfree_skb(skb);
+ 					return;
+@@ -837,18 +828,16 @@ up1tr6(struct PStack *st, int pr, void *
+ 		if (i == ARRAY_SIZE(datastln1)) {
+ 			dev_kfree_skb(skb);
+ 			if (st->l3.debug & L3_DEB_STATE) {
+-				sprintf(tmp, "up1tr6%sstate %d mt %x unhandled",
++				l3_debug(st, "up1tr6%sstate %d mt %x unhandled",
+ 					(pr == (DL_DATA | INDICATION)) ? " " : "(broadcast) ",
+ 					proc->state, mt);
+-				l3_debug(st, tmp);
+ 			}
+ 			return;
+ 		} else {
+ 			if (st->l3.debug & L3_DEB_STATE) {
+-				sprintf(tmp, "up1tr6%sstate %d mt %x",
++				l3_debug(st, "up1tr6%sstate %d mt %x",
+ 					(pr == (DL_DATA | INDICATION)) ? " " : "(broadcast) ",
+ 					proc->state, mt);
+-				l3_debug(st, tmp);
+ 			}
+ 			datastln1[i].rout(proc, pr, skb);
+ 		}
+@@ -861,7 +850,6 @@ down1tr6(struct PStack *st, int pr, void
+ 	int i, cr;
+ 	struct l3_process *proc;
+ 	struct Channel *chan;
+-	char tmp[80];
+ 
+ 	if ((DL_ESTABLISH | REQUEST) == pr) {
+ 		l3_msg(st, pr, NULL);
+@@ -888,15 +876,13 @@ down1tr6(struct PStack *st, int pr, void
+ 			break;
+ 	if (i == ARRAY_SIZE(downstl)) {
+ 		if (st->l3.debug & L3_DEB_STATE) {
+-			sprintf(tmp, "down1tr6 state %d prim %d unhandled",
++			l3_debug(st, "down1tr6 state %d prim %d unhandled",
+ 				proc->state, pr);
+-			l3_debug(st, tmp);
+ 		}
+ 	} else {
+ 		if (st->l3.debug & L3_DEB_STATE) {
+-			sprintf(tmp, "down1tr6 state %d prim %d",
++			l3_debug(st, "down1tr6 state %d prim %d",
+ 				proc->state, pr);
+-			l3_debug(st, tmp);
+ 		}
+ 		downstl[i].rout(proc, pr, arg);
+ 	}
+diff -puN drivers/isdn/hisax/netjet.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/netjet.c
+--- a/drivers/isdn/hisax/netjet.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/netjet.c
+@@ -176,7 +176,7 @@ static void printframe(struct IsdnCardSt
+ 		else
+ 			j = i;
+ 		QuickHex(t, p, j);
+-		debugl1(cs, tmp);
++		debugl1(cs, "%s", tmp);
+ 		p += j;
+ 		i -= j;
+ 		t = tmp;
+diff -puN drivers/isdn/hisax/q931.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/q931.c
+--- a/drivers/isdn/hisax/q931.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/q931.c
+@@ -1179,7 +1179,7 @@ LogFrame(struct IsdnCardState *cs, u_cha
+ 		dp--;
+ 		*dp++ = '\n';
+ 		*dp = 0;
+-		HiSax_putstatus(cs, NULL, cs->dlog);
++		HiSax_putstatus(cs, NULL, "%s", cs->dlog);
+ 	} else
+ 		HiSax_putstatus(cs, "LogFrame: ", "warning Frame too big (%d)", size);
+ }
+@@ -1246,7 +1246,7 @@ dlogframe(struct IsdnCardState *cs, stru
+ 	}
+ 	if (finish) {
+ 		*dp = 0;
+-		HiSax_putstatus(cs, NULL, cs->dlog);
++		HiSax_putstatus(cs, NULL, "%s", cs->dlog);
+ 		return;
+ 	}
+ 	if ((0xfe & buf[0]) == PROTO_DIS_N0) {	/* 1TR6 */
+@@ -1509,5 +1509,5 @@ dlogframe(struct IsdnCardState *cs, stru
+ 		dp += sprintf(dp, "Unknown protocol %x!", buf[0]);
+ 	}
+ 	*dp = 0;
+-	HiSax_putstatus(cs, NULL, cs->dlog);
++	HiSax_putstatus(cs, NULL, "%s", cs->dlog);
+ }
+diff -puN drivers/isdn/hisax/w6692.c~isdn-clean-up-debug-format-string-usage drivers/isdn/hisax/w6692.c
+--- a/drivers/isdn/hisax/w6692.c~isdn-clean-up-debug-format-string-usage
++++ a/drivers/isdn/hisax/w6692.c
+@@ -154,7 +154,7 @@ W6692_empty_fifo(struct IsdnCardState *c
+ 
+ 		t += sprintf(t, "W6692_empty_fifo cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+@@ -196,7 +196,7 @@ W6692_fill_fifo(struct IsdnCardState *cs
+ 
+ 		t += sprintf(t, "W6692_fill_fifo cnt %d", count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, cs->dlog);
++		debugl1(cs, "%s", cs->dlog);
+ 	}
+ }
+ 
+@@ -226,7 +226,7 @@ W6692B_empty_fifo(struct BCState *bcs, i
+ 		t += sprintf(t, "W6692B_empty_fifo %c cnt %d",
+ 			     bcs->channel + '1', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
+@@ -264,7 +264,7 @@ W6692B_fill_fifo(struct BCState *bcs)
+ 		t += sprintf(t, "W6692B_fill_fifo %c cnt %d",
+ 			     bcs->channel + '1', count);
+ 		QuickHex(t, ptr, count);
+-		debugl1(cs, bcs->blog);
++		debugl1(cs, "%s", bcs->blog);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
