@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-remove-alloc_map-from-vmap_block.patch added to -mm tree
-Date: Tue, 11 Jun 2013 13:05:02 -0700
-Message-ID: <51b782ee.5GM7JFfz32Xu52Yn%akpm@linux-foundation.org>
+Subject: + block-do-not-pass-disk-names-as-format-strings.patch added to
+ -mm tree
+Date: Tue, 11 Jun 2013 13:11:50 -0700
+Message-ID: <51b78486.gDzD+/ngZnIlpx/i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42101 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42115 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756801Ab3FKUFD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:05:03 -0400
+	with ESMTP id S1755922Ab3FKULv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:11:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, hannes@cmpxchg.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, axboe@kernel.dk, keescook@chromium.org
 
-Subject: + mm-vmallocc-remove-alloc_map-from-vmap_block.patch added to -mm tree
-To: zhangyanfei@cn.fujitsu.com,hannes@cmpxchg.org,mel@csn.ul.ie
+Subject: + block-do-not-pass-disk-names-as-format-strings.patch added to -mm tree
+To: keescook@chromium.org,axboe@kernel.dk,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 13:05:02 -0700
+Date: Tue, 11 Jun 2013 13:11:50 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc.c: remove alloc_map from vmap_block
+     Subject: block: do not pass disk names as format strings
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-remove-alloc_map-from-vmap_block.patch
+     block-do-not-pass-disk-names-as-format-strings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,84 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm/vmalloc.c: remove alloc_map from vmap_block
+From: Kees Cook <keescook@chromium.org>
+Subject: block: do not pass disk names as format strings
 
-As we have removed the dead code in the vb_alloc, it seems there is no
-place to use the alloc_map.  So there is no reason to maintain the
-alloc_map in vmap_block.
+Disk names may contain arbitrary strings, so they must not be interpreted
+as format strings. It seems that only md allows arbitrary strings to be
+used for disk names, but this could allow for a local memory corruption
+from uid 0 into ring 0.
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+CVE-2013-2851
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 ---
- 1 file changed, 3 deletions(-)
+ block/genhd.c              |    2 +-
+ drivers/block/nbd.c        |    3 ++-
+ drivers/scsi/osd/osd_uld.c |    2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-remove-alloc_map-from-vmap_block mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-remove-alloc_map-from-vmap_block
-+++ a/mm/vmalloc.c
-@@ -754,7 +754,6 @@ struct vmap_block {
- 	struct vmap_area *va;
- 	struct vmap_block_queue *vbq;
- 	unsigned long free, dirty;
--	DECLARE_BITMAP(alloc_map, VMAP_BBMAP_BITS);
- 	DECLARE_BITMAP(dirty_map, VMAP_BBMAP_BITS);
- 	struct list_head free_list;
- 	struct rcu_head rcu_head;
-@@ -820,7 +819,6 @@ static struct vmap_block *new_vmap_block
- 	vb->va = va;
- 	vb->free = VMAP_BBMAP_BITS;
- 	vb->dirty = 0;
--	bitmap_zero(vb->alloc_map, VMAP_BBMAP_BITS);
- 	bitmap_zero(vb->dirty_map, VMAP_BBMAP_BITS);
- 	INIT_LIST_HEAD(&vb->free_list);
+diff -puN block/genhd.c~block-do-not-pass-disk-names-as-format-strings block/genhd.c
+--- a/block/genhd.c~block-do-not-pass-disk-names-as-format-strings
++++ a/block/genhd.c
+@@ -512,7 +512,7 @@ static void register_disk(struct gendisk
  
-@@ -873,7 +871,6 @@ static void purge_fragmented_blocks(int
- 		if (vb->free + vb->dirty == VMAP_BBMAP_BITS && vb->dirty != VMAP_BBMAP_BITS) {
- 			vb->free = 0; /* prevent further allocs after releasing lock */
- 			vb->dirty = VMAP_BBMAP_BITS; /* prevent purging it again */
--			bitmap_fill(vb->alloc_map, VMAP_BBMAP_BITS);
- 			bitmap_fill(vb->dirty_map, VMAP_BBMAP_BITS);
- 			spin_lock(&vbq->lock);
- 			list_del_rcu(&vb->free_list);
+ 	ddev->parent = disk->driverfs_dev;
+ 
+-	dev_set_name(ddev, disk->disk_name);
++	dev_set_name(ddev, "%s", disk->disk_name);
+ 
+ 	/* delay uevents, until we scanned partition table */
+ 	dev_set_uevent_suppress(ddev, 1);
+diff -puN drivers/block/nbd.c~block-do-not-pass-disk-names-as-format-strings drivers/block/nbd.c
+--- a/drivers/block/nbd.c~block-do-not-pass-disk-names-as-format-strings
++++ a/drivers/block/nbd.c
+@@ -714,7 +714,8 @@ static int __nbd_ioctl(struct block_devi
+ 		else
+ 			blk_queue_flush(nbd->disk->queue, 0);
+ 
+-		thread = kthread_create(nbd_thread, nbd, nbd->disk->disk_name);
++		thread = kthread_create(nbd_thread, nbd, "%s",
++					nbd->disk->disk_name);
+ 		if (IS_ERR(thread)) {
+ 			mutex_lock(&nbd->tx_lock);
+ 			return PTR_ERR(thread);
+diff -puN drivers/scsi/osd/osd_uld.c~block-do-not-pass-disk-names-as-format-strings drivers/scsi/osd/osd_uld.c
+--- a/drivers/scsi/osd/osd_uld.c~block-do-not-pass-disk-names-as-format-strings
++++ a/drivers/scsi/osd/osd_uld.c
+@@ -485,7 +485,7 @@ static int osd_probe(struct device *dev)
+ 	oud->class_dev.class = &osd_uld_class;
+ 	oud->class_dev.parent = dev;
+ 	oud->class_dev.release = __remove;
+-	error = dev_set_name(&oud->class_dev, disk->disk_name);
++	error = dev_set_name(&oud->class_dev, "%s", disk->disk_name);
+ 	if (error) {
+ 		OSD_ERR("dev_set_name failed => %d\n", error);
+ 		goto err_put_cdev;
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 linux-next.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix-2.patch
-mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-vmalloc-only-call-setup_vmalloc_vm-only-in-__get_vm_area_node.patch
-mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
-mm-vmalloc-remove-insert_vmalloc_vm.patch
-mm-vmalloc-use-clamp-to-simplify-code.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
-mm-vmallocc-unbreak-__vunmap.patch
-mm-vmallocc-remove-dead-code-in-vb_alloc.patch
-mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch
-mm-vmallocc-remove-alloc_map-from-vmap_block.patch
-dev-oldmem-remove-the-interface.patch
-dev-oldmem-remove-the-interface-fix.patch
-documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
-mips-remove-savemaxmem-parameter-setup.patch
-powerpc-remove-savemaxmem-parameter-setup.patch
-ia64-remove-setting-for-saved_max_pfn.patch
-s390-remove-setting-for-saved_max_pfn.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch
+clean-up-scary-strncpydst-src-strlensrc-uses.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
+block-do-not-pass-disk-names-as-format-strings.patch
+crypto-sanitize-argument-for-format-string.patch
+drivers-avoid-format-string-in-dev_set_name.patch
+drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue.patch
+drivers-avoid-parsing-names-as-kthread_run-format-strings.patch
+isdn-clean-up-debug-format-string-usage.patch
 
