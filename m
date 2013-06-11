@@ -1,107 +1,440 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-gfph-fix-the-comment-for-gfp_zone_table.patch
- added to -mm tree
-Date: Tue, 11 Jun 2013 14:47:39 -0700
-Message-ID: <51b79afb.0AD2ipDIjsX37KMX%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ ipc-sem-seperate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
+ removed from -mm tree
+Date: Tue, 11 Jun 2013 15:01:56 -0700
+Message-ID: <51b79e54.D0MEf5jhSLFE682X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43332 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753798Ab3FKVrk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 17:47:40 -0400
+	with ESMTP id S1752657Ab3FKWB5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:01:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: + include-linux-gfph-fix-the-comment-for-gfp_zone_table.patch added to -mm tree
-To: zhangyanfei@cn.fujitsu.com
+Subject: [to-be-updated] ipc-sem-seperate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch removed from -mm tree
+To: manfred@colorfullife.com,davidlohr.bueso@hp.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 14:47:39 -0700
+Date: Tue, 11 Jun 2013 15:01:56 -0700
 
 
 The patch titled
-     Subject: include/linux/gfp.h: fix the comment for GFP_ZONE_TABLE
-has been added to the -mm tree.  Its filename is
-     include-linux-gfph-fix-the-comment-for-gfp_zone_table.patch
+     Subject: ipc/sem: seperate wait-for-zero and alter tasks into seperate queues
+has been removed from the -mm tree.  Its filename was
+     ipc-sem-seperate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: include/linux/gfp.h: fix the comment for GFP_ZONE_TABLE
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem: seperate wait-for-zero and alter tasks into seperate queues
 
-0xc just means MOVABLE + DMA32, which results in zone DMA32.
+Introduce seperate queues for operations that do not modify the
+semaphore values.
+Advantages:
+- Simpler logic in check_restart().
+- Faster update_queue(): Right now, all wait-for-zero operations
+  are always tested, even if the semaphore value is not 0.
+- wait-for-zero gets again priority, as in linux <=3.0.9
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sem.h |    5 -
+ ipc/sem.c           |  209 +++++++++++++++++++++++++++++-------------
+ 2 files changed, 153 insertions(+), 61 deletions(-)
 
-diff -puN include/linux/gfp.h~include-linux-gfph-fix-the-comment-for-gfp_zone_table include/linux/gfp.h
---- a/include/linux/gfp.h~include-linux-gfph-fix-the-comment-for-gfp_zone_table
-+++ a/include/linux/gfp.h
-@@ -209,7 +209,7 @@ static inline int allocflags_to_migratet
-  *       0x9    => DMA or NORMAL (MOVABLE+DMA)
-  *       0xa    => MOVABLE (Movable is valid only if HIGHMEM is set too)
-  *       0xb    => BAD (MOVABLE+HIGHMEM+DMA)
-- *       0xc    => DMA32 (MOVABLE+HIGHMEM+DMA32)
-+ *       0xc    => DMA32 (MOVABLE+DMA32)
-  *       0xd    => BAD (MOVABLE+DMA32+DMA)
-  *       0xe    => BAD (MOVABLE+DMA32+HIGHMEM)
-  *       0xf    => BAD (MOVABLE+DMA32+HIGHMEM+DMA)
+diff -puN include/linux/sem.h~ipc-sem-seperate-wait-for-zero-and-alter-tasks-into-seperate-queues include/linux/sem.h
+--- a/include/linux/sem.h~ipc-sem-seperate-wait-for-zero-and-alter-tasks-into-seperate-queues
++++ a/include/linux/sem.h
+@@ -15,7 +15,10 @@ struct sem_array {
+ 	time_t			sem_otime;	/* last semop time */
+ 	time_t			sem_ctime;	/* last change time */
+ 	struct sem		*sem_base;	/* ptr to first semaphore in array */
+-	struct list_head	sem_pending;	/* pending operations to be processed */
++	struct list_head	pending_alter;	/* pending operations */
++						/* that alter the array */
++	struct list_head	pending_const;	/* pending complex operations */
++						/* that do not alter semvals */
+ 	struct list_head	list_id;	/* undo requests on this array */
+ 	int			sem_nsems;	/* no. of semaphores in array */
+ 	int			complex_count;	/* pending complex operations */
+diff -puN ipc/sem.c~ipc-sem-seperate-wait-for-zero-and-alter-tasks-into-seperate-queues ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-seperate-wait-for-zero-and-alter-tasks-into-seperate-queues
++++ a/ipc/sem.c
+@@ -95,7 +95,10 @@ struct sem {
+ 	int	semval;		/* current value */
+ 	int	sempid;		/* pid of last operation */
+ 	spinlock_t	lock;	/* spinlock for fine-grained semtimedop */
+-	struct list_head sem_pending; /* pending single-sop operations */
++	struct list_head pending_alter; /* pending single-sop operations */
++					/* that alter the semaphore */
++	struct list_head pending_const; /* pending single-sop operations */
++					/* that do not alter the semaphore*/
+ };
+ 
+ /* One queue for each sleeping process in the system. */
+@@ -152,7 +155,7 @@ static int sysvipc_sem_proc_show(struct
+ /*
+  * linked list protection:
+  *	sem_undo.id_next,
+- *	sem_array.sem_pending{,last},
++ *	sem_array.pending{_alter,_cont},
+  *	sem_array.sem_undo: sem_lock() for read/write
+  *	sem_undo.proc_next: only "current" is allowed to read/write that field.
+  *	
+@@ -337,7 +340,7 @@ static inline void sem_rmid(struct ipc_n
+  * Without the check/retry algorithm a lockless wakeup is possible:
+  * - queue.status is initialized to -EINTR before blocking.
+  * - wakeup is performed by
+- *	* unlinking the queue entry from sma->sem_pending
++ *	* unlinking the queue entry from the pending list
+  *	* setting queue.status to IN_WAKEUP
+  *	  This is the notification for the blocked thread that a
+  *	  result value is imminent.
+@@ -420,12 +423,14 @@ static int newary(struct ipc_namespace *
+ 	sma->sem_base = (struct sem *) &sma[1];
+ 
+ 	for (i = 0; i < nsems; i++) {
+-		INIT_LIST_HEAD(&sma->sem_base[i].sem_pending);
++		INIT_LIST_HEAD(&sma->sem_base[i].pending_alter);
++		INIT_LIST_HEAD(&sma->sem_base[i].pending_const);
+ 		spin_lock_init(&sma->sem_base[i].lock);
+ 	}
+ 
+ 	sma->complex_count = 0;
+-	INIT_LIST_HEAD(&sma->sem_pending);
++	INIT_LIST_HEAD(&sma->pending_alter);
++	INIT_LIST_HEAD(&sma->pending_const);
+ 	INIT_LIST_HEAD(&sma->list_id);
+ 	sma->sem_nsems = nsems;
+ 	sma->sem_ctime = get_seconds();
+@@ -611,60 +616,130 @@ static void unlink_queue(struct sem_arra
+  * update_queue is O(N^2) when it restarts scanning the whole queue of
+  * waiting operations. Therefore this function checks if the restart is
+  * really necessary. It is called after a previously waiting operation
+- * was completed.
++ * modified the array.
++ * Note that wait-for-zero operations are handled without restart.
+  */
+ static int check_restart(struct sem_array *sma, struct sem_queue *q)
+ {
+-	struct sem *curr;
+-	struct sem_queue *h;
+-
+-	/* if the operation didn't modify the array, then no restart */
+-	if (q->alter == 0)
+-		return 0;
+-
+-	/* pending complex operations are too difficult to analyse */
+-	if (sma->complex_count)
++	/* pending complex alter operations are too difficult to analyse */
++	if (!list_empty(&sma->pending_alter))
+ 		return 1;
+ 
+ 	/* we were a sleeping complex operation. Too difficult */
+ 	if (q->nsops > 1)
+ 		return 1;
+ 
+-	curr = sma->sem_base + q->sops[0].sem_num;
++	/* It is impossible that someone waits for the new value:
++	 * - complex operations always restart.
++	 * - wait-for-zero are handled seperately.
++	 * - q is a previously sleeping simple operation that
++	 *   altered the array. It must be a decrement, because
++	 *   simple increments never sleep.
++	 * - If there are older (higher priority) decrements
++	 *   in the queue, then they have observed the original
++	 *   semval value and couldn't proceed. The operation
++	 *   decremented to value - thus they won't proceed either.
++	 */
++	return 0;
++}
+ 
+-	/* No-one waits on this queue */
+-	if (list_empty(&curr->sem_pending))
+-		return 0;
++/**
++ * wake_const_ops(sma, semnum, pt) - Wake up non-alter tasks
++ * @sma: semaphore array.
++ * @semnum: semaphore that was modified.
++ * @pt: list head for the tasks that must be woken up.
++ *
++ * wake_const_ops must be called after a semaphore in a semaphore array
++ * was set to 0. If complex const operations are pending, wake_const_ops must
++ * be called with semnum = -1, as well as with the number of each modified
++ * semaphore.
++ * The tasks that must be woken up are added to @pt. The return code
++ * is stored in q->pid.
++ * The function returns 1 if at least one operation was completed successfully.
++ */
++static int wake_const_ops(struct sem_array *sma, int semnum,
++				struct list_head *pt)
++{
++	struct sem_queue *q;
++	struct list_head *walk;
++	struct list_head *pending_list;
++	int semop_completed = 0;
++
++	if (semnum == -1)
++		pending_list = &sma->pending_const;
++	else
++		pending_list = &sma->sem_base[semnum].pending_const;
++
++	walk = pending_list->next;
++	while (walk != pending_list) {
++		int error;
+ 
+-	/* the new semaphore value */
+-	if (curr->semval) {
+-		/* It is impossible that someone waits for the new value:
+-		 * - q is a previously sleeping simple operation that
+-		 *   altered the array. It must be a decrement, because
+-		 *   simple increments never sleep.
+-		 * - The value is not 0, thus wait-for-zero won't proceed.
+-		 * - If there are older (higher priority) decrements
+-		 *   in the queue, then they have observed the original
+-		 *   semval value and couldn't proceed. The operation
+-		 *   decremented to value - thus they won't proceed either.
++		q = container_of(walk, struct sem_queue, list);
++		walk = walk->next;
++
++		error = try_atomic_semop(sma, q->sops, q->nsops,
++						q->undo, q->pid);
++
++		if (error <= 0) {
++			/* operation completed, remove from queue & wakeup */
++
++			unlink_queue(sma, q);
++
++			wake_up_sem_queue_prepare(pt, q, error);
++			if (error == 0)
++				semop_completed = 1;
++		}
++	}
++	return semop_completed;
++}
++
++/**
++ * do_smart_wakeup_zero(sma, sops, nsops, pt) - wakeup all wait for zero tasks
++ * @sma: semaphore array
++ * @sops: operations that were performed
++ * @nsops: number of operations
++ * @pt: list head of the tasks that must be woken up.
++ *
++ * do_smart_wakeup_zero() checks all required queue for wait-for-zero
++ * operations, based on the actual changes that were performed on the
++ * semaphore array.
++ * The function returns 1 if at least one operation was completed successfully.
++ */
++static int do_smart_wakeup_zero(struct sem_array *sma, struct sembuf *sops,
++					int nsops, struct list_head *pt)
++{
++	int i;
++	int semop_completed = 0;
++	int got_zero = 0;
++
++	/* first: the per-semaphore queues, if known */
++	if (sops) {
++		for (i = 0; i < nsops; i++) {
++			int num = sops[i].sem_num;
++
++			if (sma->sem_base[num].semval == 0) {
++				got_zero = 1;
++				semop_completed |= wake_const_ops(sma, num, pt);
++			}
++		}
++	} else {
++		/*
++		 * No sops means modified semaphores not known.
++		 * Assume all were changed.
+ 		 */
+-		BUG_ON(q->sops[0].sem_op >= 0);
+-		return 0;
++		for (i = 0; i < sma->sem_nsems; i++) {
++			if (sma->sem_base[i].semval == 0)
++				semop_completed |= wake_const_ops(sma, i, pt);
++		}
+ 	}
+ 	/*
+-	 * semval is 0. Check if there are wait-for-zero semops.
+-	 * They must be the first entries in the per-semaphore queue
++	 * If one of the modified semaphores got 0,
++	 * then check the global queue, too.
+ 	 */
+-	h = list_first_entry(&curr->sem_pending, struct sem_queue, list);
+-	BUG_ON(h->nsops != 1);
+-	BUG_ON(h->sops[0].sem_num != q->sops[0].sem_num);
++	if (got_zero)
++		semop_completed |= wake_const_ops(sma, -1, pt);
+ 
+-	/* Yes, there is a wait-for-zero semop. Restart */
+-	if (h->sops[0].sem_op == 0)
+-		return 1;
+-
+-	/* Again - no-one is waiting for the new value. */
+-	return 0;
++	return semop_completed;
+ }
+ 
+ 
+@@ -680,6 +755,8 @@ static int check_restart(struct sem_arra
+  * semaphore.
+  * The tasks that must be woken up are added to @pt. The return code
+  * is stored in q->pid.
++ * The function internally checks if const operations can now succeed.
++ *
+  * The function return 1 if at least one semop was completed successfully.
+  */
+ static int update_queue(struct sem_array *sma, int semnum, struct list_head *pt)
+@@ -690,9 +767,9 @@ static int update_queue(struct sem_array
+ 	int semop_completed = 0;
+ 
+ 	if (semnum == -1)
+-		pending_list = &sma->sem_pending;
++		pending_list = &sma->pending_alter;
+ 	else
+-		pending_list = &sma->sem_base[semnum].sem_pending;
++		pending_list = &sma->sem_base[semnum].pending_alter;
+ 
+ again:
+ 	walk = pending_list->next;
+@@ -704,13 +781,12 @@ again:
+ 
+ 		/* If we are scanning the single sop, per-semaphore list of
+ 		 * one semaphore and that semaphore is 0, then it is not
+-		 * necessary to scan the "alter" entries: simple increments
++		 * necessary to scan further: simple increments
+ 		 * that affect only one entry succeed immediately and cannot
+ 		 * be in the  per semaphore pending queue, and decrements
+ 		 * cannot be successful if the value is already 0.
+ 		 */
+-		if (semnum != -1 && sma->sem_base[semnum].semval == 0 &&
+-				q->alter)
++		if (semnum != -1 && sma->sem_base[semnum].semval == 0)
+ 			break;
+ 
+ 		error = try_atomic_semop(sma, q->sops, q->nsops,
+@@ -726,6 +802,7 @@ again:
+ 			restart = 0;
+ 		} else {
+ 			semop_completed = 1;
++			do_smart_wakeup_zero(sma, q->sops, q->nsops, pt);
+ 			restart = check_restart(sma, q);
+ 		}
+ 
+@@ -744,8 +821,8 @@ again:
+  * @otime: force setting otime
+  * @pt: list head of the tasks that must be woken up.
+  *
+- * do_smart_update() does the required called to update_queue, based on the
+- * actual changes that were performed on the semaphore array.
++ * do_smart_update() does the required calls to update_queue and wakeup_zero,
++ * based on the actual changes that were performed on the semaphore array.
+  * Note that the function does not do the actual wake-up: the caller is
+  * responsible for calling wake_up_sem_queue_do(@pt).
+  * It is safe to perform this call after dropping all locks.
+@@ -756,6 +833,8 @@ static void do_smart_update(struct sem_a
+ 	int i;
+ 	int progress;
+ 
++	otime |= do_smart_wakeup_zero(sma, sops, nsops, pt);
++
+ 	progress = 1;
+ retry_global:
+ 	if (sma->complex_count) {
+@@ -815,14 +894,14 @@ static int count_semncnt (struct sem_arr
+ 	struct sem_queue * q;
+ 
+ 	semncnt = 0;
+-	list_for_each_entry(q, &sma->sem_base[semnum].sem_pending, list) {
++	list_for_each_entry(q, &sma->sem_base[semnum].pending_alter, list) {
+ 		struct sembuf * sops = q->sops;
+ 		BUG_ON(sops->sem_num != semnum);
+ 		if ((sops->sem_op < 0) && !(sops->sem_flg & IPC_NOWAIT))
+ 			semncnt++;
+ 	}
+ 
+-	list_for_each_entry(q, &sma->sem_pending, list) {
++	list_for_each_entry(q, &sma->pending_alter, list) {
+ 		struct sembuf * sops = q->sops;
+ 		int nsops = q->nsops;
+ 		int i;
+@@ -841,14 +920,14 @@ static int count_semzcnt (struct sem_arr
+ 	struct sem_queue * q;
+ 
+ 	semzcnt = 0;
+-	list_for_each_entry(q, &sma->sem_base[semnum].sem_pending, list) {
++	list_for_each_entry(q, &sma->sem_base[semnum].pending_const, list) {
+ 		struct sembuf * sops = q->sops;
+ 		BUG_ON(sops->sem_num != semnum);
+ 		if ((sops->sem_op == 0) && !(sops->sem_flg & IPC_NOWAIT))
+ 			semzcnt++;
+ 	}
+ 
+-	list_for_each_entry(q, &sma->sem_pending, list) {
++	list_for_each_entry(q, &sma->pending_const, list) {
+ 		struct sembuf * sops = q->sops;
+ 		int nsops = q->nsops;
+ 		int i;
+@@ -886,13 +965,22 @@ static void freeary(struct ipc_namespace
+ 
+ 	/* Wake up all pending processes and let them fail with EIDRM. */
+ 	INIT_LIST_HEAD(&tasks);
+-	list_for_each_entry_safe(q, tq, &sma->sem_pending, list) {
++	list_for_each_entry_safe(q, tq, &sma->pending_const, list) {
++		unlink_queue(sma, q);
++		wake_up_sem_queue_prepare(&tasks, q, -EIDRM);
++	}
++
++	list_for_each_entry_safe(q, tq, &sma->pending_alter, list) {
+ 		unlink_queue(sma, q);
+ 		wake_up_sem_queue_prepare(&tasks, q, -EIDRM);
+ 	}
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+ 		struct sem *sem = sma->sem_base + i;
+-		list_for_each_entry_safe(q, tq, &sem->sem_pending, list) {
++		list_for_each_entry_safe(q, tq, &sem->pending_const, list) {
++			unlink_queue(sma, q);
++			wake_up_sem_queue_prepare(&tasks, q, -EIDRM);
++		}
++		list_for_each_entry_safe(q, tq, &sem->pending_alter, list) {
+ 			unlink_queue(sma, q);
+ 			wake_up_sem_queue_prepare(&tasks, q, -EIDRM);
+ 		}
+@@ -1660,14 +1748,15 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 		curr = &sma->sem_base[sops->sem_num];
+ 
+ 		if (alter)
+-			list_add_tail(&queue.list, &curr->sem_pending);
++			list_add_tail(&queue.list, &curr->pending_alter);
+ 		else
+-			list_add(&queue.list, &curr->sem_pending);
++			list_add_tail(&queue.list, &curr->pending_const);
+ 	} else {
+ 		if (alter)
+-			list_add_tail(&queue.list, &sma->sem_pending);
++			list_add_tail(&queue.list, &sma->pending_alter);
+ 		else
+-			list_add(&queue.list, &sma->sem_pending);
++			list_add_tail(&queue.list, &sma->pending_const);
++
+ 		sma->complex_count++;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-linux-next.patch
-vmcore-clean-up-read_vmcore.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
-vmalloc-make-find_vm_area-check-in-range.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
-vmcore-support-mmap-on-proc-vmcore.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix-2.patch
-mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-vmalloc-only-call-setup_vmalloc_vm-only-in-__get_vm_area_node.patch
-mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
-mm-vmalloc-remove-insert_vmalloc_vm.patch
-mm-vmalloc-use-clamp-to-simplify-code.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
-mm-vmallocc-unbreak-__vunmap.patch
-mm-vmallocc-remove-dead-code-in-vb_alloc.patch
-mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch
-mm-vmallocc-remove-alloc_map-from-vmap_block.patch
-mm-vmallocc-emit-the-failure-message-before-return.patch
-mm-vmallocc-rename-vm_unlist-to-vm_uninitialized.patch
-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-include-linux-gfph-fix-the-comment-for-gfp_zone_table.patch
-dev-oldmem-remove-the-interface.patch
-dev-oldmem-remove-the-interface-fix.patch
-documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
-mips-remove-savemaxmem-parameter-setup.patch
-powerpc-remove-savemaxmem-parameter-setup.patch
-ia64-remove-setting-for-saved_max_pfn.patch
-s390-remove-setting-for-saved_max_pfn.patch
+ipc-semc-always-use-only-one-queue-for-alter-operations.patch
+ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
+slab-leaks3-default-y.patch
 
