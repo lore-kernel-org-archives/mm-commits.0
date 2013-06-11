@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch
- added to -mm tree
-Date: Tue, 11 Jun 2013 15:50:34 -0700
-Message-ID: <51b7a9ba.omr6c7qo3ylv39/S%akpm@linux-foundation.org>
+Subject: + checkpatch-warn-on-comparisons-to-jiffies.patch added to -mm
+ tree
+Date: Tue, 11 Jun 2013 15:50:36 -0700
+Message-ID: <51b7a9bc.fUOOIXcaOyR8qV+L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43646 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754369Ab3FKWuf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:50:35 -0400
+	with ESMTP id S1754027Ab3FKWuh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:50:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch added to -mm tree
+Subject: + checkpatch-warn-on-comparisons-to-jiffies.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 15:50:34 -0700
+Date: Tue, 11 Jun 2013 15:50:36 -0700
 
 
 The patch titled
-     Subject: checkpatch: warn when networking block comment lines don't start with *
+     Subject: checkpatch: warn on comparisons to jiffies
 has been added to the -mm tree.  Its filename is
-     checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch
+     checkpatch-warn-on-comparisons-to-jiffies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,47 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn when networking block comment lines don't start with *
+Subject: checkpatch: warn on comparisons to jiffies
 
-Some block comments in network are written as:
+Comparing jiffies is almost always wrong and time_before and time_after
+should be used instead.
 
-	/* block comment line 1
-	   block comment line 2
-	 */
-
-Emit a warning on the "block comment line 2" because it should be
-
-	/* block comment line 1
-	 * block comment line 2
-	 */
-
-This warning is only emitted on the second line of a block comment.
+Warn on any comparison to jiffies.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-when-networking-block-comment-lines-dont-start-with scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-when-networking-block-comment-lines-dont-start-with
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-comparisons-to-jiffies scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-comparisons-to-jiffies
 +++ a/scripts/checkpatch.pl
-@@ -1898,6 +1898,14 @@ sub process {
+@@ -3299,6 +3299,12 @@ sub process {
+ 			}
  		}
  
- 		if ($realfile =~ m@^(drivers/net/|net/)@ &&
-+		    $prevrawline =~ /^\+[ \t]*\/\*/ &&		#starting /*
-+		    $prevrawline !~ /\*\/[ \t]*$/ &&		#no trailing */
-+		    $rawline !~ /^\+[ \t]*\*/) {		#no leading *
-+			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
-+			     "networking block comments start with * on subsequent lines\n" . $hereprev);
++# check for comparisons of jiffies
++		if ($line =~ /\bjiffies\s*$Compare|$Compare\s*jiffies\b/) {
++			WARN("JIFFIES_COMPARISON",
++			     "Comparing jiffies is almost always wrong; prefer time_after, time_before and friends\n" . $herecurr);
 +		}
 +
-+		if ($realfile =~ m@^(drivers/net/|net/)@ &&
- 		    $rawline !~ m@^\+[ \t]*\*/[ \t]*$@ &&	#trailing */
- 		    $rawline !~ m@^\+.*/\*.*\*/[ \t]*$@ &&	#inline /*...*/
- 		    $rawline !~ m@^\+.*\*{2,}/[ \t]*$@ &&	#trailing **/
+ # warn about #ifdefs in C files
+ #		if ($line =~ /^.\s*\#\s*if(|n)def/ && ($realfile =~ /\.c$/)) {
+ #			print "#ifdef in C files should be avoided\n";
 _
 
 Patches currently in -mm which might be from joe@perches.com are
