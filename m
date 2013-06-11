@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group.patch
- added to -mm tree
-Date: Tue, 11 Jun 2013 13:58:52 -0700
-Message-ID: <51b78f8c.qQc/qkIwLZwDGjBL%akpm@linux-foundation.org>
+Subject: + fsnotify-update-comments-concerning-locking-scheme.patch added
+ to -mm tree
+Date: Tue, 11 Jun 2013 13:58:56 -0700
+Message-ID: <51b78f90.dsxvwbzyNVKNE9po%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755125Ab3FKU6x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:58:53 -0400
+	with ESMTP id S1755141Ab3FKU65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:58:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, eparis@redhat.com, LinoSanfilippo@gmx.de
 
-Subject: + dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group.patch added to -mm tree
+Subject: + fsnotify-update-comments-concerning-locking-scheme.patch added to -mm tree
 To: LinoSanfilippo@gmx.de,eparis@redhat.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 13:58:52 -0700
+Date: Tue, 11 Jun 2013 13:58:56 -0700
 
 
 The patch titled
-     Subject: dnotify: replace dnotify_mark_mutex with mark mutex of dnotify_group
+     Subject: fsnotify: update comments concerning locking scheme
 has been added to the -mm tree.  Its filename is
-     dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group.patch
+     fsnotify-update-comments-concerning-locking-scheme.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Subject: dnotify: replace dnotify_mark_mutex with mark mutex of dnotify_group
+Subject: fsnotify: update comments concerning locking scheme
 
-There is no need to use a special mutex to protect against the fcntl/close
-race (see dnotify.c for a description of this race).  Instead the
-dnotify_groups mark mutex can be used.
+There have been changes in the locking scheme of fsnotify but the comments
+in the source code have not been updated yet.  This patch corrects this.
 
 Signed-off-by: Lino Sanfilippo <LinoSanfilippo@gmx.de>
 Cc: Eric Paris <eparis@redhat.com>
@@ -53,89 +51,82 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/dnotify/dnotify.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ fs/notify/mark.c |   50 +++++++++++++++++++--------------------------
+ 1 file changed, 22 insertions(+), 28 deletions(-)
 
-diff -puN fs/notify/dnotify/dnotify.c~dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group fs/notify/dnotify/dnotify.c
---- a/fs/notify/dnotify/dnotify.c~dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group
-+++ a/fs/notify/dnotify/dnotify.c
-@@ -31,7 +31,6 @@ int dir_notify_enable __read_mostly = 1;
- static struct kmem_cache *dnotify_struct_cache __read_mostly;
- static struct kmem_cache *dnotify_mark_cache __read_mostly;
- static struct fsnotify_group *dnotify_group __read_mostly;
--static DEFINE_MUTEX(dnotify_mark_mutex);
- 
- /*
-  * dnotify will attach one of these to each inode (i_fsnotify_marks) which
-@@ -183,7 +182,7 @@ void dnotify_flush(struct file *filp, fl
- 		return;
- 	dn_mark = container_of(fsn_mark, struct dnotify_mark, fsn_mark);
- 
--	mutex_lock(&dnotify_mark_mutex);
-+	mutex_lock(&dnotify_group->mark_mutex);
- 
- 	spin_lock(&fsn_mark->lock);
- 	prev = &dn_mark->dn;
-@@ -199,11 +198,12 @@ void dnotify_flush(struct file *filp, fl
- 
- 	spin_unlock(&fsn_mark->lock);
- 
--	/* nothing else could have found us thanks to the dnotify_mark_mutex */
-+	/* nothing else could have found us thanks to the dnotify_groups
-+	   mark_mutex */
- 	if (dn_mark->dn == NULL)
--		fsnotify_destroy_mark(fsn_mark, dnotify_group);
-+		fsnotify_destroy_mark_locked(fsn_mark, dnotify_group);
- 
--	mutex_unlock(&dnotify_mark_mutex);
-+	mutex_unlock(&dnotify_group->mark_mutex);
- 
- 	fsnotify_put_mark(fsn_mark);
- }
-@@ -326,7 +326,7 @@ int fcntl_dirnotify(int fd, struct file
- 	new_dn_mark->dn = NULL;
- 
- 	/* this is needed to prevent the fcntl/close race described below */
--	mutex_lock(&dnotify_mark_mutex);
-+	mutex_lock(&dnotify_group->mark_mutex);
- 
- 	/* add the new_fsn_mark or find an old one. */
- 	fsn_mark = fsnotify_find_inode_mark(dnotify_group, inode);
-@@ -334,7 +334,8 @@ int fcntl_dirnotify(int fd, struct file
- 		dn_mark = container_of(fsn_mark, struct dnotify_mark, fsn_mark);
- 		spin_lock(&fsn_mark->lock);
- 	} else {
--		fsnotify_add_mark(new_fsn_mark, dnotify_group, inode, NULL, 0);
-+		fsnotify_add_mark_locked(new_fsn_mark, dnotify_group, inode,
-+					 NULL, 0);
- 		spin_lock(&new_fsn_mark->lock);
- 		fsn_mark = new_fsn_mark;
- 		dn_mark = new_dn_mark;
-@@ -348,9 +349,9 @@ int fcntl_dirnotify(int fd, struct file
- 
- 	/* if (f != filp) means that we lost a race and another task/thread
- 	 * actually closed the fd we are still playing with before we grabbed
--	 * the dnotify_mark_mutex and fsn_mark->lock.  Since closing the fd is the
--	 * only time we clean up the marks we need to get our mark off
--	 * the list. */
-+	 * the dnotify_groups mark_mutex and fsn_mark->lock.  Since closing the
-+	 * fd is the only time we clean up the marks we need to get our mark
-+	 * off the list. */
- 	if (f != filp) {
- 		/* if we added ourselves, shoot ourselves, it's possible that
- 		 * the flush actually did shoot this fsn_mark.  That's fine too
-@@ -385,9 +386,9 @@ out:
- 	spin_unlock(&fsn_mark->lock);
- 
- 	if (destroy)
--		fsnotify_destroy_mark(fsn_mark, dnotify_group);
-+		fsnotify_destroy_mark_locked(fsn_mark, dnotify_group);
- 
--	mutex_unlock(&dnotify_mark_mutex);
-+	mutex_unlock(&dnotify_group->mark_mutex);
- 	fsnotify_put_mark(fsn_mark);
- out_err:
- 	if (new_fsn_mark)
+diff -puN fs/notify/mark.c~fsnotify-update-comments-concerning-locking-scheme fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-update-comments-concerning-locking-scheme
++++ a/fs/notify/mark.c
+@@ -20,28 +20,29 @@
+  * fsnotify inode mark locking/lifetime/and refcnting
+  *
+  * REFCNT:
+- * The mark->refcnt tells how many "things" in the kernel currently are
+- * referencing this object.  The object typically will live inside the kernel
+- * with a refcnt of 2, one for each list it is on (i_list, g_list).  Any task
+- * which can find this object holding the appropriete locks, can take a reference
+- * and the object itself is guaranteed to survive until the reference is dropped.
++ * The group->recnt and mark->refcnt tell how many "things" in the kernel
++ * currently are referencing the objects. Both kind of objects typically will
++ * live inside the kernel with a refcnt of 2, one for its creation and one for
++ * the reference a group and a mark hold to each other.
++ * If you are holding the appropriate locks, you can take a reference and the
++ * object itself is guaranteed to survive until the reference is dropped.
+  *
+  * LOCKING:
+- * There are 3 spinlocks involved with fsnotify inode marks and they MUST
+- * be taken in order as follows:
++ * There are 3 locks involved with fsnotify inode marks and they MUST be taken
++ * in order as follows:
+  *
++ * group->mark_mutex
+  * mark->lock
+- * group->mark_lock
+  * inode->i_lock
+  *
+- * mark->lock protects 2 things, mark->group and mark->inode.  You must hold
+- * that lock to dereference either of these things (they could be NULL even with
+- * the lock)
+- *
+- * group->mark_lock protects the marks_list anchored inside a given group
+- * and each mark is hooked via the g_list.  It also sorta protects the
+- * free_g_list, which when used is anchored by a private list on the stack of the
+- * task which held the group->mark_lock.
++ * group->mark_mutex protects the marks_list anchored inside a given group and
++ * each mark is hooked via the g_list.  It also protects the groups private
++ * data (i.e group limits).
++
++ * mark->lock protects the marks attributes like its masks and flags.
++ * Furthermore it protects the access to a reference of the group that the mark
++ * is assigned to as well as the access to a reference of the inode/vfsmount
++ * that is being watched by the mark.
+  *
+  * inode->i_lock protects the i_fsnotify_marks list anchored inside a
+  * given inode and each mark is hooked via the i_list. (and sorta the
+@@ -64,18 +65,11 @@
+  * inode.  We take i_lock and walk the i_fsnotify_marks safely.  For each
+  * mark on the list we take a reference (so the mark can't disappear under us).
+  * We remove that mark form the inode's list of marks and we add this mark to a
+- * private list anchored on the stack using i_free_list;  At this point we no
+- * longer fear anything finding the mark using the inode's list of marks.
+- *
+- * We can safely and locklessly run the private list on the stack of everything
+- * we just unattached from the original inode.  For each mark on the private list
+- * we grab the mark-> and can thus dereference mark->group and mark->inode.  If
+- * we see the group and inode are not NULL we take those locks.  Now holding all
+- * 3 locks we can completely remove the mark from other tasks finding it in the
+- * future.  Remember, 10 things might already be referencing this mark, but they
+- * better be holding a ref.  We drop our reference we took before we unhooked it
+- * from the inode.  When the ref hits 0 we can free the mark.
+- *
++ * private list anchored on the stack using i_free_list; we walk i_free_list
++ * and before we destroy the mark we make sure that we dont race with a
++ * concurrent destroy_group by getting a ref to the marks group and taking the
++ * groups mutex.
++
+  * Very similarly for freeing by group, except we use free_g_list.
+  *
+  * This has the very interesting property of being able to run concurrently with
 _
 
 Patches currently in -mm which might be from LinoSanfilippo@gmx.de are
