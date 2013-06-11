@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ipc-semc-replace-shared-sem_otime-with-per-semaphore-value.patch added to
- -mm tree
-Date: Tue, 11 Jun 2013 15:15:43 -0700
-Message-ID: <51b7a18f.kOj63jDLPaVyAb6V%akpm@linux-foundation.org>
+ ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
+ added to -mm tree
+Date: Tue, 11 Jun 2013 15:15:44 -0700
+Message-ID: <51b7a190.xvLLsWkzdSPaar/O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43396 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756720Ab3FKWPo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:15:44 -0400
+	with ESMTP id S1756756Ab3FKWPp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: + ipc-semc-replace-shared-sem_otime-with-per-semaphore-value.patch added to -mm tree
+Subject: + ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch added to -mm tree
 To: manfred@colorfullife.com,davidlohr.bueso@hp.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 15:15:43 -0700
+Date: Tue, 11 Jun 2013 15:15:44 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: replace shared sem_otime with per-semaphore value
+     Subject: ipc/sem.c: rename try_atomic_semop() to perform_atomic_semop(), docu update
 has been added to the -mm tree.  Its filename is
-     ipc-semc-replace-shared-sem_otime-with-per-semaphore-value.patch
+     ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,17 +41,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: replace shared sem_otime with per-semaphore value
+Subject: ipc/sem.c: rename try_atomic_semop() to perform_atomic_semop(), docu update
 
-sem_otime contains the time of the last semaphore operation that completed
-successfully.  Every operation updates this value, thus access from
-multiple cpus can cause thrashing.
+Cleanup: Some minor points that I noticed while writing the
+previous patches
 
-Therefore the patch replaces the variable with a per-semaphore variable. 
-The per-array sem_otime is only calculated when required.
+1) The name try_atomic_semop() is misleading: The function performs the
+   operation (if it is possible).
 
-No performance improvement on a single-socket i3 - only important
-for larger systems.
+2) Some documentation updates.
+
+No real code change, a rename and documentation changes.
 
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -59,103 +59,92 @@ Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |    1 -
- ipc/sem.c           |   37 +++++++++++++++++++++++++++++++------
- 2 files changed, 31 insertions(+), 7 deletions(-)
+ ipc/sem.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/sem.h~ipc-semc-replace-shared-sem_otime-with-per-semaphore-value include/linux/sem.h
---- a/include/linux/sem.h~ipc-semc-replace-shared-sem_otime-with-per-semaphore-value
-+++ a/include/linux/sem.h
-@@ -12,7 +12,6 @@ struct task_struct;
- struct sem_array {
- 	struct kern_ipc_perm	____cacheline_aligned_in_smp
- 				sem_perm;	/* permissions .. see ipc.h */
--	time_t			sem_otime;	/* last semop time */
- 	time_t			sem_ctime;	/* last change time */
- 	struct sem		*sem_base;	/* ptr to first semaphore in array */
- 	struct list_head	pending_alter;	/* pending operations */
-diff -puN ipc/sem.c~ipc-semc-replace-shared-sem_otime-with-per-semaphore-value ipc/sem.c
---- a/ipc/sem.c~ipc-semc-replace-shared-sem_otime-with-per-semaphore-value
+diff -puN ipc/sem.c~ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update
 +++ a/ipc/sem.c
-@@ -99,6 +99,7 @@ struct sem {
- 					/* that alter the semaphore */
- 	struct list_head pending_const; /* pending single-sop operations */
- 					/* that do not alter the semaphore*/
-+	time_t	sem_otime;	/* candidate for sem_otime */
- } ____cacheline_aligned_in_smp;
+@@ -154,12 +154,15 @@ static int sysvipc_sem_proc_show(struct
+ #define SEMOPM_FAST	64  /* ~ 372 bytes on stack */
  
- /* One queue for each sleeping process in the system. */
-@@ -911,8 +912,14 @@ static void do_smart_update(struct sem_a
- 			}
- 		}
- 	}
--	if (otime)
--		sma->sem_otime = get_seconds();
-+	if (otime) {
-+		if (sops == NULL) {
-+			sma->sem_base[0].sem_otime = get_seconds();
-+		} else {
-+			sma->sem_base[sops[0].sem_num].sem_otime =
-+								get_seconds();
-+		}
-+	}
+ /*
+- * linked list protection:
++ * Locking:
+  *	sem_undo.id_next,
++ *	sem_array.complex_count,
+  *	sem_array.pending{_alter,_cont},
+- *	sem_array.sem_undo: sem_lock() for read/write
++ *	sem_array.sem_undo: global sem_lock() for read/write
+  *	sem_undo.proc_next: only "current" is allowed to read/write that field.
+  *	
++ *	sem_array.sem_base[i].pending_{const,alter}:
++ *		global or semaphore sem_lock() for read/write
+  */
+ 
+ #define sc_semmsl	sem_ctls[0]
+@@ -538,12 +541,19 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
+ 	return ipcget(ns, &sem_ids(ns), &sem_ops, &sem_params);
  }
  
+-/*
+- * Determine whether a sequence of semaphore operations would succeed
+- * all at once. Return 0 if yes, 1 if need to sleep, else return error code.
++/** perform_atomic_semop - Perform (if possible) a semaphore operation
++ * @sma: semaphore array
++ * @sops: array with operations that should be checked
++ * @nsems: number of sops
++ * @un: undo array
++ * @pid: pid that did the change
++ *
++ * Returns 0 if the operation was possible.
++ * Returns 1 if the operation is impossible, the caller must sleep.
++ * Negative values are error codes.
+  */
  
-@@ -1058,6 +1065,21 @@ static unsigned long copy_semid_to_user(
- 	}
- }
- 
-+static time_t get_semotime(struct sem_array *sma)
-+{
-+	int i;
-+	time_t res;
-+
-+	res = sma->sem_base[0].sem_otime;
-+	for (i = 1; i < sma->sem_nsems; i++) {
-+		time_t to = sma->sem_base[i].sem_otime;
-+
-+		if (to > res)
-+			res = to;
-+	}
-+	return res;
-+}
-+
- static int semctl_nolock(struct ipc_namespace *ns, int semid,
- 			 int cmd, int version, void __user *p)
+-static int try_atomic_semop (struct sem_array * sma, struct sembuf * sops,
++static int perform_atomic_semop(struct sem_array *sma, struct sembuf *sops,
+ 			     int nsops, struct sem_undo *un, int pid)
  {
-@@ -1131,9 +1153,9 @@ static int semctl_nolock(struct ipc_name
- 			goto out_unlock;
+ 	int result, sem_op;
+@@ -726,8 +736,8 @@ static int wake_const_ops(struct sem_arr
+ 		q = container_of(walk, struct sem_queue, list);
+ 		walk = walk->next;
  
- 		kernel_to_ipc64_perm(&sma->sem_perm, &tbuf.sem_perm);
--		tbuf.sem_otime  = sma->sem_otime;
--		tbuf.sem_ctime  = sma->sem_ctime;
--		tbuf.sem_nsems  = sma->sem_nsems;
-+		tbuf.sem_otime = get_semotime(sma);
-+		tbuf.sem_ctime = sma->sem_ctime;
-+		tbuf.sem_nsems = sma->sem_nsems;
- 		rcu_read_unlock();
- 		if (copy_semid_to_user(p, &tbuf, version))
- 			return -EFAULT;
-@@ -2025,6 +2047,9 @@ static int sysvipc_sem_proc_show(struct
- {
- 	struct user_namespace *user_ns = seq_user_ns(s);
- 	struct sem_array *sma = it;
-+	time_t sem_otime;
-+
-+	sem_otime = get_semotime(sma);
+-		error = try_atomic_semop(sma, q->sops, q->nsops,
+-						q->undo, q->pid);
++		error = perform_atomic_semop(sma, q->sops, q->nsops,
++						 q->undo, q->pid);
  
- 	return seq_printf(s,
- 			  "%10d %10d  %4o %10u %5u %5u %5u %5u %10lu %10lu\n",
-@@ -2036,7 +2061,7 @@ static int sysvipc_sem_proc_show(struct
- 			  from_kgid_munged(user_ns, sma->sem_perm.gid),
- 			  from_kuid_munged(user_ns, sma->sem_perm.cuid),
- 			  from_kgid_munged(user_ns, sma->sem_perm.cgid),
--			  sma->sem_otime,
-+			  sem_otime,
- 			  sma->sem_ctime);
+ 		if (error <= 0) {
+ 			/* operation completed, remove from queue & wakeup */
+@@ -838,7 +848,7 @@ again:
+ 		if (semnum != -1 && sma->sem_base[semnum].semval == 0)
+ 			break;
+ 
+-		error = try_atomic_semop(sma, q->sops, q->nsops,
++		error = perform_atomic_semop(sma, q->sops, q->nsops,
+ 					 q->undo, q->pid);
+ 
+ 		/* Does q->sleeper still need to sleep? */
+@@ -1686,7 +1696,6 @@ static int get_queue_result(struct sem_q
+ 	return error;
  }
- #endif
+ 
+-
+ SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
+ 		unsigned, nsops, const struct timespec __user *, timeout)
+ {
+@@ -1784,7 +1793,8 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	if (un && un->semid == -1)
+ 		goto out_unlock_free;
+ 
+-	error = try_atomic_semop (sma, sops, nsops, un, task_tgid_vnr(current));
++	error = perform_atomic_semop(sma, sops, nsops, un,
++					task_tgid_vnr(current));
+ 	if (error <= 0) {
+ 		if (alter && error == 0)
+ 			do_smart_update(sma, sops, nsops, 1, &tasks);
 _
 
 Patches currently in -mm which might be from manfred@colorfullife.com are
