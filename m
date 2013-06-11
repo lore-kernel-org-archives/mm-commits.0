@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-move-test-for-space-before-semicolon-after-operator-spacing.patch added to -mm tree
-Date: Tue, 11 Jun 2013 15:50:44 -0700
-Message-ID: <51b7a9c4.P2SDstlUSG8YrPvv%akpm@linux-foundation.org>
+ checkpatch-dont-warn-on-blank-lines-before-after-braces-as-often.patch
+ added to -mm tree
+Date: Tue, 11 Jun 2013 15:50:40 -0700
+Message-ID: <51b7a9c0.o5CclpHgc5fWf56a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43654 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754369Ab3FKWup (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:50:45 -0400
+	with ESMTP id S1753888Ab3FKWul (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:50:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + checkpatch-move-test-for-space-before-semicolon-after-operator-spacing.patch added to -mm tree
+Subject: + checkpatch-dont-warn-on-blank-lines-before-after-braces-as-often.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 15:50:44 -0700
+Date: Tue, 11 Jun 2013 15:50:40 -0700
 
 
 The patch titled
-     Subject: checkpatch: move test for space before semicolon after operator spacing
+     Subject: checkpatch: don't warn on blank lines before/after braces as often
 has been added to the -mm tree.  Its filename is
-     checkpatch-move-test-for-space-before-semicolon-after-operator-spacing.patch
+     checkpatch-dont-warn-on-blank-lines-before-after-braces-as-often.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +41,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: move test for space before semicolon after operator spacing
+Subject: checkpatch: don't warn on blank lines before/after braces as often
 
-Moving this test allows the --fix option to work better.
+Check to make sure the blank lines aren't comment lines like:
+
+bool foo(bool bar)
+{
+	/* Don't warn on a leading comment */
+	return !bar;
+	/* Don't warn on a trailing comment either */
+}
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-move-test-for-space-before-semicolon-after-operator-spacing scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-move-test-for-space-before-semicolon-after-operator-spacing
+diff -puN scripts/checkpatch.pl~checkpatch-dont-warn-on-blank-lines-before-after-braces-as-often scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-dont-warn-on-blank-lines-before-after-braces-as-often
 +++ a/scripts/checkpatch.pl
-@@ -2646,16 +2646,6 @@ sub process {
- 			}
+@@ -3258,11 +3258,11 @@ sub process {
  		}
  
--# check for whitespace before a non-naked semicolon
--		if ($line =~ /^\+.*\S\s+;/) {
--			if (WARN("SPACING",
--				 "space prohibited before semicolon\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$linenr - 1] =~
--				    s/^(\+.*\S)\s+;/$1;/;
--			}
--		}
--
- # Check operator spacing.
- 		if (!($line=~/\#\s*include/)) {
- 			my $fixed_line = "";
-@@ -2920,6 +2910,16 @@ sub process {
- 
+ # check for unnecessary blank lines around braces
+-		if (($line =~ /^.\s*}\s*$/ && $prevline =~ /^.\s*$/)) {
++		if (($line =~ /^.\s*}\s*$/ && $prevrawline =~ /^.\s*$/)) {
+ 			CHK("BRACES",
+ 			    "Blank lines aren't necessary before a close brace '}'\n" . $hereprev);
  		}
- 
-+# check for whitespace before a non-naked semicolon
-+		if ($line =~ /^\+.*\S\s+;/) {
-+			if (WARN("SPACING",
-+				 "space prohibited before semicolon\n" . $herecurr) &&
-+			    $fix) {
-+				1 while $fixed[$linenr - 1] =~
-+				    s/^(\+.*\S)\s+;/$1;/;
-+			}
-+		}
-+
- # check for multiple assignments
- 		if ($line =~ /^.\s*$Lval\s*=\s*$Lval\s*=(?!=)/) {
- 			CHK("MULTIPLE_ASSIGNMENTS",
+-		if (($line =~ /^.\s*$/ && $prevline =~ /^..*{\s*$/)) {
++		if (($rawline =~ /^.\s*$/ && $prevline =~ /^..*{\s*$/)) {
+ 			CHK("BRACES",
+ 			    "Blank lines aren't necessary after an open brace '{'\n" . $hereprev);
+ 		}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
