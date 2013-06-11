@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-fix-race-when-adding-a-new-watch.patch added to -mm
- tree
-Date: Tue, 11 Jun 2013 13:58:54 -0700
-Message-ID: <51b78f8e.EOeRxCxYVoAiA8Gr%akpm@linux-foundation.org>
+Subject: +
+ dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group.patch
+ added to -mm tree
+Date: Tue, 11 Jun 2013 13:58:52 -0700
+Message-ID: <51b78f8c.qQc/qkIwLZwDGjBL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141Ab3FKU6z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:58:55 -0400
+	with ESMTP id S1755125Ab3FKU6x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:58:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, eparis@redhat.com, LinoSanfilippo@gmx.de
 
-Subject: + inotify-fix-race-when-adding-a-new-watch.patch added to -mm tree
+Subject: + dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group.patch added to -mm tree
 To: LinoSanfilippo@gmx.de,eparis@redhat.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 13:58:54 -0700
+Date: Tue, 11 Jun 2013 13:58:52 -0700
 
 
 The patch titled
-     Subject: inotify: fix race when adding a new watch
+     Subject: dnotify: replace dnotify_mark_mutex with mark mutex of dnotify_group
 has been added to the -mm tree.  Its filename is
-     inotify-fix-race-when-adding-a-new-watch.patch
+     dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +41,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Subject: inotify: fix race when adding a new watch
+Subject: dnotify: replace dnotify_mark_mutex with mark mutex of dnotify_group
 
-In inotify_new_watch() the number of watches for a group is compared
-against the max number of allowed watches and increased afterwards.  The
-check and incrementation is not done atomically, so it is possible for
-multiple concurrent threads to pass the check and increment the number of
-marks above the allowed max.
-
-This patch uses an inotify groups mark_lock to ensure that both check and
-incrementation are done atomic.  Furthermore we dont have to worry about
-the race that allows a concurrent thread to add a watch just after
-inotify_update_existing_watch() returned with -ENOENT anymore, since this
-is also synchronized by the groups mark mutex now.
+There is no need to use a special mutex to protect against the fcntl/close
+race (see dnotify.c for a description of this race).  Instead the
+dnotify_groups mark mutex can be used.
 
 Signed-off-by: Lino Sanfilippo <LinoSanfilippo@gmx.de>
 Cc: Eric Paris <eparis@redhat.com>
@@ -60,44 +53,89 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ fs/notify/dnotify/dnotify.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-fix-race-when-adding-a-new-watch fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-fix-race-when-adding-a-new-watch
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -636,7 +636,8 @@ static int inotify_new_watch(struct fsno
- 		goto out_err;
+diff -puN fs/notify/dnotify/dnotify.c~dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group fs/notify/dnotify/dnotify.c
+--- a/fs/notify/dnotify/dnotify.c~dnotify-replace-dnotify_mark_mutex-with-mark-mutex-of-dnotify_group
++++ a/fs/notify/dnotify/dnotify.c
+@@ -31,7 +31,6 @@ int dir_notify_enable __read_mostly = 1;
+ static struct kmem_cache *dnotify_struct_cache __read_mostly;
+ static struct kmem_cache *dnotify_mark_cache __read_mostly;
+ static struct fsnotify_group *dnotify_group __read_mostly;
+-static DEFINE_MUTEX(dnotify_mark_mutex);
  
- 	/* we are on the idr, now get on the inode */
--	ret = fsnotify_add_mark(&tmp_i_mark->fsn_mark, group, inode, NULL, 0);
-+	ret = fsnotify_add_mark_locked(&tmp_i_mark->fsn_mark, group, inode,
-+				       NULL, 0);
- 	if (ret) {
- 		/* we failed to get on the inode, get off the idr */
- 		inotify_remove_from_idr(group, tmp_i_mark);
-@@ -660,19 +661,13 @@ static int inotify_update_watch(struct f
- {
- 	int ret = 0;
+ /*
+  * dnotify will attach one of these to each inode (i_fsnotify_marks) which
+@@ -183,7 +182,7 @@ void dnotify_flush(struct file *filp, fl
+ 		return;
+ 	dn_mark = container_of(fsn_mark, struct dnotify_mark, fsn_mark);
  
--retry:
-+	mutex_lock(&group->mark_mutex);
- 	/* try to update and existing watch with the new arg */
- 	ret = inotify_update_existing_watch(group, inode, arg);
- 	/* no mark present, try to add a new one */
- 	if (ret == -ENOENT)
- 		ret = inotify_new_watch(group, inode, arg);
--	/*
--	 * inotify_new_watch could race with another thread which did an
--	 * inotify_new_watch between the update_existing and the add watch
--	 * here, go back and try to update an existing mark again.
--	 */
--	if (ret == -EEXIST)
--		goto retry;
-+	mutex_unlock(&group->mark_mutex);
+-	mutex_lock(&dnotify_mark_mutex);
++	mutex_lock(&dnotify_group->mark_mutex);
  
- 	return ret;
+ 	spin_lock(&fsn_mark->lock);
+ 	prev = &dn_mark->dn;
+@@ -199,11 +198,12 @@ void dnotify_flush(struct file *filp, fl
+ 
+ 	spin_unlock(&fsn_mark->lock);
+ 
+-	/* nothing else could have found us thanks to the dnotify_mark_mutex */
++	/* nothing else could have found us thanks to the dnotify_groups
++	   mark_mutex */
+ 	if (dn_mark->dn == NULL)
+-		fsnotify_destroy_mark(fsn_mark, dnotify_group);
++		fsnotify_destroy_mark_locked(fsn_mark, dnotify_group);
+ 
+-	mutex_unlock(&dnotify_mark_mutex);
++	mutex_unlock(&dnotify_group->mark_mutex);
+ 
+ 	fsnotify_put_mark(fsn_mark);
  }
+@@ -326,7 +326,7 @@ int fcntl_dirnotify(int fd, struct file
+ 	new_dn_mark->dn = NULL;
+ 
+ 	/* this is needed to prevent the fcntl/close race described below */
+-	mutex_lock(&dnotify_mark_mutex);
++	mutex_lock(&dnotify_group->mark_mutex);
+ 
+ 	/* add the new_fsn_mark or find an old one. */
+ 	fsn_mark = fsnotify_find_inode_mark(dnotify_group, inode);
+@@ -334,7 +334,8 @@ int fcntl_dirnotify(int fd, struct file
+ 		dn_mark = container_of(fsn_mark, struct dnotify_mark, fsn_mark);
+ 		spin_lock(&fsn_mark->lock);
+ 	} else {
+-		fsnotify_add_mark(new_fsn_mark, dnotify_group, inode, NULL, 0);
++		fsnotify_add_mark_locked(new_fsn_mark, dnotify_group, inode,
++					 NULL, 0);
+ 		spin_lock(&new_fsn_mark->lock);
+ 		fsn_mark = new_fsn_mark;
+ 		dn_mark = new_dn_mark;
+@@ -348,9 +349,9 @@ int fcntl_dirnotify(int fd, struct file
+ 
+ 	/* if (f != filp) means that we lost a race and another task/thread
+ 	 * actually closed the fd we are still playing with before we grabbed
+-	 * the dnotify_mark_mutex and fsn_mark->lock.  Since closing the fd is the
+-	 * only time we clean up the marks we need to get our mark off
+-	 * the list. */
++	 * the dnotify_groups mark_mutex and fsn_mark->lock.  Since closing the
++	 * fd is the only time we clean up the marks we need to get our mark
++	 * off the list. */
+ 	if (f != filp) {
+ 		/* if we added ourselves, shoot ourselves, it's possible that
+ 		 * the flush actually did shoot this fsn_mark.  That's fine too
+@@ -385,9 +386,9 @@ out:
+ 	spin_unlock(&fsn_mark->lock);
+ 
+ 	if (destroy)
+-		fsnotify_destroy_mark(fsn_mark, dnotify_group);
++		fsnotify_destroy_mark_locked(fsn_mark, dnotify_group);
+ 
+-	mutex_unlock(&dnotify_mark_mutex);
++	mutex_unlock(&dnotify_group->mark_mutex);
+ 	fsnotify_put_mark(fsn_mark);
+ out_err:
+ 	if (new_fsn_mark)
 _
 
 Patches currently in -mm which might be from LinoSanfilippo@gmx.de are
