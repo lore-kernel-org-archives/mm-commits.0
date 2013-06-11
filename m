@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-remove-quote-from-camelcase-test.patch added to -mm
- tree
-Date: Tue, 11 Jun 2013 15:50:32 -0700
-Message-ID: <51b7a9b8.2wbpp8TubDMmF9NS%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch
+ added to -mm tree
+Date: Tue, 11 Jun 2013 15:50:34 -0700
+Message-ID: <51b7a9ba.omr6c7qo3ylv39/S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43639 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753888Ab3FKWud (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:50:33 -0400
+	with ESMTP id S1754369Ab3FKWuf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:50:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + checkpatch-remove-quote-from-camelcase-test.patch added to -mm tree
+Subject: + checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 15:50:32 -0700
+Date: Tue, 11 Jun 2013 15:50:34 -0700
 
 
 The patch titled
-     Subject: checkpatch: remove quote from CamelCase test
+     Subject: checkpatch: warn when networking block comment lines don't start with *
 has been added to the -mm tree.  Its filename is
-     checkpatch-remove-quote-from-camelcase-test.patch
+     checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +41,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: remove quote from CamelCase test
+Subject: checkpatch: warn when networking block comment lines don't start with *
 
-commit be987d9f80 ("checkpatch: improve CamelCase test for Page")
-added it but it shouldn't be there.  Must have been my fault.
+Some block comments in network are written as:
 
-Make sure that the tested variable doesn't contain a constant.
+	/* block comment line 1
+	   block comment line 2
+	 */
+
+Emit a warning on the "block comment line 2" because it should be
+
+	/* block comment line 1
+	 * block comment line 2
+	 */
+
+This warning is only emitted on the second line of a block comment.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-remove-quote-from-camelcase-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-remove-quote-from-camelcase-test
+diff -puN scripts/checkpatch.pl~checkpatch-warn-when-networking-block-comment-lines-dont-start-with scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-when-networking-block-comment-lines-dont-start-with
 +++ a/scripts/checkpatch.pl
-@@ -2949,9 +2949,9 @@ sub process {
- 			}
+@@ -1898,6 +1898,14 @@ sub process {
+ 		}
  
- #CamelCase
--			if ($var !~ /$Constant/ &&
-+			if ($var !~ /^$Constant$/ &&
- 			    $var =~ /[A-Z][a-z]|[a-z][A-Z]/ &&
--			    $var !~ /"^(?:Clear|Set|TestClear|TestSet|)Page[A-Z]/ &&
-+			    $var !~ /^(?:Clear|Set|TestClear|TestSet|)Page[A-Z]/ &&
- 			    !defined $camelcase{$var}) {
- 				$camelcase{$var} = 1;
- 				CHK("CAMELCASE",
+ 		if ($realfile =~ m@^(drivers/net/|net/)@ &&
++		    $prevrawline =~ /^\+[ \t]*\/\*/ &&		#starting /*
++		    $prevrawline !~ /\*\/[ \t]*$/ &&		#no trailing */
++		    $rawline !~ /^\+[ \t]*\*/) {		#no leading *
++			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
++			     "networking block comments start with * on subsequent lines\n" . $hereprev);
++		}
++
++		if ($realfile =~ m@^(drivers/net/|net/)@ &&
+ 		    $rawline !~ m@^\+[ \t]*\*/[ \t]*$@ &&	#trailing */
+ 		    $rawline !~ m@^\+.*/\*.*\*/[ \t]*$@ &&	#inline /*...*/
+ 		    $rawline !~ m@^\+.*\*{2,}/[ \t]*$@ &&	#trailing **/
 _
 
 Patches currently in -mm which might be from joe@perches.com are
