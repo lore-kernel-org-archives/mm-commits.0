@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-execc-de_thread-mt-exec-should-update-real_start_time.patch
- added to -mm tree
-Date: Tue, 11 Jun 2013 15:18:16 -0700
-Message-ID: <51b7a228.zcyn8cWSO21a+HUj%akpm@linux-foundation.org>
+Subject: +
+ fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime.patch added to
+ -mm tree
+Date: Tue, 11 Jun 2013 15:19:07 -0700
+Message-ID: <51b7a25b.o6qDT7+D/MBgp3u2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43413 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752892Ab3FKWSR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:18:17 -0400
+	with ESMTP id S1756851Ab3FKWTI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 18:19:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tsmetana@redhat.com, tjanouse@redhat.com, johnstul@us.ibm.com, ebiederm@xmission.com, oleg@redhat.com
 
-Subject: + fs-execc-de_thread-mt-exec-should-update-real_start_time.patch added to -mm tree
+Subject: + fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime.patch added to -mm tree
 To: oleg@redhat.com,ebiederm@xmission.com,johnstul@us.ibm.com,tjanouse@redhat.com,tsmetana@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 15:18:16 -0700
+Date: Tue, 11 Jun 2013 15:19:07 -0700
 
 
 The patch titled
-     Subject: fs/exec.c:de_thread: mt-exec should update ->real_start_time
+     Subject: fs/proc/uptime.c:uptime_proc_show(): use get_monotonic_boottime()
 has been added to the -mm tree.  Its filename is
-     fs-execc-de_thread-mt-exec-should-update-real_start_time.patch
+     fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/exec.c:de_thread: mt-exec should update ->real_start_time
+Subject: fs/proc/uptime.c:uptime_proc_show(): use get_monotonic_boottime()
 
-924b42d5 ("Use boot based time for process start time and boot time in
-/proc") updated copy_process/do_task_stat but forgot about de_thread(). 
-This breaks "ps axOT" if a sub-thread execs.
-
-Note: I think that task->start_time should die.
+Change uptime_proc_show() to use get_monotonic_boottime() instead of
+do_posix_clock_monotonic_gettime() + monotonic_to_bootbased().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -56,20 +54,22 @@ Cc: Tomas Smetana <tsmetana@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/uptime.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-de_thread-mt-exec-should-update-real_start_time fs/exec.c
---- a/fs/exec.c~fs-execc-de_thread-mt-exec-should-update-real_start_time
-+++ a/fs/exec.c
-@@ -930,6 +930,7 @@ static int de_thread(struct task_struct
- 		 * also take its birthdate (always earlier than our own).
- 		 */
- 		tsk->start_time = leader->start_time;
-+		tsk->real_start_time = leader->real_start_time;
+diff -puN fs/proc/uptime.c~fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime fs/proc/uptime.c
+--- a/fs/proc/uptime.c~fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime
++++ a/fs/proc/uptime.c
+@@ -20,8 +20,7 @@ static int uptime_proc_show(struct seq_f
+ 	for_each_possible_cpu(i)
+ 		idletime += (__force u64) kcpustat_cpu(i).cpustat[CPUTIME_IDLE];
  
- 		BUG_ON(!same_thread_group(leader, tsk));
- 		BUG_ON(has_group_leader_pid(tsk));
+-	do_posix_clock_monotonic_gettime(&uptime);
+-	monotonic_to_bootbased(&uptime);
++	get_monotonic_boottime(&uptime);
+ 	nsec = cputime64_to_jiffies64(idletime) * TICK_NSEC;
+ 	idle.tv_sec = div_u64_rem(nsec, NSEC_PER_SEC, &rem);
+ 	idle.tv_nsec = rem;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -110,6 +110,7 @@ coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
 coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch
 fs-execc-de_thread-use-change_pid-rather-than-detach_pid-attach_pid.patch
 exitc-unexport-__set_special_pids.patch
+fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime.patch
 kernel-forkc-copy_process-unify-clone_thread-or-thread_group_leader-code.patch
 kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch
 kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch
@@ -119,6 +120,5 @@ wait-introduce-wait_event_commonwq-condition-state-timeout.patch
 wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch
 wait-introduce-prepare_to_wait_event.patch
 wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch
-uptime_proc_show-use-get_monotonic_boottime.patch
 do_sysinfo-use-get_monotonic_boottime.patch
 
