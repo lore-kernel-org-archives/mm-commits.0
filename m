@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-avoid-format-string-in-dev_set_name.patch added to -mm
- tree
-Date: Tue, 11 Jun 2013 13:11:52 -0700
-Message-ID: <51b78488.fgKPM8U9PUYd8GFS%akpm@linux-foundation.org>
+Subject: + drivers-avoid-parsing-names-as-kthread_run-format-strings.patch added to -mm tree
+Date: Tue, 11 Jun 2013 13:11:56 -0700
+Message-ID: <51b7848c.VJH5lxya20Pgct2+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752657Ab3FKULx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:11:53 -0400
+	with ESMTP id S1752657Ab3FKUL5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 16:11:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, keescook@chromium.org
 
-Subject: + drivers-avoid-format-string-in-dev_set_name.patch added to -mm tree
+Subject: + drivers-avoid-parsing-names-as-kthread_run-format-strings.patch added to -mm tree
 To: keescook@chromium.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 13:11:52 -0700
+Date: Tue, 11 Jun 2013 13:11:56 -0700
 
 
 The patch titled
-     Subject: drivers: avoid format string in dev_set_name
+     Subject: drivers: avoid parsing names as kthread_run() format strings
 has been added to the -mm tree.  Its filename is
-     drivers-avoid-format-string-in-dev_set_name.patch
+     drivers-avoid-parsing-names-as-kthread_run-format-strings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,337 +39,293 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: drivers: avoid format string in dev_set_name
+Subject: drivers: avoid parsing names as kthread_run() format strings
 
-Calling dev_set_name with a single paramter causes it to be handled as a
-format string.  Many callers are passing potentially dynamic string
-content, so use "%s" in those cases to avoid any potential accidents,
-including wrappers like device_create*() and bdi_register().
+Calling kthread_run with a single name parameter causes it to be handled
+as a format string. Many callers are passing potentially dynamic string
+content, so use "%s" in those cases to avoid any potential accidents.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/attribute_container.c       |    2 +-
- drivers/devfreq/devfreq.c                |    2 +-
- drivers/extcon/extcon-class.c            |    2 +-
- drivers/hsi/hsi.c                        |    2 +-
- drivers/ide/ide-cd.c                     |    2 +-
- drivers/ide/ide-gd.c                     |    2 +-
- drivers/ide/ide-probe.c                  |    4 ++--
- drivers/ide/ide-tape.c                   |    2 +-
- drivers/infiniband/core/sysfs.c          |    2 +-
- drivers/infiniband/hw/qib/qib_file_ops.c |    2 +-
- drivers/isdn/mISDN/dsp_pipeline.c        |    2 +-
- drivers/mtd/mtdcore.c                    |    2 +-
- drivers/platform/x86/wmi.c               |    2 +-
- drivers/scsi/sd.c                        |    2 +-
- drivers/staging/android/timed_output.c   |    2 +-
- drivers/staging/dgrp/dgrp_sysfs.c        |    2 +-
- drivers/uwb/lc-dev.c                     |    2 +-
- drivers/video/backlight/backlight.c      |    2 +-
- drivers/video/backlight/lcd.c            |    2 +-
- drivers/video/output.c                   |    2 +-
- drivers/xen/xenbus/xenbus_probe.c        |    2 +-
- mm/backing-dev.c                         |    5 ++---
- sound/sound_core.c                       |    2 +-
- 23 files changed, 25 insertions(+), 26 deletions(-)
+ drivers/block/aoe/aoecmd.c           |    2 +-
+ drivers/block/mtip32xx/mtip32xx.c    |    3 ++-
+ drivers/block/xen-blkback/xenbus.c   |    2 +-
+ drivers/hwmon/adt7470.c              |    2 +-
+ drivers/media/i2c/tvaudio.c          |    3 ++-
+ drivers/media/pci/ivtv/ivtv-driver.c |    2 +-
+ drivers/media/platform/vivi.c        |    3 ++-
+ drivers/mtd/ubi/build.c              |    2 +-
+ drivers/net/wireless/airo.c          |    3 ++-
+ drivers/scsi/aacraid/commctrl.c      |    3 ++-
+ drivers/scsi/aacraid/commsup.c       |    3 ++-
+ drivers/spi/spi.c                    |    2 +-
+ drivers/staging/rtl8712/os_intfs.c   |    2 +-
+ drivers/usb/atm/usbatm.c             |    5 +++--
+ fs/lockd/svc.c                       |    2 +-
+ fs/nfs/callback.c                    |    5 ++---
+ fs/nfs/nfs4state.c                   |    2 +-
+ kernel/rcutree.c                     |    2 +-
+ net/sunrpc/svc.c                     |    2 +-
+ 19 files changed, 28 insertions(+), 22 deletions(-)
 
-diff -puN drivers/base/attribute_container.c~drivers-avoid-format-string-in-dev_set_name drivers/base/attribute_container.c
---- a/drivers/base/attribute_container.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/base/attribute_container.c
-@@ -167,7 +167,7 @@ attribute_container_add_device(struct de
- 		ic->classdev.parent = get_device(dev);
- 		ic->classdev.class = cont->class;
- 		cont->class->dev_release = attribute_container_release;
--		dev_set_name(&ic->classdev, dev_name(dev));
-+		dev_set_name(&ic->classdev, "%s", dev_name(dev));
- 		if (fn)
- 			fn(cont, dev, &ic->classdev);
- 		else
-diff -puN drivers/devfreq/devfreq.c~drivers-avoid-format-string-in-dev_set_name drivers/devfreq/devfreq.c
---- a/drivers/devfreq/devfreq.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/devfreq/devfreq.c
-@@ -486,7 +486,7 @@ struct devfreq *devfreq_add_device(struc
- 						GFP_KERNEL);
- 	devfreq->last_stat_updated = jiffies;
+diff -puN drivers/block/aoe/aoecmd.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/block/aoe/aoecmd.c
+@@ -1340,7 +1340,7 @@ aoe_ktstart(struct ktstate *k)
+ 	struct task_struct *task;
  
--	dev_set_name(&devfreq->dev, dev_name(dev));
-+	dev_set_name(&devfreq->dev, "%s", dev_name(dev));
- 	err = device_register(&devfreq->dev);
- 	if (err) {
- 		put_device(&devfreq->dev);
-diff -puN drivers/extcon/extcon-class.c~drivers-avoid-format-string-in-dev_set_name drivers/extcon/extcon-class.c
---- a/drivers/extcon/extcon-class.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/extcon/extcon-class.c
-@@ -620,7 +620,7 @@ int extcon_dev_register(struct extcon_de
- 	edev->dev->class = extcon_class;
- 	edev->dev->release = extcon_dev_release;
+ 	init_completion(&k->rendez);
+-	task = kthread_run(kthread, k, k->name);
++	task = kthread_run(kthread, k, "%s", k->name);
+ 	if (task == NULL || IS_ERR(task))
+ 		return -ENOMEM;
+ 	k->task = task;
+diff -puN drivers/block/mtip32xx/mtip32xx.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/block/mtip32xx/mtip32xx.c
+--- a/drivers/block/mtip32xx/mtip32xx.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/block/mtip32xx/mtip32xx.c
+@@ -4087,7 +4087,8 @@ skip_create_disk:
+ start_service_thread:
+ 	sprintf(thd_name, "mtip_svc_thd_%02d", index);
+ 	dd->mtip_svc_handler = kthread_create_on_node(mtip_service_thread,
+-						dd, dd->numa_node, thd_name);
++						dd, dd->numa_node, "%s",
++						thd_name);
  
--	dev_set_name(edev->dev, edev->name ? edev->name : dev_name(dev));
-+	dev_set_name(edev->dev, "%s", edev->name ? edev->name : dev_name(dev));
+ 	if (IS_ERR(dd->mtip_svc_handler)) {
+ 		dev_err(&dd->pdev->dev, "service thread failed to start\n");
+diff -puN drivers/block/xen-blkback/xenbus.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/block/xen-blkback/xenbus.c
+--- a/drivers/block/xen-blkback/xenbus.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/block/xen-blkback/xenbus.c
+@@ -93,7 +93,7 @@ static void xen_update_blkif_status(stru
+ 	}
+ 	invalidate_inode_pages2(blkif->vbd.bdev->bd_inode->i_mapping);
  
- 	if (edev->max_supported) {
- 		char buf[10];
-diff -puN drivers/hsi/hsi.c~drivers-avoid-format-string-in-dev_set_name drivers/hsi/hsi.c
---- a/drivers/hsi/hsi.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/hsi/hsi.c
-@@ -75,7 +75,7 @@ static void hsi_new_client(struct hsi_po
- 	cl->device.bus = &hsi_bus_type;
- 	cl->device.parent = &port->device;
- 	cl->device.release = hsi_client_release;
--	dev_set_name(&cl->device, info->name);
-+	dev_set_name(&cl->device, "%s", info->name);
- 	cl->device.platform_data = info->platform_data;
- 	if (info->archdata)
- 		cl->device.archdata = *info->archdata;
-diff -puN drivers/ide/ide-cd.c~drivers-avoid-format-string-in-dev_set_name drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/ide/ide-cd.c
-@@ -1756,7 +1756,7 @@ static int ide_cd_probe(ide_drive_t *dri
+-	blkif->xenblkd = kthread_run(xen_blkif_schedule, blkif, name);
++	blkif->xenblkd = kthread_run(xen_blkif_schedule, blkif, "%s", name);
+ 	if (IS_ERR(blkif->xenblkd)) {
+ 		err = PTR_ERR(blkif->xenblkd);
+ 		blkif->xenblkd = NULL;
+diff -puN drivers/hwmon/adt7470.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/hwmon/adt7470.c
+--- a/drivers/hwmon/adt7470.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/hwmon/adt7470.c
+@@ -1285,7 +1285,7 @@ static int adt7470_probe(struct i2c_clie
+ 	}
  
- 	info->dev.parent = &drive->gendev;
- 	info->dev.release = ide_cd_release;
--	dev_set_name(&info->dev, dev_name(&drive->gendev));
-+	dev_set_name(&info->dev, "%s", dev_name(&drive->gendev));
+ 	init_completion(&data->auto_update_stop);
+-	data->auto_update = kthread_run(adt7470_update_thread, client,
++	data->auto_update = kthread_run(adt7470_update_thread, client, "%s",
+ 					dev_name(data->hwmon_dev));
+ 	if (IS_ERR(data->auto_update)) {
+ 		err = PTR_ERR(data->auto_update);
+diff -puN drivers/media/i2c/tvaudio.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/media/i2c/tvaudio.c
+--- a/drivers/media/i2c/tvaudio.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/media/i2c/tvaudio.c
+@@ -2018,7 +2018,8 @@ static int tvaudio_probe(struct i2c_clie
+ 		/* start async thread */
+ 		chip->wt.function = chip_thread_wake;
+ 		chip->wt.data     = (unsigned long)chip;
+-		chip->thread = kthread_run(chip_thread, chip, client->name);
++		chip->thread = kthread_run(chip_thread, chip, "%s",
++					   client->name);
+ 		if (IS_ERR(chip->thread)) {
+ 			v4l2_warn(sd, "failed to create kthread\n");
+ 			chip->thread = NULL;
+diff -puN drivers/media/pci/ivtv/ivtv-driver.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/media/pci/ivtv/ivtv-driver.c
+--- a/drivers/media/pci/ivtv/ivtv-driver.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/media/pci/ivtv/ivtv-driver.c
+@@ -753,7 +753,7 @@ static int ivtv_init_struct1(struct ivtv
  
- 	if (device_register(&info->dev))
- 		goto out_free_disk;
-diff -puN drivers/ide/ide-gd.c~drivers-avoid-format-string-in-dev_set_name drivers/ide/ide-gd.c
---- a/drivers/ide/ide-gd.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/ide/ide-gd.c
-@@ -392,7 +392,7 @@ static int ide_gd_probe(ide_drive_t *dri
+ 	init_kthread_worker(&itv->irq_worker);
+ 	itv->irq_worker_task = kthread_run(kthread_worker_fn, &itv->irq_worker,
+-					   itv->v4l2_dev.name);
++					   "%s", itv->v4l2_dev.name);
+ 	if (IS_ERR(itv->irq_worker_task)) {
+ 		IVTV_ERR("Could not create ivtv task\n");
+ 		return -1;
+diff -puN drivers/media/platform/vivi.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/media/platform/vivi.c
+--- a/drivers/media/platform/vivi.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/media/platform/vivi.c
+@@ -768,7 +768,8 @@ static int vivi_start_generating(struct
  
- 	idkp->dev.parent = &drive->gendev;
- 	idkp->dev.release = ide_disk_release;
--	dev_set_name(&idkp->dev, dev_name(&drive->gendev));
-+	dev_set_name(&idkp->dev, "%s", dev_name(&drive->gendev));
+ 	dma_q->frame = 0;
+ 	dma_q->ini_jiffies = jiffies;
+-	dma_q->kthread = kthread_run(vivi_thread, dev, dev->v4l2_dev.name);
++	dma_q->kthread = kthread_run(vivi_thread, dev, "%s",
++				     dev->v4l2_dev.name);
  
- 	if (device_register(&idkp->dev))
- 		goto out_free_disk;
-diff -puN drivers/ide/ide-probe.c~drivers-avoid-format-string-in-dev_set_name drivers/ide/ide-probe.c
---- a/drivers/ide/ide-probe.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/ide/ide-probe.c
-@@ -545,7 +545,7 @@ static int ide_register_port(ide_hwif_t
+ 	if (IS_ERR(dma_q->kthread)) {
+ 		v4l2_err(&dev->v4l2_dev, "kernel_thread() failed\n");
+diff -puN drivers/mtd/ubi/build.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/mtd/ubi/build.c
+--- a/drivers/mtd/ubi/build.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/mtd/ubi/build.c
+@@ -1005,7 +1005,7 @@ int ubi_attach_mtd_dev(struct mtd_info *
+ 	if (err)
+ 		goto out_uif;
+ 
+-	ubi->bgt_thread = kthread_create(ubi_thread, ubi, ubi->bgt_name);
++	ubi->bgt_thread = kthread_create(ubi_thread, ubi, "%s", ubi->bgt_name);
+ 	if (IS_ERR(ubi->bgt_thread)) {
+ 		err = PTR_ERR(ubi->bgt_thread);
+ 		ubi_err("cannot spawn \"%s\", error %d", ubi->bgt_name,
+diff -puN drivers/net/wireless/airo.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/net/wireless/airo.c
+--- a/drivers/net/wireless/airo.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/net/wireless/airo.c
+@@ -1893,7 +1893,8 @@ static int airo_open(struct net_device *
+ 
+ 	if (ai->wifidev != dev) {
+ 		clear_bit(JOB_DIE, &ai->jobs);
+-		ai->airo_thread_task = kthread_run(airo_thread, dev, dev->name);
++		ai->airo_thread_task = kthread_run(airo_thread, dev, "%s",
++						   dev->name);
+ 		if (IS_ERR(ai->airo_thread_task))
+ 			return (int)PTR_ERR(ai->airo_thread_task);
+ 
+diff -puN drivers/scsi/aacraid/commctrl.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/scsi/aacraid/commctrl.c
+--- a/drivers/scsi/aacraid/commctrl.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/scsi/aacraid/commctrl.c
+@@ -318,7 +318,8 @@ return_fib:
+ 			kthread_stop(dev->thread);
+ 			ssleep(1);
+ 			dev->aif_thread = 0;
+-			dev->thread = kthread_run(aac_command_thread, dev, dev->name);
++			dev->thread = kthread_run(aac_command_thread, dev,
++						  "%s", dev->name);
+ 			ssleep(1);
+ 		}
+ 		if (f.wait) {
+diff -puN drivers/scsi/aacraid/commsup.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/scsi/aacraid/commsup.c
+--- a/drivers/scsi/aacraid/commsup.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/scsi/aacraid/commsup.c
+@@ -1336,7 +1336,8 @@ static int _aac_reset_adapter(struct aac
+ 		if ((retval = pci_set_dma_mask(aac->pdev, DMA_BIT_MASK(32))))
+ 			goto out;
+ 	if (jafo) {
+-		aac->thread = kthread_run(aac_command_thread, aac, aac->name);
++		aac->thread = kthread_run(aac_command_thread, aac, "%s",
++					  aac->name);
+ 		if (IS_ERR(aac->thread)) {
+ 			retval = PTR_ERR(aac->thread);
+ 			goto out;
+diff -puN drivers/spi/spi.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/spi/spi.c
+--- a/drivers/spi/spi.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/spi/spi.c
+@@ -601,7 +601,7 @@ static int spi_init_queue(struct spi_mas
+ 
+ 	init_kthread_worker(&master->kworker);
+ 	master->kworker_task = kthread_run(kthread_worker_fn,
+-					   &master->kworker,
++					   &master->kworker, "%s",
+ 					   dev_name(&master->dev));
+ 	if (IS_ERR(master->kworker_task)) {
+ 		dev_err(&master->dev, "failed to create message pump task\n");
+diff -puN drivers/staging/rtl8712/os_intfs.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/staging/rtl8712/os_intfs.c
+--- a/drivers/staging/rtl8712/os_intfs.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/staging/rtl8712/os_intfs.c
+@@ -238,7 +238,7 @@ struct net_device *r8712_init_netdev(voi
+ 
+ static u32 start_drv_threads(struct _adapter *padapter)
+ {
+-	padapter->cmdThread = kthread_run(r8712_cmd_thread, padapter,
++	padapter->cmdThread = kthread_run(r8712_cmd_thread, padapter, "%s",
+ 			      padapter->pnetdev->name);
+ 	if (IS_ERR(padapter->cmdThread) < 0)
+ 		return _FAIL;
+diff -puN drivers/usb/atm/usbatm.c~drivers-avoid-parsing-names-as-kthread_run-format-strings drivers/usb/atm/usbatm.c
+--- a/drivers/usb/atm/usbatm.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/drivers/usb/atm/usbatm.c
+@@ -1020,7 +1020,7 @@ static int usbatm_heavy_init(struct usba
+ {
+ 	struct task_struct *t;
+ 
+-	t = kthread_create(usbatm_do_heavy_init, instance,
++	t = kthread_create(usbatm_do_heavy_init, instance, "%s",
+ 			instance->driver->driver_name);
+ 	if (IS_ERR(t)) {
+ 		usb_err(instance, "%s: failed to create kernel_thread (%ld)!\n",
+@@ -1076,7 +1076,8 @@ int usbatm_usb_probe(struct usb_interfac
+ 	/* public fields */
+ 
+ 	instance->driver = driver;
+-	snprintf(instance->driver_name, sizeof(instance->driver_name), driver->driver_name);
++	strlcpy(instance->driver_name, driver->driver_name,
++		sizeof(instance->driver_name));
+ 
+ 	instance->usb_dev = usb_dev;
+ 	instance->usb_intf = intf;
+diff -puN fs/lockd/svc.c~drivers-avoid-parsing-names-as-kthread_run-format-strings fs/lockd/svc.c
+--- a/fs/lockd/svc.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/fs/lockd/svc.c
+@@ -305,7 +305,7 @@ static int lockd_start_svc(struct svc_se
+ 	svc_sock_update_bufs(serv);
+ 	serv->sv_maxconn = nlm_max_connections;
+ 
+-	nlmsvc_task = kthread_run(lockd, nlmsvc_rqst, serv->sv_name);
++	nlmsvc_task = kthread_run(lockd, nlmsvc_rqst, "%s", serv->sv_name);
+ 	if (IS_ERR(nlmsvc_task)) {
+ 		error = PTR_ERR(nlmsvc_task);
+ 		printk(KERN_WARNING
+diff -puN fs/nfs/callback.c~drivers-avoid-parsing-names-as-kthread_run-format-strings fs/nfs/callback.c
+--- a/fs/nfs/callback.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/fs/nfs/callback.c
+@@ -211,7 +211,6 @@ static int nfs_callback_start_svc(int mi
+ 	struct svc_rqst *rqstp;
+ 	int (*callback_svc)(void *vrqstp);
+ 	struct nfs_callback_data *cb_info = &nfs_callback_info[minorversion];
+-	char svc_name[12];
  	int ret;
  
- 	/* register with global device tree */
--	dev_set_name(&hwif->gendev, hwif->name);
-+	dev_set_name(&hwif->gendev, "%s", hwif->name);
- 	dev_set_drvdata(&hwif->gendev, hwif);
- 	if (hwif->gendev.parent == NULL)
- 		hwif->gendev.parent = hwif->dev;
-@@ -559,7 +559,7 @@ static int ide_register_port(ide_hwif_t
- 	}
+ 	nfs_callback_bc_serv(minorversion, xprt, serv);
+@@ -235,10 +234,10 @@ static int nfs_callback_start_svc(int mi
  
- 	hwif->portdev = device_create(ide_port_class, &hwif->gendev,
--				      MKDEV(0, 0), hwif, hwif->name);
-+				      MKDEV(0, 0), hwif, "%s", hwif->name);
- 	if (IS_ERR(hwif->portdev)) {
- 		ret = PTR_ERR(hwif->portdev);
- 		device_unregister(&hwif->gendev);
-diff -puN drivers/ide/ide-tape.c~drivers-avoid-format-string-in-dev_set_name drivers/ide/ide-tape.c
---- a/drivers/ide/ide-tape.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/ide/ide-tape.c
-@@ -1985,7 +1985,7 @@ static int ide_tape_probe(ide_drive_t *d
+ 	svc_sock_update_bufs(serv);
  
- 	tape->dev.parent = &drive->gendev;
- 	tape->dev.release = ide_tape_release;
--	dev_set_name(&tape->dev, dev_name(&drive->gendev));
-+	dev_set_name(&tape->dev, "%s", dev_name(&drive->gendev));
+-	sprintf(svc_name, "nfsv4.%u-svc", minorversion);
+ 	cb_info->serv = serv;
+ 	cb_info->rqst = rqstp;
+-	cb_info->task = kthread_run(callback_svc, cb_info->rqst, svc_name);
++	cb_info->task = kthread_run(callback_svc, cb_info->rqst,
++				    "nfsv4.%u-svc", minorversion);
+ 	if (IS_ERR(cb_info->task)) {
+ 		ret = PTR_ERR(cb_info->task);
+ 		svc_exit_thread(cb_info->rqst);
+diff -puN fs/nfs/nfs4state.c~drivers-avoid-parsing-names-as-kthread_run-format-strings fs/nfs/nfs4state.c
+--- a/fs/nfs/nfs4state.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/fs/nfs/nfs4state.c
+@@ -1194,7 +1194,7 @@ void nfs4_schedule_state_manager(struct
+ 	snprintf(buf, sizeof(buf), "%s-manager",
+ 			rpc_peeraddr2str(clp->cl_rpcclient, RPC_DISPLAY_ADDR));
+ 	rcu_read_unlock();
+-	task = kthread_run(nfs4_run_state_manager, clp, buf);
++	task = kthread_run(nfs4_run_state_manager, clp, "%s", buf);
+ 	if (IS_ERR(task)) {
+ 		printk(KERN_ERR "%s: kthread_run: %ld\n",
+ 			__func__, PTR_ERR(task));
+diff -puN kernel/rcutree.c~drivers-avoid-parsing-names-as-kthread_run-format-strings kernel/rcutree.c
+--- a/kernel/rcutree.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/kernel/rcutree.c
+@@ -3015,7 +3015,7 @@ static int __init rcu_spawn_gp_kthread(v
+ 	struct task_struct *t;
  
- 	if (device_register(&tape->dev))
- 		goto out_free_disk;
-diff -puN drivers/infiniband/core/sysfs.c~drivers-avoid-format-string-in-dev_set_name drivers/infiniband/core/sysfs.c
---- a/drivers/infiniband/core/sysfs.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/infiniband/core/sysfs.c
-@@ -813,7 +813,7 @@ int ib_device_register_sysfs(struct ib_d
+ 	for_each_rcu_flavor(rsp) {
+-		t = kthread_run(rcu_gp_kthread, rsp, rsp->name);
++		t = kthread_run(rcu_gp_kthread, rsp, "%s", rsp->name);
+ 		BUG_ON(IS_ERR(t));
+ 		rnp = rcu_get_root(rsp);
+ 		raw_spin_lock_irqsave(&rnp->lock, flags);
+diff -puN net/sunrpc/svc.c~drivers-avoid-parsing-names-as-kthread_run-format-strings net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~drivers-avoid-parsing-names-as-kthread_run-format-strings
++++ a/net/sunrpc/svc.c
+@@ -740,7 +740,7 @@ svc_set_num_threads(struct svc_serv *ser
  
- 	class_dev->class      = &ib_class;
- 	class_dev->parent     = device->dma_device;
--	dev_set_name(class_dev, device->name);
-+	dev_set_name(class_dev, "%s", device->name);
- 	dev_set_drvdata(class_dev, device);
- 
- 	INIT_LIST_HEAD(&device->port_list);
-diff -puN drivers/infiniband/hw/qib/qib_file_ops.c~drivers-avoid-format-string-in-dev_set_name drivers/infiniband/hw/qib/qib_file_ops.c
---- a/drivers/infiniband/hw/qib/qib_file_ops.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -2208,7 +2208,7 @@ int qib_cdev_init(int minor, const char
- 		goto err_cdev;
- 	}
- 
--	device = device_create(qib_class, NULL, dev, NULL, name);
-+	device = device_create(qib_class, NULL, dev, NULL, "%s", name);
- 	if (!IS_ERR(device))
- 		goto done;
- 	ret = PTR_ERR(device);
-diff -puN drivers/isdn/mISDN/dsp_pipeline.c~drivers-avoid-format-string-in-dev_set_name drivers/isdn/mISDN/dsp_pipeline.c
---- a/drivers/isdn/mISDN/dsp_pipeline.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/isdn/mISDN/dsp_pipeline.c
-@@ -102,7 +102,7 @@ int mISDN_dsp_element_register(struct mI
- 	entry->dev.class = elements_class;
- 	entry->dev.release = mISDN_dsp_dev_release;
- 	dev_set_drvdata(&entry->dev, elem);
--	dev_set_name(&entry->dev, elem->name);
-+	dev_set_name(&entry->dev, "%s", elem->name);
- 	ret = device_register(&entry->dev);
- 	if (ret) {
- 		printk(KERN_ERR "%s: failed to register %s\n",
-diff -puN drivers/mtd/mtdcore.c~drivers-avoid-format-string-in-dev_set_name drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/mtd/mtdcore.c
-@@ -1151,7 +1151,7 @@ static int __init mtd_bdi_init(struct ba
- 
- 	ret = bdi_init(bdi);
- 	if (!ret)
--		ret = bdi_register(bdi, NULL, name);
-+		ret = bdi_register(bdi, NULL, "%s", name);
- 
- 	if (ret)
- 		bdi_destroy(bdi);
-diff -puN drivers/platform/x86/wmi.c~drivers-avoid-format-string-in-dev_set_name drivers/platform/x86/wmi.c
---- a/drivers/platform/x86/wmi.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/platform/x86/wmi.c
-@@ -743,7 +743,7 @@ static int wmi_create_device(const struc
- 	wblock->dev.class = &wmi_class;
- 
- 	wmi_gtoa(gblock->guid, guid_string);
--	dev_set_name(&wblock->dev, guid_string);
-+	dev_set_name(&wblock->dev, "%s", guid_string);
- 
- 	dev_set_drvdata(&wblock->dev, wblock);
- 
-diff -puN drivers/scsi/sd.c~drivers-avoid-format-string-in-dev_set_name drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/scsi/sd.c
-@@ -2941,7 +2941,7 @@ static int sd_probe(struct device *dev)
- 	device_initialize(&sdkp->dev);
- 	sdkp->dev.parent = dev;
- 	sdkp->dev.class = &sd_disk_class;
--	dev_set_name(&sdkp->dev, dev_name(dev));
-+	dev_set_name(&sdkp->dev, "%s", dev_name(dev));
- 
- 	if (device_add(&sdkp->dev))
- 		goto out_free_index;
-diff -puN drivers/staging/android/timed_output.c~drivers-avoid-format-string-in-dev_set_name drivers/staging/android/timed_output.c
---- a/drivers/staging/android/timed_output.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/staging/android/timed_output.c
-@@ -78,7 +78,7 @@ int timed_output_dev_register(struct tim
- 
- 	tdev->index = atomic_inc_return(&device_count);
- 	tdev->dev = device_create(timed_output_class, NULL,
--		MKDEV(0, tdev->index), NULL, tdev->name);
-+		MKDEV(0, tdev->index), NULL, "%s", tdev->name);
- 	if (IS_ERR(tdev->dev))
- 		return PTR_ERR(tdev->dev);
- 
-diff -puN drivers/staging/dgrp/dgrp_sysfs.c~drivers-avoid-format-string-in-dev_set_name drivers/staging/dgrp/dgrp_sysfs.c
---- a/drivers/staging/dgrp/dgrp_sysfs.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/staging/dgrp/dgrp_sysfs.c
-@@ -273,7 +273,7 @@ void dgrp_create_node_class_sysfs_files(
- 		sprintf(name, "node%ld", nd->nd_major);
- 
- 	nd->nd_class_dev = device_create(dgrp_class, dgrp_class_nodes_dev,
--		MKDEV(0, nd->nd_major), NULL, name);
-+		MKDEV(0, nd->nd_major), NULL, "%s", name);
- 
- 	ret = sysfs_create_group(&nd->nd_class_dev->kobj,
- 				 &dgrp_node_attribute_group);
-diff -puN drivers/uwb/lc-dev.c~drivers-avoid-format-string-in-dev_set_name drivers/uwb/lc-dev.c
---- a/drivers/uwb/lc-dev.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/uwb/lc-dev.c
-@@ -440,7 +440,7 @@ void uwbd_dev_onair(struct uwb_rc *rc, s
- 	uwb_dev_init(uwb_dev);		/* This sets refcnt to one, we own it */
- 	uwb_dev->mac_addr = *bce->mac_addr;
- 	uwb_dev->dev_addr = bce->dev_addr;
--	dev_set_name(&uwb_dev->dev, macbuf);
-+	dev_set_name(&uwb_dev->dev, "%s", macbuf);
- 	result = uwb_dev_add(uwb_dev, &rc->uwb_dev.dev, rc);
- 	if (result < 0) {
- 		dev_err(dev, "new device %s: cannot instantiate device\n",
-diff -puN drivers/video/backlight/backlight.c~drivers-avoid-format-string-in-dev_set_name drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/video/backlight/backlight.c
-@@ -309,7 +309,7 @@ struct backlight_device *backlight_devic
- 	new_bd->dev.class = backlight_class;
- 	new_bd->dev.parent = parent;
- 	new_bd->dev.release = bl_device_release;
--	dev_set_name(&new_bd->dev, name);
-+	dev_set_name(&new_bd->dev, "%s", name);
- 	dev_set_drvdata(&new_bd->dev, devdata);
- 
- 	/* Set default properties */
-diff -puN drivers/video/backlight/lcd.c~drivers-avoid-format-string-in-dev_set_name drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/video/backlight/lcd.c
-@@ -219,7 +219,7 @@ struct lcd_device *lcd_device_register(c
- 	new_ld->dev.class = lcd_class;
- 	new_ld->dev.parent = parent;
- 	new_ld->dev.release = lcd_device_release;
--	dev_set_name(&new_ld->dev, name);
-+	dev_set_name(&new_ld->dev, "%s", name);
- 	dev_set_drvdata(&new_ld->dev, devdata);
- 
- 	rc = device_register(&new_ld->dev);
-diff -puN drivers/video/output.c~drivers-avoid-format-string-in-dev_set_name drivers/video/output.c
---- a/drivers/video/output.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/video/output.c
-@@ -97,7 +97,7 @@ struct output_device *video_output_regis
- 	new_dev->props = op;
- 	new_dev->dev.class = &video_output_class;
- 	new_dev->dev.parent = dev;
--	dev_set_name(&new_dev->dev, name);
-+	dev_set_name(&new_dev->dev, "%s", name);
- 	dev_set_drvdata(&new_dev->dev, devdata);
- 	ret_code = device_register(&new_dev->dev);
- 	if (ret_code) {
-diff -puN drivers/xen/xenbus/xenbus_probe.c~drivers-avoid-format-string-in-dev_set_name drivers/xen/xenbus/xenbus_probe.c
---- a/drivers/xen/xenbus/xenbus_probe.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/drivers/xen/xenbus/xenbus_probe.c
-@@ -447,7 +447,7 @@ int xenbus_probe_node(struct xen_bus_typ
- 	if (err)
- 		goto fail;
- 
--	dev_set_name(&xendev->dev, devname);
-+	dev_set_name(&xendev->dev, "%s", devname);
- 
- 	/* Register with generic device framework. */
- 	err = device_register(&xendev->dev);
-diff -puN mm/backing-dev.c~drivers-avoid-format-string-in-dev_set_name mm/backing-dev.c
---- a/mm/backing-dev.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/mm/backing-dev.c
-@@ -515,7 +515,6 @@ EXPORT_SYMBOL(bdi_destroy);
- int bdi_setup_and_register(struct backing_dev_info *bdi, char *name,
- 			   unsigned int cap)
- {
--	char tmp[32];
- 	int err;
- 
- 	bdi->name = name;
-@@ -524,8 +523,8 @@ int bdi_setup_and_register(struct backin
- 	if (err)
- 		return err;
- 
--	sprintf(tmp, "%.28s%s", name, "-%d");
--	err = bdi_register(bdi, NULL, tmp, atomic_long_inc_return(&bdi_seq));
-+	err = bdi_register(bdi, NULL, "%.28s-%ld", name,
-+			   atomic_long_inc_return(&bdi_seq));
- 	if (err) {
- 		bdi_destroy(bdi);
- 		return err;
-diff -puN sound/sound_core.c~drivers-avoid-format-string-in-dev_set_name sound/sound_core.c
---- a/sound/sound_core.c~drivers-avoid-format-string-in-dev_set_name
-+++ a/sound/sound_core.c
-@@ -292,7 +292,7 @@ retry:
- 	}
- 
- 	device_create(sound_class, dev, MKDEV(SOUND_MAJOR, s->unit_minor),
--		      NULL, s->name+6);
-+		      NULL, "%s", s->name+6);
- 	return s->unit_minor;
- 
- fail:
+ 		__module_get(serv->sv_module);
+ 		task = kthread_create_on_node(serv->sv_function, rqstp,
+-					      node, serv->sv_name);
++					      node, "%s", serv->sv_name);
+ 		if (IS_ERR(task)) {
+ 			error = PTR_ERR(task);
+ 			module_put(serv->sv_module);
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
