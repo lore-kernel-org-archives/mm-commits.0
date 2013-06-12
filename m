@@ -1,140 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11.patch removed from -mm tree
-Date: Wed, 12 Jun 2013 13:56:46 -0700
-Message-ID: <51b8e08e.ozn4GbAhNvZ4yjR0%akpm@linux-foundation.org>
+Subject: [folded-merged] migrate-shutdown-reboot-to-boot-cpu-v11.patch
+ removed from -mm tree
+Date: Wed, 12 Jun 2013 13:57:02 -0700
+Message-ID: <51b8e09e.IkgKjLBf0f38NBZr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51955 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51958 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756370Ab3FLU4r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:56:47 -0400
+	with ESMTP id S1756198Ab3FLU5D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:57:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holt@sgi.com, srivatsa.bhat@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, holt@sgi.com
 
-Subject: [folded-merged] cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11.patch removed from -mm tree
-To: srivatsa.bhat@linux.vnet.ibm.com,holt@sgi.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] migrate-shutdown-reboot-to-boot-cpu-v11.patch removed from -mm tree
+To: holt@sgi.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Jun 2013 13:56:46 -0700
+Date: Wed, 12 Jun 2013 13:57:02 -0700
 
 
 The patch titled
-     Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11
+     Subject: migrate-shutdown-reboot-to-boot-cpu-v11
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11.patch
+     migrate-shutdown-reboot-to-boot-cpu-v11.patch
 
-This patch was dropped because it was folded into cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
+This patch was dropped because it was folded into migrate-shutdown-reboot-to-boot-cpu.patch
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11
+From: Robin Holt <holt@sgi.com>
+Subject: migrate-shutdown-reboot-to-boot-cpu-v11
 
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |   18 ++++--------------
- kernel/cpu.c        |   42 +++++++++++++++++++++---------------------
- 2 files changed, 25 insertions(+), 35 deletions(-)
+ kernel/sys.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11 include/linux/cpu.h
---- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11
-+++ a/include/linux/cpu.h
-@@ -167,20 +167,6 @@ static inline void cpu_maps_update_done(
+diff -puN kernel/sys.c~migrate-shutdown-reboot-to-boot-cpu-v11 kernel/sys.c
+--- a/kernel/sys.c~migrate-shutdown-reboot-to-boot-cpu-v11
++++ a/kernel/sys.c
+@@ -370,19 +370,19 @@ EXPORT_SYMBOL(unregister_reboot_notifier
+ static void migrate_to_reboot_cpu(void)
+ {
+ 	/* The boot cpu is always logical cpu 0 */
+-	int reboot_cpu = 0;
++	int cpu = 0;
+ 
+ 	cpu_hotplug_disable();
+ 
+ 	/* Make certain the cpu I'm about to reboot on is online */
+-	if (!cpu_online(reboot_cpu))
+-		reboot_cpu = cpumask_first(cpu_online_mask);
++	if (!cpu_online(cpu))
++		cpu = cpumask_first(cpu_online_mask);
+ 
+ 	/* Prevent races with other tasks migrating this task */
+ 	current->flags |= PF_NO_SETAFFINITY;
+ 
+ 	/* Make certain I only run on the appropriate processor */
+-	set_cpus_allowed_ptr(current, cpumask_of(reboot_cpu));
++	set_cpus_allowed_ptr(current, cpumask_of(cpu));
  }
  
- #endif /* CONFIG_SMP */
--
--#ifdef CONFIG_PM_SLEEP_SMP
--extern void cpu_hotplug_enable(void);
--extern void cpu_hotplug_disable(void);
--#else
--static inline void cpu_hotplug_enable(void)
--{
--}
--
--static inline void cpu_hotplug_disable(void)
--{
--}
--#endif
--
- extern struct bus_type cpu_subsys;
- 
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -188,6 +174,8 @@ extern struct bus_type cpu_subsys;
- 
- extern void get_online_cpus(void);
- extern void put_online_cpus(void);
-+extern void cpu_hotplug_disable(void);
-+extern void cpu_hotplug_enable(void);
- #define hotcpu_notifier(fn, pri)	cpu_notifier(fn, pri)
- #define register_hotcpu_notifier(nb)	register_cpu_notifier(nb)
- #define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
-@@ -211,6 +199,8 @@ static inline void cpu_hotplug_driver_un
- 
- #define get_online_cpus()	do { } while (0)
- #define put_online_cpus()	do { } while (0)
-+#define cpu_hotplug_disable()	do { } while (0)
-+#define cpu_hotplug_enable()	do { } while (0)
- #define hotcpu_notifier(fn, pri)	do { (void)(fn); } while (0)
- /* These aren't inline functions due to a GCC bug. */
- #define register_hotcpu_notifier(nb)	({ (void)(nb); 0; })
-diff -puN kernel/cpu.c~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11 kernel/cpu.c
---- a/kernel/cpu.c~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug-v11
-+++ a/kernel/cpu.c
-@@ -133,6 +133,27 @@ static void cpu_hotplug_done(void)
- 	mutex_unlock(&cpu_hotplug.lock);
- }
- 
-+/*
-+ * Wait for currently running CPU hotplug operations to complete (if any) and
-+ * disable future CPU hotplug (from sysfs). The 'cpu_add_remove_lock' protects
-+ * the 'cpu_hotplug_disabled' flag. The same lock is also acquired by the
-+ * hotplug path before performing hotplug operations. So acquiring that lock
-+ * guarantees mutual exclusion from any currently running hotplug operations.
-+ */
-+void cpu_hotplug_disable(void)
-+{
-+	cpu_maps_update_begin();
-+	cpu_hotplug_disabled = 1;
-+	cpu_maps_update_done();
-+}
-+
-+void cpu_hotplug_enable(void)
-+{
-+	cpu_maps_update_begin();
-+	cpu_hotplug_disabled = 0;
-+	cpu_maps_update_done();
-+}
-+
- #else /* #if CONFIG_HOTPLUG_CPU */
- static void cpu_hotplug_begin(void) {}
- static void cpu_hotplug_done(void) {}
-@@ -541,27 +562,6 @@ static int __init alloc_frozen_cpus(void
- core_initcall(alloc_frozen_cpus);
- 
- /*
-- * Wait for currently running CPU hotplug operations to complete (if any) and
-- * disable future CPU hotplug (from sysfs). The 'cpu_add_remove_lock' protects
-- * the 'cpu_hotplug_disabled' flag. The same lock is also acquired by the
-- * hotplug path before performing hotplug operations. So acquiring that lock
-- * guarantees mutual exclusion from any currently running hotplug operations.
-- */
--void cpu_hotplug_disable(void)
--{
--	cpu_maps_update_begin();
--	cpu_hotplug_disabled = 1;
--	cpu_maps_update_done();
--}
--
--void cpu_hotplug_enable(void)
--{
--	cpu_maps_update_begin();
--	cpu_hotplug_disabled = 0;
--	cpu_maps_update_done();
--}
+ /**
+_
+
+Patches currently in -mm which might be from holt@sgi.com are
+
+cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
+migrate-shutdown-reboot-to-boot-cpu.patch
+drivers-misc-sgi-gru-grufilec-fix-info-leak-in-gru_get_config_info.patch
+dump_stack-serialize-the-output-from-dump_stack.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
+drivers-misc-sgi-gru-grufaultc-fix-a-sanity-test-in-gru_set_context_option.patch
+reboot-remove-stable-friendly-pf_thread_bound-define.patch
+reboot-move-shutdown-reboot-related-functions-to-kernel-rebootc.patch
+reboot-checkpatchpl-the-new-kernel-rebootc-file.patch
+reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs.patch
+reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
+reboot-move-arch-x86-reboot=-handling-to-generic-kernel.patch
+
