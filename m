@@ -1,94 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rapidio-rio-scanc-make-functions-static.patch added to
+Subject: [obsolete]
+ kernel-pidc-mask-the-flag-out-to-get-the-actual-value.patch removed from
  -mm tree
-Date: Tue, 11 Jun 2013 16:02:58 -0700
-Message-ID: <51b7aca2.WoT2KAbzxr7Dtf1G%akpm@linux-foundation.org>
+Date: Tue, 11 Jun 2013 18:28:18 -0700
+Message-ID: <51b7ceb2.wHeVj9aTejgTCB8d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755364Ab3FKXC7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 19:02:59 -0400
+	with ESMTP id S1757591Ab3FLB2r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jun 2013 21:28:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, Alexandre.Bounine@idt.com, fengguang.wu@intel.com
+To: mm-commits@vger.kernel.org, ebiederm@xmission.com, raphael.scarv@gmail.com
 
-Subject: + drivers-rapidio-rio-scanc-make-functions-static.patch added to -mm tree
-To: fengguang.wu@intel.com,Alexandre.Bounine@idt.com
+Subject: [obsolete] kernel-pidc-mask-the-flag-out-to-get-the-actual-value.patch removed from -mm tree
+To: raphael.scarv@gmail.com,ebiederm@xmission.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Jun 2013 16:02:58 -0700
+Date: Tue, 11 Jun 2013 18:28:16 -0700
 
 
 The patch titled
-     Subject: drivers/rapidio/rio-scan.c: make functions static
-has been added to the -mm tree.  Its filename is
-     drivers-rapidio-rio-scanc-make-functions-static.patch
+     Subject: kernel/pid.c: mask the flag out to get the actual value
+has been removed from the -mm tree.  Its filename was
+     kernel-pidc-mask-the-flag-out-to-get-the-actual-value.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Wu Fengguang <fengguang.wu@intel.com>
-Subject: drivers/rapidio/rio-scan.c: make functions static
+From: "Raphael S. Carvalho" <raphael.scarv@gmail.com>
+Subject: kernel/pid.c: mask the flag out to get the actual value
 
-sparse warnings:
+This patch shouldn't be applied if those branches must only be taken when
+the pid_allocation(PIDNS_HASH_ADDING) flag was turned off.  Otherwise, we
+must turn the PIDNS_HASH_ADDING flag (1U << 31) off before getting into
+the switch-cases.
 
-drivers/rapidio/rio-scan.c:1143:5: sparse: symbol 'rio_enum_mport' was not declared. Should it be static?
-drivers/rapidio/rio-scan.c:1246:5: sparse: symbol 'rio_disc_mport' was not declared. Should it be static?
-
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: "Bounine, Alexandre" <Alexandre.Bounine@idt.com>
+Signed-off-by: Raphael S. Carvalho <raphael.scarv@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/pid.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio-scan.c~drivers-rapidio-rio-scanc-make-functions-static drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~drivers-rapidio-rio-scanc-make-functions-static
-+++ a/drivers/rapidio/rio-scan.c
-@@ -1141,7 +1141,7 @@ static void rio_pw_enable(struct rio_mpo
-  * link, then start recursive peer enumeration. Returns %0 if
-  * enumeration succeeds or %-EBUSY if enumeration fails.
-  */
--int rio_enum_mport(struct rio_mport *mport, u32 flags)
-+static int rio_enum_mport(struct rio_mport *mport, u32 flags)
- {
- 	struct rio_net *net = NULL;
- 	int rc = 0;
-@@ -1256,7 +1256,7 @@ static void rio_build_route_tables(struc
-  * peer discovery. Returns %0 if discovery succeeds or %-EBUSY
-  * on failure.
-  */
--int rio_disc_mport(struct rio_mport *mport, u32 flags)
-+static int rio_disc_mport(struct rio_mport *mport, u32 flags)
- {
- 	struct rio_net *net = NULL;
- 	unsigned long to_end;
+diff -puN kernel/pid.c~kernel-pidc-mask-the-flag-out-to-get-the-actual-value kernel/pid.c
+--- a/kernel/pid.c~kernel-pidc-mask-the-flag-out-to-get-the-actual-value
++++ a/kernel/pid.c
+@@ -264,7 +264,10 @@ void free_pid(struct pid *pid)
+ 		struct upid *upid = pid->numbers + i;
+ 		struct pid_namespace *ns = upid->ns;
+ 		hlist_del_rcu(&upid->pid_chain);
+-		switch(--ns->nr_hashed) {
++
++		/* We must turn the PIDNS_HASH_ADDING flag off to
++		   get the actual value of nr_hashed */
++		switch ((--ns->nr_hashed) & ~(PIDNS_HASH_ADDING)) {
+ 		case 1:
+ 			/* When all that is left in the pid namespace
+ 			 * is the reaper wake up the reaper.  The reaper
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from raphael.scarv@gmail.com are
 
-linux-next.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-fs-fs-writebackc-make-wb_do_writeback-as-static.patch
-smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-drivers-rapidio-rio-scanc-make-functions-static.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
+kernel-auditfilterc-fixing-build-warning.patch
+kernel-pidc-move-statement.patch
+kernel-pidc-mask-the-flag-out-to-get-the-actual-value-fix.patch
 
