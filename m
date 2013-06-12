@@ -1,71 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch removed from -mm
- tree
-Date: Wed, 12 Jun 2013 13:57:15 -0700
-Message-ID: <51b8e0ab.0w/IK+FmqdQvwxzI%akpm@linux-foundation.org>
+ drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+ removed from -mm tree
+Date: Wed, 12 Jun 2013 13:57:40 -0700
+Message-ID: <51b8e0c4.0kiL7IkJxyMX0lb5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51961 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51965 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755695Ab3FLU5Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:57:16 -0400
+	with ESMTP id S1755695Ab3FLU5l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:57:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, keescook@chromium.org, jwboyer@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, dbasehore@chromium.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jwboyer@redhat.com,keescook@chromium.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,dbasehore@chromium.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Jun 2013 13:57:15 -0700
+Date: Wed, 12 Jun 2013 13:57:40 -0700
 
 
 The patch titled
-     Subject: kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix
+     Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
 has been removed from the -mm tree.  Its filename was
-     kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix.patch
+     drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
 
-This patch was dropped because it was folded into kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+This patch was dropped because it was folded into drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix
+Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
 
-use pr_warn_once()
+coding-style tweak
 
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
+Cc: Derek Basehore <dbasehore@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-cmos.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix kernel/printk.c
---- a/kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg-fix
-+++ a/kernel/printk.c
-@@ -398,9 +398,9 @@ static int check_syslog_permissions(int
- 		 * a warning.
- 		 */
- 		if (capable(CAP_SYS_ADMIN)) {
--			printk_once(KERN_WARNING "%s (%d): "
--				 "Attempt to access syslog with CAP_SYS_ADMIN "
--				 "but no CAP_SYSLOG (deprecated).\n",
-+			pr_warn_once("%s (%d): Attempt to access syslog with "
-+				     "CAP_SYS_ADMIN but no CAP_SYSLOG "
-+				     "(deprecated).\n",
- 				 current->comm, task_pid_nr(current));
- 			return 0;
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
++++ a/drivers/rtc/rtc-cmos.c
+@@ -854,9 +854,8 @@ static int cmos_resume(struct device *de
  		}
+ 
+ 		spin_lock_irq(&rtc_lock);
+-		if (device_may_wakeup(dev)) {
++		if (device_may_wakeup(dev))
+ 			hpet_rtc_timer_init();
+-		}
+ 
+ 		do {
+ 			CMOS_WRITE(tmp, RTC_CONTROL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
 drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
 include-linux-math64h-add-div64_ul-checkpatch-fixes.patch
 linux-next.patch
