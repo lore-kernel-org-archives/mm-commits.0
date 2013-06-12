@@ -1,63 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch removed from -mm tree
-Date: Wed, 12 Jun 2013 13:58:07 -0700
-Message-ID: <51b8e0df.I3JIu8RW7F+UgLkp%akpm@linux-foundation.org>
+ include-linux-math64h-add-div64_ul-checkpatch-fixes.patch removed from -mm
+ tree
+Date: Wed, 12 Jun 2013 13:58:49 -0700
+Message-ID: <51b8e109.2TrBs7z428Tx+fz/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51967 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51971 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890Ab3FLU6I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:58:08 -0400
+	with ESMTP id S1756370Ab3FLU6u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:58:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, youquan.song@intel.com, greg@kroah.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, alex.shi@intel.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,greg@kroah.com,youquan.song@intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] include-linux-math64h-add-div64_ul-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,alex.shi@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Jun 2013 13:58:07 -0700
+Date: Wed, 12 Jun 2013 13:58:49 -0700
 
 
 The patch titled
-     Subject: drivers-base-cpuc-fix-maxcpus-boot-option-fix
+     Subject: include-linux-math64h-add-div64_ul-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+     include-linux-math64h-add-div64_ul-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-base-cpuc-fix-maxcpus-boot-option.patch
+This patch was dropped because it was folded into include-linux-math64h-add-div64_ul.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-base-cpuc-fix-maxcpus-boot-option-fix
+Subject: include-linux-math64h-add-div64_ul-checkpatch-fixes
 
-fix CONFIG_SMP=n build
+ERROR: space required after that ',' (ctx:VxV)
+#22: FILE: include/linux/math64.h:10:
++#define div64_ul(x,y)   div64_u64((x),(y))
+                   ^
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Youquan Song <youquan.song@intel.com>
+ERROR: space required after that ',' (ctx:VxV)
+#22: FILE: include/linux/math64.h:10:
++#define div64_ul(x,y)   div64_u64((x),(y))
+                                      ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#30: FILE: include/linux/math64.h:52:
++#define div64_ul(x,y)   div_u64((x),(y))
+                   ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#30: FILE: include/linux/math64.h:52:
++#define div64_ul(x,y)   div_u64((x),(y))
+                                    ^
+
+total: 4 errors, 0 warnings, 14 lines checked
+
+./patches/include-linux-math64h-add-div64_ul.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alex Shi <alex.shi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/cpu.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/math64.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option-fix drivers/base/cpu.c
---- a/drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option-fix
-+++ a/drivers/base/cpu.c
-@@ -275,9 +275,11 @@ int __cpuinit register_cpu(struct cpu *c
- {
- 	int error;
+diff -puN include/linux/math64.h~include-linux-math64h-add-div64_ul-checkpatch-fixes include/linux/math64.h
+--- a/include/linux/math64.h~include-linux-math64h-add-div64_ul-checkpatch-fixes
++++ a/include/linux/math64.h
+@@ -6,8 +6,8 @@
  
-+#ifdef CONFIG_SMP
- 	/* return when cpu number greater than maximum number of CPUs */
- 	if (num >= setup_max_cpus)
- 		return 0;
-+#endif
+ #if BITS_PER_LONG == 64
  
- 	cpu->node_id = cpu_to_node(num);
- 	memset(&cpu->dev, 0x00, sizeof(struct device));
+-#define div64_long(x,y) div64_s64((x),(y))
+-#define div64_ul(x,y)   div64_u64((x),(y))
++#define div64_long(x, y) div64_s64((x), (y))
++#define div64_ul(x, y)   div64_u64((x), (y))
+ 
+ /**
+  * div_u64_rem - unsigned 64bit divide with 32bit divisor with remainder
+@@ -48,8 +48,8 @@ static inline s64 div64_s64(s64 dividend
+ 
+ #elif BITS_PER_LONG == 32
+ 
+-#define div64_long(x,y) div_s64((x),(y))
+-#define div64_ul(x,y)   div_u64((x),(y))
++#define div64_long(x, y) div_s64((x), (y))
++#define div64_ul(x, y)   div_u64((x), (y))
+ 
+ #ifndef div_u64_rem
+ static inline u64 div_u64_rem(u64 dividend, u32 divisor, u32 *remainder)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +102,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
 drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
 drivers-base-cpuc-fix-maxcpus-boot-option.patch
-include-linux-math64h-add-div64_ul-checkpatch-fixes.patch
+include-linux-math64h-add-div64_ul.patch
 linux-next.patch
 linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
