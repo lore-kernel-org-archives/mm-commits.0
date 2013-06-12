@@ -1,167 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- include-linux-math64h-add-div64_ul-checkpatch-fixes.patch removed from -mm
- tree
-Date: Wed, 12 Jun 2013 13:58:49 -0700
-Message-ID: <51b8e109.2TrBs7z428Tx+fz/%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-dont-re-init-pageset-in-zone_pcp_update.patch
+ added to -mm tree
+Date: Wed, 12 Jun 2013 14:20:42 -0700
+Message-ID: <51b8e62a.hq/OYvEc5sXiKzkE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53359 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756370Ab3FLU6u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:58:50 -0400
+	with ESMTP id S1758074Ab3FLVUn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 17:20:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, alex.shi@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, Valdis.Kletnieks@vt.edu, cody@linux.vnet.ibm.com
 
-Subject: [folded-merged] include-linux-math64h-add-div64_ul-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,alex.shi@intel.com,mm-commits@vger.kernel.org
+Subject: + mm-page_alloc-dont-re-init-pageset-in-zone_pcp_update.patch added to -mm tree
+To: cody@linux.vnet.ibm.com,Valdis.Kletnieks@vt.edu
 From: akpm@linux-foundation.org
-Date: Wed, 12 Jun 2013 13:58:49 -0700
+Date: Wed, 12 Jun 2013 14:20:42 -0700
 
 
 The patch titled
-     Subject: include-linux-math64h-add-div64_ul-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     include-linux-math64h-add-div64_ul-checkpatch-fixes.patch
+     Subject: mm/page_alloc: don't re-init pageset in zone_pcp_update()
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-dont-re-init-pageset-in-zone_pcp_update.patch
 
-This patch was dropped because it was folded into include-linux-math64h-add-div64_ul.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-math64h-add-div64_ul-checkpatch-fixes
+From: Cody P Schafer <cody@linux.vnet.ibm.com>
+Subject: mm/page_alloc: don't re-init pageset in zone_pcp_update()
 
-ERROR: space required after that ',' (ctx:VxV)
-#22: FILE: include/linux/math64.h:10:
-+#define div64_ul(x,y)   div64_u64((x),(y))
-                   ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#22: FILE: include/linux/math64.h:10:
-+#define div64_ul(x,y)   div64_u64((x),(y))
-                                      ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#30: FILE: include/linux/math64.h:52:
-+#define div64_ul(x,y)   div_u64((x),(y))
-                   ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#30: FILE: include/linux/math64.h:52:
-+#define div64_ul(x,y)   div_u64((x),(y))
-                                    ^
-
-total: 4 errors, 0 warnings, 14 lines checked
-
-./patches/include-linux-math64h-add-div64_ul.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alex Shi <alex.shi@intel.com>
+Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/math64.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/math64.h~include-linux-math64h-add-div64_ul-checkpatch-fixes include/linux/math64.h
---- a/include/linux/math64.h~include-linux-math64h-add-div64_ul-checkpatch-fixes
-+++ a/include/linux/math64.h
-@@ -6,8 +6,8 @@
+diff -puN mm/page_alloc.c~mm-page_alloc-dont-re-init-pageset-in-zone_pcp_update mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-dont-re-init-pageset-in-zone_pcp_update
++++ a/mm/page_alloc.c
+@@ -4108,11 +4108,9 @@ static void pageset_set_high(struct per_
+ 	pageset_update(&p->pcp, high, batch);
+ }
  
- #if BITS_PER_LONG == 64
+-static void __meminit zone_pageset_init(struct zone *zone, int cpu)
++static void __meminit pageset_set_high_and_batch(struct zone *zone,
++		struct per_cpu_pageset *pcp)
+ {
+-	struct per_cpu_pageset *pcp = per_cpu_ptr(zone->pageset, cpu);
+-
+-	pageset_init(pcp);
+ 	if (percpu_pagelist_fraction)
+ 		pageset_set_high(pcp,
+ 			(zone->managed_pages /
+@@ -4121,6 +4119,14 @@ static void __meminit zone_pageset_init(
+ 		pageset_set_batch(pcp, zone_batchsize(zone));
+ }
  
--#define div64_long(x,y) div64_s64((x),(y))
--#define div64_ul(x,y)   div64_u64((x),(y))
-+#define div64_long(x, y) div64_s64((x), (y))
-+#define div64_ul(x, y)   div64_u64((x), (y))
- 
- /**
-  * div_u64_rem - unsigned 64bit divide with 32bit divisor with remainder
-@@ -48,8 +48,8 @@ static inline s64 div64_s64(s64 dividend
- 
- #elif BITS_PER_LONG == 32
- 
--#define div64_long(x,y) div_s64((x),(y))
--#define div64_ul(x,y)   div_u64((x),(y))
-+#define div64_long(x, y) div_s64((x), (y))
-+#define div64_ul(x, y)   div_u64((x), (y))
- 
- #ifndef div_u64_rem
- static inline u64 div_u64_rem(u64 dividend, u32 divisor, u32 *remainder)
++static void __meminit zone_pageset_init(struct zone *zone, int cpu)
++{
++	struct per_cpu_pageset *pcp = per_cpu_ptr(zone->pageset, cpu);
++
++	pageset_init(pcp);
++	pageset_set_high_and_batch(zone, pcp);
++}
++
+ static void __meminit setup_zone_pageset(struct zone *zone)
+ {
+ 	int cpu;
+@@ -6189,7 +6195,8 @@ void __meminit zone_pcp_update(struct zo
+ 	unsigned cpu;
+ 	mutex_lock(&pcp_batch_high_lock);
+ 	for_each_possible_cpu(cpu)
+-		zone_pageset_init(zone, cpu);
++		pageset_set_high_and_batch(zone,
++				per_cpu_ptr(zone->pageset, cpu));
+ 	mutex_unlock(&pcp_batch_high_lock);
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
 
-kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
-drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
-drivers-base-cpuc-fix-maxcpus-boot-option.patch
-include-linux-math64h-add-div64_ul.patch
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch
+mm-page_alloc-prevent-concurrent-updaters-of-pcp-batch-and-high.patch
+mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch
+mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
+mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch
+mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
+mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch
+mm-page_alloc-relocate-comment-to-be-directly-above-code-it-refers-to.patch
+mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch
+mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch
+mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch
+mm-fix-comment-referring-to-non-existent-size_seqlock-change-to-span_seqlock.patch
+mmzone-note-that-node_size_lock-should-be-manipulated-via-pgdat_resize_lock.patch
+memory_hotplug-use-pgdat_resize_lock-in-online_pages.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
 memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-include-linux-mmzoneh-cleanups.patch
-include-linux-mmzoneh-cleanups-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch
-wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2.patch
+mm-page_alloc-dont-re-init-pageset-in-zone_pcp_update.patch
 
