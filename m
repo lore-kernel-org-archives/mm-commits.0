@@ -1,69 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
- removed from -mm tree
-Date: Wed, 12 Jun 2013 13:57:40 -0700
-Message-ID: <51b8e0c4.0kiL7IkJxyMX0lb5%akpm@linux-foundation.org>
+ drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch removed from -mm tree
+Date: Wed, 12 Jun 2013 13:58:07 -0700
+Message-ID: <51b8e0df.I3JIu8RW7F+UgLkp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51965 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51967 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755695Ab3FLU5l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:57:41 -0400
+	with ESMTP id S1751890Ab3FLU6I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jun 2013 16:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dbasehore@chromium.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, youquan.song@intel.com, greg@kroah.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dbasehore@chromium.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,greg@kroah.com,youquan.song@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Jun 2013 13:57:40 -0700
+Date: Wed, 12 Jun 2013 13:58:07 -0700
 
 
 The patch titled
-     Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
+     Subject: drivers-base-cpuc-fix-maxcpus-boot-option-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix.patch
+     drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
 
-This patch was dropped because it was folded into drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
+This patch was dropped because it was folded into drivers-base-cpuc-fix-maxcpus-boot-option.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
+Subject: drivers-base-cpuc-fix-maxcpus-boot-option-fix
 
-coding-style tweak
+fix CONFIG_SMP=n build
 
-Cc: Derek Basehore <dbasehore@chromium.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Youquan Song <youquan.song@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/base/cpu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel-fix
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -854,9 +854,8 @@ static int cmos_resume(struct device *de
- 		}
+diff -puN drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option-fix drivers/base/cpu.c
+--- a/drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option-fix
++++ a/drivers/base/cpu.c
+@@ -275,9 +275,11 @@ int __cpuinit register_cpu(struct cpu *c
+ {
+ 	int error;
  
- 		spin_lock_irq(&rtc_lock);
--		if (device_may_wakeup(dev)) {
-+		if (device_may_wakeup(dev))
- 			hpet_rtc_timer_init();
--		}
++#ifdef CONFIG_SMP
+ 	/* return when cpu number greater than maximum number of CPUs */
+ 	if (num >= setup_max_cpus)
+ 		return 0;
++#endif
  
- 		do {
- 			CMOS_WRITE(tmp, RTC_CONTROL);
+ 	cpu->node_id = cpu_to_node(num);
+ 	memset(&cpu->dev, 0x00, sizeof(struct device));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
 drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
-drivers-base-cpuc-fix-maxcpus-boot-option-fix.patch
+drivers-base-cpuc-fix-maxcpus-boot-option.patch
 include-linux-math64h-add-div64_ul-checkpatch-fixes.patch
 linux-next.patch
 linux-next-git-rejects.patch
