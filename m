@@ -1,178 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch removed
- from -mm tree
-Date: Thu, 13 Jun 2013 11:57:58 -0700
-Message-ID: <51ba1636.wbyo7Y2QQ5nLLuXQ%akpm@linux-foundation.org>
+ frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch removed from -mm tree
+Date: Thu, 13 Jun 2013 11:58:10 -0700
+Message-ID: <51ba1642.EgYB53uQ9PKmVzy0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37111 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab3FMS57 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:59 -0400
+	with ESMTP id S1756646Ab3FMS6K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:58:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zab@redhat.com, viro@zeniv.linux.org.uk, smani@micron.com, sbradshaw@micron.com, rusty@rustcorp.com.au, mfasheh@suse.com, jmoyer@redhat.com, jlbec@evilplan.org, gregkh@linuxfoundation.org, bcrl@kvack.org, balbi@ti.com, axboe@kernel.dk, asamymuthupa@micron.com, koverstreet@google.com
+To: mm-commits@vger.kernel.org, konrad.wilk@oracle.com, akinobu.mita@gmail.com
 
-Subject: [merged] aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch removed from -mm tree
-To: koverstreet@google.com,asamymuthupa@micron.com,axboe@kernel.dk,balbi@ti.com,bcrl@kvack.org,gregkh@linuxfoundation.org,jlbec@evilplan.org,jmoyer@redhat.com,mfasheh@suse.com,rusty@rustcorp.com.au,sbradshaw@micron.com,smani@micron.com,viro@zeniv.linux.org.uk,zab@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch removed from -mm tree
+To: akinobu.mita@gmail.com,konrad.wilk@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:58 -0700
+Date: Thu, 13 Jun 2013 11:58:10 -0700
 
 
 The patch titled
-     Subject: aio: fix io_destroy() regression by using call_rcu()
+     Subject: frontswap: fix incorrect zeroing and allocation size for frontswap_map
 has been removed from the -mm tree.  Its filename was
-     aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx.patch
+     frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: fix io_destroy() regression by using call_rcu()
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: frontswap: fix incorrect zeroing and allocation size for frontswap_map
 
-There was a regression introduced by 36f5588 ("aio: refcounting cleanup"),
-reported by Jens Axboe - the refcounting cleanup switched to using RCU in
-the shutdown path, but the synchronize_rcu() was done in the context of
-the io_destroy() syscall greatly increasing the time it could block.
+The bitmap accessed by bitops must have enough size to hold the required
+numbers of bits rounded up to a multiple of BITS_PER_LONG.  And the bitmap
+must not be zeroed by memset() if the number of bits cleared is not a
+multiple of BITS_PER_LONG.
 
-This patch switches it to call_rcu() and makes shutdown asynchronous (more
-asynchronous than it was originally; before the refcount changes
-io_destroy() would still wait on pending kiocbs).
+This fixes incorrect zeroing and allocation size for frontswap_map.  The
+incorrect zeroing part doesn't cause any problem because frontswap_map is
+freed just after zeroing.  But the wrongly calculated allocation size may
+cause the problem.
 
-Note that there's a global quota on the max outstanding kiocbs, and that
-quota must be manipulated synchronously; otherwise io_setup() could return
--EAGAIN when there isn't quota available, and userspace won't have any way
-of waiting until shutdown of the old kioctxs has finished (besides busy
-looping).
+For 32bit systems, the allocation size of frontswap_map is about twice as
+large as required size.  For 64bit systems, the allocation size is smaller
+than requeired if the number of bits is not a multiple of BITS_PER_LONG.
 
-So we release our quota before kioctx shutdown has finished, which should
-be fine since the quota never corresponded to anything real anyways.
-
-Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Zach Brown <zab@redhat.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Reported-by: Jens Axboe <axboe@kernel.dk>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-Cc: Asai Thambi S P <asamymuthupa@micron.com>
-Cc: Selvan Mani <smani@micron.com>
-Cc: Sam Bradshaw <sbradshaw@micron.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Tested-by: Benjamin LaHaise <bcrl@kvack.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   36 ++++++++++++++++--------------------
- 1 file changed, 16 insertions(+), 20 deletions(-)
+ mm/frontswap.c |    2 +-
+ mm/swapfile.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/aio.c~aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx fs/aio.c
---- a/fs/aio.c~aio-use-call_rcu-instead-of-synchronize_rcu-in-kill_ioctx
-+++ a/fs/aio.c
-@@ -141,9 +141,6 @@ static void aio_free_ring(struct kioctx
- 	for (i = 0; i < ctx->nr_pages; i++)
- 		put_page(ctx->ring_pages[i]);
- 
--	if (ctx->mmap_size)
--		vm_munmap(ctx->mmap_base, ctx->mmap_size);
--
- 	if (ctx->ring_pages && ctx->ring_pages != ctx->internal_pages)
- 		kfree(ctx->ring_pages);
- }
-@@ -322,11 +319,6 @@ static void free_ioctx(struct kioctx *ct
- 
- 	aio_free_ring(ctx);
- 
--	spin_lock(&aio_nr_lock);
--	BUG_ON(aio_nr - ctx->max_reqs > aio_nr);
--	aio_nr -= ctx->max_reqs;
--	spin_unlock(&aio_nr_lock);
--
- 	pr_debug("freeing %p\n", ctx);
- 
- 	/*
-@@ -435,17 +427,24 @@ static void kill_ioctx(struct kioctx *ct
- {
- 	if (!atomic_xchg(&ctx->dead, 1)) {
- 		hlist_del_rcu(&ctx->list);
--		/* Between hlist_del_rcu() and dropping the initial ref */
--		synchronize_rcu();
- 
- 		/*
--		 * We can't punt to workqueue here because put_ioctx() ->
--		 * free_ioctx() will unmap the ringbuffer, and that has to be
--		 * done in the original process's context. kill_ioctx_rcu/work()
--		 * exist for exit_aio(), as in that path free_ioctx() won't do
--		 * the unmap.
-+		 * It'd be more correct to do this in free_ioctx(), after all
-+		 * the outstanding kiocbs have finished - but by then io_destroy
-+		 * has already returned, so io_setup() could potentially return
-+		 * -EAGAIN with no ioctxs actually in use (as far as userspace
-+		 *  could tell).
- 		 */
--		kill_ioctx_work(&ctx->rcu_work);
-+		spin_lock(&aio_nr_lock);
-+		BUG_ON(aio_nr - ctx->max_reqs > aio_nr);
-+		aio_nr -= ctx->max_reqs;
-+		spin_unlock(&aio_nr_lock);
-+
-+		if (ctx->mmap_size)
-+			vm_munmap(ctx->mmap_base, ctx->mmap_size);
-+
-+		/* Between hlist_del_rcu() and dropping the initial ref */
-+		call_rcu(&ctx->rcu_head, kill_ioctx_rcu);
+diff -puN mm/frontswap.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map mm/frontswap.c
+--- a/mm/frontswap.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map
++++ a/mm/frontswap.c
+@@ -319,7 +319,7 @@ void __frontswap_invalidate_area(unsigne
+ 			return;
+ 		frontswap_ops->invalidate_area(type);
+ 		atomic_set(&sis->frontswap_pages, 0);
+-		memset(sis->frontswap_map, 0, sis->max / sizeof(long));
++		bitmap_zero(sis->frontswap_map, sis->max);
  	}
+ 	clear_bit(type, need_init);
  }
- 
-@@ -495,10 +494,7 @@ void exit_aio(struct mm_struct *mm)
- 		 */
- 		ctx->mmap_size = 0;
- 
--		if (!atomic_xchg(&ctx->dead, 1)) {
--			hlist_del_rcu(&ctx->list);
--			call_rcu(&ctx->rcu_head, kill_ioctx_rcu);
--		}
-+		kill_ioctx(ctx);
+diff -puN mm/swapfile.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map mm/swapfile.c
+--- a/mm/swapfile.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map
++++ a/mm/swapfile.c
+@@ -2116,7 +2116,7 @@ SYSCALL_DEFINE2(swapon, const char __use
  	}
- }
+ 	/* frontswap enabled? set up bit-per-page map for frontswap */
+ 	if (frontswap_enabled)
+-		frontswap_map = vzalloc(maxpages / sizeof(long));
++		frontswap_map = vzalloc(BITS_TO_LONGS(maxpages) * sizeof(long));
  
+ 	if (p->bdev) {
+ 		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
 _
 
-Patches currently in -mm which might be from koverstreet@google.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 linux-next.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-api.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
 
