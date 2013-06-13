@@ -1,90 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-at91rm9200-add-match-table-compile-guard.patch
- removed from -mm tree
-Date: Thu, 13 Jun 2013 11:57:48 -0700
-Message-ID: <51ba162c.UsuDVyr+CzqO6yr1%akpm@linux-foundation.org>
+Subject: [merged]
+ swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch removed from -mm tree
+Date: Thu, 13 Jun 2013 11:57:44 -0700
+Message-ID: <51ba1628.kttKoA/i2ij7zc7x%akpm__23577.3765402429$1371149879$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37066 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab3FMS5t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:49 -0400
+	with ESMTP id S1758014Ab3FMS5p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, ludovic.desroches@atmel.com, dgilbert@interlog.com, Robert.Nelson@digikey.com, jhovold@gmail.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, shli@kernel.org, kosaki.motohiro@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, aquini@redhat.com
 
-Subject: [merged] rtc-at91rm9200-add-match-table-compile-guard.patch removed from -mm tree
-To: jhovold@gmail.com,Robert.Nelson@digikey.com,dgilbert@interlog.com,ludovic.desroches@atmel.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,mm-commits@vger.kernel.org
+Subject: [merged] swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch removed from -mm tree
+To: aquini@redhat.com,hannes@cmpxchg.org,hughd@google.com,kosaki.motohiro@jp.fujitsu.com,shli@kernel.org,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:48 -0700
+Date: Thu, 13 Jun 2013 11:57:44 -0700
 
 
 The patch titled
-     Subject: rtc-at91rm9200: add match-table compile guard
+     Subject: swap: avoid read_swap_cache_async() race to deadlock while waiting on discard I/O completion
 has been removed from the -mm tree.  Its filename was
-     rtc-at91rm9200-add-match-table-compile-guard.patch
+     swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johan Hovold <jhovold@gmail.com>
-Subject: rtc-at91rm9200: add match-table compile guard
+From: Rafael Aquini <aquini@redhat.com>
+Subject: swap: avoid read_swap_cache_async() race to deadlock while waiting on discard I/O completion
 
-The members of Atmel's at91sam9x5 family (9x5) have a broken RTC interrupt
-mask register (AT91_RTC_IMR).  It does not reflect enabled interrupts but
-instead always returns zero.
+read_swap_cache_async() can race against get_swap_page(), and stumble
+across a SWAP_HAS_CACHE entry in the swap map whose page wasn't brought
+into the swapcache yet.  This transient swap_map state is expected to be
+transitory, but the actual placement of discard at scan_swap_map() inserts
+a wait for I/O completion thus making the thread at
+read_swap_cache_async() to loop around its -EEXIST case, while the other
+end at get_swap_page() is scheduled away at scan_swap_map().  This can
+leave the system deadlocked if the I/O completion happens to be waiting on
+the CPU waitqueue where read_swap_cache_async() is busy looping and
+!CONFIG_PREEMPT.
 
-The kernel's rtc-at91rm9200 driver handles the RTC for the 9x5 family. 
-Currently when the date/time is set, an interrupt is generated and this
-driver neglects to handle the interrupt.  The kernel complains about the
-un-handled interrupt and disables it henceforth.  This not only breaks the
-RTC function, but since that interrupt is shared (Atmel's SYS interrupt)
-then other things break as well (e.g.  the debug port no longer accepts
-characters).
+This patch introduces a cond_resched() call to make the aforementioned
+read_swap_cache_async() busy loop condition to bail out when necessary,
+thus avoiding the subtle race window.
 
-Tested on the at91sam9g25. Bug confirmed by Atmel.
-
-
-This patch (of 5):
-
-Add missing match-table compile guard.
-
-Signed-off-by: Johan Hovold <jhovold@gmail.com>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Douglas Gilbert <dgilbert@interlog.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Robert Nelson <Robert.Nelson@digikey.com>
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/swap_state.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-match-table-compile-guard drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-match-table-compile-guard
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -383,11 +383,13 @@ static int at91_rtc_resume(struct device
- 
- static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops, at91_rtc_suspend, at91_rtc_resume);
- 
-+#ifdef CONFIG_OF
- static const struct of_device_id at91_rtc_dt_ids[] = {
- 	{ .compatible = "atmel,at91rm9200-rtc" },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(of, at91_rtc_dt_ids);
-+#endif
- 
- static struct platform_driver at91_rtc_driver = {
- 	.remove		= __exit_p(at91_rtc_remove),
+diff -puN mm/swap_state.c~swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion mm/swap_state.c
+--- a/mm/swap_state.c~swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion
++++ a/mm/swap_state.c
+@@ -336,8 +336,24 @@ struct page *read_swap_cache_async(swp_e
+ 		 * Swap entry may have been freed since our caller observed it.
+ 		 */
+ 		err = swapcache_prepare(entry);
+-		if (err == -EEXIST) {	/* seems racy */
++		if (err == -EEXIST) {
+ 			radix_tree_preload_end();
++			/*
++			 * We might race against get_swap_page() and stumble
++			 * across a SWAP_HAS_CACHE swap_map entry whose page
++			 * has not been brought into the swapcache yet, while
++			 * the other end is scheduled away waiting on discard
++			 * I/O completion at scan_swap_map().
++			 *
++			 * In order to avoid turning this transitory state
++			 * into a permanent loop around this -EEXIST case
++			 * if !CONFIG_PREEMPT and the I/O completion happens
++			 * to be waiting on the CPU waitqueue where we are now
++			 * busy looping, we just conditionally invoke the
++			 * scheduler here, if there are some more important
++			 * tasks to run.
++			 */
++			cond_resched();
+ 			continue;
+ 		}
+ 		if (err) {		/* swp entry is obsolete ? */
 _
 
-Patches currently in -mm which might be from jhovold@gmail.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
 origin.patch
-linux-next.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
