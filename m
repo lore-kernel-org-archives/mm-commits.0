@@ -1,144 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch removed from
- -mm tree
-Date: Thu, 13 Jun 2013 11:58:12 -0700
-Message-ID: <51ba1644.qkG1GtU8Zsar6zfc%akpm@linux-foundation.org>
+Subject: + zbud-add-to-mm-init-under_reclaim.patch added to -mm tree
+Date: Thu, 13 Jun 2013 12:25:03 -0700
+Message-ID: <51ba1c8f.EesvsSQ4XHYyea6m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37306 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758256Ab3FMS6N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:58:13 -0400
+	with ESMTP id S1752899Ab3FMTZE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 15:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, stable@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, glommer@parallels.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, bob.liu@oracle.com, sjenning@linux.vnet.ibm.com
 
-Subject: [merged] mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch removed from -mm tree
-To: hannes@cmpxchg.org,glommer@parallels.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,stable@kernel.org,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: + zbud-add-to-mm-init-under_reclaim.patch added to -mm tree
+To: sjenning@linux.vnet.ibm.com,bob.liu@oracle.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:58:12 -0700
+Date: Thu, 13 Jun 2013 12:25:03 -0700
 
 
 The patch titled
-     Subject: mm: memcontrol: fix lockless reclaim hierarchy iterator
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator.patch
+     Subject: zswap: init under_reclaim
+has been added to the -mm tree.  Its filename is
+     zbud-add-to-mm-init-under_reclaim.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fix lockless reclaim hierarchy iterator
+From: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Subject: zswap: init under_reclaim
 
-The lockless reclaim hierarchy iterator currently has a misplaced barrier
-that can lead to use-after-free crashes.
+Bob Liu reported a memory leak in zswap.  This was due to the
+under_reclaim field in the zbud header not being initialized
+to 0, which resulted in zbud_free() not freeing the page
+under the false assumption that the page was undergoing
+zbud reclaim.
 
-The reclaim hierarchy iterator consist of a sequence count and a position
-pointer that are read and written locklessly, with memory barriers
-enforcing ordering.
+This patch properly initializes the under_reclaim field.
 
-The write side sets the position pointer first, then updates the sequence
-count to "publish" the new position.  Likewise, the read side must read
-the sequence count first, then the position.  If the sequence count is up
-to date, it's guaranteed that the position is up to date as well:
-
-  writer:                         reader:
-  iter->position = position       if iter->sequence == expected:
-  smp_wmb()                           smp_rmb()
-  iter->sequence = sequence           position = iter->position
-
-However, the read side barrier is currently misplaced, which can lead to
-dereferencing stale position pointers that no longer point to valid
-memory.  Fix this.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: <stable@kernel.org>		[3.10+]
+Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Reported-by: Bob Liu <bob.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/zbud.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-lockless-reclaim-hierarchy-iterator
-+++ a/mm/memcontrol.c
-@@ -1199,7 +1199,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 
- 			mz = mem_cgroup_zoneinfo(root, nid, zid);
- 			iter = &mz->reclaim_iter[reclaim->priority];
--			last_visited = iter->last_visited;
- 			if (prev && reclaim->generation != iter->generation) {
- 				iter->last_visited = NULL;
- 				goto out_unlock;
-@@ -1218,13 +1217,12 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 			 * is alive.
- 			 */
- 			dead_count = atomic_read(&root->dead_count);
--			smp_rmb();
--			last_visited = iter->last_visited;
--			if (last_visited) {
--				if ((dead_count != iter->last_dead_count) ||
--					!css_tryget(&last_visited->css)) {
-+			if (dead_count == iter->last_dead_count) {
-+				smp_rmb();
-+				last_visited = iter->last_visited;
-+				if (last_visited &&
-+				    !css_tryget(&last_visited->css))
- 					last_visited = NULL;
--				}
- 			}
- 		}
+diff -puN mm/zbud.c~zbud-add-to-mm-init-under_reclaim mm/zbud.c
+--- a/mm/zbud.c~zbud-add-to-mm-init-under_reclaim
++++ a/mm/zbud.c
+@@ -138,6 +138,7 @@ static struct zbud_header *init_zbud_pag
+ 	zhdr->last_chunks = 0;
+ 	INIT_LIST_HEAD(&zhdr->buddy);
+ 	INIT_LIST_HEAD(&zhdr->lru);
++	zhdr->under_reclaim = 0;
+ 	return zhdr;
+ }
  
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
 
-origin.patch
 linux-next.patch
-mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
-mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
-mm-vmscan-flatten-kswapd-priority-loop.patch
-mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
-mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
-mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
-mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
-mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
-mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
-mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
-mm-vmscan-set-zone-flags-before-blocking.patch
-mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
-mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
-mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
-fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
-memcg-update-todo-list-in-documentation.patch
-mm-add-tracepoints-for-lru-activation-and-insertions.patch
-mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
-mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
-mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-memcg-kconfig-info-update.patch
-mm-kill-free_all_bootmem_node.patch
-mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch
-memcg-clean-up-memcg-nodeinfo.patch
-mm-invoke-oom-killer-from-remaining-unconverted-page-fault-handlers.patch
-mm-vmallocc-remove-dead-code-in-vb_alloc.patch
-mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch
-mm-vmallocc-remove-alloc_map-from-vmap_block.patch
-memcg-also-test-for-skip-accounting-at-the-page-allocation-level.patch
-memcg-do-not-account-memory-used-for-cache-creation.patch
-mm-memmap_init_zone-performance-improvement.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+zbud-add-to-mm.patch
+zbud-add-to-mm-init-under_reclaim.patch
+zswap-add-to-mm.patch
+zswap-add-documentation.patch
 
