@@ -1,81 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch removed
- from -mm tree
-Date: Thu, 13 Jun 2013 11:57:36 -0700
-Message-ID: <51ba1620.JMLtTD9DeDaqVsAO%akpm@linux-foundation.org>
+Subject: [merged] rtc-tps6586x-device-wakeup-flags-correction.patch
+ removed from -mm tree
+Date: Thu, 13 Jun 2013 11:57:34 -0700
+Message-ID: <51ba161e.lwdqUy9wP6Za4Aod%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37046 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757091Ab3FMS5g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:36 -0400
+	with ESMTP id S1757091Ab3FMS5f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dbasehore@chromium.org
+To: mm-commits@vger.kernel.org, ldewangan@nvidia.com, jg1.han@samsung.com, digetx@gmail.com
 
-Subject: [merged] drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch removed from -mm tree
-To: dbasehore@chromium.org,mm-commits@vger.kernel.org
+Subject: [merged] rtc-tps6586x-device-wakeup-flags-correction.patch removed from -mm tree
+To: digetx@gmail.com,jg1.han@samsung.com,ldewangan@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:36 -0700
+Date: Thu, 13 Jun 2013 11:57:34 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-cmos.c: fix accidentally enabling rtc channel
+     Subject: drivers/rtc/rtc-tps6586x.c: device wakeup flags correction
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
+     rtc-tps6586x-device-wakeup-flags-correction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Derek Basehore <dbasehore@chromium.org>
-Subject: drivers/rtc/rtc-cmos.c: fix accidentally enabling rtc channel
+From: Dmitry Osipenko <digetx@gmail.com>
+Subject: drivers/rtc/rtc-tps6586x.c: device wakeup flags correction
 
-During resume, we call hpet_rtc_timer_init after masking an irq bit in
-hpet.  This will cause the call to hpet_disable_rtc_channel to be undone
-if RTC_AIE is the only bit not masked.
+Use device_init_wakeup() instead of device_set_wakeup_capable() and move
+it before rtc dev registering.  This fixes alarmtimer not registered when
+tps6586x rtc is the only wakeup compatible rtc in the system.
 
-Allowing the cmos interrupt handler to run before resuming caused some
-issues where the timer for the alarm was not removed.  This would cause
-other, later timers to not be cleared, so utilities such as hwclock would
-time out when waiting for the update interrupt.
-
-[akpm@linux-foundation.org: coding-style tweak]
-Signed-off-by: Derek Basehore <dbasehore@chromium.org>
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-tps6586x.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -854,6 +854,9 @@ static int cmos_resume(struct device *de
- 		}
- 
- 		spin_lock_irq(&rtc_lock);
-+		if (device_may_wakeup(dev))
-+			hpet_rtc_timer_init();
-+
- 		do {
- 			CMOS_WRITE(tmp, RTC_CONTROL);
- 			hpet_set_rtc_irq_bit(tmp & RTC_IRQMASK);
-@@ -869,7 +872,6 @@ static int cmos_resume(struct device *de
- 			rtc_update_irq(cmos->rtc, 1, mask);
- 			tmp &= ~RTC_AIE;
- 			hpet_mask_rtc_irq_bit(RTC_AIE);
--			hpet_rtc_timer_init();
- 		} while (mask & RTC_AIE);
- 		spin_unlock_irq(&rtc_lock);
+diff -puN drivers/rtc/rtc-tps6586x.c~rtc-tps6586x-device-wakeup-flags-correction drivers/rtc/rtc-tps6586x.c
+--- a/drivers/rtc/rtc-tps6586x.c~rtc-tps6586x-device-wakeup-flags-correction
++++ a/drivers/rtc/rtc-tps6586x.c
+@@ -273,6 +273,8 @@ static int tps6586x_rtc_probe(struct pla
+ 		return ret;
  	}
+ 
++	device_init_wakeup(&pdev->dev, 1);
++
+ 	platform_set_drvdata(pdev, rtc);
+ 	rtc->rtc = devm_rtc_device_register(&pdev->dev, dev_name(&pdev->dev),
+ 				       &tps6586x_rtc_ops, THIS_MODULE);
+@@ -292,7 +294,6 @@ static int tps6586x_rtc_probe(struct pla
+ 		goto fail_rtc_register;
+ 	}
+ 	disable_irq(rtc->irq);
+-	device_set_wakeup_capable(&pdev->dev, 1);
+ 	return 0;
+ 
+ fail_rtc_register:
 _
 
-Patches currently in -mm which might be from dbasehore@chromium.org are
+Patches currently in -mm which might be from digetx@gmail.com are
 
 origin.patch
-drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch
+linux-next.patch
 
