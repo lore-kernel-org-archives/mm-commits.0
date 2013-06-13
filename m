@@ -1,89 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch removed from -mm tree
-Date: Thu, 13 Jun 2013 11:58:10 -0700
-Message-ID: <51ba1642.EgYB53uQ9PKmVzy0%akpm@linux-foundation.org>
+Subject: [merged] mm-migration-add-migrate_entry_wait_huge.patch removed
+ from -mm tree
+Date: Thu, 13 Jun 2013 11:58:06 -0700
+Message-ID: <51ba163e.7OYXW4d50/T7QtfD%akpm__34910.9657611281$1371149903$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37132 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab3FMS6K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:58:10 -0400
+	with ESMTP id S1756646Ab3FMS6H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:58:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, konrad.wilk@oracle.com, akinobu.mita@gmail.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
 
-Subject: [merged] frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch removed from -mm tree
-To: akinobu.mita@gmail.com,konrad.wilk@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-migration-add-migrate_entry_wait_huge.patch removed from -mm tree
+To: n-horiguchi@ah.jp.nec.com,andi@firstfloor.org,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:58:10 -0700
+Date: Thu, 13 Jun 2013 11:58:06 -0700
 
 
 The patch titled
-     Subject: frontswap: fix incorrect zeroing and allocation size for frontswap_map
+     Subject: mm: migration: add migrate_entry_wait_huge()
 has been removed from the -mm tree.  Its filename was
-     frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map.patch
+     mm-migration-add-migrate_entry_wait_huge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: frontswap: fix incorrect zeroing and allocation size for frontswap_map
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: migration: add migrate_entry_wait_huge()
 
-The bitmap accessed by bitops must have enough size to hold the required
-numbers of bits rounded up to a multiple of BITS_PER_LONG.  And the bitmap
-must not be zeroed by memset() if the number of bits cleared is not a
-multiple of BITS_PER_LONG.
+When we have a page fault for the address which is backed by a hugepage
+under migration, the kernel can't wait correctly and do busy looping on
+hugepage fault until the migration finishes.  As a result, users who try
+to kick hugepage migration (via soft offlining, for example) occasionally
+experience long delay or soft lockup.
 
-This fixes incorrect zeroing and allocation size for frontswap_map.  The
-incorrect zeroing part doesn't cause any problem because frontswap_map is
-freed just after zeroing.  But the wrongly calculated allocation size may
-cause the problem.
+This is because pte_offset_map_lock() can't get a correct migration entry
+or a correct page table lock for hugepage.  This patch introduces
+migration_entry_wait_huge() to solve this.
 
-For 32bit systems, the allocation size of frontswap_map is about twice as
-large as required size.  For 64bit systems, the allocation size is smaller
-than requeired if the number of bits is not a multiple of BITS_PER_LONG.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>	[2.6.35+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frontswap.c |    2 +-
- mm/swapfile.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/swapops.h |    3 +++
+ mm/hugetlb.c            |    2 +-
+ mm/migrate.c            |   23 ++++++++++++++++++-----
+ 3 files changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN mm/frontswap.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map mm/frontswap.c
---- a/mm/frontswap.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map
-+++ a/mm/frontswap.c
-@@ -319,7 +319,7 @@ void __frontswap_invalidate_area(unsigne
- 			return;
- 		frontswap_ops->invalidate_area(type);
- 		atomic_set(&sis->frontswap_pages, 0);
--		memset(sis->frontswap_map, 0, sis->max / sizeof(long));
-+		bitmap_zero(sis->frontswap_map, sis->max);
- 	}
- 	clear_bit(type, need_init);
- }
-diff -puN mm/swapfile.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map mm/swapfile.c
---- a/mm/swapfile.c~frontswap-fix-incorrect-zeroing-and-allocation-size-for-frontswap_map
-+++ a/mm/swapfile.c
-@@ -2116,7 +2116,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	}
- 	/* frontswap enabled? set up bit-per-page map for frontswap */
- 	if (frontswap_enabled)
--		frontswap_map = vzalloc(maxpages / sizeof(long));
-+		frontswap_map = vzalloc(BITS_TO_LONGS(maxpages) * sizeof(long));
+diff -puN include/linux/swapops.h~mm-migration-add-migrate_entry_wait_huge include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-migration-add-migrate_entry_wait_huge
++++ a/include/linux/swapops.h
+@@ -137,6 +137,7 @@ static inline void make_migration_entry_
  
- 	if (p->bdev) {
- 		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+ extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					unsigned long address);
++extern void migration_entry_wait_huge(struct mm_struct *mm, pte_t *pte);
+ #else
+ 
+ #define make_migration_entry(page, write) swp_entry(0, 0)
+@@ -148,6 +149,8 @@ static inline int is_migration_entry(swp
+ static inline void make_migration_entry_read(swp_entry_t *entryp) { }
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					 unsigned long address) { }
++static inline void migration_entry_wait_huge(struct mm_struct *mm,
++					pte_t *pte) { }
+ static inline int is_write_migration_entry(swp_entry_t entry)
+ {
+ 	return 0;
+diff -puN mm/hugetlb.c~mm-migration-add-migrate_entry_wait_huge mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-migration-add-migrate_entry_wait_huge
++++ a/mm/hugetlb.c
+@@ -2839,7 +2839,7 @@ int hugetlb_fault(struct mm_struct *mm,
+ 	if (ptep) {
+ 		entry = huge_ptep_get(ptep);
+ 		if (unlikely(is_hugetlb_entry_migration(entry))) {
+-			migration_entry_wait(mm, (pmd_t *)ptep, address);
++			migration_entry_wait_huge(mm, ptep);
+ 			return 0;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
+ 			return VM_FAULT_HWPOISON_LARGE |
+diff -puN mm/migrate.c~mm-migration-add-migrate_entry_wait_huge mm/migrate.c
+--- a/mm/migrate.c~mm-migration-add-migrate_entry_wait_huge
++++ a/mm/migrate.c
+@@ -200,15 +200,14 @@ static void remove_migration_ptes(struct
+  * get to the page and wait until migration is finished.
+  * When we return from this function the fault will be retried.
+  */
+-void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+-				unsigned long address)
++static void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
++				spinlock_t *ptl)
+ {
+-	pte_t *ptep, pte;
+-	spinlock_t *ptl;
++	pte_t pte;
+ 	swp_entry_t entry;
+ 	struct page *page;
+ 
+-	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
++	spin_lock(ptl);
+ 	pte = *ptep;
+ 	if (!is_swap_pte(pte))
+ 		goto out;
+@@ -236,6 +235,20 @@ out:
+ 	pte_unmap_unlock(ptep, ptl);
+ }
+ 
++void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
++				unsigned long address)
++{
++	spinlock_t *ptl = pte_lockptr(mm, pmd);
++	pte_t *ptep = pte_offset_map(pmd, address);
++	__migration_entry_wait(mm, ptep, ptl);
++}
++
++void migration_entry_wait_huge(struct mm_struct *mm, pte_t *pte)
++{
++	spinlock_t *ptl = &(mm)->page_table_lock;
++	__migration_entry_wait(mm, pte, ptl);
++}
++
+ #ifdef CONFIG_BLOCK
+ /* Returns true if all buffers are successfully locked */
+ static bool buffer_migrate_lock_buffers(struct buffer_head *head,
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-linux-next.patch
+mm-memory-failurec-fix-memory-leak-in-successful-soft-offlining.patch
 
