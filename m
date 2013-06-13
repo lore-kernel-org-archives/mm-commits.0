@@ -1,100 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch removed from -mm tree
-Date: Thu, 13 Jun 2013 11:57:44 -0700
-Message-ID: <51ba1628.kttKoA/i2ij7zc7x%akpm__23577.3765402429$1371149879$gmane$org@linux-foundation.org>
+Subject: [merged] rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch
+ removed from -mm tree
+Date: Thu, 13 Jun 2013 11:57:56 -0700
+Message-ID: <51ba1634.ufhOWqNIWT5EjzSo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37101 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758014Ab3FMS5p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:45 -0400
+	with ESMTP id S1756646Ab3FMS55 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, shli@kernel.org, kosaki.motohiro@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, aquini@redhat.com
+To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, ludovic.desroches@atmel.com, dgilbert@interlog.com, Robert.Nelson@digikey.com, jhovold@gmail.com
 
-Subject: [merged] swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch removed from -mm tree
-To: aquini@redhat.com,hannes@cmpxchg.org,hughd@google.com,kosaki.motohiro@jp.fujitsu.com,shli@kernel.org,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch removed from -mm tree
+To: jhovold@gmail.com,Robert.Nelson@digikey.com,dgilbert@interlog.com,ludovic.desroches@atmel.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:44 -0700
+Date: Thu, 13 Jun 2013 11:57:56 -0700
 
 
 The patch titled
-     Subject: swap: avoid read_swap_cache_async() race to deadlock while waiting on discard I/O completion
+     Subject: rtc-at91rm9200: use shadow IMR on at91sam9x5
 has been removed from the -mm tree.  Its filename was
-     swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion.patch
+     rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: swap: avoid read_swap_cache_async() race to deadlock while waiting on discard I/O completion
+From: Johan Hovold <jhovold@gmail.com>
+Subject: rtc-at91rm9200: use shadow IMR on at91sam9x5
 
-read_swap_cache_async() can race against get_swap_page(), and stumble
-across a SWAP_HAS_CACHE entry in the swap map whose page wasn't brought
-into the swapcache yet.  This transient swap_map state is expected to be
-transitory, but the actual placement of discard at scan_swap_map() inserts
-a wait for I/O completion thus making the thread at
-read_swap_cache_async() to loop around its -EEXIST case, while the other
-end at get_swap_page() is scheduled away at scan_swap_map().  This can
-leave the system deadlocked if the I/O completion happens to be waiting on
-the CPU waitqueue where read_swap_cache_async() is busy looping and
-!CONFIG_PREEMPT.
+Add support for the at91sam9x5-family which must use the shadow interrupt
+mask due to a hardware issue (causing RTC_IMR to always be zero).
 
-This patch introduces a cond_resched() call to make the aforementioned
-read_swap_cache_async() busy loop condition to bail out when necessary,
-thus avoiding the subtle race window.
-
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Douglas Gilbert <dgilbert@interlog.com>
+Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
+Cc: Robert Nelson <Robert.Nelson@digikey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt |    2 +-
+ drivers/rtc/rtc-at91rm9200.c                                   |    7 +++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap_state.c~swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion mm/swap_state.c
---- a/mm/swap_state.c~swap-avoid-read_swap_cache_async-race-to-deadlock-while-waiting-on-discard-i-o-completion
-+++ a/mm/swap_state.c
-@@ -336,8 +336,24 @@ struct page *read_swap_cache_async(swp_e
- 		 * Swap entry may have been freed since our caller observed it.
- 		 */
- 		err = swapcache_prepare(entry);
--		if (err == -EEXIST) {	/* seems racy */
-+		if (err == -EEXIST) {
- 			radix_tree_preload_end();
-+			/*
-+			 * We might race against get_swap_page() and stumble
-+			 * across a SWAP_HAS_CACHE swap_map entry whose page
-+			 * has not been brought into the swapcache yet, while
-+			 * the other end is scheduled away waiting on discard
-+			 * I/O completion at scan_swap_map().
-+			 *
-+			 * In order to avoid turning this transitory state
-+			 * into a permanent loop around this -EEXIST case
-+			 * if !CONFIG_PREEMPT and the I/O completion happens
-+			 * to be waiting on the CPU waitqueue where we are now
-+			 * busy looping, we just conditionally invoke the
-+			 * scheduler here, if there are some more important
-+			 * tasks to run.
-+			 */
-+			cond_resched();
- 			continue;
- 		}
- 		if (err) {		/* swp entry is obsolete ? */
+diff -puN Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5 Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
+--- a/Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5
++++ a/Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
+@@ -1,7 +1,7 @@
+ Atmel AT91RM9200 Real Time Clock
+ 
+ Required properties:
+-- compatible: should be: "atmel,at91rm9200-rtc"
++- compatible: should be: "atmel,at91rm9200-rtc" or "atmel,at91sam9x5-rtc"
+ - reg: physical base address of the controller and length of memory mapped
+   region.
+ - interrupts: rtc alarm/event interrupt
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5 drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -309,12 +309,19 @@ static irqreturn_t at91_rtc_interrupt(in
+ static const struct at91_rtc_config at91rm9200_config = {
+ };
+ 
++static const struct at91_rtc_config at91sam9x5_config = {
++	.use_shadow_imr	= true,
++};
++
+ #ifdef CONFIG_OF
+ static const struct of_device_id at91_rtc_dt_ids[] = {
+ 	{
+ 		.compatible = "atmel,at91rm9200-rtc",
+ 		.data = &at91rm9200_config,
+ 	}, {
++		.compatible = "atmel,at91sam9x5-rtc",
++		.data = &at91sam9x5_config,
++	}, {
+ 		/* sentinel */
+ 	}
+ };
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
 origin.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+linux-next.patch
 
