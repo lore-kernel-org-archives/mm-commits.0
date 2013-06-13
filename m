@@ -1,71 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch removed from -mm tree
-Date: Thu, 13 Jun 2013 11:57:46 -0700
-Message-ID: <51ba162a.GXH22rfNutD19lfH%akpm@linux-foundation.org>
+Subject: [merged] rtc-at91rm9200-add-shadow-interrupt-mask.patch removed
+ from -mm tree
+Date: Thu, 13 Jun 2013 11:57:54 -0700
+Message-ID: <51ba1632.OZQ7P6UI4ifWoe5Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37071 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37095 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758014Ab3FMS5r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:47 -0400
+	with ESMTP id S1756646Ab3FMS5z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, rgoldwyn@gmail.com
+To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, ludovic.desroches@atmel.com, dgilbert@interlog.com, Robert.Nelson@digikey.com, jhovold@gmail.com
 
-Subject: [merged] fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch removed from -mm tree
-To: rgoldwyn@gmail.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] rtc-at91rm9200-add-shadow-interrupt-mask.patch removed from -mm tree
+To: jhovold@gmail.com,Robert.Nelson@digikey.com,dgilbert@interlog.com,ludovic.desroches@atmel.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:46 -0700
+Date: Thu, 13 Jun 2013 11:57:54 -0700
 
 
 The patch titled
-     Subject: fs/ocfs2/namei.c: remove unecessary ERROR when removing non-empty directory
+     Subject: rtc-at91rm9200: add shadow interrupt mask
 has been removed from the -mm tree.  Its filename was
-     fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory.patch
+     rtc-at91rm9200-add-shadow-interrupt-mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@gmail.com>
-Subject: fs/ocfs2/namei.c: remove unecessary ERROR when removing non-empty directory
+From: Johan Hovold <jhovold@gmail.com>
+Subject: rtc-at91rm9200: add shadow interrupt mask
 
-While removing a non-empty directory, the kernel dumps a message:
-(rmdir,21743,1):ocfs2_unlink:953 ERROR: status = -39
+Add shadow interrupt-mask register which can be used on SoCs where the
+actual hardware register is broken.
 
-Suppress the error message from being printed in the dmesg so users
-don't panic.
+Note that some care needs to be taken to make sure the shadow mask
+corresponds to the actual hardware state.  The added overhead is not an
+issue for the non-broken SoCs due to the relatively infrequent
+interrupt-mask updates.  We do, however, only use the shadow mask value as
+a fall-back when it actually needed as there is still a theoretical
+possibility that the mask is incorrect (see the code for details).
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Douglas Gilbert <dgilbert@interlog.com>
+Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
+Cc: Robert Nelson <Robert.Nelson@digikey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-at91rm9200.c |   39 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/namei.c~fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~fs-ocfs2-nameic-remove-unecessary-error-when-removing-non-empty-directory
-+++ a/fs/ocfs2/namei.c
-@@ -947,7 +947,7 @@ leave:
- 	ocfs2_free_dir_lookup_result(&orphan_insert);
- 	ocfs2_free_dir_lookup_result(&lookup);
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-shadow-interrupt-mask drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-shadow-interrupt-mask
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -25,6 +25,7 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
+ #include <linux/interrupt.h>
++#include <linux/spinlock.h>
+ #include <linux/ioctl.h>
+ #include <linux/completion.h>
+ #include <linux/io.h>
+@@ -43,6 +44,7 @@
+ #define AT91_RTC_EPOCH		1900UL	/* just like arch/arm/common/rtctime.c */
  
--	if (status)
-+	if (status && (status != -ENOTEMPTY))
- 		mlog_errno(status);
+ struct at91_rtc_config {
++	bool use_shadow_imr;
+ };
  
- 	return status;
+ static const struct at91_rtc_config *at91_rtc_config;
+@@ -50,20 +52,55 @@ static DECLARE_COMPLETION(at91_rtc_updat
+ static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
+ static void __iomem *at91_rtc_regs;
+ static int irq;
++static DEFINE_SPINLOCK(at91_rtc_lock);
++static u32 at91_rtc_shadow_imr;
+ 
+ static void at91_rtc_write_ier(u32 mask)
+ {
++	unsigned long flags;
++
++	spin_lock_irqsave(&at91_rtc_lock, flags);
++	at91_rtc_shadow_imr |= mask;
+ 	at91_rtc_write(AT91_RTC_IER, mask);
++	spin_unlock_irqrestore(&at91_rtc_lock, flags);
+ }
+ 
+ static void at91_rtc_write_idr(u32 mask)
+ {
++	unsigned long flags;
++
++	spin_lock_irqsave(&at91_rtc_lock, flags);
+ 	at91_rtc_write(AT91_RTC_IDR, mask);
++	/*
++	 * Register read back (of any RTC-register) needed to make sure
++	 * IDR-register write has reached the peripheral before updating
++	 * shadow mask.
++	 *
++	 * Note that there is still a possibility that the mask is updated
++	 * before interrupts have actually been disabled in hardware. The only
++	 * way to be certain would be to poll the IMR-register, which is is
++	 * the very register we are trying to emulate. The register read back
++	 * is a reasonable heuristic.
++	 */
++	at91_rtc_read(AT91_RTC_SR);
++	at91_rtc_shadow_imr &= ~mask;
++	spin_unlock_irqrestore(&at91_rtc_lock, flags);
+ }
+ 
+ static u32 at91_rtc_read_imr(void)
+ {
+-	return at91_rtc_read(AT91_RTC_IMR);
++	unsigned long flags;
++	u32 mask;
++
++	if (at91_rtc_config->use_shadow_imr) {
++		spin_lock_irqsave(&at91_rtc_lock, flags);
++		mask = at91_rtc_shadow_imr;
++		spin_unlock_irqrestore(&at91_rtc_lock, flags);
++	} else {
++		mask = at91_rtc_read(AT91_RTC_IMR);
++	}
++
++	return mask;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rgoldwyn@gmail.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
 origin.patch
-ocfs2-remove-unecessary-variable-needs_checkpoint.patch
+linux-next.patch
 
