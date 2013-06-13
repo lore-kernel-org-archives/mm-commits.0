@@ -1,87 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- checkpatch-camelcase-ignore-si-unit-variants-like-_uv.patch removed from
- -mm tree
-Date: Thu, 13 Jun 2013 14:10:19 -0700
-Message-ID: <51ba353b.TlzEy+Prp1kCGnx4%akpm@linux-foundation.org>
+Subject: + mm-remove-zone_type-argument-of-build_zonelists_node.patch
+ added to -mm tree
+Date: Thu, 13 Jun 2013 14:25:56 -0700
+Message-ID: <51ba38e4.GXcVSVOupGSpFHaD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37922 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757677Ab3FMVKU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 17:10:20 -0400
+	with ESMTP id S1758816Ab3FMVZ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 17:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, phil.carmody@partner.samsung.com, joe@perches.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, zhangyanfei@cn.fujitsu.com
 
-Subject: [to-be-updated] checkpatch-camelcase-ignore-si-unit-variants-like-_uv.patch removed from -mm tree
-To: joe@perches.com,phil.carmody@partner.samsung.com,mm-commits@vger.kernel.org
+Subject: + mm-remove-zone_type-argument-of-build_zonelists_node.patch added to -mm tree
+To: zhangyanfei@cn.fujitsu.com,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 14:10:19 -0700
+Date: Thu, 13 Jun 2013 14:25:56 -0700
 
 
 The patch titled
-     Subject: checkpatch: CamelCase - ignore SI unit variants like "_uV"
-has been removed from the -mm tree.  Its filename was
-     checkpatch-camelcase-ignore-si-unit-variants-like-_uv.patch
+     Subject: mm/page_alloc.c: remove zone_type argument of build_zonelists_node
+has been added to the -mm tree.  Its filename is
+     mm-remove-zone_type-argument-of-build_zonelists_node.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: CamelCase - ignore SI unit variants like "_uV"
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: mm/page_alloc.c: remove zone_type argument of build_zonelists_node
 
-Many existing variable names use SI like variants that should be otherwise
-obvious and acceptable.
+The callers of build_zonelists_node always pass MAX_NR_ZONES -1 as the
+zone_type argument, so we can directly use the value in
+build_zonelists_node and remove zone_type argument.
 
-Whitelist them from the CamelCase message.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Phil Carmody <phil.carmody@partner.samsung.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_alloc.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-camelcase-ignore-si-unit-variants-like-_uv scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-camelcase-ignore-si-unit-variants-like-_uv
-+++ a/scripts/checkpatch.pl
-@@ -3195,7 +3195,10 @@ sub process {
- #CamelCase
- 			if ($var !~ /^$Constant$/ &&
- 			    $var =~ /[A-Z][a-z]|[a-z][A-Z]/ &&
-+#Ignore Page<foo> variants
- 			    $var !~ /^(?:Clear|Set|TestClear|TestSet|)Page[A-Z]/ &&
-+#Ignore SI style variants like nS, mV and dB (ie: max_uV, regulator_min_uA_show)
-+			    $var !~ /"_[a-z][A-Z](?:_\w+)?$/ &&
- 			    !defined $camelcase{$var}) {
- 				$camelcase{$var} = 1;
- 				CHK("CAMELCASE",
+diff -puN mm/page_alloc.c~mm-remove-zone_type-argument-of-build_zonelists_node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-zone_type-argument-of-build_zonelists_node
++++ a/mm/page_alloc.c
+@@ -3153,12 +3153,10 @@ static void zoneref_set_zone(struct zone
+  * Add all populated zones of a node to the zonelist.
+  */
+ static int build_zonelists_node(pg_data_t *pgdat, struct zonelist *zonelist,
+-				int nr_zones, enum zone_type zone_type)
++				int nr_zones)
+ {
+ 	struct zone *zone;
+-
+-	BUG_ON(zone_type >= MAX_NR_ZONES);
+-	zone_type++;
++	enum zone_type zone_type = MAX_NR_ZONES;
+ 
+ 	do {
+ 		zone_type--;
+@@ -3168,8 +3166,8 @@ static int build_zonelists_node(pg_data_
+ 				&zonelist->_zonerefs[nr_zones++]);
+ 			check_highest_zone(zone_type);
+ 		}
+-
+ 	} while (zone_type);
++
+ 	return nr_zones;
+ }
+ 
+@@ -3363,8 +3361,7 @@ static void build_zonelists_in_node_orde
+ 	zonelist = &pgdat->node_zonelists[0];
+ 	for (j = 0; zonelist->_zonerefs[j].zone != NULL; j++)
+ 		;
+-	j = build_zonelists_node(NODE_DATA(node), zonelist, j,
+-							MAX_NR_ZONES - 1);
++	j = build_zonelists_node(NODE_DATA(node), zonelist, j);
+ 	zonelist->_zonerefs[j].zone = NULL;
+ 	zonelist->_zonerefs[j].zone_idx = 0;
+ }
+@@ -3378,7 +3375,7 @@ static void build_thisnode_zonelists(pg_
+ 	struct zonelist *zonelist;
+ 
+ 	zonelist = &pgdat->node_zonelists[1];
+-	j = build_zonelists_node(pgdat, zonelist, 0, MAX_NR_ZONES - 1);
++	j = build_zonelists_node(pgdat, zonelist, 0);
+ 	zonelist->_zonerefs[j].zone = NULL;
+ 	zonelist->_zonerefs[j].zone_idx = 0;
+ }
+@@ -3586,7 +3583,7 @@ static void build_zonelists(pg_data_t *p
+ 	local_node = pgdat->node_id;
+ 
+ 	zonelist = &pgdat->node_zonelists[0];
+-	j = build_zonelists_node(pgdat, zonelist, 0, MAX_NR_ZONES - 1);
++	j = build_zonelists_node(pgdat, zonelist, 0);
+ 
+ 	/*
+ 	 * Now we build the zonelist so that it contains the zones
+@@ -3599,14 +3596,12 @@ static void build_zonelists(pg_data_t *p
+ 	for (node = local_node + 1; node < MAX_NUMNODES; node++) {
+ 		if (!node_online(node))
+ 			continue;
+-		j = build_zonelists_node(NODE_DATA(node), zonelist, j,
+-							MAX_NR_ZONES - 1);
++		j = build_zonelists_node(NODE_DATA(node), zonelist, j);
+ 	}
+ 	for (node = 0; node < local_node; node++) {
+ 		if (!node_online(node))
+ 			continue;
+-		j = build_zonelists_node(NODE_DATA(node), zonelist, j,
+-							MAX_NR_ZONES - 1);
++		j = build_zonelists_node(NODE_DATA(node), zonelist, j);
+ 	}
+ 
+ 	zonelist->_zonerefs[j].zone = NULL;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
 linux-next.patch
-zbud-add-to-mm.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-checkpatch-change-camelcase-test-and-make-it-strict.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-checkpatch-add-strict-preference-for-p-=-kmallocsizeofp.patch
-checkpatch-remove-quote-from-camelcase-test.patch
-checkpatch-improve-network-block-comment-test-and-message.patch
-checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch
-checkpatch-warn-on-comparisons-to-jiffies.patch
-checkpatch-warn-on-comparisons-to-get_jiffies_64.patch
-checkpatch-reduce-false-positive-rate-of-complex-macros.patch
-checkpatch-add-a-placeholder-to-check-blank-lines-before-declarations.patch
-checkpatch-dont-warn-on-blank-lines-before-after-braces-as-often.patch
-checkpatch-add-a-strict-test-for-comparison-to-true-false.patch
-checkpatch-improve-no-space-after-cast-test.patch
-checkpatch-create-an-experimental-fix-option-to-correct-patches.patch
-checkpatch-move-test-for-space-before-semicolon-after-operator-spacing.patch
+vmcore-clean-up-read_vmcore.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
+vmalloc-make-find_vm_area-check-in-range.patch
+vmalloc-introduce-remap_vmalloc_range_partial.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
+vmcore-support-mmap-on-proc-vmcore.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix-2.patch
+mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-vmalloc-only-call-setup_vmalloc_vm-only-in-__get_vm_area_node.patch
+mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
+mm-vmalloc-remove-insert_vmalloc_vm.patch
+mm-vmalloc-use-clamp-to-simplify-code.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+mm-vmallocc-unbreak-__vunmap.patch
+mm-vmallocc-remove-dead-code-in-vb_alloc.patch
+mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch
+mm-vmallocc-remove-alloc_map-from-vmap_block.patch
+mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-vmallocc-rename-vm_unlist-to-vm_uninitialized.patch
+mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+include-linux-gfph-fix-the-comment-for-gfp_zone_table.patch
+mm-remove-zone_type-argument-of-build_zonelists_node.patch
+dev-oldmem-remove-the-interface.patch
+dev-oldmem-remove-the-interface-fix.patch
+documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
+mips-remove-savemaxmem-parameter-setup.patch
+powerpc-remove-savemaxmem-parameter-setup.patch
+ia64-remove-setting-for-saved_max_pfn.patch
+s390-remove-setting-for-saved_max_pfn.patch
 
