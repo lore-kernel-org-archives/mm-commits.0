@@ -1,78 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] drivers-base-cpuc-fix-maxcpus-boot-option.patch
- removed from -mm tree
-Date: Thu, 13 Jun 2013 11:16:05 -0700
-Message-ID: <51ba0c65.DhUYG2rhdGH9I/EN%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch removed from -mm tree
+Date: Thu, 13 Jun 2013 11:57:30 -0700
+Message-ID: <51ba161a.f6Tyq2YByTtvazbb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36783 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754414Ab3FMSQH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:16:07 -0400
+	with ESMTP id S1757091Ab3FMS5b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, greg@kroah.com, youquan.song@intel.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, joe.jin@oracle.com, jlbec@evilplan.org, xiaowei.hu@oracle.com
 
-Subject: [withdrawn] drivers-base-cpuc-fix-maxcpus-boot-option.patch removed from -mm tree
-To: youquan.song@intel.com,greg@kroah.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch removed from -mm tree
+To: xiaowei.hu@oracle.com,jlbec@evilplan.org,joe.jin@oracle.com,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:16:05 -0700
+Date: Thu, 13 Jun 2013 11:57:30 -0700
 
 
 The patch titled
-     Subject: drivers/base/cpu.c: fix maxcpus boot option
+     Subject: ocfs2: ocfs2_prep_new_orphaned_file() should return ret
 has been removed from the -mm tree.  Its filename was
-     drivers-base-cpuc-fix-maxcpus-boot-option.patch
+     ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Youquan Song <youquan.song@intel.com>
-Subject: drivers/base/cpu.c: fix maxcpus boot option
+From: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
+Subject: ocfs2: ocfs2_prep_new_orphaned_file() should return ret
 
-The maxcpus boot option limits the maximum number of CPUs in the system,
-but this option is broken in recent kernels.  Though we use maxcpus to
-limit CPUs number, the current kernel will register all of the present
-CPUs in sysfs.  udev will enumerate all registered cpu in sysfs, and it
-will bring up the CPU if the CPU is offline.  So the maxcpus option is
-broken.
+If an error occurs, for example an EIO in __ocfs2_prepare_orphan_dir,
+ocfs2_prep_new_orphaned_file will release the inode_ac, then when the
+caller of ocfs2_prep_new_orphaned_file gets a 0 return, it will refer to a
+NULL ocfs2_alloc_context struct in the following functions.  A kernel
+panic happens.
 
-This patch will only register a CPU which is not over the limit of the
-maxcpus option in sysfs.  So it will keep the maxcpus limitation during
-udev enumeration or other bringup of CPUs over the limitation by methods
-such as echo 1 > /sys/devices/system/cpu/online
-
-[akpm@linux-foundation.org: fix CONFIG_SMP=n build]
-Signed-off-by: Youquan Song <youquan.song@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
+Reviewed-by: shencanquan <shencanquan@huawei.com>
+Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/cpu.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/ocfs2/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option drivers/base/cpu.c
---- a/drivers/base/cpu.c~drivers-base-cpuc-fix-maxcpus-boot-option
-+++ a/drivers/base/cpu.c
-@@ -272,6 +272,12 @@ int __cpuinit register_cpu(struct cpu *c
- {
- 	int error;
+diff -puN fs/ocfs2/namei.c~ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-ocfs2_prep_new_orphaned_file-should-return-ret
++++ a/fs/ocfs2/namei.c
+@@ -2216,7 +2216,7 @@ out:
  
-+#ifdef CONFIG_SMP
-+	/* return when cpu number greater than maximum number of CPUs */
-+	if (num >= setup_max_cpus)
-+		return 0;
-+#endif
-+
- 	cpu->node_id = cpu_to_node(num);
- 	memset(&cpu->dev, 0x00, sizeof(struct device));
- 	cpu->dev.id = num;
+ 	brelse(orphan_dir_bh);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ int ocfs2_create_inode_in_orphan(struct inode *dir,
 _
 
-Patches currently in -mm which might be from youquan.song@intel.com are
+Patches currently in -mm which might be from xiaowei.hu@oracle.com are
 
+origin.patch
 
