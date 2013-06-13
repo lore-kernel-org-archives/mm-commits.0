@@ -1,78 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch removed from -mm tree
-Date: Thu, 13 Jun 2013 11:57:28 -0700
-Message-ID: <51ba1618.vqLl46PGEtQVv5C+%akpm@linux-foundation.org>
+ memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+ removed from -mm tree
+Date: Thu, 13 Jun 2013 11:57:32 -0700
+Message-ID: <51ba161c.8rfx9CtkOyB202Gf%akpm__35566.2243244753$1371149871$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37027 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab3FMS53 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:29 -0400
+	with ESMTP id S1757091Ab3FMS5d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, james.l.morris@oracle.com, dhowells@redhat.com, andriy.shevchenko@linux.intel.com, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, lizefan@huawei.com, khlebnikov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@parallels.com, bsingharora@gmail.com, avagin@openvz.org
 
-Subject: [merged] lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch removed from -mm tree
-To: gang.chen@asianux.com,andriy.shevchenko@linux.intel.com,dhowells@redhat.com,james.l.morris@oracle.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
+Subject: [merged] memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch removed from -mm tree
+To: avagin@openvz.org,bsingharora@gmail.com,glommer@parallels.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,khlebnikov@openvz.org,lizefan@huawei.com,mhocko@suse.cz,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:28 -0700
+Date: Thu, 13 Jun 2013 11:57:32 -0700
 
 
 The patch titled
-     Subject: lib/mpi/mpicoder.c: looping issue, need stop when equal to zero, found by 'EXTRA_FLAGS=-W'.
+     Subject: memcg: don't initialize kmem-cache destroying work for root caches
 has been removed from the -mm tree.  Its filename was
-     lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w.patch
+     memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: lib/mpi/mpicoder.c: looping issue, need stop when equal to zero, found by 'EXTRA_FLAGS=-W'.
+From: Andrey Vagin <avagin@openvz.org>
+Subject: memcg: don't initialize kmem-cache destroying work for root caches
 
-For 'while' looping, need stop when 'nbytes == 0', or will cause issue.
-('nbytes' is size_t which is always bigger or equal than zero).
+struct memcg_cache_params has a union.  Different parts of this union are
+used for root and non-root caches.  A part with destroying work is used
+only for non-root caches.
 
-The related warning: (with EXTRA_CFLAGS=-W)
-  lib/mpi/mpicoder.c:40:2: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+[  115.096202] BUG: unable to handle kernel paging request at 0000000fffffffe0
+[  115.096785] IP: [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
+[  115.097024] PGD 7ace1067 PUD 0
+[  115.097024] Oops: 0000 [#4] SMP
+[  115.097024] Modules linked in: netlink_diag af_packet_diag udp_diag tcp_diag inet_diag unix_diag ip6table_filter ip6_tables i2c_piix4 virtio_net virtio_balloon microcode i2c_core pcspkr floppy
+[  115.097024] CPU: 0 PID: 1929 Comm: lt-vzctl Tainted: G      D      3.10.0-rc1+ #2
+[  115.097024] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[  115.097024] task: ffff88007b5aaee0 ti: ffff88007bf0c000 task.ti: ffff88007bf0c000
+[  115.097024] RIP: 0010<ffffffff8116b641>]  [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
+[  115.097024] RSP: 0018:ffff88007bf0de68  EFLAGS: 00010202
+[  115.097024] RAX: 0000000fffffffe0 RBX: 00007fff4014f200 RCX: 0000000000000300
+[  115.097024] RDX: 0000000000000005 RSI: 00000000000000d0 RDI: ffff88007d001300
+[  115.097024] RBP: ffff88007bf0dea8 R08: 00007f849c3141b7 R09: ffffffff8118e100
+[  115.097024] R10: 0000000000000001 R11: 0000000000000246 R12: 00000000000000d0
+[  115.097024] R13: 0000000fffffffe0 R14: ffff88007d001300 R15: 0000000000001000
+[  115.097024] FS:  00007f849cbb8b40(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+[  115.097024] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  115.097024] CR2: 0000000fffffffe0 CR3: 000000007bc38000 CR4: 00000000000006f0
+[  115.097024] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  115.097024] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[  115.097024] Stack:
+[  115.097024]  ffffffff8118e100 ffffffff81149ea1 0000000000000008 00007fff4014f200
+[  115.097024]  00007fff4014f200 0000000000000000 0000000000000000 0000000000001000
+[  115.097024]  ffff88007bf0dee8 ffffffff8118e100 ffff880037598e00 00007fff4014f200
+[  115.097024] Call Trace:
+[  115.097024]  [<ffffffff8118e100>] ? getname_flags.part.34+0x30/0x140
+[  115.097024]  [<ffffffff81149ea1>] ? vma_rb_erase+0x121/0x210
+[  115.097024]  [<ffffffff8118e100>] getname_flags.part.34+0x30/0x140
+[  115.097024]  [<ffffffff8118e248>] getname+0x38/0x60
+[  115.097024]  [<ffffffff81181d55>] do_sys_open+0xc5/0x1e0
+[  115.097024]  [<ffffffff81181e92>] SyS_open+0x22/0x30
+[  115.097024]  [<ffffffff8161cb82>] system_call_fastpath+0x16/0x1b
+[  115.097024] Code: f4 53 48 83 ec 18 8b 05 8e 53 b7 00 4c 8b 4d 08 21 f0 a8 10 74 0d 4c 89 4d c0 e8 1b 76 4a 00 4c 8b 4d c0 e9 92 00 00 00 4d 89 f5 <4d> 8b 45 00 65 4c 03 04 25 48 cd 00 00 49 8b 50 08 4d 8b 38 49
+[  115.097024] RIP  [<ffffffff8116b641>] kmem_cache_alloc+0x41/0x1f0
+[  115.097024]  RSP <ffff88007bf0de68>
+[  115.097024] CR2: 0000000fffffffe0
+[  115.121352] ---[ end trace 16bb8e8408b97d0e ]---
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: <stable@vger.kernel.org>	[3.9.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/mpi/mpicoder.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN lib/mpi/mpicoder.c~lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w lib/mpi/mpicoder.c
---- a/lib/mpi/mpicoder.c~lib-mpi-mpicoderc-looping-issue-need-stop-when-equal-to-zero-found-by-extra_flags=-w
-+++ a/lib/mpi/mpicoder.c
-@@ -37,7 +37,7 @@ MPI mpi_read_raw_data(const void *xbuffe
- 	mpi_limb_t a;
- 	MPI val = NULL;
+diff -puN mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches
++++ a/mm/memcontrol.c
+@@ -3141,8 +3141,6 @@ int memcg_update_cache_size(struct kmem_
+ 			return -ENOMEM;
+ 		}
  
--	while (nbytes >= 0 && buffer[0] == 0) {
-+	while (nbytes > 0 && buffer[0] == 0) {
- 		buffer++;
- 		nbytes--;
- 	}
+-		INIT_WORK(&s->memcg_params->destroy,
+-				kmem_cache_destroy_work_func);
+ 		s->memcg_params->is_root_cache = true;
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
 origin.patch
-linux-next.patch
-kernel-auditfilterc-fix-leak-in-audit_add_rule-error-path.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
-mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
-arch-frv-kernel-trapsc-using-vsnprintf-instead-of-vsprintf.patch
-arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 
