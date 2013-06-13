@@ -1,145 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] migrate-shutdown-reboot-to-boot-cpu.patch removed from
- -mm tree
-Date: Thu, 13 Jun 2013 11:57:25 -0700
-Message-ID: <51ba1615.0jqCVKPz7VckDWwC%akpm__26208.2456065857$1371149862$gmane$org@linux-foundation.org>
+Subject: [merged]
+ drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch removed
+ from -mm tree
+Date: Thu, 13 Jun 2013 11:57:36 -0700
+Message-ID: <51ba1620.JMLtTD9DeDaqVsAO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37019 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37050 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756455Ab3FMS50 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:26 -0400
+	with ESMTP id S1757091Ab3FMS5g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, shawn.guo@linaro.org, rja@sgi.com, mingo@elte.hu, linux@arm.linux.org.uk, hpa@zytor.com, gxt@mprc.pku.edu.cn, holt@sgi.com
+To: mm-commits@vger.kernel.org, dbasehore@chromium.org
 
-Subject: [merged] migrate-shutdown-reboot-to-boot-cpu.patch removed from -mm tree
-To: holt@sgi.com,gxt@mprc.pku.edu.cn,hpa@zytor.com,linux@arm.linux.org.uk,mingo@elte.hu,rja@sgi.com,shawn.guo@linaro.org,srivatsa.bhat@linux.vnet.ibm.com,stable@vger.kernel.org,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch removed from -mm tree
+To: dbasehore@chromium.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:25 -0700
+Date: Thu, 13 Jun 2013 11:57:36 -0700
 
 
 The patch titled
-     Subject: reboot: rigrate shutdown/reboot to boot cpu
+     Subject: drivers/rtc/rtc-cmos.c: fix accidentally enabling rtc channel
 has been removed from the -mm tree.  Its filename was
-     migrate-shutdown-reboot-to-boot-cpu.patch
+     drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Robin Holt <holt@sgi.com>
-Subject: reboot: rigrate shutdown/reboot to boot cpu
+From: Derek Basehore <dbasehore@chromium.org>
+Subject: drivers/rtc/rtc-cmos.c: fix accidentally enabling rtc channel
 
-We recently noticed that reboot of a 1024 cpu machine takes approx 16
-minutes of just stopping the cpus.  The slowdown was tracked to commit
-f96972f ("kernel/sys.c: call disable_nonboot_cpus() in kernel_restart()").
+During resume, we call hpet_rtc_timer_init after masking an irq bit in
+hpet.  This will cause the call to hpet_disable_rtc_channel to be undone
+if RTC_AIE is the only bit not masked.
 
-The current implementation does all the work of hot removing the cpus
-before halting the system.  We are switching to just migrating to the
-boot cpu and then continuing with shutdown/reboot.
+Allowing the cmos interrupt handler to run before resuming caused some
+issues where the timer for the alarm was not removed.  This would cause
+other, later timers to not be cleared, so utilities such as hwclock would
+time out when waiting for the update interrupt.
 
-This also has the effect of not breaking x86's command line parameter for
-specifying the reboot cpu.  Note, this code was shamelessly copied from
-arch/x86/kernel/reboot.c with bits removed pertaining to the reboot_cpu
-command line parameter.
-
-Signed-off-by: Robin Holt <holt@sgi.com>
-Tested-by: Shawn Guo <shawn.guo@linaro.org>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Russ Anderson <rja@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: coding-style tweak]
+Signed-off-by: Derek Basehore <dbasehore@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-cmos.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~migrate-shutdown-reboot-to-boot-cpu kernel/sys.c
---- a/kernel/sys.c~migrate-shutdown-reboot-to-boot-cpu
-+++ a/kernel/sys.c
-@@ -362,6 +362,29 @@ int unregister_reboot_notifier(struct no
- }
- EXPORT_SYMBOL(unregister_reboot_notifier);
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-accidentally-enabling-rtc-channel
++++ a/drivers/rtc/rtc-cmos.c
+@@ -854,6 +854,9 @@ static int cmos_resume(struct device *de
+ 		}
  
-+/* Add backwards compatibility for stable trees. */
-+#ifndef PF_NO_SETAFFINITY
-+#define PF_NO_SETAFFINITY		PF_THREAD_BOUND
-+#endif
+ 		spin_lock_irq(&rtc_lock);
++		if (device_may_wakeup(dev))
++			hpet_rtc_timer_init();
 +
-+static void migrate_to_reboot_cpu(void)
-+{
-+	/* The boot cpu is always logical cpu 0 */
-+	int cpu = 0;
-+
-+	cpu_hotplug_disable();
-+
-+	/* Make certain the cpu I'm about to reboot on is online */
-+	if (!cpu_online(cpu))
-+		cpu = cpumask_first(cpu_online_mask);
-+
-+	/* Prevent races with other tasks migrating this task */
-+	current->flags |= PF_NO_SETAFFINITY;
-+
-+	/* Make certain I only run on the appropriate processor */
-+	set_cpus_allowed_ptr(current, cpumask_of(cpu));
-+}
-+
- /**
-  *	kernel_restart - reboot the system
-  *	@cmd: pointer to buffer containing command to execute for restart
-@@ -373,7 +396,7 @@ EXPORT_SYMBOL(unregister_reboot_notifier
- void kernel_restart(char *cmd)
- {
- 	kernel_restart_prepare(cmd);
--	disable_nonboot_cpus();
-+	migrate_to_reboot_cpu();
- 	syscore_shutdown();
- 	if (!cmd)
- 		printk(KERN_EMERG "Restarting system.\n");
-@@ -400,7 +423,7 @@ static void kernel_shutdown_prepare(enum
- void kernel_halt(void)
- {
- 	kernel_shutdown_prepare(SYSTEM_HALT);
--	disable_nonboot_cpus();
-+	migrate_to_reboot_cpu();
- 	syscore_shutdown();
- 	printk(KERN_EMERG "System halted.\n");
- 	kmsg_dump(KMSG_DUMP_HALT);
-@@ -419,7 +442,7 @@ void kernel_power_off(void)
- 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
- 	if (pm_power_off_prepare)
- 		pm_power_off_prepare();
--	disable_nonboot_cpus();
-+	migrate_to_reboot_cpu();
- 	syscore_shutdown();
- 	printk(KERN_EMERG "Power down.\n");
- 	kmsg_dump(KMSG_DUMP_POWEROFF);
+ 		do {
+ 			CMOS_WRITE(tmp, RTC_CONTROL);
+ 			hpet_set_rtc_irq_bit(tmp & RTC_IRQMASK);
+@@ -869,7 +872,6 @@ static int cmos_resume(struct device *de
+ 			rtc_update_irq(cmos->rtc, 1, mask);
+ 			tmp &= ~RTC_AIE;
+ 			hpet_mask_rtc_irq_bit(RTC_AIE);
+-			hpet_rtc_timer_init();
+ 		} while (mask & RTC_AIE);
+ 		spin_unlock_irq(&rtc_lock);
+ 	}
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from dbasehore@chromium.org are
 
 origin.patch
-dump_stack-serialize-the-output-from-dump_stack.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
-drivers-misc-sgi-gru-grufaultc-fix-a-sanity-test-in-gru_set_context_option.patch
-reboot-remove-stable-friendly-pf_thread_bound-define.patch
-reboot-move-shutdown-reboot-related-functions-to-kernel-rebootc.patch
-reboot-checkpatchpl-the-new-kernel-rebootc-file.patch
-reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
-reboot-unicore32-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
-reboot-arm-remove-unused-restart_mode-fields-from-some-arm-subarchs.patch
-reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-move-arch-x86-reboot=-handling-to-generic-kernel.patch
+drivers-rtc-rtc-cmosc-work-around-bios-clearing-rtc-control.patch
 
