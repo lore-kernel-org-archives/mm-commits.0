@@ -1,40 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch
- removed from -mm tree
-Date: Thu, 13 Jun 2013 11:57:56 -0700
-Message-ID: <51ba1634.ufhOWqNIWT5EjzSo%akpm@linux-foundation.org>
+Subject: [merged] rtc-at91rm9200-add-configuration-support.patch removed
+ from -mm tree
+Date: Thu, 13 Jun 2013 11:57:50 -0700
+Message-ID: <51ba162e.CsLr4jr5MawJNQM4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37101 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37084 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab3FMS55 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:57 -0400
+	with ESMTP id S1756646Ab3FMS5v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, ludovic.desroches@atmel.com, dgilbert@interlog.com, Robert.Nelson@digikey.com, jhovold@gmail.com
 
-Subject: [merged] rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch removed from -mm tree
+Subject: [merged] rtc-at91rm9200-add-configuration-support.patch removed from -mm tree
 To: jhovold@gmail.com,Robert.Nelson@digikey.com,dgilbert@interlog.com,ludovic.desroches@atmel.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:56 -0700
+Date: Thu, 13 Jun 2013 11:57:50 -0700
 
 
 The patch titled
-     Subject: rtc-at91rm9200: use shadow IMR on at91sam9x5
+     Subject: rtc-at91rm9200: add configuration support
 has been removed from the -mm tree.  Its filename was
-     rtc-at91rm9200-use-shadow-imr-on-at91sam9x5.patch
+     rtc-at91rm9200-add-configuration-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johan Hovold <jhovold@gmail.com>
-Subject: rtc-at91rm9200: use shadow IMR on at91sam9x5
+Subject: rtc-at91rm9200: add configuration support
 
-Add support for the at91sam9x5-family which must use the shadow interrupt
-mask due to a hardware issue (causing RTC_IMR to always be zero).
+Add configuration support which can be used to implement SoC-specific
+workarounds for broken hardware.
 
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
@@ -45,49 +45,79 @@ Cc: Robert Nelson <Robert.Nelson@digikey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt |    2 +-
- drivers/rtc/rtc-at91rm9200.c                                   |    7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-at91rm9200.c |   46 +++++++++++++++++++++++++++------
+ 1 file changed, 38 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5 Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
---- a/Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5
-+++ a/Documentation/devicetree/bindings/rtc/atmel,at91rm9200-rtc.txt
-@@ -1,7 +1,7 @@
- Atmel AT91RM9200 Real Time Clock
- 
- Required properties:
--- compatible: should be: "atmel,at91rm9200-rtc"
-+- compatible: should be: "atmel,at91rm9200-rtc" or "atmel,at91sam9x5-rtc"
- - reg: physical base address of the controller and length of memory mapped
-   region.
- - interrupts: rtc alarm/event interrupt
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5 drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-use-shadow-imr-on-at91sam9x5
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-configuration-support drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-configuration-support
 +++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -309,12 +309,19 @@ static irqreturn_t at91_rtc_interrupt(in
- static const struct at91_rtc_config at91rm9200_config = {
- };
+@@ -42,6 +42,10 @@
  
-+static const struct at91_rtc_config at91sam9x5_config = {
-+	.use_shadow_imr	= true,
+ #define AT91_RTC_EPOCH		1900UL	/* just like arch/arm/common/rtctime.c */
+ 
++struct at91_rtc_config {
 +};
 +
- #ifdef CONFIG_OF
- static const struct of_device_id at91_rtc_dt_ids[] = {
- 	{
- 		.compatible = "atmel,at91rm9200-rtc",
- 		.data = &at91rm9200_config,
- 	}, {
-+		.compatible = "atmel,at91sam9x5-rtc",
-+		.data = &at91sam9x5_config,
++static const struct at91_rtc_config *at91_rtc_config;
+ static DECLARE_COMPLETION(at91_rtc_updated);
+ static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
+ static void __iomem *at91_rtc_regs;
+@@ -250,6 +254,36 @@ static irqreturn_t at91_rtc_interrupt(in
+ 	return IRQ_NONE;		/* not handled */
+ }
+ 
++static const struct at91_rtc_config at91rm9200_config = {
++};
++
++#ifdef CONFIG_OF
++static const struct of_device_id at91_rtc_dt_ids[] = {
++	{
++		.compatible = "atmel,at91rm9200-rtc",
++		.data = &at91rm9200_config,
 +	}, {
- 		/* sentinel */
- 	}
- };
-_
-
-Patches currently in -mm which might be from jhovold@gmail.com are
-
-origin.patch
-linux-next.patch
-
++		/* sentinel */
++	}
++};
++MODULE_DEVICE_TABLE(of, at91_rtc_dt_ids);
++#endif
++
++static const struct at91_rtc_config *
++at91_rtc_get_config(struct platform_device *pdev)
++{
++	const struct of_device_id *match;
++
++	if (pdev->dev.of_node) {
++		match = of_match_node(at91_rtc_dt_ids, pdev->dev.of_node);
++		if (!match)
++			return NULL;
++		return (const struct at91_rtc_config *)match->data;
++	}
++
++	return &at91rm9200_config;
++}
++
+ static const struct rtc_class_ops at91_rtc_ops = {
+ 	.read_time	= at91_rtc_readtime,
+ 	.set_time	= at91_rtc_settime,
+@@ -268,6 +302,10 @@ static int __init at91_rtc_probe(struct
+ 	struct resource *regs;
+ 	int ret = 0;
+ 
++	at91_rtc_config = at91_rtc_get_config(pdev);
++	if (!at91_rtc_config)
++		return -ENODEV;
++
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!regs) {
+ 		dev_err(&pdev->dev, "no mmio resource defined\n");
+@@ -383,14 +421,6 @@ static int at91_rtc_resume(struct device
+ 
+ static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops, at91_rtc_suspend, at91_rtc_resume);
+ 
+-#ifdef CONFIG_OF
+-static const struct of_device_id at91_rtc_dt_ids[] = {
+-	{ .compatible = "atmel,at91rm9200-rtc" },
+-	{ /* sentinel */ }
+-};
+-MODULE_DEVICE_TABLE(of, at91_rtc_dt_ids);
+-#endif
