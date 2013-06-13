@@ -1,47 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-at91rm9200-add-shadow-interrupt-mask.patch removed
- from -mm tree
-Date: Thu, 13 Jun 2013 11:57:54 -0700
-Message-ID: <51ba1632.OZQ7P6UI4ifWoe5Y%akpm@linux-foundation.org>
+Subject: [merged] rtc-at91rm9200-add-match-table-compile-guard.patch
+ removed from -mm tree
+Date: Thu, 13 Jun 2013 11:57:48 -0700
+Message-ID: <51ba162c.UsuDVyr+CzqO6yr1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37095 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37075 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab3FMS5z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:55 -0400
+	with ESMTP id S1756646Ab3FMS5t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, ludovic.desroches@atmel.com, dgilbert@interlog.com, Robert.Nelson@digikey.com, jhovold@gmail.com
 
-Subject: [merged] rtc-at91rm9200-add-shadow-interrupt-mask.patch removed from -mm tree
+Subject: [merged] rtc-at91rm9200-add-match-table-compile-guard.patch removed from -mm tree
 To: jhovold@gmail.com,Robert.Nelson@digikey.com,dgilbert@interlog.com,ludovic.desroches@atmel.com,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:54 -0700
+Date: Thu, 13 Jun 2013 11:57:48 -0700
 
 
 The patch titled
-     Subject: rtc-at91rm9200: add shadow interrupt mask
+     Subject: rtc-at91rm9200: add match-table compile guard
 has been removed from the -mm tree.  Its filename was
-     rtc-at91rm9200-add-shadow-interrupt-mask.patch
+     rtc-at91rm9200-add-match-table-compile-guard.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johan Hovold <jhovold@gmail.com>
-Subject: rtc-at91rm9200: add shadow interrupt mask
+Subject: rtc-at91rm9200: add match-table compile guard
 
-Add shadow interrupt-mask register which can be used on SoCs where the
-actual hardware register is broken.
+The members of Atmel's at91sam9x5 family (9x5) have a broken RTC interrupt
+mask register (AT91_RTC_IMR).  It does not reflect enabled interrupts but
+instead always returns zero.
 
-Note that some care needs to be taken to make sure the shadow mask
-corresponds to the actual hardware state.  The added overhead is not an
-issue for the non-broken SoCs due to the relatively infrequent
-interrupt-mask updates.  We do, however, only use the shadow mask value as
-a fall-back when it actually needed as there is still a theoretical
-possibility that the mask is incorrect (see the code for details).
+The kernel's rtc-at91rm9200 driver handles the RTC for the 9x5 family. 
+Currently when the date/time is set, an interrupt is generated and this
+driver neglects to handle the interrupt.  The kernel complains about the
+un-handled interrupt and disables it henceforth.  This not only breaks the
+RTC function, but since that interrupt is shared (Atmel's SYS interrupt)
+then other things break as well (e.g.  the debug port no longer accepts
+characters).
+
+Tested on the at91sam9g25. Bug confirmed by Atmel.
+
+
+This patch (of 5):
+
+Add missing match-table compile guard.
 
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
@@ -52,85 +61,26 @@ Cc: Robert Nelson <Robert.Nelson@digikey.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91rm9200.c |   39 ++++++++++++++++++++++++++++++++-
- 1 file changed, 38 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-at91rm9200.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-shadow-interrupt-mask drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-shadow-interrupt-mask
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-match-table-compile-guard drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-add-match-table-compile-guard
 +++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -25,6 +25,7 @@
- #include <linux/rtc.h>
- #include <linux/bcd.h>
- #include <linux/interrupt.h>
-+#include <linux/spinlock.h>
- #include <linux/ioctl.h>
- #include <linux/completion.h>
- #include <linux/io.h>
-@@ -43,6 +44,7 @@
- #define AT91_RTC_EPOCH		1900UL	/* just like arch/arm/common/rtctime.c */
+@@ -383,11 +383,13 @@ static int at91_rtc_resume(struct device
  
- struct at91_rtc_config {
-+	bool use_shadow_imr;
+ static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops, at91_rtc_suspend, at91_rtc_resume);
+ 
++#ifdef CONFIG_OF
+ static const struct of_device_id at91_rtc_dt_ids[] = {
+ 	{ .compatible = "atmel,at91rm9200-rtc" },
+ 	{ /* sentinel */ }
  };
+ MODULE_DEVICE_TABLE(of, at91_rtc_dt_ids);
++#endif
  
- static const struct at91_rtc_config *at91_rtc_config;
-@@ -50,20 +52,55 @@ static DECLARE_COMPLETION(at91_rtc_updat
- static unsigned int at91_alarm_year = AT91_RTC_EPOCH;
- static void __iomem *at91_rtc_regs;
- static int irq;
-+static DEFINE_SPINLOCK(at91_rtc_lock);
-+static u32 at91_rtc_shadow_imr;
- 
- static void at91_rtc_write_ier(u32 mask)
- {
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&at91_rtc_lock, flags);
-+	at91_rtc_shadow_imr |= mask;
- 	at91_rtc_write(AT91_RTC_IER, mask);
-+	spin_unlock_irqrestore(&at91_rtc_lock, flags);
- }
- 
- static void at91_rtc_write_idr(u32 mask)
- {
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&at91_rtc_lock, flags);
- 	at91_rtc_write(AT91_RTC_IDR, mask);
-+	/*
-+	 * Register read back (of any RTC-register) needed to make sure
-+	 * IDR-register write has reached the peripheral before updating
-+	 * shadow mask.
-+	 *
-+	 * Note that there is still a possibility that the mask is updated
-+	 * before interrupts have actually been disabled in hardware. The only
-+	 * way to be certain would be to poll the IMR-register, which is is
-+	 * the very register we are trying to emulate. The register read back
-+	 * is a reasonable heuristic.
-+	 */
-+	at91_rtc_read(AT91_RTC_SR);
-+	at91_rtc_shadow_imr &= ~mask;
-+	spin_unlock_irqrestore(&at91_rtc_lock, flags);
- }
- 
- static u32 at91_rtc_read_imr(void)
- {
--	return at91_rtc_read(AT91_RTC_IMR);
-+	unsigned long flags;
-+	u32 mask;
-+
-+	if (at91_rtc_config->use_shadow_imr) {
-+		spin_lock_irqsave(&at91_rtc_lock, flags);
-+		mask = at91_rtc_shadow_imr;
-+		spin_unlock_irqrestore(&at91_rtc_lock, flags);
-+	} else {
-+		mask = at91_rtc_read(AT91_RTC_IMR);
-+	}
-+
-+	return mask;
- }
- 
- /*
+ static struct platform_driver at91_rtc_driver = {
+ 	.remove		= __exit_p(at91_rtc_remove),
 _
 
 Patches currently in -mm which might be from jhovold@gmail.com are
