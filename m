@@ -1,285 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+Subject: [merged]
+ cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
  removed from -mm tree
-Date: Thu, 13 Jun 2013 11:57:27 -0700
-Message-ID: <51ba1617.AFQdsq4bPKUAx9/r%akpm@linux-foundation.org>
+Date: Thu, 13 Jun 2013 11:57:24 -0700
+Message-ID: <51ba1614.zzBNMcwWvYvvGoI5%akpm__42442.6005375155$1371149860$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756496Ab3FMS52 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:28 -0400
+	with ESMTP id S1751454Ab3FMS5Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jun 2013 14:57:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, lists@nerdbynature.de, kay@vrfy.org, jwboyer@redhat.com, keescook@chromium.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, shawn.guo@linaro.org, rja@sgi.com, mingo@elte.hu, linux@arm.linux.org.uk, hpa@zytor.com, holt@sgi.com, gxt@mprc.pku.edu.cn, srivatsa.bhat@linux.vnet.ibm.com
 
-Subject: [merged] kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch removed from -mm tree
-To: keescook@chromium.org,jwboyer@redhat.com,kay@vrfy.org,lists@nerdbynature.de,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch removed from -mm tree
+To: srivatsa.bhat@linux.vnet.ibm.com,gxt@mprc.pku.edu.cn,holt@sgi.com,hpa@zytor.com,linux@arm.linux.org.uk,mingo@elte.hu,rja@sgi.com,shawn.guo@linaro.org,stable@vger.kernel.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Jun 2013 11:57:27 -0700
+Date: Thu, 13 Jun 2013 11:57:24 -0700
 
 
 The patch titled
-     Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+     Subject: CPU hotplug: provide a generic helper to disable/enable CPU hotplug
 has been removed from the -mm tree.  Its filename was
-     kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg.patch
+     cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: kmsg: honor dmesg_restrict sysctl on /dev/kmsg
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: CPU hotplug: provide a generic helper to disable/enable CPU hotplug
 
-The dmesg_restrict sysctl currently covers the syslog method for access
-dmesg, however /dev/kmsg isn't covered by the same protections.  Most
-people haven't noticed because util-linux dmesg(1) defaults to using the
-syslog method for access in older versions.  With util-linux dmesg(1)
-defaults to reading directly from /dev/kmsg.
+There are instances in the kernel where we would like to disable CPU
+hotplug (from sysfs) during some important operation.  Today the freezer
+code depends on this and the code to do it was kinda tailor-made for that.
 
-To fix /dev/kmsg, let's compare the existing interfaces and what they allow:
+Restructure the code and make it generic enough to be useful for
+other usecases too.
 
-- /proc/kmsg allows:
- - open (SYSLOG_ACTION_OPEN) if CAP_SYSLOG since it uses a destructive
-   single-reader interface (SYSLOG_ACTION_READ).
- - everything, after an open.
-
-- syslog syscall allows:
- - anything, if CAP_SYSLOG.
- - SYSLOG_ACTION_READ_ALL and SYSLOG_ACTION_SIZE_BUFFER, if dmesg_restrict==0.
- - nothing else (EPERM).
-
-The use-cases were:
-- dmesg(1) needs to do non-destructive SYSLOG_ACTION_READ_ALLs.
-- sysklog(1) needs to open /proc/kmsg, drop privs, and still issue the
-  destructive SYSLOG_ACTION_READs.
-
-AIUI, dmesg(1) is moving to /dev/kmsg, and systemd-journald doesn't clear
-the ring buffer.
-
-Based on the comments in devkmsg_llseek, it sounds like actions besides
-reading aren't going to be supported by /dev/kmsg (i.e. 
-SYSLOG_ACTION_CLEAR), so we have a strict subset of the non-destructive
-syslog syscall actions.
-
-To this end, move the check as Josh had done, but also rename the
-constants to reflect their new uses (SYSLOG_FROM_CALL becomes
-SYSLOG_FROM_READER, and SYSLOG_FROM_FILE becomes SYSLOG_FROM_PROC). 
-SYSLOG_FROM_READER allows non-destructive actions, and SYSLOG_FROM_PROC
-allows destructive actions after a capabilities-constrained
-SYSLOG_ACTION_OPEN check.
-
-- /dev/kmsg allows:
- - open if CAP_SYSLOG or dmesg_restrict==0
- - reading/polling, after open
-
-Addresses https://bugzilla.redhat.com/show_bug.cgi?id=903192
-
-[akpm@linux-foundation.org: use pr_warn_once()]
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Christian Kujau <lists@nerdbynature.de>
-Tested-by: Josh Boyer <jwboyer@redhat.com>
-Cc: Kay Sievers <kay@vrfy.org>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Shawn Guo <shawn.guo@linaro.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kmsg.c         |   10 ++--
- include/linux/syslog.h |    4 -
- kernel/printk.c        |   91 +++++++++++++++++++++------------------
- 3 files changed, 57 insertions(+), 48 deletions(-)
+ include/linux/cpu.h |    4 +++
+ kernel/cpu.c        |   55 +++++++++++++++++-------------------------
+ 2 files changed, 27 insertions(+), 32 deletions(-)
 
-diff -puN fs/proc/kmsg.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg fs/proc/kmsg.c
---- a/fs/proc/kmsg.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
-+++ a/fs/proc/kmsg.c
-@@ -21,12 +21,12 @@ extern wait_queue_head_t log_wait;
+diff -puN include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug
++++ a/include/linux/cpu.h
+@@ -175,6 +175,8 @@ extern struct bus_type cpu_subsys;
  
- static int kmsg_open(struct inode * inode, struct file * file)
- {
--	return do_syslog(SYSLOG_ACTION_OPEN, NULL, 0, SYSLOG_FROM_FILE);
-+	return do_syslog(SYSLOG_ACTION_OPEN, NULL, 0, SYSLOG_FROM_PROC);
+ extern void get_online_cpus(void);
+ extern void put_online_cpus(void);
++extern void cpu_hotplug_disable(void);
++extern void cpu_hotplug_enable(void);
+ #define hotcpu_notifier(fn, pri)	cpu_notifier(fn, pri)
+ #define register_hotcpu_notifier(nb)	register_cpu_notifier(nb)
+ #define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
+@@ -198,6 +200,8 @@ static inline void cpu_hotplug_driver_un
+ 
+ #define get_online_cpus()	do { } while (0)
+ #define put_online_cpus()	do { } while (0)
++#define cpu_hotplug_disable()	do { } while (0)
++#define cpu_hotplug_enable()	do { } while (0)
+ #define hotcpu_notifier(fn, pri)	do { (void)(fn); } while (0)
+ /* These aren't inline functions due to a GCC bug. */
+ #define register_hotcpu_notifier(nb)	({ (void)(nb); 0; })
+diff -puN kernel/cpu.c~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug kernel/cpu.c
+--- a/kernel/cpu.c~cpu-hotplug-provide-a-generic-helper-to-disable-enable-cpu-hotplug
++++ a/kernel/cpu.c
+@@ -133,6 +133,27 @@ static void cpu_hotplug_done(void)
+ 	mutex_unlock(&cpu_hotplug.lock);
  }
  
- static int kmsg_release(struct inode * inode, struct file * file)
- {
--	(void) do_syslog(SYSLOG_ACTION_CLOSE, NULL, 0, SYSLOG_FROM_FILE);
-+	(void) do_syslog(SYSLOG_ACTION_CLOSE, NULL, 0, SYSLOG_FROM_PROC);
- 	return 0;
- }
- 
-@@ -34,15 +34,15 @@ static ssize_t kmsg_read(struct file *fi
- 			 size_t count, loff_t *ppos)
- {
- 	if ((file->f_flags & O_NONBLOCK) &&
--	    !do_syslog(SYSLOG_ACTION_SIZE_UNREAD, NULL, 0, SYSLOG_FROM_FILE))
-+	    !do_syslog(SYSLOG_ACTION_SIZE_UNREAD, NULL, 0, SYSLOG_FROM_PROC))
- 		return -EAGAIN;
--	return do_syslog(SYSLOG_ACTION_READ, buf, count, SYSLOG_FROM_FILE);
-+	return do_syslog(SYSLOG_ACTION_READ, buf, count, SYSLOG_FROM_PROC);
- }
- 
- static unsigned int kmsg_poll(struct file *file, poll_table *wait)
- {
- 	poll_wait(file, &log_wait, wait);
--	if (do_syslog(SYSLOG_ACTION_SIZE_UNREAD, NULL, 0, SYSLOG_FROM_FILE))
-+	if (do_syslog(SYSLOG_ACTION_SIZE_UNREAD, NULL, 0, SYSLOG_FROM_PROC))
- 		return POLLIN | POLLRDNORM;
- 	return 0;
- }
-diff -puN include/linux/syslog.h~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg include/linux/syslog.h
---- a/include/linux/syslog.h~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
-+++ a/include/linux/syslog.h
-@@ -44,8 +44,8 @@
- /* Return size of the log buffer */
- #define SYSLOG_ACTION_SIZE_BUFFER   10
- 
--#define SYSLOG_FROM_CALL 0
--#define SYSLOG_FROM_FILE 1
-+#define SYSLOG_FROM_READER           0
-+#define SYSLOG_FROM_PROC             1
- 
- int do_syslog(int type, char __user *buf, int count, bool from_file);
- 
-diff -puN kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg kernel/printk.c
---- a/kernel/printk.c~kmsg-honor-dmesg_restrict-sysctl-on-dev-kmsg
-+++ a/kernel/printk.c
-@@ -363,6 +363,53 @@ static void log_store(int facility, int
- 	log_next_seq++;
- }
- 
-+#ifdef CONFIG_SECURITY_DMESG_RESTRICT
-+int dmesg_restrict = 1;
-+#else
-+int dmesg_restrict;
-+#endif
-+
-+static int syslog_action_restricted(int type)
++/*
++ * Wait for currently running CPU hotplug operations to complete (if any) and
++ * disable future CPU hotplug (from sysfs). The 'cpu_add_remove_lock' protects
++ * the 'cpu_hotplug_disabled' flag. The same lock is also acquired by the
++ * hotplug path before performing hotplug operations. So acquiring that lock
++ * guarantees mutual exclusion from any currently running hotplug operations.
++ */
++void cpu_hotplug_disable(void)
 +{
-+	if (dmesg_restrict)
-+		return 1;
-+	/*
-+	 * Unless restricted, we allow "read all" and "get buffer size"
-+	 * for everybody.
-+	 */
-+	return type != SYSLOG_ACTION_READ_ALL &&
-+	       type != SYSLOG_ACTION_SIZE_BUFFER;
++	cpu_maps_update_begin();
++	cpu_hotplug_disabled = 1;
++	cpu_maps_update_done();
 +}
 +
-+static int check_syslog_permissions(int type, bool from_file)
++void cpu_hotplug_enable(void)
 +{
-+	/*
-+	 * If this is from /proc/kmsg and we've already opened it, then we've
-+	 * already done the capabilities checks at open time.
-+	 */
-+	if (from_file && type != SYSLOG_ACTION_OPEN)
-+		return 0;
-+
-+	if (syslog_action_restricted(type)) {
-+		if (capable(CAP_SYSLOG))
-+			return 0;
-+		/*
-+		 * For historical reasons, accept CAP_SYS_ADMIN too, with
-+		 * a warning.
-+		 */
-+		if (capable(CAP_SYS_ADMIN)) {
-+			pr_warn_once("%s (%d): Attempt to access syslog with "
-+				     "CAP_SYS_ADMIN but no CAP_SYSLOG "
-+				     "(deprecated).\n",
-+				 current->comm, task_pid_nr(current));
-+			return 0;
-+		}
-+		return -EPERM;
-+	}
-+	return security_syslog(type);
++	cpu_maps_update_begin();
++	cpu_hotplug_disabled = 0;
++	cpu_maps_update_done();
 +}
 +
-+
- /* /dev/kmsg - userspace message inject/listen interface */
- struct devkmsg_user {
- 	u64 seq;
-@@ -620,7 +667,8 @@ static int devkmsg_open(struct inode *in
- 	if ((file->f_flags & O_ACCMODE) == O_WRONLY)
- 		return 0;
- 
--	err = security_syslog(SYSLOG_ACTION_READ_ALL);
-+	err = check_syslog_permissions(SYSLOG_ACTION_READ_ALL,
-+				       SYSLOG_FROM_READER);
- 	if (err)
- 		return err;
- 
-@@ -813,45 +861,6 @@ static inline void boot_delay_msec(int l
- }
- #endif
- 
--#ifdef CONFIG_SECURITY_DMESG_RESTRICT
--int dmesg_restrict = 1;
--#else
--int dmesg_restrict;
--#endif
--
--static int syslog_action_restricted(int type)
--{
--	if (dmesg_restrict)
--		return 1;
--	/* Unless restricted, we allow "read all" and "get buffer size" for everybody */
--	return type != SYSLOG_ACTION_READ_ALL && type != SYSLOG_ACTION_SIZE_BUFFER;
--}
--
--static int check_syslog_permissions(int type, bool from_file)
--{
--	/*
--	 * If this is from /proc/kmsg and we've already opened it, then we've
--	 * already done the capabilities checks at open time.
--	 */
--	if (from_file && type != SYSLOG_ACTION_OPEN)
--		return 0;
--
--	if (syslog_action_restricted(type)) {
--		if (capable(CAP_SYSLOG))
--			return 0;
--		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
--		if (capable(CAP_SYS_ADMIN)) {
--			printk_once(KERN_WARNING "%s (%d): "
--				 "Attempt to access syslog with CAP_SYS_ADMIN "
--				 "but no CAP_SYSLOG (deprecated).\n",
--				 current->comm, task_pid_nr(current));
--			return 0;
--		}
--		return -EPERM;
--	}
--	return 0;
--}
--
- #if defined(CONFIG_PRINTK_TIME)
- static bool printk_time = 1;
- #else
-@@ -1249,7 +1258,7 @@ out:
- 
- SYSCALL_DEFINE3(syslog, int, type, char __user *, buf, int, len)
- {
--	return do_syslog(type, buf, len, SYSLOG_FROM_CALL);
-+	return do_syslog(type, buf, len, SYSLOG_FROM_READER);
- }
+ #else /* #if CONFIG_HOTPLUG_CPU */
+ static void cpu_hotplug_begin(void) {}
+ static void cpu_hotplug_done(void) {}
+@@ -541,36 +562,6 @@ static int __init alloc_frozen_cpus(void
+ core_initcall(alloc_frozen_cpus);
  
  /*
+- * Prevent regular CPU hotplug from racing with the freezer, by disabling CPU
+- * hotplug when tasks are about to be frozen. Also, don't allow the freezer
+- * to continue until any currently running CPU hotplug operation gets
+- * completed.
+- * To modify the 'cpu_hotplug_disabled' flag, we need to acquire the
+- * 'cpu_add_remove_lock'. And this same lock is also taken by the regular
+- * CPU hotplug path and released only after it is complete. Thus, we
+- * (and hence the freezer) will block here until any currently running CPU
+- * hotplug operation gets completed.
+- */
+-void cpu_hotplug_disable_before_freeze(void)
+-{
+-	cpu_maps_update_begin();
+-	cpu_hotplug_disabled = 1;
+-	cpu_maps_update_done();
+-}
+-
+-
+-/*
+- * When tasks have been thawed, re-enable regular CPU hotplug (which had been
+- * disabled while beginning to freeze tasks).
+- */
+-void cpu_hotplug_enable_after_thaw(void)
+-{
+-	cpu_maps_update_begin();
+-	cpu_hotplug_disabled = 0;
+-	cpu_maps_update_done();
+-}
+-
+-/*
+  * When callbacks for CPU hotplug notifications are being executed, we must
+  * ensure that the state of the system with respect to the tasks being frozen
+  * or not, as reported by the notification, remains unchanged *throughout the
+@@ -589,12 +580,12 @@ cpu_hotplug_pm_callback(struct notifier_
+ 
+ 	case PM_SUSPEND_PREPARE:
+ 	case PM_HIBERNATION_PREPARE:
+-		cpu_hotplug_disable_before_freeze();
++		cpu_hotplug_disable();
+ 		break;
+ 
+ 	case PM_POST_SUSPEND:
+ 	case PM_POST_HIBERNATION:
+-		cpu_hotplug_enable_after_thaw();
++		cpu_hotplug_enable();
+ 		break;
+ 
+ 	default:
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
-drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch
-isdn-clean-up-debug-format-string-usage.patch
-block-do-not-pass-disk-names-as-format-strings.patch
-crypto-sanitize-argument-for-format-string.patch
-clean-up-scary-strncpydst-src-strlensrc-uses.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-drivers-avoid-format-string-in-dev_set_name.patch
-drivers-avoid-format-strings-in-names-passed-to-alloc_workqueue.patch
-drivers-avoid-parsing-names-as-kthread_run-format-strings.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
 
