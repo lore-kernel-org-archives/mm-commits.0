@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-zswap-and-zbud-maintainer.patch added to -mm
- tree
-Date: Fri, 14 Jun 2013 12:50:53 -0700
-Message-ID: <51bb741d.ZrStnR1+uI2z4ena%akpm@linux-foundation.org>
+Subject: + docbook-add-futexes-to-kernel-locking-docbook.patch added to
+ -mm tree
+Date: Fri, 14 Jun 2013 14:39:13 -0700
+Message-ID: <51bb8d81.OhR22XVQ1/4Cy2ki%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46197 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47019 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217Ab3FNTuy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jun 2013 15:50:54 -0400
+	with ESMTP id S1752310Ab3FNVjO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jun 2013 17:39:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org
 
-Subject: + maintainers-add-zswap-and-zbud-maintainer.patch added to -mm tree
-To: sjenning@linux.vnet.ibm.com
+Subject: + docbook-add-futexes-to-kernel-locking-docbook.patch added to -mm tree
+To: rdunlap@infradead.org,rob@landley.net
 From: akpm@linux-foundation.org
-Date: Fri, 14 Jun 2013 12:50:53 -0700
+Date: Fri, 14 Jun 2013 14:39:13 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: add zswap and zbud maintainer
+     Subject: docbook: add futexes to kernel-locking docbook
 has been added to the -mm tree.  Its filename is
-     maintainers-add-zswap-and-zbud-maintainer.patch
+     docbook-add-futexes-to-kernel-locking-docbook.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Subject: MAINTAINERS: add zswap and zbud maintainer
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: docbook: add futexes to kernel-locking docbook
 
-Add maintainer information for zswap and zbud into the MAINTAINERS file.
+Add Fast User Mutexes (futexes) to kernel-locking docbook.
 
-Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ Documentation/DocBook/kernel-locking.tmpl |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-zswap-and-zbud-maintainer MAINTAINERS
---- a/MAINTAINERS~maintainers-add-zswap-and-zbud-maintainer
-+++ a/MAINTAINERS
-@@ -9204,6 +9204,13 @@ F:	Documentation/networking/z8530drv.txt
- F:	drivers/net/hamradio/*scc.c
- F:	drivers/net/hamradio/z8530.h
+diff -puN Documentation/DocBook/kernel-locking.tmpl~docbook-add-futexes-to-kernel-locking-docbook Documentation/DocBook/kernel-locking.tmpl
+--- a/Documentation/DocBook/kernel-locking.tmpl~docbook-add-futexes-to-kernel-locking-docbook
++++ a/Documentation/DocBook/kernel-locking.tmpl
+@@ -1955,12 +1955,17 @@ machines due to caching.
+    </sect1>
+   </chapter>
  
-+ZBUD COMPRESSED PAGE ALLOCATOR
-+M:	Seth Jennings <sjenning@linux.vnet.ibm.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+F:	mm/zbud.c
-+F:	include/linux/zbud.h
-+
- ZD1211RW WIRELESS DRIVER
- M:	Daniel Drake <dsd@gentoo.org>
- M:	Ulrich Kunitz <kune@deine-taler.de>
-@@ -9226,6 +9233,12 @@ M:	"Maciej W. Rozycki" <macro@linux-mips
- S:	Maintained
- F:	drivers/tty/serial/zs.*
+-  <chapter id="apiref">
++  <chapter id="apiref-mutex">
+    <title>Mutex API reference</title>
+ !Iinclude/linux/mutex.h
+ !Ekernel/mutex.c
+   </chapter>
  
-+ZSWAP COMPRESSED SWAP CACHING
-+M:	Seth Jennings <sjenning@linux.vnet.ibm.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+F:	mm/zswap.c
++  <chapter id="apiref-futex">
++   <title>Futex API reference</title>
++!Ikernel/futex.c
++  </chapter>
 +
- THE REST
- M:	Linus Torvalds <torvalds@linux-foundation.org>
- L:	linux-kernel@vger.kernel.org
+   <chapter id="references">
+    <title>Further reading</title>
+ 
 _
 
-Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 linux-next.patch
-mm-remove-compressed-copy-from-zram-in-memory.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-zbud-add-to-mm.patch
-zbud-add-to-mm-init-under_reclaim.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-maintainers-add-zswap-and-zbud-maintainer.patch
+docbook-add-futexes-to-kernel-locking-docbook.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 
