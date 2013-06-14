@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- smph-use-local_irq_saverestore-in-smp-version-of-on_each_cpu.patch added to -mm tree
-Date: Fri, 14 Jun 2013 15:11:47 -0700
-Message-ID: <51bb9523.jMaYLZXYJLJNpnDC%akpm@linux-foundation.org>
+Subject: + mm-remove-unused-functions-is_normal_idx-normal-dma32-dma.patch added to -mm tree
+Date: Fri, 14 Jun 2013 15:35:20 -0700
+Message-ID: <51bb9aa8.WSpGIP/mSBiGDnNt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47472 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381Ab3FNWLs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jun 2013 18:11:48 -0400
+	with ESMTP id S1753309Ab3FNWfU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jun 2013 18:35:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, ralf@linux-mips.org, david.daney@cavium.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com
 
-Subject: + smph-use-local_irq_saverestore-in-smp-version-of-on_each_cpu.patch added to -mm tree
-To: david.daney@cavium.com,ralf@linux-mips.org,rostedt@goodmis.org
+Subject: + mm-remove-unused-functions-is_normal_idx-normal-dma32-dma.patch added to -mm tree
+To: zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Fri, 14 Jun 2013 15:11:47 -0700
+Date: Fri, 14 Jun 2013 15:35:20 -0700
 
 
 The patch titled
-     Subject: smp.h: use local_irq_{save,restore}() in !SMP version of on_each_cpu().
+     Subject: mm: remove unused functions is_{normal_idx, normal, dma32, dma}
 has been added to the -mm tree.  Its filename is
-     smph-use-local_irq_saverestore-in-smp-version-of-on_each_cpu.patch
+     mm-remove-unused-functions-is_normal_idx-normal-dma32-dma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,93 +38,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Daney <david.daney@cavium.com>
-Subject: smp.h: use local_irq_{save,restore}() in !SMP version of on_each_cpu().
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: mm: remove unused functions is_{normal_idx, normal, dma32, dma}
 
-Thanks to commit f91eb62f71b ("init: scream bloody murder if interrupts
-are enabled too early"), "bloody murder" is now being screamed.
+These functions are nowhere used, so remove them.
 
-With a MIPS OCTEON config, we use on_each_cpu() in our
-irq_chip.irq_bus_sync_unlock() function.  This gets called in early as a
-result of the time_init() call.  Because the !SMP version of on_each_cpu()
-unconditionally enables irqs, we get:
-
-WARNING: at init/main.c:560 start_kernel+0x250/0x410()
-Interrupts were enabled early
-Modules linked in:
-CPU: 0 PID: 0 Comm: swapper Not tainted 3.10.0-rc5-Cavium-Octeon+ #801
-Stack : 0000000000000046 ffffffff808e0000 0000000000000006 0000000000000004
-	  0000000000000001 0000000000000000 0000000000000046 0000000000000000
-	  ffffffff80a90000 ffffffff8015c020 0000000000000000 ffffffff8015c020
-	  ffffffff80a79f70 ffffffff80a80000 ffffffff8072b9c0 ffffffff808a7d77
-	  ffffffff80a79f70 ffffffff808a8168 0000000000000000 00000004178a9948
-	  0000000417801230 ffffffff805f7610 0000000010000078 ffffffff805fa01c
-	  ffffffff8089bd18 ffffffff801595fc ffffffff8089bd28 ffffffff8015d384
-	  ffffffff808a7e80 ffffffff8089bc30 0000000000000000 ffffffff80159710
-	  0000000000000000 0000000000000000 0000000000000000 0000000000000000
-	  0000000000000000 ffffffff80139520 0000000000000000 0000000000000009
-	  ...
-Call Trace:
-[<ffffffff80139520>] show_stack+0x68/0x80
-[<ffffffff80159710>] warn_slowpath_common+0x78/0xb0
-[<ffffffff801597e8>] warn_slowpath_fmt+0x38/0x48
-[<ffffffff8092b768>] start_kernel+0x250/0x410
-
-Suggested fix: Do what we already do in the SMP version of on_each_cpu(),
-and use local_irq_save/local_irq_restore.  Because we need a flags
-variable, make it a static inline to avoid name space issues.
-
-Signed-off-by: David Daney <david.daney@cavium.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ include/linux/mmzone.h |   28 ----------------------------
+ 1 file changed, 28 deletions(-)
 
-diff -puN include/linux/smp.h~smph-use-local_irq_saverestore-in-smp-version-of-on_each_cpu include/linux/smp.h
---- a/include/linux/smp.h~smph-use-local_irq_saverestore-in-smp-version-of-on_each_cpu
-+++ a/include/linux/smp.h
-@@ -11,6 +11,7 @@
- #include <linux/list.h>
- #include <linux/cpumask.h>
- #include <linux/init.h>
-+#include <linux/irqflags.h>
- 
- extern void cpu_idle(void);
- 
-@@ -139,13 +140,17 @@ static inline int up_smp_call_function(s
+diff -puN include/linux/mmzone.h~mm-remove-unused-functions-is_normal_idx-normal-dma32-dma include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-remove-unused-functions-is_normal_idx-normal-dma32-dma
++++ a/include/linux/mmzone.h
+@@ -869,11 +869,6 @@ static inline int is_highmem_idx(enum zo
+ #endif
  }
- #define smp_call_function(func, info, wait) \
- 			(up_smp_call_function(func, info))
--#define on_each_cpu(func,info,wait)		\
--	({					\
--		local_irq_disable();		\
--		func(info);			\
--		local_irq_enable();		\
--		0;				\
--	})
-+
-+static inline int on_each_cpu(smp_call_func_t func, void *info, int wait)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	func(info);
-+	local_irq_restore(flags);
-+	return 0;
-+}
-+
- /*
-  * Note we still need to test the mask even for UP
-  * because we actually can get an empty mask from
+ 
+-static inline int is_normal_idx(enum zone_type idx)
+-{
+-	return (idx == ZONE_NORMAL);
+-}
+-
+ /**
+  * is_highmem - helper function to quickly check if a struct zone is a 
+  *              highmem zone or not.  This is an attempt to keep references
+@@ -890,29 +885,6 @@ static inline int is_highmem(struct zone
+ #else
+ 	return 0;
+ #endif
+-}
+-
+-static inline int is_normal(struct zone *zone)
+-{
+-	return zone == zone->zone_pgdat->node_zones + ZONE_NORMAL;
+-}
+-
+-static inline int is_dma32(struct zone *zone)
+-{
+-#ifdef CONFIG_ZONE_DMA32
+-	return zone == zone->zone_pgdat->node_zones + ZONE_DMA32;
+-#else
+-	return 0;
+-#endif
+-}
+-
+-static inline int is_dma(struct zone *zone)
+-{
+-#ifdef CONFIG_ZONE_DMA
+-	return zone == zone->zone_pgdat->node_zones + ZONE_DMA;
+-#else
+-	return 0;
+-#endif
+ }
+ 
+ /* These two functions are used to setup the per zone pages min values */
 _
 
-Patches currently in -mm which might be from david.daney@cavium.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
-origin.patch
 linux-next.patch
-smph-use-local_irq_saverestore-in-smp-version-of-on_each_cpu.patch
-mm-mips-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+vmcore-clean-up-read_vmcore.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmcore-treat-memory-chunks-referenced-by-pt_load-program-header-entries-in-page-size-boundary-in-vmcore_list.patch
+vmalloc-make-find_vm_area-check-in-range.patch
+vmalloc-introduce-remap_vmalloc_range_partial.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-calculate-vmcore-file-size-from-buffer-size-and-total-size-of-vmcore-objects.patch
+vmcore-support-mmap-on-proc-vmcore.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix-2.patch
+mm-ia64-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+mm-vmalloc-only-call-setup_vmalloc_vm-only-in-__get_vm_area_node.patch
+mm-vmalloc-call-setup_vmalloc_vm-instead-of-insert_vmalloc_vm.patch
+mm-vmalloc-remove-insert_vmalloc_vm.patch
+mm-vmalloc-use-clamp-to-simplify-code.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+mm-vmallocc-unbreak-__vunmap.patch
+mm-vmallocc-remove-dead-code-in-vb_alloc.patch
+mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch
+mm-vmallocc-remove-alloc_map-from-vmap_block.patch
+mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-vmallocc-rename-vm_unlist-to-vm_uninitialized.patch
+mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+include-linux-gfph-fix-the-comment-for-gfp_zone_table.patch
+mm-remove-zone_type-argument-of-build_zonelists_node.patch
+mm-remove-unused-functions-is_normal_idx-normal-dma32-dma.patch
+dev-oldmem-remove-the-interface.patch
+dev-oldmem-remove-the-interface-fix.patch
+documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
+mips-remove-savemaxmem-parameter-setup.patch
+powerpc-remove-savemaxmem-parameter-setup.patch
+ia64-remove-setting-for-saved_max_pfn.patch
+s390-remove-setting-for-saved_max_pfn.patch
 
