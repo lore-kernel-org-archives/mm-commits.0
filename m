@@ -1,106 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work.patch
+Subject: [merged] move-exit_task_namespaces-outside-of-exit_notify.patch
  removed from -mm tree
-Date: Mon, 17 Jun 2013 13:10:50 -0700
-Message-ID: <51bf6d4a.QqtsYZYx44++SeEO%akpm@linux-foundation.org>
+Date: Mon, 17 Jun 2013 13:10:56 -0700
+Message-ID: <51bf6d50.+Xzu7AdlMJ8VSgj7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40563 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963Ab3FQUK4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 16:10:56 -0400
+	with ESMTP id S1752309Ab3FQULC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 16:11:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, ebiederm@xmission.com, dhowells@redhat.com, avagin@openvz.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, ebiederm@xmission.com, avagin@openvz.org, oleg@redhat.com
 
-Subject: [merged] fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work.patch removed from -mm tree
-To: oleg@redhat.com,avagin@openvz.org,dhowells@redhat.com,ebiederm@xmission.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] move-exit_task_namespaces-outside-of-exit_notify.patch removed from -mm tree
+To: oleg@redhat.com,avagin@openvz.org,ebiederm@xmission.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 17 Jun 2013 13:10:50 -0700
+Date: Mon, 17 Jun 2013 13:10:56 -0700
 
 
 The patch titled
-     Subject: fput: task_work_add() can fail if the caller has passed exit_task_work()
+     Subject: move exit_task_namespaces() outside of exit_notify()
 has been removed from the -mm tree.  Its filename was
-     fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work.patch
+     move-exit_task_namespaces-outside-of-exit_notify.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fput: task_work_add() can fail if the caller has passed exit_task_work()
+Subject: move exit_task_namespaces() outside of exit_notify()
 
-fput() assumes that it can't be called after exit_task_work() but this is
-not true, for example free_ipc_ns()->shm_destroy() can do this.  In this
-case fput() silently leaks the file.
+exit_notify() does exit_task_namespaces() after forget_original_parent(). 
+This was needed to ensure that ->nsproxy can't be cleared prematurely, an
+exiting child we are going to reparent can do do_notify_parent() and use
+the parent's (ours) pid_ns.
 
-Change it to fallback to delayed_fput_work if task_work_add() fails.  The
-patch looks complicated but it is not, it changes the code from
+However, after 32084504 "pidns: use task_active_pid_ns in
+do_notify_parent" ->nsproxy != NULL is no longer needed, we rely on
+task_active_pid_ns().
 
-	if (PF_KTHREAD) {
-		schedule_work(...);
-		return;
-	}
-	task_work_add(...)
+Move exit_task_namespaces() from exit_notify() to do_exit(), after
+exit_fs() and before exit_task_work().
 
-to
-	if (!PF_KTHREAD) {
-		if (!task_work_add(...))
-			return;
-		/* fallback */
-	}
-	schedule_work(...);
+This solves the problem reported by Andrey, free_ipc_ns()->shm_destroy()
+does fput() which needs task_work_add().
 
-As for shm_destroy() in particular, we could make another fix but I think
-this change makes sense anyway.  There could be another similar user, it
-is not safe to assume that task_work_add() can't fail.
+Note: this particular problem can be fixed if we change fput(), and that
+change makes sense anyway.  But there is another reason to move the
+callsite.  The original reason for exit_task_namespaces() from the middle
+of exit_notify() was subtle and it has already gone away, now this looks
+confusing.  And this allows us do simplify exit_notify(), we can avoid
+unlock/lock(tasklist) and we can use ->exit_state instead of PF_EXITING in
+forget_original_parent().
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reported-by: Andrey Vagin <avagin@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Andrey Vagin <avagin@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/file_table.c~fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work fs/file_table.c
---- a/fs/file_table.c~fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work
-+++ a/fs/file_table.c
-@@ -306,17 +306,18 @@ void fput(struct file *file)
- {
- 	if (atomic_long_dec_and_test(&file->f_count)) {
- 		struct task_struct *task = current;
-+		unsigned long flags;
-+
- 		file_sb_list_del(file);
--		if (unlikely(in_interrupt() || task->flags & PF_KTHREAD)) {
--			unsigned long flags;
--			spin_lock_irqsave(&delayed_fput_lock, flags);
--			list_add(&file->f_u.fu_list, &delayed_fput_list);
--			schedule_work(&delayed_fput_work);
--			spin_unlock_irqrestore(&delayed_fput_lock, flags);
--			return;
-+		if (likely(!in_interrupt() && !(task->flags & PF_KTHREAD))) {
-+			init_task_work(&file->f_u.fu_rcuhead, ____fput);
-+			if (!task_work_add(task, &file->f_u.fu_rcuhead, true))
-+				return;
- 		}
--		init_task_work(&file->f_u.fu_rcuhead, ____fput);
--		task_work_add(task, &file->f_u.fu_rcuhead, true);
-+		spin_lock_irqsave(&delayed_fput_lock, flags);
-+		list_add(&file->f_u.fu_list, &delayed_fput_list);
-+		schedule_work(&delayed_fput_work);
-+		spin_unlock_irqrestore(&delayed_fput_lock, flags);
- 	}
- }
+diff -puN kernel/exit.c~move-exit_task_namespaces-outside-of-exit_notify kernel/exit.c
+--- a/kernel/exit.c~move-exit_task_namespaces-outside-of-exit_notify
++++ a/kernel/exit.c
+@@ -649,7 +649,6 @@ static void exit_notify(struct task_stru
+ 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
+ 	 */
+ 	forget_original_parent(tsk);
+-	exit_task_namespaces(tsk);
  
+ 	write_lock_irq(&tasklist_lock);
+ 	if (group_dead)
+@@ -795,6 +794,7 @@ void do_exit(long code)
+ 	exit_shm(tsk);
+ 	exit_files(tsk);
+ 	exit_fs(tsk);
++	exit_task_namespaces(tsk);
+ 	exit_task_work(tsk);
+ 	check_stack_usage();
+ 	exit_thread();
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
