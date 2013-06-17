@@ -1,140 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] move-exit_task_namespaces-outside-of-exit_notify.patch
- removed from -mm tree
-Date: Mon, 17 Jun 2013 13:10:56 -0700
-Message-ID: <51bf6d50.+Xzu7AdlMJ8VSgj7%akpm@linux-foundation.org>
+Subject: + include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+ added to -mm tree
+Date: Mon, 17 Jun 2013 13:31:17 -0700
+Message-ID: <51bf7215.kCUvfXDQNVATYYGk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309Ab3FQULC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 16:11:02 -0400
+	with ESMTP id S1752646Ab3FQUbS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 16:31:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ebiederm@xmission.com, avagin@openvz.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, ralf@linux-mips.org, geert@linux-m68k.org, david.daney@cavium.com, akpm@linux-foundation.org
 
-Subject: [merged] move-exit_task_namespaces-outside-of-exit_notify.patch removed from -mm tree
-To: oleg@redhat.com,avagin@openvz.org,ebiederm@xmission.com,mm-commits@vger.kernel.org
+Subject: + include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch added to -mm tree
+To: akpm@linux-foundation.org,david.daney@cavium.com,geert@linux-m68k.org,ralf@linux-mips.org,sfr@canb.auug.org.au
 From: akpm@linux-foundation.org
-Date: Mon, 17 Jun 2013 13:10:56 -0700
+Date: Mon, 17 Jun 2013 13:31:17 -0700
 
 
 The patch titled
-     Subject: move exit_task_namespaces() outside of exit_notify()
-has been removed from the -mm tree.  Its filename was
-     move-exit_task_namespaces-outside-of-exit_notify.patch
+     Subject: include/linux/smp.h:on_each_cpu(): switch back to a macro
+has been added to the -mm tree.  Its filename is
+     include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: move exit_task_namespaces() outside of exit_notify()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/linux/smp.h:on_each_cpu(): switch back to a macro
 
-exit_notify() does exit_task_namespaces() after forget_original_parent(). 
-This was needed to ensure that ->nsproxy can't be cleared prematurely, an
-exiting child we are going to reparent can do do_notify_parent() and use
-the parent's (ours) pid_ns.
+f21afc25f9ed4 ("smp.h: Use local_irq_{save,restore}() in !SMP version of
+on_each_cpu()") converted on_each_cpu() to a C function.  This required
+inclusion of irqflags.h, which broke ia64 and mn10300 (at least) due to
+header ordering hell.
 
-However, after 32084504 "pidns: use task_active_pid_ns in
-do_notify_parent" ->nsproxy != NULL is no longer needed, we rely on
-task_active_pid_ns().
+Switch on_each_cpu() back to a macro to fix this.
 
-Move exit_task_namespaces() from exit_notify() to do_exit(), after
-exit_fs() and before exit_task_work().
-
-This solves the problem reported by Andrey, free_ipc_ns()->shm_destroy()
-does fput() which needs task_work_add().
-
-Note: this particular problem can be fixed if we change fput(), and that
-change makes sense anyway.  But there is another reason to move the
-callsite.  The original reason for exit_task_namespaces() from the middle
-of exit_notify() was subtle and it has already gone away, now this looks
-confusing.  And this allows us do simplify exit_notify(), we can avoid
-unlock/lock(tasklist) and we can use ->exit_state instead of PF_EXITING in
-forget_original_parent().
-
-Reported-by: Andrey Vagin <avagin@openvz.org>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Andrey Vagin <avagin@openvz.org>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Daney <david.daney@cavium.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/smp.h |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN kernel/exit.c~move-exit_task_namespaces-outside-of-exit_notify kernel/exit.c
---- a/kernel/exit.c~move-exit_task_namespaces-outside-of-exit_notify
-+++ a/kernel/exit.c
-@@ -649,7 +649,6 @@ static void exit_notify(struct task_stru
- 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
- 	 */
- 	forget_original_parent(tsk);
--	exit_task_namespaces(tsk);
+diff -puN include/linux/smp.h~include-linux-smph-on_each_cpu-switch-back-to-a-macro include/linux/smp.h
+--- a/include/linux/smp.h~include-linux-smph-on_each_cpu-switch-back-to-a-macro
++++ a/include/linux/smp.h
+@@ -11,7 +11,6 @@
+ #include <linux/list.h>
+ #include <linux/cpumask.h>
+ #include <linux/init.h>
+-#include <linux/irqflags.h>
  
- 	write_lock_irq(&tasklist_lock);
- 	if (group_dead)
-@@ -795,6 +794,7 @@ void do_exit(long code)
- 	exit_shm(tsk);
- 	exit_files(tsk);
- 	exit_fs(tsk);
-+	exit_task_namespaces(tsk);
- 	exit_task_work(tsk);
- 	check_stack_usage();
- 	exit_thread();
+ extern void cpu_idle(void);
+ 
+@@ -140,17 +139,14 @@ static inline int up_smp_call_function(s
+ }
+ #define smp_call_function(func, info, wait) \
+ 			(up_smp_call_function(func, info))
+-
+-static inline int on_each_cpu(smp_call_func_t func, void *info, int wait)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	func(info);
+-	local_irq_restore(flags);
+-	return 0;
+-}
+-
++#define on_each_cpu(func,info,wait)		\
++	({					\
++		unsigned long flags;		\
++		local_irq_save(flags);		\
++		func(info);			\
++		local_irq_restore(flags);	\
++		0;				\
++	})
+ /*
+  * Note we still need to test the mask even for UP
+  * because we actually can get an empty mask from
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
 fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-posix_cpu_timer-consolidate-expiry-time-type.patch
-posix_cpu_timers-consolidate-timer-list-cleanups.patch
-posix_cpu_timers-consolidate-expired-timers-check.patch
+include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-kernel-sysc-do_sysinfo-use-get_monotonic_boottime.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
-ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
-ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
-ptrace-x86-introduce-ptrace_register_breakpoint.patch
-ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
-ptrace-x86-cleanup-ptrace_set_debugreg.patch
-ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
-ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
-x86-kill-tif_debug.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask.patch
-usermodehelper-kill-the-sub_info-path-check.patch
-coredump-format_corename-can-leak-cn-corename.patch
-coredump-introduce-cn_vprintf.patch
-coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
-coredump-kill-cn_escape-introduce-cn_esc_printf.patch
-coredump-kill-call_count-add-core_name_size.patch
-coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
-coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch
-fs-execc-de_thread-use-change_pid-rather-than-detach_pid-attach_pid.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+include-linux-mmzoneh-cleanups.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-exitc-unexport-__set_special_pids.patch
-fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime.patch
-kernel-forkc-copy_process-unify-clone_thread-or-thread_group_leader-code.patch
-kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch
-kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch
-fs-execc-do_execve_common-use-current_user.patch
-fs-execc-de_thread-mt-exec-should-update-real_start_time.patch
-wait-introduce-wait_event_commonwq-condition-state-timeout.patch
 wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch
-wait-introduce-prepare_to_wait_event.patch
 wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
