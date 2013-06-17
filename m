@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-ocfs2-journalh-add-bits_wanted-while-calculating-credits-in-ocfs2_calc_extend_credits.patch added to -mm tree
-Date: Mon, 17 Jun 2013 14:17:45 -0700
-Message-ID: <51bf7cf9.QcLkJqfByMBRE2hH%akpm@linux-foundation.org>
+ virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated.patch
+ added to -mm tree
+Date: Mon, 17 Jun 2013 15:27:02 -0700
+Message-ID: <51bf8d36.WpCh88IWdvAx/g97%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41710 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753540Ab3FQVRq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 17:17:46 -0400
+	with ESMTP id S1751126Ab3FQW1D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 18:27:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, rgoldwyn@gmail.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, aquini@redhat.com, lcapitulino@redhat.com
 
-Subject: + fs-ocfs2-journalh-add-bits_wanted-while-calculating-credits-in-ocfs2_calc_extend_credits.patch added to -mm tree
-To: rgoldwyn@gmail.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
+Subject: + virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated.patch added to -mm tree
+To: lcapitulino@redhat.com,aquini@redhat.com,rusty@rustcorp.com.au
 From: akpm@linux-foundation.org
-Date: Mon, 17 Jun 2013 14:17:45 -0700
+Date: Mon, 17 Jun 2013 15:27:02 -0700
 
 
 The patch titled
-     Subject: fs/ocfs2/journal.h: add bits_wanted while calculating credits in ocfs2_calc_extend_credits
+     Subject: virtio_balloon: leak_balloon(): only tell host if we got pages deflated
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-journalh-add-bits_wanted-while-calculating-credits-in-ocfs2_calc_extend_credits.patch
+     virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +40,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@gmail.com>
-Subject: fs/ocfs2/journal.h: add bits_wanted while calculating credits in ocfs2_calc_extend_credits
+From: Luiz Capitulino <lcapitulino@redhat.com>
+Subject: virtio_balloon: leak_balloon(): only tell host if we got pages deflated
 
-While adding extends to a file, the credits are calculated incorrectly and
-if the requested clusters is more than one (or more because we used a
-conservative limit) then we run out of journal credits and we hit an
-assert in journalling code.
+balloon_page_dequeue() can return NULL.  If it does for the first page
+being freed then leak_balloon() will create a scatter list with len=0. 
+Which in turn seems to generate an invalid virtio request.
 
-The function parameter bits_wanted variable was not used at all.
+I didn't get this in practice, I found it by code review.  On the other
+hand, such an invalid virtio request will cause errors in QEMU and
+fill_balloon() also performs the same check implemented by this commit.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/virtio/virtio_balloon.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/journal.h~fs-ocfs2-journalh-add-bits_wanted-while-calculating-credits-in-ocfs2_calc_extend_credits fs/ocfs2/journal.h
---- a/fs/ocfs2/journal.h~fs-ocfs2-journalh-add-bits_wanted-while-calculating-credits-in-ocfs2_calc_extend_credits
-+++ a/fs/ocfs2/journal.h
-@@ -537,7 +537,7 @@ static inline int ocfs2_calc_extend_cred
- 	extent_blocks = 1 + 1 + le16_to_cpu(root_el->l_tree_depth);
- 
- 	return bitmap_blocks + sysfile_bitmap_blocks + extent_blocks +
--	       ocfs2_quota_trans_credits(sb);
-+	       ocfs2_quota_trans_credits(sb) + bits_wanted;
+diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated
++++ a/drivers/virtio/virtio_balloon.c
+@@ -191,7 +191,8 @@ static void leak_balloon(struct virtio_b
+ 	 * virtio_has_feature(vdev, VIRTIO_BALLOON_F_MUST_TELL_HOST);
+ 	 * is true, we *have* to do it in this order
+ 	 */
+-	tell_host(vb, vb->deflate_vq);
++	if (vb->num_pfns != 0)
++		tell_host(vb, vb->deflate_vq);
+ 	mutex_unlock(&vb->balloon_lock);
+ 	release_pages_by_pfn(vb->pfns, vb->num_pfns);
  }
- 
- static inline int ocfs2_calc_symlink_credits(struct super_block *sb)
 _
 
-Patches currently in -mm which might be from rgoldwyn@gmail.com are
+Patches currently in -mm which might be from lcapitulino@redhat.com are
 
-ocfs2-remove-unecessary-variable-needs_checkpoint.patch
-fs-ocfs2-journalh-add-bits_wanted-while-calculating-credits-in-ocfs2_calc_extend_credits.patch
+virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated.patch
 
