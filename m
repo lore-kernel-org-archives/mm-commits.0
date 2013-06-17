@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix.patch added to -mm tree
-Date: Mon, 17 Jun 2013 15:48:44 -0700
-Message-ID: <51bf924c.A/hLgGTNEf3KZKXo%akpm@linux-foundation.org>
+Subject: + mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch added to -mm tree
+Date: Mon, 17 Jun 2013 16:22:57 -0700
+Message-ID: <51bf9a51.gmbkzgXDvhEo1NZ5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41956 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361Ab3FQWsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 18:48:45 -0400
+	with ESMTP id S1753078Ab3FQXW6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jun 2013 19:22:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, fengguang.wu@intel.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, fengguang.wu@intel.com, akpm@linux-foundation.org
 
-Subject: + mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix.patch added to -mm tree
-To: mgorman@suse.de,fengguang.wu@intel.com,mhocko@suse.cz
+Subject: + mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,fengguang.wu@intel.com,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Mon, 17 Jun 2013 15:48:44 -0700
+Date: Mon, 17 Jun 2013 16:22:57 -0700
 
 
 The patch titled
-     Subject: mm: Clear page active before releasing pages
+     Subject: mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix
 has been added to the -mm tree.  Its filename is
-     mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix.patch
+     mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,142 +38,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: Clear page active before releasing pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix
 
-Active pages should not be freed to the page allocator as it triggers a
-bad page state warning.  Fengguang Wu reported the following bug and
-bisected it to the patch "mm: remove lru parameter from __lru_cache_add
-and lru_cache_add_lru" which is currently in mmotm as
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+make definitions more readable
 
-[   84.212960] BUG: Bad page state in process rm  pfn:0b0c9
-[   84.214682] page:ffff88000d646240 count:0 mapcount:0 mapping:          (null) index:0x0
-[   84.216883] page flags: 0x20000000004c(referenced|uptodate|active)
-[   84.218697] CPU: 1 PID: 283 Comm: rm Not tainted 3.10.0-rc4-04361-geeb9bfc #49
-[   84.220729]  ffff88000d646240 ffff88000d179bb8 ffffffff82562956 ffff88000d179bd8
-[   84.223242]  ffffffff811333f1 000020000000004c ffff88000d646240 ffff88000d179c28
-[   84.225387]  ffffffff811346a4 ffff880000270000 0000000000000000 0000000000000006
-[   84.227294] Call Trace:
-[   84.227867]  [<ffffffff82562956>] dump_stack+0x27/0x30
-[   84.229045]  [<ffffffff811333f1>] bad_page+0x130/0x158
-[   84.230261]  [<ffffffff811346a4>] free_pages_prepare+0x8b/0x1e3
-[   84.231765]  [<ffffffff8113542a>] free_hot_cold_page+0x28/0x1cf
-[   84.233171]  [<ffffffff82585830>] ? _raw_spin_unlock_irqrestore+0x6b/0xc6
-[   84.234822]  [<ffffffff81135b59>] free_hot_cold_page_list+0x30/0x5a
-[   84.236311]  [<ffffffff8113a4ed>] release_pages+0x251/0x267
-[   84.237653]  [<ffffffff8112a88d>] ? delete_from_page_cache+0x48/0x9e
-[   84.239142]  [<ffffffff8113ad93>] __pagevec_release+0x2b/0x3d
-[   84.240473]  [<ffffffff8113b45a>] truncate_inode_pages_range+0x1b0/0x7ce
-[   84.242032]  [<ffffffff810e76ab>] ? put_lock_stats.isra.20+0x1c/0x53
-[   84.243480]  [<ffffffff810e77f5>] ? lock_release_holdtime+0x113/0x11f
-[   84.244935]  [<ffffffff8113ba8c>] truncate_inode_pages+0x14/0x1d
-[   84.246337]  [<ffffffff8119b3ef>] evict+0x11f/0x232
-[   84.247501]  [<ffffffff8119c527>] iput+0x1a5/0x218
-[   84.248607]  [<ffffffff8118f015>] do_unlinkat+0x19b/0x25a
-[   84.249828]  [<ffffffff810ea993>] ? trace_hardirqs_on_caller+0x210/0x2ce
-[   84.251382]  [<ffffffff8144372e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
-[   84.252879]  [<ffffffff8118f10d>] SyS_unlinkat+0x39/0x4c
-[   84.254174]  [<ffffffff825874d6>] system_call_fastpath+0x1a/0x1f
-[   84.255596] Disabling lock debugging due to kernel taint
-
-The problem was that a page marked for activation was released via
-pagevec. This patch clears the active bit before freeing in this case.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-and-Tested-by: Fengguang Wu <fengguang.wu@intel.com>
-Tested-by: Michal Hocko <mhocko@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix mm/swap.c
---- a/mm/swap.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix
-+++ a/mm/swap.c
-@@ -739,6 +739,9 @@ void release_pages(struct page **pages,
- 			del_page_from_lru_list(page, lruvec, page_off_lru(page));
- 		}
+diff -puN mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix
++++ a/mm/page_alloc.c
+@@ -4793,7 +4793,8 @@ void __paginginit free_area_init_node(in
+ 		unsigned long node_start_pfn, unsigned long *zholes_size)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+-	unsigned long start_pfn = 0, end_pfn = 0;
++	unsigned long start_pfn = 0;
++	unsigned long end_pfn = 0;
  
-+		/* Clear Active bit in case of parallel mark_page_accessed */
-+		ClearPageActive(page);
-+
- 		list_add(&page->lru, &pages_to_free);
- 	}
- 	if (zone)
+ 	/* pg_data_t should be reset to zero when it's allocated */
+ 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch
-mm-page_alloc-prevent-concurrent-updaters-of-pcp-batch-and-high.patch
-mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch
-mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
-mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch
-mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
-mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch
-mm-page_alloc-relocate-comment-to-be-directly-above-code-it-refers-to.patch
-mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch
-mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch
-mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch
-mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
-mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
-mm-vmscan-flatten-kswapd-priority-loop.patch
-mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
-mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
-mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch
-mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
-mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
-mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
-mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
-mm-vmscan-set-zone-flags-before-blocking.patch
-mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
-mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
-mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
-fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
-mm-add-tracepoints-for-lru-activation-and-insertions.patch
-mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
-mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
-mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
+include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix.patch
-mm-fix-the-tlb-range-flushed-when-__tlb_remove_page-runs-out-of-slots.patch
-mm-introduce-helper-function-mem_init_print_info-to-simplify-mem_init.patch
-mm-kill-global-variable-num_physpages.patch
-documentation-update-address_space_operations.patch
-documentation-document-the-is_dirty_writeback-aops-callback.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-api.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
-zbud-add-to-mm.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-mm-memmap_init_zone-performance-improvement.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+include-linux-mmzoneh-cleanups.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch
+wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
