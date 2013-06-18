@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-unused-__put_page.patch added to -mm tree
-Date: Tue, 18 Jun 2013 13:47:23 -0700
-Message-ID: <51c0c75b.T82UnhsxOctCpl+B%akpm@linux-foundation.org>
+Subject: +
+ mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
+ added to -mm tree
+Date: Tue, 18 Jun 2013 13:48:34 -0700
+Message-ID: <51c0c7a2.DiLYVqo4t0PGIiLJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200Ab3FRUrY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 16:47:24 -0400
+	with ESMTP id S932200Ab3FRUsf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 16:48:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, toshi.kani@hp.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com
 
-Subject: + mm-remove-unused-__put_page.patch added to -mm tree
-To: zhangyanfei@cn.fujitsu.com
+Subject: + mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch added to -mm tree
+To: zhangyanfei@cn.fujitsu.com,rientjes@google.com,toshi.kani@hp.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Jun 2013 13:47:23 -0700
+Date: Tue, 18 Jun 2013 13:48:34 -0700
 
 
 The patch titled
-     Subject: mm: remove unused __put_page()
+     Subject: mm/sparse.c: put clear_hwpoisoned_pages within CONFIG_MEMORY_HOTREMOVE
 has been added to the -mm tree.  Its filename is
-     mm-remove-unused-__put_page.patch
+     mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +41,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm: remove unused __put_page()
+Subject: mm/sparse.c: put clear_hwpoisoned_pages within CONFIG_MEMORY_HOTREMOVE
 
-This function is nowhere used, and it has a confusing name with put_page
-in mm/swap.c.  So better to remove it.
+With CONFIG_MEMORY_HOTREMOVE unset, there is a compile warning:
+
+mm/sparse.c:755: warning: `clear_hwpoisoned_pages' defined but not used
+
+And Bisecting it ended up pointing to 4edd7ceff ("mm, hotplug: avoid
+compiling memory hotremove functions when disabled").
+
+This is because the commit above put sparse_remove_one_section() within
+the protection of CONFIG_MEMORY_HOTREMOVE but the only user of
+clear_hwpoisoned_pages() is sparse_remove_one_section(), and it is not
+within the protection of CONFIG_MEMORY_HOTREMOVE.
+
+So put clear_hwpoisoned_pages within CONFIG_MEMORY_HOTREMOVE should fix
+the warning.
 
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/internal.h~mm-remove-unused-__put_page mm/internal.h
---- a/mm/internal.h~mm-remove-unused-__put_page
-+++ a/mm/internal.h
-@@ -32,11 +32,6 @@ static inline void set_page_refcounted(s
- 	set_page_count(page, 1);
+diff -puN mm/sparse.c~mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove mm/sparse.c
+--- a/mm/sparse.c~mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove
++++ a/mm/sparse.c
+@@ -753,6 +753,7 @@ out:
+ 	return ret;
  }
  
--static inline void __put_page(struct page *page)
--{
--	atomic_dec(&page->_count);
--}
--
- static inline void __get_page_tail_foll(struct page *page,
- 					bool get_page_head)
++#ifdef CONFIG_MEMORY_HOTREMOVE
+ #ifdef CONFIG_MEMORY_FAILURE
+ static void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
  {
+@@ -774,7 +775,6 @@ static inline void clear_hwpoisoned_page
+ }
+ #endif
+ 
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+ static void free_section_usemap(struct page *memmap, unsigned long *usemap)
+ {
+ 	struct page *usemap_page;
 _
 
 Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
@@ -106,7 +126,7 @@ mm-remove-zone_type-argument-of-build_zonelists_node.patch
 mm-remove-unused-functions-is_normal_idx-normal-dma32-dma.patch
 mm-remove-unlikely-from-the-current_order-test.patch
 mm-remove-unused-__put_page.patch
-mm-sparse-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
+mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
 dev-oldmem-remove-the-interface.patch
 dev-oldmem-remove-the-interface-fix.patch
 documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
