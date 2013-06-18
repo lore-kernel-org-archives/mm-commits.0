@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-correctly-update-zone-managed_pages-fix-fix-fix.patch added
- to -mm tree
-Date: Tue, 18 Jun 2013 13:51:41 -0700
-Message-ID: <51c0c85d.aU3lhMNIsFO1nli9%akpm@linux-foundation.org>
+Subject: + llist-llist_add-can-use-llist_add_batch.patch added to -mm tree
+Date: Tue, 18 Jun 2013 14:00:44 -0700
+Message-ID: <51c0ca7c.0bfCyv6R0b2HwDP+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51756 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756282Ab3FRUvm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 16:51:42 -0400
+	with ESMTP id S932706Ab3FRVAp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 17:00:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, liuj97@gmail.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, ying.huang@intel.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, dhowells@redhat.com, avagin@openvz.org, a.p.zijlstra@chello.nl, oleg@redhat.com
 
-Subject: + mm-correctly-update-zone-managed_pages-fix-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,fengguang.wu@intel.com,liuj97@gmail.com,mhocko@suse.cz
+Subject: + llist-llist_add-can-use-llist_add_batch.patch added to -mm tree
+To: oleg@redhat.com,a.p.zijlstra@chello.nl,avagin@openvz.org,dhowells@redhat.com,ebiederm@xmission.com,viro@zeniv.linux.org.uk,ying.huang@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Jun 2013 13:51:41 -0700
+Date: Tue, 18 Jun 2013 14:00:44 -0700
 
 
 The patch titled
-     Subject: mm-correctly-update-zone-managed_pages-fix-fix-fix
+     Subject: llist: llist_add() can use llist_add_batch()
 has been added to the -mm tree.  Its filename is
-     mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
+     llist-llist_add-can-use-llist_add_batch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +38,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-correctly-update-zone-managed_pages-fix-fix-fix
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: llist: llist_add() can use llist_add_batch()
 
-export adjust_managed_page_count() to modules, for drivers/virtio/virtio_balloon.c
+llist_add(new, head) can simply use llist_add_batch(new, new, head),
+no need to duplicate the code.
 
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+This obviously uninlines llist_add() and to me this is a win. But we
+can make llist_add_batch() inline if this is desirable, in this case
+gcc can notice that new_first == new_last if the caller is llist_add().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/llist.h |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-correctly-update-zone-managed_pages-fix-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-correctly-update-zone-managed_pages-fix-fix-fix
-+++ a/mm/page_alloc.c
-@@ -5209,6 +5209,7 @@ void adjust_managed_page_count(struct pa
- #endif
- 	spin_unlock(&managed_page_count_lock);
+diff -puN include/linux/llist.h~llist-llist_add-can-use-llist_add_batch include/linux/llist.h
+--- a/include/linux/llist.h~llist-llist_add-can-use-llist_add_batch
++++ a/include/linux/llist.h
+@@ -142,6 +142,9 @@ static inline struct llist_node *llist_n
+ 	return node->next;
  }
-+EXPORT_SYMBOL(adjust_managed_page_count);
  
- unsigned long free_reserved_area(void *start, void *end, int poison, char *s)
++extern bool llist_add_batch(struct llist_node *new_first,
++			    struct llist_node *new_last,
++			    struct llist_head *head);
+ /**
+  * llist_add - add a new entry
+  * @new:	new entry to be added
+@@ -151,13 +154,7 @@ static inline struct llist_node *llist_n
+  */
+ static inline bool llist_add(struct llist_node *new, struct llist_head *head)
  {
+-	struct llist_node *first;
+-
+-	do {
+-		new->next = first = ACCESS_ONCE(head->first);
+-	} while (cmpxchg(&head->first, first, new) != first);
+-
+-	return !first;
++	return llist_add_batch(new, new, head);
+ }
+ 
+ /**
+@@ -173,9 +170,6 @@ static inline struct llist_node *llist_d
+ 	return xchg(&head->first, NULL);
+ }
+ 
+-extern bool llist_add_batch(struct llist_node *new_first,
+-			    struct llist_node *new_last,
+-			    struct llist_head *head);
+ extern struct llist_node *llist_del_first(struct llist_head *head);
+ 
+ #endif /* LLIST_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
 fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix_cpu_timer-consolidate-expiry-time-type.patch
+posix_cpu_timers-consolidate-timer-list-cleanups.patch
+posix_cpu_timers-consolidate-expired-timers-check.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+posix_timers-fix-racy-timer-delta-caching-on-task-exit.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+fput-turn-list_head-delayed_fput_list-into-llist_head.patch
+llist-fix-simplify-llist_add-and-llist_add_batch.patch
+llist-llist_add-can-use-llist_add_batch.patch
+vfree-dont-schedule-free_work-if-llist_add-returns-false.patch
+kernel-sysc-do_sysinfo-use-get_monotonic_boottime.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
+x86-kill-tif_debug.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+usermodehelper-kill-the-sub_info-path-check.patch
+coredump-format_corename-can-leak-cn-corename.patch
+coredump-introduce-cn_vprintf.patch
+coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
+coredump-kill-cn_escape-introduce-cn_esc_printf.patch
+coredump-kill-call_count-add-core_name_size.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
+coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic-fix.patch
+fs-execc-de_thread-use-change_pid-rather-than-detach_pid-attach_pid.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+exitc-unexport-__set_special_pids.patch
+fs-proc-uptimec-uptime_proc_show-use-get_monotonic_boottime.patch
+kernel-forkc-copy_process-unify-clone_thread-or-thread_group_leader-code.patch
+kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch
+kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch
+fs-execc-do_execve_common-use-current_user.patch
+fs-execc-de_thread-mt-exec-should-update-real_start_time.patch
+wait-introduce-wait_event_commonwq-condition-state-timeout.patch
 wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch
+wait-introduce-prepare_to_wait_event.patch
 wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
 
