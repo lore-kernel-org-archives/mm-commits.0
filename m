@@ -1,124 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- wait-introduce-wait_event_commonwq-condition-state-timeout.patch removed
+Subject: [failures] wait-introduce-prepare_to_wait_event.patch removed
  from -mm tree
-Date: Tue, 18 Jun 2013 15:07:45 -0700
-Message-ID: <51c0da31.kLFPL61gEgsjBdek%akpm@linux-foundation.org>
+Date: Tue, 18 Jun 2013 15:07:47 -0700
+Message-ID: <51c0da33.7c+pu04nKQiuo8pv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933481Ab3FRWHq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 18:07:46 -0400
+	with ESMTP id S932596Ab3FRWHs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 18:07:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tj@kernel.org, lczerner@redhat.com, imre.deak@intel.com, daniel.vetter@ffwll.ch, oleg@redhat.com
 
-Subject: [failures] wait-introduce-wait_event_commonwq-condition-state-timeout.patch removed from -mm tree
+Subject: [failures] wait-introduce-prepare_to_wait_event.patch removed from -mm tree
 To: oleg@redhat.com,daniel.vetter@ffwll.ch,imre.deak@intel.com,lczerner@redhat.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 18 Jun 2013 15:07:45 -0700
+Date: Tue, 18 Jun 2013 15:07:47 -0700
 
 
 The patch titled
-     Subject: wait: introduce wait_event_common(wq, condition, state, timeout)
+     Subject: wait: introduce prepare_to_wait_event()
 has been removed from the -mm tree.  Its filename was
-     wait-introduce-wait_event_commonwq-condition-state-timeout.patch
+     wait-introduce-prepare_to_wait_event.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: wait: introduce wait_event_common(wq, condition, state, timeout)
+Subject: wait: introduce prepare_to_wait_event()
 
-To remind, I think that 4c663cfc "wait: fix false timeouts when using
-wait_event_timeout()" is not enough, wait(wq, true, 0) still returns zero.
+Add the new helper, prepare_to_wait_event() which should only be used by
+wait_event_common/etc.
 
-But to me the main problem is that wait_event* macros duplicate the same
-code again and again.  Imho it would be nice to create a single helper. 
-To simplify the review, this is the code after 1/2:
+prepare_to_wait_event() returns -ERESTARTSYS if signal_pending_state() is
+true, otherwise it calls prepare_to_wait().  This allows to uninline the
+signal-pending checks in wait_event_*.
 
-#define __wait_no_timeout(tout)	\
-	(__builtin_constant_p(tout) && (tout) == MAX_SCHEDULE_TIMEOUT)
+Also, it can initialize wait->private/func.  We do not care they were
+already initialized, the values are the same.  This also shaves a couple
+of insns from the inlined code.
 
-/* uglified signal_pending_state() optimized for constant state */
-#define __wait_signal_pending(state)					\
-	((state == TASK_INTERRUPTIBLE) ? signal_pending(current) :	\
-	 (state == TASK_KILLABLE) ? fatal_signal_pending(current) :	\
-	  0)
-
-#define __wait_event_common(wq, condition, state, tout)			\
-({									\
-	DEFINE_WAIT(__wait);						\
-	long __ret = 0, __tout = tout;					\
-									\
-	for (;;) {							\
-		prepare_to_wait(&wq, &__wait, state);			\
-		if (condition) {					\
-			__ret = __wait_no_timeout(tout) ?: __tout ?: 1;	\
-			break;						\
-		}							\
-									\
-		if (__wait_signal_pending(state)) {			\
-			__ret = -ERESTARTSYS;				\
-			break;						\
-		}							\
-									\
-		if (__wait_no_timeout(tout))				\
-			schedule();					\
-		else if (__tout)					\
-			__tout = schedule_timeout(__tout);		\
-		else							\
-			break;						\
-	}								\
-	finish_wait(&wq, &__wait);					\
-	__ret;								\
-})
-
-#define wait_event_common(wq, condition, state, tout)			\
-({									\
-	long __ret;							\
-	if (condition)							\
-		__ret = __wait_no_timeout(tout) ?: (tout) ?: 1;		\
-	else								\
-		__ret = __wait_event_common(wq, condition, state, tout);\
-	__ret;								\
-})
-
-2/2 doesn't look like a cleanup. But personally I think that it makes
-sense to shrink .text,
-
-	-	4977769 2930984 10104832        18013585        112dd91 vmlinux
-	+	4976847	2930984	10104832	18012663	112d9f7	vmlinux
-
-on my build.
-
-
-
-This patch:
-
-1. wait_event_timeout(wq, true, 0) returns zero, I think this is
-   wrong and should be fixed.
-
-   __wait_event_timeout() was already changed by 4c663cfc but we
-   need the same logic in wait_event_timeout() if the fast-path
-   check succeeds.
-
-2. wait_event_timeout/__wait_event_timeout interface do not match
-   wait_event(), you can't use __wait_event_timeout() instead of
-   wait_event_timeout() if you do not need the fast-path check.
-
-3. wait_event_* macros duplicate the same code.
-
-This patch adds a single helper wait_event_common() which hopefully
-does everything right. Compiler optimizes out the "dead" code when
-we do not need signal_pending/schedule_timeout.
-
-With this patch "size vmlinux" reports that .text/data shrinks but
-I think this depends on gcc/config.
+Unlike the previous change, this patch "reliably" shrinks the size of
+generated code for every wait_event*() call.
 
 [akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
@@ -129,254 +56,83 @@ Cc: Lukas Czerner <lczerner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |  183 +++++++++++++++--------------------------
- 1 file changed, 71 insertions(+), 112 deletions(-)
+ include/linux/wait.h |   22 +++++++++++-----------
+ kernel/wait.c        |   13 +++++++++++++
+ 2 files changed, 24 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout include/linux/wait.h
---- a/include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout
+diff -puN include/linux/wait.h~wait-introduce-prepare_to_wait_event include/linux/wait.h
+--- a/include/linux/wait.h~wait-introduce-prepare_to_wait_event
 +++ a/include/linux/wait.h
-@@ -179,18 +179,52 @@ wait_queue_head_t *bit_waitqueue(void *,
- #define wake_up_interruptible_sync_poll(x, m)				\
- 	__wake_up_sync_key((x), TASK_INTERRUPTIBLE, 1, (void *) (m))
+@@ -182,28 +182,27 @@ wait_queue_head_t *bit_waitqueue(void *,
+ #define __wait_no_timeout(tout)	\
+ 	(__builtin_constant_p(tout) && (tout) == MAX_SCHEDULE_TIMEOUT)
  
--#define __wait_event(wq, condition) 					\
--do {									\
-+#define __wait_no_timeout(tout)	\
-+	(__builtin_constant_p(tout) && (tout) == MAX_SCHEDULE_TIMEOUT)
-+
-+/* uglified signal_pending_state() optimized for constant state */
-+#define __wait_signal_pending(state)					\
-+	((state == TASK_INTERRUPTIBLE) ? signal_pending(current) :	\
-+	 (state == TASK_KILLABLE) ? fatal_signal_pending(current) :	\
-+	  0)
-+
-+#define __wait_event_common(wq, condition, state, tout)			\
-+({									\
- 	DEFINE_WAIT(__wait);						\
-+	long __ret = 0, __tout = tout;					\
+-/* uglified signal_pending_state() optimized for constant state */
+-#define __wait_signal_pending(state)					\
+-	((state == TASK_INTERRUPTIBLE) ? signal_pending(current) :	\
+-	 (state == TASK_KILLABLE) ? fatal_signal_pending(current) :	\
+-	  0)
++#define __wait_interruptible(state)					\
++	(!__builtin_constant_p(state) ||				\
++		state == TASK_INTERRUPTIBLE || state == TASK_KILLABLE)
+ 
+ #define __wait_event_common(wq, condition, state, tout)			\
+ ({									\
+-	DEFINE_WAIT(__wait);						\
+-	long __ret = 0, __tout = tout;					\
++	long __ret, __tout = tout;					\
++	wait_queue_t __wait;						\
++									\
++	INIT_LIST_HEAD(&__wait.task_list);				\
++	__wait.flags = 0;						\
  									\
  	for (;;) {							\
--		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);	\
--		if (condition)						\
-+		prepare_to_wait(&wq, &__wait, state);			\
-+		if (condition) {					\
-+			__ret = __wait_no_timeout(tout) ?: __tout ?: 1;	\
-+			break;						\
-+		}							\
-+									\
-+		if (__wait_signal_pending(state)) {			\
-+			__ret = -ERESTARTSYS;				\
-+			break;						\
-+		}							\
-+									\
-+		if (__wait_no_timeout(tout))				\
-+			schedule();					\
-+		else if (__tout)					\
-+			__tout = schedule_timeout(__tout);		\
-+		else							\
+-		prepare_to_wait(&wq, &__wait, state);			\
++		__ret = prepare_to_wait_event(&wq, &__wait, state);	\
+ 		if (condition) {					\
+ 			__ret = __wait_no_timeout(tout) ?: __tout ?: 1;	\
  			break;						\
--		schedule();						\
- 	}								\
- 	finish_wait(&wq, &__wait);					\
--} while (0)
-+	__ret;								\
-+})
-+
-+#define wait_event_common(wq, condition, state, tout)			\
-+({									\
-+	long __ret;							\
-+	if (condition)							\
-+		__ret = __wait_no_timeout(tout) ?: (tout) ?: 1;		\
-+	else								\
-+		__ret = __wait_event_common(wq, condition, state, tout);\
-+	__ret;								\
-+})
- 
- /**
-  * wait_event - sleep until a condition gets true
-@@ -204,29 +238,13 @@ do {									\
-  * wake_up() has to be called after changing any variable that could
-  * change the result of the wait condition.
-  */
--#define wait_event(wq, condition) 					\
--do {									\
--	if (condition)	 						\
--		break;							\
--	__wait_event(wq, condition);					\
--} while (0)
--
--#define __wait_event_timeout(wq, condition, ret)			\
--do {									\
--	DEFINE_WAIT(__wait);						\
--									\
--	for (;;) {							\
--		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);	\
--		if (condition)						\
--			break;						\
--		ret = schedule_timeout(ret);				\
--		if (!ret)						\
--			break;						\
--	}								\
--	if (!ret && (condition))					\
--		ret = 1;						\
--	finish_wait(&wq, &__wait);					\
--} while (0)
-+#define __wait_event(wq, condition)					\
-+	__wait_event_common(wq, condition,				\
-+			TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)	\
-+
-+#define wait_event(wq, condition)					\
-+	wait_event_common(wq, condition,				\
-+			TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)	\
- 
- /**
-  * wait_event_timeout - sleep until a condition gets true or a timeout elapses
-@@ -245,31 +263,13 @@ do {									\
-  * jiffies (at least 1) if the @condition evaluated to %true before
-  * the @timeout elapsed.
-  */
--#define wait_event_timeout(wq, condition, timeout)			\
--({									\
--	long __ret = timeout;						\
--	if (!(condition)) 						\
--		__wait_event_timeout(wq, condition, __ret);		\
--	__ret;								\
--})
-+#define __wait_event_timeout(wq, condition, timeout)			\
-+	__wait_event_common(wq, condition,				\
-+			TASK_UNINTERRUPTIBLE, timeout)
- 
--#define __wait_event_interruptible(wq, condition, ret)			\
--do {									\
--	DEFINE_WAIT(__wait);						\
--									\
--	for (;;) {							\
--		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
--		if (condition)						\
--			break;						\
--		if (!signal_pending(current)) {				\
--			schedule();					\
--			continue;					\
+ 		}							\
+ 									\
+-		if (__wait_signal_pending(state)) {			\
+-			__ret = -ERESTARTSYS;				\
++		if (__wait_interruptible(state) && __ret)		\
+ 			break;						\
 -		}							\
--		ret = -ERESTARTSYS;					\
--		break;							\
--	}								\
--	finish_wait(&wq, &__wait);					\
--} while (0)
-+#define wait_event_timeout(wq, condition, timeout)			\
-+	wait_event_common(wq, condition,				\
-+			TASK_UNINTERRUPTIBLE, timeout)
- 
- /**
-  * wait_event_interruptible - sleep until a condition gets true
-@@ -286,35 +286,13 @@ do {									\
-  * The function will return -ERESTARTSYS if it was interrupted by a
-  * signal and 0 if @condition evaluated to true.
+ 									\
+ 		if (__wait_no_timeout(tout))				\
+ 			schedule();					\
+@@ -787,6 +786,7 @@ extern long interruptible_sleep_on_timeo
+  * Waitqueues which are removed from the waitqueue_head at wakeup time
   */
--#define wait_event_interruptible(wq, condition)				\
--({									\
--	int __ret = 0;							\
--	if (!(condition))						\
--		__wait_event_interruptible(wq, condition, __ret);	\
--	__ret;								\
--})
-+#define __wait_event_interruptible(wq, condition)			\
-+	__wait_event_common(wq, condition,				\
-+			TASK_INTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)
+ void prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state);
++int prepare_to_wait_event(wait_queue_head_t *q, wait_queue_t *wait, int state);
+ void prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state);
+ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait);
+ void abort_exclusive_wait(wait_queue_head_t *q, wait_queue_t *wait,
+diff -puN kernel/wait.c~wait-introduce-prepare_to_wait_event kernel/wait.c
+--- a/kernel/wait.c~wait-introduce-prepare_to_wait_event
++++ a/kernel/wait.c
+@@ -78,6 +78,19 @@ prepare_to_wait(wait_queue_head_t *q, wa
+ }
+ EXPORT_SYMBOL(prepare_to_wait);
  
--#define __wait_event_interruptible_timeout(wq, condition, ret)		\
--do {									\
--	DEFINE_WAIT(__wait);						\
--									\
--	for (;;) {							\
--		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
--		if (condition)						\
--			break;						\
--		if (!signal_pending(current)) {				\
--			ret = schedule_timeout(ret);			\
--			if (!ret)					\
--				break;					\
--			continue;					\
--		}							\
--		ret = -ERESTARTSYS;					\
--		break;							\
--	}								\
--	if (!ret && (condition))					\
--		ret = 1;						\
--	finish_wait(&wq, &__wait);					\
--} while (0)
-+#define wait_event_interruptible(wq, condition)				\
-+	wait_event_common(wq, condition,				\
-+			TASK_INTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)
- 
- /**
-  * wait_event_interruptible_timeout - sleep until a condition gets true or a timeout elapses
-@@ -334,13 +312,13 @@ do {									\
-  * a signal, or the remaining jiffies (at least 1) if the @condition
-  * evaluated to %true before the @timeout elapsed.
-  */
-+#define __wait_event_interruptible_timeout(wq, condition, timeout)	\
-+	__wait_event_common(wq, condition,				\
-+			TASK_INTERRUPTIBLE, timeout)
++int prepare_to_wait_event(wait_queue_head_t *q, wait_queue_t *wait, int state)
++{
++	if (signal_pending_state(state, current))
++		return -ERESTARTSYS;
 +
- #define wait_event_interruptible_timeout(wq, condition, timeout)	\
--({									\
--	long __ret = timeout;						\
--	if (!(condition))						\
--		__wait_event_interruptible_timeout(wq, condition, __ret); \
--	__ret;								\
--})
-+	wait_event_common(wq, condition,				\
-+			TASK_INTERRUPTIBLE, timeout)
- 
- #define __wait_event_hrtimeout(wq, condition, timeout, state)		\
- ({									\
-@@ -607,24 +585,6 @@ do {									\
- 
- 
- 
--#define __wait_event_killable(wq, condition, ret)			\
--do {									\
--	DEFINE_WAIT(__wait);						\
--									\
--	for (;;) {							\
--		prepare_to_wait(&wq, &__wait, TASK_KILLABLE);		\
--		if (condition)						\
--			break;						\
--		if (!fatal_signal_pending(current)) {			\
--			schedule();					\
--			continue;					\
--		}							\
--		ret = -ERESTARTSYS;					\
--		break;							\
--	}								\
--	finish_wait(&wq, &__wait);					\
--} while (0)
--
- /**
-  * wait_event_killable - sleep until a condition gets true
-  * @wq: the waitqueue to wait on
-@@ -640,14 +600,13 @@ do {									\
-  * The function will return -ERESTARTSYS if it was interrupted by a
-  * signal and 0 if @condition evaluated to true.
-  */
--#define wait_event_killable(wq, condition)				\
--({									\
--	int __ret = 0;							\
--	if (!(condition))						\
--		__wait_event_killable(wq, condition, __ret);		\
--	__ret;								\
--})
-+#define __wait_event_killable(wq, condition)				\
-+	__wait_event_common(wq, condition,				\
-+			TASK_KILLABLE, MAX_SCHEDULE_TIMEOUT)
- 
-+#define wait_event_killable(wq, condition)				\
-+	wait_event_common(wq, condition,				\
-+			TASK_KILLABLE, MAX_SCHEDULE_TIMEOUT)
- 
- #define __wait_event_lock_irq(wq, condition, lock, cmd)			\
- do {									\
++	wait->private = current;
++	wait->func = autoremove_wake_function;
++	prepare_to_wait(q, wait, state);
++
++	return 0;
++}
++EXPORT_SYMBOL(prepare_to_wait_event);
++
+ void
+ prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state)
+ {
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -429,5 +185,4 @@ kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-li
 kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch
 fs-execc-do_execve_common-use-current_user.patch
 fs-execc-de_thread-mt-exec-should-update-real_start_time.patch
-wait-introduce-prepare_to_wait_event.patch
 
