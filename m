@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch added to
- -mm tree
-Date: Tue, 18 Jun 2013 13:37:14 -0700
-Message-ID: <51c0c4fa./3E2+IbaP3/6oRBH%akpm@linux-foundation.org>
+Subject: + fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
+ added to -mm tree
+Date: Tue, 18 Jun 2013 13:41:57 -0700
+Message-ID: <51c0c615.FRgpgRJrxhjMe5/p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51632 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932898Ab3FRUhP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 16:37:15 -0400
+	with ESMTP id S1756282Ab3FRUl6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 16:41:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, snsehahn@cip.cs.fau.de, gregkh@linuxfoundation.org, Jennifer.Naumann@informatik.stud.uni-erlangen.de, davej@redhat.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
 
-Subject: + staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch added to -mm tree
-To: davej@redhat.com,Jennifer.Naumann@informatik.stud.uni-erlangen.de,gregkh@linuxfoundation.org,snsehahn@cip.cs.fau.de
+Subject: + fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch added to -mm tree
+To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Jun 2013 13:37:14 -0700
+Date: Tue, 18 Jun 2013 13:41:57 -0700
 
 
 The patch titled
-     Subject: staging/rtl8192u: remove commented out __list_for_each usage
+     Subject: fs/ocfs2/cluster/tcp.c: free sc->sc_page in sc_kref_release()
 has been added to the -mm tree.  Its filename is
-     staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch
+     fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Jones <davej@redhat.com>
-Subject: staging/rtl8192u: remove commented out __list_for_each usage
+From: Younger Liu <younger.liu@huawei.com>
+Subject: fs/ocfs2/cluster/tcp.c: free sc->sc_page in sc_kref_release()
 
-Also remove another commented out open-coded list manipulation while we're
-there.
+There is a memory leak in sc_kref_release().  When free struct
+o2net_sock_container (sc), we should release sc->sc_page.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sebastian Hahn <snsehahn@cip.cs.fau.de>
-Cc: Jennifer Naumann <Jennifer.Naumann@informatik.stud.uni-erlangen.de>
+Signed-off-by: Younger Liu <younger.liu@huawei.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/cluster/tcp.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c~staging-rtl8192u-remove-commented-out-__list_for_each-usage drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
---- a/drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c~staging-rtl8192u-remove-commented-out-__list_for_each-usage
-+++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
-@@ -454,8 +454,7 @@ static int is_duplicate_packet(struct ie
- 		struct ieee_ibss_seq *entry = NULL;
- 		u8 *mac = header->addr2;
- 		int index = mac[5] % IEEE_IBSS_MAC_HASH_SIZE;
--		//for (pos = (head)->next; pos != (head); pos = pos->next)
--		//__list_for_each(p, &ieee->ibss_mac_hash[index]) {
+diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -406,6 +406,9 @@ static void sc_kref_release(struct kref
+ 	sc->sc_node = NULL;
+ 
+ 	o2net_debug_del_sc(sc);
 +
- 		list_for_each(p, &ieee->ibss_mac_hash[index]) {
- 			entry = list_entry(p, struct ieee_ibss_seq, list);
- 			if (!memcmp(entry->mac, mac, ETH_ALEN))
++	if (sc->sc_page)
++		__free_page(sc->sc_page);
+ 	kfree(sc);
+ }
+ 
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from younger.liu@huawei.com are
 
-linux-next.patch
-radeon-remove-redundant-__list_for_each-definition-from-mkregtablec.patch
-ipw2200-convert-__list_for_each-usage-to-list_for_each.patch
-staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch
-staging-rtl8187se-convert-__list_for_each-use-to-list_for_each.patch
-sctp-convert-__list_for_each-use-to-list_for_each.patch
-sound-usb-misc-ua101c-convert-__list_for_each-usage-to-list_for_each.patch
-list-remove-__list_for_each.patch
+fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
 
