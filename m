@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + sctp-convert-__list_for_each-use-to-list_for_each.patch added
- to -mm tree
-Date: Tue, 18 Jun 2013 13:37:16 -0700
-Message-ID: <51c0c4fc.9AdT09pE88zax/bu%akpm@linux-foundation.org>
+Subject: +
+ sound-usb-misc-ua101c-convert-__list_for_each-usage-to-list_for_each.patch
+ added to -mm tree
+Date: Tue, 18 Jun 2013 13:37:17 -0700
+Message-ID: <51c0c4fd.n+Iypf6E276mZVqa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51607 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51609 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932800Ab3FRUhR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 16:37:17 -0400
+	with ESMTP id S933562Ab3FRUhS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 16:37:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vyasevich@gmail.com, nhorman@tuxdriver.com, davem@davemloft.net, davej@redhat.com
+To: mm-commits@vger.kernel.org, tiwai@suse.de, perex@perex.cz, clemens@ladisch.de, davej@redhat.com
 
-Subject: + sctp-convert-__list_for_each-use-to-list_for_each.patch added to -mm tree
-To: davej@redhat.com,davem@davemloft.net,nhorman@tuxdriver.com,vyasevich@gmail.com
+Subject: + sound-usb-misc-ua101c-convert-__list_for_each-usage-to-list_for_each.patch added to -mm tree
+To: davej@redhat.com,clemens@ladisch.de,perex@perex.cz,tiwai@suse.de
 From: akpm@linux-foundation.org
-Date: Tue, 18 Jun 2013 13:37:16 -0700
+Date: Tue, 18 Jun 2013 13:37:17 -0700
 
 
 The patch titled
-     Subject: sctp: convert __list_for_each use to list_for_each
+     Subject: sound/usb/misc/ua101.c: convert __list_for_each usage to list_for_each
 has been added to the -mm tree.  Its filename is
-     sctp-convert-__list_for_each-use-to-list_for_each.patch
+     sound-usb-misc-ua101c-convert-__list_for_each-usage-to-list_for_each.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +41,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dave Jones <davej@redhat.com>
-Subject: sctp: convert __list_for_each use to list_for_each
+Subject: sound/usb/misc/ua101.c: convert __list_for_each usage to list_for_each
 
 Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/protocol.c |    2 +-
+ sound/usb/misc/ua101.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sctp/protocol.c~sctp-convert-__list_for_each-use-to-list_for_each net/sctp/protocol.c
---- a/net/sctp/protocol.c~sctp-convert-__list_for_each-use-to-list_for_each
-+++ a/net/sctp/protocol.c
-@@ -178,7 +178,7 @@ static void sctp_get_local_addr_list(str
+diff -puN sound/usb/misc/ua101.c~sound-usb-misc-ua101c-convert-__list_for_each-usage-to-list_for_each sound/usb/misc/ua101.c
+--- a/sound/usb/misc/ua101.c~sound-usb-misc-ua101c-convert-__list_for_each-usage-to-list_for_each
++++ a/sound/usb/misc/ua101.c
+@@ -1349,7 +1349,7 @@ static void ua101_disconnect(struct usb_
+ 	snd_card_disconnect(ua->card);
  
- 	rcu_read_lock();
- 	for_each_netdev_rcu(net, dev) {
--		__list_for_each(pos, &sctp_address_families) {
-+		list_for_each(pos, &sctp_address_families) {
- 			af = list_entry(pos, struct sctp_af, list);
- 			af->copy_addrlist(&net->sctp.local_addr_list, dev);
- 		}
+ 	/* make sure that there are no pending USB requests */
+-	__list_for_each(midi, &ua->midi_list)
++	list_for_each(midi, &ua->midi_list)
+ 		snd_usbmidi_disconnect(midi);
+ 	abort_alsa_playback(ua);
+ 	abort_alsa_capture(ua);
 _
 
 Patches currently in -mm which might be from davej@redhat.com are
