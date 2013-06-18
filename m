@@ -1,49 +1,53 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 18 Jun 2013 15:07:09 -0700
-Message-ID: <51c0da0d.XYFL8xgmuErHELm/%akpm@linux-foundation.org>
+ wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch removed from
+ -mm tree
+Date: Tue, 18 Jun 2013 15:07:28 -0700
+Message-ID: <51c0da20.D/SuCNZTjPduqQZW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52046 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52048 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932596Ab3FRWHK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 18:07:10 -0400
+	with ESMTP id S932596Ab3FRWH3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jun 2013 18:07:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch removed from -mm tree
+Subject: [folded-merged] wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch removed from -mm tree
 To: akpm@linux-foundation.org,oleg@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 18 Jun 2013 15:07:09 -0700
+Date: Tue, 18 Jun 2013 15:07:28 -0700
 
 
 The patch titled
-     Subject: wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes
+     Subject: wait-introduce-prepare_to_wait_event-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes.patch
+     wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into wait-introduce-wait_event_commonwq-condition-state-timeout.patch
+This patch was dropped because it was folded into wait-introduce-prepare_to_wait_event.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes
+Subject: wait-introduce-prepare_to_wait_event-checkpatch-fixes
+
+ERROR: code indent should use tabs where possible
+#44: FILE: include/linux/wait.h:187:
++^I ^Istate == TASK_INTERRUPTIBLE || state == TASK_KILLABLE)$
 
 WARNING: please, no space before tabs
-#173: FILE: include/linux/wait.h:241:
-+#define __wait_event(wq, condition) ^I^I^I^I^I\$
+#44: FILE: include/linux/wait.h:187:
++^I ^Istate == TASK_INTERRUPTIBLE || state == TASK_KILLABLE)$
 
-WARNING: please, no space before tabs
-#193: FILE: include/linux/wait.h:245:
-+#define wait_event(wq, condition) ^I^I^I^I^I\$
+total: 1 errors, 1 warnings, 64 lines checked
 
-total: 0 errors, 2 warnings, 234 lines checked
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
 
-./patches/wait-introduce-wait_event_commonwq-condition-state-timeout.patch has style problems, please review.
+./patches/wait-introduce-prepare_to_wait_event.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -54,26 +58,21 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/wait.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes include/linux/wait.h
---- a/include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout-checkpatch-fixes
+diff -puN include/linux/wait.h~wait-introduce-prepare_to_wait_event-checkpatch-fixes include/linux/wait.h
+--- a/include/linux/wait.h~wait-introduce-prepare_to_wait_event-checkpatch-fixes
 +++ a/include/linux/wait.h
-@@ -238,11 +238,11 @@ wait_queue_head_t *bit_waitqueue(void *,
-  * wake_up() has to be called after changing any variable that could
-  * change the result of the wait condition.
-  */
--#define __wait_event(wq, condition) 					\
-+#define __wait_event(wq, condition)					\
- 	__wait_event_common(wq, condition,				\
- 			TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)	\
+@@ -184,7 +184,7 @@ wait_queue_head_t *bit_waitqueue(void *,
  
--#define wait_event(wq, condition) 					\
-+#define wait_event(wq, condition)					\
- 	wait_event_common(wq, condition,				\
- 			TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT)	\
+ #define __wait_interruptible(state)					\
+ 	(!__builtin_constant_p(state) ||				\
+-	 	state == TASK_INTERRUPTIBLE || state == TASK_KILLABLE)
++		state == TASK_INTERRUPTIBLE || state == TASK_KILLABLE)
  
+ #define __wait_event_common(wq, condition, state, tout)			\
+ ({									\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,7 +125,7 @@ fat-additions-to-support-fat_fallocate-fix.patch
 ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 wait-introduce-wait_event_commonwq-condition-state-timeout.patch
-wait-introduce-prepare_to_wait_event-checkpatch-fixes.patch
+wait-introduce-prepare_to_wait_event.patch
 dev-oldmem-remove-the-interface-fix.patch
 idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
 shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
