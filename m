@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: +
  mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix-2.patch added to -mm tree
-Date: Wed, 19 Jun 2013 00:09:25 -0700
-Message-ID: <51c15925.CQ3uqatHqFybAsJ8%akpm@linux-foundation.org>
+Date: Wed, 19 Jun 2013 10:16:59 -0700
+Message-ID: <51c1e78b.drWGCsaT81n+OBo4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34890 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526Ab3FSHJn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jun 2013 03:09:43 -0400
+	with ESMTP id S934108Ab3FSRRR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jun 2013 13:17:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, hannes@cmpxchg.org, gang.chen@asianux.com
@@ -19,7 +19,7 @@ To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, hannes@cmpxchg
 Subject: + mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix-2.patch added to -mm tree
 To: gang.chen@asianux.com,hannes@cmpxchg.org,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Jun 2013 00:09:23 -0700
+Date: Wed, 19 Jun 2013 10:16:59 -0700
 
 
 The patch titled
@@ -65,7 +65,7 @@ diff -puN mm/vmscan.c~mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache
  		 * unevictable page on [in]active list.
  		 * We know how to handle that.
  		 */
-+		lru = !!TestClearPageActive(page) + page_lru_base_type(page);
++		lru = page_lru_base_type(page);
  		lru_cache_add(page);
  	} else {
  		/*
