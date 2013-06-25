@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-writeback-commit-reason-of-wb_reason_forker_thread-mismatch-name.patch
- added to -mm tree
-Date: Tue, 25 Jun 2013 15:23:48 -0700
-Message-ID: <51ca1874.GK3UVXRbcrm2Ha5r%akpm@linux-foundation.org>
+Subject: + mm-writeback-remove-wb_reason_name.patch added to -mm tree
+Date: Tue, 25 Jun 2013 15:23:46 -0700
+Message-ID: <51ca1872.NmE/b6CHHOk0Do9o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43468 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751586Ab3FYWXt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 18:23:49 -0400
+	with ESMTP id S1751208Ab3FYWXr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 18:23:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, fengguang.wu@intel.com, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-writeback-commit-reason-of-wb_reason_forker_thread-mismatch-name.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,tj@kernel.org
+Subject: + mm-writeback-remove-wb_reason_name.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,fengguang.wu@intel.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 15:23:48 -0700
+Date: Tue, 25 Jun 2013 15:23:46 -0700
 
 
 The patch titled
-     Subject: mm/writeback: commit reason of WB_REASON_FORKER_THREAD mismatch name
+     Subject: mm/writeback: remove wb_reason_name
 has been added to the -mm tree.  Its filename is
-     mm-writeback-commit-reason-of-wb_reason_forker_thread-mismatch-name.patch
+     mm-writeback-remove-wb_reason_name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,38 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/writeback: commit reason of WB_REASON_FORKER_THREAD mismatch name
+Subject: mm/writeback: remove wb_reason_name
 
-After 839a8e86 ("writeback: replace custom worker pool implementation with
-unbound workqueue"), there is no bdi forker thread any more.  However,
-WB_REASON_FORKER_THREAD is still used due to it is TPs userland visible
-and we won't be exposing exactly the same information with just a
-different name.
+wb_reason_name is not used any more - remove it.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/writeback.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/writeback.h~mm-writeback-commit-reason-of-wb_reason_forker_thread-mismatch-name include/linux/writeback.h
---- a/include/linux/writeback.h~mm-writeback-commit-reason-of-wb_reason_forker_thread-mismatch-name
+diff -puN include/linux/writeback.h~mm-writeback-remove-wb_reason_name include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-writeback-remove-wb_reason_name
 +++ a/include/linux/writeback.h
-@@ -47,6 +47,12 @@ enum wb_reason {
- 	WB_REASON_LAPTOP_TIMER,
- 	WB_REASON_FREE_MORE_MEM,
- 	WB_REASON_FS_FREE_SPACE,
-+	/*
-+	 * There is no bdi forker thread any more and works are done
-+	 * by emergency worker, however, this is TPs userland visible
-+	 * and we'll be exposing exactly the same information,
-+	 * so it has a mismatch name.
-+	 */
- 	WB_REASON_FORKER_THREAD,
+@@ -51,7 +51,6 @@ enum wb_reason {
  
  	WB_REASON_MAX,
+ };
+-extern const char *wb_reason_name[];
+ 
+ /*
+  * A control structure which tells the writeback code what to do.  These are
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
