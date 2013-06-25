@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area.patch added
- to -mm tree
-Date: Tue, 25 Jun 2013 15:42:59 -0700
-Message-ID: <51ca1cf3.hMmH1keE8+LYE/e4%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch added to -mm tree
+Date: Tue, 25 Jun 2013 16:23:43 -0700
+Message-ID: <51ca267f.luCKSoeqXcKDp6P2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43899 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146Ab3FYWnA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 18:43:00 -0400
+	with ESMTP id S1751774Ab3FYXXo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:23:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, unix140@gmail.com, rientjes@google.com, minchan@kernel.org, kosaki.motohiro@jp.fujitsu.com, dbaluta@ixiacom.com, zhangyanfei.yes@gmail.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
 
-Subject: + mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area.patch added to -mm tree
-To: zhangyanfei.yes@gmail.com,dbaluta@ixiacom.com,kosaki.motohiro@jp.fujitsu.com,minchan@kernel.org,rientjes@google.com,unix140@gmail.com,zhangyanfei@cn.fujitsu.com
+Subject: + ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch added to -mm tree
+To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 15:42:59 -0700
+Date: Tue, 25 Jun 2013 16:23:43 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc.c: fix an overflow bug in alloc_vmap_area()
+     Subject: ocfs2: should call ocfs2_journal_access_di() before ocfs2_delete_entry() in ocfs2_orphan_del()
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area.patch
+     ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,66 +39,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei.yes@gmail.com>
-Subject: mm/vmalloc.c: fix an overflow bug in alloc_vmap_area()
+From: Younger Liu <younger.liu@huawei.com>
+Subject: ocfs2: should call ocfs2_journal_access_di() before ocfs2_delete_entry() in ocfs2_orphan_del()
 
-When searching a vmap area in the vmalloc space, we use (addr + size - 1)
-to check if the value is less than addr, which is an overflow.  But we
-assign (addr + size) to vmap_area->va_end.
+While deleting a file into orphan dir in ocfs2_orphan_del(), it calls
+ocfs2_delete_entry() before ocfs2_journal_access_di().  If
+ocfs2_delete_entry() succeeded and ocfs2_journal_access_di() failed, there
+would be a inconsistency: the file is deleted from orphan dir, but orphan
+dir dinode is not updated.
 
-So if we come across the  below case:
+So we need to call ocfs2_journal_access_di() before ocfs2_orphan_del().
 
-(addr + size - 1) : not overflow
-(addr + size)     : overflow
-
-we will assign an overflow value (e.g 0) to vmap_area->va_end, And this
-will trigger BUG in __insert_vmap_area, causing system panic.
-
-So using (addr + size) to check the overflow should be the correct
-behaviour, not (addr + size - 1).
-
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Reported-by: Ghennadi Procopciuc <unix140@gmail.com>
-Tested-by: Daniel Baluta <dbaluta@ixiacom.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Younger Liu <younger.liu@huawei.com>
+Cc: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/namei.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area
-+++ a/mm/vmalloc.c
-@@ -388,12 +388,12 @@ nocache:
- 		addr = ALIGN(first->va_end, align);
- 		if (addr < vstart)
- 			goto nocache;
--		if (addr + size - 1 < addr)
-+		if (addr + size < addr)
- 			goto overflow;
+diff -puN fs/ocfs2/namei.c~ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del
++++ a/fs/ocfs2/namei.c
+@@ -2095,17 +2095,17 @@ int ocfs2_orphan_del(struct ocfs2_super
+ 		goto leave;
+ 	}
  
- 	} else {
- 		addr = ALIGN(vstart, align);
--		if (addr + size - 1 < addr)
-+		if (addr + size < addr)
- 			goto overflow;
+-	/* remove it from the orphan directory */
+-	status = ocfs2_delete_entry(handle, orphan_dir_inode, &lookup);
++	status = ocfs2_journal_access_di(handle,
++					 INODE_CACHE(orphan_dir_inode),
++					 orphan_dir_bh,
++					 OCFS2_JOURNAL_ACCESS_WRITE);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto leave;
+ 	}
  
- 		n = vmap_area_root.rb_node;
-@@ -420,7 +420,7 @@ nocache:
- 		if (addr + cached_hole_size < first->va_start)
- 			cached_hole_size = first->va_start - addr;
- 		addr = ALIGN(first->va_end, align);
--		if (addr + size - 1 < addr)
-+		if (addr + size < addr)
- 			goto overflow;
- 
- 		if (list_is_last(&first->list, &vmap_area_list))
+-	status = ocfs2_journal_access_di(handle,
+-					 INODE_CACHE(orphan_dir_inode),
+-					 orphan_dir_bh,
+-					 OCFS2_JOURNAL_ACCESS_WRITE);
++	/* remove it from the orphan directory */
++	status = ocfs2_delete_entry(handle, orphan_dir_inode, &lookup);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto leave;
 _
 
-Patches currently in -mm which might be from zhangyanfei.yes@gmail.com are
+Patches currently in -mm which might be from younger.liu@huawei.com are
 
-mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area.patch
+linux-next.patch
+fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
+ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
 
