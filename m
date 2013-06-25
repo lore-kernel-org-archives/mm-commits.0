@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch added to -mm tree
-Date: Tue, 25 Jun 2013 16:39:58 -0700
-Message-ID: <51ca2a4e.PUHTC/rq68M74+Oi%akpm@linux-foundation.org>
+Subject: + fs-proc-kcorec-using-strlcpy-instead-of-strncpy.patch added to
+ -mm tree
+Date: Tue, 25 Jun 2013 16:47:59 -0700
+Message-ID: <51ca2c2f.mK0ND2Ku2VSB1GAc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44005 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44020 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076Ab3FYXj7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:39:59 -0400
+	with ESMTP id S1751563Ab3FYXsA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:48:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, xuejiufei@huawei.com
+To: mm-commits@vger.kernel.org, zhaohongjiang@huawei.com
 
-Subject: + ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch added to -mm tree
-To: xuejiufei@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com
+Subject: + fs-proc-kcorec-using-strlcpy-instead-of-strncpy.patch added to -mm tree
+To: zhaohongjiang@huawei.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 16:39:58 -0700
+Date: Tue, 25 Jun 2013 16:47:59 -0700
 
 
 The patch titled
-     Subject: ocfs2: dlmlock_master() should return DLM_NORMAL after adding lock to blocked list
+     Subject: fs/proc/kcore.c: using strlcpy() instead of strncpy()
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch
+     fs-proc-kcorec-using-strlcpy-instead-of-strncpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: dlmlock_master() should return DLM_NORMAL after adding lock to blocked list
+From: Zhao Hongjiang <zhaohongjiang@huawei.com>
+Subject: fs/proc/kcore.c: using strlcpy() instead of strncpy()
 
-dlmlock_master() returns DLM_RECOVERING/DLM_MIGRATING/ DLM_FORWAR after
-adding lock to blocked list if lockres has the state
-DLM_LOCK_RES_RECOVERING/DLM_LOCK_RES_MIGRATING/ DLM_LOCK_RES_IN_PROGRESS. 
-so it will retry in dlmlock().  And this may cause dlm_thread fall into an
-infinite loop
+For NUL terminated string, set '\0' at the end.
 
-	Thread1                                  dlm_thread
-calls dlm_lock->dlmlock_master,
-if lockresA is in state
-DLM_LOCK_RES_RECOVERING, calls
-__dlm_wait_on_lockres() and waits
-until others threads clear this
-state;
-
-If cannot grant this lock,
-adding lock to blocked list,
-and return DLM_RECOVERING;
-
-                                        Grant this lock and move it to
-                                        grant list;
-
-After a while, retry and
-calls list_add_tail(), adding lock
-to blocked list again.
-
-Granted and blocked list of this lockres will become the following
-conditions:
-
-    lock_res->granted.next = dlm_lock->list_head;
-    lock_res->blocked.next = dlm_lock->list_head;
-    dlm_lock->list_head.next = dlm_lock_resource->blocked;
-
-When dlm_thread traverses the granted list, it will fall into an endless
-loop, checking dlm_lock.list_head, dlm_lock->list_head.next
-(i.e.lock_res->blocked), lock_res->blocked.next(i.e.dlm_lock.list_head
-again) .....
-
-Signed-off-by: joyce <xuejiufei@huawei.com>
-Reviewed-by: jensen <shencanquan@huawei.com>
-Cc: Jeff Liu <jeff.liu@oracle.com>
-Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Zhao Hongjiang <zhaohongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmlock.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/kcore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmlock.c~ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list fs/ocfs2/dlm/dlmlock.c
---- a/fs/ocfs2/dlm/dlmlock.c~ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list
-+++ a/fs/ocfs2/dlm/dlmlock.c
-@@ -178,6 +178,7 @@ static enum dlm_status dlmlock_master(st
- 				     lock->ml.node);
- 			}
- 		} else {
-+			status = DLM_NORMAL;
- 			dlm_lock_get(lock);
- 			list_add_tail(&lock->list, &res->blocked);
- 			kick_thread = 1;
+diff -puN fs/proc/kcore.c~fs-proc-kcorec-using-strlcpy-instead-of-strncpy fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-proc-kcorec-using-strlcpy-instead-of-strncpy
++++ a/fs/proc/kcore.c
+@@ -408,7 +408,7 @@ static void elf_kcore_store_hdr(char *bu
+ 	prpsinfo.pr_zomb	= 0;
+ 
+ 	strcpy(prpsinfo.pr_fname, "vmlinux");
+-	strncpy(prpsinfo.pr_psargs, saved_command_line, ELF_PRARGSZ);
++	strlcpy(prpsinfo.pr_psargs, saved_command_line, sizeof(prpsinfo.pr_psargs));
+ 
+ 	nhdr->p_filesz	+= notesize(&notes[1]);
+ 	bufp = storenote(&notes[1], bufp);
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from zhaohongjiang@huawei.com are
 
 linux-next.patch
-ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch
-ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch
+drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic.patch
+fs-proc-kcorec-using-strlcpy-instead-of-strncpy.patch
 
