@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblockc-fix-wrong-comment-in-__next_free_mem_range.patch
- added to -mm tree
-Date: Tue, 25 Jun 2013 16:54:29 -0700
-Message-ID: <51ca2db5.fFi1V3TGhextFJXj%akpm@linux-foundation.org>
+Subject: + aio-fix-wrong-comment-in-aio_complete.patch added to -mm tree
+Date: Tue, 25 Jun 2013 16:54:30 -0700
+Message-ID: <51ca2db6.5o9U/eJrvv2U76Zt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304Ab3FYXya (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:54:30 -0400
+	with ESMTP id S1752309Ab3FYXyb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:54:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com
 
-Subject: + mm-memblockc-fix-wrong-comment-in-__next_free_mem_range.patch added to -mm tree
+Subject: + aio-fix-wrong-comment-in-aio_complete.patch added to -mm tree
 To: tangchen@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 16:54:29 -0700
+Date: Tue, 25 Jun 2013 16:54:30 -0700
 
 
 The patch titled
-     Subject: mm/memblock.c: fix wrong comment in __next_free_mem_range()
+     Subject: aio: fix wrong comment in aio_complete()
 has been added to the -mm tree.  Its filename is
-     mm-memblockc-fix-wrong-comment-in-__next_free_mem_range.patch
+     aio-fix-wrong-comment-in-aio_complete.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm/memblock.c: fix wrong comment in __next_free_mem_range()
+Subject: aio: fix wrong comment in aio_complete()
 
-Remove one redundant "nid" in the comment.
+ctx->ctx_lock should be ctx->completion_lock.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
-
-index c5fad93..a847bfe 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 +-
+ fs/aio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblockc-fix-wrong-comment-in-__next_free_mem_range mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-fix-wrong-comment-in-__next_free_mem_range
-+++ a/mm/memblock.c
-@@ -566,7 +566,7 @@ int __init_memblock memblock_reserve(phy
- /**
-  * __next_free_mem_range - next function for for_each_free_mem_range()
-  * @idx: pointer to u64 loop variable
-- * @nid: nid: node selector, %MAX_NUMNODES for all nodes
-+ * @nid: node selector, %MAX_NUMNODES for all nodes
-  * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
-  * @out_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @out_nid: ptr to int for nid of the range, can be %NULL
+diff -puN fs/aio.c~aio-fix-wrong-comment-in-aio_complete fs/aio.c
+--- a/fs/aio.c~aio-fix-wrong-comment-in-aio_complete
++++ a/fs/aio.c
+@@ -625,7 +625,7 @@ void aio_complete(struct kiocb *iocb, lo
+ 
+ 	/*
+ 	 * Add a completion event to the ring buffer. Must be done holding
+-	 * ctx->ctx_lock to prevent other code from messing with the tail
++	 * ctx->completion_lock to prevent other code from messing with the tail
+ 	 * pointer since we might be called from irq context.
+ 	 */
+ 	spin_lock_irqsave(&ctx->completion_lock, flags);
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
