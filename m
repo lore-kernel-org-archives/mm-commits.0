@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch added to -mm tree
-Date: Tue, 25 Jun 2013 16:23:43 -0700
-Message-ID: <51ca267f.luCKSoeqXcKDp6P2%akpm@linux-foundation.org>
+ ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch added to -mm tree
+Date: Tue, 25 Jun 2013 16:36:13 -0700
+Message-ID: <51ca296d.qJomfZGGdG/99Kmp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43997 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751774Ab3FYXXo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:23:44 -0400
+	with ESMTP id S1751076Ab3FYXgP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:36:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
 
-Subject: + ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch added to -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch added to -mm tree
+To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 16:23:43 -0700
+Date: Tue, 25 Jun 2013 16:36:13 -0700
 
 
 The patch titled
-     Subject: ocfs2: should call ocfs2_journal_access_di() before ocfs2_delete_entry() in ocfs2_orphan_del()
+     Subject: ipc,msq: fix race in msgrcv(2)
 has been added to the -mm tree.  Its filename is
-     ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
+     ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +39,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: should call ocfs2_journal_access_di() before ocfs2_delete_entry() in ocfs2_orphan_del()
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: ipc,msq: fix race in msgrcv(2)
 
-While deleting a file into orphan dir in ocfs2_orphan_del(), it calls
-ocfs2_delete_entry() before ocfs2_journal_access_di().  If
-ocfs2_delete_entry() succeeded and ocfs2_journal_access_di() failed, there
-would be a inconsistency: the file is deleted from orphan dir, but orphan
-dir dinode is not updated.
+Sedat reported the following issue when building the latest linux-next:
 
-So we need to call ocfs2_journal_access_di() before ocfs2_orphan_del().
+Building via 'make deb-pkg' with fakeroot fails here like this:
 
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+make: *** [deb-pkg] Terminated
+/usr/bin/fakeroot: line 181:  2386 Terminated
+FAKEROOTKEY=$FAKEROOTKEY LD_LIBRARY_PATH="$PATHS" LD_PRELOAD="$LIB"
+"$@"
+semop(1): encountered an error: Identifier removed
+semop(2): encountered an error: Invalid argument
+semop(1): encountered an error: Identifier removed
+semop(1): encountered an error: Identifier removed
+semop(1): encountered an error: Invalid argument
+semop(1): encountered an error: Invalid argument
+semop(1): encountered an error: Invalid argument
+
+The issue was caused by a race in find_msg(), so acquire the q_perm.lock
+before calling the function. This also broke some LTP test cases:
+
+<<<test_start>>>
+tag=msgctl08 stime=1372174954
+cmdline="msgctl08"
+contacts=""
+analysis=exit
+<<<test_output>>>
+msgctl08    0  TWARN  :  Verify error in child 0, *buf = 28, val = 27, size = 8
+msgctl08    1  TFAIL  :  in child 0 read # = 73,key =  127
+msgctl08    0  TWARN  :  Verify error in child 3, *buf = ffffff8a, val
+= ffffff89, size = 52
+msgctl08    1  TFAIL  :  in child 3 read # = 157,key =  189
+msgctl08    0  TWARN  :  Verify error in child 2, *buf = ffffff87, val
+= ffffff86, size = 71
+msgctl08    1  TFAIL  :  in child 2 read # = 15954,key =  3e86
+msgctl08    0  TWARN  :  Verify error in child 12, *buf = ffffffa9,
+val = ffffffa8, size = 22
+msgctl08    1  TFAIL  :  in child 12 read # = 12904,key =  32a8
+msgctl08    0  TWARN  :  Verify error in child 13, *buf = 36, val =
+35, size = 27
+...
+
+Also update a comment referring to ipc_lock_by_ptr(), which has already
+been deleted and no longer applies to this context.
+
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ ipc/msg.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del
-+++ a/fs/ocfs2/namei.c
-@@ -2095,17 +2095,17 @@ int ocfs2_orphan_del(struct ocfs2_super
- 		goto leave;
- 	}
+diff -puN ipc/msg.c~ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2 ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2
++++ a/ipc/msg.c
+@@ -920,6 +920,7 @@ long do_msgrcv(int msqid, void __user *b
+ 		if (ipcperms(ns, &msq->q_perm, S_IRUGO))
+ 			goto out_unlock1;
  
--	/* remove it from the orphan directory */
--	status = ocfs2_delete_entry(handle, orphan_dir_inode, &lookup);
-+	status = ocfs2_journal_access_di(handle,
-+					 INODE_CACHE(orphan_dir_inode),
-+					 orphan_dir_bh,
-+					 OCFS2_JOURNAL_ACCESS_WRITE);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto leave;
- 	}
++		ipc_lock_object(&msq->q_perm);
+ 		msg = find_msg(msq, &msgtyp, mode);
+ 		if (!IS_ERR(msg)) {
+ 			/*
+@@ -928,7 +929,7 @@ long do_msgrcv(int msqid, void __user *b
+ 			 */
+ 			if ((bufsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
+ 				msg = ERR_PTR(-E2BIG);
+-				goto out_unlock1;
++				goto out_unlock0;
+ 			}
+ 			/*
+ 			 * If we are copying, then do not unlink message and do
+@@ -936,10 +937,9 @@ long do_msgrcv(int msqid, void __user *b
+ 			 */
+ 			if (msgflg & MSG_COPY) {
+ 				msg = copy_msg(msg, copy);
+-				goto out_unlock1;
++				goto out_unlock0;
+ 			}
  
--	status = ocfs2_journal_access_di(handle,
--					 INODE_CACHE(orphan_dir_inode),
--					 orphan_dir_bh,
--					 OCFS2_JOURNAL_ACCESS_WRITE);
-+	/* remove it from the orphan directory */
-+	status = ocfs2_delete_entry(handle, orphan_dir_inode, &lookup);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto leave;
+-			ipc_lock_object(&msq->q_perm);
+ 			list_del(&msg->m_list);
+ 			msq->q_qnum--;
+ 			msq->q_rtime = get_seconds();
+@@ -955,10 +955,9 @@ long do_msgrcv(int msqid, void __user *b
+ 		/* No message waiting. Wait for a message */
+ 		if (msgflg & IPC_NOWAIT) {
+ 			msg = ERR_PTR(-ENOMSG);
+-			goto out_unlock1;
++			goto out_unlock0;
+ 		}
+ 
+-		ipc_lock_object(&msq->q_perm);
+ 		list_add_tail(&msr_d.r_list, &msq->q_receivers);
+ 		msr_d.r_tsk = current;
+ 		msr_d.r_msgtype = msgtyp;
+@@ -982,7 +981,7 @@ long do_msgrcv(int msqid, void __user *b
+ 		 * Prior to destruction, expunge_all(-EIRDM) changes r_msg.
+ 		 * Thus if r_msg is -EAGAIN, then the queue not yet destroyed.
+ 		 * rcu_read_lock() prevents preemption between reading r_msg
+-		 * and the spin_lock() inside ipc_lock_by_ptr().
++		 * and acquiring the q_perm.lock in ipc_lock_object().
+ 		 */
+ 		rcu_read_lock();
+ 
 _
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
-linux-next.patch
-fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
+softirq-use-_ret_ip_.patch
+ipc-move-rcu-lock-out-of-ipc_addid.patch
+ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid.patch
+ipc-introduce-ipc-object-locking-helpers.patch
+ipc-close-open-coded-spin-lock-calls.patch
+ipc-move-locking-out-of-ipcctl_pre_down_nolock.patch
+ipcmsg-shorten-critical-region-in-msgctl_down.patch
+ipcmsg-introduce-msgctl_nolock.patch
+ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object.patch
+ipcmsg-make-msgctl_nolock-lockless.patch
+ipcmsg-shorten-critical-region-in-msgsnd.patch
+ipcmsg-shorten-critical-region-in-msgrcv.patch
+ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch
+ipc-remove-unused-functions.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
+ipc-semc-cacheline-align-the-semaphore-structures.patch
+ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
+ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch
+ipc-semc-always-use-only-one-queue-for-alter-operations.patch
+ipc-semc-replace-shared-sem_otime-with-per-semaphore-value.patch
+ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
 
