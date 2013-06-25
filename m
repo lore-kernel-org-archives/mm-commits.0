@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + aio-fix-wrong-comment-in-aio_complete.patch added to -mm tree
-Date: Tue, 25 Jun 2013 16:54:30 -0700
-Message-ID: <51ca2db6.5o9U/eJrvv2U76Zt%akpm@linux-foundation.org>
+Subject: +
+ mm-memory_hotplugc-fix-a-comment-typo-in-register_page_bootmem_info_node.patch added to -mm tree
+Date: Tue, 25 Jun 2013 16:54:31 -0700
+Message-ID: <51ca2db7.xmV3inWwUwJqnqnQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44033 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309Ab3FYXyb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:54:31 -0400
+	with ESMTP id S1752382Ab3FYXyc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:54:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com
 
-Subject: + aio-fix-wrong-comment-in-aio_complete.patch added to -mm tree
+Subject: + mm-memory_hotplugc-fix-a-comment-typo-in-register_page_bootmem_info_node.patch added to -mm tree
 To: tangchen@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 16:54:30 -0700
+Date: Tue, 25 Jun 2013 16:54:31 -0700
 
 
 The patch titled
-     Subject: aio: fix wrong comment in aio_complete()
+     Subject: mm/memory_hotplug.c: fix a comment typo in register_page_bootmem_info_node()
 has been added to the -mm tree.  Its filename is
-     aio-fix-wrong-comment-in-aio_complete.patch
+     mm-memory_hotplugc-fix-a-comment-typo-in-register_page_bootmem_info_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +40,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: aio: fix wrong comment in aio_complete()
-
-ctx->ctx_lock should be ctx->completion_lock.
+Subject: mm/memory_hotplug.c: fix a comment typo in register_page_bootmem_info_node()
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/aio.c~aio-fix-wrong-comment-in-aio_complete fs/aio.c
---- a/fs/aio.c~aio-fix-wrong-comment-in-aio_complete
-+++ a/fs/aio.c
-@@ -625,7 +625,7 @@ void aio_complete(struct kiocb *iocb, lo
+diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-fix-a-comment-typo-in-register_page_bootmem_info_node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplugc-fix-a-comment-typo-in-register_page_bootmem_info_node
++++ a/mm/memory_hotplug.c
+@@ -208,13 +208,13 @@ void register_page_bootmem_info_node(str
+ 	pfn = pgdat->node_start_pfn;
+ 	end_pfn = pgdat_end_pfn(pgdat);
  
- 	/*
- 	 * Add a completion event to the ring buffer. Must be done holding
--	 * ctx->ctx_lock to prevent other code from messing with the tail
-+	 * ctx->completion_lock to prevent other code from messing with the tail
- 	 * pointer since we might be called from irq context.
- 	 */
- 	spin_lock_irqsave(&ctx->completion_lock, flags);
+-	/* register_section info */
++	/* register section info */
+ 	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+ 		/*
+ 		 * Some platforms can assign the same pfn to multiple nodes - on
+ 		 * node0 as well as nodeN.  To avoid registering a pfn against
+ 		 * multiple nodes we check that this pfn does not already
+-		 * reside in some other node.
++		 * reside in some other nodes.
+ 		 */
+ 		if (pfn_valid(pfn) && (pfn_to_nid(pfn) == node))
+ 			register_page_bootmem_info_section(pfn);
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
