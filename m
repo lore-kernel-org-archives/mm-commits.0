@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-fix-doc-for-transparent-huge-zero-page.patch added to
+Subject: +
+ mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch added to
  -mm tree
-Date: Tue, 25 Jun 2013 15:23:50 -0700
-Message-ID: <51ca1876.zGJg3UD7gx2QPEi5%akpm@linux-foundation.org>
+Date: Tue, 25 Jun 2013 15:23:51 -0700
+Message-ID: <51ca1877.kDTDGrW7E/7TQ6gS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43478 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751763Ab3FYWXv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 18:23:51 -0400
+	with ESMTP id S1751763Ab3FYWXw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 18:23:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-thp-fix-doc-for-transparent-huge-zero-page.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,kirill.shutemov@linux.intel.com
+Subject: + mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 15:23:50 -0700
+Date: Tue, 25 Jun 2013 15:23:51 -0700
 
 
 The patch titled
-     Subject: mm/thp: fix doc for transparent huge zero page
+     Subject: mm/pgtable: don't accumulate addr during pgd prepopulate pmd
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-doc-for-transparent-huge-zero-page.patch
+     mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +41,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/thp: fix doc for transparent huge zero page
+Subject: mm/pgtable: don't accumulate addr during pgd prepopulate pmd
 
-Transparent huge zero page is used during the page fault instead of in
-khugepaged.
-
-# ls /sys/kernel/mm/transparent_hugepage/
-defrag  enabled  khugepaged  use_zero_page
-# ls /sys/kernel/mm/transparent_hugepage/khugepaged/
-alloc_sleep_millisecs  defrag  full_scans  max_ptes_none  pages_collapsed  pages_to_scan  scan_sleep_millisecs
-
-This patch corrects the documentation just like the codes done.
+The old codes accumulate addr to get right pmd, however, currently pmds
+are preallocated and transfered as a parameter, there is unnecessary to
+accumulate addr variable any more, this patch remove it.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/pgtable.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN Documentation/vm/transhuge.txt~mm-thp-fix-doc-for-transparent-huge-zero-page Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-thp-fix-doc-for-transparent-huge-zero-page
-+++ a/Documentation/vm/transhuge.txt
-@@ -120,8 +120,8 @@ By default kernel tries to use huge zero
- It's possible to disable huge zero page by writing 0 or enable it
- back by writing 1:
+diff -puN arch/x86/mm/pgtable.c~mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd arch/x86/mm/pgtable.c
+--- a/arch/x86/mm/pgtable.c~mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd
++++ a/arch/x86/mm/pgtable.c
+@@ -240,7 +240,6 @@ static void pgd_mop_up_pmds(struct mm_st
+ static void pgd_prepopulate_pmd(struct mm_struct *mm, pgd_t *pgd, pmd_t *pmds[])
+ {
+ 	pud_t *pud;
+-	unsigned long addr;
+ 	int i;
  
--echo 0 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
--echo 1 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
-+echo 0 >/sys/kernel/mm/transparent_hugepage/use_zero_page
-+echo 1 >/sys/kernel/mm/transparent_hugepage/use_zero_page
+ 	if (PREALLOCATED_PMDS == 0) /* Work around gcc-3.4.x bug */
+@@ -248,8 +247,7 @@ static void pgd_prepopulate_pmd(struct m
  
- khugepaged will be automatically started when
- transparent_hugepage/enabled is set to "always" or "madvise, and it'll
+ 	pud = pud_offset(pgd, 0);
+ 
+- 	for (addr = i = 0; i < PREALLOCATED_PMDS;
+-	     i++, pud++, addr += PUD_SIZE) {
++	for (i = 0; i < PREALLOCATED_PMDS; i++, pud++) {
+ 		pmd_t *pmd = pmds[i];
+ 
+ 		if (i >= KERNEL_PGD_BOUNDARY)
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
