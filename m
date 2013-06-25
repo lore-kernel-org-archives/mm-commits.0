@@ -1,71 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch removed
- from -mm tree
-Date: Tue, 25 Jun 2013 12:23:06 -0700
-Message-ID: <51c9ee1a.M+VvFvFCBL4zh9CX%akpm@linux-foundation.org>
+Subject: + arch-c6x-mm-include-asm-uaccessh-to-pass-compiling.patch added
+ to -mm tree
+Date: Tue, 25 Jun 2013 12:46:29 -0700
+Message-ID: <51c9f395.70pEo/nHC/2EfO64%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42251 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751640Ab3FYTXH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 15:23:07 -0400
+	with ESMTP id S1751788Ab3FYTqa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 15:46:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, snsehahn@cip.cs.fau.de, gregkh@linuxfoundation.org, Jennifer.Naumann@informatik.stud.uni-erlangen.de, davej@redhat.com
+To: mm-commits@vger.kernel.org, gang.chen@asianux.com
 
-Subject: [merged] staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch removed from -mm tree
-To: davej@redhat.com,Jennifer.Naumann@informatik.stud.uni-erlangen.de,gregkh@linuxfoundation.org,snsehahn@cip.cs.fau.de,mm-commits@vger.kernel.org
+Subject: + arch-c6x-mm-include-asm-uaccessh-to-pass-compiling.patch added to -mm tree
+To: gang.chen@asianux.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 12:23:06 -0700
+Date: Tue, 25 Jun 2013 12:46:29 -0700
 
 
 The patch titled
-     Subject: staging/rtl8192u: remove commented out __list_for_each usage
-has been removed from the -mm tree.  Its filename was
-     staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch
+     Subject: arch: c6x: mm: include "asm/uaccess.h" to pass compiling
+has been added to the -mm tree.  Its filename is
+     arch-c6x-mm-include-asm-uaccessh-to-pass-compiling.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Jones <davej@redhat.com>
-Subject: staging/rtl8192u: remove commented out __list_for_each usage
+From: Chen Gang <gang.chen@asianux.com>
+Subject: arch: c6x: mm: include "asm/uaccess.h" to pass compiling
 
-Also remove another commented out open-coded list manipulation while we're
-there.
+Need include "asm/uaccess.h" to pass compiling.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sebastian Hahn <snsehahn@cip.cs.fau.de>
-Cc: Jennifer Naumann <Jennifer.Naumann@informatik.stud.uni-erlangen.de>
+The related error (with allmodconfig):
+  arch/c6x/mm/init.c: In function ‘paging_init’:
+  arch/c6x/mm/init.c:46:2: error: implicit declaration of function ‘set_fs’ [-Werror=implicit-function-declaration]
+  arch/c6x/mm/init.c:46:9: error: ‘KERNEL_DS’ undeclared (first use in this function)
+  arch/c6x/mm/init.c:46:9: note: each undeclared identifier is reported only once for each function it appears in
+
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/c6x/mm/init.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c~staging-rtl8192u-remove-commented-out-__list_for_each-usage drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
---- a/drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c~staging-rtl8192u-remove-commented-out-__list_for_each-usage
-+++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
-@@ -454,8 +454,7 @@ static int is_duplicate_packet(struct ie
- 		struct ieee_ibss_seq *entry = NULL;
- 		u8 *mac = header->addr2;
- 		int index = mac[5] % IEEE_IBSS_MAC_HASH_SIZE;
--		//for (pos = (head)->next; pos != (head); pos = pos->next)
--		//__list_for_each(p, &ieee->ibss_mac_hash[index]) {
-+
- 		list_for_each(p, &ieee->ibss_mac_hash[index]) {
- 			entry = list_entry(p, struct ieee_ibss_seq, list);
- 			if (!memcmp(entry->mac, mac, ETH_ALEN))
+diff -puN arch/c6x/mm/init.c~arch-c6x-mm-include-asm-uaccessh-to-pass-compiling arch/c6x/mm/init.c
+--- a/arch/c6x/mm/init.c~arch-c6x-mm-include-asm-uaccessh-to-pass-compiling
++++ a/arch/c6x/mm/init.c
+@@ -18,6 +18,7 @@
+ #include <linux/initrd.h>
+ 
+ #include <asm/sections.h>
++#include <asm/uaccess.h>
+ 
+ /*
+  * ZERO_PAGE is a special page that is used for zero-initialized
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from gang.chen@asianux.com are
 
+arch-c6x-mm-include-asm-uaccessh-to-pass-compiling.patch
 linux-next.patch
-radeon-remove-redundant-__list_for_each-definition-from-mkregtablec.patch
-ipw2200-convert-__list_for_each-usage-to-list_for_each.patch
-list-remove-__list_for_each.patch
+kernel-auditfilterc-fix-leak-in-audit_add_rule-error-path.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix-2.patch
+mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
+mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
+arch-frv-kernel-trapsc-using-vsnprintf-instead-of-vsprintf.patch
+arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch
 
