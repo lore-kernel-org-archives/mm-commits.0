@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- page-migration-fix-wrong-comment-in-address_space_operationsmigratepage.patch added to -mm tree
-Date: Tue, 25 Jun 2013 16:54:28 -0700
-Message-ID: <51ca2db4.dkj2h3dJAJvN8zT7%akpm@linux-foundation.org>
+Subject: + mm-memblockc-fix-wrong-comment-in-__next_free_mem_range.patch
+ added to -mm tree
+Date: Tue, 25 Jun 2013 16:54:29 -0700
+Message-ID: <51ca2db5.fFi1V3TGhextFJXj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44028 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44031 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148Ab3FYXy3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:54:29 -0400
+	with ESMTP id S1752304Ab3FYXya (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:54:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com
 
-Subject: + page-migration-fix-wrong-comment-in-address_space_operationsmigratepage.patch added to -mm tree
+Subject: + mm-memblockc-fix-wrong-comment-in-__next_free_mem_range.patch added to -mm tree
 To: tangchen@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 16:54:28 -0700
+Date: Tue, 25 Jun 2013 16:54:29 -0700
 
 
 The patch titled
-     Subject: page migration: fix wrong comment in address_space_operations.migratepage()
+     Subject: mm/memblock.c: fix wrong comment in __next_free_mem_range()
 has been added to the -mm tree.  Its filename is
-     page-migration-fix-wrong-comment-in-address_space_operationsmigratepage.patch
+     mm-memblockc-fix-wrong-comment-in-__next_free_mem_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: page migration: fix wrong comment in address_space_operations.migratepage()
+Subject: mm/memblock.c: fix wrong comment in __next_free_mem_range()
 
-There is no parameter "sync" in address_space_operations->migratepage(). 
-It should be mograte_mode.  And the comment is for MIGRATE_ASYNC.
+Remove one redundant "nid" in the comment.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+---
+
+index c5fad93..a847bfe 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memblock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~page-migration-fix-wrong-comment-in-address_space_operationsmigratepage include/linux/fs.h
---- a/include/linux/fs.h~page-migration-fix-wrong-comment-in-address_space_operationsmigratepage
-+++ a/include/linux/fs.h
-@@ -374,8 +374,8 @@ struct address_space_operations {
- 	int (*get_xip_mem)(struct address_space *, pgoff_t, int,
- 						void **, unsigned long *);
- 	/*
--	 * migrate the contents of a page to the specified target. If sync
--	 * is false, it must not block.
-+	 * migrate the contents of a page to the specified target. If
-+	 * migrate_mode is MIGRATE_ASYNC, it must not block.
- 	 */
- 	int (*migratepage) (struct address_space *,
- 			struct page *, struct page *, enum migrate_mode);
+diff -puN mm/memblock.c~mm-memblockc-fix-wrong-comment-in-__next_free_mem_range mm/memblock.c
+--- a/mm/memblock.c~mm-memblockc-fix-wrong-comment-in-__next_free_mem_range
++++ a/mm/memblock.c
+@@ -566,7 +566,7 @@ int __init_memblock memblock_reserve(phy
+ /**
+  * __next_free_mem_range - next function for for_each_free_mem_range()
+  * @idx: pointer to u64 loop variable
+- * @nid: nid: node selector, %MAX_NUMNODES for all nodes
++ * @nid: node selector, %MAX_NUMNODES for all nodes
+  * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
+  * @out_end: ptr to phys_addr_t for end address of the range, can be %NULL
+  * @out_nid: ptr to int for nid of the range, can be %NULL
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
