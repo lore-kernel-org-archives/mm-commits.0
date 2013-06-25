@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch added
- to -mm tree
-Date: Tue, 25 Jun 2013 14:22:50 -0700
-Message-ID: <51ca0a2a.ssf8rNH4zKP/UjjK%akpm@linux-foundation.org>
+Subject: + ocfs2-xattr-fix-inlined-xattr-reflink.patch added to -mm tree
+Date: Tue, 25 Jun 2013 15:18:20 -0700
+Message-ID: <51ca172c.HpSuwWpbtORdD+wo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab3FYVWv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 17:22:51 -0400
+	with ESMTP id S1751506Ab3FYWSV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 18:18:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, holt@sgi.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, stable@kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
 
-Subject: + reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,fengguang.wu@intel.com,holt@sgi.com,rmk+kernel@arm.linux.org.uk
+Subject: + ocfs2-xattr-fix-inlined-xattr-reflink.patch added to -mm tree
+To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 14:22:50 -0700
+Date: Tue, 25 Jun 2013 15:18:20 -0700
 
 
 The patch titled
-     Subject: reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix
+     Subject: ocfs2: xattr: fix inlined xattr reflink
 has been added to the -mm tree.  Its filename is
-     reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
+     ocfs2-xattr-fix-inlined-xattr-reflink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +38,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: xattr: fix inlined xattr reflink
 
-Cc: Robin Holt <holt@sgi.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Inlined xattr shared free space of inode block with inlined data or data
+extent record, so the size of the later two should be adjusted when
+inlined xattr is enabled.  See ocfs2_xattr_ibody_init().  But this isn't
+done well when reflink.  For inode with inlined data, its max inlined data
+size is adjusted in ocfs2_duplicate_inline_data(), no problem.  But for
+inode with data extent record, its record count isn't adjusted.  Fix it,
+or data extent record and inlined xattr may overwrite each other, then
+cause data corruption or xattr failure.
+
+One panic caused by this bug in our test environment is the following:
+
+kernel BUG at fs/ocfs2/xattr.c:1435!
+invalid opcode: 0000 [#1] SMP
+CPU 0
+Modules linked in: ocfs2 jbd2 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm
+ocfs2_nodemanager ocfs2_stackglue configfs sunrpc parport_pc lp parport
+snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device
+snd_pcm_oss snd_mixer_oss snd_pcm snd_timer snd soundcore snd_page_alloc
+pcspkr xen_netfront dm_snapshot dm_zero dm_mirror dm_region_hash dm_log
+dm_mod xen_blkfront ext3 jbd mbcache [last unloaded: configfs]
+
+Pid: 10871, comm: multi_reflink_t Not tainted 2.6.39-300.17.1.el5uek #1
+RIP: e030:[<ffffffffa04cd197>]  [<ffffffffa04cd197>]
+ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP: e02b:ffff88007a587948  EFLAGS: 00010283
+RAX: 0000000000000000 RBX: 0000000000000010 RCX: 00000000000051e4
+RDX: ffff880057092060 RSI: 0000000000000f80 RDI: ffff88007a587a68
+RBP: ffff88007a587948 R08: 00000000000062f4 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000010
+R13: ffff88007a587a68 R14: 0000000000000001 R15: ffff88007a587c68
+FS:  00007fccff7f06e0(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+CS:  e033 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00000000015cf000 CR3: 000000007aa76000 CR4: 0000000000000660
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process multi_reflink_t (pid: 10871, threadinfo ffff88007a586000, task
+ffff88007911c380)
+Stack:
+ffff88007a5879a8 ffffffffa04d0a60 ffff88007a587998 ffffffffa04cd514
+ffff88007a587c38 ffffffffa04cc125 000000007a587998 ffff88007a587a68
+ffff88007a587c68 0000000000000000 00000000000003c2 ffff88007a587c38
+Call Trace:
+[<ffffffffa04d0a60>] ocfs2_xa_reuse_entry+0x60/0x280 [ocfs2]
+[<ffffffffa04cd514>] ? ocfs2_xa_block_check_space+0x84/0xa0 [ocfs2]
+[<ffffffffa04cc125>] ? namevalue_size_xi+0x15/0x20 [ocfs2]
+[<ffffffffa04d0dfe>] ocfs2_xa_prepare_entry+0x17e/0x2a0 [ocfs2]
+[<ffffffffa04da55c>] ocfs2_xa_set+0xcc/0x250 [ocfs2]
+[<ffffffffa04daf58>] ocfs2_xattr_ibody_set+0x98/0x230 [ocfs2]
+[<ffffffff8115ac4b>] ? kmem_cache_alloc+0xab/0x190
+[<ffffffffa04db13f>] __ocfs2_xattr_set_handle+0x4f/0x700 [ocfs2]
+[<ffffffffa014ad03>] ? jbd2_journal_start+0x13/0x20 [jbd2]
+[<ffffffffa04dbeb6>] ocfs2_xattr_set+0x6c6/0x890 [ocfs2]
+[<ffffffffa04dc0c6>] ocfs2_xattr_user_set+0x46/0x50 [ocfs2]
+[<ffffffff81190960>] generic_setxattr+0x70/0x90
+[<ffffffff81191670>] __vfs_setxattr_noperm+0x80/0x1a0
+[<ffffffff81191839>] vfs_setxattr+0xa9/0xb0
+[<ffffffff81191903>] setxattr+0xc3/0x120
+[<ffffffff81061c40>] ? finish_task_switch+0x70/0xe0
+[<ffffffff81505a54>] ? __schedule+0x364/0x6d0
+[<ffffffff81191a08>] sys_fsetxattr+0xa8/0xd0
+[<ffffffff81510642>] system_call_fastpath+0x16/0x1b
+Code: 0f 1f 40 00 eb ae 0f 0b eb fe 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5
+66 66 66 66 90 39 77 10 7e 09 48 8b 47 28 ff 50 10 c9 c3 <0f> 0b eb fe 0f 1f
+44 00 00 55 48 89 e5 53 48 83 ec 08 66 66 66
+RIP  [<ffffffffa04cd197>] ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP <ffff88007a587948>
+---[ end trace 33461d2444bd1e5e ]---
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/omap4-restart.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/xattr.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/arm/mach-omap2/omap4-restart.c~reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix arch/arm/mach-omap2/omap4-restart.c
---- a/arch/arm/mach-omap2/omap4-restart.c~reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix
-+++ a/arch/arm/mach-omap2/omap4-restart.c
-@@ -8,6 +8,7 @@
-  */
+diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink
++++ a/fs/ocfs2/xattr.c
+@@ -6499,6 +6499,16 @@ static int ocfs2_reflink_xattr_inline(st
+ 	}
  
- #include <linux/types.h>
-+#include <linux/reboot.h>
- #include "prminst44xx.h"
- 
- /**
+ 	new_oi = OCFS2_I(args->new_inode);
++	/*
++	 * Adjust extent record count to reserve space for extended attribute.
++	 * Inline data count had been adjusted in ocfs2_duplicate_inline_data().
++	 */
++	if (!(new_oi->ip_dyn_features & OCFS2_INLINE_DATA_FL) &&
++	    !(ocfs2_inode_is_fast_symlink(new_inode))) {
++		struct ocfs2_extent_list *el = &new_di->id2.i_list;
++		le16_add_cpu(&el->l_count, -(inline_size /
++					sizeof(struct ocfs2_extent_rec)));
++	}
+ 	spin_lock(&new_oi->ip_lock);
+ 	new_oi->ip_dyn_features |= OCFS2_HAS_XATTR_FL | OCFS2_INLINE_XATTR_FL;
+ 	new_di->i_dyn_features = cpu_to_le16(new_oi->ip_dyn_features);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ocfs2-xattr-fix-inlined-xattr-reflink.patch
 
