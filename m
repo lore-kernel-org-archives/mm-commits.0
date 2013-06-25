@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch added to -mm tree
-Date: Tue, 25 Jun 2013 16:36:13 -0700
-Message-ID: <51ca296d.qJomfZGGdG/99Kmp%akpm@linux-foundation.org>
+ ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch added to -mm tree
+Date: Tue, 25 Jun 2013 16:39:58 -0700
+Message-ID: <51ca2a4e.PUHTC/rq68M74+Oi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44005 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076Ab3FYXgP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:36:15 -0400
+	with ESMTP id S1751076Ab3FYXj7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 19:39:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, xuejiufei@huawei.com
 
-Subject: + ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch added to -mm tree
-To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
+Subject: + ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch added to -mm tree
+To: xuejiufei@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 16:36:13 -0700
+Date: Tue, 25 Jun 2013 16:39:58 -0700
 
 
 The patch titled
-     Subject: ipc,msq: fix race in msgrcv(2)
+     Subject: ocfs2: dlmlock_master() should return DLM_NORMAL after adding lock to blocked list
 has been added to the -mm tree.  Its filename is
-     ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch
+     ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,139 +39,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,msq: fix race in msgrcv(2)
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: dlmlock_master() should return DLM_NORMAL after adding lock to blocked list
 
-Sedat reported the following issue when building the latest linux-next:
+dlmlock_master() returns DLM_RECOVERING/DLM_MIGRATING/ DLM_FORWAR after
+adding lock to blocked list if lockres has the state
+DLM_LOCK_RES_RECOVERING/DLM_LOCK_RES_MIGRATING/ DLM_LOCK_RES_IN_PROGRESS. 
+so it will retry in dlmlock().  And this may cause dlm_thread fall into an
+infinite loop
 
-Building via 'make deb-pkg' with fakeroot fails here like this:
+	Thread1                                  dlm_thread
+calls dlm_lock->dlmlock_master,
+if lockresA is in state
+DLM_LOCK_RES_RECOVERING, calls
+__dlm_wait_on_lockres() and waits
+until others threads clear this
+state;
 
-make: *** [deb-pkg] Terminated
-/usr/bin/fakeroot: line 181:  2386 Terminated
-FAKEROOTKEY=$FAKEROOTKEY LD_LIBRARY_PATH="$PATHS" LD_PRELOAD="$LIB"
-"$@"
-semop(1): encountered an error: Identifier removed
-semop(2): encountered an error: Invalid argument
-semop(1): encountered an error: Identifier removed
-semop(1): encountered an error: Identifier removed
-semop(1): encountered an error: Invalid argument
-semop(1): encountered an error: Invalid argument
-semop(1): encountered an error: Invalid argument
+If cannot grant this lock,
+adding lock to blocked list,
+and return DLM_RECOVERING;
 
-The issue was caused by a race in find_msg(), so acquire the q_perm.lock
-before calling the function. This also broke some LTP test cases:
+                                        Grant this lock and move it to
+                                        grant list;
 
-<<<test_start>>>
-tag=msgctl08 stime=1372174954
-cmdline="msgctl08"
-contacts=""
-analysis=exit
-<<<test_output>>>
-msgctl08    0  TWARN  :  Verify error in child 0, *buf = 28, val = 27, size = 8
-msgctl08    1  TFAIL  :  in child 0 read # = 73,key =  127
-msgctl08    0  TWARN  :  Verify error in child 3, *buf = ffffff8a, val
-= ffffff89, size = 52
-msgctl08    1  TFAIL  :  in child 3 read # = 157,key =  189
-msgctl08    0  TWARN  :  Verify error in child 2, *buf = ffffff87, val
-= ffffff86, size = 71
-msgctl08    1  TFAIL  :  in child 2 read # = 15954,key =  3e86
-msgctl08    0  TWARN  :  Verify error in child 12, *buf = ffffffa9,
-val = ffffffa8, size = 22
-msgctl08    1  TFAIL  :  in child 12 read # = 12904,key =  32a8
-msgctl08    0  TWARN  :  Verify error in child 13, *buf = 36, val =
-35, size = 27
-...
+After a while, retry and
+calls list_add_tail(), adding lock
+to blocked list again.
 
-Also update a comment referring to ipc_lock_by_ptr(), which has already
-been deleted and no longer applies to this context.
+Granted and blocked list of this lockres will become the following
+conditions:
 
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+    lock_res->granted.next = dlm_lock->list_head;
+    lock_res->blocked.next = dlm_lock->list_head;
+    dlm_lock->list_head.next = dlm_lock_resource->blocked;
+
+When dlm_thread traverses the granted list, it will fall into an endless
+loop, checking dlm_lock.list_head, dlm_lock->list_head.next
+(i.e.lock_res->blocked), lock_res->blocked.next(i.e.dlm_lock.list_head
+again) .....
+
+Signed-off-by: joyce <xuejiufei@huawei.com>
+Reviewed-by: jensen <shencanquan@huawei.com>
+Cc: Jeff Liu <jeff.liu@oracle.com>
+Cc: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/ocfs2/dlm/dlmlock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN ipc/msg.c~ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2 ipc/msg.c
---- a/ipc/msg.c~ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2
-+++ a/ipc/msg.c
-@@ -920,6 +920,7 @@ long do_msgrcv(int msqid, void __user *b
- 		if (ipcperms(ns, &msq->q_perm, S_IRUGO))
- 			goto out_unlock1;
- 
-+		ipc_lock_object(&msq->q_perm);
- 		msg = find_msg(msq, &msgtyp, mode);
- 		if (!IS_ERR(msg)) {
- 			/*
-@@ -928,7 +929,7 @@ long do_msgrcv(int msqid, void __user *b
- 			 */
- 			if ((bufsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
- 				msg = ERR_PTR(-E2BIG);
--				goto out_unlock1;
-+				goto out_unlock0;
+diff -puN fs/ocfs2/dlm/dlmlock.c~ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list fs/ocfs2/dlm/dlmlock.c
+--- a/fs/ocfs2/dlm/dlmlock.c~ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list
++++ a/fs/ocfs2/dlm/dlmlock.c
+@@ -178,6 +178,7 @@ static enum dlm_status dlmlock_master(st
+ 				     lock->ml.node);
  			}
- 			/*
- 			 * If we are copying, then do not unlink message and do
-@@ -936,10 +937,9 @@ long do_msgrcv(int msqid, void __user *b
- 			 */
- 			if (msgflg & MSG_COPY) {
- 				msg = copy_msg(msg, copy);
--				goto out_unlock1;
-+				goto out_unlock0;
- 			}
- 
--			ipc_lock_object(&msq->q_perm);
- 			list_del(&msg->m_list);
- 			msq->q_qnum--;
- 			msq->q_rtime = get_seconds();
-@@ -955,10 +955,9 @@ long do_msgrcv(int msqid, void __user *b
- 		/* No message waiting. Wait for a message */
- 		if (msgflg & IPC_NOWAIT) {
- 			msg = ERR_PTR(-ENOMSG);
--			goto out_unlock1;
-+			goto out_unlock0;
- 		}
- 
--		ipc_lock_object(&msq->q_perm);
- 		list_add_tail(&msr_d.r_list, &msq->q_receivers);
- 		msr_d.r_tsk = current;
- 		msr_d.r_msgtype = msgtyp;
-@@ -982,7 +981,7 @@ long do_msgrcv(int msqid, void __user *b
- 		 * Prior to destruction, expunge_all(-EIRDM) changes r_msg.
- 		 * Thus if r_msg is -EAGAIN, then the queue not yet destroyed.
- 		 * rcu_read_lock() prevents preemption between reading r_msg
--		 * and the spin_lock() inside ipc_lock_by_ptr().
-+		 * and acquiring the q_perm.lock in ipc_lock_object().
- 		 */
- 		rcu_read_lock();
- 
+ 		} else {
++			status = DLM_NORMAL;
+ 			dlm_lock_get(lock);
+ 			list_add_tail(&lock->list, &res->blocked);
+ 			kick_thread = 1;
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-softirq-use-_ret_ip_.patch
-ipc-move-rcu-lock-out-of-ipc_addid.patch
-ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid.patch
-ipc-introduce-ipc-object-locking-helpers.patch
-ipc-close-open-coded-spin-lock-calls.patch
-ipc-move-locking-out-of-ipcctl_pre_down_nolock.patch
-ipcmsg-shorten-critical-region-in-msgctl_down.patch
-ipcmsg-introduce-msgctl_nolock.patch
-ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object.patch
-ipcmsg-make-msgctl_nolock-lockless.patch
-ipcmsg-shorten-critical-region-in-msgsnd.patch
-ipcmsg-shorten-critical-region-in-msgrcv.patch
-ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch
-ipc-remove-unused-functions.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
-ipc-semc-cacheline-align-the-semaphore-structures.patch
-ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
-ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch
-ipc-semc-always-use-only-one-queue-for-alter-operations.patch
-ipc-semc-replace-shared-sem_otime-with-per-semaphore-value.patch
-ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
+linux-next.patch
+ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch
+ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch
 
