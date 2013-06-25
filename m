@@ -1,76 +1,101 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-setlocalversion-on-write-protected-source-tree.patch removed from
- -mm tree
-Date: Tue, 25 Jun 2013 12:22:54 -0700
-Message-ID: <51c9ee0e.lAn0S49s6W2rs3Cg%akpm@linux-foundation.org>
+ mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch removed from -mm tree
+Date: Tue, 25 Jun 2013 12:23:04 -0700
+Message-ID: <51c9ee18.givEhvB1oLPs/pm3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42246 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751029Ab3FYTWz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 15:22:55 -0400
+	with ESMTP id S1751102Ab3FYTXF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 15:23:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nico-linuxsetlocalversion@schottelius.org, mmarek@suse.cz, lists@nerdbynature.de
+To: mm-commits@vger.kernel.org, david@gibson.dropbear.id.au, benh@kernel.crashing.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com
 
-Subject: [merged] scripts-setlocalversion-on-write-protected-source-tree.patch removed from -mm tree
-To: lists@nerdbynature.de,mmarek@suse.cz,nico-linuxsetlocalversion@schottelius.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch removed from -mm tree
+To: aneesh.kumar@linux.vnet.ibm.com,aarcange@redhat.com,benh@kernel.crashing.org,david@gibson.dropbear.id.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 12:22:54 -0700
+Date: Tue, 25 Jun 2013 12:23:04 -0700
 
 
 The patch titled
-     Subject: scripts/setlocalversion on write-protected source tree
+     Subject: mm/THP: deposit the transpare huge pgtable before set_pmd
 has been removed from the -mm tree.  Its filename was
-     scripts-setlocalversion-on-write-protected-source-tree.patch
+     mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christian Kujau <lists@nerdbynature.de>
-Subject: scripts/setlocalversion on write-protected source tree
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/THP: deposit the transpare huge pgtable before set_pmd
 
-I just stumbled across another[0] issue when scripts/setlocalversion
-operates on a write-protected source tree.  Back then[0] the source tree
-was on an read-only NFS share, so "test -w" was introduced before "git
-update-index" was run.
+Architectures like powerpc use the deposited pgtable to store hash index
+values.  We need to make the deposted pgtable is visible to other cpus
+before we are ready to take a hash fault.
 
-This time, the source tree is on read/write NFS share, but the permissions
-are world-readable and only a specific user (or root) can write.  Thus,
-"test -w ." returns "0" and then runs "git update-index", producing the
-following message (on a dirty tree):
-
-  fatal: Unable to create '/usr/local/src/linux-git/.git/index.lock': Permission denied
-
-While it says "fatal", compilation continues just fine.
-
-However, I don't think a kernel compilation should alter the source tree
-(or the .git directory) in any way and I don't see how removing "git
-update-index" could do any harm.  The Mercurial and SVN routines in
-scripts/setlocalversion don't have any tree-modifying commands, AFAICS. 
-So, maybe the patch below would be acceptable.
-
-[0] https://patchwork.kernel.org/patch/29718/
-
-Signed-off-by: Christian Kujau <lists@nerdbynature.de>
-Cc: Nico Schottelius <nico-linuxsetlocalversion@schottelius.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/setlocalversion |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/huge_memory.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/setlocalversion~scripts-setlocalversion-on-write-protected-source-tree scripts/setlocalversion
---- a/scripts/setlocalversion~scripts-setlocalversion-on-write-protected-source-tree
-+++ a/scripts/setlocalversion
-@@ -71,9 +71,6 @@ scm_version()
- 			printf -- '-svn%s' "`git svn find-rev $head`"
- 		fi
+diff -puN mm/huge_memory.c~mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-deposit-the-transpare-huge-pgtable-before-set_pmd
++++ a/mm/huge_memory.c
+@@ -729,8 +729,8 @@ static int __do_huge_pmd_anonymous_page(
+ 		pmd_t entry;
+ 		entry = mk_huge_pmd(page, vma);
+ 		page_add_new_anon_rmap(page, vma, haddr);
+-		set_pmd_at(mm, haddr, pmd, entry);
+ 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
++		set_pmd_at(mm, haddr, pmd, entry);
+ 		add_mm_counter(mm, MM_ANONPAGES, HPAGE_PMD_NR);
+ 		mm->nr_ptes++;
+ 		spin_unlock(&mm->page_table_lock);
+@@ -771,8 +771,8 @@ static bool set_huge_zero_page(pgtable_t
+ 	entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	entry = pmd_wrprotect(entry);
+ 	entry = pmd_mkhuge(entry);
+-	set_pmd_at(mm, haddr, pmd, entry);
+ 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
++	set_pmd_at(mm, haddr, pmd, entry);
+ 	mm->nr_ptes++;
+ 	return true;
+ }
+@@ -916,8 +916,8 @@ int copy_huge_pmd(struct mm_struct *dst_
  
--		# Update index only on r/w media
--		[ -w . ] && git update-index --refresh --unmerged > /dev/null
+ 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+ 	pmd = pmd_mkold(pmd_wrprotect(pmd));
+-	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+ 	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
++	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+ 	dst_mm->nr_ptes++;
+ 
+ 	ret = 0;
+@@ -2367,9 +2367,9 @@ static void collapse_huge_page(struct mm
+ 	spin_lock(&mm->page_table_lock);
+ 	BUG_ON(!pmd_none(*pmd));
+ 	page_add_new_anon_rmap(new_page, vma, address);
++	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	set_pmd_at(mm, address, pmd, _pmd);
+ 	update_mmu_cache_pmd(vma, address, pmd);
+-	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	spin_unlock(&mm->page_table_lock);
+ 
+ 	*hpage = NULL;
+_
+
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+
+linux-next.patch
+mm-thp-dont-use-hpage_shift-in-transparent-hugepage-code-define-hpage_pmd_-constants-as-build_bug-if-thp.patch
+
