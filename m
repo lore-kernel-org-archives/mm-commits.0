@@ -1,264 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch removed from -mm tree
-Date: Tue, 25 Jun 2013 12:22:58 -0700
-Message-ID: <51c9ee12.WZzOJhBhi3ikIibL%akpm@linux-foundation.org>
+ staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch removed
+ from -mm tree
+Date: Tue, 25 Jun 2013 12:23:06 -0700
+Message-ID: <51c9ee1a.M+VvFvFCBL4zh9CX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42231 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42251 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396Ab3FYTW7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 15:22:59 -0400
+	with ESMTP id S1751640Ab3FYTXH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jun 2013 15:23:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, david@gibson.dropbear.id.au, benh@kernel.crashing.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, snsehahn@cip.cs.fau.de, gregkh@linuxfoundation.org, Jennifer.Naumann@informatik.stud.uni-erlangen.de, davej@redhat.com
 
-Subject: [merged] mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch removed from -mm tree
-To: aneesh.kumar@linux.vnet.ibm.com,aarcange@redhat.com,benh@kernel.crashing.org,david@gibson.dropbear.id.au,mm-commits@vger.kernel.org
+Subject: [merged] staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch removed from -mm tree
+To: davej@redhat.com,Jennifer.Naumann@informatik.stud.uni-erlangen.de,gregkh@linuxfoundation.org,snsehahn@cip.cs.fau.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Jun 2013 12:22:58 -0700
+Date: Tue, 25 Jun 2013 12:23:06 -0700
 
 
 The patch titled
-     Subject: mm/THP: add pmd args to pgtable deposit and withdraw APIs
+     Subject: staging/rtl8192u: remove commented out __list_for_each usage
 has been removed from the -mm tree.  Its filename was
-     mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis.patch
+     staging-rtl8192u-remove-commented-out-__list_for_each-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/THP: add pmd args to pgtable deposit and withdraw APIs
+From: Dave Jones <davej@redhat.com>
+Subject: staging/rtl8192u: remove commented out __list_for_each usage
 
-This will be later used by powerpc THP support.  In powerpc we want to use
-pgtable for storing the hash index values.  So instead of adding them to
-mm_context list, we would like to store them in the second half of pmd
+Also remove another commented out open-coded list manipulation while we're
+there.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: David Gibson <david@gibson.dropbear.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Sebastian Hahn <snsehahn@cip.cs.fau.de>
+Cc: Jennifer Naumann <Jennifer.Naumann@informatik.stud.uni-erlangen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h     |    5 +++--
- arch/s390/mm/pgtable.c              |    5 +++--
- arch/sparc/include/asm/pgtable_64.h |    5 +++--
- arch/sparc/mm/tlb.c                 |    5 +++--
- include/asm-generic/pgtable.h       |    5 +++--
- mm/huge_memory.c                    |   18 +++++++++---------
- mm/pgtable-generic.c                |    5 +++--
- 7 files changed, 27 insertions(+), 21 deletions(-)
+ drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/s390/include/asm/pgtable.h~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1367,10 +1367,11 @@ static inline pmd_t pmd_mkwrite(pmd_t pm
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 
- #define __HAVE_ARCH_PGTABLE_DEPOSIT
--extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable);
-+extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-+				       pgtable_t pgtable);
- 
- #define __HAVE_ARCH_PGTABLE_WITHDRAW
--extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm);
-+extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
- 
- static inline int pmd_trans_splitting(pmd_t pmd)
- {
-diff -puN arch/s390/mm/pgtable.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis
-+++ a/arch/s390/mm/pgtable.c
-@@ -1165,7 +1165,8 @@ void pmdp_splitting_flush(struct vm_area
- 	}
- }
- 
--void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable)
-+void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-+				pgtable_t pgtable)
- {
- 	struct list_head *lh = (struct list_head *) pgtable;
- 
-@@ -1179,7 +1180,7 @@ void pgtable_trans_huge_deposit(struct m
- 	mm->pmd_huge_pte = pgtable;
- }
- 
--pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm)
-+pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
- {
- 	struct list_head *lh;
- 	pgtable_t pgtable;
-diff -puN arch/sparc/include/asm/pgtable_64.h~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -853,10 +853,11 @@ extern void update_mmu_cache_pmd(struct
- 				 pmd_t *pmd);
- 
- #define __HAVE_ARCH_PGTABLE_DEPOSIT
--extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable);
-+extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-+				       pgtable_t pgtable);
- 
- #define __HAVE_ARCH_PGTABLE_WITHDRAW
--extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm);
-+extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
- #endif
- 
- /* Encode and de-code a swap entry */
-diff -puN arch/sparc/mm/tlb.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis arch/sparc/mm/tlb.c
---- a/arch/sparc/mm/tlb.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis
-+++ a/arch/sparc/mm/tlb.c
-@@ -188,7 +188,8 @@ void set_pmd_at(struct mm_struct *mm, un
- 	}
- }
- 
--void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable)
-+void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-+				pgtable_t pgtable)
- {
- 	struct list_head *lh = (struct list_head *) pgtable;
- 
-@@ -202,7 +203,7 @@ void pgtable_trans_huge_deposit(struct m
- 	mm->pmd_huge_pte = pgtable;
- }
- 
--pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm)
-+pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
- {
- 	struct list_head *lh;
- 	pgtable_t pgtable;
-diff -puN include/asm-generic/pgtable.h~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis
-+++ a/include/asm-generic/pgtable.h
-@@ -173,11 +173,12 @@ extern void pmdp_splitting_flush(struct
- #endif
- 
- #ifndef __HAVE_ARCH_PGTABLE_DEPOSIT
--extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable);
-+extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-+				       pgtable_t pgtable);
- #endif
- 
- #ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
--extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm);
-+extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
- #endif
- 
- #ifndef __HAVE_ARCH_PMDP_INVALIDATE
-diff -puN mm/huge_memory.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis
-+++ a/mm/huge_memory.c
-@@ -730,7 +730,7 @@ static int __do_huge_pmd_anonymous_page(
- 		entry = mk_huge_pmd(page, vma);
- 		page_add_new_anon_rmap(page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
--		pgtable_trans_huge_deposit(mm, pgtable);
-+		pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 		add_mm_counter(mm, MM_ANONPAGES, HPAGE_PMD_NR);
- 		mm->nr_ptes++;
- 		spin_unlock(&mm->page_table_lock);
-@@ -772,7 +772,7 @@ static bool set_huge_zero_page(pgtable_t
- 	entry = pmd_wrprotect(entry);
- 	entry = pmd_mkhuge(entry);
- 	set_pmd_at(mm, haddr, pmd, entry);
--	pgtable_trans_huge_deposit(mm, pgtable);
-+	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	mm->nr_ptes++;
- 	return true;
- }
-@@ -917,7 +917,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
- 	pmd = pmd_mkold(pmd_wrprotect(pmd));
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
--	pgtable_trans_huge_deposit(dst_mm, pgtable);
-+	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
- 	dst_mm->nr_ptes++;
- 
- 	ret = 0;
-@@ -987,7 +987,7 @@ static int do_huge_pmd_wp_zero_page_fall
- 	pmdp_clear_flush(vma, haddr, pmd);
- 	/* leave pmd empty until pte is filled */
- 
--	pgtable = pgtable_trans_huge_withdraw(mm);
-+	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
- 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
-@@ -1085,7 +1085,7 @@ static int do_huge_pmd_wp_page_fallback(
- 	pmdp_clear_flush(vma, haddr, pmd);
- 	/* leave pmd empty until pte is filled */
- 
--	pgtable = pgtable_trans_huge_withdraw(mm);
-+	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
- 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
-@@ -1360,7 +1360,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		struct page *page;
- 		pgtable_t pgtable;
- 		pmd_t orig_pmd;
--		pgtable = pgtable_trans_huge_withdraw(tlb->mm);
-+		pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
- 		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
- 		if (is_huge_zero_pmd(orig_pmd)) {
-@@ -1693,7 +1693,7 @@ static int __split_huge_page_map(struct
- 	pmd = page_check_address_pmd(page, mm, address,
- 				     PAGE_CHECK_ADDRESS_PMD_SPLITTING_FLAG);
- 	if (pmd) {
--		pgtable = pgtable_trans_huge_withdraw(mm);
-+		pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 		pmd_populate(mm, &_pmd, pgtable);
- 
- 		haddr = address;
-@@ -2363,7 +2363,7 @@ static void collapse_huge_page(struct mm
- 	page_add_new_anon_rmap(new_page, vma, address);
- 	set_pmd_at(mm, address, pmd, _pmd);
- 	update_mmu_cache_pmd(vma, address, pmd);
--	pgtable_trans_huge_deposit(mm, pgtable);
-+	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	spin_unlock(&mm->page_table_lock);
- 
- 	*hpage = NULL;
-@@ -2669,7 +2669,7 @@ static void __split_huge_zero_page_pmd(s
- 	pmdp_clear_flush(vma, haddr, pmd);
- 	/* leave pmd empty until pte is filled */
- 
--	pgtable = pgtable_trans_huge_withdraw(mm);
-+	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
- 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
-diff -puN mm/pgtable-generic.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-thp-add-pmd-args-to-pgtable-deposit-and-withdraw-apis
-+++ a/mm/pgtable-generic.c
-@@ -124,7 +124,8 @@ void pmdp_splitting_flush(struct vm_area
- 
- #ifndef __HAVE_ARCH_PGTABLE_DEPOSIT
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable)
-+void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-+				pgtable_t pgtable)
- {
- 	assert_spin_locked(&mm->page_table_lock);
- 
-@@ -141,7 +142,7 @@ void pgtable_trans_huge_deposit(struct m
- #ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /* no "address" argument so destroys page coloring of some arch */
--pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm)
-+pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp)
- {
- 	pgtable_t pgtable;
- 
+diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c~staging-rtl8192u-remove-commented-out-__list_for_each-usage drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
+--- a/drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c~staging-rtl8192u-remove-commented-out-__list_for_each-usage
++++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
+@@ -454,8 +454,7 @@ static int is_duplicate_packet(struct ie
+ 		struct ieee_ibss_seq *entry = NULL;
+ 		u8 *mac = header->addr2;
+ 		int index = mac[5] % IEEE_IBSS_MAC_HASH_SIZE;
+-		//for (pos = (head)->next; pos != (head); pos = pos->next)
+-		//__list_for_each(p, &ieee->ibss_mac_hash[index]) {
++
+ 		list_for_each(p, &ieee->ibss_mac_hash[index]) {
+ 			entry = list_entry(p, struct ieee_ibss_seq, list);
+ 			if (!memcmp(entry->mac, mac, ETH_ALEN))
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
 linux-next.patch
-mm-thp-dont-use-hpage_shift-in-transparent-hugepage-code-define-hpage_pmd_-constants-as-build_bug-if-thp.patch
+radeon-remove-redundant-__list_for_each-definition-from-mkregtablec.patch
+ipw2200-convert-__list_for_each-usage-to-list_for_each.patch
+list-remove-__list_for_each.patch
 
