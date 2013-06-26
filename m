@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
- added to -mm tree
-Date: Wed, 26 Jun 2013 13:35:04 -0700
-Message-ID: <51cb5078.zPaoORjbPkjDvENX%akpm@linux-foundation.org>
+Subject: + list_lru-per-node-list-infrastructure-fix.patch added to -mm
+ tree
+Date: Wed, 26 Jun 2013 13:47:48 -0700
+Message-ID: <51cb5374.lniBOeFxBUrqcwZ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751893Ab3FZUfP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 16:35:15 -0400
+	with ESMTP id S1751506Ab3FZUrt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 16:47:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, glommer@openvz.org, dchinner@redhat.com, glommer@gmail.com
+To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, glommer@gmail.com
 
-Subject: + list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch added to -mm tree
-To: glommer@gmail.com,dchinner@redhat.com,glommer@openvz.org,mhocko@suse.cz
+Subject: + list_lru-per-node-list-infrastructure-fix.patch added to -mm tree
+To: glommer@gmail.com,dchinner@redhat.com,glommer@openvz.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Jun 2013 13:35:04 -0700
+Date: Wed, 26 Jun 2013 13:47:48 -0700
 
 
 The patch titled
-     Subject: super: fix for destroy lrus
+     Subject: list_lru: per-node list infrastructure fix
 has been added to the -mm tree.  Its filename is
-     list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
+     list_lru-per-node-list-infrastructure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,68 +40,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@gmail.com>
-Subject: super: fix for destroy lrus
+Subject: list_lru: per-node list infrastructure fix
 
-This patch adds the missing call to list_lru_destroy (spotted by Li Zhong)
-and moves the deletion to after the shrinker is unregistered, as correctly
-spotted by Dave
+After a while investigating, it seems to us that the imbalance we are
+seeing are due to a multi-node race already in tree (our guess).  Although
+the WARN is useful to show us the race, BUG_ON is too much, since it seems
+the kernel should be fine going on after that.
 
 Signed-off-by: Glauber Costa <glommer@openvz.org>
-Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c       |    3 +++
- fs/xfs/xfs_buf.c |    2 +-
- fs/xfs/xfs_qm.c  |    2 +-
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ mm/list_lru.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/super.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus fs/super.c
---- a/fs/super.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus
-+++ a/fs/super.c
-@@ -328,6 +328,9 @@ void deactivate_locked_super(struct supe
+diff -puN mm/list_lru.c~list_lru-per-node-list-infrastructure-fix mm/list_lru.c
+--- a/mm/list_lru.c~list_lru-per-node-list-infrastructure-fix
++++ a/mm/list_lru.c
+@@ -15,7 +15,7 @@ bool list_lru_add(struct list_lru *lru,
+ 	struct list_lru_node *nlru = &lru->node[nid];
  
- 		/* caches are now gone, we can safely kill the shrinker now */
- 		unregister_shrinker(&s->s_shrink);
-+		list_lru_destroy(&s->s_dentry_lru);
-+		list_lru_destroy(&s->s_inode_lru);
-+
- 		put_filesystem(fs);
- 		put_super(s);
- 	} else {
-diff -puN fs/xfs/xfs_buf.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus fs/xfs/xfs_buf.c
---- a/fs/xfs/xfs_buf.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus
-+++ a/fs/xfs/xfs_buf.c
-@@ -1591,8 +1591,8 @@ xfs_free_buftarg(
- 	struct xfs_mount	*mp,
- 	struct xfs_buftarg	*btp)
- {
--	list_lru_destroy(&btp->bt_lru);
- 	unregister_shrinker(&btp->bt_shrinker);
-+	list_lru_destroy(&btp->bt_lru);
+ 	spin_lock(&nlru->lock);
+-	BUG_ON(nlru->nr_items < 0);
++	WARN_ON_ONCE(nlru->nr_items < 0);
+ 	if (list_empty(item)) {
+ 		list_add_tail(item, &nlru->list);
+ 		if (nlru->nr_items++ == 0)
+@@ -38,7 +38,7 @@ bool list_lru_del(struct list_lru *lru,
+ 		list_del_init(item);
+ 		if (--nlru->nr_items == 0)
+ 			node_clear(nid, lru->active_nodes);
+-		BUG_ON(nlru->nr_items < 0);
++		WARN_ON_ONCE(nlru->nr_items < 0);
+ 		spin_unlock(&nlru->lock);
+ 		return true;
+ 	}
+@@ -56,7 +56,7 @@ unsigned long list_lru_count(struct list
+ 		struct list_lru_node *nlru = &lru->node[nid];
  
- 	if (mp->m_flags & XFS_MOUNT_BARRIER)
- 		xfs_blkdev_issue_flush(btp);
-diff -puN fs/xfs/xfs_qm.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus fs/xfs/xfs_qm.c
---- a/fs/xfs/xfs_qm.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus
-+++ a/fs/xfs/xfs_qm.c
-@@ -889,8 +889,8 @@ xfs_qm_destroy_quotainfo(
- 	qi = mp->m_quotainfo;
- 	ASSERT(qi != NULL);
- 
--	list_lru_destroy(&qi->qi_lru);
- 	unregister_shrinker(&qi->qi_shrinker);
-+	list_lru_destroy(&qi->qi_lru);
- 
- 	if (qi->qi_uquotaip) {
- 		IRELE(qi->qi_uquotaip);
+ 		spin_lock(&nlru->lock);
+-		BUG_ON(nlru->nr_items < 0);
++		WARN_ON_ONCE(nlru->nr_items < 0);
+ 		count += nlru->nr_items;
+ 		spin_unlock(&nlru->lock);
+ 	}
+@@ -91,7 +91,7 @@ restart:
+ 		case LRU_REMOVED:
+ 			if (--nlru->nr_items == 0)
+ 				node_clear(nid, lru->active_nodes);
+-			BUG_ON(nlru->nr_items < 0);
++			WARN_ON_ONCE(nlru->nr_items < 0);
+ 			isolated++;
+ 			break;
+ 		case LRU_ROTATE:
 _
 
 Patches currently in -mm which might be from glommer@gmail.com are
 
 linux-next.patch
 inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
+list_lru-per-node-list-infrastructure-fix.patch
 list_lru-remove-special-case-function-list_lru_dispose_all.patch
 list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
 memcg-also-test-for-skip-accounting-at-the-page-allocation-level.patch
