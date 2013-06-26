@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + list_lru-per-node-list-infrastructure-fix.patch added to -mm
- tree
-Date: Wed, 26 Jun 2013 13:47:48 -0700
-Message-ID: <51cb5374.lniBOeFxBUrqcwZ3%akpm@linux-foundation.org>
+Subject: + lib-scatterlist-error-handling-in-__sg_alloc_table.patch added
+ to -mm tree
+Date: Wed, 26 Jun 2013 14:33:01 -0700
+Message-ID: <51cb5e0d.mtlu3ynndjix/Nd8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55537 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506Ab3FZUrt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 16:47:49 -0400
+	with ESMTP id S1753082Ab3FZVdC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 17:33:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, glommer@gmail.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, maximlevitsky@gmail.com, imre.deak@intel.com, daniel.vetter@ffwll.ch, akinobu.mita@gmail.com, dan.carpenter@oracle.com
 
-Subject: + list_lru-per-node-list-infrastructure-fix.patch added to -mm tree
-To: glommer@gmail.com,dchinner@redhat.com,glommer@openvz.org
+Subject: + lib-scatterlist-error-handling-in-__sg_alloc_table.patch added to -mm tree
+To: dan.carpenter@oracle.com,akinobu.mita@gmail.com,daniel.vetter@ffwll.ch,imre.deak@intel.com,maximlevitsky@gmail.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Jun 2013 13:47:48 -0700
+Date: Wed, 26 Jun 2013 14:33:01 -0700
 
 
 The patch titled
-     Subject: list_lru: per-node list infrastructure fix
+     Subject: lib/scatterlist: error handling in __sg_alloc_table()
 has been added to the -mm tree.  Its filename is
-     list_lru-per-node-list-infrastructure-fix.patch
+     lib-scatterlist-error-handling-in-__sg_alloc_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@gmail.com>
-Subject: list_lru: per-node list infrastructure fix
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: lib/scatterlist: error handling in __sg_alloc_table()
 
-After a while investigating, it seems to us that the imbalance we are
-seeing are due to a multi-node race already in tree (our guess).  Although
-the WARN is useful to show us the race, BUG_ON is too much, since it seems
-the kernel should be fine going on after that.
+I was reviewing code which I suspected might allocate a zero size SG
+table.  That will cause memory corruption.  Also we can't return before
+doing the memset or we could end up using uninitialized memory in the
+cleanup path.
 
-Signed-off-by: Glauber Costa <glommer@openvz.org>
-Cc: Dave Chinner <dchinner@redhat.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Imre Deak <imre.deak@intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/scatterlist.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/list_lru.c~list_lru-per-node-list-infrastructure-fix mm/list_lru.c
---- a/mm/list_lru.c~list_lru-per-node-list-infrastructure-fix
-+++ a/mm/list_lru.c
-@@ -15,7 +15,7 @@ bool list_lru_add(struct list_lru *lru,
- 	struct list_lru_node *nlru = &lru->node[nid];
+diff -puN lib/scatterlist.c~lib-scatterlist-error-handling-in-__sg_alloc_table lib/scatterlist.c
+--- a/lib/scatterlist.c~lib-scatterlist-error-handling-in-__sg_alloc_table
++++ a/lib/scatterlist.c
+@@ -247,13 +247,15 @@ int __sg_alloc_table(struct sg_table *ta
+ 	struct scatterlist *sg, *prv;
+ 	unsigned int left;
  
- 	spin_lock(&nlru->lock);
--	BUG_ON(nlru->nr_items < 0);
-+	WARN_ON_ONCE(nlru->nr_items < 0);
- 	if (list_empty(item)) {
- 		list_add_tail(item, &nlru->list);
- 		if (nlru->nr_items++ == 0)
-@@ -38,7 +38,7 @@ bool list_lru_del(struct list_lru *lru,
- 		list_del_init(item);
- 		if (--nlru->nr_items == 0)
- 			node_clear(nid, lru->active_nodes);
--		BUG_ON(nlru->nr_items < 0);
-+		WARN_ON_ONCE(nlru->nr_items < 0);
- 		spin_unlock(&nlru->lock);
- 		return true;
- 	}
-@@ -56,7 +56,7 @@ unsigned long list_lru_count(struct list
- 		struct list_lru_node *nlru = &lru->node[nid];
++	memset(table, 0, sizeof(*table));
++
++	if (nents == 0)
++		return -EINVAL;
+ #ifndef ARCH_HAS_SG_CHAIN
+ 	if (WARN_ON_ONCE(nents > max_ents))
+ 		return -EINVAL;
+ #endif
  
- 		spin_lock(&nlru->lock);
--		BUG_ON(nlru->nr_items < 0);
-+		WARN_ON_ONCE(nlru->nr_items < 0);
- 		count += nlru->nr_items;
- 		spin_unlock(&nlru->lock);
- 	}
-@@ -91,7 +91,7 @@ restart:
- 		case LRU_REMOVED:
- 			if (--nlru->nr_items == 0)
- 				node_clear(nid, lru->active_nodes);
--			BUG_ON(nlru->nr_items < 0);
-+			WARN_ON_ONCE(nlru->nr_items < 0);
- 			isolated++;
- 			break;
- 		case LRU_ROTATE:
-_
-
-Patches currently in -mm which might be from glommer@gmail.com are
-
-linux-next.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
-list_lru-per-node-list-infrastructure-fix.patch
-list_lru-remove-special-case-function-list_lru_dispose_all.patch
-list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
-memcg-also-test-for-skip-accounting-at-the-page-allocation-level.patch
-memcg-do-not-account-memory-used-for-cache-creation.patch
-
+-	memset(table, 0, sizeof(*table));
