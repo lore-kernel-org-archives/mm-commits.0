@@ -1,158 +1,170 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work.patch removed
- from -mm tree
-Date: Wed, 26 Jun 2013 14:41:59 -0700
-Message-ID: <51cb6027./Vo57m3CgrdgFRoH%akpm@linux-foundation.org>
+ rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch
+ removed from -mm tree
+Date: Wed, 26 Jun 2013 14:42:01 -0700
+Message-ID: <51cb6029.tLWpZ4Uy5QsnneJi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55573 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55575 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752251Ab3FZVl7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 17:41:59 -0400
+	with ESMTP id S1752788Ab3FZVmC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 17:42:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holler@ahsoftware.de
+To: mm-commits@vger.kernel.org, holler@ahsoftware.de, akpm@linux-foundation.org
 
-Subject: [to-be-updated] rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work.patch removed from -mm tree
-To: holler@ahsoftware.de,mm-commits@vger.kernel.org
+Subject: [to-be-updated] rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,holler@ahsoftware.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Jun 2013 14:41:59 -0700
+Date: Wed, 26 Jun 2013 14:42:01 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-hid-sensor-time.c: delay registering as rtc into a work
+     Subject: rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work.patch
+     rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: drivers/rtc/rtc-hid-sensor-time.c: delay registering as rtc into a work
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix
 
-rtc_device_register() might want to read the clock which doesn't work
-before the hid device is registered.  Therefor we delay the registration
-of the rtc driver by moving it to a work.
+cleanups
 
-Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+Cc: Alexander Holler <holler@ahsoftware.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hid-sensor-time.c |   64 ++++++++++++++++++++++++----
- 1 file changed, 56 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-hid-sensor-time.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work drivers/rtc/rtc-hid-sensor-time.c
---- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work
+diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix drivers/rtc/rtc-hid-sensor-time.c
+--- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix
 +++ a/drivers/rtc/rtc-hid-sensor-time.c
-@@ -37,6 +37,11 @@ enum hid_time_channel {
- 	TIME_RTC_CHANNEL_MAX,
- };
+@@ -245,16 +245,18 @@ static const struct rtc_class_ops hid_ti
  
-+struct hid_time_workts {
-+	struct work_struct work;
+ static void hid_time_register_rtc_work(struct work_struct *work)
+ {
+-	struct hid_time_state *time_state =
+-		container_of(work, struct hid_time_workts, work)
+-			->time_state;
+-	struct platform_device *pdev = time_state->callbacks.pdev;
 +	struct hid_time_state *time_state;
-+};
++	struct platform_device *pdev;
 +
- struct hid_time_state {
- 	struct hid_sensor_hub_callbacks callbacks;
- 	struct hid_sensor_common common_attributes;
-@@ -46,6 +51,7 @@ struct hid_time_state {
- 	struct completion comp_last_time;
- 	struct rtc_time time_buf;
- 	struct rtc_device *rtc;
-+	struct hid_time_workts *workts;
- };
++	time_state = container_of(work, struct hid_time_workts, work)->time_state;
++	pdev = time_state->callbacks.pdev;
  
- static const u32 hid_time_addresses[TIME_RTC_CHANNEL_MAX] = {
-@@ -237,6 +243,36 @@ static const struct rtc_class_ops hid_ti
- 	.read_time = hid_rtc_read_time,
- };
- 
-+static void hid_time_register_rtc_work(struct work_struct *work)
-+{
-+	struct hid_time_state *time_state =
-+		container_of(work, struct hid_time_workts, work)
-+			->time_state;
-+	struct platform_device *pdev = time_state->callbacks.pdev;
+ 	time_state->rtc = devm_rtc_device_register(&pdev->dev,
+ 					"hid-sensor-time", &hid_time_rtc_ops,
+ 					THIS_MODULE);
+ 	if (IS_ERR_OR_NULL(time_state->rtc)) {
+ 		struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
 +
-+	time_state->rtc = devm_rtc_device_register(&pdev->dev,
-+					"hid-sensor-time", &hid_time_rtc_ops,
-+					THIS_MODULE);
-+	if (IS_ERR_OR_NULL(time_state->rtc)) {
-+		struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
-+		sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
-+		time_state->rtc = NULL;
-+		dev_err(&pdev->dev, "rtc device register failed!\n");
-+		/*
-+		 *  I haven't a found a way to remove only this device from
-+		 *  hid-sensor-hub. Removing the device a level above (the
-+		 *  complete HID device) doesn't work, because a sensor-hub
-+		 *  might provide more than just a time-sensor and thus we
-+		 *  would remove all sensors not just this one.
-+		 *  So we just leave this driver idling around until I or
-+		 *  someone else has figured out how to remove this device
-+		 *  from hid-sensor-hub.
-+		 */
-+	}
-+	time_state->workts = NULL;
-+	kfree(work);
-+}
-+
- static int hid_time_probe(struct platform_device *pdev)
+ 		sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
+ 		time_state->rtc = NULL;
+ 		dev_err(&pdev->dev, "rtc device register failed!\n");
+@@ -277,9 +279,9 @@ static int hid_time_probe(struct platfor
  {
  	int ret = 0;
-@@ -279,22 +315,34 @@ static int hid_time_probe(struct platfor
- 		return ret;
- 	}
- 
--	time_state->rtc = devm_rtc_device_register(&pdev->dev,
--					"hid-sensor-time", &hid_time_rtc_ops,
--					THIS_MODULE);
--
--	if (IS_ERR(time_state->rtc)) {
--		dev_err(&pdev->dev, "rtc device register failed!\n");
--		return PTR_ERR(time_state->rtc);
-+	/*
-+	 * The HID device has to be registered to read the clock.
-+	 * Because rtc_device_register() might read the time, we have to delay
-+	 * rtc_device_register() to a work in order to finish the probe before.
-+	 */
-+	time_state->workts = kmalloc(sizeof(struct hid_time_workts),
-+		GFP_KERNEL);
-+	if (time_state->workts == NULL) {
-+		sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
-+		return -ENOMEM;
- 	}
-+	time_state->workts->time_state = time_state;
-+	INIT_WORK(&time_state->workts->work,
-+			hid_time_register_rtc_work);
-+	schedule_work(&time_state->workts->work);
- 
--	return ret;
-+	return 0;
- }
- 
- static int hid_time_remove(struct platform_device *pdev)
- {
  	struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
-+	struct hid_time_state *time_state = platform_get_drvdata(pdev);
+-	struct hid_time_state *time_state = devm_kzalloc(&pdev->dev,
+-		sizeof(struct hid_time_state), GFP_KERNEL);
++	struct hid_time_state *time_state;
  
-+	if (time_state->workts) {
-+		flush_work(&time_state->workts->work);
-+		WARN_ON(time_state->workts != NULL);
-+	}
- 	sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
++	time_state = devm_kzalloc(&pdev->dev, sizeof(*time_state), GFP_KERNEL);
+ 	if (time_state == NULL)
+ 		return -ENOMEM;
+ 
+@@ -321,14 +323,13 @@ static int hid_time_probe(struct platfor
+ 	 * rtc_device_register() to a work in order to finish the probe before.
+ 	 */
+ 	time_state->workts = kmalloc(sizeof(struct hid_time_workts),
+-		GFP_KERNEL);
++				     GFP_KERNEL);
+ 	if (time_state->workts == NULL) {
+ 		sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
+ 		return -ENOMEM;
+ 	}
+ 	time_state->workts->time_state = time_state;
+-	INIT_WORK(&time_state->workts->work,
+-			hid_time_register_rtc_work);
++	INIT_WORK(&time_state->workts->work, hid_time_register_rtc_work);
+ 	schedule_work(&time_state->workts->work);
  
  	return 0;
 _
 
-Patches currently in -mm which might be from holler@ahsoftware.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-rtc-hid-sensor-time-allow-full-years-16bit-in-hid-reports.patch
-rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes.patch
-rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch
+include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
+fput-turn-list_head-delayed_fput_list-into-llist_head.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+include-linux-mmzoneh-cleanups.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+rbtree-remove-unneeded-include-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
