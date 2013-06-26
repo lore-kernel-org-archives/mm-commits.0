@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources.patch added to
- -mm tree
-Date: Wed, 26 Jun 2013 12:05:24 -0700
-Message-ID: <51cb3b74.WvoN6WnFoV0houOa%akpm__26780.5419433445$1372273540$gmane$org@linux-foundation.org>
+ mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch added to -mm tree
+Date: Wed, 26 Jun 2013 12:44:14 -0700
+Message-ID: <51cb448e.0uwp8xLZ4z2hXTpc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54027 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54486 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359Ab3FZTFZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 15:05:25 -0400
+	with ESMTP id S1752349Ab3FZToP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 15:44:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vinod.koul@linux.intel.com, t.figa@samsung.com, stable@vger.kernel.org, kyungmin.park@samsung.com, jassisinghbrar@gmail.com, b.zolnierkie@samsung.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, david@fromorbit.com, mgorman@suse.de
 
-Subject: + drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources.patch added to -mm tree
-To: b.zolnierkie@samsung.com,jassisinghbrar@gmail.com,kyungmin.park@samsung.com,stable@vger.kernel.org,t.figa@samsung.com,vinod.koul@linux.intel.com
+Subject: + mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch added to -mm tree
+To: mgorman@suse.de,david@fromorbit.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Jun 2013 12:05:24 -0700
+Date: Wed, 26 Jun 2013 12:44:14 -0700
 
 
 The patch titled
-     Subject: drivers/dma/pl330.c: fix locking in pl330_free_chan_resources()
+     Subject: mm: vmscan: do not scale writeback pages when deciding whether to set ZONE_WRITEBACK
 has been added to the -mm tree.  Its filename is
-     drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources.patch
+     mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +39,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: drivers/dma/pl330.c: fix locking in pl330_free_chan_resources()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: do not scale writeback pages when deciding whether to set ZONE_WRITEBACK
 
-tasklet_kill() may sleep so call it before taking pch->lock.
+After the patch "mm: vmscan: Flatten kswapd priority loop" was merged the
+scanning priority of kswapd changed.  The priority now raises until it is
+scanning enough pages to meet the high watermark.  shrink_inactive_list
+sets ZONE_WRITEBACK if a number of pages were encountered under writeback
+but this value is scaled based on the priority.  As kswapd frequently
+scans with a higher priority now it is relatively easy to set
+ZONE_WRITEBACK.  This patch removes the scaling and treates writeback
+pages similar to how it treats unqueued dirty pages and congested pages. 
+The user-visible effect should be that kswapd will writeback fewer pages
+from reclaim context.
 
-Fixes following lockup:
-
-[  345.470000] BUG: scheduling while atomic: cat/2383/0x00000002
-[  345.470000] Modules linked in:
-[  345.470000] [<c0015858>] (unwind_backtrace+0x0/0xfc) from [<c004d980>] (__schedule_bug+0x4c/0x58)
-[  345.470000] [<c004d980>] (__schedule_bug+0x4c/0x58) from [<c0360b6c>] (__schedule+0x690/0x6e0)
-[  345.470000] [<c0360b6c>] (__schedule+0x690/0x6e0) from [<c004f2b4>] (sys_sched_yield+0x70/0x78)
-[  345.470000] [<c004f2b4>] (sys_sched_yield+0x70/0x78) from [<c002acec>] (tasklet_kill+0x34/0x8c)
-[  345.470000] [<c002acec>] (tasklet_kill+0x34/0x8c) from [<c01da4cc>] (pl330_free_chan_resources+0x24/0x88)
-[  345.470000] [<c01da4cc>] (pl330_free_chan_resources+0x24/0x88) from [<c01d81f4>] (dma_chan_put+0x4c/0x50)
-[  345.470000] [<c01d81f4>] (dma_chan_put+0x4c/0x50) from [<c01d82c0>] (dma_release_channel+0x28/0x98)
-[...]
-[  368.335000] BUG: spinlock lockup suspected on CPU#0, swapper/0/0
-[  368.340000]  lock: 0xe52aa04c, .magic: dead4ead, .owner: cat/2383, .owner_cpu: 1
-[  368.350000] [<c0015858>] (unwind_backtrace+0x0/0xfc) from [<c01b3d78>] (do_raw_spin_lock+0x194/0x204)
-[  368.360000] [<c01b3d78>] (do_raw_spin_lock+0x194/0x204) from [<c0361adc>] (_raw_spin_lock_irqsave+0x20/0x28)
-[  368.365000] [<c0361adc>] (_raw_spin_lock_irqsave+0x20/0x28) from [<c01da80c>] (pl330_tasklet+0x2c/0x5a8)
-[  368.375000] [<c01da80c>] (pl330_tasklet+0x2c/0x5a8) from [<c002ac04>] (tasklet_action+0xfc/0x114)
-[  368.385000] [<c002ac04>] (tasklet_action+0xfc/0x114) from [<c002b204>] (__do_softirq+0xe4/0x19c)
-[  368.395000] [<c002b204>] (__do_softirq+0xe4/0x19c) from [<c002b398>] (irq_exit+0x98/0x9c)
-[  368.405000] [<c002b398>] (irq_exit+0x98/0x9c) from [<c0013ebc>] (handle_IPI+0x124/0x16c)
-[  368.410000] [<c0013ebc>] (handle_IPI+0x124/0x16c) from [<c000857c>] (gic_handle_irq+0x64/0x68)
-[  368.420000] [<c000857c>] (gic_handle_irq+0x64/0x68) from [<c000e740>] (__irq_svc+0x40/0x70)
-[  368.430000] Exception stack(0xc04a3f00 to 0xc04a3f48)
-[  368.435000] 3f00: c04a3f48 00000000 6f9e23e8 00000050 c07492c8 c04a3f48 00000000 c04ccc88
-[  368.440000] 3f20: 6f9dbac3 00000050 6f9e23e8 00000050 3b9aca00 c04a3f48 c005cfa4 c02946d4
-[  368.450000] 3f40: 60000013 ffffffff
-[  368.455000] [<c000e740>] (__irq_svc+0x40/0x70) from [<c02946d4>] (cpuidle_wrap_enter+0x4c/0xa0)
-[  368.460000] [<c02946d4>] (cpuidle_wrap_enter+0x4c/0xa0) from [<c02940dc>] (cpuidle_enter_state+0x18/0x68)
-[  368.470000] [<c02940dc>] (cpuidle_enter_state+0x18/0x68) from [<c02948e0>] (cpuidle_idle_call+0xac/0xe0)
-[  368.480000] [<c02948e0>] (cpuidle_idle_call+0xac/0xe0) from [<c00102f8>] (cpu_idle+0xac/0xf0)
-[  368.490000] [<c00102f8>] (cpu_idle+0xac/0xf0) from [<c04796a0>] (start_kernel+0x28c/0x294)
-
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Tomasz Figa <t.figa@samsung.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/pl330.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN drivers/dma/pl330.c~drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources drivers/dma/pl330.c
---- a/drivers/dma/pl330.c~drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources
-+++ a/drivers/dma/pl330.c
-@@ -2485,10 +2485,10 @@ static void pl330_free_chan_resources(st
- 	struct dma_pl330_chan *pch = to_pchan(chan);
- 	unsigned long flags;
+diff -puN mm/vmscan.c~mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback
++++ a/mm/vmscan.c
+@@ -1477,25 +1477,11 @@ shrink_inactive_list(unsigned long nr_to
+ 	 * as there is no guarantee the dirtying process is throttled in the
+ 	 * same way balance_dirty_pages() manages.
+ 	 *
+-	 * This scales the number of dirty pages that must be under writeback
+-	 * before a zone gets flagged ZONE_WRITEBACK. It is a simple backoff
+-	 * function that has the most effect in the range DEF_PRIORITY to
+-	 * DEF_PRIORITY-2 which is the priority reclaim is considered to be
+-	 * in trouble and reclaim is considered to be in trouble.
+-	 *
+-	 * DEF_PRIORITY   100% isolated pages must be PageWriteback to throttle
+-	 * DEF_PRIORITY-1  50% must be PageWriteback
+-	 * DEF_PRIORITY-2  25% must be PageWriteback, kswapd in trouble
+-	 * ...
+-	 * DEF_PRIORITY-6 For SWAP_CLUSTER_MAX isolated pages, throttle if any
+-	 *                     isolated page is PageWriteback
+-	 *
+ 	 * Once a zone is flagged ZONE_WRITEBACK, kswapd will count the number
+ 	 * of pages under pages flagged for immediate reclaim and stall if any
+ 	 * are encountered in the nr_immediate check below.
+ 	 */
+-	if (nr_writeback && nr_writeback >=
+-			(nr_taken >> (DEF_PRIORITY - sc->priority)))
++	if (nr_writeback && nr_writeback == nr_taken)
+ 		zone_set_flag(zone, ZONE_WRITEBACK);
  
--	spin_lock_irqsave(&pch->lock, flags);
+ 	/*
+_
+
+Patches currently in -mm which might be from mgorman@suse.de are
+
+linux-next.patch
+mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch
+mm-page_alloc-prevent-concurrent-updaters-of-pcp-batch-and-high.patch
+mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch
+mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
+mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch
+mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
+mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch
+mm-page_alloc-relocate-comment-to-be-directly-above-code-it-refers-to.patch
+mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch
+mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch
+mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch
+mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
+mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
+mm-vmscan-flatten-kswapd-priority-loop.patch
+mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
+mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
+mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch
+mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
+mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
+mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
+mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
+mm-vmscan-set-zone-flags-before-blocking.patch
+mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
+mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
+mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
+fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
+mm-add-tracepoints-for-lru-activation-and-insertions.patch
+mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
+mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
+mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix-2.patch
+mm-fix-the-tlb-range-flushed-when-__tlb_remove_page-runs-out-of-slots.patch
+mm-introduce-helper-function-mem_init_print_info-to-simplify-mem_init.patch
+mm-kill-global-variable-num_physpages.patch
+documentation-update-address_space_operations.patch
+documentation-document-the-is_dirty_writeback-aops-callback.patch
+fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+dentry-move-to-per-sb-lru-locks.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+list-add-a-new-lru-list-type.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code.patch
+dcache-convert-to-use-new-lru-list-infrastructure.patch
+list_lru-per-node-list-infrastructure.patch
+list_lru-per-node-api.patch
+shrinker-add-node-awareness.patch
+vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
+zbud-add-to-mm.patch
+zswap-add-to-mm.patch
+zswap-add-documentation.patch
+mm-vmscan-avoid-direct-reclaim-scanning-at-maximum-priority.patch
+mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
+mm-memmap_init_zone-performance-improvement.patch
+
