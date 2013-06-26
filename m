@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch
- added to -mm tree
-Date: Wed, 26 Jun 2013 12:58:03 -0700
-Message-ID: <51cb47cb./AQzssmiIq6UjXNC%akpm@linux-foundation.org>
+ inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch added to -mm tree
+Date: Wed, 26 Jun 2013 13:33:50 -0700
+Message-ID: <51cb502e.wfTp71LSlu+asE8G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54916 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752831Ab3FZT6E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 15:58:04 -0400
+	with ESMTP id S1752487Ab3FZUdw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 16:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holler@ahsoftware.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, glommer@openvz.org, dchinner@redhat.com, glommer@gmail.com
 
-Subject: + rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,holler@ahsoftware.de
+Subject: + inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch added to -mm tree
+To: glommer@gmail.com,dchinner@redhat.com,glommer@openvz.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 26 Jun 2013 12:58:03 -0700
+Date: Wed, 26 Jun 2013 13:33:50 -0700
 
 
 The patch titled
-     Subject: rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix
+     Subject: inode: move inode to a different list inside lock
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch
+     inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,141 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix
+From: Glauber Costa <glommer@gmail.com>
+Subject: inode: move inode to a different list inside lock
 
-cleanups
+When removing an element from the lru, this will be done today after the lock
+is released. This is a clear mistake, although we are not sure if the bugs we
+are seeing are related to this. All list manipulations are done inside the
+lock, and so should this one.
 
-Cc: Alexander Holler <holler@ahsoftware.de>
+Signed-off-by: Glauber Costa <glommer@openvz.org>
+Tested-by: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hid-sensor-time.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ fs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix drivers/rtc/rtc-hid-sensor-time.c
---- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix
-+++ a/drivers/rtc/rtc-hid-sensor-time.c
-@@ -245,16 +245,18 @@ static const struct rtc_class_ops hid_ti
+diff -puN fs/inode.c~inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock fs/inode.c
+--- a/fs/inode.c~inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock
++++ a/fs/inode.c
+@@ -735,9 +735,9 @@ inode_lru_isolate(struct list_head *item
  
- static void hid_time_register_rtc_work(struct work_struct *work)
- {
--	struct hid_time_state *time_state =
--		container_of(work, struct hid_time_workts, work)
--			->time_state;
--	struct platform_device *pdev = time_state->callbacks.pdev;
-+	struct hid_time_state *time_state;
-+	struct platform_device *pdev;
-+
-+	time_state = container_of(work, struct hid_time_workts, work)->time_state;
-+	pdev = time_state->callbacks.pdev;
+ 	WARN_ON(inode->i_state & I_NEW);
+ 	inode->i_state |= I_FREEING;
++	list_move(&inode->i_lru, freeable);
+ 	spin_unlock(&inode->i_lock);
  
- 	time_state->rtc = devm_rtc_device_register(&pdev->dev,
- 					"hid-sensor-time", &hid_time_rtc_ops,
- 					THIS_MODULE);
- 	if (IS_ERR_OR_NULL(time_state->rtc)) {
- 		struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
-+
- 		sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
- 		time_state->rtc = NULL;
- 		dev_err(&pdev->dev, "rtc device register failed!\n");
-@@ -277,9 +279,9 @@ static int hid_time_probe(struct platfor
- {
- 	int ret = 0;
- 	struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
--	struct hid_time_state *time_state = devm_kzalloc(&pdev->dev,
--		sizeof(struct hid_time_state), GFP_KERNEL);
-+	struct hid_time_state *time_state;
- 
-+	time_state = devm_kzalloc(&pdev->dev, sizeof(*time_state), GFP_KERNEL);
- 	if (time_state == NULL)
- 		return -ENOMEM;
- 
-@@ -321,14 +323,13 @@ static int hid_time_probe(struct platfor
- 	 * rtc_device_register() to a work in order to finish the probe before.
- 	 */
- 	time_state->workts = kmalloc(sizeof(struct hid_time_workts),
--		GFP_KERNEL);
-+				     GFP_KERNEL);
- 	if (time_state->workts == NULL) {
- 		sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
- 		return -ENOMEM;
- 	}
- 	time_state->workts->time_state = time_state;
--	INIT_WORK(&time_state->workts->work,
--			hid_time_register_rtc_work);
-+	INIT_WORK(&time_state->workts->work, hid_time_register_rtc_work);
- 	schedule_work(&time_state->workts->work);
- 
- 	return 0;
+-	list_move(&inode->i_lru, freeable);
+ 	this_cpu_dec(nr_unused);
+ 	return LRU_REMOVED;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from glommer@gmail.com are
 
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-rtc-hid-sensor-time-delay-registering-as-rtc-into-a-work-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
+list_lru-remove-special-case-function-list_lru_dispose_all.patch
+memcg-also-test-for-skip-accounting-at-the-page-allocation-level.patch
+memcg-do-not-account-memory-used-for-cache-creation.patch
 
