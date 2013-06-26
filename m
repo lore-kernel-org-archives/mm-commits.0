@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch added to -mm tree
-Date: Wed, 26 Jun 2013 13:33:50 -0700
-Message-ID: <51cb502e.wfTp71LSlu+asE8G%akpm@linux-foundation.org>
+ list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
+ added to -mm tree
+Date: Wed, 26 Jun 2013 13:35:04 -0700
+Message-ID: <51cb5078.zPaoORjbPkjDvENX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54926 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752487Ab3FZUdw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 16:33:52 -0400
+	with ESMTP id S1751893Ab3FZUfP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jun 2013 16:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, glommer@openvz.org, dchinner@redhat.com, glommer@gmail.com
 
-Subject: + inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch added to -mm tree
+Subject: + list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch added to -mm tree
 To: glommer@gmail.com,dchinner@redhat.com,glommer@openvz.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 26 Jun 2013 13:33:50 -0700
+Date: Wed, 26 Jun 2013 13:35:04 -0700
 
 
 The patch titled
-     Subject: inode: move inode to a different list inside lock
+     Subject: super: fix for destroy lrus
 has been added to the -mm tree.  Its filename is
-     inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
+     list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +41,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@gmail.com>
-Subject: inode: move inode to a different list inside lock
+Subject: super: fix for destroy lrus
 
-When removing an element from the lru, this will be done today after the lock
-is released. This is a clear mistake, although we are not sure if the bugs we
-are seeing are related to this. All list manipulations are done inside the
-lock, and so should this one.
+This patch adds the missing call to list_lru_destroy (spotted by Li Zhong)
+and moves the deletion to after the shrinker is unregistered, as correctly
+spotted by Dave
 
 Signed-off-by: Glauber Costa <glommer@openvz.org>
-Tested-by: Michal Hocko <mhocko@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/super.c       |    3 +++
+ fs/xfs/xfs_buf.c |    2 +-
+ fs/xfs/xfs_qm.c  |    2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/inode.c~inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock fs/inode.c
---- a/fs/inode.c~inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock
-+++ a/fs/inode.c
-@@ -735,9 +735,9 @@ inode_lru_isolate(struct list_head *item
+diff -puN fs/super.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus fs/super.c
+--- a/fs/super.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus
++++ a/fs/super.c
+@@ -328,6 +328,9 @@ void deactivate_locked_super(struct supe
  
- 	WARN_ON(inode->i_state & I_NEW);
- 	inode->i_state |= I_FREEING;
-+	list_move(&inode->i_lru, freeable);
- 	spin_unlock(&inode->i_lock);
+ 		/* caches are now gone, we can safely kill the shrinker now */
+ 		unregister_shrinker(&s->s_shrink);
++		list_lru_destroy(&s->s_dentry_lru);
++		list_lru_destroy(&s->s_inode_lru);
++
+ 		put_filesystem(fs);
+ 		put_super(s);
+ 	} else {
+diff -puN fs/xfs/xfs_buf.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus fs/xfs/xfs_buf.c
+--- a/fs/xfs/xfs_buf.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus
++++ a/fs/xfs/xfs_buf.c
+@@ -1591,8 +1591,8 @@ xfs_free_buftarg(
+ 	struct xfs_mount	*mp,
+ 	struct xfs_buftarg	*btp)
+ {
+-	list_lru_destroy(&btp->bt_lru);
+ 	unregister_shrinker(&btp->bt_shrinker);
++	list_lru_destroy(&btp->bt_lru);
  
--	list_move(&inode->i_lru, freeable);
- 	this_cpu_dec(nr_unused);
- 	return LRU_REMOVED;
- }
+ 	if (mp->m_flags & XFS_MOUNT_BARRIER)
+ 		xfs_blkdev_issue_flush(btp);
+diff -puN fs/xfs/xfs_qm.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus fs/xfs/xfs_qm.c
+--- a/fs/xfs/xfs_qm.c~list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus
++++ a/fs/xfs/xfs_qm.c
+@@ -889,8 +889,8 @@ xfs_qm_destroy_quotainfo(
+ 	qi = mp->m_quotainfo;
+ 	ASSERT(qi != NULL);
+ 
+-	list_lru_destroy(&qi->qi_lru);
+ 	unregister_shrinker(&qi->qi_shrinker);
++	list_lru_destroy(&qi->qi_lru);
+ 
+ 	if (qi->qi_uquotaip) {
+ 		IRELE(qi->qi_uquotaip);
 _
 
 Patches currently in -mm which might be from glommer@gmail.com are
@@ -77,6 +104,7 @@ Patches currently in -mm which might be from glommer@gmail.com are
 linux-next.patch
 inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
 list_lru-remove-special-case-function-list_lru_dispose_all.patch
+list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
 memcg-also-test-for-skip-accounting-at-the-page-allocation-level.patch
 memcg-do-not-account-memory-used-for-cache-creation.patch
 
