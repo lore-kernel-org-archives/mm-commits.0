@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zswap-add-to-mm-fix-kconfig-to-depend-on-crypto=y.patch added
- to -mm tree
-Date: Thu, 27 Jun 2013 14:39:25 -0700
-Message-ID: <51ccb10d.HKsRM7oPY/Vj9I9Z%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch added to -mm
+ tree
+Date: Thu, 27 Jun 2013 14:59:02 -0700
+Message-ID: <51ccb5a6.hZmevnMJPUXzDCw4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39110 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751569Ab3F0Vj0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jun 2013 17:39:26 -0400
+	with ESMTP id S1753249Ab3F0V7D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jun 2013 17:59:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, sjenning@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
 
-Subject: + zswap-add-to-mm-fix-kconfig-to-depend-on-crypto=y.patch added to -mm tree
-To: sjenning@linux.vnet.ibm.com,fengguang.wu@intel.com
+Subject: + ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch added to -mm tree
+To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com
 From: akpm@linux-foundation.org
-Date: Thu, 27 Jun 2013 14:39:25 -0700
+Date: Thu, 27 Jun 2013 14:59:02 -0700
 
 
 The patch titled
-     Subject: zswap: fix Kconfig to depend on CRYPTO=y
+     Subject: ocfs2: fix readonly issue in ocfs2_unlink()
 has been added to the -mm tree.  Its filename is
-     zswap-add-to-mm-fix-kconfig-to-depend-on-crypto=y.patch
+     ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,68 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Subject: zswap: fix Kconfig to depend on CRYPTO=y
+From: Younger Liu <younger.liu@huawei.com>
+Subject: ocfs2: fix readonly issue in ocfs2_unlink()
 
-The Kconfig entry for zswap currently allows CRYPTO=m to satisfy the
-zswap dependency.  However zswap is boolean (i.e. built-in) and has
-symbol dependencies on CRYPTO.  Additionally, because the CRYPTO dependency
-is satisfied with =m, the additional selects zswap does can also
-be satisfied with =m, which leads to additional linking errors.
+While deleting a file with ocfs2_unlink(), there is a bug in this
+function.  This bug will result in filesystem read-only.
 
-From the report:
-=====
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git since-3.9
-head:   57cefddb141d6c9d0ab4f5a8589dd017f796a3f7
-commit: 563f51c95b552e0d663df5bdf6cfc8e8a72d3ec6 [494/499] zswap: add to mm/
-config: x86_64-randconfig-x004-0619 (attached as .config)
+After calling ocfs2_orphan_add(), the file which will be deleted is added
+into orphan dir.  If ocfs2_delete_entry() fails, the file still exists in
+the parent dir.  And this scenario introduces a conflict of metadata.
 
-All error/warnings:
+If a file is added into orphan dir, when we put inode of the file with
+iput(), the inode i_flags is setted (~OCFS2_VALID_FL) in
+ocfs2_remove_inode(), and then write back to disk.
 
-   mm/built-in.o: In function `zswap_frontswap_invalidate_area':
->> zswap.c:(.text+0x3a705): undefined reference to `zbud_free'
-   mm/built-in.o: In function `zswap_free_entry':
->> zswap.c:(.text+0x3a76b): undefined reference to `zbud_free'
->> zswap.c:(.text+0x3a789): undefined reference to `zbud_get_pool_size'
-on and on...
-=====
+But as previously mentioned, the file still exists in the parent dir.  On
+other nodes, the file can be still accessed.  When first read the file
+with ocfs2_read_blocks() from disk, It will check and avalidate inode
+using ocfs2_validate_inode_block().  So File system will be readonly
+because the inode is invalid.  In other words, the inode i_flags has been
+set (~OCFS2_VALID_FL).
 
-This patch makes CRYPTO a built-in dependency of ZSWAP.  This has the
-side effect of also making the selects built-in.
-
-Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Younger Liu <younger.liu@huawei.com>
+Signed-off-by: Jensen <shencanquan@huawei.com>
+Cc: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Sunil Mushran <sunil.mushran@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/namei.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/Kconfig~zswap-add-to-mm-fix-kconfig-to-depend-on-crypto=y mm/Kconfig
---- a/mm/Kconfig~zswap-add-to-mm-fix-kconfig-to-depend-on-crypto=y
-+++ a/mm/Kconfig
-@@ -490,7 +490,7 @@ config ZBUD
+diff -puN fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink
++++ a/fs/ocfs2/namei.c
+@@ -790,7 +790,7 @@ static int ocfs2_unlink(struct inode *di
+ 			struct dentry *dentry)
+ {
+ 	int status;
+-	int child_locked = 0;
++	int child_locked = 0, is_unlinkable = 0;
+ 	struct inode *inode = dentry->d_inode;
+ 	struct inode *orphan_dir = NULL;
+ 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
+@@ -873,6 +873,7 @@ static int ocfs2_unlink(struct inode *di
+ 			mlog_errno(status);
+ 			goto leave;
+ 		}
++		is_unlinkable = 1;
+ 	}
  
- config ZSWAP
- 	bool "Compressed cache for swap pages (EXPERIMENTAL)"
--	depends on FRONTSWAP && CRYPTO
-+	depends on FRONTSWAP && CRYPTO=y
- 	select CRYPTO_LZO
- 	select ZBUD
- 	default n
+ 	handle = ocfs2_start_trans(osb, ocfs2_unlink_credits(osb->sb));
+@@ -892,15 +893,6 @@ static int ocfs2_unlink(struct inode *di
+ 
+ 	fe = (struct ocfs2_dinode *) fe_bh->b_data;
+ 
+-	if (inode_is_unlinkable(inode)) {
+-		status = ocfs2_orphan_add(osb, handle, inode, fe_bh, orphan_name,
+-					  &orphan_insert, orphan_dir);
+-		if (status < 0) {
+-			mlog_errno(status);
+-			goto leave;
+-		}
+-	}
+-
+ 	/* delete the name from the parent dir */
+ 	status = ocfs2_delete_entry(handle, dir, &lookup);
+ 	if (status < 0) {
+@@ -923,6 +915,14 @@ static int ocfs2_unlink(struct inode *di
+ 		mlog_errno(status);
+ 		if (S_ISDIR(inode->i_mode))
+ 			inc_nlink(dir);
++		goto leave;
++	}
++
++	if (is_unlinkable) {
++		status = ocfs2_orphan_add(osb, handle, inode, fe_bh, orphan_name,
++					  &orphan_insert, orphan_dir);
++		if (status < 0)
++			mlog_errno(status);
+ 	}
+ 
+ leave:
 _
 
-Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
+Patches currently in -mm which might be from younger.liu@huawei.com are
 
 linux-next.patch
-mm-remove-compressed-copy-from-zram-in-memory.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-zbud-add-to-mm.patch
-zbud-add-to-mm-init-under_reclaim.patch
-zswap-add-to-mm.patch
-zswap-add-to-mm-fix-kconfig-to-depend-on-crypto=y.patch
-zswap-add-documentation.patch
-maintainers-add-zswap-and-zbud-maintainer.patch
+fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
+ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
+ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add.patch
+ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group.patch
+ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
+ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
+ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
 
