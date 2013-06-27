@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch added to -mm tree
-Date: Thu, 27 Jun 2013 14:59:03 -0700
-Message-ID: <51ccb5a7.6Qmmb4UsqBoNVaMK%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch added to -mm tree
+Date: Thu, 27 Jun 2013 15:03:45 -0700
+Message-ID: <51ccb6c1.fohnWYhHx3f1pdQd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39119 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39132 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475Ab3F0V7E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jun 2013 17:59:04 -0400
+	with ESMTP id S1753727Ab3F0WDq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jun 2013 18:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younger.liu@huawei.com, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, shencanquan@huawei.com
 
-Subject: + ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com,younger.liu@huawei.com
+Subject: + ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch added to -mm tree
+To: shencanquan@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,sunil.mushran@gmail.com
 From: akpm@linux-foundation.org
-Date: Thu, 27 Jun 2013 14:59:03 -0700
+Date: Thu, 27 Jun 2013 15:03:45 -0700
 
 
 The patch titled
-     Subject: ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix
+     Subject: ocfs2: llseek requires ocfs2 inode lock for the file in SEEK_END
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
+     ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,126 +39,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix
+From: Jensen <shencanquan@huawei.com>
+Subject: ocfs2: llseek requires ocfs2 inode lock for the file in SEEK_END
 
-cleanups
+llseek requires ocfs2 inode lock for updating the file size in SEEK_END. 
+because the file size maybe update on another node.  if it not .  after
+call llseek in SEEK_END.  the position is old.
 
-Cc: Jensen <shencanquan@huawei.com>
+This bug can be reproduce the following scenario: at first ,we dd a test
+fileA,the file size is 10k.
+
+on NodeA:
+---------
+1) open the test fileA, lseek the end of file. and print the position.
+2) close the test fileA
+
+on NodeB:
+1) open the test fileA, append the 5k data to test FileA.
+2) lseek the end of file. and print the position.
+3) close file.
+
+At first we run the test program1 on NodeA , the result is 10k.  and then
+run the test program2 on NodeB, the result is 15k.  at last, we run the
+test program1 on NodeA again, the result is 10k.
+
+After applying this patch.  the three step result is 15k.
+
+Signed-off-by: Jensen <shencanquan@huawei.com>
 Cc: Jie Liu <jeff.liu@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Younger Liu <younger.liu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/ocfs2/file.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix
-+++ a/fs/ocfs2/namei.c
-@@ -790,7 +790,8 @@ static int ocfs2_unlink(struct inode *di
- 			struct dentry *dentry)
- {
- 	int status;
--	int child_locked = 0, is_unlinkable = 0;
-+	int child_locked = 0;
-+	bool is_unlinkable = false;
- 	struct inode *inode = dentry->d_inode;
- 	struct inode *orphan_dir = NULL;
- 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
-@@ -873,7 +874,7 @@ static int ocfs2_unlink(struct inode *di
- 			mlog_errno(status);
- 			goto leave;
- 		}
--		is_unlinkable = 1;
-+		is_unlinkable = true;
- 	}
- 
- 	handle = ocfs2_start_trans(osb, ocfs2_unlink_credits(osb->sb));
-@@ -919,8 +920,8 @@ static int ocfs2_unlink(struct inode *di
- 	}
- 
- 	if (is_unlinkable) {
--		status = ocfs2_orphan_add(osb, handle, inode, fe_bh, orphan_name,
--					  &orphan_insert, orphan_dir);
-+		status = ocfs2_orphan_add(osb, handle, inode, fe_bh,
-+				orphan_name, &orphan_insert, orphan_dir);
- 		if (status < 0)
- 			mlog_errno(status);
- 	}
+diff -puN fs/ocfs2/file.c~ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end
++++ a/fs/ocfs2/file.c
+@@ -2626,7 +2626,16 @@ static loff_t ocfs2_file_llseek(struct f
+ 	case SEEK_SET:
+ 		break;
+ 	case SEEK_END:
+-		offset += inode->i_size;
++		/* SEEK_END requires the OCFS2 inode lock for the file
++		 * because it references the file's size.
++		 */
++		ret = ocfs2_inode_lock(inode, NULL, 0);
++		if (ret < 0) {
++			mlog_errno(ret);
++			goto out;
++		}
++		offset += i_size_read(inode);
++		ocfs2_inode_unlock(inode, 0);
+ 		break;
+ 	case SEEK_CUR:
+ 		if (offset == 0) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shencanquan@huawei.com are
 
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
+ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch
+ocfs2-dlmlock_master-should-return-dlm_normal-after-adding-lock-to-blocked-list.patch
+ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
 ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
 
