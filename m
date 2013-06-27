@@ -1,128 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch added to -mm tree
-Date: Thu, 27 Jun 2013 15:10:28 -0700
-Message-ID: <51ccb854.v2lbG4nq/uDDMg1Q%akpm@linux-foundation.org>
+Subject: [failures] ocfs2-xattr-fix-inlined-xattr-reflink.patch removed
+ from -mm tree
+Date: Thu, 27 Jun 2013 16:08:37 -0700
+Message-ID: <51ccc5f5.OxoA+5SdZtRT13I2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475Ab3F0WK3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jun 2013 18:10:29 -0400
+	with ESMTP id S1752593Ab3F0XIi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jun 2013 19:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, stable@kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
 
-Subject: + ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch added to -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,sunil.mushran@gmail.com
+Subject: [failures] ocfs2-xattr-fix-inlined-xattr-reflink.patch removed from -mm tree
+To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 27 Jun 2013 15:10:28 -0700
+Date: Thu, 27 Jun 2013 16:08:37 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix issue that ocfs2_setattr() does not deal with new_i_size==i_size
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
+     Subject: ocfs2: xattr: fix inlined xattr reflink
+has been removed from the -mm tree.  Its filename was
+     ocfs2-xattr-fix-inlined-xattr-reflink.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: fix issue that ocfs2_setattr() does not deal with new_i_size==i_size
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: xattr: fix inlined xattr reflink
 
-The issue scenario is as following:
+Inlined xattr shared free space of inode block with inlined data or data
+extent record, so the size of the later two should be adjusted when
+inlined xattr is enabled.  See ocfs2_xattr_ibody_init().  But this isn't
+done well when reflink.  For inode with inlined data, its max inlined data
+size is adjusted in ocfs2_duplicate_inline_data(), no problem.  But for
+inode with data extent record, its record count isn't adjusted.  Fix it,
+or data extent record and inlined xattr may overwrite each other, then
+cause data corruption or xattr failure.
 
-1. fallocate a large disk space(eg.  30G) with FALLOC_FL_KEEP_SIZE for
-   a file whose i_size and disk size are 512(or other size).  After
-   executing fallocate, i_size file is still 512, and the disk size became
-   to 30G+512；
+One panic caused by this bug in our test environment is the following:
 
-2. ftruncate the file to new_i_size which equal to inode->i_size. 
-   After executing ftruncate, disk space does not changes.  In other
-   words, i_size file is still 512, and disk size is 30G+512.  But we want
-   disk size to be 512.  This does not meet our expectations.
+kernel BUG at fs/ocfs2/xattr.c:1435!
+invalid opcode: 0000 [#1] SMP
+CPU 0
+Modules linked in: ocfs2 jbd2 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm
+ocfs2_nodemanager ocfs2_stackglue configfs sunrpc parport_pc lp parport
+snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device
+snd_pcm_oss snd_mixer_oss snd_pcm snd_timer snd soundcore snd_page_alloc
+pcspkr xen_netfront dm_snapshot dm_zero dm_mirror dm_region_hash dm_log
+dm_mod xen_blkfront ext3 jbd mbcache [last unloaded: configfs]
 
-In order to solve the issue above, we modified ocfs2_setattr().  If
-attr->ia_size != i_size_read(inode), it calls ocfs2_truncate_file(), and
-truncate disk space to attr->ia_size.
+Pid: 10871, comm: multi_reflink_t Not tainted 2.6.39-300.17.1.el5uek #1
+RIP: e030:[<ffffffffa04cd197>]  [<ffffffffa04cd197>]
+ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP: e02b:ffff88007a587948  EFLAGS: 00010283
+RAX: 0000000000000000 RBX: 0000000000000010 RCX: 00000000000051e4
+RDX: ffff880057092060 RSI: 0000000000000f80 RDI: ffff88007a587a68
+RBP: ffff88007a587948 R08: 00000000000062f4 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000010
+R13: ffff88007a587a68 R14: 0000000000000001 R15: ffff88007a587c68
+FS:  00007fccff7f06e0(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+CS:  e033 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00000000015cf000 CR3: 000000007aa76000 CR4: 0000000000000660
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process multi_reflink_t (pid: 10871, threadinfo ffff88007a586000, task
+ffff88007911c380)
+Stack:
+ffff88007a5879a8 ffffffffa04d0a60 ffff88007a587998 ffffffffa04cd514
+ffff88007a587c38 ffffffffa04cc125 000000007a587998 ffff88007a587a68
+ffff88007a587c68 0000000000000000 00000000000003c2 ffff88007a587c38
+Call Trace:
+[<ffffffffa04d0a60>] ocfs2_xa_reuse_entry+0x60/0x280 [ocfs2]
+[<ffffffffa04cd514>] ? ocfs2_xa_block_check_space+0x84/0xa0 [ocfs2]
+[<ffffffffa04cc125>] ? namevalue_size_xi+0x15/0x20 [ocfs2]
+[<ffffffffa04d0dfe>] ocfs2_xa_prepare_entry+0x17e/0x2a0 [ocfs2]
+[<ffffffffa04da55c>] ocfs2_xa_set+0xcc/0x250 [ocfs2]
+[<ffffffffa04daf58>] ocfs2_xattr_ibody_set+0x98/0x230 [ocfs2]
+[<ffffffff8115ac4b>] ? kmem_cache_alloc+0xab/0x190
+[<ffffffffa04db13f>] __ocfs2_xattr_set_handle+0x4f/0x700 [ocfs2]
+[<ffffffffa014ad03>] ? jbd2_journal_start+0x13/0x20 [jbd2]
+[<ffffffffa04dbeb6>] ocfs2_xattr_set+0x6c6/0x890 [ocfs2]
+[<ffffffffa04dc0c6>] ocfs2_xattr_user_set+0x46/0x50 [ocfs2]
+[<ffffffff81190960>] generic_setxattr+0x70/0x90
+[<ffffffff81191670>] __vfs_setxattr_noperm+0x80/0x1a0
+[<ffffffff81191839>] vfs_setxattr+0xa9/0xb0
+[<ffffffff81191903>] setxattr+0xc3/0x120
+[<ffffffff81061c40>] ? finish_task_switch+0x70/0xe0
+[<ffffffff81505a54>] ? __schedule+0x364/0x6d0
+[<ffffffff81191a08>] sys_fsetxattr+0xa8/0xd0
+[<ffffffff81510642>] system_call_fastpath+0x16/0x1b
+Code: 0f 1f 40 00 eb ae 0f 0b eb fe 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5
+66 66 66 66 90 39 77 10 7e 09 48 8b 47 28 ff 50 10 c9 c3 <0f> 0b eb fe 0f 1f
+44 00 00 55 48 89 e5 53 48 83 ec 08 66 66 66
+RIP  [<ffffffffa04cd197>] ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP <ffff88007a587948>
+---[ end trace 33461d2444bd1e5e ]---
 
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    2 +-
- fs/ocfs2/file.c  |    7 ++-----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ fs/ocfs2/xattr.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size
-+++ a/fs/ocfs2/alloc.c
-@@ -7126,7 +7126,7 @@ int ocfs2_truncate_inline(struct inode *
- 	if (end > i_size_read(inode))
- 		end = i_size_read(inode);
- 
--	BUG_ON(start >= end);
-+	BUG_ON(start > end);
- 
- 	if (!(OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) ||
- 	    !(le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) ||
-diff -puN fs/ocfs2/file.c~ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size
-+++ a/fs/ocfs2/file.c
-@@ -476,9 +476,6 @@ static int ocfs2_truncate_file(struct in
- 
- 	/* lets handle the simple truncate cases before doing any more
- 	 * cluster locking. */
--	if (new_i_size == le64_to_cpu(fe->i_size))
--		goto bail;
--
- 	down_write(&OCFS2_I(inode)->ip_alloc_sem);
- 
- 	ocfs2_resv_discard(&osb->osb_la_resmap,
-@@ -1150,14 +1147,14 @@ int ocfs2_setattr(struct dentry *dentry,
- 		goto bail_unlock_rw;
+diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink
++++ a/fs/ocfs2/xattr.c
+@@ -6499,6 +6499,16 @@ static int ocfs2_reflink_xattr_inline(st
  	}
  
--	if (size_change && attr->ia_size != i_size_read(inode)) {
-+	if (size_change) {
- 		status = inode_newsize_ok(inode, attr->ia_size);
- 		if (status)
- 			goto bail_unlock;
- 
- 		inode_dio_wait(inode);
- 
--		if (i_size_read(inode) > attr->ia_size) {
-+		if (i_size_read(inode) >= attr->ia_size) {
- 			if (ocfs2_should_order_data(inode)) {
- 				status = ocfs2_begin_ordered_truncate(inode,
- 								      attr->ia_size);
+ 	new_oi = OCFS2_I(args->new_inode);
++	/*
++	 * Adjust extent record count to reserve space for extended attribute.
++	 * Inline data count had been adjusted in ocfs2_duplicate_inline_data().
++	 */
++	if (!(new_oi->ip_dyn_features & OCFS2_INLINE_DATA_FL) &&
++	    !(ocfs2_inode_is_fast_symlink(new_inode))) {
++		struct ocfs2_extent_list *el = &new_di->id2.i_list;
++		le16_add_cpu(&el->l_count, -(inline_size /
++					sizeof(struct ocfs2_extent_rec)));
++	}
+ 	spin_lock(&new_oi->ip_lock);
+ 	new_oi->ip_dyn_features |= OCFS2_HAS_XATTR_FL | OCFS2_INLINE_XATTR_FL;
+ 	new_di->i_dyn_features = cpu_to_le16(new_oi->ip_dyn_features);
 _
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 linux-next.patch
-fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
+ocfs2-xattr-remove-useless-free-space-checking.patch
 
