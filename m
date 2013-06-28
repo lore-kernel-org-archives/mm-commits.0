@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-properly-account-rss.patch added to -mm tree
-Date: Fri, 28 Jun 2013 15:03:29 -0700
-Message-ID: <51ce0831.zcGXknzzYRqaZcxh%akpm@linux-foundation.org>
+Subject: + mmap-allow-map_hugetlb-for-hugetlbfs-files-v2.patch added to
+ -mm tree
+Date: Fri, 28 Jun 2013 15:03:30 -0700
+Message-ID: <51ce0832.RCx5MHRDSakWdqAn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51997 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab3F1WDa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 18:03:30 -0400
+	with ESMTP id S1752571Ab3F1WDb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 18:03:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joern@logfs.org
+To: mm-commits@vger.kernel.org, wujianguo@huawei.com, joern@logfs.org
 
-Subject: + hugetlb-properly-account-rss.patch added to -mm tree
-To: joern@logfs.org
+Subject: + mmap-allow-map_hugetlb-for-hugetlbfs-files-v2.patch added to -mm tree
+To: joern@logfs.org,wujianguo@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 15:03:29 -0700
+Date: Fri, 28 Jun 2013 15:03:30 -0700
 
 
 The patch titled
-     Subject: hugetlb: properly account rss
+     Subject: mmap: allow MAP_HUGETLB for hugetlbfs files v2
 has been added to the -mm tree.  Its filename is
-     hugetlb-properly-account-rss.patch
+     mmap-allow-map_hugetlb-for-hugetlbfs-files-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,48 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joern Engel <joern@logfs.org>
-Subject: hugetlb: properly account rss
+From: =?utf-8?B?SsO2cm4=?= Engel <joern@logfs.org>
+Subject: mmap: allow MAP_HUGETLB for hugetlbfs files v2
 
-When moving a program from mmap'ing small pages to mmap'ing huge pages, a
-remarkable drop in rss ensues.  For some reason hugepages were never
-accounted for in rss, which in my book is a clear bug.  Sadly this bug has
-been present in hugetlbfs since it was merged back in 2002.  There is
-every chance existing programs depend on hugepages not being counted as
-rss.
-
-I think the correct solution is to fix the bug and wait for someone to
-complain.  It is just as likely that noone cares - as evidenced by the
-fact that noone seems to have noticed for ten years.
+It is counterintuitive at best that mmap'ing a hugetlbfs file with
+MAP_HUGETLB fails, while mmap'ing it without will a) succeed and b)
+return huge pages.
+v2: use is_file_hugepages(), as suggested by Jianguo
 
 Signed-off-by: Joern Engel <joern@logfs.org>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+---
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+index 2a594246..cdc8e7a 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/mmap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-properly-account-rss mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-properly-account-rss
-+++ a/mm/hugetlb.c
-@@ -1191,6 +1191,7 @@ static struct page *alloc_huge_page(stru
- 	set_page_private(page, (unsigned long)spool);
+diff -puN mm/mmap.c~mmap-allow-map_hugetlb-for-hugetlbfs-files-v2 mm/mmap.c
+--- a/mm/mmap.c~mmap-allow-map_hugetlb-for-hugetlbfs-files-v2
++++ a/mm/mmap.c
+@@ -1358,13 +1358,14 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
  
- 	vma_commit_reservation(h, vma, addr);
-+	add_mm_counter(vma->vm_mm, MM_ANONPAGES, pages_per_huge_page(h));
- 	return page;
- }
+ 	if (!(flags & MAP_ANONYMOUS)) {
+ 		audit_mmap_fd(fd, flags);
+-		if (unlikely(flags & MAP_HUGETLB))
+-			return -EINVAL;
+ 		file = fget(fd);
+ 		if (!file)
+ 			goto out;
+ 		if (is_file_hugepages(file))
+ 			len = ALIGN(len, huge_page_size(hstate_file(file)));
++		retval = -EINVAL;
++		if (unlikely(flags & MAP_HUGETLB && !is_file_hugepages(file)))
++			goto out_fput;
+ 	} else if (flags & MAP_HUGETLB) {
+ 		struct user_struct *user = NULL;
+ 		struct hstate *hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) &
+@@ -1391,6 +1392,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+ 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
  
-@@ -2439,6 +2440,9 @@ again:
- 		if (huge_pte_dirty(pte))
- 			set_page_dirty(page);
- 
-+		/* -pages_per_huge_page(h) wouldn't get sign-extended */
-+		add_mm_counter(vma->vm_mm, MM_ANONPAGES, -1 << h->order);
-+
- 		page_remove_rmap(page);
- 		force_flush = !__tlb_remove_page(tlb, page);
- 		if (force_flush)
+ 	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
++out_fput:
+ 	if (file)
+ 		fput(file);
+ out:
 _
 
 Patches currently in -mm which might be from joern@logfs.org are
