@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-udev-notification.patch added to -mm tree
-Date: Fri, 28 Jun 2013 14:19:41 -0700
-Message-ID: <51cdfded.YEu8k3wX7xA2JJ3m%akpm@linux-foundation.org>
+Subject: + rapidio-documentation-update.patch added to -mm tree
+Date: Fri, 28 Jun 2013 14:19:43 -0700
+Message-ID: <51cdfdef.QzFDq1GoPr5QzkAA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51759 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752927Ab3F1VTm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 17:19:42 -0400
+	with ESMTP id S1752927Ab3F1VTo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 17:19:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stef.van.os@Prodrive.nl, mporter@kernel.crashing.org, micha.nelissen@Prodrive.nl, leoli@freescale.com, jdelvare@suse.de, galak@kernel.crashing.org, andre.van.herk@Prodrive.nl, alexandre.bounine@idt.com
 
-Subject: + rapidio-add-udev-notification.patch added to -mm tree
+Subject: + rapidio-documentation-update.patch added to -mm tree
 To: alexandre.bounine@idt.com,andre.van.herk@Prodrive.nl,galak@kernel.crashing.org,jdelvare@suse.de,leoli@freescale.com,micha.nelissen@Prodrive.nl,mporter@kernel.crashing.org,stef.van.os@Prodrive.nl
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 14:19:41 -0700
+Date: Fri, 28 Jun 2013 14:19:43 -0700
 
 
 The patch titled
-     Subject: rapidio: add udev notification
+     Subject: rapidio: documentation update
 has been added to the -mm tree.  Its filename is
-     rapidio-add-udev-notification.patch
+     rapidio-documentation-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,23 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add udev notification
+Subject: rapidio: documentation update
 
-Add RapidIO-specific modalias generation to enable udev notifications
-about RapidIO-specific events.
-
-The RapidIO modalias string format is shown below:
-
-"rapidio:vNNNNdNNNNavNNNNadNNNN"
-
-Where:
-v  - Device Vendor ID (16 bit),
-d  - Device ID (16 bit),
-av - Assembly Vendor ID (16 bit),
-ad - Assembly ID (16 bit),
-
-as they are reported in corresponding Capability Registers (CARs)
-of each RapidIO device.
+Update RapidIO documentation files to reflect modularization changes.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -68,194 +54,171 @@ Cc: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-driver.c      |   18 ++++++++++++++++++
- drivers/rapidio/rio-sysfs.c       |   10 ++++++++++
- include/linux/mod_devicetable.h   |   19 +++++++++++++++++++
- include/linux/rio.h               |   16 +---------------
- include/linux/rio_ids.h           |    2 --
- scripts/mod/devicetable-offsets.c |    6 ++++++
- scripts/mod/file2alias.c          |   20 ++++++++++++++++++++
- 7 files changed, 74 insertions(+), 17 deletions(-)
+ Documentation/rapidio/rapidio.txt |   98 ++++++++++++++++++++++++----
+ Documentation/rapidio/sysfs.txt   |    1 
+ 2 files changed, 86 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rapidio/rio-driver.c~rapidio-add-udev-notification drivers/rapidio/rio-driver.c
---- a/drivers/rapidio/rio-driver.c~rapidio-add-udev-notification
-+++ a/drivers/rapidio/rio-driver.c
-@@ -199,6 +199,23 @@ static int rio_match_bus(struct device *
-       out:return 0;
- }
+diff -puN Documentation/rapidio/rapidio.txt~rapidio-documentation-update Documentation/rapidio/rapidio.txt
+--- a/Documentation/rapidio/rapidio.txt~rapidio-documentation-update
++++ a/Documentation/rapidio/rapidio.txt
+@@ -73,28 +73,44 @@ data structure. This structure includes
+ ports that form the same network. It also contains a pointer to the default
+ master port that is used to communicate with devices within the network.
  
-+static int rio_uevent(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	struct rio_dev *rdev;
++2.5 Device Drivers
 +
-+	if (!dev)
-+		return -ENODEV;
++RapidIO device-specific drivers follow Linux Kernel Driver Model and are
++intended to support specific RapidIO devices attached to the RapidIO network.
 +
-+	rdev = to_rio_dev(dev);
-+	if (!rdev)
-+		return -ENODEV;
++2.6 Subsystem Interfaces
 +
-+	if (add_uevent_var(env, "MODALIAS=rapidio:v%04Xd%04Xav%04Xad%04X",
-+			   rdev->vid, rdev->did, rdev->asm_vid, rdev->asm_did))
-+		return -ENOMEM;
-+	return 0;
-+}
++RapidIO interconnect specification defines features that may be used to provide
++one or more common service layers for all participating RapidIO devices. These
++common services may act separately from device-specific drivers or be used by
++device-specific drivers. Example of such service provider is the RIONET driver
++which implements Ethernet-over-RapidIO interface. Because only one driver can be
++registered for a device, all common RapidIO services have to be registered as
++subsystem interfaces. This allows to have multiple common services attached to
++the same device without blocking attachment of a device-specific driver.
 +
- struct device rio_bus = {
- 	.init_name = "rapidio",
- };
-@@ -210,6 +227,7 @@ struct bus_type rio_bus_type = {
- 	.bus_attrs = rio_bus_attrs,
- 	.probe = rio_device_probe,
- 	.remove = rio_device_remove,
-+	.uevent	= rio_uevent,
- };
+ 3. Subsystem Initialization
+ ---------------------------
  
- /**
-diff -puN drivers/rapidio/rio-sysfs.c~rapidio-add-udev-notification drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rapidio-add-udev-notification
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -84,6 +84,15 @@ static ssize_t lnext_show(struct device
- 	return str - buf;
- }
+ In order to initialize the RapidIO subsystem, a platform must initialize and
+ register at least one master port within the RapidIO network. To register mport
+-within the subsystem controller driver initialization code calls function
++within the subsystem controller driver's initialization code calls function
+ rio_register_mport() for each available master port.
  
-+static ssize_t modalias_show(struct device *dev,
-+			     struct device_attribute *attr, char *buf)
-+{
-+	struct rio_dev *rdev = to_rio_dev(dev);
-+
-+	return sprintf(buf, "rapidio:v%04Xd%04Xav%04Xad%04X\n",
-+		       rdev->vid, rdev->did, rdev->asm_vid, rdev->asm_did);
-+}
-+
- struct device_attribute rio_dev_attrs[] = {
- 	__ATTR_RO(did),
- 	__ATTR_RO(vid),
-@@ -93,6 +102,7 @@ struct device_attribute rio_dev_attrs[]
- 	__ATTR_RO(asm_rev),
- 	__ATTR_RO(lprev),
- 	__ATTR_RO(destid),
-+	__ATTR_RO(modalias),
- 	__ATTR_NULL,
- };
- 
-diff -puN include/linux/mod_devicetable.h~rapidio-add-udev-notification include/linux/mod_devicetable.h
---- a/include/linux/mod_devicetable.h~rapidio-add-udev-notification
-+++ a/include/linux/mod_devicetable.h
-@@ -579,4 +579,23 @@ struct mei_cl_device_id {
- 	kernel_ulong_t driver_info;
- };
- 
-+/* RapidIO */
-+
-+#define RIO_ANY_ID	0xffff
-+
-+/**
-+ * struct rio_device_id - RIO device identifier
-+ * @did: RapidIO device ID
-+ * @vid: RapidIO vendor ID
-+ * @asm_did: RapidIO assembly device ID
-+ * @asm_vid: RapidIO assembly vendor ID
-+ *
-+ * Identifies a RapidIO device based on both the device/vendor IDs and
-+ * the assembly device/vendor IDs.
-+ */
-+struct rio_device_id {
-+	__u16 did, vid;
-+	__u16 asm_did, asm_vid;
-+};
-+
- #endif /* LINUX_MOD_DEVICETABLE_H */
-diff -puN include/linux/rio.h~rapidio-add-udev-notification include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-udev-notification
-+++ a/include/linux/rio.h
-@@ -20,6 +20,7 @@
- #include <linux/errno.h>
- #include <linux/device.h>
- #include <linux/rio_regs.h>
-+#include <linux/mod_devicetable.h>
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
- #include <linux/dmaengine.h>
- #endif
-@@ -396,21 +397,6 @@ struct rio_driver {
- 
- #define	to_rio_driver(drv) container_of(drv,struct rio_driver, driver)
- 
--/**
-- * struct rio_device_id - RIO device identifier
-- * @did: RIO device ID
-- * @vid: RIO vendor ID
-- * @asm_did: RIO assembly device ID
-- * @asm_vid: RIO assembly vendor ID
-- *
-- * Identifies a RIO device based on both the device/vendor IDs and
-- * the assembly device/vendor IDs.
-- */
--struct rio_device_id {
--	u16 did, vid;
--	u16 asm_did, asm_vid;
--};
+-RapidIO subsystem uses subsys_initcall() or device_initcall() to perform
+-controller initialization (depending on controller device type).
 -
- union rio_pw_msg {
- 	struct {
- 		u32 comptag;	/* Component Tag CSR */
-diff -puN include/linux/rio_ids.h~rapidio-add-udev-notification include/linux/rio_ids.h
---- a/include/linux/rio_ids.h~rapidio-add-udev-notification
-+++ a/include/linux/rio_ids.h
-@@ -13,8 +13,6 @@
- #ifndef LINUX_RIO_IDS_H
- #define LINUX_RIO_IDS_H
+ After all active master ports are registered with a RapidIO subsystem,
+ an enumeration and/or discovery routine may be called automatically or
+ by user-space command.
  
--#define RIO_ANY_ID			0xffff
--
- #define RIO_VID_FREESCALE		0x0002
- #define RIO_DID_MPC8560			0x0003
++RapidIO subsystem can be configured to be built as a statically linked or
++modular component of the kernel (see details below).
++
+ 4. Enumeration and Discovery
+ ----------------------------
  
-diff -puN scripts/mod/devicetable-offsets.c~rapidio-add-udev-notification scripts/mod/devicetable-offsets.c
---- a/scripts/mod/devicetable-offsets.c~rapidio-add-udev-notification
-+++ a/scripts/mod/devicetable-offsets.c
-@@ -177,5 +177,11 @@ int main(void)
- 	DEVID(mei_cl_device_id);
- 	DEVID_FIELD(mei_cl_device_id, name);
+ 4.1 Overview
+ ------------
  
-+	DEVID(rio_device_id);
-+	DEVID_FIELD(rio_device_id, did);
-+	DEVID_FIELD(rio_device_id, vid);
-+	DEVID_FIELD(rio_device_id, asm_did);
-+	DEVID_FIELD(rio_device_id, asm_vid);
-+
- 	return 0;
- }
-diff -puN scripts/mod/file2alias.c~rapidio-add-udev-notification scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~rapidio-add-udev-notification
-+++ a/scripts/mod/file2alias.c
-@@ -1145,6 +1145,26 @@ static int do_mei_entry(const char *file
- }
- ADD_TO_DEVTABLE("mei", mei_cl_device_id, do_mei_entry);
+-RapidIO subsystem configuration options allow users to specify enumeration and
++RapidIO subsystem configuration options allow users to build enumeration and
+ discovery methods as statically linked components or loadable modules.
+ An enumeration/discovery method implementation and available input parameters
+ define how any given method can be attached to available RapidIO mports:
+@@ -115,8 +131,8 @@ several methods to initiate an enumerati
+   endpoint waits for enumeration to be completed. If the specified timeout
+   expires the discovery process is terminated without obtaining RapidIO network
+   information. NOTE: a timed out discovery process may be restarted later using
+-  a user-space command as it is described later if the given endpoint was
+-  enumerated successfully.
++  a user-space command as it is described below (if the given endpoint was
++  enumerated successfully).
  
-+/* Looks like: rapidio:vNdNavNadN */
-+static int do_rio_entry(const char *filename,
-+			void *symval, char *alias)
-+{
-+	DEF_FIELD(symval, rio_device_id, did);
-+	DEF_FIELD(symval, rio_device_id, vid);
-+	DEF_FIELD(symval, rio_device_id, asm_did);
-+	DEF_FIELD(symval, rio_device_id, asm_vid);
+   (b) Statically linked enumeration and discovery process can be started by
+   a command from user space. This initiation method provides more flexibility
+@@ -138,15 +154,42 @@ When a network scan process is started i
+ routine depending on the configured role of a master port: host or agent.
+ 
+ Enumeration is performed by a master port if it is configured as a host port by
+-assigning a host device ID greater than or equal to zero. A host device ID is
+-assigned to a master port through the kernel command line parameter "riohdid=",
+-or can be configured in a platform-specific manner. If the host device ID for
+-a specific master port is set to -1, the discovery process will be performed
+-for it.
++assigning a host destination ID greater than or equal to zero. The host
++destination ID can be assigned to a master port using various methods depending
++on RapidIO subsystem build configuration:
 +
-+	strcpy(alias, "rapidio:");
-+	ADD(alias, "v", vid != RIO_ANY_ID, vid);
-+	ADD(alias, "d", did != RIO_ANY_ID, did);
-+	ADD(alias, "av", asm_vid != RIO_ANY_ID, asm_vid);
-+	ADD(alias, "ad", asm_did != RIO_ANY_ID, asm_did);
++  (a) For a statically linked RapidIO subsystem core use command line parameter
++  "rapidio.hdid=" with a list of destination ID assignments in order of mport
++  device registration. For example, in a system with two RapidIO controllers
++  the command line parameter "rapidio.hdid=-1,7" will result in assignment of
++  the host destination ID=7 to the second RapidIO controller, while the first
++  one will be assigned destination ID=-1.
 +
-+	add_wildcard(alias);
-+	return 1;
-+}
-+ADD_TO_DEVTABLE("rapidio", rio_device_id, do_rio_entry);
++  (b) If the RapidIO subsystem core is built as a loadable module, in addition
++  to the method shown above, the host destination ID(s) can be specified using
++  traditional methods of passing module parameter "hdid=" during its loading:
++  - from command line: "modprobe rapidio hdid=-1,7", or
++  - from modprobe configuration file using configuration command "options",
++    like in this example: "options rapidio hdid=-1,7". An example of modprobe
++    configuration file is provided in the section below.
 +
- /* Does namelen bytes of name exactly match the symbol? */
- static bool sym_is(const char *name, unsigned namelen, const char *symbol)
- {
++  NOTES:
++  (i) if "hdid=" parameter is omitted all available mport will be assigned
++  destination ID = -1;
++  (ii) the "hdid=" parameter in systems with multiple mports can have
++  destination ID assignments omitted from the end of list (default = -1).
++
++If the host device ID for a specific master port is set to -1, the discovery
++process will be performed for it.
+ 
+ The enumeration and discovery routines use RapidIO maintenance transactions
+ to access the configuration space of devices.
+ 
++NOTE: If RapidIO switch-specific device drivers are built as loadable modules
++they must be loaded before enumeration/discovery process starts.
++This requirement is cased by the fact that enumeration/discovery methods invoke
++vendor-specific callbacks on early stages.
++
+ 4.2 Automatic Start of Enumeration and Discovery
+ ------------------------------------------------
+ 
+@@ -266,7 +309,36 @@ method's module initialization routine c
+ an enumerator to a specified mport device (or devices). The basic enumerator
+ implementation demonstrates this process.
+ 
+-5. References
++4.6 Using Loadable RapidIO Switch Drivers
++-----------------------------------------
++
++In the case when RapidIO switch drivers are built as loadable modules a user
++must ensure that they are loaded before the enumeration/discovery starts.
++This process can be automated by specifying pre- or post- dependencies in the
++RapidIO-specific modprobe configuration file as shown in the example below.
++
++  File /etc/modprobe.d/rapidio.conf:
++  ----------------------------------
++
++  # Configure RapidIO subsystem modules
++
++  # Set enumerator host destination ID (overrides kernel command line option)
++  options rapidio hdid=-1,2
++
++  # Load RapidIO switch drivers immediately after rapidio core module was loaded
++  softdep rapidio post: idt_gen2 idtcps tsi57x
++
++  # OR :
++
++  # Load RapidIO switch drivers just before rio-scan enumerator module is loaded
++  softdep rio-scan pre: idt_gen2 idtcps tsi57x
++
++  --------------------------
++
++NOTE: In the example above, one of "softdep" commands must be removed or
++commented out to keep required module loading sequence.
++
++A. References
+ -------------
+ 
+ [1] RapidIO Trade Association. RapidIO Interconnect Specifications.
+diff -puN Documentation/rapidio/sysfs.txt~rapidio-documentation-update Documentation/rapidio/sysfs.txt
+--- a/Documentation/rapidio/sysfs.txt~rapidio-documentation-update
++++ a/Documentation/rapidio/sysfs.txt
+@@ -40,6 +40,7 @@ device_rev - returns the device revision
+              (see 4.1 for switch specific details)
+    lprev   - returns name of previous device (switch) on the path to the device
+              that that owns this attribute
++  modalias - returns the device modalias
+ 
+ In addition to the files listed above, each device has a binary attribute file
+ that allows read/write access to the device configuration registers using
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
