@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- revert-memcg-avoid-dangling-reference-count-in-creation-failure.patch added to -mm tree
-Date: Fri, 28 Jun 2013 16:00:25 -0700
-Message-ID: <51ce1589.wE/5zyRm3+UP66ZP%akpm@linux-foundation.org>
+Subject: + memcg-use-css_get-put-when-charging-uncharging-kmem.patch added to -mm tree
+Date: Fri, 28 Jun 2013 16:00:29 -0700
+Message-ID: <51ce158d.eEpQwtTXspNSshp9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52387 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52417 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151Ab3F1XA0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 19:00:26 -0400
+	with ESMTP id S1751151Ab3F1XAa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 19:00:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org, lizefan@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, glommer@openvz.org, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, lizefan@huawei.com
 
-Subject: + revert-memcg-avoid-dangling-reference-count-in-creation-failure.patch added to -mm tree
-To: mhocko@suse.cz,glommer@openvz.org,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,lizefan@huawei.com,stable@vger.kernel.org,tj@kernel.org
+Subject: + memcg-use-css_get-put-when-charging-uncharging-kmem.patch added to -mm tree
+To: lizefan@huawei.com,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 16:00:25 -0700
+Date: Fri, 28 Jun 2013 16:00:29 -0700
 
 
 The patch titled
-     Subject: Revert "memcg: avoid dangling reference count in creation failure"
+     Subject: memcg: use css_get/put when charging/uncharging kmem
 has been added to the -mm tree.  Its filename is
-     revert-memcg-avoid-dangling-reference-count-in-creation-failure.patch
+     memcg-use-css_get-put-when-charging-uncharging-kmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +38,179 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: Revert "memcg: avoid dangling reference count in creation failure"
+From: Li Zefan <lizefan@huawei.com>
+Subject: memcg: use css_get/put when charging/uncharging kmem
 
-This reverts e4715f01be697a.
+Use css_get/put instead of mem_cgroup_get/put.
 
-mem_cgroup_put is hierarchy aware so mem_cgroup_put(memcg) already drops
-an additional reference from all parents so the additional
-mem_cgrroup_put(parent) potentially causes use-after-free.
+We can't do a simple replacement, because here mem_cgroup_put() is called
+during mem_cgroup_css_free(), while mem_cgroup_css_free() won't be called
+until css refcnt goes down to 0.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Instead we increment css refcnt in mem_cgroup_css_offline(), and then
+check if there's still kmem charges.  If not, css refcnt will be
+decremented immediately, otherwise the refcnt will be released after the
+last kmem allocation is uncahred.
+
 Signed-off-by: Li Zefan <lizefan@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Glauber Costa <glommer@openvz.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[3.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memcontrol.c |   70 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 45 insertions(+), 25 deletions(-)
 
-diff -puN mm/memcontrol.c~revert-memcg-avoid-dangling-reference-count-in-creation-failure mm/memcontrol.c
---- a/mm/memcontrol.c~revert-memcg-avoid-dangling-reference-count-in-creation-failure
+diff -puN mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem
 +++ a/mm/memcontrol.c
-@@ -6352,8 +6352,6 @@ mem_cgroup_css_online(struct cgroup *con
- 		 * call __mem_cgroup_free, so return directly
+@@ -406,6 +406,11 @@ static void memcg_kmem_clear_activated(s
+ 
+ static void memcg_kmem_mark_dead(struct mem_cgroup *memcg)
+ {
++	/*
++	 * We need to call css_get() first, because memcg_uncharge_kmem()
++	 * will call css_put() if it sees the memcg is dead.
++	 */
++	smp_wmb();
+ 	if (test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags))
+ 		set_bit(KMEM_ACCOUNTED_DEAD, &memcg->kmem_account_flags);
+ }
+@@ -3050,8 +3055,16 @@ static void memcg_uncharge_kmem(struct m
+ 	if (res_counter_uncharge(&memcg->kmem, size))
+ 		return;
+ 
++	/*
++	 * Releases a reference taken in kmem_cgroup_css_offline in case
++	 * this last uncharge is racing with the offlining code or it is
++	 * outliving the memcg existence.
++	 *
++	 * The memory barrier imposed by test&clear is paired with the
++	 * explicit one in memcg_kmem_mark_dead().
++	 */
+ 	if (memcg_kmem_test_and_clear_dead(memcg))
+-		mem_cgroup_put(memcg);
++		css_put(&memcg->css);
+ }
+ 
+ void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep)
+@@ -5183,14 +5196,6 @@ static int memcg_update_kmem_limit(struc
+ 		 * starts accounting before all call sites are patched
  		 */
- 		mem_cgroup_put(memcg);
--		if (parent->use_hierarchy)
--			mem_cgroup_put(parent);
- 	}
- 	return error;
+ 		memcg_kmem_set_active(memcg);
+-
+-		/*
+-		 * kmem charges can outlive the cgroup. In the case of slab
+-		 * pages, for instance, a page contain objects from various
+-		 * processes, so it is unfeasible to migrate them away. We
+-		 * need to reference count the memcg because of that.
+-		 */
+-		mem_cgroup_get(memcg);
+ 	} else
+ 		ret = res_counter_set_limit(&memcg->kmem, val);
+ out:
+@@ -5223,12 +5228,10 @@ static int memcg_propagate_kmem(struct m
+ 		goto out;
+ 
+ 	/*
+-	 * destroy(), called if we fail, will issue static_key_slow_inc() and
+-	 * mem_cgroup_put() if kmem is enabled. We have to either call them
+-	 * unconditionally, or clear the KMEM_ACTIVE flag. I personally find
+-	 * this more consistent, since it always leads to the same destroy path
++	 * __mem_cgroup_free() will issue static_key_slow_dec() because this
++	 * memcg is active already. If the later initialization fails then the
++	 * cgroup core triggers the cleanup so we do not have to do it here.
+ 	 */
+-	mem_cgroup_get(memcg);
+ 	static_key_slow_inc(&memcg_kmem_enabled_key);
+ 
+ 	mutex_lock(&set_limit_mutex);
+@@ -5913,23 +5916,38 @@ static int memcg_init_kmem(struct mem_cg
+ 	return mem_cgroup_sockets_init(memcg, ss);
+ }
+ 
+-static void kmem_cgroup_destroy(struct mem_cgroup *memcg)
++static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
+ {
+-	mem_cgroup_sockets_destroy(memcg);
++	if (!memcg_kmem_is_active(memcg))
++		return;
++
++	/*
++	 * kmem charges can outlive the cgroup. In the case of slab
++	 * pages, for instance, a page contain objects from various
++	 * processes. As we prevent from taking a reference for every
++	 * such allocation we have to be careful when doing uncharge
++	 * (see memcg_uncharge_kmem) and here during offlining.
++	 *
++	 * The idea is that that only the _last_ uncharge which sees
++	 * the dead memcg will drop the last reference. An additional
++	 * reference is taken here before the group is marked dead
++	 * which is then paired with css_put during uncharge resp. here.
++	 *
++	 * Although this might sound strange as this path is called from
++	 * css_offline() when the referencemight have dropped down to 0
++	 * and shouldn't be incremented anymore (css_tryget would fail)
++	 * we do not have other options because of the kmem allocations
++	 * lifetime.
++	 */
++	css_get(&memcg->css);
+ 
+ 	memcg_kmem_mark_dead(memcg);
+ 
+ 	if (res_counter_read_u64(&memcg->kmem, RES_USAGE) != 0)
+ 		return;
+ 
+-	/*
+-	 * Charges already down to 0, undo mem_cgroup_get() done in the charge
+-	 * path here, being careful not to race with memcg_uncharge_kmem: it is
+-	 * possible that the charges went down to 0 between mark_dead and the
+-	 * res_counter read, so in that case, we don't need the put
+-	 */
+ 	if (memcg_kmem_test_and_clear_dead(memcg))
+-		mem_cgroup_put(memcg);
++		css_put(&memcg->css);
+ }
+ #else
+ static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
+@@ -5937,7 +5955,7 @@ static int memcg_init_kmem(struct mem_cg
+ 	return 0;
+ }
+ 
+-static void kmem_cgroup_destroy(struct mem_cgroup *memcg)
++static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
+ {
+ }
+ #endif
+@@ -6370,6 +6388,8 @@ static void mem_cgroup_css_offline(struc
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 
++	kmem_cgroup_css_offline(memcg);
++
+ 	mem_cgroup_invalidate_reclaim_iterators(memcg);
+ 	mem_cgroup_reparent_charges(memcg);
+ 	mem_cgroup_destroy_all_caches(memcg);
+@@ -6379,7 +6399,7 @@ static void mem_cgroup_css_free(struct c
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 
+-	kmem_cgroup_destroy(memcg);
++	mem_cgroup_sockets_destroy(memcg);
+ 
+ 	mem_cgroup_put(memcg);
  }
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from lizefan@huawei.com are
 
+origin.patch
 linux-next.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
-mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
-mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
-mm-vmscan-flatten-kswapd-priority-loop.patch
-mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
-mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
-mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
-mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix.patch
-mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
-mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
-mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
-mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
-mm-vmscan-set-zone-flags-before-blocking.patch
-mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
-mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
-mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
-fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
 memcg-update-todo-list-in-documentation.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix.patch
-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages-fix.patch
-mm-pageblock-remove-get-set_pageblock_flags.patch
-mm-hugetlb-remove-hugetlb_prefault.patch
-mm-hugetlb-use-already-exist-interface-huge_page_shift.patch
-mm-correctly-update-zone-managed_pages-fix-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-memcg-kconfig-info-update.patch
-mm-parisc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-unicore32-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
-mm-parisc-prepare-for-killing-free_all_bootmem_node.patch
-mm-memcontrol-factor-out-reclaim-iterator-loading-and-updating.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
-list_lru-remove-special-case-function-list_lru_dispose_all.patch
-list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
-memcg-clean-up-memcg-nodeinfo.patch
-mm-invoke-oom-killer-from-remaining-unconverted-page-fault-handlers.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
-memcg-do-not-account-memory-used-for-cache-creation.patch
-mm-page_alloc-fix-doc-for-numa_zonelist_order.patch
-mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch
-mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch
-mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
 revert-memcg-avoid-dangling-reference-count-in-creation-failure.patch
 memcg-kmem-fix-reference-count-handling-on-the-error-path.patch
 memcg-use-css_get-in-sock_update_memcg.patch
@@ -135,14 +221,4 @@ memcg-use-css_get-put-for-swap-memcg.patch
 memcg-dont-need-to-get-a-reference-to-the-parent.patch
 memcg-kill-memcg-refcnt.patch
 memcg-dont-need-to-free-memcg-via-rcu-or-workqueue.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-fs-execc-de_thread-use-change_pid-rather-than-detach_pid-attach_pid.patch
-kernel-forkc-copy_process-unify-clone_thread-or-thread_group_leader-code.patch
-kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch
-kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch
-staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
-staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
-staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
-staging-lustre-libcfs-cleanup-linux-memh.patch
-staging-lustre-replace-num_physpages-with-totalram_pages.patch
 
