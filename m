@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch added to -mm tree
-Date: Fri, 28 Jun 2013 13:22:35 -0700
-Message-ID: <51cdf08b.laQVZABKKpgArGyu%akpm@linux-foundation.org>
+Subject: + ocfs2-xattr-fix-inlined-xattr-reflink.patch added to -mm tree
+Date: Fri, 28 Jun 2013 13:34:22 -0700
+Message-ID: <51cdf34e.5wzxk1HsrfYpwn3a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51550 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752081Ab3F1UWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 16:22:36 -0400
+	with ESMTP id S1751588Ab3F1UeX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 16:34:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, stable@kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
 
-Subject: + include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch added to -mm tree
-To: gang.chen@asianux.com,tglx@linutronix.de
+Subject: + ocfs2-xattr-fix-inlined-xattr-reflink.patch added to -mm tree
+To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@kernel.org,sunil.mushran@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 13:22:35 -0700
+Date: Fri, 28 Jun 2013 13:34:22 -0700
 
 
 The patch titled
-     Subject: include/linux/interrupt.h: add dummy irq_set_irq_wake() for "!GENERIC_HARDIRQS"
+     Subject: ocfs2: xattr: fix inlined xattr reflink
 has been added to the -mm tree.  Its filename is
-     include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
+     ocfs2-xattr-fix-inlined-xattr-reflink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +38,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: include/linux/interrupt.h: add dummy irq_set_irq_wake() for "!GENERIC_HARDIRQS"
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: xattr: fix inlined xattr reflink
 
-Since irq_set_irq_wake() has already declared in header file, when
-GENERIC_HARDIRQS enabled.
+Inlined xattr shared free space of inode block with inlined data or data
+extent record, so the size of the later two should be adjusted when
+inlined xattr is enabled.  See ocfs2_xattr_ibody_init().  But this isn't
+done well when reflink.  For inode with inlined data, its max inlined data
+size is adjusted in ocfs2_duplicate_inline_data(), no problem.  But for
+inode with data extent record, its record count isn't adjusted.  Fix it,
+or data extent record and inlined xattr may overwrite each other, then
+cause data corruption or xattr failure.
 
-Recommend to define the dummy one for GENERIC_HARDIRQS disabled, and also
-let the other related "static inline" functions are independent from
-GENERIC_HARDIRQS.
+One panic caused by this bug in our test environment is the following:
 
-So can avoid the compiling error below, and also let the code simpler
-and clearer.
+kernel BUG at fs/ocfs2/xattr.c:1435!
+invalid opcode: 0000 [#1] SMP
+CPU 0
+Modules linked in: ocfs2 jbd2 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm
+ocfs2_nodemanager ocfs2_stackglue configfs sunrpc parport_pc lp parport
+snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device
+snd_pcm_oss snd_mixer_oss snd_pcm snd_timer snd soundcore snd_page_alloc
+pcspkr xen_netfront dm_snapshot dm_zero dm_mirror dm_region_hash dm_log
+dm_mod xen_blkfront ext3 jbd mbcache [last unloaded: configfs]
 
-The related compiling error (ARCH=s390 allmodconfig):
+Pid: 10871, comm: multi_reflink_t Not tainted 2.6.39-300.17.1.el5uek #1
+RIP: e030:[<ffffffffa04cd197>]  [<ffffffffa04cd197>]
+ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP: e02b:ffff88007a587948  EFLAGS: 00010283
+RAX: 0000000000000000 RBX: 0000000000000010 RCX: 00000000000051e4
+RDX: ffff880057092060 RSI: 0000000000000f80 RDI: ffff88007a587a68
+RBP: ffff88007a587948 R08: 00000000000062f4 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000010
+R13: ffff88007a587a68 R14: 0000000000000001 R15: ffff88007a587c68
+FS:  00007fccff7f06e0(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+CS:  e033 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00000000015cf000 CR3: 000000007aa76000 CR4: 0000000000000660
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process multi_reflink_t (pid: 10871, threadinfo ffff88007a586000, task
+ffff88007911c380)
+Stack:
+ffff88007a5879a8 ffffffffa04d0a60 ffff88007a587998 ffffffffa04cd514
+ffff88007a587c38 ffffffffa04cc125 000000007a587998 ffff88007a587a68
+ffff88007a587c68 0000000000000000 00000000000003c2 ffff88007a587c38
+Call Trace:
+[<ffffffffa04d0a60>] ocfs2_xa_reuse_entry+0x60/0x280 [ocfs2]
+[<ffffffffa04cd514>] ? ocfs2_xa_block_check_space+0x84/0xa0 [ocfs2]
+[<ffffffffa04cc125>] ? namevalue_size_xi+0x15/0x20 [ocfs2]
+[<ffffffffa04d0dfe>] ocfs2_xa_prepare_entry+0x17e/0x2a0 [ocfs2]
+[<ffffffffa04da55c>] ocfs2_xa_set+0xcc/0x250 [ocfs2]
+[<ffffffffa04daf58>] ocfs2_xattr_ibody_set+0x98/0x230 [ocfs2]
+[<ffffffff8115ac4b>] ? kmem_cache_alloc+0xab/0x190
+[<ffffffffa04db13f>] __ocfs2_xattr_set_handle+0x4f/0x700 [ocfs2]
+[<ffffffffa014ad03>] ? jbd2_journal_start+0x13/0x20 [jbd2]
+[<ffffffffa04dbeb6>] ocfs2_xattr_set+0x6c6/0x890 [ocfs2]
+[<ffffffffa04dc0c6>] ocfs2_xattr_user_set+0x46/0x50 [ocfs2]
+[<ffffffff81190960>] generic_setxattr+0x70/0x90
+[<ffffffff81191670>] __vfs_setxattr_noperm+0x80/0x1a0
+[<ffffffff81191839>] vfs_setxattr+0xa9/0xb0
+[<ffffffff81191903>] setxattr+0xc3/0x120
+[<ffffffff81061c40>] ? finish_task_switch+0x70/0xe0
+[<ffffffff81505a54>] ? __schedule+0x364/0x6d0
+[<ffffffff81191a08>] sys_fsetxattr+0xa8/0xd0
+[<ffffffff81510642>] system_call_fastpath+0x16/0x1b
+Code: 0f 1f 40 00 eb ae 0f 0b eb fe 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5
+66 66 66 66 90 39 77 10 7e 09 48 8b 47 28 ff 50 10 c9 c3 <0f> 0b eb fe 0f 1f
+44 00 00 55 48 89 e5 53 48 83 ec 08 66 66 66
+RIP  [<ffffffffa04cd197>] ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP <ffff88007a587948>
+---[ end trace 33461d2444bd1e5e ]---
 
-  sound/soc/codecs/wm0010.c: In function ‘wm0010_spi_probe’:
-  sound/soc/codecs/wm0010.c:976:2: error: implicit declaration of function ‘irq_set_irq_wake’ [-Werror=implicit-function-declaration]
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ fs/ocfs2/xattr.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/interrupt.h~include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs include/linux/interrupt.h
---- a/include/linux/interrupt.h~include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs
-+++ a/include/linux/interrupt.h
-@@ -344,16 +344,6 @@ static inline void enable_irq_lockdep_ir
- /* IRQ wakeup (PM) control: */
- extern int irq_set_irq_wake(unsigned int irq, unsigned int on);
+diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink
++++ a/fs/ocfs2/xattr.c
+@@ -6491,6 +6491,16 @@ static int ocfs2_reflink_xattr_inline(st
+ 	}
  
--static inline int enable_irq_wake(unsigned int irq)
--{
--	return irq_set_irq_wake(irq, 1);
--}
--
--static inline int disable_irq_wake(unsigned int irq)
--{
--	return irq_set_irq_wake(irq, 0);
--}
--
- #else /* !CONFIG_GENERIC_HARDIRQS */
- /*
-  * NOTE: non-genirq architectures, if they want to support the lock
-@@ -370,16 +360,23 @@ static inline int disable_irq_wake(unsig
- 						enable_irq(irq)
- # endif
- 
--static inline int enable_irq_wake(unsigned int irq)
-+/* IRQ wakeup (PM) control: */
-+static inline int irq_set_irq_wake(unsigned int irq, unsigned int on)
- {
- 	return 0;
- }
- 
-+#endif /* CONFIG_GENERIC_HARDIRQS */
-+
-+static inline int enable_irq_wake(unsigned int irq)
-+{
-+	return irq_set_irq_wake(irq, 1);
-+}
-+
- static inline int disable_irq_wake(unsigned int irq)
- {
--	return 0;
-+	return irq_set_irq_wake(irq, 0);
- }
--#endif /* CONFIG_GENERIC_HARDIRQS */
- 
- 
- #ifdef CONFIG_IRQ_FORCED_THREADING
+ 	new_oi = OCFS2_I(args->new_inode);
++	/*
++	 * Adjust extent record count to reserve space for extended attribute.
++	 * Inline data count had been adjusted in ocfs2_duplicate_inline_data().
++	 */
++	if (!(new_oi->ip_dyn_features & OCFS2_INLINE_DATA_FL) &&
++	    !(ocfs2_inode_is_fast_symlink(args->new_inode))) {
++		struct ocfs2_extent_list *el = &new_di->id2.i_list;
++		le16_add_cpu(&el->l_count, -(inline_size /
++					sizeof(struct ocfs2_extent_rec)));
++	}
+ 	spin_lock(&new_oi->ip_lock);
+ 	new_oi->ip_dyn_features |= OCFS2_HAS_XATTR_FL | OCFS2_INLINE_XATTR_FL;
+ 	new_di->i_dyn_features = cpu_to_le16(new_oi->ip_dyn_features);
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-arch-c6x-mm-include-asm-uaccessh-to-pass-compiling.patch
 linux-next.patch
-kernel-auditfilterc-fix-leak-in-audit_add_rule-error-path.patch
-include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix-2.patch
-mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
-mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
-arch-frv-kernel-trapsc-using-vsnprintf-instead-of-vsprintf.patch
-arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch
+ocfs2-xattr-remove-useless-free-space-checking.patch
+ocfs2-xattr-remove-useless-free-space-checking-fix.patch
+ocfs2-xattr-fix-inlined-xattr-reflink.patch
 
