@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-cache-last-camelcase-hash-as-checkpatch-camelcasecommit.patch
- added to -mm tree
-Date: Fri, 28 Jun 2013 13:19:33 -0700
-Message-ID: <51cdefd5.SVKYp1LhtHeOeyjG%akpm@linux-foundation.org>
+ include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch added to -mm tree
+Date: Fri, 28 Jun 2013 13:22:35 -0700
+Message-ID: <51cdf08b.laQVZABKKpgArGyu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51458 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687Ab3F1UTe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 16:19:34 -0400
+	with ESMTP id S1752081Ab3F1UWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 16:22:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, gang.chen@asianux.com
 
-Subject: + checkpatch-cache-last-camelcase-hash-as-checkpatch-camelcasecommit.patch added to -mm tree
-To: joe@perches.com
+Subject: + include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch added to -mm tree
+To: gang.chen@asianux.com,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 13:19:33 -0700
+Date: Fri, 28 Jun 2013 13:22:35 -0700
 
 
 The patch titled
-     Subject: checkpatch: cache last camelcase hash as .checkpatch-camelcase.<commit>
+     Subject: include/linux/interrupt.h: add dummy irq_set_irq_wake() for "!GENERIC_HARDIRQS"
 has been added to the -mm tree.  Its filename is
-     checkpatch-cache-last-camelcase-hash-as-checkpatch-camelcasecommit.patch
+     include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,97 +39,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: cache last camelcase hash as .checkpatch-camelcase.<commit>
+From: Chen Gang <gang.chen@asianux.com>
+Subject: include/linux/interrupt.h: add dummy irq_set_irq_wake() for "!GENERIC_HARDIRQS"
 
-Add a file to cache the CamelCase variables found by <commit> to reduce
-the time it takes to scan the include/ directory.
+Since irq_set_irq_wake() has already declared in header file, when
+GENERIC_HARDIRQS enabled.
 
-Filename is '.checkpatch-camelcase.<commit>' and it is created only only
-if a .git directory exists.
+Recommend to define the dummy one for GENERIC_HARDIRQS disabled, and also
+let the other related "static inline" functions are independent from
+GENERIC_HARDIRQS.
 
-<commit> is determined by the last non-merge commit id in the
-include/ path.
+So can avoid the compiling error below, and also let the code simpler
+and clearer.
 
-Reduces checkpatch run time by ~12 cpu seconds on my little netbook.
+The related compiling error (ARCH=s390 allmodconfig):
 
-Signed-off-by: Joe Perches <joe@perches.com>
+  sound/soc/codecs/wm0010.c: In function ‘wm0010_spi_probe’:
+  sound/soc/codecs/wm0010.c:976:2: error: implicit declaration of function ‘irq_set_irq_wake’ [-Werror=implicit-function-declaration]
+
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ include/linux/interrupt.h |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-cache-last-camelcase-hash-as-checkpatch-camelcasecommit scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-cache-last-camelcase-hash-as-checkpatch-camelcasecommit
-+++ a/scripts/checkpatch.pl
-@@ -399,7 +399,23 @@ sub seed_camelcase_includes {
- 	return if ($camelcase_seeded);
+diff -puN include/linux/interrupt.h~include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs include/linux/interrupt.h
+--- a/include/linux/interrupt.h~include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs
++++ a/include/linux/interrupt.h
+@@ -344,16 +344,6 @@ static inline void enable_irq_lockdep_ir
+ /* IRQ wakeup (PM) control: */
+ extern int irq_set_irq_wake(unsigned int irq, unsigned int on);
  
- 	my $files;
-+	my $camelcase_git_file = "";
-+
- 	if (-d ".git") {
-+		my $git_last_include_commit = `git log --no-merges --pretty=format:"%h%n" -1 -- include`;
-+		chomp $git_last_include_commit;
-+		$camelcase_git_file = ".checkpatch-camelcase.$git_last_include_commit";
-+		if (-f $camelcase_git_file) {
-+			open(my $camelcase_file, '<', "$camelcase_git_file")
-+			    or warn "$P: Can't read '$camelcase_git_file' $!\n";
-+			while (<$camelcase_file>) {
-+				chomp;
-+				$camelcase{$_} = 1;
-+			}
-+			close($camelcase_file);
-+
-+			return;
-+		}
- 		$files = `git ls-files include`;
- 	} else {
- 		$files = `find $root/include -name "*.h"`;
-@@ -409,6 +425,16 @@ sub seed_camelcase_includes {
- 		seed_camelcase_file($file);
- 	}
- 	$camelcase_seeded = 1;
-+
-+	if ($camelcase_git_file ne "") {
-+		unlink glob ".checkpatch-camelcase.*";
-+		open(my $camelcase_file, '>', "$camelcase_git_file")
-+		    or warn "$P: Can't write '$camelcase_git_file' $!\n";
-+		foreach (sort { lc($a) cmp lc($b) } keys(%camelcase)) {
-+			print $camelcase_file ("$_\n");
-+		}
-+		close($camelcase_file);
-+	}
+-static inline int enable_irq_wake(unsigned int irq)
+-{
+-	return irq_set_irq_wake(irq, 1);
+-}
+-
+-static inline int disable_irq_wake(unsigned int irq)
+-{
+-	return irq_set_irq_wake(irq, 0);
+-}
+-
+ #else /* !CONFIG_GENERIC_HARDIRQS */
+ /*
+  * NOTE: non-genirq architectures, if they want to support the lock
+@@ -370,16 +360,23 @@ static inline int disable_irq_wake(unsig
+ 						enable_irq(irq)
+ # endif
+ 
+-static inline int enable_irq_wake(unsigned int irq)
++/* IRQ wakeup (PM) control: */
++static inline int irq_set_irq_wake(unsigned int irq, unsigned int on)
+ {
+ 	return 0;
  }
  
- $chk_signoff = 0 if ($file);
++#endif /* CONFIG_GENERIC_HARDIRQS */
++
++static inline int enable_irq_wake(unsigned int irq)
++{
++	return irq_set_irq_wake(irq, 1);
++}
++
+ static inline int disable_irq_wake(unsigned int irq)
+ {
+-	return 0;
++	return irq_set_irq_wake(irq, 0);
+ }
+-#endif /* CONFIG_GENERIC_HARDIRQS */
+ 
+ 
+ #ifdef CONFIG_IRQ_FORCED_THREADING
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from gang.chen@asianux.com are
 
+arch-c6x-mm-include-asm-uaccessh-to-pass-compiling.patch
 linux-next.patch
-zbud-add-to-mm.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-mm-remove-unused-vm_readfoo-macros-and-expand-other-in-place.patch
-checkpatch-change-camelcase-test-and-make-it-strict.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-checkpatch-add-strict-preference-for-p-=-kmallocsizeofp.patch
-checkpatch-remove-quote-from-camelcase-test.patch
-checkpatch-improve-network-block-comment-test-and-message.patch
-checkpatch-warn-when-networking-block-comment-lines-dont-start-with.patch
-checkpatch-warn-on-comparisons-to-jiffies.patch
-checkpatch-warn-on-comparisons-to-get_jiffies_64.patch
-checkpatch-reduce-false-positive-rate-of-complex-macros.patch
-checkpatch-add-a-placeholder-to-check-blank-lines-before-declarations.patch
-checkpatch-dont-warn-on-blank-lines-before-after-braces-as-often.patch
-checkpatch-add-a-strict-test-for-comparison-to-true-false.patch
-checkpatch-improve-no-space-after-cast-test.patch
-checkpatch-create-an-experimental-fix-option-to-correct-patches.patch
-checkpatch-move-test-for-space-before-semicolon-after-operator-spacing.patch
-checkpatch-ignore-si-unit-camelcase-variants-like-_uv.patch
-checkpatch-ignore-existing-camelcase-uses-from-include.patch
-checkpatch-allow-longer-logging-function-names.patch
-checkpatch-cache-last-camelcase-hash-as-checkpatch-camelcasecommit.patch
+kernel-auditfilterc-fix-leak-in-audit_add_rule-error-path.patch
+include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix-2.patch
+mm-page_allocc-add-additional-checking-and-return-value-for-the-table-data.patch
+mm-nommuc-add-additional-check-for-vread-just-like-vwrite-has-done.patch
+arch-frv-kernel-trapsc-using-vsnprintf-instead-of-vsprintf.patch
+arch-frv-kernel-setupc-use-strncmp-instead-of-memcmp.patch
 
