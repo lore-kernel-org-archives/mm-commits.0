@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
- added to -mm tree
-Date: Fri, 28 Jun 2013 16:00:30 -0700
-Message-ID: <51ce158e.XDch8IJkWUgKZBKp%akpm@linux-foundation.org>
+Subject: +
+ memcg-dont-use-mem_cgroup_get-when-creating-a-kmemcg-cache.patch added to
+ -mm tree
+Date: Fri, 28 Jun 2013 16:00:28 -0700
+Message-ID: <51ce158c.JuNyQUt9PVjLDK3/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52416 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544Ab3F1XAb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 19:00:31 -0400
+	with ESMTP id S1751151Ab3F1XA3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 19:00:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, lizefan@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, glommer@openvz.org, lizefan@huawei.com
 
-Subject: + memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,lizefan@huawei.com,mhocko@suse.cz,tj@kernel.org
+Subject: + memcg-dont-use-mem_cgroup_get-when-creating-a-kmemcg-cache.patch added to -mm tree
+To: lizefan@huawei.com,glommer@openvz.org,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 16:00:30 -0700
+Date: Fri, 28 Jun 2013 16:00:28 -0700
 
 
 The patch titled
-     Subject: memcg-use-css_get-put-when-charging-uncharging-kmem-fix
+     Subject: memcg: don't use mem_cgroup_get() when creating a kmemcg cache
 has been added to the -mm tree.  Its filename is
-     memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
+     memcg-dont-use-mem_cgroup_get-when-creating-a-kmemcg-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,107 +40,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-use-css_get-put-when-charging-uncharging-kmem-fix
+From: Li Zefan <lizefan@huawei.com>
+Subject: memcg: don't use mem_cgroup_get() when creating a kmemcg cache
 
-tweak comment
+Use css_get()/css_put() instead of mem_cgroup_get()/mem_cgroup_put().
 
+There are two things being done in the current code:
+
+First, we acquired a css_ref to make sure that the underlying cgroup
+would not go away. That is a short lived reference, and it is put as
+soon as the cache is created.
+
+At this point, we acquire a long-lived per-cache memcg reference count
+to guarantee that the memcg will still be alive.
+
+so it is:
+
+enqueue: css_get
+create : memcg_get, css_put
+destroy: memcg_put
+
+So we only need to get rid of the memcg_get, change the memcg_put to
+css_put, and get rid of the now extra css_put.
+
+(This changelog is mostly written by Glauber)
+
+Signed-off-by: Li Zefan <lizefan@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Glauber Costa <glommer@openvz.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem-fix
+diff -puN mm/memcontrol.c~memcg-dont-use-mem_cgroup_get-when-creating-a-kmemcg-cache mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-use-mem_cgroup_get-when-creating-a-kmemcg-cache
 +++ a/mm/memcontrol.c
-@@ -407,7 +407,7 @@ static void memcg_kmem_clear_activated(s
- static void memcg_kmem_mark_dead(struct mem_cgroup *memcg)
- {
- 	/*
--	 * We need to call css_get() first, because memcg_uncharge_kmem()
-+	 * Our caller must use css_get() first, because memcg_uncharge_kmem()
- 	 * will call css_put() if it sees the memcg is dead.
- 	 */
- 	smp_wmb();
+@@ -3242,7 +3242,7 @@ void memcg_release_cache(struct kmem_cac
+ 	list_del(&s->memcg_params->list);
+ 	mutex_unlock(&memcg->slab_caches_mutex);
+ 
+-	mem_cgroup_put(memcg);
++	css_put(&memcg->css);
+ out:
+ 	kfree(s->memcg_params);
+ }
+@@ -3402,16 +3402,18 @@ static struct kmem_cache *memcg_create_k
+ 
+ 	mutex_lock(&memcg_cache_mutex);
+ 	new_cachep = cachep->memcg_params->memcg_caches[idx];
+-	if (new_cachep)
++	if (new_cachep) {
++		css_put(&memcg->css);
+ 		goto out;
++	}
+ 
+ 	new_cachep = kmem_cache_dup(memcg, cachep);
+ 	if (new_cachep == NULL) {
+ 		new_cachep = cachep;
++		css_put(&memcg->css);
+ 		goto out;
+ 	}
+ 
+-	mem_cgroup_get(memcg);
+ 	atomic_set(&new_cachep->memcg_params->nr_pages , 0);
+ 
+ 	cachep->memcg_params->memcg_caches[idx] = new_cachep;
+@@ -3499,8 +3501,6 @@ static void memcg_create_cache_work_func
+ 
+ 	cw = container_of(w, struct create_work, work);
+ 	memcg_create_kmem_cache(cw->memcg, cw->cachep);
+-	/* Drop the reference gotten when we enqueued. */
+-	css_put(&cw->memcg->css);
+ 	kfree(cw);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizefan@huawei.com are
 
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+origin.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-ocfs2-xattr-remove-useless-free-space-checking-fix.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+memcg-update-todo-list-in-documentation.patch
+revert-memcg-avoid-dangling-reference-count-in-creation-failure.patch
+memcg-kmem-fix-reference-count-handling-on-the-error-path.patch
+memcg-use-css_get-in-sock_update_memcg.patch
+memcg-dont-use-mem_cgroup_get-when-creating-a-kmemcg-cache.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem.patch
 memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-wait-introduce-wait_event_commonwq-condition-state-timeout-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memcg-use-css_get-put-for-swap-memcg.patch
+memcg-dont-need-to-get-a-reference-to-the-parent.patch
+memcg-kill-memcg-refcnt.patch
+memcg-dont-need-to-free-memcg-via-rcu-or-workqueue.patch
 
