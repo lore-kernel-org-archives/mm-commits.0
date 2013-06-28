@@ -1,253 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 28 Jun 2013 12:36:22 -0700
-Message-ID: <51cde5b6.6ZPfEaCRiVP/HLwy%akpm@linux-foundation.org>
+Subject: + ocfs2-xattr-remove-useless-free-space-checking-fix.patch added
+ to -mm tree
+Date: Fri, 28 Jun 2013 13:12:25 -0700
+Message-ID: <51cdee29.MXx+qLzG+6k/A7PA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51443 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab3F1TgX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 15:36:23 -0400
+	with ESMTP id S1752926Ab3F1UM0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 16:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, junxiao.bi@oracle.com, jlbec@evilplan.org, jeff.liu@oracle.com, fengguang.wu@intel.com, akpm@linux-foundation.org
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + ocfs2-xattr-remove-useless-free-space-checking-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,fengguang.wu@intel.com,jeff.liu@oracle.com,jlbec@evilplan.org,junxiao.bi@oracle.com,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 12:36:22 -0700
+Date: Fri, 28 Jun 2013 13:12:25 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: ocfs2-xattr-remove-useless-free-space-checking-fix
+has been added to the -mm tree.  Its filename is
+     ocfs2-xattr-remove-useless-free-space-checking-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: ocfs2-xattr-remove-useless-free-space-checking-fix
 
+remove unused local
+
+Cc: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/tlbex.c                      |    3 -
- drivers/net/ethernet/freescale/fec_main.c |    7 ---
- drivers/net/ethernet/renesas/sh_eth.c     |   27 -------------
- net/bluetooth/hci_core.c                  |    4 --
- net/wireless/nl80211.c                    |   39 --------------------
- 5 files changed, 80 deletions(-)
+ fs/ocfs2/xattr.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/mips/mm/tlbex.c~linux-next-git-rejects arch/mips/mm/tlbex.c
---- a/arch/mips/mm/tlbex.c~linux-next-git-rejects
-+++ a/arch/mips/mm/tlbex.c
-@@ -2259,7 +2259,6 @@ void __cpuinit build_tlb_refill_handler(
- 			build_r4000_tlb_refill_handler();
- 	}
- }
--<<<<<<< HEAD
- 
- void __cpuinit flush_tlb_handlers(void)
+diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-remove-useless-free-space-checking-fix fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-xattr-remove-useless-free-space-checking-fix
++++ a/fs/ocfs2/xattr.c
+@@ -2751,7 +2751,6 @@ static int ocfs2_xattr_ibody_set(struct
  {
-@@ -2272,5 +2271,3 @@ void __cpuinit flush_tlb_handlers(void)
- 	local_flush_icache_range((unsigned long)tlbmiss_handler_setup_pgd,
- 			   (unsigned long)tlbmiss_handler_setup_pgd_end);
- }
--=======
-->>>>>>> 3f90b82df110ef9cb33761b56ca85ae0d0372d4a
-diff -puN drivers/net/ethernet/freescale/fec_main.c~linux-next-git-rejects drivers/net/ethernet/freescale/fec_main.c
---- a/drivers/net/ethernet/freescale/fec_main.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/freescale/fec_main.c
-@@ -1451,9 +1451,6 @@ static int fec_enet_set_pauseparam(struc
- 	return 0;
- }
+ 	int ret;
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+-	struct ocfs2_dinode *di = (struct ocfs2_dinode *)xs->inode_bh->b_data;
+ 	struct ocfs2_xa_loc loc;
  
--<<<<<<< HEAD
--#endif /* !defined(CONFIG_M5272) */
--=======
- static const struct fec_stat {
- 	char name[ETH_GSTRING_LEN];
- 	u16 offset;
-@@ -1564,7 +1561,6 @@ static int fec_enet_nway_reset(struct ne
- 
- 	return genphy_restart_aneg(phydev);
- }
-->>>>>>> linux-next/akpm-base
- 
- static const struct ethtool_ops fec_enet_ethtool_ops = {
- #if !defined(CONFIG_M5272)
-@@ -2016,15 +2012,12 @@ fec_probe(struct platform_device *pdev)
- 	    (pdev->id_entry->driver_data & FEC_QUIRK_HAS_GBIT))
- 		fep->pause_flag |= FEC_PAUSE_FLAG_AUTONEG;
- #endif
--<<<<<<< HEAD
--=======
- 
- 	fep->hwp = devm_ioremap_resource(&pdev->dev, r);
- 	if (IS_ERR(fep->hwp)) {
- 		ret = PTR_ERR(fep->hwp);
- 		goto failed_ioremap;
- 	}
-->>>>>>> linux-next/akpm-base
- 
- 	fep->pdev = pdev;
- 	fep->dev_id = dev_id++;
-diff -puN drivers/net/ethernet/renesas/sh_eth.c~linux-next-git-rejects drivers/net/ethernet/renesas/sh_eth.c
---- a/drivers/net/ethernet/renesas/sh_eth.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/renesas/sh_eth.c
-@@ -385,10 +385,6 @@ static struct sh_eth_cpu_data r8a777x_da
- 	.eesr_err_check	= EESR_TWB | EESR_TABT | EESR_RABT | EESR_RFE |
- 			  EESR_RDE | EESR_RFRMER | EESR_TFE | EESR_TDE |
- 			  EESR_ECI,
--<<<<<<< HEAD
--	.tx_error_check	= EESR_TWB | EESR_TABT | EESR_TDE | EESR_TFE,
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	.apr		= 1,
- 	.mpr		= 1,
-@@ -425,10 +421,6 @@ static struct sh_eth_cpu_data sh7724_dat
- 	.eesr_err_check	= EESR_TWB | EESR_TABT | EESR_RABT | EESR_RFE |
- 			  EESR_RDE | EESR_RFRMER | EESR_TFE | EESR_TDE |
- 			  EESR_ECI,
--<<<<<<< HEAD
--	.tx_error_check	= EESR_TWB | EESR_TABT | EESR_TDE | EESR_TFE,
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	.apr		= 1,
- 	.mpr		= 1,
-@@ -466,10 +458,6 @@ static struct sh_eth_cpu_data sh7757_dat
- 	.eesr_err_check	= EESR_TWB | EESR_TABT | EESR_RABT | EESR_RFE |
- 			  EESR_RDE | EESR_RFRMER | EESR_TFE | EESR_TDE |
- 			  EESR_ECI,
--<<<<<<< HEAD
--	.tx_error_check	= EESR_TWB | EESR_TABT | EESR_TDE | EESR_TFE,
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	.irq_flags	= IRQF_SHARED,
- 	.apr		= 1,
-@@ -539,11 +527,6 @@ static struct sh_eth_cpu_data sh7757_dat
- 	.eesr_err_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_RABT |
- 			  EESR_RFE | EESR_RDE | EESR_RFRMER | EESR_TFE |
- 			  EESR_TDE | EESR_ECI,
--<<<<<<< HEAD
--	.tx_error_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_TDE | \
--			  EESR_TFE,
--=======
-->>>>>>> linux-next/akpm-base
- 	.fdr_value	= 0x0000072f,
- 	.rmcr_value	= 0x00000001,
- 
-@@ -602,11 +585,6 @@ static struct sh_eth_cpu_data sh7734_dat
- 	.eesr_err_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_RABT |
- 			  EESR_RFE | EESR_RDE | EESR_RFRMER | EESR_TFE |
- 			  EESR_TDE | EESR_ECI,
--<<<<<<< HEAD
--	.tx_error_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_TDE | \
--			  EESR_TFE,
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	.apr		= 1,
- 	.mpr		= 1,
-@@ -671,11 +649,6 @@ static struct sh_eth_cpu_data r8a7740_da
- 	.eesr_err_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_RABT |
- 			  EESR_RFE | EESR_RDE | EESR_RFRMER | EESR_TFE |
- 			  EESR_TDE | EESR_ECI,
--<<<<<<< HEAD
--	.tx_error_check	= EESR_TWB1 | EESR_TWB | EESR_TABT | EESR_TDE | \
--			  EESR_TFE,
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	.apr		= 1,
- 	.mpr		= 1,
-diff -puN net/bluetooth/hci_core.c~linux-next-git-rejects net/bluetooth/hci_core.c
---- a/net/bluetooth/hci_core.c~linux-next-git-rejects
-+++ a/net/bluetooth/hci_core.c
-@@ -597,9 +597,6 @@ static void hci_init3_req(struct hci_req
- 	struct hci_dev *hdev = req->hdev;
- 	u8 p;
- 
--<<<<<<< HEAD
--	/* Only send HCI_Delete_Stored_Link_Key if it is supported */
--=======
- 	/* Some Broadcom based Bluetooth controllers do not support the
- 	 * Delete Stored Link Key command. They are clearly indicating its
- 	 * absence in the bit mask of supported commands.
-@@ -609,7 +606,6 @@ static void hci_init3_req(struct hci_req
- 	 * does not have actual support for stored link keys which makes this
- 	 * command redundant anyway.
-          */
-->>>>>>> linux-next/akpm-base
- 	if (hdev->commands[6] & 0x80) {
- 		struct hci_cp_delete_stored_link_key cp;
- 
-diff -puN net/wireless/nl80211.c~linux-next-git-rejects net/wireless/nl80211.c
---- a/net/wireless/nl80211.c~linux-next-git-rejects
-+++ a/net/wireless/nl80211.c
-@@ -1564,43 +1564,6 @@ static int nl80211_dump_wiphy(struct sk_
- 	int idx = 0, ret;
- 	struct nl80211_dump_wiphy_state *state = (void *)cb->args[0];
- 	struct cfg80211_registered_device *dev;
--<<<<<<< HEAD
--	s64 filter_wiphy = -1;
--	bool split = false;
--	struct nlattr **tb;
--	int res;
--
--	/* will be zeroed in nlmsg_parse() */
--	tb = kmalloc(sizeof(*tb) * (NL80211_ATTR_MAX + 1), GFP_KERNEL);
--	if (!tb)
--		return -ENOMEM;
--
--	mutex_lock(&cfg80211_mutex);
--	res = nlmsg_parse(cb->nlh, GENL_HDRLEN + nl80211_fam.hdrsize,
--			  tb, NL80211_ATTR_MAX, nl80211_policy);
--	if (res == 0) {
--		split = tb[NL80211_ATTR_SPLIT_WIPHY_DUMP];
--		if (tb[NL80211_ATTR_WIPHY])
--			filter_wiphy = nla_get_u32(tb[NL80211_ATTR_WIPHY]);
--		if (tb[NL80211_ATTR_WDEV])
--			filter_wiphy = nla_get_u64(tb[NL80211_ATTR_WDEV]) >> 32;
--		if (tb[NL80211_ATTR_IFINDEX]) {
--			struct net_device *netdev;
--			int ifidx = nla_get_u32(tb[NL80211_ATTR_IFINDEX]);
--
--			netdev = dev_get_by_index(sock_net(skb->sk), ifidx);
--			if (!netdev) {
--				mutex_unlock(&cfg80211_mutex);
--				kfree(tb);
--				return -ENODEV;
--			}
--			if (netdev->ieee80211_ptr) {
--				dev = wiphy_to_dev(
--					netdev->ieee80211_ptr->wiphy);
--				filter_wiphy = dev->wiphy_idx;
--			}
--			dev_put(netdev);
--=======
- 
- 	rtnl_lock();
- 	if (!state) {
-@@ -1615,11 +1578,9 @@ static int nl80211_dump_wiphy(struct sk_
- 			kfree(state);
- 			rtnl_unlock();
- 			return ret;
-->>>>>>> linux-next/akpm-base
- 		}
- 		cb->args[0] = (long)state;
- 	}
--	kfree(tb);
- 
- 	list_for_each_entry(dev, &cfg80211_rdev_list, list) {
- 		if (!net_eq(wiphy_net(&dev->wiphy), sock_net(skb->sk)))
+ 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -259,6 +77,7 @@ i-need-old-gcc.patch
 sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
 posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+ocfs2-xattr-remove-useless-free-space-checking-fix.patch
 ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
 ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
 fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
