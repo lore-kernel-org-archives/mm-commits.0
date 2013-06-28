@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-dont-need-to-free-memcg-via-rcu-or-workqueue.patch added
- to -mm tree
-Date: Fri, 28 Jun 2013 16:00:34 -0700
-Message-ID: <51ce1592.vbWEwQ6Ov33rDf1h%akpm@linux-foundation.org>
+Subject: + memcg-kill-memcg-refcnt.patch added to -mm tree
+Date: Fri, 28 Jun 2013 16:00:33 -0700
+Message-ID: <51ce1591.6N/eyiKzOnQNSidk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52445 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082Ab3F1XAf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 19:00:35 -0400
+	with ESMTP id S1752277Ab3F1XAe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jun 2013 19:00:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, glommer@openvz.org, lizefan@huawei.com
 
-Subject: + memcg-dont-need-to-free-memcg-via-rcu-or-workqueue.patch added to -mm tree
+Subject: + memcg-kill-memcg-refcnt.patch added to -mm tree
 To: lizefan@huawei.com,glommer@openvz.org,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 28 Jun 2013 16:00:34 -0700
+Date: Fri, 28 Jun 2013 16:00:33 -0700
 
 
 The patch titled
-     Subject: memcg: don't need to free memcg via RCU or workqueue
+     Subject: memcg: kill memcg refcnt
 has been added to the -mm tree.  Its filename is
-     memcg-dont-need-to-free-memcg-via-rcu-or-workqueue.patch
+     memcg-kill-memcg-refcnt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,101 +39,77 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Li Zefan <lizefan@huawei.com>
-Subject: memcg: don't need to free memcg via RCU or workqueue
+Subject: memcg: kill memcg refcnt
 
-Now memcg has the same life cycle with its corresponding cgroup, and a
-cgroup is freed via RCU and then mem_cgroup_css_free() will be called in a
-work function, so we can simply call __mem_cgroup_free() in
-mem_cgroup_css_free().
-
-This actually reverts 59927fb984d ("memcg: free mem_cgroup by RCU to fix
-oops").
+Now memcg has the same life cycle as its corresponding cgroup.
+Kill the useless refcnt.
 
 Signed-off-by: Li Zefan <lizefan@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Glauber Costa <glommer@openvz.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   51 ++++------------------------------------------
- 1 file changed, 5 insertions(+), 46 deletions(-)
+ mm/memcontrol.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-dont-need-to-free-memcg-via-rcu-or-workqueue mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-dont-need-to-free-memcg-via-rcu-or-workqueue
+diff -puN mm/memcontrol.c~memcg-kill-memcg-refcnt mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-kill-memcg-refcnt
 +++ a/mm/memcontrol.c
-@@ -263,28 +263,10 @@ struct mem_cgroup {
- 	/* vmpressure notifications */
- 	struct vmpressure vmpressure;
+@@ -299,8 +299,6 @@ struct mem_cgroup {
+ 	bool		oom_lock;
+ 	atomic_t	under_oom;
  
--	union {
--		/*
--		 * the counter to account for mem+swap usage.
--		 */
--		struct res_counter memsw;
+-	atomic_t	refcnt;
 -
--		/*
--		 * rcu_freeing is used only when freeing struct mem_cgroup,
--		 * so put it into a union to avoid wasting more memory.
--		 * It must be disjoint from the css field.  It could be
--		 * in a union with the res field, but res plays a much
--		 * larger part in mem_cgroup life than memsw, and might
--		 * be of interest, even at time of free, when debugging.
--		 * So share rcu_head with the less interesting memsw.
--		 */
--		struct rcu_head rcu_freeing;
--		/*
--		 * We also need some space for a worker in deferred freeing.
--		 * By the time we call it, rcu_freeing is no longer in use.
--		 */
--		struct work_struct work_freeing;
--	};
-+	/*
-+	 * the counter to account for mem+swap usage.
-+	 */
-+	struct res_counter memsw;
+ 	int	swappiness;
+ 	/* OOM-Killer disable */
+ 	int		oom_kill_disable;
+@@ -503,8 +501,6 @@ enum res_type {
+  */
+ static DEFINE_MUTEX(memcg_create_mutex);
  
- 	/*
- 	 * the counter to account for kernel memory usage.
-@@ -6202,29 +6184,6 @@ static void __mem_cgroup_free(struct mem
- 		vfree(memcg);
+-static void mem_cgroup_put(struct mem_cgroup *memcg);
+-
+ static inline
+ struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *s)
+ {
+@@ -6229,17 +6225,6 @@ static void free_rcu(struct rcu_head *rc
+ 	schedule_work(&memcg->work_freeing);
  }
  
--
--/*
-- * Helpers for freeing a kmalloc()ed/vzalloc()ed mem_cgroup by RCU,
-- * but in process context.  The work_freeing structure is overlaid
-- * on the rcu_freeing structure, which itself is overlaid on memsw.
-- */
--static void free_work(struct work_struct *work)
+-static void __mem_cgroup_put(struct mem_cgroup *memcg, int count)
 -{
--	struct mem_cgroup *memcg;
--
--	memcg = container_of(work, struct mem_cgroup, work_freeing);
--	__mem_cgroup_free(memcg);
+-	if (atomic_sub_and_test(count, &memcg->refcnt))
+-		call_rcu(&memcg->rcu_freeing, free_rcu);
 -}
 -
--static void free_rcu(struct rcu_head *rcu_head)
+-static void mem_cgroup_put(struct mem_cgroup *memcg)
 -{
--	struct mem_cgroup *memcg;
--
--	memcg = container_of(rcu_head, struct mem_cgroup, rcu_freeing);
--	INIT_WORK(&memcg->work_freeing, free_work);
--	schedule_work(&memcg->work_freeing);
+-	__mem_cgroup_put(memcg, 1);
 -}
 -
  /*
   * Returns the parent mem_cgroup in memcgroup hierarchy with hierarchy enabled.
   */
-@@ -6375,7 +6334,7 @@ static void mem_cgroup_css_free(struct c
+@@ -6299,7 +6284,6 @@ mem_cgroup_css_alloc(struct cgroup *cont
+ 
+ 	memcg->last_scanned_node = MAX_NUMNODES;
+ 	INIT_LIST_HEAD(&memcg->oom_notify);
+-	atomic_set(&memcg->refcnt, 1);
+ 	memcg->move_charge_at_immigrate = 0;
+ 	mutex_init(&memcg->thresholds_lock);
+ 	spin_lock_init(&memcg->move_lock);
+@@ -6391,7 +6375,7 @@ static void mem_cgroup_css_free(struct c
  
  	mem_cgroup_sockets_destroy(memcg);
  
--	call_rcu(&memcg->rcu_freeing, free_rcu);
-+	__mem_cgroup_free(memcg);
+-	mem_cgroup_put(memcg);
++	call_rcu(&memcg->rcu_freeing, free_rcu);
  }
  
  #ifdef CONFIG_MMU
