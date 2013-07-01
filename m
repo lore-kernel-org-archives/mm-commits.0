@@ -1,73 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-udlfb-use-null-instead-of-0.patch removed from -mm tree
-Date: Mon, 01 Jul 2013 12:25:48 -0700
-Message-ID: <51d1d7bc.7SLdyNs9snuKRT/n%akpm@linux-foundation.org>
+Subject: [merged] video-udlfb-make-local-symbol-static.patch removed from
+ -mm tree
+Date: Mon, 01 Jul 2013 12:25:50 -0700
+Message-ID: <51d1d7be.RFgivJMpIhqJzx2S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753207Ab3GATZt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 15:25:49 -0400
+	with ESMTP id S1754196Ab3GATZv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 15:25:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: [merged] video-udlfb-use-null-instead-of-0.patch removed from -mm tree
+Subject: [merged] video-udlfb-make-local-symbol-static.patch removed from -mm tree
 To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 12:25:48 -0700
+Date: Mon, 01 Jul 2013 12:25:50 -0700
 
 
 The patch titled
-     Subject: drivers/video/udlfb.c: use NULL instead of 0
+     Subject: drivers/video/udlfb.c: make local symbol static
 has been removed from the -mm tree.  Its filename was
-     video-udlfb-use-null-instead-of-0.patch
+     video-udlfb-make-local-symbol-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/udlfb.c: use NULL instead of 0
+Subject: drivers/video/udlfb.c: make local symbol static
 
-Pointer variables should be initialized with NULL instead of 0.
+'dlfb_handle_damage' is used only in this file. Make it static.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/udlfb.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/udlfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/udlfb.c~video-udlfb-use-null-instead-of-0 drivers/video/udlfb.c
---- a/drivers/video/udlfb.c~video-udlfb-use-null-instead-of-0
+diff -puN drivers/video/udlfb.c~video-udlfb-make-local-symbol-static drivers/video/udlfb.c
+--- a/drivers/video/udlfb.c~video-udlfb-make-local-symbol-static
 +++ a/drivers/video/udlfb.c
-@@ -434,10 +434,10 @@ static void dlfb_compress_hline(
+@@ -573,7 +573,7 @@ static int dlfb_render_hline(struct dlfb
+ 	return 0;
+ }
  
- 	while ((pixel_end > pixel) &&
- 	       (cmd_buffer_end - MIN_RLX_CMD_BYTES > cmd)) {
--		uint8_t *raw_pixels_count_byte = 0;
--		uint8_t *cmd_pixels_count_byte = 0;
--		const uint16_t *raw_pixel_start = 0;
--		const uint16_t *cmd_pixel_start, *cmd_pixel_end = 0;
-+		uint8_t *raw_pixels_count_byte = NULL;
-+		uint8_t *cmd_pixels_count_byte = NULL;
-+		const uint16_t *raw_pixel_start = NULL;
-+		const uint16_t *cmd_pixel_start, *cmd_pixel_end = NULL;
- 
- 		prefetchw((void *) cmd); /* pull in one cache line at least */
- 
-@@ -1588,7 +1588,7 @@ static int dlfb_usb_probe(struct usb_int
- 			const struct usb_device_id *id)
+-int dlfb_handle_damage(struct dlfb_data *dev, int x, int y,
++static int dlfb_handle_damage(struct dlfb_data *dev, int x, int y,
+ 	       int width, int height, char *data)
  {
- 	struct usb_device *usbdev;
--	struct dlfb_data *dev = 0;
-+	struct dlfb_data *dev = NULL;
- 	int retval = -ENOMEM;
- 
- 	/* usb initialization */
+ 	int i, ret;
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
