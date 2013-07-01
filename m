@@ -1,150 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-imxfb-make-local-symbols-static.patch removed from -mm tree
-Date: Mon, 01 Jul 2013 12:25:52 -0700
-Message-ID: <51d1d7c0.fZ5RlwxfwyAi2+CU%akpm@linux-foundation.org>
+Subject: + slab-fix-init_lock_keys.patch added to -mm tree
+Date: Mon, 01 Jul 2013 13:09:10 -0700
+Message-ID: <51d1e1e6.QGP2xtTPKJr7RPK7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48945 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196Ab3GATZx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 15:25:53 -0400
+	with ESMTP id S1754808Ab3GAUJL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 16:09:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, penguin-kernel@I-Love.SAKURA.ne.jp, penberg@kernel.org, cl@linux.com
 
-Subject: [merged] video-imxfb-make-local-symbols-static.patch removed from -mm tree
-To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
+Subject: + slab-fix-init_lock_keys.patch added to -mm tree
+To: cl@linux.com,penberg@kernel.org,penguin-kernel@I-Love.SAKURA.ne.jp,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 12:25:52 -0700
+Date: Mon, 01 Jul 2013 13:09:10 -0700
 
 
 The patch titled
-     Subject: drivers/video/imxfb.c: make local symbols static
-has been removed from the -mm tree.  Its filename was
-     video-imxfb-make-local-symbols-static.patch
+     Subject: slab: fix init_lock_keys
+has been added to the -mm tree.  Its filename is
+     slab-fix-init_lock_keys.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ slab-fix-init_lock_keys.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ slab-fix-init_lock_keys.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/imxfb.c: make local symbols static
+From: Christoph Lameter <cl@linux.com>
+Subject: slab: fix init_lock_keys
 
-These symbols are used only in this file.  Make them static.
+init_lock_keys() goes too far in initializing values in kmalloc_caches
+because it assumed that the size of the kmalloc array goes up to
+MAX_ORDER.  However, the size of the kmalloc array for SLAB may be
+restricted due to increased page sizes or CONFIG_FORCE_MAX_ZONEORDER.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Tetsuo said:
+
+: It hangs (with CPU#0 spinning) immediately after printing
+: 
+:   Decompressing Linux... Parsing ELF... done.
+:   Booting the kernel.
+: 
+: lines.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-Love.SAKURA.ne.jp>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: <stable@vger.kernel.org>	[3.10.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/imxfb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/imxfb.c~video-imxfb-make-local-symbols-static drivers/video/imxfb.c
---- a/drivers/video/imxfb.c~video-imxfb-make-local-symbols-static
-+++ a/drivers/video/imxfb.c
-@@ -960,7 +960,7 @@ static int imxfb_remove(struct platform_
- 	return 0;
- }
+diff -puN mm/slab.c~slab-fix-init_lock_keys mm/slab.c
+--- a/mm/slab.c~slab-fix-init_lock_keys
++++ a/mm/slab.c
+@@ -565,7 +565,7 @@ static void init_node_lock_keys(int q)
+ 	if (slab_state < UP)
+ 		return;
  
--void  imxfb_shutdown(struct platform_device * dev)
-+static void imxfb_shutdown(struct platform_device *dev)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 	struct imxfb_info *fbi = info->par;
-@@ -999,7 +999,7 @@ static int imxfb_setup(void)
- 	return 0;
- }
- 
--int __init imxfb_init(void)
-+static int __init imxfb_init(void)
- {
- 	int ret = imxfb_setup();
+-	for (i = 1; i < PAGE_SHIFT + MAX_ORDER; i++) {
++	for (i = 1; i <= KMALLOC_SHIFT_HIGH; i++) {
+ 		struct kmem_cache_node *n;
+ 		struct kmem_cache *cache = kmalloc_caches[i];
  
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from cl@linux.com are
 
 linux-next.patch
-drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
-drivers-rtc-interfacec-fix-checkpatch-errors.patch
-drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
-drivers-rtc-rtc-at91rm9200c-include-linux-uaccessh.patch
-drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch
-drivers-rtc-rtc-davincic-fix-whitespace-warning.patch
-drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch
-drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
-drivers-rtc-rtc-ds1511c-fix-issues-related-to-spaces-and-braces.patch
-drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch
-drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch
-drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch
-drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch
-drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
-drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch
-drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
-drivers-rtc-rtc-msm6242c-use-pr_warn.patch
-drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
-drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
-drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch
-drivers-rtc-rtc-pcf8583c-move-assignment-outside-if-condition.patch
-drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
-drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
-drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
-drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
-drivers-rtc-rtc-x1205c-fix-checkpatch-issues.patch
-drivers-rtc-rtc-m48t86c-remove-empty-function.patch
-drivers-rtc-rtc-tilec-remove-empty-function.patch
-drivers-rtc-rtc-nuc900c-remove-empty-function.patch
-drivers-rtc-rtc-msm6242c-remove-empty-function.patch
-drivers-rtc-rtc-max8998c-remove-empty-function.patch
-drivers-rtc-rtc-max8925c-remove-empty-function.patch
-drivers-rtc-rtc-ls1xc-remove-empty-function.patch
-drivers-rtc-rtc-lp8788c-remove-empty-function.patch
-drivers-rtc-rtc-ds1302c-remove-empty-function.patch
-drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
-drivers-rtc-rtc-da9055c-remove-empty-function.patch
-drivers-rtc-rtc-da9052c-remove-empty-function.patch
-drivers-rtc-rtc-bq4802c-remove-empty-function.patch
-drivers-rtc-rtc-au1xxxc-remove-empty-function.patch
-drivers-rtc-rtc-ab3100c-remove-empty-function.patch
-drivers-rtc-rtc-bq32kc-remove-empty-function.patch
-drivers-rtc-rtc-ds1216c-remove-empty-function.patch
-drivers-rtc-rtc-ds1286c-remove-empty-function.patch
-drivers-rtc-rtc-ds1672c-remove-empty-function.patch
-drivers-rtc-rtc-ds3234c-remove-empty-function.patch
-drivers-rtc-rtc-ds1390c-remove-empty-function.patch
-drivers-rtc-rtc-efic-remove-empty-function.patch
-drivers-rtc-rtc-em3027c-remove-empty-function.patch
-drivers-rtc-rtc-fm3130c-remove-empty-function.patch
-drivers-rtc-rtc-isl12022c-remove-empty-function.patch
-drivers-rtc-rtc-m41t93c-remove-empty-function.patch
-drivers-rtc-rtc-m48t35c-remove-empty-function.patch
-drivers-rtc-rtc-genericc-remove-empty-function.patch
-drivers-rtc-rtc-m41t94c-remove-empty-function.patch
-drivers-rtc-rtc-max6902c-remove-empty-function.patch
-drivers-rtc-rtc-max6900c-remove-empty-function.patch
-drivers-rtc-rtc-max8907c-remove-empty-function.patch
-drivers-rtc-rtc-max77686c-remove-empty-function.patch
-drivers-rtc-rtc-max8997c-remove-empty-function.patch
-drivers-rtc-rtc-pcf8523c-remove-empty-function.patch
-drivers-rtc-rtc-pcf8563c-remove-empty-function.patch
-drivers-rtc-rtc-pcf8583c-remove-empty-function.patch
-drivers-rtc-rtc-ps3c-remove-empty-function.patch
-drivers-rtc-rtc-rs5c313c-remove-empty-function.patch
-drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch
-drivers-rtc-rtc-rx4581c-remove-empty-function.patch
-drivers-rtc-rtc-rs5c348c-remove-empty-function.patch
-drivers-rtc-rtc-rx8581c-remove-empty-function.patch
-drivers-rtc-rtc-snvsc-remove-empty-function.patch
-drivers-rtc-rtc-starfirec-remove-empty-function.patch
-drivers-rtc-rtc-sun4vc-remove-empty-function.patch
-drivers-rtc-rtc-tps80031c-remove-empty-function.patch
-drivers-rtc-rtc-wm831xc-remove-empty-function.patch
-drivers-rtc-rtc-ds1302c-handle-write-protection.patch
-drivers-rtc-rtc-da9052c-use-ptr_ret.patch
-drivers-rtc-rtc-isl12022c-use-ptr_ret.patch
-drivers-rtc-rtc-m48t35c-use-ptr_ret.patch
-drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch
-drivers-rtc-rtc-pcf8583c-use-ptr_ret.patch
+slab-fix-init_lock_keys.patch
 
