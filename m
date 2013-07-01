@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch added
- to -mm tree
-Date: Mon, 01 Jul 2013 15:08:33 -0700
-Message-ID: <51d1fde1.rW695+GKCUU2ZjKb%akpm@linux-foundation.org>
+Subject: + block-fix-possible-sleep-in-invalid-context.patch added to -mm
+ tree
+Date: Mon, 01 Jul 2013 15:15:09 -0700
+Message-ID: <51d1ff6d.nNzT2jNOlI84nHAD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49876 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755196Ab3GAWIe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 18:08:34 -0400
+	with ESMTP id S1755658Ab3GAWPK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 18:15:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vinod.koul@intel.com, t.figa@samsung.com, olof@lixom.net, kyungmin.park@samsung.com, khilman@linaro.org, jason@lakedaemon.net, herbert@gondor.apana.org.au, djbw@fb.com, b.zolnierkie@samsung.com, sebastian.hesselbarth@gmail.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rjw@sisk.pl, axboe@kernel.dk, sthumma@codeaurora.org
 
-Subject: + drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch added to -mm tree
-To: sebastian.hesselbarth@gmail.com,b.zolnierkie@samsung.com,djbw@fb.com,herbert@gondor.apana.org.au,jason@lakedaemon.net,khilman@linaro.org,kyungmin.park@samsung.com,olof@lixom.net,t.figa@samsung.com,vinod.koul@intel.com
+Subject: + block-fix-possible-sleep-in-invalid-context.patch added to -mm tree
+To: sthumma@codeaurora.org,axboe@kernel.dk,rjw@sisk.pl,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 15:08:33 -0700
+Date: Mon, 01 Jul 2013 15:15:09 -0700
 
 
 The patch titled
-     Subject: drivers-dma-remove-unused-support-for-memset-operations-v3-fix
+     Subject: block: Fix possible sleep in invalid context
 has been added to the -mm tree.  Its filename is
-     drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
+     block-fix-possible-sleep-in-invalid-context.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-fix-possible-sleep-in-invalid-context.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-fix-possible-sleep-in-invalid-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,65 +44,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Subject: drivers-dma-remove-unused-support-for-memset-operations-v3-fix
+From: Sujit Reddy Thumma <sthumma@codeaurora.org>
+Subject: block: Fix possible sleep in invalid context
 
-Commit 834cbfe ("drivers/dma: remove unused support for MEMSET operations")
-removes MEMSET from dmaengine but does not completely removes it from
-drivers/dma/mv_xor.
+When block runtime PM is enabled following warning is seen
+while resuming the device.
 
-This also fixes some compiler warnings about now obsolete functions by
-removing those.
+BUG: sleeping function called from invalid context at
+.../drivers/base/power/runtime.c:923
+in_atomic(): 1, irqs_disabled(): 128, pid: 12, name: kworker/0:1
+[<c0014448>] (unwind_backtrace+0x0/0x120) from
+[<c03120e4>] (__pm_runtime_suspend+0x34/0xa0) from
+[<c021c33c>] (blk_post_runtime_resume+0x4c/0x5c) from
+[<c03297cc>] (scsi_runtime_resume+0x90/0xb4) from
+[<c0310940>] (__rpm_callback+0x30/0x58) from
+[<c0310980>] (rpm_callback+0x18/0x28) from
+[<c0311ab0>] (rpm_resume+0x3dc/0x540) from
+[<c03120a4>] (pm_runtime_work+0x8c/0x98) from
+[<c007767c>] (process_one_work+0x238/0x3e4) from
+[<c0077b90>] (worker_thread+0x1ac/0x2ac) from
+[<c007cfdc>] (kthread+0x88/0x94) from
+[<c000ece0>] (kernel_thread_exit+0x0/0x8)
 
-[bzolnier: splitted off changes from bigger patch]
-Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Dan Williams <djbw@fb.com>
-Cc: Tomasz Figa <t.figa@samsung.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Kevin Hilman <khilman@linaro.org>
+Fix this by releasing spin_lock_irq() before calling
+pm_runtime_autosuspend() in blk_post_runtime_resume().
+
+Signed-off-by: Sujit Reddy Thumma <sthumma@codeaurora.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/mv_xor.c |   23 +----------------------
- 1 file changed, 1 insertion(+), 22 deletions(-)
+ block/blk-core.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3-fix drivers/dma/mv_xor.c
---- a/drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3-fix
-+++ a/drivers/dma/mv_xor.c
-@@ -89,11 +89,6 @@ static void mv_desc_clear_next_desc(stru
- 	hw_desc->phy_next_desc = 0;
- }
- 
--static void mv_desc_set_block_fill_val(struct mv_xor_desc_slot *desc, u32 val)
--{
--	desc->value = val;
--}
--
- static void mv_desc_set_dest_addr(struct mv_xor_desc_slot *desc,
- 				  dma_addr_t addr)
+diff -puN block/blk-core.c~block-fix-possible-sleep-in-invalid-context block/blk-core.c
+--- a/block/blk-core.c~block-fix-possible-sleep-in-invalid-context
++++ a/block/blk-core.c
+@@ -3159,16 +3159,18 @@ EXPORT_SYMBOL(blk_pre_runtime_resume);
+  */
+ void blk_post_runtime_resume(struct request_queue *q, int err)
  {
-@@ -128,22 +123,6 @@ static void mv_chan_set_next_descriptor(
- 	__raw_writel(next_desc_addr, XOR_NEXT_DESC(chan));
+-	spin_lock_irq(q->queue_lock);
+ 	if (!err) {
++		spin_lock_irq(q->queue_lock);
+ 		q->rpm_status = RPM_ACTIVE;
+ 		__blk_run_queue(q);
+ 		pm_runtime_mark_last_busy(q->dev);
++		spin_unlock_irq(q->queue_lock);
+ 		pm_request_autosuspend(q->dev);
+ 	} else {
++		spin_lock_irq(q->queue_lock);
+ 		q->rpm_status = RPM_SUSPENDED;
++		spin_unlock_irq(q->queue_lock);
+ 	}
+-	spin_unlock_irq(q->queue_lock);
  }
- 
--static void mv_chan_set_dest_pointer(struct mv_xor_chan *chan, u32 desc_addr)
--{
--	__raw_writel(desc_addr, XOR_DEST_POINTER(chan));
--}
--
--static void mv_chan_set_block_size(struct mv_xor_chan *chan, u32 block_size)
--{
--	__raw_writel(block_size, XOR_BLOCK_SIZE(chan));
--}
--
--static void mv_chan_set_value(struct mv_xor_chan *chan, u32 value)
--{
--	__raw_writel(value, XOR_INIT_VALUE_LOW(chan));
--	__raw_writel(value, XOR_INIT_VALUE_HIGH(chan));
--}
+ EXPORT_SYMBOL(blk_post_runtime_resume);
+ #endif
+_
+
+Patches currently in -mm which might be from sthumma@codeaurora.org are
+
+linux-next.patch
+block-fix-possible-sleep-in-invalid-context.patch
+
