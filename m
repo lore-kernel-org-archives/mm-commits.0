@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch added to -mm tree
-Date: Mon, 01 Jul 2013 14:36:23 -0700
-Message-ID: <51d1f657.UsPAVWEEcnRpUEPW%akpm@linux-foundation.org>
+ drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch added
+ to -mm tree
+Date: Mon, 01 Jul 2013 15:08:33 -0700
+Message-ID: <51d1fde1.rW695+GKCUU2ZjKb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49876 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754776Ab3GAVgY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 17:36:24 -0400
+	with ESMTP id S1755196Ab3GAWIe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 18:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, vinod.koul@intel.com, t.figa@samsung.com, olof@lixom.net, kyungmin.park@samsung.com, khilman@linaro.org, jason@lakedaemon.net, herbert@gondor.apana.org.au, djbw@fb.com, b.zolnierkie@samsung.com, sebastian.hesselbarth@gmail.com
 
-Subject: + ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch added to -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com
+Subject: + drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch added to -mm tree
+To: sebastian.hesselbarth@gmail.com,b.zolnierkie@samsung.com,djbw@fb.com,herbert@gondor.apana.org.au,jason@lakedaemon.net,khilman@linaro.org,kyungmin.park@samsung.com,olof@lixom.net,t.figa@samsung.com,vinod.koul@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 14:36:23 -0700
+Date: Mon, 01 Jul 2013 15:08:33 -0700
 
 
 The patch titled
-     Subject: ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2
+     Subject: drivers-dma-remove-unused-support-for-memset-operations-v3-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
+     drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,50 +45,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2
+From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Subject: drivers-dma-remove-unused-support-for-memset-operations-v3-fix
 
-Compared with PATCH V1, bug description is updated, and pointless comments
-are removed.
+Commit 834cbfe ("drivers/dma: remove unused support for MEMSET operations")
+removes MEMSET from dmaengine but does not completely removes it from
+drivers/dma/mv_xor.
 
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Jensen <shencanquan@huawei.com>
+This also fixes some compiler warnings about now obsolete functions by
+removing those.
+
+[bzolnier: splitted off changes from bigger patch]
+Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <djbw@fb.com>
+Cc: Tomasz Figa <t.figa@samsung.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Kevin Hilman <khilman@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/dma/mv_xor.c |   23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2 fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2
-+++ a/fs/ocfs2/file.c
-@@ -474,8 +474,6 @@ static int ocfs2_truncate_file(struct in
- 		goto bail;
- 	}
+diff -puN drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3-fix drivers/dma/mv_xor.c
+--- a/drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3-fix
++++ a/drivers/dma/mv_xor.c
+@@ -89,11 +89,6 @@ static void mv_desc_clear_next_desc(stru
+ 	hw_desc->phy_next_desc = 0;
+ }
  
--	/* lets handle the simple truncate cases before doing any more
--	 * cluster locking. */
- 	down_write(&OCFS2_I(inode)->ip_alloc_sem);
+-static void mv_desc_set_block_fill_val(struct mv_xor_desc_slot *desc, u32 val)
+-{
+-	desc->value = val;
+-}
+-
+ static void mv_desc_set_dest_addr(struct mv_xor_desc_slot *desc,
+ 				  dma_addr_t addr)
+ {
+@@ -128,22 +123,6 @@ static void mv_chan_set_next_descriptor(
+ 	__raw_writel(next_desc_addr, XOR_NEXT_DESC(chan));
+ }
  
- 	ocfs2_resv_discard(&osb->osb_la_resmap,
-_
-
-Patches currently in -mm which might be from younger.liu@huawei.com are
-
-linux-next.patch
-fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add.patch
-ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add-v3.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix-2.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
-
+-static void mv_chan_set_dest_pointer(struct mv_xor_chan *chan, u32 desc_addr)
+-{
+-	__raw_writel(desc_addr, XOR_DEST_POINTER(chan));
+-}
+-
+-static void mv_chan_set_block_size(struct mv_xor_chan *chan, u32 block_size)
+-{
+-	__raw_writel(block_size, XOR_BLOCK_SIZE(chan));
+-}
+-
+-static void mv_chan_set_value(struct mv_xor_chan *chan, u32 value)
+-{
+-	__raw_writel(value, XOR_INIT_VALUE_LOW(chan));
+-	__raw_writel(value, XOR_INIT_VALUE_HIGH(chan));
+-}
