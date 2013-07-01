@@ -1,62 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] rbtree-remove-unneeded-include.patch removed from -mm tree
-Date: Mon, 01 Jul 2013 13:09:42 -0700
-Message-ID: <51d1e206.R71xqL/wF7uLLWEz%akpm@linux-foundation.org>
+Subject: [withdrawn] rbtree-remove-unneeded-include-fix.patch removed from -mm tree
+Date: Mon, 01 Jul 2013 13:09:44 -0700
+Message-ID: <51d1e208.3YTLz9PXNDYIymbB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755029Ab3GAUJn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 16:09:43 -0400
+	with ESMTP id S1755029Ab3GAUJp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 16:09:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, nzimmer@sgi.com
+To: mm-commits@vger.kernel.org, nzimmer@sgi.com, dan.carpenter@oracle.com, akpm@linux-foundation.org
 
-Subject: [withdrawn] rbtree-remove-unneeded-include.patch removed from -mm tree
-To: nzimmer@sgi.com,dan.carpenter@oracle.com,mm-commits@vger.kernel.org
+Subject: [withdrawn] rbtree-remove-unneeded-include-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,dan.carpenter@oracle.com,nzimmer@sgi.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 13:09:42 -0700
+Date: Mon, 01 Jul 2013 13:09:44 -0700
 
 
 The patch titled
-     Subject: rbtree: remove unneeded include
+     Subject: rbtree-remove-unneeded-include-fix
 has been removed from the -mm tree.  Its filename was
-     rbtree-remove-unneeded-include.patch
+     rbtree-remove-unneeded-include-fix.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: rbtree: remove unneeded include
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rbtree-remove-unneeded-include-fix
 
-Remove an unnecessary include to kernel.h
+fix lib/interval_tree.c build
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
 Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rbtree.h |    1 -
- 1 file changed, 1 deletion(-)
+ lib/interval_tree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/rbtree.h~rbtree-remove-unneeded-include include/linux/rbtree.h
---- a/include/linux/rbtree.h~rbtree-remove-unneeded-include
-+++ a/include/linux/rbtree.h
-@@ -29,7 +29,6 @@
- #ifndef	_LINUX_RBTREE_H
- #define	_LINUX_RBTREE_H
- 
--#include <linux/kernel.h>
- #include <linux/stddef.h>
- 
- struct rb_node {
+diff -puN lib/interval_tree.c~rbtree-remove-unneeded-include-fix lib/interval_tree.c
+--- a/lib/interval_tree.c~rbtree-remove-unneeded-include-fix
++++ a/lib/interval_tree.c
+@@ -1,3 +1,4 @@
++#include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/interval_tree.h>
+ #include <linux/interval_tree_generic.h>
 _
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-rbtree-remove-unneeded-include-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+sound-soc-codecs-si476xc-dont-use-0bnnn.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
+ocfs2-xattr-remove-useless-free-space-checking-fix.patch
+ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
+ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
+fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
+fput-turn-list_head-delayed_fput_list-into-llist_head.patch
+mm.patch
+clear_refs-sanitize-accepted-commands-declaration.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix.patch
+mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
+include-linux-mmh-add-page_aligned-helper.patch
+vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
+mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix.patch
+mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
+include-linux-mmzoneh-cleanups.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
+dump_stack-serialize-the-output-from-dump_stack-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+checkpatch-warn-when-using-gccs-binary-constant-extension.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+dev-oldmem-remove-the-interface-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
+drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
