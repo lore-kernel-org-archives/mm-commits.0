@@ -1,166 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- wait-introduce-wait_event_commonwq-condition-state-timeout-fix.patch
- removed from -mm tree
-Date: Sun, 30 Jun 2013 13:15:57 -0700
-Message-ID: <51d091fd.yn53nDD1I6wFmhc6%akpm@linux-foundation.org>
+Subject: [merged] video-udlfb-use-null-instead-of-0.patch removed from -mm tree
+Date: Mon, 01 Jul 2013 12:25:48 -0700
+Message-ID: <51d1d7bc.7SLdyNs9snuKRT/n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48692 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139Ab3F3UQI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 30 Jun 2013 16:16:08 -0400
+	with ESMTP id S1753207Ab3GATZt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 15:25:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wensong@linux-vs.org, tj@kernel.org, samuel@sortiz.org, rdunlap@infradead.org, ralf@linux-mips.org, oleg@redhat.com, lczerner@redhat.com, ja@ssi.bg, imre.deak@intel.com, horms@verge.net.au, daniel.vetter@ffwll.ch, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: [withdrawn] wait-introduce-wait_event_commonwq-condition-state-timeout-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,daniel.vetter@ffwll.ch,horms@verge.net.au,imre.deak@intel.com,ja@ssi.bg,lczerner@redhat.com,oleg@redhat.com,ralf@linux-mips.org,rdunlap@infradead.org,samuel@sortiz.org,tj@kernel.org,wensong@linux-vs.org,mm-commits@vger.kernel.org
+Subject: [merged] video-udlfb-use-null-instead-of-0.patch removed from -mm tree
+To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Sun, 30 Jun 2013 13:15:57 -0700
+Date: Mon, 01 Jul 2013 12:25:48 -0700
 
 
 The patch titled
-     Subject: wait-introduce-wait_event_commonwq-condition-state-timeout-fix
+     Subject: drivers/video/udlfb.c: use NULL instead of 0
 has been removed from the -mm tree.  Its filename was
-     wait-introduce-wait_event_commonwq-condition-state-timeout-fix.patch
+     video-udlfb-use-null-instead-of-0.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: wait-introduce-wait_event_commonwq-condition-state-timeout-fix
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/video/udlfb.c: use NULL instead of 0
 
-faix warnings, avoid eye-glazing use of gcc ?: extension
+Pointer variables should be initialized with NULL instead of 0.
 
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Imre Deak <imre.deak@intel.com>
-Cc: Julian Anastasov <ja@ssi.bg>
-Cc: Lukas Czerner <lczerner@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wensong Zhang <wensong@linux-vs.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ drivers/video/udlfb.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout-fix include/linux/wait.h
---- a/include/linux/wait.h~wait-introduce-wait_event_commonwq-condition-state-timeout-fix
-+++ a/include/linux/wait.h
-@@ -196,7 +196,12 @@ wait_queue_head_t *bit_waitqueue(void *,
- 	for (;;) {							\
- 		prepare_to_wait(&wq, &__wait, state);			\
- 		if (condition) {					\
--			__ret = __wait_no_timeout(tout) ?: __tout ?: 1;	\
-+			__ret = __wait_no_timeout(tout);		\
-+			if (!__ret) {					\
-+				__ret = __tout;				\
-+				if (!__ret)				\
-+					__ret = 1;			\
-+			}						\
- 			break;						\
- 		}							\
- 									\
-@@ -219,10 +224,16 @@ wait_queue_head_t *bit_waitqueue(void *,
- #define wait_event_common(wq, condition, state, tout)			\
- ({									\
- 	long __ret;							\
--	if (condition)							\
--		__ret = __wait_no_timeout(tout) ?: (tout) ?: 1;		\
--	else								\
-+	if (condition) {						\
-+		__ret = __wait_no_timeout(tout);			\
-+		if (!__ret) {						\
-+			__ret = tout;					\
-+			if (!__ret)					\
-+				__ret = 1;				\
-+		}							\
-+	} else {							\
- 		__ret = __wait_event_common(wq, condition, state, tout);\
-+	}								\
- 	__ret;								\
- })
+diff -puN drivers/video/udlfb.c~video-udlfb-use-null-instead-of-0 drivers/video/udlfb.c
+--- a/drivers/video/udlfb.c~video-udlfb-use-null-instead-of-0
++++ a/drivers/video/udlfb.c
+@@ -434,10 +434,10 @@ static void dlfb_compress_hline(
  
+ 	while ((pixel_end > pixel) &&
+ 	       (cmd_buffer_end - MIN_RLX_CMD_BYTES > cmd)) {
+-		uint8_t *raw_pixels_count_byte = 0;
+-		uint8_t *cmd_pixels_count_byte = 0;
+-		const uint16_t *raw_pixel_start = 0;
+-		const uint16_t *cmd_pixel_start, *cmd_pixel_end = 0;
++		uint8_t *raw_pixels_count_byte = NULL;
++		uint8_t *cmd_pixels_count_byte = NULL;
++		const uint16_t *raw_pixel_start = NULL;
++		const uint16_t *cmd_pixel_start, *cmd_pixel_end = NULL;
+ 
+ 		prefetchw((void *) cmd); /* pull in one cache line at least */
+ 
+@@ -1588,7 +1588,7 @@ static int dlfb_usb_probe(struct usb_int
+ 			const struct usb_device_id *id)
+ {
+ 	struct usb_device *usbdev;
+-	struct dlfb_data *dev = 0;
++	struct dlfb_data *dev = NULL;
+ 	int retval = -ENOMEM;
+ 
+ 	/* usb initialization */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-ocfs2-xattr-remove-useless-free-space-checking-fix.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
-memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-rbtree-remove-unneeded-include-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-rtc-rtc-v3020c-remove-redundant-goto.patch
+drivers-rtc-interfacec-fix-checkpatch-errors.patch
+drivers-rtc-rtc-at32ap700xc-fix-checkpatch-error.patch
+drivers-rtc-rtc-at91rm9200c-include-linux-uaccessh.patch
+drivers-rtc-rtc-cmosc-fix-whitespace-related-errors.patch
+drivers-rtc-rtc-davincic-fix-whitespace-warning.patch
+drivers-rtc-rtc-ds1305c-add-missing-braces-around-sizeof.patch
+drivers-rtc-rtc-ds1374c-fix-spacing-related-issues.patch
+drivers-rtc-rtc-ds1511c-fix-issues-related-to-spaces-and-braces.patch
+drivers-rtc-rtc-ds3234c-fix-whitespace-issue.patch
+drivers-rtc-rtc-fm3130c-fix-whitespace-related-issue.patch
+drivers-rtc-rtc-m41t80c-fix-spacing-related-issue.patch
+drivers-rtc-rtc-max6902c-remove-unwanted-spaces.patch
+drivers-rtc-rtc-max77686c-remove-space-before-semicolon.patch
+drivers-rtc-rtc-max8997c-remove-space-before-semicolon.patch
+drivers-rtc-rtc-mpc5121c-remove-space-before-tab.patch
+drivers-rtc-rtc-msm6242c-use-pr_warn.patch
+drivers-rtc-rtc-mxcc-fix-checkpatch-error.patch
+drivers-rtc-rtc-omapc-include-linux-ioh-instead-of-asm-ioh.patch
+drivers-rtc-rtc-pcf2123c-remove-space-before-tabs.patch
+drivers-rtc-rtc-pcf8583c-move-assignment-outside-if-condition.patch
+drivers-rtc-rtc-rs5c313c-include-linux-ioh-instead-of-asm-ioh.patch
+drivers-rtc-rtc-rs5c313c-fix-spacing-related-issues.patch
+drivers-rtc-rtc-v3020c-fix-spacing-issues.patch
+drivers-rtc-rtc-vr41xxc-fix-spacing-issues.patch
+drivers-rtc-rtc-x1205c-fix-checkpatch-issues.patch
+drivers-rtc-rtc-m48t86c-remove-empty-function.patch
+drivers-rtc-rtc-tilec-remove-empty-function.patch
+drivers-rtc-rtc-nuc900c-remove-empty-function.patch
+drivers-rtc-rtc-msm6242c-remove-empty-function.patch
+drivers-rtc-rtc-max8998c-remove-empty-function.patch
+drivers-rtc-rtc-max8925c-remove-empty-function.patch
+drivers-rtc-rtc-ls1xc-remove-empty-function.patch
+drivers-rtc-rtc-lp8788c-remove-empty-function.patch
+drivers-rtc-rtc-ds1302c-remove-empty-function.patch
+drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
+drivers-rtc-rtc-da9055c-remove-empty-function.patch
+drivers-rtc-rtc-da9052c-remove-empty-function.patch
+drivers-rtc-rtc-bq4802c-remove-empty-function.patch
+drivers-rtc-rtc-au1xxxc-remove-empty-function.patch
+drivers-rtc-rtc-ab3100c-remove-empty-function.patch
+drivers-rtc-rtc-bq32kc-remove-empty-function.patch
+drivers-rtc-rtc-ds1216c-remove-empty-function.patch
+drivers-rtc-rtc-ds1286c-remove-empty-function.patch
+drivers-rtc-rtc-ds1672c-remove-empty-function.patch
+drivers-rtc-rtc-ds3234c-remove-empty-function.patch
+drivers-rtc-rtc-ds1390c-remove-empty-function.patch
+drivers-rtc-rtc-efic-remove-empty-function.patch
+drivers-rtc-rtc-em3027c-remove-empty-function.patch
+drivers-rtc-rtc-fm3130c-remove-empty-function.patch
+drivers-rtc-rtc-isl12022c-remove-empty-function.patch
+drivers-rtc-rtc-m41t93c-remove-empty-function.patch
+drivers-rtc-rtc-m48t35c-remove-empty-function.patch
+drivers-rtc-rtc-genericc-remove-empty-function.patch
+drivers-rtc-rtc-m41t94c-remove-empty-function.patch
+drivers-rtc-rtc-max6902c-remove-empty-function.patch
+drivers-rtc-rtc-max6900c-remove-empty-function.patch
+drivers-rtc-rtc-max8907c-remove-empty-function.patch
+drivers-rtc-rtc-max77686c-remove-empty-function.patch
+drivers-rtc-rtc-max8997c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8523c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8563c-remove-empty-function.patch
+drivers-rtc-rtc-pcf8583c-remove-empty-function.patch
+drivers-rtc-rtc-ps3c-remove-empty-function.patch
+drivers-rtc-rtc-rs5c313c-remove-empty-function.patch
+drivers-rtc-rtc-rv3029c2c-remove-empty-function.patch
+drivers-rtc-rtc-rx4581c-remove-empty-function.patch
+drivers-rtc-rtc-rs5c348c-remove-empty-function.patch
+drivers-rtc-rtc-rx8581c-remove-empty-function.patch
+drivers-rtc-rtc-snvsc-remove-empty-function.patch
+drivers-rtc-rtc-starfirec-remove-empty-function.patch
+drivers-rtc-rtc-sun4vc-remove-empty-function.patch
+drivers-rtc-rtc-tps80031c-remove-empty-function.patch
+drivers-rtc-rtc-wm831xc-remove-empty-function.patch
+drivers-rtc-rtc-ds1302c-handle-write-protection.patch
+drivers-rtc-rtc-da9052c-use-ptr_ret.patch
+drivers-rtc-rtc-isl12022c-use-ptr_ret.patch
+drivers-rtc-rtc-m48t35c-use-ptr_ret.patch
+drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch
+drivers-rtc-rtc-pcf8583c-use-ptr_ret.patch
 
