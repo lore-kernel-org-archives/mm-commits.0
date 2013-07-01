@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked.patch added
- to -mm tree
-Date: Mon, 01 Jul 2013 15:21:00 -0700
-Message-ID: <51d200cc.oPqe25qFium7aNhC%akpm@linux-foundation.org>
+ drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch added to
+ -mm tree
+Date: Mon, 01 Jul 2013 15:55:24 -0700
+Message-ID: <51d208dc.+n9MWiM+v0WXKHep%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49993 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755204Ab3GAWVB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 18:21:01 -0400
+	with ESMTP id S1755100Ab3GAWzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 18:55:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, jic23@cam.ac.uk, alexandre.belloni@free-electrons.com
+To: mm-commits@vger.kernel.org, ldewangan@nvidia.com, wni@nvidia.com
 
-Subject: + drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked.patch added to -mm tree
-To: alexandre.belloni@free-electrons.com,jic23@cam.ac.uk,stable@vger.kernel.org
+Subject: + drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch added to -mm tree
+To: wni@nvidia.com,ldewangan@nvidia.com
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 15:21:00 -0700
+Date: Mon, 01 Jul 2013 15:55:24 -0700
 
 
 The patch titled
-     Subject: drivers/iio/inkern.c: fix iio_convert_raw_to_processed_unlocked()
+     Subject: drivers/rtc/rtc-palmas.c: init wakeup before device register
 has been added to the -mm tree.  Its filename is
-     drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked.patch
+     drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,37 +45,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: drivers/iio/inkern.c: fix iio_convert_raw_to_processed_unlocked()
+From: Wei Ni <wni@nvidia.com>
+Subject: drivers/rtc/rtc-palmas.c: init wakeup before device register
 
-When reading IIO_CHAN_INFO_OFFSET, the return value of iio_channel_read() for
-success will be IIO_VAL*, checking for 0 is not correct.
+Enable dev as wakeup device before calling rtc_device_register(), so that
+it can create the "wakealarm" sysfs.
 
-Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: <stable@vger.kernel.org>	[3.10.x]
+Signed-off-by: Wei Ni <wni@nvidia.com>
+Acked-by: Laxman Dewangan <ldewangan@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iio/inkern.c |    2 +-
+ drivers/rtc/rtc-palmas.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/iio/inkern.c~drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked drivers/iio/inkern.c
---- a/drivers/iio/inkern.c~drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked
-+++ a/drivers/iio/inkern.c
-@@ -451,7 +451,7 @@ static int iio_convert_raw_to_processed_
- 	int ret;
+diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-init-wakeup-before-device-register drivers/rtc/rtc-palmas.c
+--- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-init-wakeup-before-device-register
++++ a/drivers/rtc/rtc-palmas.c
+@@ -265,6 +265,7 @@ static int palmas_rtc_probe(struct platf
  
- 	ret = iio_channel_read(chan, &offset, NULL, IIO_CHAN_INFO_OFFSET);
--	if (ret == 0)
-+	if (ret >= 0)
- 		raw64 += offset;
+ 	palmas_rtc->irq = platform_get_irq(pdev, 0);
  
- 	scale_type = iio_channel_read(chan, &scale_val, &scale_val2,
++	device_init_wakeup(&pdev->dev, 1);
+ 	palmas_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				&palmas_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(palmas_rtc->rtc)) {
+@@ -283,7 +284,6 @@ static int palmas_rtc_probe(struct platf
+ 		return ret;
+ 	}
+ 
+-	device_set_wakeup_capable(&pdev->dev, 1);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from alexandre.belloni@free-electrons.com are
+Patches currently in -mm which might be from wni@nvidia.com are
 
-linux-next.patch
-drivers-iio-inkernc-fix-iio_convert_raw_to_processed_unlocked.patch
+drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
 
