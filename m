@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch added to
- -mm tree
-Date: Mon, 01 Jul 2013 15:55:24 -0700
-Message-ID: <51d208dc.+n9MWiM+v0WXKHep%akpm@linux-foundation.org>
+ lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock.patch added to -mm tree
+Date: Mon, 01 Jul 2013 16:07:48 -0700
+Message-ID: <51d20bc4.bkXgTZERtzb5/yUu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50131 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100Ab3GAWzZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 18:55:25 -0400
+	with ESMTP id S1755100Ab3GAXHt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 19:07:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ldewangan@nvidia.com, wni@nvidia.com
+To: mm-commits@vger.kernel.org, fan.du@windriver.com
 
-Subject: + drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch added to -mm tree
-To: wni@nvidia.com,ldewangan@nvidia.com
+Subject: + lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock.patch added to -mm tree
+To: fan.du@windriver.com
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 15:55:24 -0700
+Date: Mon, 01 Jul 2013 16:07:48 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-palmas.c: init wakeup before device register
+     Subject: lib/percpu_counter.c: __this_cpu_write() doesn't need to be protected by spinlock
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
+     lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,42 +44,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Ni <wni@nvidia.com>
-Subject: drivers/rtc/rtc-palmas.c: init wakeup before device register
+From: Fan Du <fan.du@windriver.com>
+Subject: lib/percpu_counter.c: __this_cpu_write() doesn't need to be protected by spinlock
 
-Enable dev as wakeup device before calling rtc_device_register(), so that
-it can create the "wakealarm" sysfs.
+__this_cpu_write doesn't need to be protected by spinlock, AS we are doing
+per cpu write with preempt disabled.  And another reason to remove
+__this_cpu_write outside of spinlock: __percpu_counter_sum is not an
+accurate counter.
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
-Acked-by: Laxman Dewangan <ldewangan@nvidia.com>
+Signed-off-by: Fan Du <fan.du@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-palmas.c |    2 +-
+ lib/percpu_counter.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-init-wakeup-before-device-register drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-init-wakeup-before-device-register
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -265,6 +265,7 @@ static int palmas_rtc_probe(struct platf
- 
- 	palmas_rtc->irq = platform_get_irq(pdev, 0);
- 
-+	device_init_wakeup(&pdev->dev, 1);
- 	palmas_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				&palmas_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(palmas_rtc->rtc)) {
-@@ -283,7 +284,6 @@ static int palmas_rtc_probe(struct platf
- 		return ret;
+diff -puN lib/percpu_counter.c~lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock
++++ a/lib/percpu_counter.c
+@@ -80,8 +80,8 @@ void __percpu_counter_add(struct percpu_
+ 	if (count >= batch || count <= -batch) {
+ 		raw_spin_lock(&fbc->lock);
+ 		fbc->count += count;
+-		__this_cpu_write(*fbc->counters, 0);
+ 		raw_spin_unlock(&fbc->lock);
++		__this_cpu_write(*fbc->counters, 0);
+ 	} else {
+ 		__this_cpu_write(*fbc->counters, count);
  	}
- 
--	device_set_wakeup_capable(&pdev->dev, 1);
- 	return 0;
- }
- 
 _
 
-Patches currently in -mm which might be from wni@nvidia.com are
+Patches currently in -mm which might be from fan.du@windriver.com are
 
-drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
+linux-next.patch
+lib-percpu_counterc-__this_cpu_write-doesnt-need-to-be-protected-by-spinlock.patch
 
