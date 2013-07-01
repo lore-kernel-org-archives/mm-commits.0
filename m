@@ -1,59 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-udlfb-make-local-symbol-static.patch removed from
+Subject: [merged] video-smscufx-use-null-instead-of-0.patch removed from
  -mm tree
-Date: Mon, 01 Jul 2013 12:25:50 -0700
-Message-ID: <51d1d7be.RFgivJMpIhqJzx2S%akpm@linux-foundation.org>
+Date: Mon, 01 Jul 2013 12:25:46 -0700
+Message-ID: <51d1d7ba.UDr20JHqtx1susNj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48694 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48689 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196Ab3GATZv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 15:25:51 -0400
+	with ESMTP id S1753207Ab3GATZr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 15:25:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, steve.glendinning@shawell.net, sachin.kamat@linaro.org
 
-Subject: [merged] video-udlfb-make-local-symbol-static.patch removed from -mm tree
-To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
+Subject: [merged] video-smscufx-use-null-instead-of-0.patch removed from -mm tree
+To: sachin.kamat@linaro.org,steve.glendinning@shawell.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 12:25:50 -0700
+Date: Mon, 01 Jul 2013 12:25:46 -0700
 
 
 The patch titled
-     Subject: drivers/video/udlfb.c: make local symbol static
+     Subject: drivers/video/smscufx.c: use NULL instead of 0
 has been removed from the -mm tree.  Its filename was
-     video-udlfb-make-local-symbol-static.patch
+     video-smscufx-use-null-instead-of-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/udlfb.c: make local symbol static
+Subject: drivers/video/smscufx.c: use NULL instead of 0
 
-'dlfb_handle_damage' is used only in this file. Make it static.
+'info' is a pointer. Use NULL instead of 0.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Steve Glendinning <steve.glendinning@shawell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/udlfb.c |    2 +-
+ drivers/video/smscufx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/udlfb.c~video-udlfb-make-local-symbol-static drivers/video/udlfb.c
---- a/drivers/video/udlfb.c~video-udlfb-make-local-symbol-static
-+++ a/drivers/video/udlfb.c
-@@ -573,7 +573,7 @@ static int dlfb_render_hline(struct dlfb
- 	return 0;
- }
- 
--int dlfb_handle_damage(struct dlfb_data *dev, int x, int y,
-+static int dlfb_handle_damage(struct dlfb_data *dev, int x, int y,
- 	       int width, int height, char *data)
+diff -puN drivers/video/smscufx.c~video-smscufx-use-null-instead-of-0 drivers/video/smscufx.c
+--- a/drivers/video/smscufx.c~video-smscufx-use-null-instead-of-0
++++ a/drivers/video/smscufx.c
+@@ -1622,7 +1622,7 @@ static int ufx_usb_probe(struct usb_inte
  {
- 	int i, ret;
+ 	struct usb_device *usbdev;
+ 	struct ufx_data *dev;
+-	struct fb_info *info = 0;
++	struct fb_info *info = NULL;
+ 	int retval = -ENOMEM;
+ 	u32 id_rev, fpga_rev;
+ 
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
