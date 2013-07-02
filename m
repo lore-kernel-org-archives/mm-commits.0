@@ -1,143 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] block-fix-possible-sleep-in-invalid-context-fix.patch
- removed from -mm tree
-Date: Tue, 02 Jul 2013 13:23:23 -0700
-Message-ID: <51d336bb.yDhwr81YuwIZm6JZ%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add-v3.patch removed from -mm tree
+Date: Tue, 02 Jul 2013 14:25:52 -0700
+Message-ID: <51d34560.KvqNRzPFn47EkTVI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59275 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755436Ab3GBUXY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jul 2013 16:23:24 -0400
+	with ESMTP id S1753510Ab3GBVZx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jul 2013 17:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sthumma@codeaurora.org, rjw@sisk.pl, axboe@kernel.dk, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jeff.liu@oracle.com, younger.liu@huawei.com
 
-Subject: [obsolete] block-fix-possible-sleep-in-invalid-context-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,axboe@kernel.dk,rjw@sisk.pl,sthumma@codeaurora.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add-v3.patch removed from -mm tree
+To: younger.liu@huawei.com,jeff.liu@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 02 Jul 2013 13:23:23 -0700
+Date: Tue, 02 Jul 2013 14:25:52 -0700
 
 
 The patch titled
-     Subject: block-fix-possible-sleep-in-invalid-context-fix
+     Subject: ocfs2: need rollback when journal_access failed in ocfs2_orphan_add()
 has been removed from the -mm tree.  Its filename was
-     block-fix-possible-sleep-in-invalid-context-fix.patch
+     ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add-v3.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-fix-possible-sleep-in-invalid-context-fix
+From: Younger Liu <younger.liu@huawei.com>
+Subject: ocfs2: need rollback when journal_access failed in ocfs2_orphan_add()
 
-small cleanup
+Compared with the PATCH V2, this patch cleans up mlog_errno(status)
+which was called two times for the same error.
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Sujit Reddy Thumma <sthumma@codeaurora.org>
+Signed-off-by: Younger Liu <younger.liu@huawei.com>
+Cc: Jie Liu <jeff.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/namei.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN block/blk-core.c~block-fix-possible-sleep-in-invalid-context-fix block/blk-core.c
---- a/block/blk-core.c~block-fix-possible-sleep-in-invalid-context-fix
-+++ a/block/blk-core.c
-@@ -3159,15 +3159,14 @@ EXPORT_SYMBOL(blk_pre_runtime_resume);
-  */
- void blk_post_runtime_resume(struct request_queue *q, int err)
- {
-+	spin_lock_irq(q->queue_lock);
- 	if (!err) {
--		spin_lock_irq(q->queue_lock);
- 		q->rpm_status = RPM_ACTIVE;
- 		__blk_run_queue(q);
- 		pm_runtime_mark_last_busy(q->dev);
- 		spin_unlock_irq(q->queue_lock);
- 		pm_request_autosuspend(q->dev);
- 	} else {
--		spin_lock_irq(q->queue_lock);
- 		q->rpm_status = RPM_SUSPENDED;
- 		spin_unlock_irq(q->queue_lock);
- 	}
+diff -puN fs/ocfs2/namei.c~ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add-v3 fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add-v3
++++ a/fs/ocfs2/namei.c
+@@ -2067,8 +2067,6 @@ rollback:
+ leave:
+ 	brelse(orphan_dir_bh);
+ 
+-	if (status)
+-		mlog_errno(status);
+ 	return status;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from younger.liu@huawei.com are
 
 origin.patch
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
-posix-timers-correctly-get-dying-task-time-sample-in-posix_cpu_timer_schedule.patch
-ocfs2-xattr-remove-useless-free-space-checking-fix.patch
+fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
+ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
+ocfs2-need-rollback-when-journal_access-failed-in-ocfs2_orphan_add.patch
+ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group.patch
 ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
+ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
 ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
-ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
-memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-tools-testing-selftests-dont-assume-the-x-bit-is-set-on-scripts.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix-2.patch
+ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
+ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
 
