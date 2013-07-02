@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch added to -mm tree
-Date: Mon, 01 Jul 2013 16:20:18 -0700
-Message-ID: <51d20eb2.n0a1rYzB+vyeo8cB%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 02 Jul 2013 12:29:51 -0700
+Message-ID: <51d32a2f.3y1F3VaKft33dMp7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58326 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755224Ab3GAXUT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jul 2013 19:20:19 -0400
+	with ESMTP id S1755933Ab3GBT3w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jul 2013 15:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tm@tao.ma, sunil.mushran@gmail.com, srinivas.eeda@oracle.com, n_iwamatsu@jp.fujitsu.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, gurudas.pai@oracle.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,gurudas.pai@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,n_iwamatsu@jp.fujitsu.com,srinivas.eeda@oracle.com,sunil.mushran@gmail.com,tm@tao.ma
+Subject: + linux-next-git-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Mon, 01 Jul 2013 16:20:18 -0700
+Date: Tue, 02 Jul 2013 12:29:51 -0700
 
 
 The patch titled
-     Subject: ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,40 +44,204 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
+Subject: linux-next-git-rejects
 
-Cc: Gurudas Pai <gurudas.pai@oracle.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Noboru Iwamatsu <n_iwamatsu@jp.fujitsu.com>
-Cc: Srinivas Eeeda <srinivas.eeda@oracle.com>
-Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Tao Ma <tm@tao.ma>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/drm_vm.c |    4 ----
+ fs/ecryptfs/file.c       |   16 ----------------
+ fs/minix/dir.c           |    4 ----
+ fs/ncpfs/dir.c           |    5 -----
+ fs/proc/base.c           |   27 ---------------------------
+ fs/proc/namespaces.c     |    4 ----
+ 6 files changed, 60 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -641,7 +641,7 @@ static void o2net_state_change(struct so
- 		o2net_sc_queue_work(sc, &sc->sc_connect_work);
- 		break;
- 	default:
--		pr_info(KERN_INFO "o2net: Connection to " SC_NODEF_FMT
-+		printk(KERN_INFO "o2net: Connection to " SC_NODEF_FMT
- 			" shutdown, state %d\n",
- 			SC_NODEF_ARGS(sc), sk->sk_state);
- 		o2net_sc_queue_work(sc, &sc->sc_shutdown_work);
+diff -puN drivers/gpu/drm/drm_vm.c~linux-next-git-rejects drivers/gpu/drm/drm_vm.c
+--- a/drivers/gpu/drm/drm_vm.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/drm_vm.c
+@@ -613,11 +613,7 @@ int drm_mmap_locked(struct file *filp, s
+ 	case _DRM_FRAME_BUFFER:
+ 	case _DRM_REGISTERS:
+ 		offset = drm_core_get_reg_ofs(dev);
+-<<<<<<< HEAD
+-		vma->vm_page_prot = drm_io_prot(map->type, vma);
+-=======
+ 		vma->vm_page_prot = drm_io_prot(map, vma);
+->>>>>>> linux-next/akpm-base
+ 		if (io_remap_pfn_range(vma, vma->vm_start,
+ 				       (map->offset + offset) >> PAGE_SHIFT,
+ 				       vma->vm_end - vma->vm_start,
+diff -puN fs/ecryptfs/file.c~linux-next-git-rejects fs/ecryptfs/file.c
+--- a/fs/ecryptfs/file.c~linux-next-git-rejects
++++ a/fs/ecryptfs/file.c
+@@ -70,11 +70,7 @@ static ssize_t ecryptfs_read_update_atim
+ struct ecryptfs_getdents_callback {
+ 	struct dir_context ctx;
+ 	struct dir_context *caller;
+-<<<<<<< HEAD
+-	struct dentry *dentry;
+-=======
+ 	struct super_block *sb;
+->>>>>>> linux-next/akpm-base
+ 	int filldir_called;
+ 	int entries_written;
+ };
+@@ -118,17 +114,6 @@ static int ecryptfs_readdir(struct file
+ {
+ 	int rc;
+ 	struct file *lower_file;
+-<<<<<<< HEAD
+-	struct inode *inode;
+-	struct ecryptfs_getdents_callback buf = {
+-		.ctx.actor = ecryptfs_filldir,
+-		.caller = ctx,
+-		.dentry = file->f_path.dentry
+-	};
+-	lower_file = ecryptfs_file_to_lower(file);
+-	lower_file->f_pos = ctx->pos;
+-	inode = file_inode(file);
+-=======
+ 	struct inode *inode = file_inode(file);
+ 	struct ecryptfs_getdents_callback buf = {
+ 		.ctx.actor = ecryptfs_filldir,
+@@ -137,7 +122,6 @@ static int ecryptfs_readdir(struct file
+ 	};
+ 	lower_file = ecryptfs_file_to_lower(file);
+ 	lower_file->f_pos = ctx->pos;
+->>>>>>> linux-next/akpm-base
+ 	rc = iterate_dir(lower_file, &buf.ctx);
+ 	ctx->pos = buf.ctx.pos;
+ 	if (rc < 0)
+diff -puN fs/minix/dir.c~linux-next-git-rejects fs/minix/dir.c
+--- a/fs/minix/dir.c~linux-next-git-rejects
++++ a/fs/minix/dir.c
+@@ -93,11 +93,7 @@ static int minix_readdir(struct file *fi
+ 	unsigned offset;
+ 	unsigned long n;
+ 
+-<<<<<<< HEAD
+-	ctx->pos = pos = (pos + chunk_size-1) & ~(chunk_size-1);
+-=======
+ 	ctx->pos = pos = ALIGN(pos, chunk_size);
+->>>>>>> linux-next/akpm-base
+ 	if (pos >= inode->i_size)
+ 		return 0;
+ 
+diff -puN fs/ncpfs/dir.c~linux-next-git-rejects fs/ncpfs/dir.c
+--- a/fs/ncpfs/dir.c~linux-next-git-rejects
++++ a/fs/ncpfs/dir.c
+@@ -675,11 +675,6 @@ end_advance:
+ 	if (!valid)
+ 		ctl.valid = 0;
+ 	if (!ctl.filled && (ctl.fpos == ctx->pos)) {
+-<<<<<<< HEAD
+-		if (!ino)
+-			ino = find_inode_number(dentry, &qname);
+-=======
+->>>>>>> linux-next/akpm-base
+ 		if (!ino)
+ 			ino = iunique(dir->i_sb, 2);
+ 		ctl.filled = !dir_emit(ctx, qname.name, qname.len,
+diff -puN fs/proc/base.c~linux-next-git-rejects fs/proc/base.c
+--- a/fs/proc/base.c~linux-next-git-rejects
++++ a/fs/proc/base.c
+@@ -1686,10 +1686,7 @@ bool proc_fill_cache(struct file *file,
+ 	instantiate_t instantiate, struct task_struct *task, const void *ptr)
+ {
+ 	struct dentry *child, *dir = file->f_path.dentry;
+-<<<<<<< HEAD
+-=======
+ 	struct qstr qname = QSTR_INIT(name, len);
+->>>>>>> linux-next/akpm-base
+ 	struct inode *inode;
+ 	unsigned type;
+ 	ino_t ino;
+@@ -1711,15 +1708,7 @@ bool proc_fill_cache(struct file *file,
+ 	return dir_emit(ctx, name, len, ino, type);
+ 
+ end_instantiate:
+-<<<<<<< HEAD
+-	if (!ino)
+-		ino = find_inode_number(dir, &qname);
+-	if (!ino)
+-		ino = 1;
+-	return dir_emit(ctx, name, len, ino, type);
+-=======
+ 	return dir_emit(ctx, name, len, 1, DT_UNKNOWN);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+@@ -2195,11 +2184,7 @@ static struct dentry *proc_pident_lookup
+ out:
+ 	put_task_struct(task);
+ out_no_task:
+-<<<<<<< HEAD
+-	return error;
+-=======
+ 	return ERR_PTR(error);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static int proc_pident_readdir(struct file *file, struct dir_context *ctx,
+@@ -2885,33 +2870,21 @@ retry:
+ int proc_pid_readdir(struct file *file, struct dir_context *ctx)
+ {
+ 	struct tgid_iter iter;
+-<<<<<<< HEAD
+-	struct pid_namespace *ns;
+-=======
+ 	struct pid_namespace *ns = file->f_dentry->d_sb->s_fs_info;
+->>>>>>> linux-next/akpm-base
+ 	loff_t pos = ctx->pos;
+ 
+ 	if (pos >= PID_MAX_LIMIT + TGID_OFFSET)
+ 		return 0;
+ 
+ 	if (pos == TGID_OFFSET - 1) {
+-<<<<<<< HEAD
+-		if (!proc_fill_cache(file, ctx, "self", 4, NULL, NULL, NULL))
+-=======
+ 		struct inode *inode = ns->proc_self->d_inode;
+ 		if (!dir_emit(ctx, "self", 4, inode->i_ino, DT_LNK))
+->>>>>>> linux-next/akpm-base
+ 			return 0;
+ 		iter.tgid = 0;
+ 	} else {
+ 		iter.tgid = pos - TGID_OFFSET;
+ 	}
+ 	iter.task = NULL;
+-<<<<<<< HEAD
+-	ns = file->f_dentry->d_sb->s_fs_info;
+-=======
+->>>>>>> linux-next/akpm-base
+ 	for (iter = next_tgid(ns, iter);
+ 	     iter.task;
+ 	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
+diff -puN fs/proc/namespaces.c~linux-next-git-rejects fs/proc/namespaces.c
+--- a/fs/proc/namespaces.c~linux-next-git-rejects
++++ a/fs/proc/namespaces.c
+@@ -209,11 +209,7 @@ static int proc_ns_instantiate(struct in
+ 	if (pid_revalidate(dentry, 0))
+ 		return 0;
+ out:
+-<<<<<<< HEAD
+-	return error;
+-=======
+ 	return -ENOENT;
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static int proc_ns_dir_readdir(struct file *file, struct dir_context *ctx)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
+linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 block-fix-possible-sleep-in-invalid-context-fix.patch
