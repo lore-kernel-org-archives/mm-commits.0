@@ -1,71 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] dev-oldmem-remove-the-interface-fix.patch removed from -mm tree
-Date: Wed, 03 Jul 2013 14:42:31 -0700
-Message-ID: <51d49ac7.m2JAQPHBx1CiEyJn%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ idr-print-a-stack-dump-after-ida_remove-warning-fix.patch removed from -mm
+ tree
+Date: Wed, 03 Jul 2013 14:42:59 -0700
+Message-ID: <51d49ae3.22sgPBhum4rjf+a/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932128Ab3GCVmc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:42:32 -0400
+	with ESMTP id S932128Ab3GCVnA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:43:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, tony.luck@intel.com, schwidefsky@de.ibm.com, ralf@linux-mips.org, paulus@samba.org, matt.fleming@intel.com, hpa@zytor.com, holzheu@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, dave@sr71.net, benh@kernel.crashing.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, tiwai@suse.de, jdelvare@suse.de, akpm@linux-foundation.org
 
-Subject: [folded-merged] dev-oldmem-remove-the-interface-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,benh@kernel.crashing.org,dave@sr71.net,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,holzheu@linux.vnet.ibm.com,hpa@zytor.com,matt.fleming@intel.com,paulus@samba.org,ralf@linux-mips.org,schwidefsky@de.ibm.com,tony.luck@intel.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] idr-print-a-stack-dump-after-ida_remove-warning-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,jdelvare@suse.de,tiwai@suse.de,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:42:31 -0700
+Date: Wed, 03 Jul 2013 14:42:59 -0700
 
 
 The patch titled
-     Subject: dev-oldmem-remove-the-interface-fix
+     Subject: idr-print-a-stack-dump-after-ida_remove-warning-fix
 has been removed from the -mm tree.  Its filename was
-     dev-oldmem-remove-the-interface-fix.patch
+     idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
 
-This patch was dropped because it was folded into dev-oldmem-remove-the-interface.patch
+This patch was dropped because it was folded into idr-print-a-stack-dump-after-ida_remove-warning.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dev-oldmem-remove-the-interface-fix
+Subject: idr-print-a-stack-dump-after-ida_remove-warning-fix
 
-Mention /dev/oldmem obsolescence in devices.txt
+convert the open-coded printk+dump_stack into WARN()
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Matt Fleming <matt.fleming@intel.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Jean Delvare <jdelvare@suse.de>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devices.txt |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/idr.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/devices.txt~dev-oldmem-remove-the-interface-fix Documentation/devices.txt
---- a/Documentation/devices.txt~dev-oldmem-remove-the-interface-fix
-+++ a/Documentation/devices.txt
-@@ -100,8 +100,7 @@ Your cooperation is appreciated.
- 		 10 = /dev/aio		Asynchronous I/O notification interface
- 		 11 = /dev/kmsg		Writes to this come out as printk's, reads
- 					export the buffered printk records.
--		 12 = /dev/oldmem	Used by crashdump kernels to access
--					the memory of the kernel that crashed.
-+		 12 = /dev/oldmem	OBSOLETE - replaced by /proc/vmcore
+diff -puN lib/idr.c~idr-print-a-stack-dump-after-ida_remove-warning-fix lib/idr.c
+--- a/lib/idr.c~idr-print-a-stack-dump-after-ida_remove-warning-fix
++++ a/lib/idr.c
+@@ -524,9 +524,7 @@ EXPORT_SYMBOL(idr_alloc_cyclic);
  
-   1 block	RAM disk
- 		  0 = /dev/ram0		First RAM disk
+ static void idr_remove_warning(int id)
+ {
+-	printk(KERN_WARNING
+-		"idr_remove called for id=%d which is not allocated.\n", id);
+-	dump_stack();
++	WARN(1, "idr_remove called for id=%d which is not allocated.\n", id);
+ }
+ 
+ static void sub_remove(struct idr *idp, int shift, int id)
+@@ -1064,9 +1062,7 @@ void ida_remove(struct ida *ida, int id)
+ 	return;
+ 
+  err:
+-	printk(KERN_WARNING
+-	       "ida_remove called for id=%d which is not allocated.\n", id);
+-	dump_stack();
++	WARN(1, "ida_remove called for id=%d which is not allocated.\n", id);
+ }
+ EXPORT_SYMBOL(ida_remove);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +101,7 @@ checkpatch-warn-when-using-gccs-binary-constant-extension.patch
 rtc-add-nxp-pcf2127-support-i2c.patch
 ptrace-add-ability-to-get-set-signal-blocked-mask.patch
 dev-oldmem-remove-the-interface.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
+idr-print-a-stack-dump-after-ida_remove-warning.patch
 documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
 drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
 tools-testing-selftests-dont-assume-the-x-bit-is-set-on-scripts.patch
