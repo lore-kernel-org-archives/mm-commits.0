@@ -1,64 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch removed from -mm tree
-Date: Wed, 03 Jul 2013 14:33:49 -0700
-Message-ID: <51d498bd.IOiIzcRtZ/atu9Kf%akpm@linux-foundation.org>
+ swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+ removed from -mm tree
+Date: Wed, 03 Jul 2013 14:34:21 -0700
+Message-ID: <51d498dd.3k42N23XC8KFiUK4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40049 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932417Ab3GCVdu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:33:50 -0400
+	with ESMTP id S932417Ab3GCVeW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:34:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tim.c.chen@linux.intel.com, fengguang.wu@intel.com, eric.dumazet@gmail.com, dave.hansen@intel.com, ak@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, hughd@google.com, aquini@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,ak@linux.intel.com,dave.hansen@intel.com,eric.dumazet@gmail.com,fengguang.wu@intel.com,tim.c.chen@linux.intel.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,aquini@redhat.com,hughd@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:33:49 -0700
+Date: Wed, 03 Jul 2013 14:34:21 -0700
 
 
 The patch titled
-     Subject: mm-tune-vm_committed_as-percpu_counter-batching-size-fix
+     Subject: swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
+     swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
 
-This patch was dropped because it was folded into mm-tune-vm_committed_as-percpu_counter-batching-size.patch
+This patch was dropped because it was folded into swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-tune-vm_committed_as-percpu_counter-batching-size-fix
+Subject: swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix
 
-fix section mismatch
+tweak comments
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size-fix mm/mm_init.c
---- a/mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size-fix
-+++ a/mm/mm_init.c
-@@ -177,7 +177,7 @@ static int __meminit mm_compute_batch_no
- 	return NOTIFY_OK;
- }
+diff -puN mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix mm/swapfile.c
+--- a/mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix
++++ a/mm/swapfile.c
+@@ -2140,17 +2140,17 @@ SYSCALL_DEFINE2(swapon, const char __use
  
--static struct notifier_block compute_batch_nb = {
-+static struct notifier_block compute_batch_nb __meminitdata = {
- 	.notifier_call = mm_compute_batch_notifier,
- 	.priority = IPC_CALLBACK_PRI, /* use lowest priority */
- };
+ 		if ((swap_flags & SWAP_FLAG_DISCARD) && swap_discardable(p)) {
+ 			/*
+-			 * When discard is enabled for swap, with no particular
+-			 * policy flagged, we set all swap discard flags here
+-			 * in order to sustain backward compatibility with
+-			 * older swapon(8) releases.
++			 * When discard is enabled for swap with no particular
++			 * policy flagged, we set all swap discard flags here in
++			 * order to sustain backward compatibility with older
++			 * swapon(8) releases.
+ 			 */
+ 			p->flags |= (SWP_DISCARDABLE | SWP_AREA_DISCARD |
+ 				     SWP_PAGE_DISCARD);
+ 
+ 			/*
+ 			 * By flagging sys_swapon, a sysadmin can tell us to
+-			 * either do sinle-time area discards only, or to just
++			 * either do single-time area discards only, or to just
+ 			 * perform discards for released swap page-clusters.
+ 			 * Now it's time to adjust the p->flags accordingly.
+ 			 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +92,7 @@ vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 vmcore-support-mmap-on-proc-vmcore.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
 mm-tune-vm_committed_as-percpu_counter-batching-size.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
 mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
 mm-correctly-update-zone-managed_pages-fix.patch
 mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
