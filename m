@@ -1,34 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch removed from
- -mm tree
-Date: Wed, 03 Jul 2013 14:26:47 -0700
-Message-ID: <51d49717.NnKFeTxZiQerhrvl%akpm@linux-foundation.org>
+Subject: + memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
+ added to -mm tree
+Date: Wed, 03 Jul 2013 14:29:07 -0700
+Message-ID: <51d497a3.wAqehM18D5LjoXlY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39973 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39979 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064Ab3GCV0s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:26:48 -0400
+	with ESMTP id S1751064Ab3GCV3I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:29:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, cody@linux.vnet.ibm.com
 
-Subject: [folded-merged] memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch removed from -mm tree
-To: cody@linux.vnet.ibm.com,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: + memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch added to -mm tree
+To: cody@linux.vnet.ibm.com,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:26:47 -0700
+Date: Wed, 03 Jul 2013 14:29:07 -0700
 
 
 The patch titled
      Subject: memory_hotplug: use pgdat_resize_lock() in __offline_pages()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
 
-This patch was dropped because it was folded into memory_hotplug-use-pgdat_resize_lock-in-online_pages.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
@@ -84,6 +97,7 @@ mm-page_alloc-dont-re-init-pageset-in-zone_pcp_update.patch
 mm-fix-comment-referring-to-non-existent-size_seqlock-change-to-span_seqlock.patch
 mmzone-note-that-node_size_lock-should-be-manipulated-via-pgdat_resize_lock.patch
 memory_hotplug-use-pgdat_resize_lock-in-online_pages.patch
+memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
 memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
 sparsemem-add-build_bug_on-when-sizeof-mem_section-is-non-power-of-2.patch
 
