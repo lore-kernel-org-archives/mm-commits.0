@@ -1,38 +1,47 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch removed
- from -mm tree
-Date: Wed, 03 Jul 2013 14:23:59 -0700
-Message-ID: <51d4966f.LsRkYgKyEtaph5cu%akpm@linux-foundation.org>
+ mm-soft-dirty-bits-for-user-memory-changes-tracking-call-mmu-notifiers-when-write-protecting-ptes.patch removed from -mm tree
+Date: Wed, 03 Jul 2013 14:24:15 -0700
+Message-ID: <51d4967f.0EG0a6I+vzsaEKV1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39863 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39930 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933240Ab3GCVYA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:24:00 -0400
+	with ESMTP id S1751064Ab3GCVYQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:24:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, mtosatti@redhat.com, mpm@selenic.com, kosaki.motohiro@gmail.com, glommer@parallels.com, xemul@parallels.com
+To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, sfr@canb.auug.org.au, mtosatti@redhat.com, mpm@selenic.com, kosaki.motohiro@gmail.com, glommer@parallels.com, xemul@parallels.com
 
-Subject: [folded-merged] pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch removed from -mm tree
-To: xemul@parallels.com,glommer@parallels.com,kosaki.motohiro@gmail.com,mpm@selenic.com,mtosatti@redhat.com,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-soft-dirty-bits-for-user-memory-changes-tracking-call-mmu-notifiers-when-write-protecting-ptes.patch removed from -mm tree
+To: xemul@parallels.com,glommer@parallels.com,kosaki.motohiro@gmail.com,mpm@selenic.com,mtosatti@redhat.com,sfr@canb.auug.org.au,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:23:59 -0700
+Date: Wed, 03 Jul 2013 14:24:15 -0700
 
 
 The patch titled
-     Subject: pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4
+     Subject: soft-dirty: call mmu notifiers when write-protecting ptes
 has been removed from the -mm tree.  Its filename was
-     pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch
+     mm-soft-dirty-bits-for-user-memory-changes-tracking-call-mmu-notifiers-when-write-protecting-ptes.patch
 
-This patch was dropped because it was folded into pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
+This patch was dropped because it was folded into mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
 
 ------------------------------------------------------
 From: Pavel Emelyanov <xemul@parallels.com>
-Subject: pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4
+Subject: soft-dirty: call mmu notifiers when write-protecting ptes
+
+As noticed by Xiao, since soft-dirty clear command modifies page tables we
+have to flush tlbs and call mmu notifiers.  While the former is done by
+the clear_refs engine itself, the latter is to be done.
+
+One thing to note about this -- in order not to call per-page invalidate
+notifier (_all_ address space is about to be changed), the
+_invalidate_range_start and _end are used.  But for those start and end
+are not known exactly.  To address this, the same trick as in exit_mmap()
+is used -- start is 0 and end is (unsigned long)-1.
 
 Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
 Cc: Matt Mackall <mpm@selenic.com>
@@ -40,50 +49,54 @@ Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Cc: Glauber Costa <glommer@parallels.com>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ fs/proc/task_mmu.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4
+diff -puN fs/proc/task_mmu.c~mm-soft-dirty-bits-for-user-memory-changes-tracking-call-mmu-notifiers-when-write-protecting-ptes fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-soft-dirty-bits-for-user-memory-changes-tracking-call-mmu-notifiers-when-write-protecting-ptes
 +++ a/fs/proc/task_mmu.c
-@@ -824,7 +824,7 @@ struct pagemapread {
- #define __PM_PSHIFT(x)      (((u64) (x) << PM_PSHIFT_OFFSET) & PM_PSHIFT_MASK)
- #define PM_PFRAME_MASK      ((1LL << PM_PSHIFT_OFFSET) - 1)
- #define PM_PFRAME(x)        ((x) & PM_PFRAME_MASK)
--/* in pagemap2 pshift bits are occupied with more status bits */
-+/* in "new" pagemap pshift bits are occupied with more status bits */
- #define PM_STATUS2(v2, x)   (__PM_PSHIFT(v2 ? x : PAGE_SHIFT))
+@@ -11,6 +11,7 @@
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
++#include <linux/mmu_notifier.h>
  
- #define PM_PRESENT          PM_STATUS(4LL)
-@@ -1028,8 +1028,8 @@ static int pagemap_hugetlb_range(pte_t *
-  * determine which areas of memory are actually mapped and llseek to
-  * skip over unmapped regions.
-  */
--static ssize_t do_pagemap_read(struct file *file, char __user *buf,
--			    size_t count, loff_t *ppos, bool v2)
-+static ssize_t pagemap_read(struct file *file, char __user *buf,
-+			    size_t count, loff_t *ppos)
- {
- 	struct task_struct *task = get_proc_task(file_inode(file));
- 	struct mm_struct *mm;
-@@ -1054,7 +1054,7 @@ static ssize_t do_pagemap_read(struct fi
- 	if (!count)
- 		goto out_task;
- 
--	pm.v2 = v2;
-+	pm.v2 = false;
- 	pm.len = PM_ENTRY_BYTES * (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
- 	pm.buffer = kmalloc(pm.len, GFP_TEMPORARY);
- 	ret = -ENOMEM;
-@@ -1127,12 +1127,6 @@ out:
- 	return ret;
- }
- 
--static ssize_t pagemap_read(struct file *file, char __user *buf,
--			    size_t count, loff_t *ppos)
--{
--	return do_pagemap_read(file, buf, count, ppos, false);
--}
+ #include <asm/elf.h>
+ #include <asm/uaccess.h>
+@@ -791,6 +792,8 @@ static ssize_t clear_refs_write(struct f
+ 			.private = &cp,
+ 		};
+ 		down_read(&mm->mmap_sem);
++		if (type == CLEAR_REFS_SOFT_DIRTY)
++			mmu_notifier_invalidate_range_start(mm, 0, -1);
+ 		for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 			cp.vma = vma;
+ 			if (is_vm_hugetlb_page(vma))
+@@ -811,6 +814,8 @@ static ssize_t clear_refs_write(struct f
+ 			walk_page_range(vma->vm_start, vma->vm_end,
+ 					&clear_refs_walk);
+ 		}
++		if (type == CLEAR_REFS_SOFT_DIRTY)
++			mmu_notifier_invalidate_range_end(mm, 0, -1);
+ 		flush_tlb_mm(mm);
+ 		up_read(&mm->mmap_sem);
+ 		mmput(mm);
+_
+
+Patches currently in -mm which might be from xemul@parallels.com are
+
+clear_refs-sanitize-accepted-commands-declaration.patch
+clear_refs-introduce-private-struct-for-mm_walk.patch
+pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
+mm-soft-dirty-bits-for-user-memory-changes-tracking.patch
+pagemap-prepare-to-reuse-constant-bits-with-page-shift.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+fs-execc-de_thread-use-change_pid-rather-than-detach_pid-attach_pid.patch
+kernel-forkc-copy_process-unify-clone_thread-or-thread_group_leader-code.patch
+kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch
+kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch
+
