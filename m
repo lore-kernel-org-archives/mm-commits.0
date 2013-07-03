@@ -1,75 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-add-nxp-pcf2127-support-i2c-fix.patch removed from -mm tree
-Date: Wed, 03 Jul 2013 14:41:16 -0700
-Message-ID: <51d49a7c.jnjz3OOZf4LUE7hE%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch removed from
+ -mm tree
+Date: Wed, 03 Jul 2013 14:41:43 -0700
+Message-ID: <51d49a97.nnN7JpDbhRK6BJLP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40267 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932128Ab3GCVlR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:41:17 -0400
+	with ESMTP id S932128Ab3GCVlo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:41:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, r.cerrato@til-technologies.fr, jg1.han@samsung.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, avagin@openvz.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] rtc-add-nxp-pcf2127-support-i2c-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jg1.han@samsung.com,r.cerrato@til-technologies.fr,mm-commits@vger.kernel.org
+Subject: [folded-merged] ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,avagin@openvz.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:41:16 -0700
+Date: Wed, 03 Jul 2013 14:41:43 -0700
 
 
 The patch titled
-     Subject: rtc-add-nxp-pcf2127-support-i2c-fix
+     Subject: ptrace-add-ability-to-get-set-signal-blocked-mask-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-add-nxp-pcf2127-support-i2c-fix.patch
+     ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
 
-This patch was dropped because it was folded into rtc-add-nxp-pcf2127-support-i2c.patch
+This patch was dropped because it was folded into ptrace-add-ability-to-get-set-signal-blocked-mask.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-nxp-pcf2127-support-i2c-fix
+Subject: ptrace-add-ability-to-get-set-signal-blocked-mask-fix
 
-fix typo, fix warnings
+be consistent with brace layout
 
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Renaud Cerrato <r.cerrato@til-technologies.fr>
+Cc: Andrey Vagin <avagin@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2127.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/ptrace.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf2127.c~rtc-add-nxp-pcf2127-support-i2c-fix drivers/rtc/rtc-pcf2127.c
---- a/drivers/rtc/rtc-pcf2127.c~rtc-add-nxp-pcf2127-support-i2c-fix
-+++ a/drivers/rtc/rtc-pcf2127.c
-@@ -37,7 +37,7 @@ static struct i2c_driver pcf2127_driver;
+diff -puN kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask-fix kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask-fix
++++ a/kernel/ptrace.c
+@@ -858,8 +858,7 @@ int ptrace_request(struct task_struct *c
  
- struct pcf2127 {
- 	struct rtc_device *rtc;
--	int voltage_low; /* incicates if a low_voltage was detected */
-+	int voltage_low; /* indicates if a low_voltage was detected */
- };
+ 		break;
  
- /*
-@@ -99,7 +99,6 @@ static int pcf2127_get_datetime(struct i
+-	case PTRACE_SETSIGMASK:
+-	{
++	case PTRACE_SETSIGMASK: {
+ 		sigset_t new_set;
  
- static int pcf2127_set_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
--	struct pcf2127 *pcf2127 = i2c_get_clientdata(client);
- 	unsigned char buf[8];
- 	int i = 0, err;
+ 		if (addr != sizeof(sigset_t)) {
+@@ -991,8 +990,7 @@ int ptrace_request(struct task_struct *c
  
-@@ -141,7 +140,6 @@ static int pcf2127_rtc_ioctl(struct devi
- 				unsigned int cmd, unsigned long arg)
- {
- 	struct pcf2127 *pcf2127 = i2c_get_clientdata(to_i2c_client(dev));
--	struct rtc_time tm;
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	case PTRACE_GETREGSET:
+-	case PTRACE_SETREGSET:
+-	{
++	case PTRACE_SETREGSET: {
+ 		struct iovec kiov;
+ 		struct iovec __user *uiov = datavp;
  
- 	switch (cmd) {
- 	case RTC_VL_READ:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,7 +95,7 @@ clean-up-scary-strncpydst-src-strlensrc-uses.patch
 dump_stack-serialize-the-output-from-dump_stack.patch
 checkpatch-warn-when-using-gccs-binary-constant-extension.patch
 rtc-add-nxp-pcf2127-support-i2c.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
+ptrace-add-ability-to-get-set-signal-blocked-mask.patch
 dev-oldmem-remove-the-interface-fix.patch
 idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
 documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
