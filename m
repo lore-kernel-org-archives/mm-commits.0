@@ -1,100 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch removed
+ pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch removed
  from -mm tree
-Date: Wed, 03 Jul 2013 14:23:15 -0700
-Message-ID: <51d49643.nLHA7ue+Fys3y+Eu%akpm@linux-foundation.org>
+Date: Wed, 03 Jul 2013 14:23:59 -0700
+Message-ID: <51d4966f.LsRkYgKyEtaph5cu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39839 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39863 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933142Ab3GCVXQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:23:16 -0400
+	with ESMTP id S933240Ab3GCVYA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:24:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tm@tao.ma, sunil.mushran@gmail.com, srinivas.eeda@oracle.com, n_iwamatsu@jp.fujitsu.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, gurudas.pai@oracle.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, mtosatti@redhat.com, mpm@selenic.com, kosaki.motohiro@gmail.com, glommer@parallels.com, xemul@parallels.com
 
-Subject: [folded-merged] ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,gurudas.pai@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,n_iwamatsu@jp.fujitsu.com,srinivas.eeda@oracle.com,sunil.mushran@gmail.com,tm@tao.ma,mm-commits@vger.kernel.org
+Subject: [folded-merged] pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch removed from -mm tree
+To: xemul@parallels.com,glommer@parallels.com,kosaki.motohiro@gmail.com,mpm@selenic.com,mtosatti@redhat.com,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:23:15 -0700
+Date: Wed, 03 Jul 2013 14:23:59 -0700
 
 
 The patch titled
-     Subject: ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
+     Subject: pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4
 has been removed from the -mm tree.  Its filename was
-     ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch
+     pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4.patch
 
-This patch was dropped because it was folded into ocfs2-adjust-switch_case-syntax-at-o2net_state_change.patch
+This patch was dropped because it was folded into pagemap-introduce-pagemap_entry_t-without-pmshift-bits.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4
 
-Cc: Gurudas Pai <gurudas.pai@oracle.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Noboru Iwamatsu <n_iwamatsu@jp.fujitsu.com>
-Cc: Srinivas Eeeda <srinivas.eeda@oracle.com>
-Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Tao Ma <tm@tao.ma>
+Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -641,7 +641,7 @@ static void o2net_state_change(struct so
- 		o2net_sc_queue_work(sc, &sc->sc_connect_work);
- 		break;
- 	default:
--		pr_info(KERN_INFO "o2net: Connection to " SC_NODEF_FMT
-+		printk(KERN_INFO "o2net: Connection to " SC_NODEF_FMT
- 			" shutdown, state %d\n",
- 			SC_NODEF_ARGS(sc), sk->sk_state);
- 		o2net_sc_queue_work(sc, &sc->sc_shutdown_work);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-ocfs2-xattr-remove-useless-free-space-checking.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
-ocfs2-adjust-switch_case-syntax-at-o2net_state_change.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix.patch
-mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-rtc-add-nxp-pcf2127-support-i2c-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-tools-testing-selftests-dont-assume-the-x-bit-is-set-on-scripts.patch
-
+diff -puN fs/proc/task_mmu.c~pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-introduce-pagemap_entry_t-without-pmshift-bits-v4
++++ a/fs/proc/task_mmu.c
+@@ -824,7 +824,7 @@ struct pagemapread {
+ #define __PM_PSHIFT(x)      (((u64) (x) << PM_PSHIFT_OFFSET) & PM_PSHIFT_MASK)
+ #define PM_PFRAME_MASK      ((1LL << PM_PSHIFT_OFFSET) - 1)
+ #define PM_PFRAME(x)        ((x) & PM_PFRAME_MASK)
+-/* in pagemap2 pshift bits are occupied with more status bits */
++/* in "new" pagemap pshift bits are occupied with more status bits */
+ #define PM_STATUS2(v2, x)   (__PM_PSHIFT(v2 ? x : PAGE_SHIFT))
+ 
+ #define PM_PRESENT          PM_STATUS(4LL)
+@@ -1028,8 +1028,8 @@ static int pagemap_hugetlb_range(pte_t *
+  * determine which areas of memory are actually mapped and llseek to
+  * skip over unmapped regions.
+  */
+-static ssize_t do_pagemap_read(struct file *file, char __user *buf,
+-			    size_t count, loff_t *ppos, bool v2)
++static ssize_t pagemap_read(struct file *file, char __user *buf,
++			    size_t count, loff_t *ppos)
+ {
+ 	struct task_struct *task = get_proc_task(file_inode(file));
+ 	struct mm_struct *mm;
+@@ -1054,7 +1054,7 @@ static ssize_t do_pagemap_read(struct fi
+ 	if (!count)
+ 		goto out_task;
+ 
+-	pm.v2 = v2;
++	pm.v2 = false;
+ 	pm.len = PM_ENTRY_BYTES * (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
+ 	pm.buffer = kmalloc(pm.len, GFP_TEMPORARY);
+ 	ret = -ENOMEM;
+@@ -1127,12 +1127,6 @@ out:
+ 	return ret;
+ }
+ 
+-static ssize_t pagemap_read(struct file *file, char __user *buf,
+-			    size_t count, loff_t *ppos)
+-{
+-	return do_pagemap_read(file, buf, count, ppos, false);
+-}
