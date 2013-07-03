@@ -1,40 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] vmcore-support-mmap-on-proc-vmcore-fix.patch
+Subject: [folded-merged] vmcore-support-mmap-on-proc-vmcore-fix-2.patch
  removed from -mm tree
-Date: Wed, 03 Jul 2013 14:31:36 -0700
-Message-ID: <51d49838.tVjKr2muUKiybUsT%akpm@linux-foundation.org>
+Date: Wed, 03 Jul 2013 14:31:39 -0700
+Message-ID: <51d4983b.l7pukr6W9oNObX46%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40017 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932221Ab3GCVbi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:31:38 -0400
+	with ESMTP id S932221Ab3GCVbk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:31:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, arnd@arndb.de, d.hatayama@jp.fujitsu.com
 
-Subject: [folded-merged] vmcore-support-mmap-on-proc-vmcore-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] vmcore-support-mmap-on-proc-vmcore-fix-2.patch removed from -mm tree
+To: d.hatayama@jp.fujitsu.com,arnd@arndb.de,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:31:36 -0700
+Date: Wed, 03 Jul 2013 14:31:39 -0700
 
 
 The patch titled
-     Subject: vmcore-support-mmap-on-proc-vmcore-fix
+     Subject: vmcore: disable mmap_vmcore() if CONFIG_MMU is not defined
 has been removed from the -mm tree.  Its filename was
-     vmcore-support-mmap-on-proc-vmcore-fix.patch
+     vmcore-support-mmap-on-proc-vmcore-fix-2.patch
 
 This patch was dropped because it was folded into vmcore-support-mmap-on-proc-vmcore.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmcore-support-mmap-on-proc-vmcore-fix
+From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Subject: vmcore: disable mmap_vmcore() if CONFIG_MMU is not defined
 
-use min(), switch to conventional error-unwinding approach
+From Arnd's report of a link-time build error in vmcore.c, it turned out
+that mmap_vmcore() work overlooked no-MMU configuraiton.
 
+In the current design, it's impossible to implement mmap_vmcore() for
+no-MMU configuration since MMU is essential in order to map physically
+non-contiguous objects (ELF header, ELF note segment and memory regions in
+the 1st kernel pointed to by PT_LOAD entries) into virtually contiguous
+user-space in ELF layout.
+
+Hence, this patch disables mmap_vmcore() if CONFIG_MMU is not defined,
+returning -ENOSYS.
+
+Another change is to fix the build error by using vmalloc_user() instead
+of calling vzalloc() and find_vm_area() in order, by which we no longer
+need to call find_vm_area() in vmcore.c that has no counterpart on non-MMU
+configuration.
+
+Also, on no-MMU configuration, because we don't export buffer for ELF note
+segment to user-space, we use vzalloc() to allocate the buffer. 
+Therefore, we use differnet functions to allocate the buffer for ELF note
+segment.  To avoid code duplication, introduce a helper
+alloc_elfnotes_buf().
+
+Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
 Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -44,106 +67,110 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ fs/proc/vmcore.c |   57 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 37 insertions(+), 20 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-support-mmap-on-proc-vmcore-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-support-mmap-on-proc-vmcore-fix
+diff -puN fs/proc/vmcore.c~vmcore-support-mmap-on-proc-vmcore-fix-2 fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-support-mmap-on-proc-vmcore-fix-2
 +++ a/fs/proc/vmcore.c
-@@ -218,9 +218,7 @@ static int mmap_vmcore(struct file *file
- 	if (start < elfcorebuf_sz) {
- 		u64 pfn;
- 
--		tsz = elfcorebuf_sz - start;
--		if (size < tsz)
--			tsz = size;
-+		tsz = min(elfcorebuf_sz - (size_t)start, size);
- 		pfn = __pa(elfcorebuf + start) >> PAGE_SHIFT;
- 		if (remap_pfn_range(vma, vma->vm_start, pfn, tsz,
- 				    vma->vm_page_prot))
-@@ -236,15 +234,11 @@ static int mmap_vmcore(struct file *file
- 	if (start < elfcorebuf_sz + elfnotes_sz) {
- 		void *kaddr;
- 
--		tsz = elfcorebuf_sz + elfnotes_sz - start;
--		if (size < tsz)
--			tsz = size;
-+		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)start, size);
- 		kaddr = elfnotes_buf + start - elfcorebuf_sz;
- 		if (remap_vmalloc_range_partial(vma, vma->vm_start + len,
--						kaddr, tsz)) {
--			do_munmap(vma->vm_mm, vma->vm_start, len);
--			return -EAGAIN;
--		}
-+						kaddr, tsz))
-+			goto fail;
- 		size -= tsz;
- 		start += tsz;
- 		len += tsz;
-@@ -257,16 +251,12 @@ static int mmap_vmcore(struct file *file
- 		if (start < m->offset + m->size) {
- 			u64 paddr = 0;
- 
--			tsz = m->offset + m->size - start;
--			if (size < tsz)
--				tsz = size;
-+			tsz = min_t(size_t, m->offset + m->size - start, size);
- 			paddr = m->paddr + start - m->offset;
- 			if (remap_pfn_range(vma, vma->vm_start + len,
- 					    paddr >> PAGE_SHIFT, tsz,
--					    vma->vm_page_prot)) {
--				do_munmap(vma->vm_mm, vma->vm_start, len);
--				return -EAGAIN;
--			}
-+					    vma->vm_page_prot))
-+				goto fail;
- 			size -= tsz;
- 			start += tsz;
- 			len += tsz;
-@@ -277,6 +267,9 @@ static int mmap_vmcore(struct file *file
- 	}
- 
- 	return 0;
-+fail:
-+	do_munmap(vma->vm_mm, vma->vm_start, len);
-+	return -EAGAIN;
+@@ -195,6 +195,35 @@ static ssize_t read_vmcore(struct file *
+ 	return acc;
  }
  
++/**
++ * alloc_elfnotes_buf - allocate buffer for ELF note segment in
++ *                      vmalloc memory
++ *
++ * @notes_sz: size of buffer
++ *
++ * If CONFIG_MMU is defined, use vmalloc_user() to allow users to mmap
++ * the buffer to user-space by means of remap_vmalloc_range().
++ *
++ * If CONFIG_MMU is not defined, use vzalloc() since mmap_vmcore() is
++ * disabled and there's no need to allow users to mmap the buffer.
++ */
++static inline char *alloc_elfnotes_buf(size_t notes_sz)
++{
++#ifdef CONFIG_MMU
++	return vmalloc_user(notes_sz);
++#else
++	return vzalloc(notes_sz);
++#endif
++}
++
++/*
++ * Disable mmap_vmcore() if CONFIG_MMU is not defined. MMU is
++ * essential for mmap_vmcore() in order to map physically
++ * non-contiguous objects (ELF header, ELF note segment and memory
++ * regions in the 1st kernel pointed to by PT_LOAD entries) into
++ * virtually contiguous user-space in ELF layout.
++ */
++#ifdef CONFIG_MMU
+ static int mmap_vmcore(struct file *file, struct vm_area_struct *vma)
+ {
+ 	size_t size = vma->vm_end - vma->vm_start;
+@@ -271,6 +300,12 @@ fail:
+ 	do_munmap(vma->vm_mm, vma->vm_start, len);
+ 	return -EAGAIN;
+ }
++#else
++static int mmap_vmcore(struct file *file, struct vm_area_struct *vma)
++{
++	return -ENOSYS;
++}
++#endif
+ 
  static const struct file_operations proc_vmcore_operations = {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-ocfs2-xattr-remove-useless-free-space-checking.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
-ocfs2-adjust-switch_case-syntax-at-o2net_state_change.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
-vmalloc-introduce-remap_vmalloc_range_partial.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
-vmcore-support-mmap-on-proc-vmcore.patch
-mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-rtc-add-nxp-pcf2127-support-i2c-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-tools-testing-selftests-dont-assume-the-x-bit-is-set-on-scripts.patch
-
+ 	.read		= read_vmcore,
+@@ -427,7 +462,6 @@ static int __init merge_note_headers_elf
+ 	Elf64_Ehdr *ehdr_ptr;
+ 	Elf64_Phdr phdr;
+ 	u64 phdr_sz = 0, note_off;
+-	struct vm_struct *vm;
+ 
+ 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
+ 
+@@ -440,18 +474,10 @@ static int __init merge_note_headers_elf
+ 		return rc;
+ 
+ 	*notes_sz = roundup(phdr_sz, PAGE_SIZE);
+-	*notes_buf = vzalloc(*notes_sz);
++	*notes_buf = alloc_elfnotes_buf(*notes_sz);
+ 	if (!*notes_buf)
+ 		return -ENOMEM;
+ 
+-	/*
+-	 * Allow users to remap ELF note segment buffer on vmalloc memory using
+-	 * remap_vmalloc_range.()
+-	 */
+-	vm = find_vm_area(*notes_buf);
+-	BUG_ON(!vm);
+-	vm->flags |= VM_USERMAP;
+-
+ 	rc = copy_notes_elf64(ehdr_ptr, *notes_buf);
+ 	if (rc < 0)
+ 		return rc;
+@@ -615,7 +641,6 @@ static int __init merge_note_headers_elf
+ 	Elf32_Ehdr *ehdr_ptr;
+ 	Elf32_Phdr phdr;
+ 	u64 phdr_sz = 0, note_off;
+-	struct vm_struct *vm;
+ 
+ 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
+ 
+@@ -628,18 +653,10 @@ static int __init merge_note_headers_elf
+ 		return rc;
+ 
+ 	*notes_sz = roundup(phdr_sz, PAGE_SIZE);
+-	*notes_buf = vzalloc(*notes_sz);
++	*notes_buf = alloc_elfnotes_buf(*notes_sz);
+ 	if (!*notes_buf)
+ 		return -ENOMEM;
+ 
+-	/*
+-	 * Allow users to remap ELF note segment buffer on vmalloc memory using
+-	 * remap_vmalloc_range()
+-	 */
+-	vm = find_vm_area(*notes_buf);
+-	BUG_ON(!vm);
+-	vm->flags |= VM_USERMAP;
