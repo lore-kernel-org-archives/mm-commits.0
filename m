@@ -1,38 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
- removed from -mm tree
-Date: Wed, 03 Jul 2013 14:29:39 -0700
-Message-ID: <51d497c3.LN1Cea6H7dFC857c%akpm@linux-foundation.org>
+ vmalloc-introduce-remap_vmalloc_range_partial-fix.patch removed from -mm
+ tree
+Date: Wed, 03 Jul 2013 14:30:28 -0700
+Message-ID: <51d497f4.AQmroqlJcZ1wfJqP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39997 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395Ab3GCV3k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:29:40 -0400
+	with ESMTP id S1753622Ab3GCVa3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:30:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch removed from -mm tree
+Subject: [folded-merged] vmalloc-introduce-remap_vmalloc_range_partial-fix.patch removed from -mm tree
 To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:29:39 -0700
+Date: Wed, 03 Jul 2013 14:30:28 -0700
 
 
 The patch titled
-     Subject: vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix
+     Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
 has been removed from the -mm tree.  Its filename was
-     vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
+     vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
 
-This patch was dropped because it was folded into vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
+This patch was dropped because it was folded into vmalloc-introduce-remap_vmalloc_range_partial.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix
+Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
+
+use PAGE_ALIGNED()
 
 Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
 Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
@@ -43,131 +45,35 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   69 ++++++++++++++++++++-------------------------
- 1 file changed, 31 insertions(+), 38 deletions(-)
+ mm/vmalloc.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix
-+++ a/fs/proc/vmcore.c
-@@ -477,6 +477,12 @@ static void __init set_vmcore_list_offse
- 	}
- }
+diff -puN mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix
++++ a/mm/vmalloc.c
+@@ -1476,10 +1476,9 @@ static void __vunmap(const void *addr, i
+ 	if (!addr)
+ 		return;
  
-+static void free_elfcorebuf(void)
-+{
-+	free_pages((unsigned long)elfcorebuf, get_order(elfcorebuf_sz_orig));
-+	elfcorebuf = NULL;
-+}
-+
- static int __init parse_crash_elf64_headers(void)
- {
- 	int rc=0;
-@@ -505,36 +511,31 @@ static int __init parse_crash_elf64_head
- 	}
+-	if ((PAGE_SIZE-1) & (unsigned long)addr) {
+-		WARN(1, KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
++	if (WARN(!PAGE_ALIGNED(addr), "Trying to vfree() bad address (%p)\n",
++			addr));
+ 		return;
+-	}
  
- 	/* Read in all elf headers. */
--	elfcorebuf_sz_orig = sizeof(Elf64_Ehdr) + ehdr.e_phnum * sizeof(Elf64_Phdr);
-+	elfcorebuf_sz_orig = sizeof(Elf64_Ehdr) +
-+				ehdr.e_phnum * sizeof(Elf64_Phdr);
- 	elfcorebuf_sz = elfcorebuf_sz_orig;
--	elfcorebuf = (void *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
--					       get_order(elfcorebuf_sz_orig));
-+	elfcorebuf = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
-+					      get_order(elfcorebuf_sz_orig));
- 	if (!elfcorebuf)
- 		return -ENOMEM;
- 	addr = elfcorehdr_addr;
- 	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz_orig, &addr, 0);
--	if (rc < 0) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc < 0)
-+		goto fail;
+ 	area = remove_vm_area(addr);
+ 	if (unlikely(!area)) {
+@@ -2170,8 +2169,7 @@ int remap_vmalloc_range_partial(struct v
  
- 	/* Merge all PT_NOTE headers into one. */
- 	rc = merge_note_headers_elf64(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	rc = process_ptload_program_headers_elf64(elfcorebuf, elfcorebuf_sz,
- 							&vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
- 	return 0;
-+fail:
-+	free_elfcorebuf();
-+	return rc;
- }
+ 	size = PAGE_ALIGN(size);
  
- static int __init parse_crash_elf32_headers(void)
-@@ -567,34 +568,28 @@ static int __init parse_crash_elf32_head
- 	/* Read in all elf headers. */
- 	elfcorebuf_sz_orig = sizeof(Elf32_Ehdr) + ehdr.e_phnum * sizeof(Elf32_Phdr);
- 	elfcorebuf_sz = elfcorebuf_sz_orig;
--	elfcorebuf = (void *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
--					       get_order(elfcorebuf_sz_orig));
-+	elfcorebuf = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
-+					      get_order(elfcorebuf_sz_orig));
- 	if (!elfcorebuf)
- 		return -ENOMEM;
- 	addr = elfcorehdr_addr;
- 	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz_orig, &addr, 0);
--	if (rc < 0) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc < 0)
-+		goto fail;
+-	if (((PAGE_SIZE-1) & (unsigned long)uaddr) ||
+-	    ((PAGE_SIZE-1) & (unsigned long)kaddr))
++	if (!PAGE_ALIGNED(uaddr) || !PAGE_ALIGNED(kaddr))
+ 		return -EINVAL;
  
- 	/* Merge all PT_NOTE headers into one. */
- 	rc = merge_note_headers_elf32(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	rc = process_ptload_program_headers_elf32(elfcorebuf, elfcorebuf_sz,
- 								&vmcore_list);
--	if (rc) {
--		free_pages((unsigned long)elfcorebuf,
--			   get_order(elfcorebuf_sz_orig));
--		return rc;
--	}
-+	if (rc)
-+		goto fail;
- 	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
- 	return 0;
-+fail:
-+	free_elfcorebuf();
-+	return rc;
- }
- 
- static int __init parse_crash_elf_headers(void)
-@@ -672,8 +667,6 @@ void vmcore_cleanup(void)
- 		list_del(&m->list);
- 		kfree(m);
- 	}
--	free_pages((unsigned long)elfcorebuf,
--		   get_order(elfcorebuf_sz_orig));
--	elfcorebuf = NULL;
-+	free_elfcorebuf();
- }
- EXPORT_SYMBOL_GPL(vmcore_cleanup);
+ 	area = find_vm_area(kaddr);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -184,7 +90,7 @@ mm-remove-compressed-copy-from-zram-in-memory.patch
 memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
 include-linux-mmh-add-page_aligned-helper.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+vmalloc-introduce-remap_vmalloc_range_partial.patch
 vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
 vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
