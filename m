@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-perform-i-o-completions-in-parallel-v2.patch added to -mm
- tree
-Date: Tue, 02 Jul 2013 19:55:02 -0700
-Message-ID: <51d39286.o7yYwkGGlpHHo3FM%akpm@linux-foundation.org>
+Subject: +
+ memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix.patch added to
+ -mm tree
+Date: Wed, 03 Jul 2013 11:05:35 -0700
+Message-ID: <51d467ef.hrca3qjmKPAS3Jpy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33029 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38580 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691Ab3GCCzE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jul 2013 22:55:04 -0400
+	with ESMTP id S932575Ab3GCSFe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 14:05:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ecashin@coraid.com
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, sedat.dilek@gmail.com, mhocko@suse.cz, fengguang.wu@intel.com, lizefan@huawei.com
 
-Subject: + aoe-perform-i-o-completions-in-parallel-v2.patch added to -mm tree
-To: ecashin@coraid.com
+Subject: + memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix.patch added to -mm tree
+To: lizefan@huawei.com,fengguang.wu@intel.com,mhocko@suse.cz,sedat.dilek@gmail.com,sfr@canb.auug.org.au
 From: akpm@linux-foundation.org
-Date: Tue, 02 Jul 2013 19:54:59 -0700
+Date: Wed, 03 Jul 2013 11:05:32 -0700
 
 
 The patch titled
-     Subject: aoe-perform-i-o-completions-in-parallel-v2
+     Subject: memcg: fix build error if CONFIG_MEMCG_KMEM=n
 has been added to the -mm tree.  Its filename is
-     aoe-perform-i-o-completions-in-parallel-v2.patch
+     memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +40,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe-perform-i-o-completions-in-parallel-v2
+From: Li Zefan <lizefan@huawei.com>
+Subject: memcg: fix build error if CONFIG_MEMCG_KMEM=n
 
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Fix this build error:
+
+mm/built-in.o: In function `mem_cgroup_css_free':
+memcontrol.c:(.text+0x5caa6): undefined reference to 'mem_cgroup_sockets_destroy'
+
+Maybe it's better to add memcg_destroy_kmem(), to pair with memcg_init_kmem().
+
+This patch can be folded into "memcg: use css_get/put when charging/uncharging kmem".
+
+Rename the patch as it is a follow-up for the mmotm tree:
+"memcg-use-css_get-put-when-charging-uncharging-kmem-fix-2.patch"
+
+See [1] for the original patch and follow the discussion in [2].
+
+[1] http://marc.info/?l=linux-mm&m=137285590123430&w=2
+[2] http://marc.info/?t=137285378500005&r=1&w=2
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-perform-i-o-completions-in-parallel-v2 drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-perform-i-o-completions-in-parallel-v2
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -35,9 +35,12 @@ module_param(aoe_maxout, int, 0644);
- MODULE_PARM_DESC(aoe_maxout,
- 	"Only aoe_maxout outstanding packets for every MAC on eX.Y.");
+diff -puN mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix
++++ a/mm/memcontrol.c
+@@ -5916,6 +5916,11 @@ static int memcg_init_kmem(struct mem_cg
+ 	return mem_cgroup_sockets_init(memcg, ss);
+ }
  
--/* The number of online cpus in the system,
-- * this dictates the number of ktio threads
-- * which will be spawned.
-+/* The number of online cpus during module initialization gives us a
-+ * convenient heuristic cap on the parallelism used for ktio threads
-+ * doing I/O completion.  It is not important that the cap equal the
-+ * actual number of running CPUs at any given time, but because of CPU
-+ * hotplug, we take care to use ncpus instead of using
-+ * num_online_cpus() after module initialization.
-  */
- static int ncpus;
++static void memcg_destroy_kmem(struct mem_cgroup *memcg)
++{
++	mem_cgroup_sockets_destroy(memcg);
++}
++
+ static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
+ {
+ 	if (!memcg_kmem_is_active(memcg))
+@@ -5955,6 +5960,10 @@ static int memcg_init_kmem(struct mem_cg
+ 	return 0;
+ }
  
-@@ -1792,10 +1795,6 @@ aoecmd_init(void)
- 		return -ENOMEM;
- 	empty_page = virt_to_page(p);
++static void memcg_destroy_kmem(struct mem_cgroup *memcg)
++{
++}
++
+ static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
+ {
+ }
+@@ -6399,8 +6408,7 @@ static void mem_cgroup_css_free(struct c
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
  
+-	mem_cgroup_sockets_destroy(memcg);
