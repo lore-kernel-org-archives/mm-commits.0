@@ -1,68 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-timerc-fix-jiffies-wrap-behavior-of-round_jiffies.patch removed from -mm tree
-Date: Wed, 03 Jul 2013 12:32:21 -0700
-Message-ID: <51d47c45.Mwbyo35NMD+wFzyt%akpm@linux-foundation.org>
+ virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated.patch
+ removed from -mm tree
+Date: Wed, 03 Jul 2013 12:32:23 -0700
+Message-ID: <51d47c47.Asyjo5F9zMLNX08s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39229 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39235 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965294Ab3GCTcW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 15:32:22 -0400
+	with ESMTP id S965294Ab3GCTcY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 15:32:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, sfr@canb.auug.org.au, bvanassche@acm.org, arjan@infradead.org, bart.vanassche@gmail.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, aquini@redhat.com, lcapitulino@redhat.com
 
-Subject: [merged] kernel-timerc-fix-jiffies-wrap-behavior-of-round_jiffies.patch removed from -mm tree
-To: bart.vanassche@gmail.com,arjan@infradead.org,bvanassche@acm.org,sfr@canb.auug.org.au,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [merged] virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated.patch removed from -mm tree
+To: lcapitulino@redhat.com,aquini@redhat.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 12:32:21 -0700
+Date: Wed, 03 Jul 2013 12:32:23 -0700
 
 
 The patch titled
-     Subject: kernel/timer.c: fix jiffies wrap behavior of round_jiffies*()
+     Subject: virtio_balloon: leak_balloon(): only tell host if we got pages deflated
 has been removed from the -mm tree.  Its filename was
-     kernel-timerc-fix-jiffies-wrap-behavior-of-round_jiffies.patch
+     virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bart Van Assche <bart.vanassche@gmail.com>
-Subject: kernel/timer.c: fix jiffies wrap behavior of round_jiffies*()
+From: Luiz Capitulino <lcapitulino@redhat.com>
+Subject: virtio_balloon: leak_balloon(): only tell host if we got pages deflated
 
-Make sure that the round_jiffies*() functions return a time that is
-in the future when the jiffies counter has recently wrapped.
+balloon_page_dequeue() can return NULL.  If it does for the first page
+being freed then leak_balloon() will create a scatter list with len=0. 
+Which in turn seems to generate an invalid virtio request.
 
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+I didn't get this in practice, I found it by code review.  On the other
+hand, such an invalid virtio request will cause errors in QEMU and
+fill_balloon() also performs the same check implemented by this commit.
+
+Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/virtio/virtio_balloon.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~kernel-timerc-fix-jiffies-wrap-behavior-of-round_jiffies kernel/timer.c
---- a/kernel/timer.c~kernel-timerc-fix-jiffies-wrap-behavior-of-round_jiffies
-+++ a/kernel/timer.c
-@@ -149,9 +149,7 @@ static unsigned long round_jiffies_commo
- 	/* now that we have rounded, subtract the extra skew again */
- 	j -= cpu * 3;
- 
--	if (j <= jiffies) /* rounding ate our timeout entirely; */
--		return original;
--	return j;
-+	return time_is_after_jiffies(j) ? j : original;
+diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-leak_balloon-only-tell-host-if-we-got-pages-deflated
++++ a/drivers/virtio/virtio_balloon.c
+@@ -191,7 +191,8 @@ static void leak_balloon(struct virtio_b
+ 	 * virtio_has_feature(vdev, VIRTIO_BALLOON_F_MUST_TELL_HOST);
+ 	 * is true, we *have* to do it in this order
+ 	 */
+-	tell_host(vb, vb->deflate_vq);
++	if (vb->num_pfns != 0)
++		tell_host(vb, vb->deflate_vq);
+ 	mutex_unlock(&vb->balloon_lock);
+ 	release_pages_by_pfn(vb->pfns, vb->num_pfns);
  }
- 
- /**
 _
 
-Patches currently in -mm which might be from bart.vanassche@gmail.com are
+Patches currently in -mm which might be from lcapitulino@redhat.com are
 
 linux-next.patch
 
