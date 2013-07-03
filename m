@@ -1,85 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch removed from -mm tree
-Date: Wed, 03 Jul 2013 14:22:26 -0700
-Message-ID: <51d49612.KHL4oHHHm/19IeYF%akpm@linux-foundation.org>
+ ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch removed
+ from -mm tree
+Date: Wed, 03 Jul 2013 14:23:15 -0700
+Message-ID: <51d49643.nLHA7ue+Fys3y+Eu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39839 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933142Ab3GCVW1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:22:27 -0400
+	with ESMTP id S933142Ab3GCVXQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:23:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younger.liu@huawei.com, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tm@tao.ma, sunil.mushran@gmail.com, srinivas.eeda@oracle.com, n_iwamatsu@jp.fujitsu.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, gurudas.pai@oracle.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com,younger.liu@huawei.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,gurudas.pai@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,n_iwamatsu@jp.fujitsu.com,srinivas.eeda@oracle.com,sunil.mushran@gmail.com,tm@tao.ma,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:22:26 -0700
+Date: Wed, 03 Jul 2013 14:23:15 -0700
 
 
 The patch titled
-     Subject: ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix
+     Subject: ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix.patch
+     ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch
 
-This patch was dropped because it was folded into ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
+This patch was dropped because it was folded into ocfs2-adjust-switch_case-syntax-at-o2net_state_change.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix
+Subject: ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
 
-cleanups
-
-Cc: Jensen <shencanquan@huawei.com>
+Cc: Gurudas Pai <gurudas.pai@oracle.com>
 Cc: Jie Liu <jeff.liu@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Noboru Iwamatsu <n_iwamatsu@jp.fujitsu.com>
+Cc: Srinivas Eeeda <srinivas.eeda@oracle.com>
 Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Younger Liu <younger.liu@huawei.com>
+Cc: Tao Ma <tm@tao.ma>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/ocfs2/cluster/tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink-fix
-+++ a/fs/ocfs2/namei.c
-@@ -790,7 +790,8 @@ static int ocfs2_unlink(struct inode *di
- 			struct dentry *dentry)
- {
- 	int status;
--	int child_locked = 0, is_unlinkable = 0;
-+	int child_locked = 0;
-+	bool is_unlinkable = false;
- 	struct inode *inode = dentry->d_inode;
- 	struct inode *orphan_dir = NULL;
- 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
-@@ -873,7 +874,7 @@ static int ocfs2_unlink(struct inode *di
- 			mlog_errno(status);
- 			goto leave;
- 		}
--		is_unlinkable = 1;
-+		is_unlinkable = true;
- 	}
- 
- 	handle = ocfs2_start_trans(osb, ocfs2_unlink_credits(osb->sb));
-@@ -919,8 +920,8 @@ static int ocfs2_unlink(struct inode *di
- 	}
- 
- 	if (is_unlinkable) {
--		status = ocfs2_orphan_add(osb, handle, inode, fe_bh, orphan_name,
--					  &orphan_insert, orphan_dir);
-+		status = ocfs2_orphan_add(osb, handle, inode, fe_bh,
-+				orphan_name, &orphan_insert, orphan_dir);
- 		if (status < 0)
- 			mlog_errno(status);
- 	}
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -641,7 +641,7 @@ static void o2net_state_change(struct so
+ 		o2net_sc_queue_work(sc, &sc->sc_connect_work);
+ 		break;
+ 	default:
+-		pr_info(KERN_INFO "o2net: Connection to " SC_NODEF_FMT
++		printk(KERN_INFO "o2net: Connection to " SC_NODEF_FMT
+ 			" shutdown, state %d\n",
+ 			SC_NODEF_ARGS(sc), sk->sk_state);
+ 		o2net_sc_queue_work(sc, &sc->sc_shutdown_work);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,7 +70,7 @@ sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 ocfs2-xattr-remove-useless-free-space-checking.patch
 ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
 ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
-ocfs2-adjust-switch_case-syntax-at-o2net_state_change-fix.patch
+ocfs2-adjust-switch_case-syntax-at-o2net_state_change.patch
 clear_refs-sanitize-accepted-commands-declaration.patch
 mm-remove-compressed-copy-from-zram-in-memory-fix.patch
 mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
