@@ -1,46 +1,51 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- drivers-dma-remove-unused-support-for-memset-operations-v3.patch removed
- from -mm tree
-Date: Wed, 03 Jul 2013 14:38:30 -0700
-Message-ID: <51d499d6.xhjn1/aV5i8Mh1M0%akpm@linux-foundation.org>
+ drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
+ removed from -mm tree
+Date: Wed, 03 Jul 2013 14:38:33 -0700
+Message-ID: <51d499d9.Lr5UumPgvdKx9AOB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693Ab3GCVib (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:38:31 -0400
+	with ESMTP id S1752082Ab3GCVie (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:38:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vinod.koul@intel.com, t.figa@samsung.com, olof@lixom.net, kyungmin.park@samsung.com, khilman@linaro.org, herbert@gondor.apana.org.au, djbw@fb.com, b.zolnierkie@samsung.com
+To: mm-commits@vger.kernel.org, vinod.koul@intel.com, t.figa@samsung.com, olof@lixom.net, kyungmin.park@samsung.com, khilman@linaro.org, jason@lakedaemon.net, herbert@gondor.apana.org.au, djbw@fb.com, b.zolnierkie@samsung.com, sebastian.hesselbarth@gmail.com
 
-Subject: [folded-merged] drivers-dma-remove-unused-support-for-memset-operations-v3.patch removed from -mm tree
-To: b.zolnierkie@samsung.com,djbw@fb.com,herbert@gondor.apana.org.au,khilman@linaro.org,kyungmin.park@samsung.com,olof@lixom.net,t.figa@samsung.com,vinod.koul@intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch removed from -mm tree
+To: sebastian.hesselbarth@gmail.com,b.zolnierkie@samsung.com,djbw@fb.com,herbert@gondor.apana.org.au,jason@lakedaemon.net,khilman@linaro.org,kyungmin.park@samsung.com,olof@lixom.net,t.figa@samsung.com,vinod.koul@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:38:30 -0700
+Date: Wed, 03 Jul 2013 14:38:33 -0700
 
 
 The patch titled
-     Subject: drivers-dma-remove-unused-support-for-memset-operations-v3
+     Subject: drivers-dma-remove-unused-support-for-memset-operations-v3-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-dma-remove-unused-support-for-memset-operations-v3.patch
+     drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
 
 This patch was dropped because it was folded into drivers-dma-remove-unused-support-for-memset-operations.patch
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: drivers-dma-remove-unused-support-for-memset-operations-v3
+From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Subject: drivers-dma-remove-unused-support-for-memset-operations-v3-fix
 
-This is an old patch that I ported to current kernels.  I fixed rejects
-and verified that it compiles for cases that hit rejects but unfortunately
-I forgot to check for new code related to DMA_MEMSET functionality. 
-Fortunately it seems that the problematic places are in
-plat-orion/common.c and mv_xor.c.  They are fixed in the attached patch.
+Commit 834cbfe ("drivers/dma: remove unused support for MEMSET operations")
+removes MEMSET from dmaengine but does not completely removes it from
+drivers/dma/mv_xor.
 
+This also fixes some compiler warnings about now obsolete functions by
+removing those.
+
+[bzolnier: splitted off changes from bigger patch]
+Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Vinod Koul <vinod.koul@intel.com>
 Cc: Dan Williams <djbw@fb.com>
@@ -51,45 +56,40 @@ Cc: Kevin Hilman <khilman@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-orion/common.c |    5 -----
- drivers/dma/mv_xor.c         |    2 --
- 2 files changed, 7 deletions(-)
+ drivers/dma/mv_xor.c |   23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
 
-diff -puN arch/arm/plat-orion/common.c~drivers-dma-remove-unused-support-for-memset-operations-v3 arch/arm/plat-orion/common.c
---- a/arch/arm/plat-orion/common.c~drivers-dma-remove-unused-support-for-memset-operations-v3
-+++ a/arch/arm/plat-orion/common.c
-@@ -727,14 +727,9 @@ void __init orion_xor1_init(unsigned lon
- 	orion_xor1_shared_resources[3].start = irq_1;
- 	orion_xor1_shared_resources[3].end = irq_1;
- 
--	/*
--	 * two engines can't do memset simultaneously, this limitation
--	 * satisfied by removing memset support from one of the engines.
--	 */
- 	dma_cap_set(DMA_MEMCPY, orion_xor1_channels_data[0].cap_mask);
- 	dma_cap_set(DMA_XOR, orion_xor1_channels_data[0].cap_mask);
- 
--	dma_cap_set(DMA_MEMSET, orion_xor1_channels_data[1].cap_mask);
- 	dma_cap_set(DMA_MEMCPY, orion_xor1_channels_data[1].cap_mask);
- 	dma_cap_set(DMA_XOR, orion_xor1_channels_data[1].cap_mask);
- 
-diff -puN drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3 drivers/dma/mv_xor.c
---- a/drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3
+diff -puN drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3-fix drivers/dma/mv_xor.c
+--- a/drivers/dma/mv_xor.c~drivers-dma-remove-unused-support-for-memset-operations-v3-fix
 +++ a/drivers/dma/mv_xor.c
-@@ -1244,8 +1244,6 @@ static int mv_xor_probe(struct platform_
- 				dma_cap_set(DMA_MEMCPY, cap_mask);
- 			if (of_property_read_bool(np, "dmacap,xor"))
- 				dma_cap_set(DMA_XOR, cap_mask);
--			if (of_property_read_bool(np, "dmacap,memset"))
--				dma_cap_set(DMA_MEMSET, cap_mask);
- 			if (of_property_read_bool(np, "dmacap,interrupt"))
- 				dma_cap_set(DMA_INTERRUPT, cap_mask);
+@@ -89,11 +89,6 @@ static void mv_desc_clear_next_desc(stru
+ 	hw_desc->phy_next_desc = 0;
+ }
  
-_
-
-Patches currently in -mm which might be from b.zolnierkie@samsung.com are
-
-drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources.patch
-drivers-dma-remove-unused-support-for-memset-operations.patch
-drivers-dma-remove-unused-support-for-memset-operations-v3-fix.patch
-
+-static void mv_desc_set_block_fill_val(struct mv_xor_desc_slot *desc, u32 val)
+-{
+-	desc->value = val;
+-}
+-
+ static void mv_desc_set_dest_addr(struct mv_xor_desc_slot *desc,
+ 				  dma_addr_t addr)
+ {
+@@ -128,22 +123,6 @@ static void mv_chan_set_next_descriptor(
+ 	__raw_writel(next_desc_addr, XOR_NEXT_DESC(chan));
+ }
+ 
+-static void mv_chan_set_dest_pointer(struct mv_xor_chan *chan, u32 desc_addr)
+-{
+-	__raw_writel(desc_addr, XOR_DEST_POINTER(chan));
+-}
+-
+-static void mv_chan_set_block_size(struct mv_xor_chan *chan, u32 block_size)
+-{
+-	__raw_writel(block_size, XOR_BLOCK_SIZE(chan));
+-}
+-
+-static void mv_chan_set_value(struct mv_xor_chan *chan, u32 value)
+-{
+-	__raw_writel(value, XOR_INIT_VALUE_LOW(chan));
+-	__raw_writel(value, XOR_INIT_VALUE_HIGH(chan));
+-}
