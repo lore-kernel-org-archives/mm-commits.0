@@ -1,39 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch removed from -mm tree
-Date: Wed, 03 Jul 2013 14:30:51 -0700
-Message-ID: <51d4980b.e7dxp851Bt9fnMhn%akpm@linux-foundation.org>
+ vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+ removed from -mm tree
+Date: Wed, 03 Jul 2013 14:31:11 -0700
+Message-ID: <51d4981f.KBdIEBFRTjP/5Egm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932962Ab3GCVaw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:30:52 -0400
+	with ESMTP id S933044Ab3GCVbM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:31:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch removed from -mm tree
+Subject: [folded-merged] vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch removed from -mm tree
 To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:30:51 -0700
+Date: Wed, 03 Jul 2013 14:31:11 -0700
 
 
 The patch titled
-     Subject: vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
+     Subject: vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix
 has been removed from the -mm tree.  Its filename was
-     vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+     vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
 
-This patch was dropped because it was folded into vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
+This patch was dropped because it was folded into vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
+Subject: vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix
 
-use min(), fix error-path vzalloc() leaks
+use the conventional comment layout format
 
 Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
 Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
@@ -44,63 +45,38 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ fs/proc/vmcore.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
+diff -puN fs/proc/vmcore.c~vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix
 +++ a/fs/proc/vmcore.c
-@@ -142,9 +142,7 @@ static ssize_t read_vmcore(struct file *
+@@ -386,8 +386,10 @@ static int __init merge_note_headers_elf
+ 	if (!*notes_buf)
+ 		return -ENOMEM;
  
- 	/* Read ELF core header */
- 	if (*fpos < elfcorebuf_sz) {
--		tsz = elfcorebuf_sz - *fpos;
--		if (buflen < tsz)
--			tsz = buflen;
-+		tsz = min(elfcorebuf_sz - (size_t)*fpos, buflen);
- 		if (copy_to_user(buffer, elfcorebuf + *fpos, tsz))
- 			return -EFAULT;
- 		buflen -= tsz;
-@@ -161,9 +159,7 @@ static ssize_t read_vmcore(struct file *
- 	if (*fpos < elfcorebuf_sz + elfnotes_sz) {
- 		void *kaddr;
+-	/* Allow users to remap ELF note segment buffer on vmalloc
+-	 * memory using remap_vmalloc_range. */
++	/*
++	 * Allow users to remap ELF note segment buffer on vmalloc memory using
++	 * remap_vmalloc_range.()
++	 */
+ 	vm = find_vm_area(*notes_buf);
+ 	BUG_ON(!vm);
+ 	vm->flags |= VM_USERMAP;
+@@ -572,8 +574,10 @@ static int __init merge_note_headers_elf
+ 	if (!*notes_buf)
+ 		return -ENOMEM;
  
--		tsz = elfcorebuf_sz + elfnotes_sz - *fpos;
--		if (buflen < tsz)
--			tsz = buflen;
-+		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)*fpos, buflen);
- 		kaddr = elfnotes_buf + *fpos - elfcorebuf_sz;
- 		if (copy_to_user(buffer, kaddr, tsz))
- 			return -EFAULT;
-@@ -179,9 +175,7 @@ static ssize_t read_vmcore(struct file *
- 
- 	list_for_each_entry(m, &vmcore_list, list) {
- 		if (*fpos < m->offset + m->size) {
--			tsz = m->offset + m->size - *fpos;
--			if (buflen < tsz)
--				tsz = buflen;
-+			tsz = min_t(size_t, m->offset + m->size - *fpos, buflen);
- 			start = m->paddr + *fpos - m->offset;
- 			tmp = read_from_oldmem(buffer, tsz, &start, 1);
- 			if (tmp < 0)
-@@ -710,6 +704,8 @@ static void free_elfcorebuf(void)
- {
- 	free_pages((unsigned long)elfcorebuf, get_order(elfcorebuf_sz_orig));
- 	elfcorebuf = NULL;
-+	vfree(elfnotes_buf);
-+	elfnotes_buf = NULL;
- }
- 
- static int __init parse_crash_elf64_headers(void)
-@@ -898,8 +894,6 @@ void vmcore_cleanup(void)
- 		list_del(&m->list);
- 		kfree(m);
- 	}
--	vfree(elfnotes_buf);
--	elfnotes_buf = NULL;
- 	free_elfcorebuf();
- }
- EXPORT_SYMBOL_GPL(vmcore_cleanup);
+-	/* Allow users to remap ELF note segment buffer on vmalloc
+-	 * memory using remap_vmalloc_range. */
++	/*
++	 * Allow users to remap ELF note segment buffer on vmalloc memory using
++	 * remap_vmalloc_range()
++	 */
+ 	vm = find_vm_area(*notes_buf);
+ 	BUG_ON(!vm);
+ 	vm->flags |= VM_USERMAP;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,7 +95,7 @@ include-linux-mmh-add-page_aligned-helper.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
 vmalloc-introduce-remap_vmalloc_range_partial.patch
 vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
+vmcore-allow-user-process-to-remap-elf-note-segment-buffer.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
 mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
