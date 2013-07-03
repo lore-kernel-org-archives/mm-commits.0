@@ -1,40 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- vmalloc-introduce-remap_vmalloc_range_partial-fix.patch removed from -mm
- tree
-Date: Wed, 03 Jul 2013 14:30:28 -0700
-Message-ID: <51d497f4.AQmroqlJcZ1wfJqP%akpm@linux-foundation.org>
+ vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch removed from -mm tree
+Date: Wed, 03 Jul 2013 14:30:51 -0700
+Message-ID: <51d4980b.e7dxp851Bt9fnMhn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753622Ab3GCVa3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:30:29 -0400
+	with ESMTP id S932962Ab3GCVaw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:30:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] vmalloc-introduce-remap_vmalloc_range_partial-fix.patch removed from -mm tree
+Subject: [folded-merged] vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch removed from -mm tree
 To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:30:28 -0700
+Date: Wed, 03 Jul 2013 14:30:51 -0700
 
 
 The patch titled
-     Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
+     Subject: vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
 has been removed from the -mm tree.  Its filename was
-     vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
+     vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
 
-This patch was dropped because it was folded into vmalloc-introduce-remap_vmalloc_range_partial.patch
+This patch was dropped because it was folded into vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmalloc-introduce-remap_vmalloc_range_partial-fix
+Subject: vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
 
-use PAGE_ALIGNED()
+use min(), fix error-path vzalloc() leaks
 
 Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
 Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
@@ -45,35 +44,63 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/proc/vmcore.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-introduce-remap_vmalloc_range_partial-fix
-+++ a/mm/vmalloc.c
-@@ -1476,10 +1476,9 @@ static void __vunmap(const void *addr, i
- 	if (!addr)
- 		return;
+diff -puN fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix
++++ a/fs/proc/vmcore.c
+@@ -142,9 +142,7 @@ static ssize_t read_vmcore(struct file *
  
--	if ((PAGE_SIZE-1) & (unsigned long)addr) {
--		WARN(1, KERN_ERR "Trying to vfree() bad address (%p)\n", addr);
-+	if (WARN(!PAGE_ALIGNED(addr), "Trying to vfree() bad address (%p)\n",
-+			addr));
- 		return;
--	}
+ 	/* Read ELF core header */
+ 	if (*fpos < elfcorebuf_sz) {
+-		tsz = elfcorebuf_sz - *fpos;
+-		if (buflen < tsz)
+-			tsz = buflen;
++		tsz = min(elfcorebuf_sz - (size_t)*fpos, buflen);
+ 		if (copy_to_user(buffer, elfcorebuf + *fpos, tsz))
+ 			return -EFAULT;
+ 		buflen -= tsz;
+@@ -161,9 +159,7 @@ static ssize_t read_vmcore(struct file *
+ 	if (*fpos < elfcorebuf_sz + elfnotes_sz) {
+ 		void *kaddr;
  
- 	area = remove_vm_area(addr);
- 	if (unlikely(!area)) {
-@@ -2170,8 +2169,7 @@ int remap_vmalloc_range_partial(struct v
+-		tsz = elfcorebuf_sz + elfnotes_sz - *fpos;
+-		if (buflen < tsz)
+-			tsz = buflen;
++		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)*fpos, buflen);
+ 		kaddr = elfnotes_buf + *fpos - elfcorebuf_sz;
+ 		if (copy_to_user(buffer, kaddr, tsz))
+ 			return -EFAULT;
+@@ -179,9 +175,7 @@ static ssize_t read_vmcore(struct file *
  
- 	size = PAGE_ALIGN(size);
+ 	list_for_each_entry(m, &vmcore_list, list) {
+ 		if (*fpos < m->offset + m->size) {
+-			tsz = m->offset + m->size - *fpos;
+-			if (buflen < tsz)
+-				tsz = buflen;
++			tsz = min_t(size_t, m->offset + m->size - *fpos, buflen);
+ 			start = m->paddr + *fpos - m->offset;
+ 			tmp = read_from_oldmem(buffer, tsz, &start, 1);
+ 			if (tmp < 0)
+@@ -710,6 +704,8 @@ static void free_elfcorebuf(void)
+ {
+ 	free_pages((unsigned long)elfcorebuf, get_order(elfcorebuf_sz_orig));
+ 	elfcorebuf = NULL;
++	vfree(elfnotes_buf);
++	elfnotes_buf = NULL;
+ }
  
--	if (((PAGE_SIZE-1) & (unsigned long)uaddr) ||
--	    ((PAGE_SIZE-1) & (unsigned long)kaddr))
-+	if (!PAGE_ALIGNED(uaddr) || !PAGE_ALIGNED(kaddr))
- 		return -EINVAL;
- 
- 	area = find_vm_area(kaddr);
+ static int __init parse_crash_elf64_headers(void)
+@@ -898,8 +894,6 @@ void vmcore_cleanup(void)
+ 		list_del(&m->list);
+ 		kfree(m);
+ 	}
+-	vfree(elfnotes_buf);
+-	elfnotes_buf = NULL;
+ 	free_elfcorebuf();
+ }
+ EXPORT_SYMBOL_GPL(vmcore_cleanup);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,7 +118,7 @@ memory_hotplug-use-pgdat_resize_lock-in-__offline_pages.patch
 include-linux-mmh-add-page_aligned-helper.patch
 vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
 vmalloc-introduce-remap_vmalloc_range_partial.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
+vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
 vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
 vmcore-support-mmap-on-proc-vmcore-fix.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
