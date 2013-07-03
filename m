@@ -1,187 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch removed from
- -mm tree
-Date: Wed, 03 Jul 2013 14:24:36 -0700
-Message-ID: <51d49694.fyzNZI2UqsNEbiMQ%akpm@linux-foundation.org>
+ mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch removed from -mm tree
+Date: Wed, 03 Jul 2013 14:26:16 -0700
+Message-ID: <51d496f8.0Bj/wNM+NsfjnxQs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933247Ab3GCVYh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:24:37 -0400
+	with ESMTP id S1751064Ab3GCV0R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:26:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, shli@kernel.org, ngupta@vflare.org, minchan@kernel.org, konrad@darnok.org, hughd@google.com, dan.magenheimer@oracle.com, artem.savkov@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mgorman@suse.de
 
-Subject: [folded-merged] mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,artem.savkov@gmail.com,dan.magenheimer@oracle.com,hughd@google.com,konrad@darnok.org,minchan@kernel.org,ngupta@vflare.org,shli@kernel.org,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch removed from -mm tree
+To: mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:24:36 -0700
+Date: Wed, 03 Jul 2013 14:26:16 -0700
 
 
 The patch titled
-     Subject: mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix
+     Subject: mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix.patch
+     mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2.patch
 
-This patch was dropped because it was folded into mm-remove-compressed-copy-from-zram-in-memory.patch
+This patch was dropped because it was folded into mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2
 
-invert unlikely() test, augment comment, 80-col cleanup
+The patch "mm: vmscan: Block kswapd if it is encountering pages under
+writeback" stalls in congestion_wait it encounters a page under writeback
+that is marked for immediate reclaim.  Initially this was a
+wait_on_page_writeback() but after the switch to congestion_wait(), there
+is no guarantee the page has completed writeback and it can be placed on a
+list for freeing.
 
-Cc: Artem Savkov <artem.savkov@gmail.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Cc: Shaohua Li <shli@kernel.org>
+This is a fix for
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   83 +++++++++++++++++++++++++------------------------
- 1 file changed, 43 insertions(+), 40 deletions(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix mm/page_io.c
---- a/mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory-fix-2-fix
-+++ a/mm/page_io.c
-@@ -81,51 +81,54 @@ void end_swap_bio_read(struct bio *bio,
- 				imajor(bio->bi_bdev->bd_inode),
- 				iminor(bio->bi_bdev->bd_inode),
- 				(unsigned long long)bio->bi_sector);
--	} else {
--		SetPageUptodate(page);
-+		goto out;
-+	}
-+
-+	SetPageUptodate(page);
-+
-+	/*
-+	 * There is no guarantee that the page is in swap cache - the software
-+	 * suspend code (at least) uses end_swap_bio_read() against a non-
-+	 * swapcache page.  So we must check PG_swapcache before proceeding with
-+	 * this optimization.
-+	 */
-+	if (likely(PageSwapCache(page))) {
-+		struct swap_info_struct *sis;
-+
-+		sis = page_swap_info(page);
-+		if (sis->flags & SWP_BLKDEV) {
-+			/*
-+			 * The swap subsystem performs lazy swap slot freeing,
-+			 * expecting that the page will be swapped out again.
-+			 * So we can avoid an unnecessary write if the page
-+			 * isn't redirtied.
-+			 * This is good for real swap storage because we can
-+			 * reduce unnecessary I/O and enhance wear-leveling
-+			 * if an SSD is used as the as swap device.
-+			 * But if in-memory swap device (eg zram) is used,
-+			 * this causes a duplicated copy between uncompressed
-+			 * data in VM-owned memory and compressed data in
-+			 * zram-owned memory.  So let's free zram-owned memory
-+			 * and make the VM-owned decompressed page *dirty*,
-+			 * so the page should be swapped out somewhere again if
-+			 * we again wish to reclaim it.
-+			 */
-+			struct gendisk *disk = sis->bdev->bd_disk;
-+			if (disk->fops->swap_slot_free_notify) {
-+				swp_entry_t entry;
-+				unsigned long offset;
-+
-+				entry.val = page_private(page);
-+				offset = swp_offset(entry);
+diff -puN mm/vmscan.c~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2 mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback-fix-2
++++ a/mm/vmscan.c
+@@ -766,8 +766,10 @@ static unsigned long shrink_page_list(st
+ 			if (current_is_kswapd() &&
+ 			    PageReclaim(page) &&
+ 			    zone_is_reclaim_writeback(zone)) {
++				unlock_page(page);
+ 				congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 				zone_clear_flag(zone, ZONE_WRITEBACK);
++				goto keep;
  
--		/*
--		 * There is no guarantee that the page is in swap cache, so
--		 * we need to check PG_swapcache before proceeding with this
--		 * optimization.
--		 */
--		if (unlikely(PageSwapCache(page))) {
--			struct swap_info_struct *sis;
--
--			sis = page_swap_info(page);
--			if (sis->flags & SWP_BLKDEV) {
--				/*
--				 * The swap subsystem performs lazy swap slot freeing,
--				 * expecting that the page will be swapped out again.
--				 * So we can avoid an unnecessary write if the page
--				 * isn't redirtied.
--				 * This is good for real swap storage because we can
--				 * reduce unnecessary I/O and enhance wear-leveling
--				 * if an SSD is used as the as swap device.
--				 * But if in-memory swap device (eg zram) is used,
--				 * this causes a duplicated copy between uncompressed
--				 * data in VM-owned memory and compressed data in
--				 * zram-owned memory.  So let's free zram-owned memory
--				 * and make the VM-owned decompressed page *dirty*,
--				 * so the page should be swapped out somewhere again if
--				 * we again wish to reclaim it.
--				 */
--				struct gendisk *disk = sis->bdev->bd_disk;
--				if (disk->fops->swap_slot_free_notify) {
--					swp_entry_t entry;
--					unsigned long offset;
--
--					entry.val = page_private(page);
--					offset = swp_offset(entry);
--
--					SetPageDirty(page);
--					disk->fops->swap_slot_free_notify(sis->bdev,
--							offset);
--				}
-+				SetPageDirty(page);
-+				disk->fops->swap_slot_free_notify(sis->bdev,
-+						offset);
- 			}
- 		}
- 	}
- 
-+out:
- 	unlock_page(page);
- 	bio_put(bio);
- }
+ 			/* Case 2 above */
+ 			} else if (global_reclaim(sc) ||
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-sound-soc-codecs-si476xc-dont-use-0bnnn.patch
-ocfs2-xattr-remove-useless-free-space-checking.patch
-ocfs2-rework-transaction-rollback-in-ocfs2_relink_block_group-fix.patch
-ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
-ocfs2-adjust-switch_case-syntax-at-o2net_state_change.patch
-clear_refs-sanitize-accepted-commands-declaration.patch
-mm-remove-compressed-copy-from-zram-in-memory.patch
-memory_hotplug-use-pgdat_resize_lock-in-__offline_pages-fix.patch
-include-linux-mmh-add-page_aligned-helper.patch
-vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment-fix.patch
-vmalloc-introduce-remap_vmalloc_range_partial-fix.patch
-vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory-fix.patch
-vmcore-allow-user-process-to-remap-elf-note-segment-buffer-fix.patch
-vmcore-support-mmap-on-proc-vmcore-fix.patch
+mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch
+mm-page_alloc-prevent-concurrent-updaters-of-pcp-batch-and-high.patch
+mm-page_alloc-insert-memory-barriers-to-allow-async-update-of-pcp-batch-and-high.patch
+mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
+mm-page_alloc-convert-zone_pcp_update-to-rely-on-memory-barriers-instead-of-stop_machine.patch
+mm-page_alloc-when-handling-percpu_pagelist_fraction-dont-unneedly-recalulate-high.patch
+mm-page_alloc-factor-setup_pageset-into-pageset_init-and-pageset_set_batch.patch
+mm-page_alloc-relocate-comment-to-be-directly-above-code-it-refers-to.patch
+mm-page_alloc-factor-zone_pageset_init-out-of-setup_zone_pageset.patch
+mm-page_alloc-in-zone_pcp_update-uze-zone_pageset_init.patch
+mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch
+mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
+mm-vmscan-obey-proportional-scanning-requirements-for-kswapd.patch
+mm-vmscan-flatten-kswapd-priority-loop.patch
+mm-vmscan-decide-whether-to-compact-the-pgdat-based-on-reclaim-progress.patch
+mm-vmscan-do-not-allow-kswapd-to-scan-at-maximum-priority.patch
+mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
+mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+mm-vmscan-check-if-kswapd-should-writepage-once-per-pgdat-scan.patch
+mm-vmscan-move-logic-from-balance_pgdat-to-kswapd_shrink_zone.patch
+mm-vmscan-stall-page-reclaim-and-writeback-pages-based-on-dirty-writepage-pages-encountered-v3.patch
+mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
+mm-vmscan-set-zone-flags-before-blocking.patch
+mm-vmscan-move-direct-reclaim-wait_iff_congested-into-shrink_list.patch
+mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
+mm-vmscan-take-page-buffers-dirty-and-locked-state-into-account-v3.patch
+fs-nfs-inform-the-vm-about-pages-being-committed-or-unstable.patch
+mm-add-tracepoints-for-lru-activation-and-insertions.patch
+mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
+mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
+mm-remove-lru-parameter-from-__pagevec_lru_add-and-remove-parts-of-pagevec-api.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
-mm-tune-vm_committed_as-percpu_counter-batching-size-fix.patch
-swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix.patch
-mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
-clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
-dump_stack-serialize-the-output-from-dump_stack-fix.patch
-checkpatch-warn-when-using-gccs-binary-constant-extension.patch
-rtc-add-nxp-pcf2127-support-i2c-fix.patch
-ptrace-add-ability-to-get-set-signal-blocked-mask-fix.patch
-dev-oldmem-remove-the-interface-fix.patch
-idr-print-a-stack-dump-after-ida_remove-warning-fix.patch
-documentation-accounting-getdelaysc-avoid-strncpy-in-accounting-tool-fix.patch
-drivers-w1-slaves-w1_ds2408c-add-magic-sequence-to-disable-p0-test-mode-fix.patch
-tools-testing-selftests-dont-assume-the-x-bit-is-set-on-scripts.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix.patch
+mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru-fix-2.patch
+mm-fix-the-tlb-range-flushed-when-__tlb_remove_page-runs-out-of-slots.patch
+mm-introduce-helper-function-mem_init_print_info-to-simplify-mem_init.patch
+mm-kill-global-variable-num_physpages.patch
+documentation-update-address_space_operations.patch
+documentation-document-the-is_dirty_writeback-aops-callback.patch
 
