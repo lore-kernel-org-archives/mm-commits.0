@@ -1,75 +1,58 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
- removed from -mm tree
-Date: Wed, 03 Jul 2013 14:34:21 -0700
-Message-ID: <51d498dd.3k42N23XC8KFiUK4%akpm@linux-foundation.org>
+ mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch removed from -mm tree
+Date: Wed, 03 Jul 2013 14:34:50 -0700
+Message-ID: <51d498fa.hHzrqm4u4SUxfOC2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40049 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932417Ab3GCVeW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:34:22 -0400
+	with ESMTP id S932417Ab3GCVev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jul 2013 17:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, aquini@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, liuj97@gmail.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,aquini@redhat.com,hughd@google.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,liuj97@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 03 Jul 2013 14:34:21 -0700
+Date: Wed, 03 Jul 2013 14:34:50 -0700
 
 
 The patch titled
-     Subject: swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix
+     Subject: mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix
 has been removed from the -mm tree.  Its filename was
-     swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix.patch
+     mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
 
-This patch was dropped because it was folded into swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
+This patch was dropped because it was folded into mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix
+Subject: mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix
 
-tweak comments
+Don't export adjust_managed_page_count to modules (for now)
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Jiang Liu <liuj97@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix mm/swapfile.c
---- a/mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages-fix
-+++ a/mm/swapfile.c
-@@ -2140,17 +2140,17 @@ SYSCALL_DEFINE2(swapon, const char __use
+diff -puN mm/page_alloc.c~mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix
++++ a/mm/page_alloc.c
+@@ -5216,7 +5216,6 @@ void adjust_managed_page_count(struct pa
+ 	totalram_pages += count;
+ 	spin_unlock(&managed_page_count_lock);
+ }
+-EXPORT_SYMBOL(adjust_managed_page_count);
  
- 		if ((swap_flags & SWAP_FLAG_DISCARD) && swap_discardable(p)) {
- 			/*
--			 * When discard is enabled for swap, with no particular
--			 * policy flagged, we set all swap discard flags here
--			 * in order to sustain backward compatibility with
--			 * older swapon(8) releases.
-+			 * When discard is enabled for swap with no particular
-+			 * policy flagged, we set all swap discard flags here in
-+			 * order to sustain backward compatibility with older
-+			 * swapon(8) releases.
- 			 */
- 			p->flags |= (SWP_DISCARDABLE | SWP_AREA_DISCARD |
- 				     SWP_PAGE_DISCARD);
- 
- 			/*
- 			 * By flagging sys_swapon, a sysadmin can tell us to
--			 * either do sinle-time area discards only, or to just
-+			 * either do single-time area discards only, or to just
- 			 * perform discards for released swap page-clusters.
- 			 * Now it's time to adjust the p->flags accordingly.
- 			 */
+ unsigned long free_reserved_area(void *start, void *end, int poison, char *s)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +76,7 @@ vmcore-support-mmap-on-proc-vmcore.patch
 mm-remove-lru-parameter-from-__lru_cache_add-and-lru_cache_add_lru.patch
 mm-tune-vm_committed_as-percpu_counter-batching-size.patch
 swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
-mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages-fix.patch
+mm-use-a-dedicated-lock-to-protect-totalram_pages-and-zone-managed_pages.patch
 mm-correctly-update-zone-managed_pages-fix.patch
 mm-correctly-update-zone-managed_pages-fix-fix-fix.patch
 clean-up-scary-strncpydst-src-strlensrc-uses-fix.patch
