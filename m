@@ -1,116 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exitc-unexport-__set_special_pids.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:35:59 -0700
-Message-ID: <51db149f.cxq3/Jl0mdb7+Tl/%akpm@linux-foundation.org>
+Subject: [merged] fs-execc-do_execve_common-use-current_user.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:36:13 -0700
+Message-ID: <51db14ad.X8hD8zhGP8To11US%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51593 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231Ab3GHTf7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:59 -0400
+	with ESMTP id S1753251Ab3GHTgN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, segoon@openwall.com, oleg@redhat.com
 
-Subject: [merged] exitc-unexport-__set_special_pids.patch removed from -mm tree
-To: oleg@redhat.com,ebiederm@xmission.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-execc-do_execve_common-use-current_user.patch removed from -mm tree
+To: oleg@redhat.com,segoon@openwall.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:59 -0700
+Date: Mon, 08 Jul 2013 12:36:13 -0700
 
 
 The patch titled
-     Subject: exit.c: unexport __set_special_pids()
+     Subject: fs/exec.c: do_execve_common(): use current_user()
 has been removed from the -mm tree.  Its filename was
-     exitc-unexport-__set_special_pids.patch
+     fs-execc-do_execve_common-use-current_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit.c: unexport __set_special_pids()
+Subject: fs/exec.c: do_execve_common(): use current_user()
 
-Move __set_special_pids() from exit.c to sys.c close to its single caller
-and make it static.
-
-And rename it to set_special_pids(), another helper with this name has
-gone away.
+Trivial cleanup.  do_execve_common() can use current_user() and avoid the
+unnecessary "struct cred *cred" var.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 --
- kernel/exit.c         |   11 -----------
- kernel/sys.c          |   13 ++++++++++++-
- 3 files changed, 12 insertions(+), 14 deletions(-)
+ fs/exec.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~exitc-unexport-__set_special_pids include/linux/sched.h
---- a/include/linux/sched.h~exitc-unexport-__set_special_pids
-+++ a/include/linux/sched.h
-@@ -1950,8 +1950,6 @@ extern struct task_struct *find_task_by_
- extern struct task_struct *find_task_by_pid_ns(pid_t nr,
- 		struct pid_namespace *ns);
+diff -puN fs/exec.c~fs-execc-do_execve_common-use-current_user fs/exec.c
+--- a/fs/exec.c~fs-execc-do_execve_common-use-current_user
++++ a/fs/exec.c
+@@ -1464,7 +1464,6 @@ static int do_execve_common(const char *
+ 	struct files_struct *displaced;
+ 	bool clear_in_exec;
+ 	int retval;
+-	const struct cred *cred = current_cred();
  
--extern void __set_special_pids(struct pid *pid);
--
- /* per-UID process charging. */
- extern struct user_struct * alloc_uid(kuid_t);
- static inline struct user_struct *get_uid(struct user_struct *u)
-diff -puN kernel/exit.c~exitc-unexport-__set_special_pids kernel/exit.c
---- a/kernel/exit.c~exitc-unexport-__set_special_pids
-+++ a/kernel/exit.c
-@@ -312,17 +312,6 @@ kill_orphaned_pgrp(struct task_struct *t
+ 	/*
+ 	 * We move the actual failure in case of RLIMIT_NPROC excess from
+@@ -1473,7 +1472,7 @@ static int do_execve_common(const char *
+ 	 * whether NPROC limit is still exceeded.
+ 	 */
+ 	if ((current->flags & PF_NPROC_EXCEEDED) &&
+-	    atomic_read(&cred->user->processes) > rlimit(RLIMIT_NPROC)) {
++	    atomic_read(&current_user()->processes) > rlimit(RLIMIT_NPROC)) {
+ 		retval = -EAGAIN;
+ 		goto out_ret;
  	}
- }
- 
--void __set_special_pids(struct pid *pid)
--{
--	struct task_struct *curr = current->group_leader;
--
--	if (task_session(curr) != pid)
--		change_pid(curr, PIDTYPE_SID, pid);
--
--	if (task_pgrp(curr) != pid)
--		change_pid(curr, PIDTYPE_PGID, pid);
--}
--
- /*
-  * Let kernel threads use this to say that they allow a certain signal.
-  * Must not be used if kthread was cloned with CLONE_SIGHAND.
-diff -puN kernel/sys.c~exitc-unexport-__set_special_pids kernel/sys.c
---- a/kernel/sys.c~exitc-unexport-__set_special_pids
-+++ a/kernel/sys.c
-@@ -1309,6 +1309,17 @@ out:
- 	return retval;
- }
- 
-+static void set_special_pids(struct pid *pid)
-+{
-+	struct task_struct *curr = current->group_leader;
-+
-+	if (task_session(curr) != pid)
-+		change_pid(curr, PIDTYPE_SID, pid);
-+
-+	if (task_pgrp(curr) != pid)
-+		change_pid(curr, PIDTYPE_PGID, pid);
-+}
-+
- SYSCALL_DEFINE0(setsid)
- {
- 	struct task_struct *group_leader = current->group_leader;
-@@ -1328,7 +1339,7 @@ SYSCALL_DEFINE0(setsid)
- 		goto out;
- 
- 	group_leader->signal->leader = 1;
--	__set_special_pids(sid);
-+	set_special_pids(sid);
- 
- 	proc_clear_tty(group_leader);
- 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
