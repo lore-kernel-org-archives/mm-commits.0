@@ -1,68 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-execc-do_execve_common-use-current_user.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:36:13 -0700
-Message-ID: <51db14ad.X8hD8zhGP8To11US%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-execc-de_thread-mt-exec-should-update-real_start_time.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:36:15 -0700
+Message-ID: <51db14af.M0Vb1qHI/n6UtqPQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51593 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51597 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753251Ab3GHTgN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:13 -0400
+	with ESMTP id S1753251Ab3GHTgQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, segoon@openwall.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, tsmetana@redhat.com, tjanouse@redhat.com, johnstul@us.ibm.com, ebiederm@xmission.com, oleg@redhat.com
 
-Subject: [merged] fs-execc-do_execve_common-use-current_user.patch removed from -mm tree
-To: oleg@redhat.com,segoon@openwall.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-execc-de_thread-mt-exec-should-update-real_start_time.patch removed from -mm tree
+To: oleg@redhat.com,ebiederm@xmission.com,johnstul@us.ibm.com,tjanouse@redhat.com,tsmetana@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:13 -0700
+Date: Mon, 08 Jul 2013 12:36:15 -0700
 
 
 The patch titled
-     Subject: fs/exec.c: do_execve_common(): use current_user()
+     Subject: fs/exec.c:de_thread: mt-exec should update ->real_start_time
 has been removed from the -mm tree.  Its filename was
-     fs-execc-do_execve_common-use-current_user.patch
+     fs-execc-de_thread-mt-exec-should-update-real_start_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/exec.c: do_execve_common(): use current_user()
+Subject: fs/exec.c:de_thread: mt-exec should update ->real_start_time
 
-Trivial cleanup.  do_execve_common() can use current_user() and avoid the
-unnecessary "struct cred *cred" var.
+924b42d5 ("Use boot based time for process start time and boot time in
+/proc") updated copy_process/do_task_stat but forgot about de_thread(). 
+This breaks "ps axOT" if a sub-thread execs.
+
+Note: I think that task->start_time should die.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: John Stultz <johnstul@us.ibm.com>
+Cc: Tomas Janousek <tjanouse@redhat.com>
+Cc: Tomas Smetana <tsmetana@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/exec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/exec.c~fs-execc-do_execve_common-use-current_user fs/exec.c
---- a/fs/exec.c~fs-execc-do_execve_common-use-current_user
+diff -puN fs/exec.c~fs-execc-de_thread-mt-exec-should-update-real_start_time fs/exec.c
+--- a/fs/exec.c~fs-execc-de_thread-mt-exec-should-update-real_start_time
 +++ a/fs/exec.c
-@@ -1464,7 +1464,6 @@ static int do_execve_common(const char *
- 	struct files_struct *displaced;
- 	bool clear_in_exec;
- 	int retval;
--	const struct cred *cred = current_cred();
+@@ -932,6 +932,7 @@ static int de_thread(struct task_struct
+ 		 * also take its birthdate (always earlier than our own).
+ 		 */
+ 		tsk->start_time = leader->start_time;
++		tsk->real_start_time = leader->real_start_time;
  
- 	/*
- 	 * We move the actual failure in case of RLIMIT_NPROC excess from
-@@ -1473,7 +1472,7 @@ static int do_execve_common(const char *
- 	 * whether NPROC limit is still exceeded.
- 	 */
- 	if ((current->flags & PF_NPROC_EXCEEDED) &&
--	    atomic_read(&cred->user->processes) > rlimit(RLIMIT_NPROC)) {
-+	    atomic_read(&current_user()->processes) > rlimit(RLIMIT_NPROC)) {
- 		retval = -EAGAIN;
- 		goto out_ret;
- 	}
+ 		BUG_ON(!same_thread_group(leader, tsk));
+ 		BUG_ON(has_group_leader_pid(tsk));
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
