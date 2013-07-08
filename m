@@ -1,53 +1,45 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:36:09 -0700
-Message-ID: <51db14a9.dX5vqlJdiM7popnB%akpm@linux-foundation.org>
+ kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:36:11 -0700
+Message-ID: <51db14ab.B4J/whaF7QSRxGic%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51589 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159Ab3GHTgK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:10 -0400
+	with ESMTP id S1753159Ab3GHTgM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, xemul@parallels.com, mhocko@suse.cz, ebiederm@xmission.com, dserrg@gmail.com, oleg@redhat.com
 
-Subject: [merged] kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch removed from -mm tree
+Subject: [merged] kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch removed from -mm tree
 To: oleg@redhat.com,dserrg@gmail.com,ebiederm@xmission.com,mhocko@suse.cz,xemul@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:09 -0700
+Date: Mon, 08 Jul 2013 12:36:11 -0700
 
 
 The patch titled
-     Subject: kernel/fork.c:copy_process(): don't add the uninitialized child to thread/task/pid lists
+     Subject: kernel/fork.c:copy_process(): consolidate the lockless CLONE_THREAD checks
 has been removed from the -mm tree.  Its filename was
-     kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists.patch
+     kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/fork.c:copy_process(): don't add the uninitialized child to thread/task/pid lists
+Subject: kernel/fork.c:copy_process(): consolidate the lockless CLONE_THREAD checks
 
-copy_process() adds the new child to thread_group/init_task.tasks list and
-then does attach_pid(child, PIDTYPE_PID).  This means that the lockless
-next_thread() or next_task() can see this thread with the wrong pid.  Say,
-"ls /proc/pid/task" can list the same inode twice.
+copy_process() does a lot of "chaotic" initializations and checks
+CLONE_THREAD twice before it takes tasklist.  In particular it sets
+"p->group_leader = p" and then changes it again under tasklist if
+!thread_group_leader(p).
 
-We could move attach_pid(child, PIDTYPE_PID) up, but in this case
-find_task_by_vpid() can find the new thread before it was fully
-initialized.
-
-And this is already true for PIDTYPE_PGID/PIDTYPE_SID, With this patch
-copy_process() initializes child->pids[*].pid first, then calls
-attach_pid() to insert the task into the pid->tasks list.
-
-attach_pid() no longer need the "struct pid*" argument, it is always
-called after pid_link->pid was already set.
+This looks a bit confusing, lets create a single "if (CLONE_THREAD)" block
+which initializes ->exit_signal, ->group_leader, and ->tgid.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -57,108 +49,77 @@ Cc: Sergey Dyasly <dserrg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    6 ++----
- kernel/fork.c       |   16 +++++++++++++---
- kernel/pid.c        |   12 ++++--------
- 3 files changed, 19 insertions(+), 15 deletions(-)
+ kernel/fork.c |   33 ++++++++++++++++-----------------
+ 1 file changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/pid.h~kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists include/linux/pid.h
---- a/include/linux/pid.h~kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists
-+++ a/include/linux/pid.h
-@@ -86,11 +86,9 @@ extern struct task_struct *get_pid_task(
- extern struct pid *get_task_pid(struct task_struct *task, enum pid_type type);
- 
- /*
-- * attach_pid() and detach_pid() must be called with the tasklist_lock
-- * write-held.
-+ * these helpers must be called with the tasklist_lock write-held.
-  */
--extern void attach_pid(struct task_struct *task, enum pid_type type,
--			struct pid *pid);
-+extern void attach_pid(struct task_struct *task, enum pid_type);
- extern void detach_pid(struct task_struct *task, enum pid_type);
- extern void change_pid(struct task_struct *task, enum pid_type,
- 			struct pid *pid);
-diff -puN kernel/fork.c~kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists kernel/fork.c
---- a/kernel/fork.c~kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists
+diff -puN kernel/fork.c~kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks kernel/fork.c
+--- a/kernel/fork.c~kernel-forkc-copy_process-consolidate-the-lockless-clone_thread-checks
 +++ a/kernel/fork.c
-@@ -1121,6 +1121,12 @@ static void posix_cpu_timers_init(struct
- 	INIT_LIST_HEAD(&tsk->cpu_timers[2]);
- }
+@@ -1360,11 +1360,6 @@ static struct task_struct *copy_process(
+ 			goto bad_fork_cleanup_io;
+ 	}
  
-+static inline void
-+init_task_pid(struct task_struct *task, enum pid_type type, struct pid *pid)
-+{
-+	 task->pids[type].pid = pid;
-+}
-+
- /*
-  * This creates a new process as a copy of the old one,
-  * but does not actually start it yet.
-@@ -1449,7 +1455,11 @@ static struct task_struct *copy_process(
- 	if (likely(p->pid)) {
- 		ptrace_init_task(p, (clone_flags & CLONE_PTRACE) || trace);
+-	p->pid = pid_nr(pid);
+-	p->tgid = p->pid;
+-	if (clone_flags & CLONE_THREAD)
+-		p->tgid = current->tgid;
+-
+ 	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
+ 	/*
+ 	 * Clear TID on mm_release()?
+@@ -1400,12 +1395,19 @@ static struct task_struct *copy_process(
+ 	clear_all_latency_tracing(p);
  
-+		init_task_pid(p, PIDTYPE_PID, pid);
- 		if (thread_group_leader(p)) {
-+			init_task_pid(p, PIDTYPE_PGID, task_pgrp(current));
-+			init_task_pid(p, PIDTYPE_SID, task_session(current));
-+
- 			if (is_child_reaper(pid)) {
- 				ns_of_pid(pid)->child_reaper = p;
- 				p->signal->flags |= SIGNAL_UNKILLABLE;
-@@ -1457,10 +1467,10 @@ static struct task_struct *copy_process(
+ 	/* ok, now we should be set up.. */
+-	if (clone_flags & CLONE_THREAD)
++	p->pid = pid_nr(pid);
++	if (clone_flags & CLONE_THREAD) {
+ 		p->exit_signal = -1;
+-	else if (clone_flags & CLONE_PARENT)
+-		p->exit_signal = current->group_leader->exit_signal;
+-	else
+-		p->exit_signal = (clone_flags & CSIGNAL);
++		p->group_leader = current->group_leader;
++		p->tgid = current->tgid;
++	} else {
++		if (clone_flags & CLONE_PARENT)
++			p->exit_signal = current->group_leader->exit_signal;
++		else
++			p->exit_signal = (clone_flags & CSIGNAL);
++		p->group_leader = p;
++		p->tgid = p->pid;
++	}
  
- 			p->signal->leader_pid = pid;
- 			p->signal->tty = tty_kref_get(current->signal->tty);
--			attach_pid(p, PIDTYPE_PGID, task_pgrp(current));
--			attach_pid(p, PIDTYPE_SID, task_session(current));
- 			list_add_tail(&p->sibling, &p->real_parent->children);
- 			list_add_tail_rcu(&p->tasks, &init_task.tasks);
-+			attach_pid(p, PIDTYPE_PGID);
-+			attach_pid(p, PIDTYPE_SID);
- 			__this_cpu_inc(process_counts);
- 		} else {
+ 	p->pdeath_signal = 0;
+ 	p->exit_state = 0;
+@@ -1414,15 +1416,13 @@ static struct task_struct *copy_process(
+ 	p->nr_dirtied_pause = 128 >> (PAGE_SHIFT - 10);
+ 	p->dirty_paused_when = 0;
+ 
+-	/*
+-	 * Ok, make it visible to the rest of the system.
+-	 * We dont wake it up yet.
+-	 */
+-	p->group_leader = p;
+ 	INIT_LIST_HEAD(&p->thread_group);
+ 	p->task_works = NULL;
+ 
+-	/* Need tasklist lock for parent etc handling! */
++	/*
++	 * Make it visible to the rest of the system, but dont wake it up yet.
++	 * Need tasklist lock for parent etc handling!
++	 */
+ 	write_lock_irq(&tasklist_lock);
+ 
+ 	/* CLONE_PARENT re-uses the old parent */
+@@ -1476,7 +1476,6 @@ static struct task_struct *copy_process(
  			current->signal->nr_threads++;
-@@ -1470,7 +1480,7 @@ static struct task_struct *copy_process(
+ 			atomic_inc(&current->signal->live);
+ 			atomic_inc(&current->signal->sigcnt);
+-			p->group_leader = current->group_leader;
  			list_add_tail_rcu(&p->thread_group,
  					  &p->group_leader->thread_group);
  		}
--		attach_pid(p, PIDTYPE_PID, pid);
-+		attach_pid(p, PIDTYPE_PID);
- 		nr_threads++;
- 	}
- 
-diff -puN kernel/pid.c~kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists kernel/pid.c
---- a/kernel/pid.c~kernel-forkc-copy_process-dont-add-the-uninitialized-child-to-thread-task-pid-lists
-+++ a/kernel/pid.c
-@@ -373,14 +373,10 @@ EXPORT_SYMBOL_GPL(find_vpid);
- /*
-  * attach_pid() must be called with the tasklist_lock write-held.
-  */
--void attach_pid(struct task_struct *task, enum pid_type type,
--		struct pid *pid)
-+void attach_pid(struct task_struct *task, enum pid_type type)
- {
--	struct pid_link *link;
--
--	link = &task->pids[type];
--	link->pid = pid;
--	hlist_add_head_rcu(&link->node, &pid->tasks[type]);
-+	struct pid_link *link = &task->pids[type];
-+	hlist_add_head_rcu(&link->node, &link->pid->tasks[type]);
- }
- 
- static void __change_pid(struct task_struct *task, enum pid_type type,
-@@ -412,7 +408,7 @@ void change_pid(struct task_struct *task
- 		struct pid *pid)
- {
- 	__change_pid(task, type, pid);
--	attach_pid(task, type, pid);
-+	attach_pid(task, type);
- }
- 
- /* transfer_pid is an optimization of attach_pid(new), detach_pid(old) */
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
