@@ -1,62 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-m48t35c-use-ptr_ret.patch removed from
+Subject: [merged] drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch removed from
  -mm tree
-Date: Mon, 08 Jul 2013 12:34:58 -0700
-Message-ID: <51db1462.zl5HpWlD6npQBhQ2%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:35:00 -0700
+Message-ID: <51db1464.Rug48KYoIfmFyvdg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51385 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098Ab3GHTe6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:34:58 -0400
+	with ESMTP id S1752776Ab3GHTfD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: [merged] drivers-rtc-rtc-m48t35c-use-ptr_ret.patch removed from -mm tree
-To: sachin.kamat@linaro.org,tsbogend@alpha.franken.de,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch removed from -mm tree
+To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:34:58 -0700
+Date: Mon, 08 Jul 2013 12:35:00 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m48t35.c: use PTR_RET()
+     Subject: drivers/rtc/rtc-pcf8563.c: use PTR_RET()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-m48t35c-use-ptr_ret.patch
+     drivers-rtc-rtc-pcf8563c-use-ptr_ret.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-m48t35.c: use PTR_RET()
+Subject: drivers/rtc/rtc-pcf8563.c: use PTR_RET()
 
 Use of PTR_RET() simplifies the code.
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t35.c |    6 ++----
+ drivers/rtc/rtc-pcf8563.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-ptr_ret drivers/rtc/rtc-m48t35.c
---- a/drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-ptr_ret
-+++ a/drivers/rtc/rtc-m48t35.c
+diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-use-ptr_ret drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-use-ptr_ret
++++ a/drivers/rtc/rtc-pcf8563.c
 @@ -20,6 +20,7 @@
- #include <linux/platform_device.h>
- #include <linux/bcd.h>
- #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
 +#include <linux/err.h>
  
- #define DRV_VERSION		"1.0"
+ #define DRV_VERSION "0.4.3"
  
-@@ -174,10 +175,7 @@ static int m48t35_probe(struct platform_
+@@ -263,10 +264,7 @@ static int pcf8563_probe(struct i2c_clie
+ 				pcf8563_driver.driver.name,
+ 				&pcf8563_rtc_ops, THIS_MODULE);
  
- 	priv->rtc = devm_rtc_device_register(&pdev->dev, "m48t35",
- 				  &m48t35_ops, THIS_MODULE);
--	if (IS_ERR(priv->rtc))
--		return PTR_ERR(priv->rtc);
+-	if (IS_ERR(pcf8563->rtc))
+-		return PTR_ERR(pcf8563->rtc);
