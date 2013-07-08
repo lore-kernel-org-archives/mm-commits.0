@@ -1,141 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-xattr-fix-inlined-xattr-reflink.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:23:28 -0700
-Message-ID: <51db11b0.Lf5nz7LujN80Z0v4%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-submit-disk-heartbeat-bio-using-write_sync.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:23:29 -0700
+Message-ID: <51db11b1.3EIPgT8P8N2F1DG+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50046 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752074Ab3GHTX3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:29 -0400
+	with ESMTP id S1752877Ab3GHTXa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, stable@kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
+To: mm-commits@vger.kernel.org, tm@tao.ma, sunil.mushran@gmail.com, srinivas.eeda@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, gurudas.pai@oracle.com, n_iwamatsu@jp.fujitsu.com
 
-Subject: [merged] ocfs2-xattr-fix-inlined-xattr-reflink.patch removed from -mm tree
-To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@kernel.org,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-submit-disk-heartbeat-bio-using-write_sync.patch removed from -mm tree
+To: n_iwamatsu@jp.fujitsu.com,gurudas.pai@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,srinivas.eeda@oracle.com,sunil.mushran@gmail.com,tm@tao.ma,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:28 -0700
+Date: Mon, 08 Jul 2013 12:23:29 -0700
 
 
 The patch titled
-     Subject: ocfs2: xattr: fix inlined xattr reflink
+     Subject: ocfs2: submit disk heartbeat bio using WRITE_SYNC
 has been removed from the -mm tree.  Its filename was
-     ocfs2-xattr-fix-inlined-xattr-reflink.patch
+     ocfs2-submit-disk-heartbeat-bio-using-write_sync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: xattr: fix inlined xattr reflink
+From: Noboru Iwamatsu <n_iwamatsu@jp.fujitsu.com>
+Subject: ocfs2: submit disk heartbeat bio using WRITE_SYNC
 
-Inlined xattr shared free space of inode block with inlined data or data
-extent record, so the size of the later two should be adjusted when
-inlined xattr is enabled.  See ocfs2_xattr_ibody_init().  But this isn't
-done well when reflink.  For inode with inlined data, its max inlined data
-size is adjusted in ocfs2_duplicate_inline_data(), no problem.  But for
-inode with data extent record, its record count isn't adjusted.  Fix it,
-or data extent record and inlined xattr may overwrite each other, then
-cause data corruption or xattr failure.
+Under heavy I/O load, writing the disk heartbeat can be forced to wait for
+minutes, and this causes the node to be fenced.
 
-One panic caused by this bug in our test environment is the following:
+This patch tries to use WRITE_SYNC in submitting the heartbeat bio, so
+that writing the heartbeat will have a priority over other requests.
 
-kernel BUG at fs/ocfs2/xattr.c:1435!
-invalid opcode: 0000 [#1] SMP
-CPU 0
-Modules linked in: ocfs2 jbd2 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm
-ocfs2_nodemanager ocfs2_stackglue configfs sunrpc parport_pc lp parport
-snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device
-snd_pcm_oss snd_mixer_oss snd_pcm snd_timer snd soundcore snd_page_alloc
-pcspkr xen_netfront dm_snapshot dm_zero dm_mirror dm_region_hash dm_log
-dm_mod xen_blkfront ext3 jbd mbcache [last unloaded: configfs]
-
-Pid: 10871, comm: multi_reflink_t Not tainted 2.6.39-300.17.1.el5uek #1
-RIP: e030:[<ffffffffa04cd197>]  [<ffffffffa04cd197>]
-ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
-RSP: e02b:ffff88007a587948  EFLAGS: 00010283
-RAX: 0000000000000000 RBX: 0000000000000010 RCX: 00000000000051e4
-RDX: ffff880057092060 RSI: 0000000000000f80 RDI: ffff88007a587a68
-RBP: ffff88007a587948 R08: 00000000000062f4 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000010
-R13: ffff88007a587a68 R14: 0000000000000001 R15: ffff88007a587c68
-FS:  00007fccff7f06e0(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
-CS:  e033 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00000000015cf000 CR3: 000000007aa76000 CR4: 0000000000000660
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process multi_reflink_t (pid: 10871, threadinfo ffff88007a586000, task
-ffff88007911c380)
-Stack:
-ffff88007a5879a8 ffffffffa04d0a60 ffff88007a587998 ffffffffa04cd514
-ffff88007a587c38 ffffffffa04cc125 000000007a587998 ffff88007a587a68
-ffff88007a587c68 0000000000000000 00000000000003c2 ffff88007a587c38
-Call Trace:
-[<ffffffffa04d0a60>] ocfs2_xa_reuse_entry+0x60/0x280 [ocfs2]
-[<ffffffffa04cd514>] ? ocfs2_xa_block_check_space+0x84/0xa0 [ocfs2]
-[<ffffffffa04cc125>] ? namevalue_size_xi+0x15/0x20 [ocfs2]
-[<ffffffffa04d0dfe>] ocfs2_xa_prepare_entry+0x17e/0x2a0 [ocfs2]
-[<ffffffffa04da55c>] ocfs2_xa_set+0xcc/0x250 [ocfs2]
-[<ffffffffa04daf58>] ocfs2_xattr_ibody_set+0x98/0x230 [ocfs2]
-[<ffffffff8115ac4b>] ? kmem_cache_alloc+0xab/0x190
-[<ffffffffa04db13f>] __ocfs2_xattr_set_handle+0x4f/0x700 [ocfs2]
-[<ffffffffa014ad03>] ? jbd2_journal_start+0x13/0x20 [jbd2]
-[<ffffffffa04dbeb6>] ocfs2_xattr_set+0x6c6/0x890 [ocfs2]
-[<ffffffffa04dc0c6>] ocfs2_xattr_user_set+0x46/0x50 [ocfs2]
-[<ffffffff81190960>] generic_setxattr+0x70/0x90
-[<ffffffff81191670>] __vfs_setxattr_noperm+0x80/0x1a0
-[<ffffffff81191839>] vfs_setxattr+0xa9/0xb0
-[<ffffffff81191903>] setxattr+0xc3/0x120
-[<ffffffff81061c40>] ? finish_task_switch+0x70/0xe0
-[<ffffffff81505a54>] ? __schedule+0x364/0x6d0
-[<ffffffff81191a08>] sys_fsetxattr+0xa8/0xd0
-[<ffffffff81510642>] system_call_fastpath+0x16/0x1b
-Code: 0f 1f 40 00 eb ae 0f 0b eb fe 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5
-66 66 66 66 90 39 77 10 7e 09 48 8b 47 28 ff 50 10 c9 c3 <0f> 0b eb fe 0f 1f
-44 00 00 55 48 89 e5 53 48 83 ec 08 66 66 66
-RIP  [<ffffffffa04cd197>] ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
-RSP <ffff88007a587948>
----[ end trace 33461d2444bd1e5e ]---
-
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Signed-off-by: Noboru Iwamatsu <n_iwamatsu@jp.fujitsu.com>
+Acked-by: Tao Ma <tm@tao.ma>
+Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: Srinivas Eeeda <srinivas.eeda@oracle.com>
 Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Acked-by: Joel Becker <jlbec@evilplan.org>
+Tested-by: Gurudas Pai <gurudas.pai@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/ocfs2/cluster/heartbeat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink
-+++ a/fs/ocfs2/xattr.c
-@@ -6491,6 +6491,16 @@ static int ocfs2_reflink_xattr_inline(st
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-submit-disk-heartbeat-bio-using-write_sync fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-submit-disk-heartbeat-bio-using-write_sync
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -500,7 +500,7 @@ static int o2hb_issue_node_write(struct
  	}
  
- 	new_oi = OCFS2_I(args->new_inode);
-+	/*
-+	 * Adjust extent record count to reserve space for extended attribute.
-+	 * Inline data count had been adjusted in ocfs2_duplicate_inline_data().
-+	 */
-+	if (!(new_oi->ip_dyn_features & OCFS2_INLINE_DATA_FL) &&
-+	    !(ocfs2_inode_is_fast_symlink(args->new_inode))) {
-+		struct ocfs2_extent_list *el = &new_di->id2.i_list;
-+		le16_add_cpu(&el->l_count, -(inline_size /
-+					sizeof(struct ocfs2_extent_rec)));
-+	}
- 	spin_lock(&new_oi->ip_lock);
- 	new_oi->ip_dyn_features |= OCFS2_HAS_XATTR_FL | OCFS2_INLINE_XATTR_FL;
- 	new_di->i_dyn_features = cpu_to_le16(new_oi->ip_dyn_features);
+ 	atomic_inc(&write_wc->wc_num_reqs);
+-	submit_bio(WRITE, bio);
++	submit_bio(WRITE_SYNC, bio);
+ 
+ 	status = 0;
+ bail:
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from n_iwamatsu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
 
