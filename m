@@ -1,182 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:35:29 -0700
-Message-ID: <51db1481.I2vkMrwhH6YElPOx%akpm@linux-foundation.org>
+Subject: [merged] x86-kill-tif_debug.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:35:37 -0700
+Message-ID: <51db1489.pwuEnZWhN+MLUuZX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51448 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138Ab3GHTfh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:37 -0400
+	with ESMTP id S1753138Ab3GHTfi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linuxhippy@gmail.com, konishi.ryusuke@lab.ntt.co.jp, joern@logfs.org, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, will.deacon@arm.com, prasad@linux.vnet.ibm.com, paulus@samba.org, mingo@kernel.org, mikey@neuling.org, linux@arm.linux.org.uk, lethal@linux-sh.org, jan.kratochvil@redhat.com, fweisbec@gmail.com, benh@kernel.crashing.org, oleg@redhat.com
 
-Subject: [merged] nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct.patch removed from -mm tree
-To: slava@dubeyko.com,joern@logfs.org,konishi.ryusuke@lab.ntt.co.jp,linuxhippy@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] x86-kill-tif_debug.patch removed from -mm tree
+To: oleg@redhat.com,benh@kernel.crashing.org,fweisbec@gmail.com,jan.kratochvil@redhat.com,lethal@linux-sh.org,linux@arm.linux.org.uk,mikey@neuling.org,mingo@kernel.org,paulus@samba.org,prasad@linux.vnet.ibm.com,will.deacon@arm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:29 -0700
+Date: Mon, 08 Jul 2013 12:35:37 -0700
 
 
 The patch titled
-     Subject: ] nilfs2: use atomic64_t type for inodes_count and blocks_count fields in nilfs_root struct
+     Subject: x86: kill TIF_DEBUG
 has been removed from the -mm tree.  Its filename was
-     nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct.patch
+     x86-kill-tif_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: ] nilfs2: use atomic64_t type for inodes_count and blocks_count fields in nilfs_root struct
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: x86: kill TIF_DEBUG
 
-The cp_inodes_count and cp_blocks_count are represented as __le64 type in
-on-disk structure (struct nilfs_checkpoint).  But analogous fields in
-in-core structure (struct nilfs_root) are represented by atomic_t type.
+Because it is not used.
 
-This patch replaces atomic_t on atomic64_t type in representation of
-inodes_count and blocks_count fields in struct nilfs_root.
-
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Acked-by: Joern Engel <joern@logfs.org>
-Cc: Clemens Eisserer <linuxhippy@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
+Cc: Michael Neuling <mikey@neuling.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Prasad <prasad@linux.vnet.ibm.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ifile.c     |    2 +-
- fs/nilfs2/inode.c     |    8 ++++----
- fs/nilfs2/segment.c   |    4 ++--
- fs/nilfs2/super.c     |    8 +++++---
- fs/nilfs2/the_nilfs.c |    4 ++--
- fs/nilfs2/the_nilfs.h |    4 ++--
- 6 files changed, 16 insertions(+), 14 deletions(-)
+ arch/x86/include/asm/thread_info.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/nilfs2/ifile.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct fs/nilfs2/ifile.c
---- a/fs/nilfs2/ifile.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct
-+++ a/fs/nilfs2/ifile.c
-@@ -174,7 +174,7 @@ int nilfs_ifile_count_free_inodes(struct
- 	*nmaxinodes = 0;
- 	*nfreeinodes = 0;
+diff -puN arch/x86/include/asm/thread_info.h~x86-kill-tif_debug arch/x86/include/asm/thread_info.h
+--- a/arch/x86/include/asm/thread_info.h~x86-kill-tif_debug
++++ a/arch/x86/include/asm/thread_info.h
+@@ -89,7 +89,6 @@ struct thread_info {
+ #define TIF_FORK		18	/* ret_from_fork */
+ #define TIF_NOHZ		19	/* in adaptive nohz mode */
+ #define TIF_MEMDIE		20	/* is terminating due to OOM killer */
+-#define TIF_DEBUG		21	/* uses debug registers */
+ #define TIF_IO_BITMAP		22	/* uses I/O bitmap */
+ #define TIF_FORCED_TF		24	/* true if TF in eflags artificially */
+ #define TIF_BLOCKSTEP		25	/* set when we want DEBUGCTLMSR_BTF */
+@@ -113,7 +112,6 @@ struct thread_info {
+ #define _TIF_IA32		(1 << TIF_IA32)
+ #define _TIF_FORK		(1 << TIF_FORK)
+ #define _TIF_NOHZ		(1 << TIF_NOHZ)
+-#define _TIF_DEBUG		(1 << TIF_DEBUG)
+ #define _TIF_IO_BITMAP		(1 << TIF_IO_BITMAP)
+ #define _TIF_FORCED_TF		(1 << TIF_FORCED_TF)
+ #define _TIF_BLOCKSTEP		(1 << TIF_BLOCKSTEP)
+@@ -154,7 +152,7 @@ struct thread_info {
+ 	(_TIF_IO_BITMAP|_TIF_NOTSC|_TIF_BLOCKSTEP)
  
--	nused = atomic_read(&NILFS_I(ifile)->i_root->inodes_count);
-+	nused = atomic64_read(&NILFS_I(ifile)->i_root->inodes_count);
- 	err = nilfs_palloc_count_max_entries(ifile, nused, nmaxinodes);
- 	if (likely(!err))
- 		*nfreeinodes = *nmaxinodes - nused;
-diff -puN fs/nilfs2/inode.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct
-+++ a/fs/nilfs2/inode.c
-@@ -54,7 +54,7 @@ void nilfs_inode_add_blocks(struct inode
+ #define _TIF_WORK_CTXSW_PREV (_TIF_WORK_CTXSW|_TIF_USER_RETURN_NOTIFY)
+-#define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW|_TIF_DEBUG)
++#define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW)
  
- 	inode_add_bytes(inode, (1 << inode->i_blkbits) * n);
- 	if (root)
--		atomic_add(n, &root->blocks_count);
-+		atomic64_add(n, &root->blocks_count);
- }
+ #define PREEMPT_ACTIVE		0x10000000
  
- void nilfs_inode_sub_blocks(struct inode *inode, int n)
-@@ -63,7 +63,7 @@ void nilfs_inode_sub_blocks(struct inode
- 
- 	inode_sub_bytes(inode, (1 << inode->i_blkbits) * n);
- 	if (root)
--		atomic_sub(n, &root->blocks_count);
-+		atomic64_sub(n, &root->blocks_count);
- }
- 
- /**
-@@ -369,7 +369,7 @@ struct inode *nilfs_new_inode(struct ino
- 		goto failed_ifile_create_inode;
- 	/* reference count of i_bh inherits from nilfs_mdt_read_block() */
- 
--	atomic_inc(&root->inodes_count);
-+	atomic64_inc(&root->inodes_count);
- 	inode_init_owner(inode, dir, mode);
- 	inode->i_ino = ino;
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
-@@ -801,7 +801,7 @@ void nilfs_evict_inode(struct inode *ino
- 
- 	ret = nilfs_ifile_delete_inode(ii->i_root->ifile, inode->i_ino);
- 	if (!ret)
--		atomic_dec(&ii->i_root->inodes_count);
-+		atomic64_dec(&ii->i_root->inodes_count);
- 
- 	nilfs_clear_inode(inode);
- 
-diff -puN fs/nilfs2/segment.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct
-+++ a/fs/nilfs2/segment.c
-@@ -835,9 +835,9 @@ static int nilfs_segctor_fill_in_checkpo
- 	raw_cp->cp_snapshot_list.ssl_next = 0;
- 	raw_cp->cp_snapshot_list.ssl_prev = 0;
- 	raw_cp->cp_inodes_count =
--		cpu_to_le64(atomic_read(&sci->sc_root->inodes_count));
-+		cpu_to_le64(atomic64_read(&sci->sc_root->inodes_count));
- 	raw_cp->cp_blocks_count =
--		cpu_to_le64(atomic_read(&sci->sc_root->blocks_count));
-+		cpu_to_le64(atomic64_read(&sci->sc_root->blocks_count));
- 	raw_cp->cp_nblk_inc =
- 		cpu_to_le64(sci->sc_nblk_inc + sci->sc_nblk_this_inc);
- 	raw_cp->cp_create = cpu_to_le64(sci->sc_seg_ctime);
-diff -puN fs/nilfs2/super.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct
-+++ a/fs/nilfs2/super.c
-@@ -554,8 +554,10 @@ int nilfs_attach_checkpoint(struct super
- 	if (err)
- 		goto failed_bh;
- 
--	atomic_set(&root->inodes_count, le64_to_cpu(raw_cp->cp_inodes_count));
--	atomic_set(&root->blocks_count, le64_to_cpu(raw_cp->cp_blocks_count));
-+	atomic64_set(&root->inodes_count,
-+			le64_to_cpu(raw_cp->cp_inodes_count));
-+	atomic64_set(&root->blocks_count,
-+			le64_to_cpu(raw_cp->cp_blocks_count));
- 
- 	nilfs_cpfile_put_checkpoint(nilfs->ns_cpfile, cno, bh_cp);
- 
-@@ -647,7 +649,7 @@ static int nilfs_statfs(struct dentry *d
- 			 * curent inodes count as maximum possible and
- 			 * zero as free inodes value.
- 			 */
--			nmaxinodes = atomic_read(&root->inodes_count);
-+			nmaxinodes = atomic64_read(&root->inodes_count);
- 			nfreeinodes = 0;
- 			err = 0;
- 		} else
-diff -puN fs/nilfs2/the_nilfs.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct fs/nilfs2/the_nilfs.c
---- a/fs/nilfs2/the_nilfs.c~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -764,8 +764,8 @@ nilfs_find_or_create_root(struct the_nil
- 	new->ifile = NULL;
- 	new->nilfs = nilfs;
- 	atomic_set(&new->count, 1);
--	atomic_set(&new->inodes_count, 0);
--	atomic_set(&new->blocks_count, 0);
-+	atomic64_set(&new->inodes_count, 0);
-+	atomic64_set(&new->blocks_count, 0);
- 
- 	rb_link_node(&new->rb_node, parent, p);
- 	rb_insert_color(&new->rb_node, &nilfs->ns_cptree);
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-use-atomic64_t-type-for-inodes_count-and-blocks_count-fields-in-nilfs_root-struct
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -241,8 +241,8 @@ struct nilfs_root {
- 	struct the_nilfs *nilfs;
- 	struct inode *ifile;
- 
--	atomic_t inodes_count;
--	atomic_t blocks_count;
-+	atomic64_t inodes_count;
-+	atomic64_t blocks_count;
- };
- 
- /* Special checkpoint number */
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+linux-next.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
+fput-turn-list_head-delayed_fput_list-into-llist_head.patch
+llist-fix-simplify-llist_add-and-llist_add_batch.patch
+llist-llist_add-can-use-llist_add_batch.patch
+vfree-dont-schedule-free_work-if-llist_add-returns-false.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 
