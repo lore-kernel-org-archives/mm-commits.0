@@ -1,100 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-arc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
  removed from -mm tree
-Date: Mon, 08 Jul 2013 12:26:56 -0700
-Message-ID: <51db1280.10/wCyG4/cogT6Yd%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:26:58 -0700
+Message-ID: <51db1282.sBYHf6XOXuu1cFhg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50887 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752959Ab3GHT05 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:57 -0400
+	with ESMTP id S1753063Ab3GHT07 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgupta@synopsys.com, rob.herring@calxeda.com, jiang.liu@huawei.com, james.hogan@imgtec.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, will.deacon@arm.com, linux@arm.linux.org.uk, jiang.liu@huawei.com, catalin.marinas@arm.com, liuj97@gmail.com
 
-Subject: [merged] mm-arc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch removed from -mm tree
-To: liuj97@gmail.com,james.hogan@imgtec.com,jiang.liu@huawei.com,rob.herring@calxeda.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch removed from -mm tree
+To: liuj97@gmail.com,catalin.marinas@arm.com,jiang.liu@huawei.com,linux@arm.linux.org.uk,will.deacon@arm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:26:56 -0700
+Date: Mon, 08 Jul 2013 12:26:58 -0700
 
 
 The patch titled
-     Subject: mm/ARC: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/ARM: prepare for removing num_physpages and simplify mem_init()
 has been removed from the -mm tree.  Its filename was
-     mm-arc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/ARC: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/ARM: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>   # for arch/arc
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/init.c |   36 +++---------------------------------
- 1 file changed, 3 insertions(+), 33 deletions(-)
+ arch/arm/mm/init.c |   47 +------------------------------------------
+ 1 file changed, 2 insertions(+), 45 deletions(-)
 
-diff -puN arch/arc/mm/init.c~mm-arc-prepare-for-removing-num_physpages-and-simplify-mem_init arch/arc/mm/init.c
---- a/arch/arc/mm/init.c~mm-arc-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/arc/mm/init.c
-@@ -74,7 +74,7 @@ void __init setup_arch_memory(void)
- 	/* Last usable page of low mem (no HIGHMEM yet for ARC port) */
- 	max_low_pfn = max_pfn = PFN_DOWN(end_mem);
- 
--	max_mapnr = num_physpages = max_low_pfn - min_low_pfn;
-+	max_mapnr = max_low_pfn - min_low_pfn;
- 
- 	/*------------- reserve kernel image -----------------------*/
- 	memblock_reserve(CONFIG_LINUX_LINK_BASE,
-@@ -84,7 +84,7 @@ void __init setup_arch_memory(void)
- 
- 	/*-------------- node setup --------------------------------*/
- 	memset(zones_size, 0, sizeof(zones_size));
--	zones_size[ZONE_NORMAL] = num_physpages;
-+	zones_size[ZONE_NORMAL] = max_low_pfn - min_low_pfn;
- 
- 	/*
- 	 * We can't use the helper free_area_init(zones[]) because it uses
-@@ -106,39 +106,9 @@ void __init setup_arch_memory(void)
+diff -puN arch/arm/mm/init.c~mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~mm-arm-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/arm/mm/init.c
+@@ -583,9 +583,6 @@ static void __init free_highpages(void)
   */
  void __init mem_init(void)
  {
--	int codesize, datasize, initsize, reserved_pages, free_pages;
--	int tmp;
+-	unsigned long reserved_pages, free_pages;
+-	struct memblock_region *reg;
+-	int i;
+ #ifdef CONFIG_HAVE_TCM
+ 	/* These pointers are filled in on TCM detection */
+ 	extern u32 dtcm_end;
+@@ -605,47 +602,7 @@ void __init mem_init(void)
+ 
+ 	free_highpages();
+ 
+-	reserved_pages = free_pages = 0;
 -
- 	high_memory = (void *)(CONFIG_LINUX_LINK_BASE + arc_mem_sz);
+-	for_each_bank(i, &meminfo) {
+-		struct membank *bank = &meminfo.bank[i];
+-		unsigned int pfn1, pfn2;
+-		struct page *page, *end;
 -
- 	free_all_bootmem();
+-		pfn1 = bank_pfn_start(bank);
+-		pfn2 = bank_pfn_end(bank);
 -
--	/* count all reserved pages [kernel code/data/mem_map..] */
--	reserved_pages = 0;
--	for (tmp = 0; tmp < max_mapnr; tmp++)
--		if (PageReserved(mem_map + tmp))
--			reserved_pages++;
+-		page = pfn_to_page(pfn1);
+-		end  = pfn_to_page(pfn2 - 1) + 1;
 -
--	/* XXX: nr_free_pages() is equivalent */
--	free_pages = max_mapnr - reserved_pages;
+-		do {
+-			if (PageReserved(page))
+-				reserved_pages++;
+-			else if (!page_count(page))
+-				free_pages++;
+-			page++;
+-		} while (page < end);
+-	}
 -
 -	/*
--	 * For the purpose of display below, split the "reserve mem"
--	 * kernel code/data is already shown explicitly,
--	 * Show any other reservations (mem_map[ ] et al)
+-	 * Since our memory may not be contiguous, calculate the
+-	 * real number of pages we have in this system
 -	 */
--	reserved_pages -= (((unsigned int)_end - CONFIG_LINUX_LINK_BASE) >>
--								PAGE_SHIFT);
+-	printk(KERN_INFO "Memory:");
+-	num_physpages = 0;
+-	for_each_memblock(memory, reg) {
+-		unsigned long pages = memblock_region_memory_end_pfn(reg) -
+-			memblock_region_memory_base_pfn(reg);
+-		num_physpages += pages;
+-		printk(" %ldMB", pages >> (20 - PAGE_SHIFT));
+-	}
+-	printk(" = %luMB total\n", num_physpages >> (20 - PAGE_SHIFT));
 -
--	codesize = _etext - _text;
--	datasize = _end - _etext;
--	initsize = __init_end - __init_begin;
+-	printk(KERN_NOTICE "Memory: %luk/%luk available, %luk reserved, %luK highmem\n",
+-		nr_free_pages() << (PAGE_SHIFT-10),
+-		free_pages << (PAGE_SHIFT-10),
+-		reserved_pages << (PAGE_SHIFT-10),
+-		totalhigh_pages << (PAGE_SHIFT-10));
++	mem_init_print_info(NULL);
+ 
+ #define MLK(b, t) b, t, ((t) - (b)) >> 10
+ #define MLM(b, t) b, t, ((t) - (b)) >> 20
+@@ -711,7 +668,7 @@ void __init mem_init(void)
+ 	BUG_ON(PKMAP_BASE + LAST_PKMAP * PAGE_SIZE	> PAGE_OFFSET);
+ #endif
+ 
+-	if (PAGE_SIZE >= 16384 && num_physpages <= 128) {
++	if (PAGE_SIZE >= 16384 && get_num_physpages() <= 128) {
+ 		extern int sysctl_overcommit_memory;
+ 		/*
+ 		 * On a machine this small we won't get
+_
+
+Patches currently in -mm which might be from liuj97@gmail.com are
+
+origin.patch
+linux-next.patch
+
