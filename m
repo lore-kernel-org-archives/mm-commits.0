@@ -1,64 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aio-fix-wrong-comment-in-aio_complete.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:37:18 -0700
-Message-ID: <51db14ee.s01JM3dn3LTkdP8T%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-memstick-host-jmb38x_ms-convert-to-module_pci_driver.patch removed
+ from -mm tree
+Date: Mon, 08 Jul 2013 12:37:12 -0700
+Message-ID: <51db14e8.yp0ZWpa4AKs/I6JA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146Ab3GHThS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:37:18 -0400
+	with ESMTP id S1753356Ab3GHThM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:37:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, libo.chen@huawei.com
 
-Subject: [merged] aio-fix-wrong-comment-in-aio_complete.patch removed from -mm tree
-To: tangchen@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-memstick-host-jmb38x_ms-convert-to-module_pci_driver.patch removed from -mm tree
+To: libo.chen@huawei.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:37:18 -0700
+Date: Mon, 08 Jul 2013 12:37:12 -0700
 
 
 The patch titled
-     Subject: aio: fix wrong comment in aio_complete()
+     Subject: drivers/memstick/host/jmb38x_ms: convert to module_pci_driver
 has been removed from the -mm tree.  Its filename was
-     aio-fix-wrong-comment-in-aio_complete.patch
+     drivers-memstick-host-jmb38x_ms-convert-to-module_pci_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: aio: fix wrong comment in aio_complete()
+From: Libo Chen <libo.chen@huawei.com>
+Subject: drivers/memstick/host/jmb38x_ms: convert to module_pci_driver
 
-ctx->ctx_lock should be ctx->completion_lock.
+Use module_pci_driver instead of init/exit, make code clean.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/memstick/host/jmb38x_ms.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN fs/aio.c~aio-fix-wrong-comment-in-aio_complete fs/aio.c
---- a/fs/aio.c~aio-fix-wrong-comment-in-aio_complete
-+++ a/fs/aio.c
-@@ -625,7 +625,7 @@ void aio_complete(struct kiocb *iocb, lo
+diff -puN drivers/memstick/host/jmb38x_ms.c~drivers-memstick-host-jmb38x_ms-convert-to-module_pci_driver drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~drivers-memstick-host-jmb38x_ms-convert-to-module_pci_driver
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -1046,20 +1046,9 @@ static struct pci_driver jmb38x_ms_drive
+ 	.resume = jmb38x_ms_resume
+ };
  
- 	/*
- 	 * Add a completion event to the ring buffer. Must be done holding
--	 * ctx->ctx_lock to prevent other code from messing with the tail
-+	 * ctx->completion_lock to prevent other code from messing with the tail
- 	 * pointer since we might be called from irq context.
- 	 */
- 	spin_lock_irqsave(&ctx->completion_lock, flags);
-_
-
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
-
-origin.patch
-page-migration-fix-wrong-comment-in-address_space_operationsmigratepage.patch
-mm-memblockc-fix-wrong-comment-in-__next_free_mem_range.patch
-mm-memory_hotplugc-fix-a-comment-typo-in-register_page_bootmem_info_node.patch
-
+-static int __init jmb38x_ms_init(void)
+-{
+-	return pci_register_driver(&jmb38x_ms_driver);
+-}
+-
+-static void __exit jmb38x_ms_exit(void)
+-{
+-	pci_unregister_driver(&jmb38x_ms_driver);
+-}
++module_pci_driver(jmb38x_ms_driver);
+ 
+ MODULE_AUTHOR("Alex Dubov");
+ MODULE_DESCRIPTION("JMicron jmb38x MemoryStick driver");
+ MODULE_LICENSE("GPL");
+ MODULE_DEVICE_TABLE(pci, jmb38x_ms_id_tbl);
