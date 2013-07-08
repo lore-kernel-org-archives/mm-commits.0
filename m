@@ -1,276 +1,333 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-add-tracepoints-for-lru-activation-and-insertions.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:25:34 -0700
-Message-ID: <51db122e.jc8eFpfPCSrCUtse%akpm@linux-foundation.org>
+ vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:25:17 -0700
+Message-ID: <51db121d.uG5jklJEaFXLxFJM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50411 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665Ab3GHTZf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:35 -0400
+	with ESMTP id S1752074Ab3GHTZi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tytso@mit.edu, sanbai@taobao.com, riel@redhat.com, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dhowells@redhat.com, bernd.schubert@fastmail.fm, anserper@ya.ru, alexey.lyashkov@gmail.com, Trond.Myklebust@netapp.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com
 
-Subject: [merged] mm-add-tracepoints-for-lru-activation-and-insertions.patch removed from -mm tree
-To: mgorman@suse.de,Trond.Myklebust@netapp.com,alexey.lyashkov@gmail.com,anserper@ya.ru,bernd.schubert@fastmail.fm,dhowells@redhat.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,riel@redhat.com,sanbai@taobao.com,tytso@mit.edu,mm-commits@vger.kernel.org
+Subject: [merged] vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch removed from -mm tree
+To: d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:25:34 -0700
+Date: Mon, 08 Jul 2013 12:25:17 -0700
 
 
 The patch titled
-     Subject: mm: add tracepoints for LRU activation and insertions
+     Subject: vmcore: allocate buffer for ELF headers on page-size alignment
 has been removed from the -mm tree.  Its filename was
-     mm-add-tracepoints-for-lru-activation-and-insertions.patch
+     vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: add tracepoints for LRU activation and insertions
+From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Subject: vmcore: allocate buffer for ELF headers on page-size alignment
 
-Andrew Perepechko reported a problem whereby pages are being prematurely
-evicted as the mark_page_accessed() hint is ignored for pages that are
-currently on a pagevec --
-http://www.spinics.net/lists/linux-ext4/msg37340.html .  Alexey Lyahkov
-and Robin Dong have also reported problems recently that could be due to
-hot pages reaching the end of the inactive list too quickly and be
-reclaimed.
+Allocate ELF headers on page-size boundary using __get_free_pages()
+instead of kmalloc().
 
-Rather than addressing this on a per-filesystem basis, this series aims to
-fix the mark_page_accessed() interface by deferring what LRU a page is
-added to pagevec drain time and allowing mark_page_accessed() to call
-SetPageActive on a pagevec page.
+Later patch will merge PT_NOTE entries into a single unique one and
+decrease the buffer size actually used.  Keep original buffer size in
+variable elfcorebuf_sz_orig to kfree the buffer later and actually used
+buffer size with rounded up to page-size boundary in variable
+elfcorebuf_sz separately.
 
-Patch 1 adds two tracepoints for LRU page activation and insertion. Using
-	these processes it's possible to build a model of pages in the
-	LRU that can be processed offline.
+The size of part of the ELF buffer exported from /proc/vmcore is
+elfcorebuf_sz.
 
-Patch 2 defers making the decision on what LRU to add a page to until when
-	the pagevec is drained.
+The merged, removed PT_NOTE entries, i.e.  the range [elfcorebuf_sz,
+elfcorebuf_sz_orig], is filled with 0.
 
-Patch 3 searches the local pagevec for pages to mark PageActive on
-	mark_page_accessed. The changelog explains why only the local
-	pagevec is examined.
+Use size of the ELF headers as an initial offset value in
+set_vmcore_list_offsets_elf{64,32} and
+process_ptload_program_headers_elf{64,32} in order to indicate that the
+offset includes the holes towards the page boundary.
 
-Patches 4 and 5 tidy up the API.
+As a result, both set_vmcore_list_offsets_elf{64,32} have the same
+definition.  Merge them as set_vmcore_list_offsets.
 
-postmark, a dd-based test and fs-mark both single and threaded mode were
-run but none of them showed any performance degradation or gain as a
-result of the patch.
-
-Using patch 1, I built a *very* basic model of the LRU to examine offline
-what the average age of different page types on the LRU were in
-milliseconds.  Of course, capturing the trace distorts the test as it's
-written to local disk but it does not matter for the purposes of this
-test.  The average age of pages in milliseconds were
-
-				    vanilla deferdrain
-Average age mapped anon:               1454       1250
-Average age mapped file:             127841     155552
-Average age unmapped anon:               85        235
-Average age unmapped file:            73633      38884
-Average age unmapped buffers:         74054     116155
-
-The LRU activity was mostly files which you'd expect for a dd-based
-workload.  Note that the average age of buffer pages is increased by the
-series and it is expected this is due to the fact that the buffer pages
-are now getting added to the active list when drained from the pagevecs. 
-Note that the average age of the unmapped file data is decreased as they
-are still added to the inactive list and are reclaimed before the buffers.
- There is no guarantee this is a universal win for all workloads and it
-would be nice if the filesystem people gave some thought as to whether
-this decision is generally a win or a loss.
-
-
-
-This patch:
-
-Using these tracepoints it is possible to model LRU activity and the
-average residency of pages of different types.  This can be used to debug
-problems related to premature reclaim of pages of particular types.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Lyahkov <alexey.lyashkov@gmail.com>
-Cc: Andrew Perepechko <anserper@ya.ru>
-Cc: Robin Dong <sanbai@taobao.com>
-Cc: Theodore Tso <tytso@mit.edu>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Bernd Schubert <bernd.schubert@fastmail.fm>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+[akpm@linux-foundation.org: add free_elfcorebuf(), cleanups]
+Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
+Cc: Lisa Mitchell <lisa.mitchell@hp.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/pagemap.h |   89 +++++++++++++++++++++++++++++++
- mm/swap.c                      |    5 +
- 2 files changed, 94 insertions(+)
+ fs/proc/vmcore.c |  119 +++++++++++++++++++--------------------------
+ 1 file changed, 51 insertions(+), 68 deletions(-)
 
-diff -puN /dev/null include/trace/events/pagemap.h
---- /dev/null
-+++ a/include/trace/events/pagemap.h
-@@ -0,0 +1,89 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM pagemap
-+
-+#if !defined(_TRACE_PAGEMAP_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_PAGEMAP_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/mm.h>
-+
-+#define	PAGEMAP_MAPPED		0x0001u
-+#define PAGEMAP_ANONYMOUS	0x0002u
-+#define PAGEMAP_FILE		0x0004u
-+#define PAGEMAP_SWAPCACHE	0x0008u
-+#define PAGEMAP_SWAPBACKED	0x0010u
-+#define PAGEMAP_MAPPEDDISK	0x0020u
-+#define PAGEMAP_BUFFERS		0x0040u
-+
-+#define trace_pagemap_flags(page) ( \
-+	(PageAnon(page)		? PAGEMAP_ANONYMOUS  : PAGEMAP_FILE) | \
-+	(page_mapped(page)	? PAGEMAP_MAPPED     : 0) | \
-+	(PageSwapCache(page)	? PAGEMAP_SWAPCACHE  : 0) | \
-+	(PageSwapBacked(page)	? PAGEMAP_SWAPBACKED : 0) | \
-+	(PageMappedToDisk(page)	? PAGEMAP_MAPPEDDISK : 0) | \
-+	(page_has_private(page) ? PAGEMAP_BUFFERS    : 0) \
-+	)
-+
-+TRACE_EVENT(mm_lru_insertion,
-+
-+	TP_PROTO(
-+		struct page *page,
-+		unsigned long pfn,
-+		int lru,
-+		unsigned long flags
-+	),
-+
-+	TP_ARGS(page, pfn, lru, flags),
-+
-+	TP_STRUCT__entry(
-+		__field(struct page *,	page	)
-+		__field(unsigned long,	pfn	)
-+		__field(int,		lru	)
-+		__field(unsigned long,	flags	)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->page	= page;
-+		__entry->pfn	= pfn;
-+		__entry->lru	= lru;
-+		__entry->flags	= flags;
-+	),
-+
-+	/* Flag format is based on page-types.c formatting for pagemap */
-+	TP_printk("page=%p pfn=%lu lru=%d flags=%s%s%s%s%s%s",
-+			__entry->page,
-+			__entry->pfn,
-+			__entry->lru,
-+			__entry->flags & PAGEMAP_MAPPED		? "M" : " ",
-+			__entry->flags & PAGEMAP_ANONYMOUS	? "a" : "f",
-+			__entry->flags & PAGEMAP_SWAPCACHE	? "s" : " ",
-+			__entry->flags & PAGEMAP_SWAPBACKED	? "b" : " ",
-+			__entry->flags & PAGEMAP_MAPPEDDISK	? "d" : " ",
-+			__entry->flags & PAGEMAP_BUFFERS	? "B" : " ")
-+);
-+
-+TRACE_EVENT(mm_lru_activate,
-+
-+	TP_PROTO(struct page *page, unsigned long pfn),
-+
-+	TP_ARGS(page, pfn),
-+
-+	TP_STRUCT__entry(
-+		__field(struct page *,	page	)
-+		__field(unsigned long,	pfn	)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->page	= page;
-+		__entry->pfn	= pfn;
-+	),
-+
-+	/* Flag format is based on page-types.c formatting for pagemap */
-+	TP_printk("page=%p pfn=%lu", __entry->page, __entry->pfn)
-+
-+);
-+
-+#endif /* _TRACE_PAGEMAP_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
-diff -puN mm/swap.c~mm-add-tracepoints-for-lru-activation-and-insertions mm/swap.c
---- a/mm/swap.c~mm-add-tracepoints-for-lru-activation-and-insertions
-+++ a/mm/swap.c
-@@ -34,6 +34,9 @@
+diff -puN fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-allocate-buffer-for-elf-headers-on-page-size-alignment
++++ a/fs/proc/vmcore.c
+@@ -32,6 +32,7 @@ static LIST_HEAD(vmcore_list);
+ /* Stores the pointer to the buffer containing kernel elf core headers. */
+ static char *elfcorebuf;
+ static size_t elfcorebuf_sz;
++static size_t elfcorebuf_sz_orig;
  
- #include "internal.h"
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/pagemap.h>
-+
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
- 
-@@ -384,6 +387,7 @@ static void __activate_page(struct page
- 		SetPageActive(page);
- 		lru += LRU_ACTIVE;
- 		add_page_to_lru_list(page, lruvec, lru);
-+		trace_mm_lru_activate(page, page_to_pfn(page));
- 
- 		__count_vm_event(PGACTIVATE);
- 		update_page_reclaim_stat(lruvec, file, 1);
-@@ -808,6 +812,7 @@ static void __pagevec_lru_add_fn(struct
- 		SetPageActive(page);
- 	add_page_to_lru_list(page, lruvec, lru);
- 	update_page_reclaim_stat(lruvec, file, active);
-+	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
+ /* Total size of vmcore file. */
+ static u64 vmcore_size;
+@@ -186,7 +187,7 @@ static struct vmcore* __init get_new_ele
+ 	return kzalloc(sizeof(struct vmcore), GFP_KERNEL);
  }
  
- /*
+-static u64 __init get_vmcore_size_elf64(char *elfptr)
++static u64 __init get_vmcore_size_elf64(char *elfptr, size_t elfsz)
+ {
+ 	int i;
+ 	u64 size;
+@@ -195,7 +196,7 @@ static u64 __init get_vmcore_size_elf64(
+ 
+ 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
+ 	phdr_ptr = (Elf64_Phdr*)(elfptr + sizeof(Elf64_Ehdr));
+-	size = sizeof(Elf64_Ehdr) + ((ehdr_ptr->e_phnum) * sizeof(Elf64_Phdr));
++	size = elfsz;
+ 	for (i = 0; i < ehdr_ptr->e_phnum; i++) {
+ 		size += phdr_ptr->p_memsz;
+ 		phdr_ptr++;
+@@ -203,7 +204,7 @@ static u64 __init get_vmcore_size_elf64(
+ 	return size;
+ }
+ 
+-static u64 __init get_vmcore_size_elf32(char *elfptr)
++static u64 __init get_vmcore_size_elf32(char *elfptr, size_t elfsz)
+ {
+ 	int i;
+ 	u64 size;
+@@ -212,7 +213,7 @@ static u64 __init get_vmcore_size_elf32(
+ 
+ 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
+ 	phdr_ptr = (Elf32_Phdr*)(elfptr + sizeof(Elf32_Ehdr));
+-	size = sizeof(Elf32_Ehdr) + ((ehdr_ptr->e_phnum) * sizeof(Elf32_Phdr));
++	size = elfsz;
+ 	for (i = 0; i < ehdr_ptr->e_phnum; i++) {
+ 		size += phdr_ptr->p_memsz;
+ 		phdr_ptr++;
+@@ -294,6 +295,8 @@ static int __init merge_note_headers_elf
+ 	i = (nr_ptnote - 1) * sizeof(Elf64_Phdr);
+ 	*elfsz = *elfsz - i;
+ 	memmove(tmp, tmp+i, ((*elfsz)-sizeof(Elf64_Ehdr)-sizeof(Elf64_Phdr)));
++	memset(elfptr + *elfsz, 0, i);
++	*elfsz = roundup(*elfsz, PAGE_SIZE);
+ 
+ 	/* Modify e_phnum to reflect merged headers. */
+ 	ehdr_ptr->e_phnum = ehdr_ptr->e_phnum - nr_ptnote + 1;
+@@ -375,6 +378,8 @@ static int __init merge_note_headers_elf
+ 	i = (nr_ptnote - 1) * sizeof(Elf32_Phdr);
+ 	*elfsz = *elfsz - i;
+ 	memmove(tmp, tmp+i, ((*elfsz)-sizeof(Elf32_Ehdr)-sizeof(Elf32_Phdr)));
++	memset(elfptr + *elfsz, 0, i);
++	*elfsz = roundup(*elfsz, PAGE_SIZE);
+ 
+ 	/* Modify e_phnum to reflect merged headers. */
+ 	ehdr_ptr->e_phnum = ehdr_ptr->e_phnum - nr_ptnote + 1;
+@@ -398,8 +403,7 @@ static int __init process_ptload_program
+ 	phdr_ptr = (Elf64_Phdr*)(elfptr + sizeof(Elf64_Ehdr)); /* PT_NOTE hdr */
+ 
+ 	/* First program header is PT_NOTE header. */
+-	vmcore_off = sizeof(Elf64_Ehdr) +
+-			(ehdr_ptr->e_phnum) * sizeof(Elf64_Phdr) +
++	vmcore_off = elfsz +
+ 			phdr_ptr->p_memsz; /* Note sections */
+ 
+ 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
+@@ -435,8 +439,7 @@ static int __init process_ptload_program
+ 	phdr_ptr = (Elf32_Phdr*)(elfptr + sizeof(Elf32_Ehdr)); /* PT_NOTE hdr */
+ 
+ 	/* First program header is PT_NOTE header. */
+-	vmcore_off = sizeof(Elf32_Ehdr) +
+-			(ehdr_ptr->e_phnum) * sizeof(Elf32_Phdr) +
++	vmcore_off = elfsz +
+ 			phdr_ptr->p_memsz; /* Note sections */
+ 
+ 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
+@@ -459,18 +462,14 @@ static int __init process_ptload_program
+ }
+ 
+ /* Sets offset fields of vmcore elements. */
+-static void __init set_vmcore_list_offsets_elf64(char *elfptr,
+-						struct list_head *vc_list)
++static void __init set_vmcore_list_offsets(size_t elfsz,
++					   struct list_head *vc_list)
+ {
+ 	loff_t vmcore_off;
+-	Elf64_Ehdr *ehdr_ptr;
+ 	struct vmcore *m;
+ 
+-	ehdr_ptr = (Elf64_Ehdr *)elfptr;
+-
+ 	/* Skip Elf header and program headers. */
+-	vmcore_off = sizeof(Elf64_Ehdr) +
+-			(ehdr_ptr->e_phnum) * sizeof(Elf64_Phdr);
++	vmcore_off = elfsz;
+ 
+ 	list_for_each_entry(m, vc_list, list) {
+ 		m->offset = vmcore_off;
+@@ -478,24 +477,10 @@ static void __init set_vmcore_list_offse
+ 	}
+ }
+ 
+-/* Sets offset fields of vmcore elements. */
+-static void __init set_vmcore_list_offsets_elf32(char *elfptr,
+-						struct list_head *vc_list)
++static void free_elfcorebuf(void)
+ {
+-	loff_t vmcore_off;
+-	Elf32_Ehdr *ehdr_ptr;
+-	struct vmcore *m;
+-
+-	ehdr_ptr = (Elf32_Ehdr *)elfptr;
+-
+-	/* Skip Elf header and program headers. */
+-	vmcore_off = sizeof(Elf32_Ehdr) +
+-			(ehdr_ptr->e_phnum) * sizeof(Elf32_Phdr);
+-
+-	list_for_each_entry(m, vc_list, list) {
+-		m->offset = vmcore_off;
+-		vmcore_off += m->size;
+-	}
++	free_pages((unsigned long)elfcorebuf, get_order(elfcorebuf_sz_orig));
++	elfcorebuf = NULL;
+ }
+ 
+ static int __init parse_crash_elf64_headers(void)
+@@ -526,31 +511,31 @@ static int __init parse_crash_elf64_head
+ 	}
+ 
+ 	/* Read in all elf headers. */
+-	elfcorebuf_sz = sizeof(Elf64_Ehdr) + ehdr.e_phnum * sizeof(Elf64_Phdr);
+-	elfcorebuf = kmalloc(elfcorebuf_sz, GFP_KERNEL);
++	elfcorebuf_sz_orig = sizeof(Elf64_Ehdr) +
++				ehdr.e_phnum * sizeof(Elf64_Phdr);
++	elfcorebuf_sz = elfcorebuf_sz_orig;
++	elfcorebuf = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
++					      get_order(elfcorebuf_sz_orig));
+ 	if (!elfcorebuf)
+ 		return -ENOMEM;
+ 	addr = elfcorehdr_addr;
+-	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz, &addr, 0);
+-	if (rc < 0) {
+-		kfree(elfcorebuf);
+-		return rc;
+-	}
++	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz_orig, &addr, 0);
++	if (rc < 0)
++		goto fail;
+ 
+ 	/* Merge all PT_NOTE headers into one. */
+ 	rc = merge_note_headers_elf64(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
+-	if (rc) {
+-		kfree(elfcorebuf);
+-		return rc;
+-	}
++	if (rc)
++		goto fail;
+ 	rc = process_ptload_program_headers_elf64(elfcorebuf, elfcorebuf_sz,
+ 							&vmcore_list);
+-	if (rc) {
+-		kfree(elfcorebuf);
+-		return rc;
+-	}
+-	set_vmcore_list_offsets_elf64(elfcorebuf, &vmcore_list);
++	if (rc)
++		goto fail;
++	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
+ 	return 0;
++fail:
++	free_elfcorebuf();
++	return rc;
+ }
+ 
+ static int __init parse_crash_elf32_headers(void)
+@@ -581,31 +566,30 @@ static int __init parse_crash_elf32_head
+ 	}
+ 
+ 	/* Read in all elf headers. */
+-	elfcorebuf_sz = sizeof(Elf32_Ehdr) + ehdr.e_phnum * sizeof(Elf32_Phdr);
+-	elfcorebuf = kmalloc(elfcorebuf_sz, GFP_KERNEL);
++	elfcorebuf_sz_orig = sizeof(Elf32_Ehdr) + ehdr.e_phnum * sizeof(Elf32_Phdr);
++	elfcorebuf_sz = elfcorebuf_sz_orig;
++	elfcorebuf = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO,
++					      get_order(elfcorebuf_sz_orig));
+ 	if (!elfcorebuf)
+ 		return -ENOMEM;
+ 	addr = elfcorehdr_addr;
+-	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz, &addr, 0);
+-	if (rc < 0) {
+-		kfree(elfcorebuf);
+-		return rc;
+-	}
++	rc = read_from_oldmem(elfcorebuf, elfcorebuf_sz_orig, &addr, 0);
++	if (rc < 0)
++		goto fail;
+ 
+ 	/* Merge all PT_NOTE headers into one. */
+ 	rc = merge_note_headers_elf32(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
+-	if (rc) {
+-		kfree(elfcorebuf);
+-		return rc;
+-	}
++	if (rc)
++		goto fail;
+ 	rc = process_ptload_program_headers_elf32(elfcorebuf, elfcorebuf_sz,
+ 								&vmcore_list);
+-	if (rc) {
+-		kfree(elfcorebuf);
+-		return rc;
+-	}
+-	set_vmcore_list_offsets_elf32(elfcorebuf, &vmcore_list);
++	if (rc)
++		goto fail;
++	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
+ 	return 0;
++fail:
++	free_elfcorebuf();
++	return rc;
+ }
+ 
+ static int __init parse_crash_elf_headers(void)
+@@ -629,14 +613,14 @@ static int __init parse_crash_elf_header
+ 			return rc;
+ 
+ 		/* Determine vmcore size. */
+-		vmcore_size = get_vmcore_size_elf64(elfcorebuf);
++		vmcore_size = get_vmcore_size_elf64(elfcorebuf, elfcorebuf_sz);
+ 	} else if (e_ident[EI_CLASS] == ELFCLASS32) {
+ 		rc = parse_crash_elf32_headers();
+ 		if (rc)
+ 			return rc;
+ 
+ 		/* Determine vmcore size. */
+-		vmcore_size = get_vmcore_size_elf32(elfcorebuf);
++		vmcore_size = get_vmcore_size_elf32(elfcorebuf, elfcorebuf_sz);
+ 	} else {
+ 		pr_warn("Warning: Core image elf header is not sane\n");
+ 		return -EINVAL;
+@@ -683,7 +667,6 @@ void vmcore_cleanup(void)
+ 		list_del(&m->list);
+ 		kfree(m);
+ 	}
+-	kfree(elfcorebuf);
+-	elfcorebuf = NULL;
++	free_elfcorebuf();
+ }
+ EXPORT_SYMBOL_GPL(vmcore_cleanup);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-api.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
-zbud-add-to-mm.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch
-mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
-mm-memmap_init_zone-performance-improvement.patch
 
