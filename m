@@ -1,91 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources.patch removed
+Subject: [merged] sound-soc-codecs-si476xc-dont-use-0bnnn.patch removed
  from -mm tree
-Date: Mon, 08 Jul 2013 12:22:54 -0700
-Message-ID: <51db118e.S3tqjDeVKl4fafcG%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:22:56 -0700
+Message-ID: <51db1190.9zdiNLAdRtZo1yOV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49960 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738Ab3GHTWz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:22:55 -0400
+	with ESMTP id S1752763Ab3GHTW5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:22:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vinod.koul@linux.intel.com, t.figa@samsung.com, stable@vger.kernel.org, kyungmin.park@samsung.com, jassisinghbrar@gmail.com, b.zolnierkie@samsung.com
+To: mm-commits@vger.kernel.org, tiwai@suse.de, broonie@opensource.wolfsonmicro.com, andrey.smirnov@convergeddevices.net, akpm@linux-foundation.org
 
-Subject: [merged] drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources.patch removed from -mm tree
-To: b.zolnierkie@samsung.com,jassisinghbrar@gmail.com,kyungmin.park@samsung.com,stable@vger.kernel.org,t.figa@samsung.com,vinod.koul@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] sound-soc-codecs-si476xc-dont-use-0bnnn.patch removed from -mm tree
+To: akpm@linux-foundation.org,andrey.smirnov@convergeddevices.net,broonie@opensource.wolfsonmicro.com,tiwai@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:22:54 -0700
+Date: Mon, 08 Jul 2013 12:22:56 -0700
 
 
 The patch titled
-     Subject: drivers/dma/pl330.c: fix locking in pl330_free_chan_resources()
+     Subject: sound/soc/codecs/si476x.c: don't use 0bNNN
 has been removed from the -mm tree.  Its filename was
-     drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources.patch
+     sound-soc-codecs-si476xc-dont-use-0bnnn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: drivers/dma/pl330.c: fix locking in pl330_free_chan_resources()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sound/soc/codecs/si476x.c: don't use 0bNNN
 
-tasklet_kill() may sleep so call it before taking pch->lock.
+spacr64 gcc-3.4.5 (at least) spits this back.
 
-Fixes following lockup:
-
-[  345.470000] BUG: scheduling while atomic: cat/2383/0x00000002
-[  345.470000] Modules linked in:
-[  345.470000] [<c0015858>] (unwind_backtrace+0x0/0xfc) from [<c004d980>] (__schedule_bug+0x4c/0x58)
-[  345.470000] [<c004d980>] (__schedule_bug+0x4c/0x58) from [<c0360b6c>] (__schedule+0x690/0x6e0)
-[  345.470000] [<c0360b6c>] (__schedule+0x690/0x6e0) from [<c004f2b4>] (sys_sched_yield+0x70/0x78)
-[  345.470000] [<c004f2b4>] (sys_sched_yield+0x70/0x78) from [<c002acec>] (tasklet_kill+0x34/0x8c)
-[  345.470000] [<c002acec>] (tasklet_kill+0x34/0x8c) from [<c01da4cc>] (pl330_free_chan_resources+0x24/0x88)
-[  345.470000] [<c01da4cc>] (pl330_free_chan_resources+0x24/0x88) from [<c01d81f4>] (dma_chan_put+0x4c/0x50)
-[  345.470000] [<c01d81f4>] (dma_chan_put+0x4c/0x50) from [<c01d82c0>] (dma_release_channel+0x28/0x98)
-[...]
-[  368.335000] BUG: spinlock lockup suspected on CPU#0, swapper/0/0
-[  368.340000]  lock: 0xe52aa04c, .magic: dead4ead, .owner: cat/2383, .owner_cpu: 1
-[  368.350000] [<c0015858>] (unwind_backtrace+0x0/0xfc) from [<c01b3d78>] (do_raw_spin_lock+0x194/0x204)
-[  368.360000] [<c01b3d78>] (do_raw_spin_lock+0x194/0x204) from [<c0361adc>] (_raw_spin_lock_irqsave+0x20/0x28)
-[  368.365000] [<c0361adc>] (_raw_spin_lock_irqsave+0x20/0x28) from [<c01da80c>] (pl330_tasklet+0x2c/0x5a8)
-[  368.375000] [<c01da80c>] (pl330_tasklet+0x2c/0x5a8) from [<c002ac04>] (tasklet_action+0xfc/0x114)
-[  368.385000] [<c002ac04>] (tasklet_action+0xfc/0x114) from [<c002b204>] (__do_softirq+0xe4/0x19c)
-[  368.395000] [<c002b204>] (__do_softirq+0xe4/0x19c) from [<c002b398>] (irq_exit+0x98/0x9c)
-[  368.405000] [<c002b398>] (irq_exit+0x98/0x9c) from [<c0013ebc>] (handle_IPI+0x124/0x16c)
-[  368.410000] [<c0013ebc>] (handle_IPI+0x124/0x16c) from [<c000857c>] (gic_handle_irq+0x64/0x68)
-[  368.420000] [<c000857c>] (gic_handle_irq+0x64/0x68) from [<c000e740>] (__irq_svc+0x40/0x70)
-[  368.430000] Exception stack(0xc04a3f00 to 0xc04a3f48)
-[  368.435000] 3f00: c04a3f48 00000000 6f9e23e8 00000050 c07492c8 c04a3f48 00000000 c04ccc88
-[  368.440000] 3f20: 6f9dbac3 00000050 6f9e23e8 00000050 3b9aca00 c04a3f48 c005cfa4 c02946d4
-[  368.450000] 3f40: 60000013 ffffffff
-[  368.455000] [<c000e740>] (__irq_svc+0x40/0x70) from [<c02946d4>] (cpuidle_wrap_enter+0x4c/0xa0)
-[  368.460000] [<c02946d4>] (cpuidle_wrap_enter+0x4c/0xa0) from [<c02940dc>] (cpuidle_enter_state+0x18/0x68)
-[  368.470000] [<c02940dc>] (cpuidle_enter_state+0x18/0x68) from [<c02948e0>] (cpuidle_idle_call+0xac/0xe0)
-[  368.480000] [<c02948e0>] (cpuidle_idle_call+0xac/0xe0) from [<c00102f8>] (cpu_idle+0xac/0xf0)
-[  368.490000] [<c00102f8>] (cpu_idle+0xac/0xf0) from [<c04796a0>] (start_kernel+0x28c/0x294)
-
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Tomasz Figa <t.figa@samsung.com>
-Cc: <stable@vger.kernel.org>
+Cc: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/pl330.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ sound/soc/codecs/si476x.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/dma/pl330.c~drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources drivers/dma/pl330.c
---- a/drivers/dma/pl330.c~drivers-dma-pl330c-fix-locking-in-pl330_free_chan_resources
-+++ a/drivers/dma/pl330.c
-@@ -2485,10 +2485,10 @@ static void pl330_free_chan_resources(st
- 	struct dma_pl330_chan *pch = to_pchan(chan);
- 	unsigned long flags;
+diff -puN sound/soc/codecs/si476x.c~sound-soc-codecs-si476xc-dont-use-0bnnn sound/soc/codecs/si476x.c
+--- a/sound/soc/codecs/si476x.c~sound-soc-codecs-si476xc-dont-use-0bnnn
++++ a/sound/soc/codecs/si476x.c
+@@ -38,9 +38,9 @@ enum si476x_digital_io_output_format {
+ 	SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT	= 8,
+ };
  
--	spin_lock_irqsave(&pch->lock, flags);
+-#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	((0b111 << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) | \
+-						  (0b111 << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT))
+-#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	(0b1111110)
++#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	((0x7 << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) | \
++						  (0x7 << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT))
++#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	(0x7e)
+ 
+ enum si476x_daudio_formats {
+ 	SI476X_DAUDIO_MODE_I2S		= (0x0 << 1),
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
+fput-turn-list_head-delayed_fput_list-into-llist_head.patch
+mm.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix-fix.patch
+include-linux-mmzoneh-cleanups.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
