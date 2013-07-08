@@ -1,182 +1,184 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:24:43 -0700
-Message-ID: <51db11fb.hCAWW8JVFCJkCHK9%akpm@linux-foundation.org>
+ mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:24:54 -0700
+Message-ID: <51db1206.ec0BwaVA8fONr0TG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50299 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100Ab3GHTYt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:49 -0400
+	with ESMTP id S1752750Ab3GHTYz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
+To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, trond.myklebust@fys.uio.no, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
 
-Subject: [merged] mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch removed from -mm tree
-To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,zcalusic@bitsync.net,mm-commits@vger.kernel.org
+Subject: [merged] mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch removed from -mm tree
+To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,trond.myklebust@fys.uio.no,zcalusic@bitsync.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:24:43 -0700
+Date: Mon, 08 Jul 2013 12:24:54 -0700
 
 
 The patch titled
-     Subject: mm: vmscan: have kswapd writeback pages based on dirty pages encountered, not priority
+     Subject: mm: vmscan: stall page reclaim after a list of pages have been processed
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority.patch
+     mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: have kswapd writeback pages based on dirty pages encountered, not priority
+Subject: mm: vmscan: stall page reclaim after a list of pages have been processed
 
-Currently kswapd queues dirty pages for writeback if scanning at an
-elevated priority but the priority kswapd scans at is not related to the
-number of unqueued dirty encountered.  Since commit "mm: vmscan: Flatten
-kswapd priority loop", the priority is related to the size of the LRU and
-the zone watermark which is no indication as to whether kswapd should
-write pages or not.
-
-This patch tracks if an excessive number of unqueued dirty pages are being
-encountered at the end of the LRU.  If so, it indicates that dirty pages
-are being recycled before flusher threads can clean them and flags the
-zone so that kswapd will start writing pages until the zone is balanced.
+Commit "mm: vmscan: Block kswapd if it is encountering pages under
+writeback" blocks page reclaim if it encounters pages under writeback
+marked for immediate reclaim.  It blocks while pages are still isolated
+from the LRU which is unnecessary.  This patch defers the blocking until
+after the isolated pages have been processed and tidies up some of the
+comments.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Jiri Slaby <jslaby@suse.cz>
 Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Tested-by: Zlatko Calusic <zcalusic@bitsync.net>
+Cc: Zlatko Calusic <zcalusic@bitsync.net>
 Cc: dormando <dormando@rydia.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    9 +++++++++
- mm/vmscan.c            |   31 +++++++++++++++++++++++++------
- 2 files changed, 34 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   49 +++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 33 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority
-+++ a/include/linux/mmzone.h
-@@ -495,6 +495,10 @@ typedef enum {
- 	ZONE_CONGESTED,			/* zone has many dirty pages backed by
- 					 * a congested BDI
- 					 */
-+	ZONE_TAIL_LRU_DIRTY,		/* reclaim scanning has recently found
-+					 * many dirty file pages at the tail
-+					 * of the LRU.
-+					 */
- } zone_flags_t;
- 
- static inline void zone_set_flag(struct zone *zone, zone_flags_t flag)
-@@ -517,6 +521,11 @@ static inline int zone_is_reclaim_conges
- 	return test_bit(ZONE_CONGESTED, &zone->flags);
- }
- 
-+static inline int zone_is_reclaim_dirty(const struct zone *zone)
-+{
-+	return test_bit(ZONE_TAIL_LRU_DIRTY, &zone->flags);
-+}
-+
- static inline int zone_is_reclaim_locked(const struct zone *zone)
- {
- 	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
-diff -puN mm/vmscan.c~mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-have-kswapd-writeback-pages-based-on-dirty-pages-encountered-not-priority
+diff -puN mm/vmscan.c~mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3 mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-stall-page-reclaim-after-a-list-of-pages-have-been-processed-v3
 +++ a/mm/vmscan.c
-@@ -676,13 +676,14 @@ static unsigned long shrink_page_list(st
- 				      struct zone *zone,
- 				      struct scan_control *sc,
+@@ -697,6 +697,7 @@ static unsigned long shrink_page_list(st
  				      enum ttu_flags ttu_flags,
--				      unsigned long *ret_nr_dirty,
-+				      unsigned long *ret_nr_unqueued_dirty,
+ 				      unsigned long *ret_nr_unqueued_dirty,
  				      unsigned long *ret_nr_writeback,
++				      unsigned long *ret_nr_immediate,
  				      bool force_reclaim)
  {
  	LIST_HEAD(ret_pages);
- 	LIST_HEAD(free_pages);
- 	int pgactivate = 0;
-+	unsigned long nr_unqueued_dirty = 0;
- 	unsigned long nr_dirty = 0;
+@@ -707,6 +708,7 @@ static unsigned long shrink_page_list(st
  	unsigned long nr_congested = 0;
  	unsigned long nr_reclaimed = 0;
-@@ -808,14 +809,17 @@ static unsigned long shrink_page_list(st
- 		if (PageDirty(page)) {
- 			nr_dirty++;
+ 	unsigned long nr_writeback = 0;
++	unsigned long nr_immediate = 0;
  
-+			if (!PageWriteback(page))
-+				nr_unqueued_dirty++;
-+
- 			/*
- 			 * Only kswapd can writeback filesystem pages to
--			 * avoid risk of stack overflow but do not writeback
--			 * unless under significant pressure.
-+			 * avoid risk of stack overflow but only writeback
-+			 * if many dirty pages have been encountered.
- 			 */
- 			if (page_is_file_cache(page) &&
- 					(!current_is_kswapd() ||
--					 sc->priority >= DEF_PRIORITY - 2)) {
-+					 !zone_is_reclaim_dirty(zone))) {
- 				/*
- 				 * Immediately reclaim when written back.
- 				 * Similar in principal to deactivate_page()
-@@ -960,7 +964,7 @@ keep:
- 	list_splice(&ret_pages, page_list);
- 	count_vm_events(PGACTIVATE, pgactivate);
+ 	cond_resched();
+ 
+@@ -773,8 +775,8 @@ static unsigned long shrink_page_list(st
+ 		 *    IO can complete. Waiting on the page itself risks an
+ 		 *    indefinite stall if it is impossible to writeback the
+ 		 *    page due to IO error or disconnected storage so instead
+-		 *    block for HZ/10 or until some IO completes then clear the
+-		 *    ZONE_WRITEBACK flag to recheck if the condition exists.
++		 *    note that the LRU is being scanned too quickly and the
++		 *    caller can stall after page list has been processed.
+ 		 *
+ 		 * 2) Global reclaim encounters a page, memcg encounters a
+ 		 *    page that is not marked for immediate reclaim or
+@@ -804,10 +806,8 @@ static unsigned long shrink_page_list(st
+ 			if (current_is_kswapd() &&
+ 			    PageReclaim(page) &&
+ 			    zone_is_reclaim_writeback(zone)) {
+-				unlock_page(page);
+-				congestion_wait(BLK_RW_ASYNC, HZ/10);
+-				zone_clear_flag(zone, ZONE_WRITEBACK);
+-				goto keep;
++				nr_immediate++;
++				goto keep_locked;
+ 
+ 			/* Case 2 above */
+ 			} else if (global_reclaim(sc) ||
+@@ -1033,6 +1033,7 @@ keep:
  	mem_cgroup_uncharge_end();
--	*ret_nr_dirty += nr_dirty;
-+	*ret_nr_unqueued_dirty += nr_unqueued_dirty;
+ 	*ret_nr_unqueued_dirty += nr_unqueued_dirty;
  	*ret_nr_writeback += nr_writeback;
++	*ret_nr_immediate += nr_immediate;
  	return nr_reclaimed;
  }
-@@ -1373,6 +1377,15 @@ shrink_inactive_list(unsigned long nr_to
- 			(nr_taken >> (DEF_PRIORITY - sc->priority)))
- 		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
  
-+	/*
-+	 * Similarly, if many dirty pages are encountered that are not
-+	 * currently being written then flag that kswapd should start
-+	 * writing back pages.
-+	 */
-+	if (global_reclaim(sc) && nr_dirty &&
-+			nr_dirty >= (nr_taken >> (DEF_PRIORITY - sc->priority)))
-+		zone_set_flag(zone, ZONE_TAIL_LRU_DIRTY);
+@@ -1044,7 +1045,7 @@ unsigned long reclaim_clean_pages_from_l
+ 		.priority = DEF_PRIORITY,
+ 		.may_unmap = 1,
+ 	};
+-	unsigned long ret, dummy1, dummy2;
++	unsigned long ret, dummy1, dummy2, dummy3;
+ 	struct page *page, *next;
+ 	LIST_HEAD(clean_pages);
+ 
+@@ -1057,7 +1058,7 @@ unsigned long reclaim_clean_pages_from_l
+ 
+ 	ret = shrink_page_list(&clean_pages, zone, &sc,
+ 				TTU_UNMAP|TTU_IGNORE_ACCESS,
+-				&dummy1, &dummy2, true);
++				&dummy1, &dummy2, &dummy3, true);
+ 	list_splice(&clean_pages, page_list);
+ 	__mod_zone_page_state(zone, NR_ISOLATED_FILE, -ret);
+ 	return ret;
+@@ -1353,6 +1354,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_taken;
+ 	unsigned long nr_unqueued_dirty = 0;
+ 	unsigned long nr_writeback = 0;
++	unsigned long nr_immediate = 0;
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+ 	struct zone *zone = lruvec_zone(lruvec);
+@@ -1394,7 +1396,8 @@ shrink_inactive_list(unsigned long nr_to
+ 		return 0;
+ 
+ 	nr_reclaimed = shrink_page_list(&page_list, zone, sc, TTU_UNMAP,
+-				&nr_unqueued_dirty, &nr_writeback, false);
++			&nr_unqueued_dirty, &nr_writeback, &nr_immediate,
++			false);
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+@@ -1447,14 +1450,28 @@ shrink_inactive_list(unsigned long nr_to
+ 	}
+ 
+ 	/*
+-	 * Similarly, if many dirty pages are encountered that are not
+-	 * currently being written then flag that kswapd should start
+-	 * writing back pages and stall to give a chance for flushers
+-	 * to catch up.
++	 * memcg will stall in page writeback so only consider forcibly
++	 * stalling for global reclaim
+ 	 */
+-	if (global_reclaim(sc) && nr_unqueued_dirty == nr_taken) {
+-		congestion_wait(BLK_RW_ASYNC, HZ/10);
+-		zone_set_flag(zone, ZONE_TAIL_LRU_DIRTY);
++	if (global_reclaim(sc)) {
++		/*
++		 * If dirty pages are scanned that are not queued for IO, it
++		 * implies that flushers are not keeping up. In this case, flag
++		 * the zone ZONE_TAIL_LRU_DIRTY and kswapd will start writing
++		 * pages from reclaim context. It will forcibly stall in the
++		 * next check.
++		 */
++		if (nr_unqueued_dirty == nr_taken)
++			zone_set_flag(zone, ZONE_TAIL_LRU_DIRTY);
 +
++		/*
++		 * In addition, if kswapd scans pages marked marked for
++		 * immediate reclaim and under writeback (nr_immediate), it
++		 * implies that pages are cycling through the LRU faster than
++		 * they are written so also forcibly stall.
++		 */
++		if (nr_unqueued_dirty == nr_taken || nr_immediate)
++			congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 	}
+ 
  	trace_mm_vmscan_lru_shrink_inactive(zone->zone_pgdat->node_id,
- 		zone_idx(zone),
- 		nr_scanned, nr_reclaimed,
-@@ -2769,8 +2782,12 @@ static unsigned long balance_pgdat(pg_da
- 				end_zone = i;
- 				break;
- 			} else {
--				/* If balanced, clear the congested flag */
-+				/*
-+				 * If balanced, clear the dirty and congested
-+				 * flags
-+				 */
- 				zone_clear_flag(zone, ZONE_CONGESTED);
-+				zone_clear_flag(zone, ZONE_TAIL_LRU_DIRTY);
- 			}
- 		}
- 
-@@ -2888,8 +2905,10 @@ static unsigned long balance_pgdat(pg_da
- 				 * possible there are dirty pages backed by
- 				 * congested BDIs but as pressure is relieved,
- 				 * speculatively avoid congestion waits
-+				 * or writing pages from kswapd context.
- 				 */
- 				zone_clear_flag(zone, ZONE_CONGESTED);
-+				zone_clear_flag(zone, ZONE_TAIL_LRU_DIRTY);
- 		}
- 
- 		/*
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
