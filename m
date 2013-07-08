@@ -1,46 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rapidio-add-modular-build-option-for-the-subsystem-core.patch removed from
- -mm tree
-Date: Mon, 08 Jul 2013 12:36:43 -0700
-Message-ID: <51db14cb.Xx7fTQkB2KAUvkPE%akpm@linux-foundation.org>
+Subject: [merged] rapidio-add-udev-notification.patch removed from -mm
+ tree
+Date: Mon, 08 Jul 2013 12:36:45 -0700
+Message-ID: <51db14cd.8S6+sSCqPI6sG6ka%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51710 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3GHTgo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:44 -0400
+	with ESMTP id S1752613Ab3GHTgq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stef.van.os@Prodrive.nl, mporter@kernel.crashing.org, micha.nelissen@Prodrive.nl, leoli@freescale.com, jdelvare@suse.de, galak@kernel.crashing.org, andre.van.herk@Prodrive.nl, alexandre.bounine@idt.com
 
-Subject: [merged] rapidio-add-modular-build-option-for-the-subsystem-core.patch removed from -mm tree
+Subject: [merged] rapidio-add-udev-notification.patch removed from -mm tree
 To: alexandre.bounine@idt.com,andre.van.herk@Prodrive.nl,galak@kernel.crashing.org,jdelvare@suse.de,leoli@freescale.com,micha.nelissen@Prodrive.nl,mporter@kernel.crashing.org,stef.van.os@Prodrive.nl,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:43 -0700
+Date: Mon, 08 Jul 2013 12:36:45 -0700
 
 
 The patch titled
-     Subject: rapidio: add modular build option for the subsystem core
+     Subject: rapidio: add udev notification
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-modular-build-option-for-the-subsystem-core.patch
+     rapidio-add-udev-notification.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add modular build option for the subsystem core
+Subject: rapidio: add udev notification
 
-Add a configuration option to build RapidIO subsystem core code as a
-loadable kernel module.  Currently this option is available only for
-x86-based platforms, with the additional patch for PowerPC planned to be
-provided later.
+Add RapidIO-specific modalias generation to enable udev notifications
+about RapidIO-specific events.
 
-This patch replaces kernel command line parameter "riohdid=" with its
-module-specific analog "rapidio.hdid=".
+The RapidIO modalias string format is shown below:
+
+"rapidio:vNNNNdNNNNavNNNNadNNNN"
+
+Where:
+v  - Device Vendor ID (16 bit),
+d  - Device ID (16 bit),
+av - Assembly Vendor ID (16 bit),
+ad - Assembly ID (16 bit),
+
+as they are reported in corresponding Capability Registers (CARs)
+of each RapidIO device.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -53,92 +60,198 @@ Cc: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig         |    4 ++--
- drivers/rapidio/Makefile |    4 +++-
- drivers/rapidio/rio.c    |   27 ++++++++++++++-------------
- 3 files changed, 19 insertions(+), 16 deletions(-)
+ drivers/rapidio/rio-driver.c      |   18 ++++++++++++++++++
+ drivers/rapidio/rio-sysfs.c       |   10 ++++++++++
+ include/linux/mod_devicetable.h   |   19 +++++++++++++++++++
+ include/linux/rio.h               |   16 +---------------
+ include/linux/rio_ids.h           |    2 --
+ scripts/mod/devicetable-offsets.c |    6 ++++++
+ scripts/mod/file2alias.c          |   20 ++++++++++++++++++++
+ 7 files changed, 74 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86/Kconfig~rapidio-add-modular-build-option-for-the-subsystem-core arch/x86/Kconfig
---- a/arch/x86/Kconfig~rapidio-add-modular-build-option-for-the-subsystem-core
-+++ a/arch/x86/Kconfig
-@@ -2259,11 +2259,11 @@ source "drivers/pcmcia/Kconfig"
- source "drivers/pci/hotplug/Kconfig"
+diff -puN drivers/rapidio/rio-driver.c~rapidio-add-udev-notification drivers/rapidio/rio-driver.c
+--- a/drivers/rapidio/rio-driver.c~rapidio-add-udev-notification
++++ a/drivers/rapidio/rio-driver.c
+@@ -199,6 +199,23 @@ static int rio_match_bus(struct device *
+       out:return 0;
+ }
  
- config RAPIDIO
--	bool "RapidIO support"
-+	tristate "RapidIO support"
- 	depends on PCI
- 	default n
- 	help
--	  If you say Y here, the kernel will include drivers and
-+	  If enabled this option will include drivers and the core
- 	  infrastructure code to support RapidIO interconnect devices.
- 
- source "drivers/rapidio/Kconfig"
-diff -puN drivers/rapidio/Makefile~rapidio-add-modular-build-option-for-the-subsystem-core drivers/rapidio/Makefile
---- a/drivers/rapidio/Makefile~rapidio-add-modular-build-option-for-the-subsystem-core
-+++ a/drivers/rapidio/Makefile
-@@ -1,7 +1,9 @@
- #
- # Makefile for RapidIO interconnect services
- #
--obj-y += rio.o rio-access.o rio-driver.o rio-sysfs.o
-+obj-$(CONFIG_RAPIDIO) += rapidio.o
-+rapidio-y := rio.o rio-access.o rio-driver.o rio-sysfs.o
++static int rio_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	struct rio_dev *rdev;
 +
- obj-$(CONFIG_RAPIDIO_ENUM_BASIC) += rio-scan.o
- 
- obj-$(CONFIG_RAPIDIO)		+= switches/
-diff -puN drivers/rapidio/rio.c~rapidio-add-modular-build-option-for-the-subsystem-core drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-modular-build-option-for-the-subsystem-core
-+++ a/drivers/rapidio/rio.c
-@@ -5,7 +5,7 @@
-  * Copyright 2005 MontaVista Software, Inc.
-  * Matt Porter <mporter@kernel.crashing.org>
-  *
-- * Copyright 2009 Integrated Device Technology, Inc.
-+ * Copyright 2009 - 2013 Integrated Device Technology, Inc.
-  * Alex Bounine <alexandre.bounine@idt.com>
-  *
-  * This program is free software; you can redistribute  it and/or modify it
-@@ -30,6 +30,17 @@
- 
- #include "rio.h"
- 
-+MODULE_DESCRIPTION("RapidIO Subsystem Core");
-+MODULE_AUTHOR("Matt Porter <mporter@kernel.crashing.org>");
-+MODULE_AUTHOR("Alexandre Bounine <alexandre.bounine@idt.com>");
-+MODULE_LICENSE("GPL");
++	if (!dev)
++		return -ENODEV;
 +
-+static int hdid[RIO_MAX_MPORTS];
-+static int ids_num;
-+module_param_array(hdid, int, &ids_num, 0);
-+MODULE_PARM_DESC(hdid,
-+	"Destination ID assignment to local RapidIO controllers");
++	rdev = to_rio_dev(dev);
++	if (!rdev)
++		return -ENODEV;
 +
- static LIST_HEAD(rio_devices);
- static DEFINE_SPINLOCK(rio_global_list_lock);
++	if (add_uevent_var(env, "MODALIAS=rapidio:v%04Xd%04Xav%04Xad%04X",
++			   rdev->vid, rdev->did, rdev->asm_vid, rdev->asm_did))
++		return -ENOMEM;
++	return 0;
++}
++
+ struct device rio_bus = {
+ 	.init_name = "rapidio",
+ };
+@@ -210,6 +227,7 @@ struct bus_type rio_bus_type = {
+ 	.bus_attrs = rio_bus_attrs,
+ 	.probe = rio_device_probe,
+ 	.remove = rio_device_remove,
++	.uevent	= rio_uevent,
+ };
  
-@@ -1860,24 +1871,14 @@ no_disc:
+ /**
+diff -puN drivers/rapidio/rio-sysfs.c~rapidio-add-udev-notification drivers/rapidio/rio-sysfs.c
+--- a/drivers/rapidio/rio-sysfs.c~rapidio-add-udev-notification
++++ a/drivers/rapidio/rio-sysfs.c
+@@ -84,6 +84,15 @@ static ssize_t lnext_show(struct device
+ 	return str - buf;
+ }
+ 
++static ssize_t modalias_show(struct device *dev,
++			     struct device_attribute *attr, char *buf)
++{
++	struct rio_dev *rdev = to_rio_dev(dev);
++
++	return sprintf(buf, "rapidio:v%04Xd%04Xav%04Xad%04X\n",
++		       rdev->vid, rdev->did, rdev->asm_vid, rdev->asm_did);
++}
++
+ struct device_attribute rio_dev_attrs[] = {
+ 	__ATTR_RO(did),
+ 	__ATTR_RO(vid),
+@@ -93,6 +102,7 @@ struct device_attribute rio_dev_attrs[]
+ 	__ATTR_RO(asm_rev),
+ 	__ATTR_RO(lprev),
+ 	__ATTR_RO(destid),
++	__ATTR_RO(modalias),
+ 	__ATTR_NULL,
+ };
+ 
+diff -puN include/linux/mod_devicetable.h~rapidio-add-udev-notification include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~rapidio-add-udev-notification
++++ a/include/linux/mod_devicetable.h
+@@ -579,4 +579,23 @@ struct mei_cl_device_id {
+ 	kernel_ulong_t driver_info;
+ };
+ 
++/* RapidIO */
++
++#define RIO_ANY_ID	0xffff
++
++/**
++ * struct rio_device_id - RIO device identifier
++ * @did: RapidIO device ID
++ * @vid: RapidIO vendor ID
++ * @asm_did: RapidIO assembly device ID
++ * @asm_vid: RapidIO assembly vendor ID
++ *
++ * Identifies a RapidIO device based on both the device/vendor IDs and
++ * the assembly device/vendor IDs.
++ */
++struct rio_device_id {
++	__u16 did, vid;
++	__u16 asm_did, asm_vid;
++};
++
+ #endif /* LINUX_MOD_DEVICETABLE_H */
+diff -puN include/linux/rio.h~rapidio-add-udev-notification include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-udev-notification
++++ a/include/linux/rio.h
+@@ -20,6 +20,7 @@
+ #include <linux/errno.h>
+ #include <linux/device.h>
+ #include <linux/rio_regs.h>
++#include <linux/mod_devicetable.h>
+ #ifdef CONFIG_RAPIDIO_DMA_ENGINE
+ #include <linux/dmaengine.h>
+ #endif
+@@ -396,21 +397,6 @@ struct rio_driver {
+ 
+ #define	to_rio_driver(drv) container_of(drv,struct rio_driver, driver)
+ 
+-/**
+- * struct rio_device_id - RIO device identifier
+- * @did: RIO device ID
+- * @vid: RIO vendor ID
+- * @asm_did: RIO assembly device ID
+- * @asm_vid: RIO assembly vendor ID
+- *
+- * Identifies a RIO device based on both the device/vendor IDs and
+- * the assembly device/vendor IDs.
+- */
+-struct rio_device_id {
+-	u16 did, vid;
+-	u16 asm_did, asm_vid;
+-};
+-
+ union rio_pw_msg {
+ 	struct {
+ 		u32 comptag;	/* Component Tag CSR */
+diff -puN include/linux/rio_ids.h~rapidio-add-udev-notification include/linux/rio_ids.h
+--- a/include/linux/rio_ids.h~rapidio-add-udev-notification
++++ a/include/linux/rio_ids.h
+@@ -13,8 +13,6 @@
+ #ifndef LINUX_RIO_IDS_H
+ #define LINUX_RIO_IDS_H
+ 
+-#define RIO_ANY_ID			0xffff
+-
+ #define RIO_VID_FREESCALE		0x0002
+ #define RIO_DID_MPC8560			0x0003
+ 
+diff -puN scripts/mod/devicetable-offsets.c~rapidio-add-udev-notification scripts/mod/devicetable-offsets.c
+--- a/scripts/mod/devicetable-offsets.c~rapidio-add-udev-notification
++++ a/scripts/mod/devicetable-offsets.c
+@@ -177,5 +177,11 @@ int main(void)
+ 	DEVID(mei_cl_device_id);
+ 	DEVID_FIELD(mei_cl_device_id, name);
+ 
++	DEVID(rio_device_id);
++	DEVID_FIELD(rio_device_id, did);
++	DEVID_FIELD(rio_device_id, vid);
++	DEVID_FIELD(rio_device_id, asm_did);
++	DEVID_FIELD(rio_device_id, asm_vid);
++
  	return 0;
  }
- 
--static int hdids[RIO_MAX_MPORTS + 1];
--
- static int rio_get_hdid(int index)
- {
--	if (!hdids[0] || hdids[0] <= index || index >= RIO_MAX_MPORTS)
-+	if (ids_num == 0 || ids_num <= index || index >= RIO_MAX_MPORTS)
- 		return -1;
- 
--	return hdids[index + 1];
--}
--
--static int rio_hdid_setup(char *str)
--{
--	(void)get_options(str, ARRAY_SIZE(hdids), hdids);
--	return 1;
-+	return hdid[index];
+diff -puN scripts/mod/file2alias.c~rapidio-add-udev-notification scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~rapidio-add-udev-notification
++++ a/scripts/mod/file2alias.c
+@@ -1145,6 +1145,26 @@ static int do_mei_entry(const char *file
  }
+ ADD_TO_DEVTABLE("mei", mei_cl_device_id, do_mei_entry);
  
--__setup("riohdid=", rio_hdid_setup);
++/* Looks like: rapidio:vNdNavNadN */
++static int do_rio_entry(const char *filename,
++			void *symval, char *alias)
++{
++	DEF_FIELD(symval, rio_device_id, did);
++	DEF_FIELD(symval, rio_device_id, vid);
++	DEF_FIELD(symval, rio_device_id, asm_did);
++	DEF_FIELD(symval, rio_device_id, asm_vid);
++
++	strcpy(alias, "rapidio:");
++	ADD(alias, "v", vid != RIO_ANY_ID, vid);
++	ADD(alias, "d", did != RIO_ANY_ID, did);
++	ADD(alias, "av", asm_vid != RIO_ANY_ID, asm_vid);
++	ADD(alias, "ad", asm_did != RIO_ANY_ID, asm_did);
++
++	add_wildcard(alias);
++	return 1;
++}
++ADD_TO_DEVTABLE("rapidio", rio_device_id, do_rio_entry);
++
+ /* Does namelen bytes of name exactly match the symbol? */
+ static bool sym_is(const char *name, unsigned namelen, const char *symbol)
+ {
+_
+
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
+
+origin.patch
+linux-next.patch
+
