@@ -1,94 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-execc-de_thread-mt-exec-should-update-real_start_time.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:36:15 -0700
-Message-ID: <51db14af.M0Vb1qHI/n6UtqPQ%akpm@linux-foundation.org>
+Subject: [merged] powerpc-remove-savemaxmem-parameter-setup.patch removed
+ from -mm tree
+Date: Mon, 08 Jul 2013 12:36:23 -0700
+Message-ID: <51db14b7.n5QMcGATFY94yn3z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51597 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51644 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753251Ab3GHTgQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:16 -0400
+	with ESMTP id S1752613Ab3GHTgY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tsmetana@redhat.com, tjanouse@redhat.com, johnstul@us.ibm.com, ebiederm@xmission.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, vgoyal@redhat.com, tony.luck@intel.com, schwidefsky@de.ibm.com, ralf@linux-mips.org, paulus@samba.org, matt.fleming@intel.com, hpa@zytor.com, holzheu@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, ebiederm@xmission.com, dave@sr71.net, benh@kernel.crashing.org, zhangyanfei@cn.fujitsu.com
 
-Subject: [merged] fs-execc-de_thread-mt-exec-should-update-real_start_time.patch removed from -mm tree
-To: oleg@redhat.com,ebiederm@xmission.com,johnstul@us.ibm.com,tjanouse@redhat.com,tsmetana@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] powerpc-remove-savemaxmem-parameter-setup.patch removed from -mm tree
+To: zhangyanfei@cn.fujitsu.com,benh@kernel.crashing.org,dave@sr71.net,ebiederm@xmission.com,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,holzheu@linux.vnet.ibm.com,hpa@zytor.com,matt.fleming@intel.com,paulus@samba.org,ralf@linux-mips.org,schwidefsky@de.ibm.com,tony.luck@intel.com,vgoyal@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:15 -0700
+Date: Mon, 08 Jul 2013 12:36:23 -0700
 
 
 The patch titled
-     Subject: fs/exec.c:de_thread: mt-exec should update ->real_start_time
+     Subject: powerpc: Remove savemaxmem parameter setup
 has been removed from the -mm tree.  Its filename was
-     fs-execc-de_thread-mt-exec-should-update-real_start_time.patch
+     powerpc-remove-savemaxmem-parameter-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/exec.c:de_thread: mt-exec should update ->real_start_time
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: powerpc: Remove savemaxmem parameter setup
 
-924b42d5 ("Use boot based time for process start time and boot time in
-/proc") updated copy_process/do_task_stat but forgot about de_thread(). 
-This breaks "ps axOT" if a sub-thread execs.
+saved_max_pfn is used to know the amount of memory that the previous
+kernel used.  And for powerpc, we set saved_max_pfn by passing the kernel
+commandline parameter "savemaxmem=".
 
-Note: I think that task->start_time should die.
+The only user of saved_max_pfn in powerpc is read_oldmem interface.  Since
+we have removed read_oldmem, we don't need this parameter anymore.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: John Stultz <johnstul@us.ibm.com>
-Cc: Tomas Janousek <tjanouse@redhat.com>
-Cc: Tomas Smetana <tsmetana@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/kernel/crash_dump.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-de_thread-mt-exec-should-update-real_start_time fs/exec.c
---- a/fs/exec.c~fs-execc-de_thread-mt-exec-should-update-real_start_time
-+++ a/fs/exec.c
-@@ -932,6 +932,7 @@ static int de_thread(struct task_struct
- 		 * also take its birthdate (always earlier than our own).
- 		 */
- 		tsk->start_time = leader->start_time;
-+		tsk->real_start_time = leader->real_start_time;
+diff -puN arch/powerpc/kernel/crash_dump.c~powerpc-remove-savemaxmem-parameter-setup arch/powerpc/kernel/crash_dump.c
+--- a/arch/powerpc/kernel/crash_dump.c~powerpc-remove-savemaxmem-parameter-setup
++++ a/arch/powerpc/kernel/crash_dump.c
+@@ -69,16 +69,6 @@ void __init setup_kdump_trampoline(void)
+ }
+ #endif /* CONFIG_NONSTATIC_KERNEL */
  
- 		BUG_ON(!same_thread_group(leader, tsk));
- 		BUG_ON(has_group_leader_pid(tsk));
+-static int __init parse_savemaxmem(char *p)
+-{
+-	if (p)
+-		saved_max_pfn = (memparse(p, &p) >> PAGE_SHIFT) - 1;
+-
+-	return 1;
+-}
+-__setup("savemaxmem=", parse_savemaxmem);
+-
+-
+ static size_t copy_oldmem_vaddr(void *vaddr, char *buf, size_t csize,
+                                unsigned long offset, int userbuf)
+ {
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-llist-fix-simplify-llist_add-and-llist_add_batch.patch
-llist-llist_add-can-use-llist_add_batch.patch
-vfree-dont-schedule-free_work-if-llist_add-returns-false.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
-ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
-ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
-ptrace-x86-introduce-ptrace_register_breakpoint.patch
-ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
-ptrace-x86-cleanup-ptrace_set_debugreg.patch
-ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
-ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+mm-vmallocc-unbreak-__vunmap.patch
+mm-vmallocc-remove-dead-code-in-vb_alloc.patch
+mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch
+mm-vmallocc-remove-alloc_map-from-vmap_block.patch
+mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-vmallocc-rename-vm_unlist-to-vm_uninitialized.patch
+mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+include-linux-gfph-fix-the-comment-for-gfp_zone_table.patch
+mm-remove-zone_type-argument-of-build_zonelists_node.patch
+mm-remove-unused-functions-is_normal_idx-normal-dma32-dma.patch
+mm-remove-unlikely-from-the-current_order-test.patch
+mm-remove-unused-__put_page.patch
+mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
+mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch
+mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area.patch
 
