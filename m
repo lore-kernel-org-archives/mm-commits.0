@@ -1,80 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] idr-print-a-stack-dump-after-ida_remove-warning.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 12:36:29 -0700
-Message-ID: <51db14bd.f3G8HJjovn3pzy9d%akpm@linux-foundation.org>
+Subject: [merged] rapidio-switches-remove-tsi500-driver.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:36:31 -0700
+Message-ID: <51db14bf.zhTM+PlhkmjJ2/lH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51673 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3GHTg3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:29 -0400
+	with ESMTP id S1752613Ab3GHTgc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tiwai@suse.de, jdelvare@suse.de
+To: mm-commits@vger.kernel.org, mporter@kernel.crashing.org, leoli@freescale.com, galak@kernel.crashing.org, alexandre.bounine@idt.com
 
-Subject: [merged] idr-print-a-stack-dump-after-ida_remove-warning.patch removed from -mm tree
-To: jdelvare@suse.de,tiwai@suse.de,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] rapidio-switches-remove-tsi500-driver.patch removed from -mm tree
+To: alexandre.bounine@idt.com,galak@kernel.crashing.org,leoli@freescale.com,mporter@kernel.crashing.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:29 -0700
+Date: Mon, 08 Jul 2013 12:36:31 -0700
 
 
 The patch titled
-     Subject: idr: print a stack dump after ida_remove warning
+     Subject: rapidio/switches: remove tsi500 driver
 has been removed from the -mm tree.  Its filename was
-     idr-print-a-stack-dump-after-ida_remove-warning.patch
+     rapidio-switches-remove-tsi500-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: idr: print a stack dump after ida_remove warning
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/switches: remove tsi500 driver
 
-We print a dump stack after idr_remove warning.  This is useful to find
-the faulty piece of code.  Let's do the same for ida_remove, as it would
-be equally useful there.
+Remove the driver for Tsi500 Parallel RapidIO switch because this device
+has not been available for several years.  Since the first introduction of
+Tsi500, the parallel RapidIO interface was replaced by the serial RapidIO
+(sRIO) and therefore there is no value in keeping this driver.
 
-[akpm@linux-foundation.org: convert the open-coded printk+dump_stack into WARN()]
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rapidio/switches/Kconfig  |    7 --
+ drivers/rapidio/switches/Makefile |    1 
+ drivers/rapidio/switches/tsi500.c |   78 ----------------------------
+ 3 files changed, 86 deletions(-)
 
-diff -puN lib/idr.c~idr-print-a-stack-dump-after-ida_remove-warning lib/idr.c
---- a/lib/idr.c~idr-print-a-stack-dump-after-ida_remove-warning
-+++ a/lib/idr.c
-@@ -524,9 +524,7 @@ EXPORT_SYMBOL(idr_alloc_cyclic);
- 
- static void idr_remove_warning(int id)
- {
--	printk(KERN_WARNING
--		"idr_remove called for id=%d which is not allocated.\n", id);
--	dump_stack();
-+	WARN(1, "idr_remove called for id=%d which is not allocated.\n", id);
- }
- 
- static void sub_remove(struct idr *idp, int shift, int id)
-@@ -1064,8 +1062,7 @@ void ida_remove(struct ida *ida, int id)
- 	return;
- 
-  err:
--	printk(KERN_WARNING
--	       "ida_remove called for id=%d which is not allocated.\n", id);
-+	WARN(1, "ida_remove called for id=%d which is not allocated.\n", id);
- }
- EXPORT_SYMBOL(ida_remove);
- 
-_
-
-Patches currently in -mm which might be from jdelvare@suse.de are
-
-origin.patch
-linux-next.patch
-
+diff -puN drivers/rapidio/switches/Kconfig~rapidio-switches-remove-tsi500-driver drivers/rapidio/switches/Kconfig
+--- a/drivers/rapidio/switches/Kconfig~rapidio-switches-remove-tsi500-driver
++++ a/drivers/rapidio/switches/Kconfig
+@@ -26,10 +26,3 @@ config RAPIDIO_CPS_GEN2
+ 	default n
+ 	---help---
+ 	  Includes support for ITD CPS Gen.2 serial RapidIO switches.
+-
+-config RAPIDIO_TSI500
+-	bool "Tsi500 Parallel RapidIO switch support"
+-	depends on RAPIDIO
+-	default n
+-	---help---
+-	  Includes support for IDT Tsi500 parallel RapidIO switch.
+diff -puN drivers/rapidio/switches/Makefile~rapidio-switches-remove-tsi500-driver drivers/rapidio/switches/Makefile
+--- a/drivers/rapidio/switches/Makefile~rapidio-switches-remove-tsi500-driver
++++ a/drivers/rapidio/switches/Makefile
+@@ -5,5 +5,4 @@
+ obj-$(CONFIG_RAPIDIO_TSI57X)	+= tsi57x.o
+ obj-$(CONFIG_RAPIDIO_CPS_XX)	+= idtcps.o
+ obj-$(CONFIG_RAPIDIO_TSI568)	+= tsi568.o
+-obj-$(CONFIG_RAPIDIO_TSI500)	+= tsi500.o
+ obj-$(CONFIG_RAPIDIO_CPS_GEN2)	+= idt_gen2.o
+diff -puN drivers/rapidio/switches/tsi500.c~rapidio-switches-remove-tsi500-driver /dev/null
+--- a/drivers/rapidio/switches/tsi500.c
++++ /dev/null
+@@ -1,78 +0,0 @@
+-/*
+- * RapidIO Tsi500 switch support
+- *
+- * Copyright 2009-2010 Integrated Device Technology, Inc.
+- * Alexandre Bounine <alexandre.bounine@idt.com>
+- *  - Modified switch operations initialization.
+- *
+- * Copyright 2005 MontaVista Software, Inc.
+- * Matt Porter <mporter@kernel.crashing.org>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
+- */
+-
+-#include <linux/rio.h>
+-#include <linux/rio_drv.h>
+-#include <linux/rio_ids.h>
+-#include "../rio.h"
+-
+-static int
+-tsi500_route_add_entry(struct rio_mport *mport, u16 destid, u8 hopcount, u16 table, u16 route_destid, u8 route_port)
+-{
+-	int i;
+-	u32 offset = 0x10000 + 0xa00 + ((route_destid / 2)&~0x3);
+-	u32 result;
+-
+-	if (table == 0xff) {
+-		rio_mport_read_config_32(mport, destid, hopcount, offset, &result);
+-		result &= ~(0xf << (4*(route_destid & 0x7)));
+-		for (i=0;i<4;i++)
+-			rio_mport_write_config_32(mport, destid, hopcount, offset + (0x20000*i), result | (route_port << (4*(route_destid & 0x7))));
+-	}
+-	else {
+-		rio_mport_read_config_32(mport, destid, hopcount, offset + (0x20000*table), &result);
+-		result &= ~(0xf << (4*(route_destid & 0x7)));
+-		rio_mport_write_config_32(mport, destid, hopcount, offset + (0x20000*table), result | (route_port << (4*(route_destid & 0x7))));
+-	}
+-
+-	return 0;
+-}
+-
+-static int
+-tsi500_route_get_entry(struct rio_mport *mport, u16 destid, u8 hopcount, u16 table, u16 route_destid, u8 *route_port)
+-{
+-	int ret = 0;
+-	u32 offset = 0x10000 + 0xa00 + ((route_destid / 2)&~0x3);
+-	u32 result;
+-
+-	if (table == 0xff)
+-		rio_mport_read_config_32(mport, destid, hopcount, offset, &result);
+-	else
+-		rio_mport_read_config_32(mport, destid, hopcount, offset + (0x20000*table), &result);
+-
+-	result &= 0xf << (4*(route_destid & 0x7));
+-	*route_port = result >> (4*(route_destid & 0x7));
+-	if (*route_port > 3)
+-		ret = -1;
+-
+-	return ret;
+-}
+-
+-static int tsi500_switch_init(struct rio_dev *rdev, int do_enum)
+-{
+-	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
+-	rdev->rswitch->add_entry = tsi500_route_add_entry;
+-	rdev->rswitch->get_entry = tsi500_route_get_entry;
+-	rdev->rswitch->clr_table = NULL;
+-	rdev->rswitch->set_domain = NULL;
+-	rdev->rswitch->get_domain = NULL;
+-	rdev->rswitch->em_init = NULL;
+-	rdev->rswitch->em_handle = NULL;
+-
+-	return 0;
+-}
