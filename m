@@ -1,607 +1,209 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 12:25:24 -0700
-Message-ID: <51db1224.SNalsi3pg0HQ814g%akpm@linux-foundation.org>
+ mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:25:36 -0700
+Message-ID: <51db1230.iqN2AgL54szJ7KfI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50423 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50433 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680Ab3GHTZk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:40 -0400
+	with ESMTP id S1752680Ab3GHTZm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vgoyal@redhat.com, lisa.mitchell@hp.com, kumagai-atsushi@mxc.nes.nec.co.jp, kosaki.motohiro@jp.fujitsu.com, d.hatayama@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, tytso@mit.edu, sanbai@taobao.com, riel@redhat.com, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dhowells@redhat.com, bernd.schubert@fastmail.fm, anserper@ya.ru, alexey.lyashkov@gmail.com, Trond.Myklebust@netapp.com, mgorman@suse.de
 
-Subject: [merged] vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch removed from -mm tree
-To: d.hatayama@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,kumagai-atsushi@mxc.nes.nec.co.jp,lisa.mitchell@hp.com,vgoyal@redhat.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch removed from -mm tree
+To: mgorman@suse.de,Trond.Myklebust@netapp.com,alexey.lyashkov@gmail.com,anserper@ya.ru,bernd.schubert@fastmail.fm,dhowells@redhat.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,riel@redhat.com,sanbai@taobao.com,tytso@mit.edu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:25:24 -0700
+Date: Mon, 08 Jul 2013 12:25:36 -0700
 
 
 The patch titled
-     Subject: vmcore: allocate ELF note segment in the 2nd kernel vmalloc memory
+     Subject: mm: pagevec: defer deciding which LRU to add a page to until pagevec drain time
 has been removed from the -mm tree.  Its filename was
-     vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory.patch
+     mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: vmcore: allocate ELF note segment in the 2nd kernel vmalloc memory
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: pagevec: defer deciding which LRU to add a page to until pagevec drain time
 
-The reasons why we don't allocate ELF note segment in the 1st kernel (old
-memory) on page boundary is to keep backward compatibility for old
-kernels, and that if doing so, we waste not a little memory due to
-round-up operation to fit the memory to page boundary since most of the
-buffers are in per-cpu area.
+mark_page_accessed() cannot activate an inactive page that is located on
+an inactive LRU pagevec.  Hints from filesystems may be ignored as a
+result.  In preparation for fixing that problem, this patch removes the
+per-LRU pagevecs and leaves just one pagevec.  The final LRU the page is
+added to is deferred until the pagevec is drained.
 
-ELF notes are per-cpu, so total size of ELF note segments depends on
-number of CPUs.  The current maximum number of CPUs on x86_64 is 5192, and
-there's already system with 4192 CPUs in SGI, where total size amounts to
-1MB.  This can be larger in the near future or possibly even now on
-another architecture that has larger size of note per a single cpu.  Thus,
-to avoid the case where memory allocation for large block fails, we
-allocate vmcore objects on vmalloc memory.
+This means that fewer pagevecs are available and potentially there is
+greater contention on the LRU lock.  However, this only applies in the
+case where there is an almost perfect mix of file, anon, active and
+inactive pages being added to the LRU.  In practice I expect that we are
+adding stream of pages of a particular time and that the changes in
+contention will barely be measurable.
 
-This patch adds elfnotes_buf and elfnotes_sz variables to keep pointer to
-the ELF note segment buffer and its size.  There's no longer the vmcore
-object that corresponds to the ELF note segment in vmcore_list. 
-Accordingly, read_vmcore() has new case for ELF note segment and
-set_vmcore_list_offsets_elf{64,32}() and other helper functions starts
-calculating offset from sum of size of ELF headers and size of ELF note
-segment.
-
-[akpm@linux-foundation.org: use min(), fix error-path vzalloc() leaks]
-Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: Lisa Mitchell <lisa.mitchell@hp.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alexey Lyahkov <alexey.lyashkov@gmail.com>
+Cc: Andrew Perepechko <anserper@ya.ru>
+Cc: Robin Dong <sanbai@taobao.com>
+Cc: Theodore Tso <tytso@mit.edu>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Bernd Schubert <bernd.schubert@fastmail.fm>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |  359 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 286 insertions(+), 73 deletions(-)
+ mm/swap.c |   49 ++++++++++++++++++++++---------------------------
+ 1 file changed, 22 insertions(+), 27 deletions(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-allocate-elf-note-segment-in-the-2nd-kernel-vmalloc-memory
-+++ a/fs/proc/vmcore.c
-@@ -34,6 +34,9 @@ static char *elfcorebuf;
- static size_t elfcorebuf_sz;
- static size_t elfcorebuf_sz_orig;
+diff -puN mm/swap.c~mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time mm/swap.c
+--- a/mm/swap.c~mm-pagevec-defer-deciding-what-lru-to-add-a-page-to-until-pagevec-drain-time
++++ a/mm/swap.c
+@@ -40,7 +40,7 @@
+ /* How many pages do we try to swap or page in/out together? */
+ int page_cluster;
  
-+static char *elfnotes_buf;
-+static size_t elfnotes_sz;
+-static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs);
++static DEFINE_PER_CPU(struct pagevec, lru_add_pvec);
+ static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
+ static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
+ 
+@@ -452,22 +452,25 @@ void mark_page_accessed(struct page *pag
+ EXPORT_SYMBOL(mark_page_accessed);
+ 
+ /*
+- * Order of operations is important: flush the pagevec when it's already
+- * full, not when adding the last page, to make sure that last page is
+- * not added to the LRU directly when passed to this function. Because
+- * mark_page_accessed() (called after this when writing) only activates
+- * pages that are on the LRU, linear writes in subpage chunks would see
+- * every PAGEVEC_SIZE page activated, which is unexpected.
++ * Queue the page for addition to the LRU via pagevec. The decision on whether
++ * to add the page to the [in]active [file|anon] list is deferred until the
++ * pagevec is drained. This gives a chance for the caller of __lru_cache_add()
++ * have the page added to the active list using mark_page_accessed().
+  */
+ void __lru_cache_add(struct page *page, enum lru_list lru)
+ {
+-	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs)[lru];
++	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
 +
- /* Total size of vmcore file. */
- static u64 vmcore_size;
++	if (is_active_lru(lru))
++		SetPageActive(page);
++	else
++		ClearPageActive(page);
  
-@@ -139,9 +142,7 @@ static ssize_t read_vmcore(struct file *
+ 	page_cache_get(page);
+ 	if (!pagevec_space(pvec))
+ 		__pagevec_lru_add(pvec, lru);
+ 	pagevec_add(pvec, page);
+-	put_cpu_var(lru_add_pvecs);
++	put_cpu_var(lru_add_pvec);
+ }
+ EXPORT_SYMBOL(__lru_cache_add);
  
- 	/* Read ELF core header */
- 	if (*fpos < elfcorebuf_sz) {
--		tsz = elfcorebuf_sz - *fpos;
--		if (buflen < tsz)
--			tsz = buflen;
-+		tsz = min(elfcorebuf_sz - (size_t)*fpos, buflen);
- 		if (copy_to_user(buffer, elfcorebuf + *fpos, tsz))
- 			return -EFAULT;
- 		buflen -= tsz;
-@@ -154,11 +155,27 @@ static ssize_t read_vmcore(struct file *
- 			return acc;
+@@ -480,13 +483,11 @@ void lru_cache_add_lru(struct page *page
+ {
+ 	if (PageActive(page)) {
+ 		VM_BUG_ON(PageUnevictable(page));
+-		ClearPageActive(page);
+ 	} else if (PageUnevictable(page)) {
+ 		VM_BUG_ON(PageActive(page));
+-		ClearPageUnevictable(page);
  	}
  
-+	/* Read Elf note segment */
-+	if (*fpos < elfcorebuf_sz + elfnotes_sz) {
-+		void *kaddr;
-+
-+		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)*fpos, buflen);
-+		kaddr = elfnotes_buf + *fpos - elfcorebuf_sz;
-+		if (copy_to_user(buffer, kaddr, tsz))
-+			return -EFAULT;
-+		buflen -= tsz;
-+		*fpos += tsz;
-+		buffer += tsz;
-+		acc += tsz;
-+
-+		/* leave now if filled buffer already */
-+		if (buflen == 0)
-+			return acc;
-+	}
-+
- 	list_for_each_entry(m, &vmcore_list, list) {
- 		if (*fpos < m->offset + m->size) {
--			tsz = m->offset + m->size - *fpos;
--			if (buflen < tsz)
--				tsz = buflen;
-+			tsz = min_t(size_t, m->offset + m->size - *fpos, buflen);
- 			start = m->paddr + *fpos - m->offset;
- 			tmp = read_from_oldmem(buffer, tsz, &start, 1);
- 			if (tmp < 0)
-@@ -221,27 +238,27 @@ static u64 __init get_vmcore_size_elf32(
- 	return size;
+-	VM_BUG_ON(PageLRU(page) || PageActive(page) || PageUnevictable(page));
++	VM_BUG_ON(PageLRU(page));
+ 	__lru_cache_add(page, lru);
  }
  
--/* Merges all the PT_NOTE headers into one. */
--static int __init merge_note_headers_elf64(char *elfptr, size_t *elfsz,
--						struct list_head *vc_list)
-+/**
-+ * update_note_header_size_elf64 - update p_memsz member of each PT_NOTE entry
-+ *
-+ * @ehdr_ptr: ELF header
-+ *
-+ * This function updates p_memsz member of each PT_NOTE entry in the
-+ * program header table pointed to by @ehdr_ptr to real size of ELF
-+ * note segment.
-+ */
-+static int __init update_note_header_size_elf64(const Elf64_Ehdr *ehdr_ptr)
+@@ -587,15 +588,10 @@ static void lru_deactivate_fn(struct pag
+  */
+ void lru_add_drain_cpu(int cpu)
  {
--	int i, nr_ptnote=0, rc=0;
--	char *tmp;
--	Elf64_Ehdr *ehdr_ptr;
--	Elf64_Phdr phdr, *phdr_ptr;
-+	int i, rc=0;
-+	Elf64_Phdr *phdr_ptr;
- 	Elf64_Nhdr *nhdr_ptr;
--	u64 phdr_sz = 0, note_off;
- 
--	ehdr_ptr = (Elf64_Ehdr *)elfptr;
--	phdr_ptr = (Elf64_Phdr*)(elfptr + sizeof(Elf64_Ehdr));
-+	phdr_ptr = (Elf64_Phdr *)(ehdr_ptr + 1);
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
--		int j;
- 		void *notes_section;
--		struct vmcore *new;
- 		u64 offset, max_sz, sz, real_sz = 0;
- 		if (phdr_ptr->p_type != PT_NOTE)
- 			continue;
--		nr_ptnote++;
- 		max_sz = phdr_ptr->p_memsz;
- 		offset = phdr_ptr->p_offset;
- 		notes_section = kmalloc(max_sz, GFP_KERNEL);
-@@ -253,7 +270,7 @@ static int __init merge_note_headers_elf
- 			return rc;
- 		}
- 		nhdr_ptr = notes_section;
--		for (j = 0; j < max_sz; j += sz) {
-+		while (real_sz < max_sz) {
- 			if (nhdr_ptr->n_namesz == 0)
- 				break;
- 			sz = sizeof(Elf64_Nhdr) +
-@@ -262,26 +279,122 @@ static int __init merge_note_headers_elf
- 			real_sz += sz;
- 			nhdr_ptr = (Elf64_Nhdr*)((char*)nhdr_ptr + sz);
- 		}
+-	struct pagevec *pvecs = per_cpu(lru_add_pvecs, cpu);
+-	struct pagevec *pvec;
+-	int lru;
 -
--		/* Add this contiguous chunk of notes section to vmcore list.*/
--		new = get_new_element();
--		if (!new) {
--			kfree(notes_section);
--			return -ENOMEM;
--		}
--		new->paddr = phdr_ptr->p_offset;
--		new->size = real_sz;
--		list_add_tail(&new->list, vc_list);
--		phdr_sz += real_sz;
- 		kfree(notes_section);
-+		phdr_ptr->p_memsz = real_sz;
-+	}
+-	for_each_lru(lru) {
+-		pvec = &pvecs[lru - LRU_BASE];
+-		if (pagevec_count(pvec))
+-			__pagevec_lru_add(pvec, lru);
+-	}
++	struct pagevec *pvec = &per_cpu(lru_add_pvec, cpu);
 +
-+	return 0;
-+}
-+
-+/**
-+ * get_note_number_and_size_elf64 - get the number of PT_NOTE program
-+ * headers and sum of real size of their ELF note segment headers and
-+ * data.
-+ *
-+ * @ehdr_ptr: ELF header
-+ * @nr_ptnote: buffer for the number of PT_NOTE program headers
-+ * @sz_ptnote: buffer for size of unique PT_NOTE program header
-+ *
-+ * This function is used to merge multiple PT_NOTE program headers
-+ * into a unique single one. The resulting unique entry will have
-+ * @sz_ptnote in its phdr->p_mem.
-+ *
-+ * It is assumed that program headers with PT_NOTE type pointed to by
-+ * @ehdr_ptr has already been updated by update_note_header_size_elf64
-+ * and each of PT_NOTE program headers has actual ELF note segment
-+ * size in its p_memsz member.
-+ */
-+static int __init get_note_number_and_size_elf64(const Elf64_Ehdr *ehdr_ptr,
-+						 int *nr_ptnote, u64 *sz_ptnote)
-+{
-+	int i;
-+	Elf64_Phdr *phdr_ptr;
-+
-+	*nr_ptnote = *sz_ptnote = 0;
-+
-+	phdr_ptr = (Elf64_Phdr *)(ehdr_ptr + 1);
-+	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-+		if (phdr_ptr->p_type != PT_NOTE)
-+			continue;
-+		*nr_ptnote += 1;
-+		*sz_ptnote += phdr_ptr->p_memsz;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * copy_notes_elf64 - copy ELF note segments in a given buffer
-+ *
-+ * @ehdr_ptr: ELF header
-+ * @notes_buf: buffer into which ELF note segments are copied
-+ *
-+ * This function is used to copy ELF note segment in the 1st kernel
-+ * into the buffer @notes_buf in the 2nd kernel. It is assumed that
-+ * size of the buffer @notes_buf is equal to or larger than sum of the
-+ * real ELF note segment headers and data.
-+ *
-+ * It is assumed that program headers with PT_NOTE type pointed to by
-+ * @ehdr_ptr has already been updated by update_note_header_size_elf64
-+ * and each of PT_NOTE program headers has actual ELF note segment
-+ * size in its p_memsz member.
-+ */
-+static int __init copy_notes_elf64(const Elf64_Ehdr *ehdr_ptr, char *notes_buf)
-+{
-+	int i, rc=0;
-+	Elf64_Phdr *phdr_ptr;
-+
-+	phdr_ptr = (Elf64_Phdr*)(ehdr_ptr + 1);
-+
-+	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-+		u64 offset;
-+		if (phdr_ptr->p_type != PT_NOTE)
-+			continue;
-+		offset = phdr_ptr->p_offset;
-+		rc = read_from_oldmem(notes_buf, phdr_ptr->p_memsz, &offset, 0);
-+		if (rc < 0)
-+			return rc;
-+		notes_buf += phdr_ptr->p_memsz;
- 	}
++	if (pagevec_count(pvec))
++		__pagevec_lru_add(pvec, NR_LRU_LISTS);
  
-+	return 0;
-+}
-+
-+/* Merges all the PT_NOTE headers into one. */
-+static int __init merge_note_headers_elf64(char *elfptr, size_t *elfsz,
-+					   char **notes_buf, size_t *notes_sz)
-+{
-+	int i, nr_ptnote=0, rc=0;
-+	char *tmp;
-+	Elf64_Ehdr *ehdr_ptr;
-+	Elf64_Phdr phdr;
-+	u64 phdr_sz = 0, note_off;
-+
-+	ehdr_ptr = (Elf64_Ehdr *)elfptr;
-+
-+	rc = update_note_header_size_elf64(ehdr_ptr);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = get_note_number_and_size_elf64(ehdr_ptr, &nr_ptnote, &phdr_sz);
-+	if (rc < 0)
-+		return rc;
-+
-+	*notes_sz = roundup(phdr_sz, PAGE_SIZE);
-+	*notes_buf = vzalloc(*notes_sz);
-+	if (!*notes_buf)
-+		return -ENOMEM;
-+
-+	rc = copy_notes_elf64(ehdr_ptr, *notes_buf);
-+	if (rc < 0)
-+		return rc;
-+
- 	/* Prepare merged PT_NOTE program header. */
- 	phdr.p_type    = PT_NOTE;
- 	phdr.p_flags   = 0;
- 	note_off = sizeof(Elf64_Ehdr) +
- 			(ehdr_ptr->e_phnum - nr_ptnote +1) * sizeof(Elf64_Phdr);
--	phdr.p_offset  = note_off;
-+	phdr.p_offset  = roundup(note_off, PAGE_SIZE);
- 	phdr.p_vaddr   = phdr.p_paddr = 0;
- 	phdr.p_filesz  = phdr.p_memsz = phdr_sz;
- 	phdr.p_align   = 0;
-@@ -304,27 +417,27 @@ static int __init merge_note_headers_elf
- 	return 0;
- }
- 
--/* Merges all the PT_NOTE headers into one. */
--static int __init merge_note_headers_elf32(char *elfptr, size_t *elfsz,
--						struct list_head *vc_list)
-+/**
-+ * update_note_header_size_elf32 - update p_memsz member of each PT_NOTE entry
-+ *
-+ * @ehdr_ptr: ELF header
-+ *
-+ * This function updates p_memsz member of each PT_NOTE entry in the
-+ * program header table pointed to by @ehdr_ptr to real size of ELF
-+ * note segment.
-+ */
-+static int __init update_note_header_size_elf32(const Elf32_Ehdr *ehdr_ptr)
+ 	pvec = &per_cpu(lru_rotate_pvecs, cpu);
+ 	if (pagevec_count(pvec)) {
+@@ -799,17 +795,16 @@ void lru_add_page_tail(struct page *page
+ static void __pagevec_lru_add_fn(struct page *page, struct lruvec *lruvec,
+ 				 void *arg)
  {
--	int i, nr_ptnote=0, rc=0;
--	char *tmp;
--	Elf32_Ehdr *ehdr_ptr;
--	Elf32_Phdr phdr, *phdr_ptr;
-+	int i, rc=0;
-+	Elf32_Phdr *phdr_ptr;
- 	Elf32_Nhdr *nhdr_ptr;
--	u64 phdr_sz = 0, note_off;
+-	enum lru_list lru = (enum lru_list)arg;
+-	int file = is_file_lru(lru);
+-	int active = is_active_lru(lru);
++	enum lru_list requested_lru = (enum lru_list)arg;
++	int file = page_is_file_cache(page);
++	int active = PageActive(page);
++	enum lru_list lru = page_lru(page);
  
--	ehdr_ptr = (Elf32_Ehdr *)elfptr;
--	phdr_ptr = (Elf32_Phdr*)(elfptr + sizeof(Elf32_Ehdr));
-+	phdr_ptr = (Elf32_Phdr *)(ehdr_ptr + 1);
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
--		int j;
- 		void *notes_section;
--		struct vmcore *new;
- 		u64 offset, max_sz, sz, real_sz = 0;
- 		if (phdr_ptr->p_type != PT_NOTE)
- 			continue;
--		nr_ptnote++;
- 		max_sz = phdr_ptr->p_memsz;
- 		offset = phdr_ptr->p_offset;
- 		notes_section = kmalloc(max_sz, GFP_KERNEL);
-@@ -336,7 +449,7 @@ static int __init merge_note_headers_elf
- 			return rc;
- 		}
- 		nhdr_ptr = notes_section;
--		for (j = 0; j < max_sz; j += sz) {
-+		while (real_sz < max_sz) {
- 			if (nhdr_ptr->n_namesz == 0)
- 				break;
- 			sz = sizeof(Elf32_Nhdr) +
-@@ -345,26 +458,122 @@ static int __init merge_note_headers_elf
- 			real_sz += sz;
- 			nhdr_ptr = (Elf32_Nhdr*)((char*)nhdr_ptr + sz);
- 		}
--
--		/* Add this contiguous chunk of notes section to vmcore list.*/
--		new = get_new_element();
--		if (!new) {
--			kfree(notes_section);
--			return -ENOMEM;
--		}
--		new->paddr = phdr_ptr->p_offset;
--		new->size = real_sz;
--		list_add_tail(&new->list, vc_list);
--		phdr_sz += real_sz;
- 		kfree(notes_section);
-+		phdr_ptr->p_memsz = real_sz;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * get_note_number_and_size_elf32 - get the number of PT_NOTE program
-+ * headers and sum of real size of their ELF note segment headers and
-+ * data.
-+ *
-+ * @ehdr_ptr: ELF header
-+ * @nr_ptnote: buffer for the number of PT_NOTE program headers
-+ * @sz_ptnote: buffer for size of unique PT_NOTE program header
-+ *
-+ * This function is used to merge multiple PT_NOTE program headers
-+ * into a unique single one. The resulting unique entry will have
-+ * @sz_ptnote in its phdr->p_mem.
-+ *
-+ * It is assumed that program headers with PT_NOTE type pointed to by
-+ * @ehdr_ptr has already been updated by update_note_header_size_elf32
-+ * and each of PT_NOTE program headers has actual ELF note segment
-+ * size in its p_memsz member.
-+ */
-+static int __init get_note_number_and_size_elf32(const Elf32_Ehdr *ehdr_ptr,
-+						 int *nr_ptnote, u64 *sz_ptnote)
-+{
-+	int i;
-+	Elf32_Phdr *phdr_ptr;
-+
-+	*nr_ptnote = *sz_ptnote = 0;
-+
-+	phdr_ptr = (Elf32_Phdr *)(ehdr_ptr + 1);
-+	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-+		if (phdr_ptr->p_type != PT_NOTE)
-+			continue;
-+		*nr_ptnote += 1;
-+		*sz_ptnote += phdr_ptr->p_memsz;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * copy_notes_elf32 - copy ELF note segments in a given buffer
-+ *
-+ * @ehdr_ptr: ELF header
-+ * @notes_buf: buffer into which ELF note segments are copied
-+ *
-+ * This function is used to copy ELF note segment in the 1st kernel
-+ * into the buffer @notes_buf in the 2nd kernel. It is assumed that
-+ * size of the buffer @notes_buf is equal to or larger than sum of the
-+ * real ELF note segment headers and data.
-+ *
-+ * It is assumed that program headers with PT_NOTE type pointed to by
-+ * @ehdr_ptr has already been updated by update_note_header_size_elf32
-+ * and each of PT_NOTE program headers has actual ELF note segment
-+ * size in its p_memsz member.
-+ */
-+static int __init copy_notes_elf32(const Elf32_Ehdr *ehdr_ptr, char *notes_buf)
-+{
-+	int i, rc=0;
-+	Elf32_Phdr *phdr_ptr;
-+
-+	phdr_ptr = (Elf32_Phdr*)(ehdr_ptr + 1);
-+
-+	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-+		u64 offset;
-+		if (phdr_ptr->p_type != PT_NOTE)
-+			continue;
-+		offset = phdr_ptr->p_offset;
-+		rc = read_from_oldmem(notes_buf, phdr_ptr->p_memsz, &offset, 0);
-+		if (rc < 0)
-+			return rc;
-+		notes_buf += phdr_ptr->p_memsz;
- 	}
+-	VM_BUG_ON(PageActive(page));
++	WARN_ON_ONCE(requested_lru < NR_LRU_LISTS && requested_lru != lru);
+ 	VM_BUG_ON(PageUnevictable(page));
+ 	VM_BUG_ON(PageLRU(page));
  
-+	return 0;
-+}
-+
-+/* Merges all the PT_NOTE headers into one. */
-+static int __init merge_note_headers_elf32(char *elfptr, size_t *elfsz,
-+					   char **notes_buf, size_t *notes_sz)
-+{
-+	int i, nr_ptnote=0, rc=0;
-+	char *tmp;
-+	Elf32_Ehdr *ehdr_ptr;
-+	Elf32_Phdr phdr;
-+	u64 phdr_sz = 0, note_off;
-+
-+	ehdr_ptr = (Elf32_Ehdr *)elfptr;
-+
-+	rc = update_note_header_size_elf32(ehdr_ptr);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = get_note_number_and_size_elf32(ehdr_ptr, &nr_ptnote, &phdr_sz);
-+	if (rc < 0)
-+		return rc;
-+
-+	*notes_sz = roundup(phdr_sz, PAGE_SIZE);
-+	*notes_buf = vzalloc(*notes_sz);
-+	if (!*notes_buf)
-+		return -ENOMEM;
-+
-+	rc = copy_notes_elf32(ehdr_ptr, *notes_buf);
-+	if (rc < 0)
-+		return rc;
-+
- 	/* Prepare merged PT_NOTE program header. */
- 	phdr.p_type    = PT_NOTE;
- 	phdr.p_flags   = 0;
- 	note_off = sizeof(Elf32_Ehdr) +
- 			(ehdr_ptr->e_phnum - nr_ptnote +1) * sizeof(Elf32_Phdr);
--	phdr.p_offset  = note_off;
-+	phdr.p_offset  = roundup(note_off, PAGE_SIZE);
- 	phdr.p_vaddr   = phdr.p_paddr = 0;
- 	phdr.p_filesz  = phdr.p_memsz = phdr_sz;
- 	phdr.p_align   = 0;
-@@ -391,6 +600,7 @@ static int __init merge_note_headers_elf
-  * the new offset fields of exported program headers. */
- static int __init process_ptload_program_headers_elf64(char *elfptr,
- 						size_t elfsz,
-+						size_t elfnotes_sz,
- 						struct list_head *vc_list)
- {
- 	int i;
-@@ -402,9 +612,8 @@ static int __init process_ptload_program
- 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
- 	phdr_ptr = (Elf64_Phdr*)(elfptr + sizeof(Elf64_Ehdr)); /* PT_NOTE hdr */
- 
--	/* First program header is PT_NOTE header. */
--	vmcore_off = elfsz +
--			phdr_ptr->p_memsz; /* Note sections */
-+	/* Skip Elf header, program headers and Elf note segment. */
-+	vmcore_off = elfsz + elfnotes_sz;
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
- 		u64 paddr, start, end, size;
-@@ -434,6 +643,7 @@ static int __init process_ptload_program
- 
- static int __init process_ptload_program_headers_elf32(char *elfptr,
- 						size_t elfsz,
-+						size_t elfnotes_sz,
- 						struct list_head *vc_list)
- {
- 	int i;
-@@ -445,9 +655,8 @@ static int __init process_ptload_program
- 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
- 	phdr_ptr = (Elf32_Phdr*)(elfptr + sizeof(Elf32_Ehdr)); /* PT_NOTE hdr */
- 
--	/* First program header is PT_NOTE header. */
--	vmcore_off = elfsz +
--			phdr_ptr->p_memsz; /* Note sections */
-+	/* Skip Elf header, program headers and Elf note segment. */
-+	vmcore_off = elfsz + elfnotes_sz;
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
- 		u64 paddr, start, end, size;
-@@ -476,14 +685,14 @@ static int __init process_ptload_program
- }
- 
- /* Sets offset fields of vmcore elements. */
--static void __init set_vmcore_list_offsets(size_t elfsz,
-+static void __init set_vmcore_list_offsets(size_t elfsz, size_t elfnotes_sz,
- 					   struct list_head *vc_list)
- {
- 	loff_t vmcore_off;
- 	struct vmcore *m;
- 
--	/* Skip Elf header and program headers. */
--	vmcore_off = elfsz;
-+	/* Skip Elf header, program headers and Elf note segment. */
-+	vmcore_off = elfsz + elfnotes_sz;
- 
- 	list_for_each_entry(m, vc_list, list) {
- 		m->offset = vmcore_off;
-@@ -495,6 +704,8 @@ static void free_elfcorebuf(void)
- {
- 	free_pages((unsigned long)elfcorebuf, get_order(elfcorebuf_sz_orig));
- 	elfcorebuf = NULL;
-+	vfree(elfnotes_buf);
-+	elfnotes_buf = NULL;
- }
- 
- static int __init parse_crash_elf64_headers(void)
-@@ -538,14 +749,15 @@ static int __init parse_crash_elf64_head
- 		goto fail;
- 
- 	/* Merge all PT_NOTE headers into one. */
--	rc = merge_note_headers_elf64(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
-+	rc = merge_note_headers_elf64(elfcorebuf, &elfcorebuf_sz,
-+				      &elfnotes_buf, &elfnotes_sz);
- 	if (rc)
- 		goto fail;
- 	rc = process_ptload_program_headers_elf64(elfcorebuf, elfcorebuf_sz,
--							&vmcore_list);
-+						  elfnotes_sz, &vmcore_list);
- 	if (rc)
- 		goto fail;
--	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
-+	set_vmcore_list_offsets(elfcorebuf_sz, elfnotes_sz, &vmcore_list);
- 	return 0;
- fail:
- 	free_elfcorebuf();
-@@ -592,14 +804,15 @@ static int __init parse_crash_elf32_head
- 		goto fail;
- 
- 	/* Merge all PT_NOTE headers into one. */
--	rc = merge_note_headers_elf32(elfcorebuf, &elfcorebuf_sz, &vmcore_list);
-+	rc = merge_note_headers_elf32(elfcorebuf, &elfcorebuf_sz,
-+				      &elfnotes_buf, &elfnotes_sz);
- 	if (rc)
- 		goto fail;
- 	rc = process_ptload_program_headers_elf32(elfcorebuf, elfcorebuf_sz,
--								&vmcore_list);
-+						  elfnotes_sz, &vmcore_list);
- 	if (rc)
- 		goto fail;
--	set_vmcore_list_offsets(elfcorebuf_sz, &vmcore_list);
-+	set_vmcore_list_offsets(elfcorebuf_sz, elfnotes_sz, &vmcore_list);
- 	return 0;
- fail:
- 	free_elfcorebuf();
+ 	SetPageLRU(page);
+-	if (active)
+-		SetPageActive(page);
+ 	add_page_to_lru_list(page, lruvec, lru);
+ 	update_page_reclaim_stat(lruvec, file, active);
+ 	trace_mm_lru_insertion(page, page_to_pfn(page), lru, trace_pagemap_flags(page));
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+linux-next.patch
+fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+dentry-move-to-per-sb-lru-locks.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+list-add-a-new-lru-list-type.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code.patch
+dcache-convert-to-use-new-lru-list-infrastructure.patch
+list_lru-per-node-list-infrastructure.patch
+list_lru-per-node-api.patch
+shrinker-add-node-awareness.patch
+vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
+zbud-add-to-mm.patch
+zswap-add-to-mm.patch
+zswap-add-documentation.patch
+mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch
+mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
+mm-memmap_init_zone-performance-improvement.patch
 
