@@ -1,80 +1,41 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch removed
+ mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch removed
  from -mm tree
-Date: Mon, 08 Jul 2013 12:24:09 -0700
-Message-ID: <51db11d9.6TX57fKeLa7NfPDB%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:24:15 -0700
+Message-ID: <51db11df.tFOSSPlukD3iYGfh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50145 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50163 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074Ab3GHTYK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:10 -0400
+	with ESMTP id S1753075Ab3GHTYQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, penberg@kernel.org, mgorman@suse.de, kosaki.motohiro@gmail.com, gilad@benyossef.com, cody@linux.vnet.ibm.com
 
-Subject: [merged] mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch removed from -mm tree
+Subject: [merged] mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch removed from -mm tree
 To: cody@linux.vnet.ibm.com,gilad@benyossef.com,kosaki.motohiro@gmail.com,mgorman@suse.de,penberg@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:24:09 -0700
+Date: Mon, 08 Jul 2013 12:24:15 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc: factor out setting of pcp->high and pcp->batch
+     Subject: mm/page_alloc: protect pcp->batch accesses with ACCESS_ONCE
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch.patch
+     mm-page_alloc-protect-pcp-batch-accesses-with-access_once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: mm/page_alloc: factor out setting of pcp->high and pcp->batch
+Subject: mm/page_alloc: protect pcp->batch accesses with ACCESS_ONCE
 
-"Problems" with the current code:
-
-1: there is a lack of synchronization in setting ->high and ->batch in
-   percpu_pagelist_fraction_sysctl_handler()
-
-2: stop_machine() in zone_pcp_update() is unnecissary.
-
-3: zone_pcp_update() does not consider the case where
-   percpu_pagelist_fraction is non-zero
-
-To fix:
-
-1: add memory barriers, a safe ->batch value, an update side mutex when
-   updating ->high and ->batch, and use ACCESS_ONCE() for ->batch users
-   that expect a stable value.
-
-2: avoid draining pages in zone_pcp_update(), rely upon the memory
-   barriers added to fix #1
-
-3: factor out quite a few functions, and then call the appropriate one.
-
-Note that it results in a change to the behavior of zone_pcp_update(),
-which is used by memory_hotplug.  I'm rather certain that I've diserned
-(and preserved) the essential behavior (changing ->high and ->batch), and
-only eliminated unneeded actions (draining the per cpu pages), but this
-may not be the case.
-
-Further note that the draining of pages that previously took place in
-zone_pcp_update() occured after repeated draining when attempting to
-offline a page, and after the offline has "succeeded".  It appears that
-the draining was added to zone_pcp_update() to avoid refactoring
-setup_pageset() into 2 funtions.
-
-
-This patch:
-
-Creates pageset_set_batch() for use in setup_pageset(). 
-pageset_set_batch() imitates the functionality of
-setup_pagelist_highmark(), but uses the boot time
-(percpu_pagelist_fraction == 0) calculations for determining ->high based
-on ->batch.
+pcp->batch could change at any point, avoid relying on it being a stable
+value.
 
 Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
 Cc: Gilad Ben-Yossef <gilad@benyossef.com>
@@ -84,38 +45,45 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-factor-out-setting-of-pcp-high-and-pcp-batch
+diff -puN mm/page_alloc.c~mm-page_alloc-protect-pcp-batch-accesses-with-access_once mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-protect-pcp-batch-accesses-with-access_once
 +++ a/mm/page_alloc.c
-@@ -4032,6 +4032,14 @@ static int __meminit zone_batchsize(stru
- #endif
- }
- 
-+/* a companion to setup_pagelist_highmark() */
-+static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
-+{
-+	struct per_cpu_pages *pcp = &p->pcp;
-+	pcp->high = 6 * batch;
-+	pcp->batch = max(1UL, 1 * batch);
-+}
-+
- static void setup_pageset(struct per_cpu_pageset *p, unsigned long batch)
+@@ -1182,10 +1182,12 @@ void drain_zone_pages(struct zone *zone,
  {
- 	struct per_cpu_pages *pcp;
-@@ -4041,8 +4049,7 @@ static void setup_pageset(struct per_cpu
+ 	unsigned long flags;
+ 	int to_drain;
++	unsigned long batch;
  
- 	pcp = &p->pcp;
- 	pcp->count = 0;
--	pcp->high = 6 * batch;
--	pcp->batch = max(1UL, 1 * batch);
-+	pageset_set_batch(p, batch);
- 	for (migratetype = 0; migratetype < MIGRATE_PCPTYPES; migratetype++)
- 		INIT_LIST_HEAD(&pcp->lists[migratetype]);
- }
-@@ -4051,7 +4058,6 @@ static void setup_pageset(struct per_cpu
-  * setup_pagelist_highmark() sets the high water mark for hot per_cpu_pagelist
-  * to the value high for the pageset p.
-  */
+ 	local_irq_save(flags);
+-	if (pcp->count >= pcp->batch)
+-		to_drain = pcp->batch;
++	batch = ACCESS_ONCE(pcp->batch);
++	if (pcp->count >= batch)
++		to_drain = batch;
+ 	else
+ 		to_drain = pcp->count;
+ 	if (to_drain > 0) {
+@@ -1353,8 +1355,9 @@ void free_hot_cold_page(struct page *pag
+ 		list_add(&page->lru, &pcp->lists[migratetype]);
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+-		free_pcppages_bulk(zone, pcp->batch, pcp);
+-		pcp->count -= pcp->batch;
++		unsigned long batch = ACCESS_ONCE(pcp->batch);
++		free_pcppages_bulk(zone, batch, pcp);
++		pcp->count -= batch;
+ 	}
+ 
+ out:
+_
+
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
+
+origin.patch
+zbud-add-to-mm.patch
+zswap-add-to-mm.patch
+zswap-add-documentation.patch
+
