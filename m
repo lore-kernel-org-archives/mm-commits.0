@@ -1,102 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-remove-unecessary-variable-needs_checkpoint.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 12:23:08 -0700
-Message-ID: <51db119c.tgQuEYT0YsbrossV%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch removed from -mm
+ tree
+Date: Mon, 08 Jul 2013 12:23:06 -0700
+Message-ID: <51db119a.maSo+5+6yAcZzEkV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49983 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665Ab3GHTXJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:09 -0400
+	with ESMTP id S1751665Ab3GHTXH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, rgoldwyn@gmail.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, xuejiufei@huawei.com
 
-Subject: [merged] ocfs2-remove-unecessary-variable-needs_checkpoint.patch removed from -mm tree
-To: rgoldwyn@gmail.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch removed from -mm tree
+To: xuejiufei@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:08 -0700
+Date: Mon, 08 Jul 2013 12:23:06 -0700
 
 
 The patch titled
-     Subject: ocfs2: remove unecessary variable needs_checkpoint
+     Subject: ocfs2: add missing dlm_put() in dlm_begin_reco_handler()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-unecessary-variable-needs_checkpoint.patch
+     ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@gmail.com>
-Subject: ocfs2: remove unecessary variable needs_checkpoint
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: add missing dlm_put() in dlm_begin_reco_handler()
 
-Code cleanup: needs_checkpoint is assigned to but never used.  Delete the
-variable.
+dlm_begin_reco_handler() returns without putting dlm when dlm recovery
+state is DLM_RECO_STATE_FINALIZE.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Jeff Liu <jeff.liu@oracle.com>
+Signed-off-by: joyce <xuejiufei@huawei.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
 Acked-by: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.h |    1 -
- fs/ocfs2/ocfs2.h   |    1 -
- fs/ocfs2/super.c   |    6 ++----
- 3 files changed, 2 insertions(+), 6 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/journal.h~ocfs2-remove-unecessary-variable-needs_checkpoint fs/ocfs2/journal.h
---- a/fs/ocfs2/journal.h~ocfs2-remove-unecessary-variable-needs_checkpoint
-+++ a/fs/ocfs2/journal.h
-@@ -200,7 +200,6 @@ void ocfs2_complete_quota_recovery(struc
- 
- static inline void ocfs2_start_checkpoint(struct ocfs2_super *osb)
- {
--	atomic_set(&osb->needs_checkpoint, 1);
- 	wake_up(&osb->checkpoint_event);
- }
- 
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-remove-unecessary-variable-needs_checkpoint fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-remove-unecessary-variable-needs_checkpoint
-+++ a/fs/ocfs2/ocfs2.h
-@@ -347,7 +347,6 @@ struct ocfs2_super
- 	struct task_struct *recovery_thread_task;
- 	int disable_recovery;
- 	wait_queue_head_t checkpoint_event;
--	atomic_t needs_checkpoint;
- 	struct ocfs2_journal *journal;
- 	unsigned long osb_commit_interval;
- 
-diff -puN fs/ocfs2/super.c~ocfs2-remove-unecessary-variable-needs_checkpoint fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-remove-unecessary-variable-needs_checkpoint
-+++ a/fs/ocfs2/super.c
-@@ -286,10 +286,9 @@ static int ocfs2_osb_dump(struct ocfs2_s
- 	spin_unlock(&osb->osb_lock);
- 
- 	out += snprintf(buf + out, len - out,
--			"%10s => Pid: %d  Interval: %lu  Needs: %d\n", "Commit",
-+			"%10s => Pid: %d  Interval: %lu\n", "Commit",
- 			(osb->commit_task ? task_pid_nr(osb->commit_task) : -1),
--			osb->osb_commit_interval,
--			atomic_read(&osb->needs_checkpoint));
-+			osb->osb_commit_interval);
- 
- 	out += snprintf(buf + out, len - out,
- 			"%10s => State: %d  TxnId: %lu  NumTxns: %d\n",
-@@ -2154,7 +2153,6 @@ static int ocfs2_initialize_super(struct
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2692,6 +2692,7 @@ int dlm_begin_reco_handler(struct o2net_
+ 		     dlm->name, br->node_idx, br->dead_node,
+ 		     dlm->reco.dead_node, dlm->reco.new_master);
+ 		spin_unlock(&dlm->spinlock);
++		dlm_put(dlm);
+ 		return -EAGAIN;
  	}
- 
- 	init_waitqueue_head(&osb->checkpoint_event);
--	atomic_set(&osb->needs_checkpoint, 0);
- 
- 	osb->s_atime_quantum = OCFS2_DEFAULT_ATIME_QUANTUM;
- 
+ 	spin_unlock(&dlm->spinlock);
 _
 
-Patches currently in -mm which might be from rgoldwyn@gmail.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 origin.patch
+linux-next.patch
 
