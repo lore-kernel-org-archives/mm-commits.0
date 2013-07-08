@@ -1,126 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signals-eventpoll-do-not-use-sigprocmask.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 12:35:41 -0700
-Message-ID: <51db148d.C59khmXh2rzSEpT0%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:35:14 -0700
+Message-ID: <51db1472.CjCuoWeCtXjdaM6F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51476 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753201Ab3GHTfm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:42 -0400
+	with ESMTP id S1753213Ab3GHTfp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, normalperson@yhbt.net, jbaron@redhat.com, dvlasenk@redhat.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com, jg1.han@samsung.com
 
-Subject: [merged] signals-eventpoll-do-not-use-sigprocmask.patch removed from -mm tree
-To: oleg@redhat.com,dvlasenk@redhat.com,jbaron@redhat.com,normalperson@yhbt.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
+To: jg1.han@samsung.com,andriy.shevchenko@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:41 -0700
+Date: Mon, 08 Jul 2013 12:35:14 -0700
 
 
 The patch titled
-     Subject: signals: eventpoll: do not use sigprocmask()
+     Subject: drivers/rtc/rtc-pcf2123.c: replace strict_strtoul() with kstrtoul()
 has been removed from the -mm tree.  Its filename was
-     signals-eventpoll-do-not-use-sigprocmask.patch
+     drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signals: eventpoll: do not use sigprocmask()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/rtc/rtc-pcf2123.c: replace strict_strtoul() with kstrtoul()
 
-sigprocmask() should die. None of the current callers actually
-need this strange interface.
+The usage of strict_strtoul() is not preferred, because strict_strtoul()
+is obsolete.  Thus, kstrtoul() should be used.
 
-Change fs/eventpoll.c to use set_current_blocked(). This also
-means we should not worry about SIGKILL/SIGSTOP.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Eric Wong <normalperson@yhbt.net>
-Cc: Jason Baron <jbaron@redhat.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-pcf2123.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN fs/eventpoll.c~signals-eventpoll-do-not-use-sigprocmask fs/eventpoll.c
---- a/fs/eventpoll.c~signals-eventpoll-do-not-use-sigprocmask
-+++ a/fs/eventpoll.c
-@@ -1975,8 +1975,8 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
- 			return -EINVAL;
- 		if (copy_from_user(&ksigmask, sigmask, sizeof(ksigmask)))
- 			return -EFAULT;
--		sigdelsetmask(&ksigmask, sigmask(SIGKILL) | sigmask(SIGSTOP));
--		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
-+		sigsaved = current->blocked;
-+		set_current_blocked(&ksigmask);
- 	}
+diff -puN drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul drivers/rtc/rtc-pcf2123.c
+--- a/drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-replace-strict_strtoul-with-kstrtoul
++++ a/drivers/rtc/rtc-pcf2123.c
+@@ -94,8 +94,9 @@ static ssize_t pcf2123_show(struct devic
  
- 	error = sys_epoll_wait(epfd, events, maxevents, timeout);
-@@ -1993,7 +1993,7 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
- 			       sizeof(sigsaved));
- 			set_restore_sigmask();
- 		} else
--			sigprocmask(SIG_SETMASK, &sigsaved, NULL);
-+			set_current_blocked(&sigsaved);
- 	}
+ 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
  
- 	return error;
-@@ -2020,8 +2020,8 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
- 		if (copy_from_user(&csigmask, sigmask, sizeof(csigmask)))
- 			return -EFAULT;
- 		sigset_from_compat(&ksigmask, &csigmask);
--		sigdelsetmask(&ksigmask, sigmask(SIGKILL) | sigmask(SIGSTOP));
--		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
-+		sigsaved = current->blocked;
-+		set_current_blocked(&ksigmask);
- 	}
+-	if (strict_strtoul(r->name, 16, &reg))
+-		return -EINVAL;
++	ret = kstrtoul(r->name, 16, &reg);
++	if (ret)
++		return ret;
  
- 	err = sys_epoll_wait(epfd, events, maxevents, timeout);
-@@ -2038,7 +2038,7 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
- 			       sizeof(sigsaved));
- 			set_restore_sigmask();
- 		} else
--			sigprocmask(SIG_SETMASK, &sigsaved, NULL);
-+			set_current_blocked(&sigsaved);
- 	}
+ 	txbuf[0] = PCF2123_READ | reg;
+ 	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
+@@ -117,9 +118,13 @@ static ssize_t pcf2123_store(struct devi
  
- 	return err;
+ 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
+ 
+-	if (strict_strtoul(r->name, 16, &reg)
+-		|| strict_strtoul(buffer, 10, &val))
+-		return -EINVAL;
++	ret = kstrtoul(r->name, 16, &reg);
++	if (ret)
++		return ret;
++
++	ret = kstrtoul(buffer, 10, &val);
++	if (ret)
++		return ret;
+ 
+ 	txbuf[0] = PCF2123_WRITE | reg;
+ 	txbuf[1] = val;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
 linux-next.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-llist-fix-simplify-llist_add-and-llist_add_batch.patch
-llist-llist_add-can-use-llist_add_batch.patch
-vfree-dont-schedule-free_work-if-llist_add-returns-false.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
-ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
-ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
-ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
-ptrace-x86-introduce-ptrace_register_breakpoint.patch
-ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
-ptrace-x86-cleanup-ptrace_set_debugreg.patch
-ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
-ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 
