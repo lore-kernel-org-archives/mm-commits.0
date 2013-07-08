@@ -1,42 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-set-zone-flags-before-blocking.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 12:24:56 -0700
-Message-ID: <51db1208.BqKPIe6PbogVPImr%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:25:00 -0700
+Message-ID: <51db120c.ckYv8dz6B7hjE3U8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50321 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750Ab3GHTY5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:57 -0400
+	with ESMTP id S1752750Ab3GHTZB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, trond.myklebust@fys.uio.no, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
 
-Subject: [merged] mm-vmscan-set-zone-flags-before-blocking.patch removed from -mm tree
+Subject: [merged] mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch removed from -mm tree
 To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,trond.myklebust@fys.uio.no,zcalusic@bitsync.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:24:56 -0700
+Date: Mon, 08 Jul 2013 12:25:00 -0700
 
 
 The patch titled
-     Subject: mm: vmscan: set zone flags before blocking
+     Subject: mm: vmscan: treat pages marked for immediate reclaim as zone congestion
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-set-zone-flags-before-blocking.patch
+     mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: set zone flags before blocking
+Subject: mm: vmscan: treat pages marked for immediate reclaim as zone congestion
 
-In shrink_page_list a decision may be made to stall and flag a zone as
-ZONE_WRITEBACK so that if a large number of unqueued dirty pages are
-encountered later then the reclaimer will stall.  Set ZONE_WRITEBACK
-before potentially going to sleep so it is noticed sooner.
+Currently a zone will only be marked congested if the underlying BDI is
+congested but if dirty pages are spread across zones it is possible that
+an individual zone is full of dirty pages without being congested.  The
+impact is that zone gets scanned very quickly potentially reclaiming
+really clean pages.  This patch treats pages marked for immediate reclaim
+as congested for the purposes of marking a zone ZONE_CONGESTED and
+stalling in wait_iff_congested.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -51,22 +54,30 @@ Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-set-zone-flags-before-blocking mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-set-zone-flags-before-blocking
+diff -puN mm/vmscan.c~mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-treat-pages-marked-for-immediate-reclaim-as-zone-congestion
 +++ a/mm/vmscan.c
-@@ -1445,8 +1445,8 @@ shrink_inactive_list(unsigned long nr_to
- 	 */
- 	if (nr_writeback && nr_writeback >=
- 			(nr_taken >> (DEF_PRIORITY - sc->priority))) {
--		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
- 		zone_set_flag(zone, ZONE_WRITEBACK);
-+		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
- 	}
+@@ -761,9 +761,15 @@ static unsigned long shrink_page_list(st
+ 		if (dirty && !writeback)
+ 			nr_unqueued_dirty++;
  
- 	/*
+-		/* Treat this page as congested if underlying BDI is */
++		/*
++		 * Treat this page as congested if the underlying BDI is or if
++		 * pages are cycling through the LRU so quickly that the
++		 * pages marked for immediate reclaim are making it to the
++		 * end of the LRU a second time.
++		 */
+ 		mapping = page_mapping(page);
+-		if (mapping && bdi_write_congested(mapping->backing_dev_info))
++		if ((mapping && bdi_write_congested(mapping->backing_dev_info)) ||
++		    (writeback && PageReclaim(page)))
+ 			nr_congested++;
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
