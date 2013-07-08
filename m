@@ -1,65 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-rc5t583-use-platform_getset_drvdata.patch
+Subject: [merged] drivers-rtc-rtc-bq32kc-remove-empty-function.patch
  removed from -mm tree
-Date: Mon, 08 Jul 2013 12:33:40 -0700
-Message-ID: <51db1414.rIiKDu7hCoquUNrH%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:33:42 -0700
+Message-ID: <51db1416.5nZTaKrx2kbXELmM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752971Ab3GHTdk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:33:40 -0400
+	with ESMTP id S1752980Ab3GHTdm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:33:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: [merged] rtc-rtc-rc5t583-use-platform_getset_drvdata.patch removed from -mm tree
-To: jg1.han@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-bq32kc-remove-empty-function.patch removed from -mm tree
+To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:33:40 -0700
+Date: Mon, 08 Jul 2013 12:33:42 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-rc5t583: use platform_{get,set}_drvdata()
+     Subject: drivers/rtc/rtc-bq32k.c: remove empty function
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-rc5t583-use-platform_getset_drvdata.patch
+     drivers-rtc-rtc-bq32kc-remove-empty-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-rc5t583: use platform_{get,set}_drvdata()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-bq32k.c: remove empty function
 
-Use the wrapper functions for getting and setting the driver data using
-platform_device instead of using dev_{get,set}_drvdata() with &pdev->dev,
-so we can directly pass a struct platform_device.
+After the switch to devm_* functions and the removal of
+rtc_device_unregister(), the 'remove' function does not do anything.
+Delete it.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rc5t583.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-bq32k.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-use-platform_getset_drvdata drivers/rtc/rtc-rc5t583.c
---- a/drivers/rtc/rtc-rc5t583.c~rtc-rtc-rc5t583-use-platform_getset_drvdata
-+++ a/drivers/rtc/rtc-rc5t583.c
-@@ -273,7 +273,7 @@ static int rc5t583_rtc_probe(struct plat
-  */
- static int rc5t583_rtc_remove(struct platform_device *pdev)
- {
--	struct rc5t583_rtc *rc5t583_rtc = dev_get_drvdata(&pdev->dev);
-+	struct rc5t583_rtc *rc5t583_rtc = platform_get_drvdata(pdev);
- 
- 	rc5t583_rtc_alarm_irq_enable(&rc5t583_rtc->rtc->dev, 0);
+diff -puN drivers/rtc/rtc-bq32k.c~drivers-rtc-rtc-bq32kc-remove-empty-function drivers/rtc/rtc-bq32k.c
+--- a/drivers/rtc/rtc-bq32k.c~drivers-rtc-rtc-bq32kc-remove-empty-function
++++ a/drivers/rtc/rtc-bq32k.c
+@@ -163,11 +163,6 @@ static int bq32k_probe(struct i2c_client
  	return 0;
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-linux-next.patch
-
+ }
+ 
+-static int bq32k_remove(struct i2c_client *client)
+-{
+-	return 0;
+-}
