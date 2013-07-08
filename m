@@ -1,115 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-format_corename-can-leak-cn-corename.patch
+Subject: [merged] usermodehelper-kill-the-sub_info-path-check.patch
  removed from -mm tree
-Date: Mon, 08 Jul 2013 12:35:45 -0700
-Message-ID: <51db1491.wv5I7j6UX3NkeZno%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:35:43 -0700
+Message-ID: <51db148f.ZYIXGTS5Ji7GG6U6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51479 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51471 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753214Ab3GHTfq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:46 -0400
+	with ESMTP id S1753138Ab3GHTfn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, lucas.de.marchi@gmail.com, oleg@redhat.com
 
-Subject: [merged] coredump-format_corename-can-leak-cn-corename.patch removed from -mm tree
-To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org,mm-commits@vger.kernel.org
+Subject: [merged] usermodehelper-kill-the-sub_info-path-check.patch removed from -mm tree
+To: oleg@redhat.com,lucas.de.marchi@gmail.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:45 -0700
+Date: Mon, 08 Jul 2013 12:35:43 -0700
 
 
 The patch titled
-     Subject: coredump: format_corename() can leak cn->corename
+     Subject: usermodehelper: kill the sub_info->path[0] check
 has been removed from the -mm tree.  Its filename was
-     coredump-format_corename-can-leak-cn-corename.patch
+     usermodehelper-kill-the-sub_info-path-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: format_corename() can leak cn->corename
+Subject: usermodehelper: kill the sub_info->path[0] check
 
-do_coredump() assumes that format_corename() can only fail if
-expand_corename() fails and frees cn->corename.  This is not true, for
-example cn_print_exe_file() can fail and in this case nobody frees
-cn->corename.
+call_usermodehelper_exec() does nothing but returns success if path[0] ==
+0.  The only user which needs this strange feature is request_module(), it
+can check modprobe_path[0] itself like other users do if they want to
+detect the "disabled by admin" case.
 
-Change do_coredump() to always do kfree(cn->corename) after it calls
-format_corename() (NULL is fine), change expand_corename() to do nothing
-if kmalloc() fails.
+Kill it.  Not only it looks strange, it can confuse other callers.  And
+this allows us to revert 264b83c0 ("usermodehelper: check
+subprocess_info->path != NULL"), do_execve(NULL) is safe.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Colin Walters <walters@verbum.org>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Lennart Poettering <mzxreary@0pointer.de>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ kernel/kmod.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN fs/coredump.c~coredump-format_corename-can-leak-cn-corename fs/coredump.c
---- a/fs/coredump.c~coredump-format_corename-can-leak-cn-corename
-+++ a/fs/coredump.c
-@@ -58,16 +58,14 @@ static atomic_t call_count = ATOMIC_INIT
+diff -puN kernel/kmod.c~usermodehelper-kill-the-sub_info-path-check kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-kill-the-sub_info-path-check
++++ a/kernel/kmod.c
+@@ -147,6 +147,9 @@ int __request_module(bool wait, const ch
+ 	 */
+ 	WARN_ON_ONCE(wait && current_is_async());
  
- static int expand_corename(struct core_name *cn)
- {
--	char *old_corename = cn->corename;
-+	int size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
-+	char *corename = krealloc(cn->corename, size, GFP_KERNEL);
++	if (!modprobe_path[0])
++		return 0;
++
+ 	va_start(args, fmt);
+ 	ret = vsnprintf(module_name, MODULE_NAME_LEN, fmt, args);
+ 	va_end(args);
+@@ -569,14 +572,6 @@ int call_usermodehelper_exec(struct subp
+ 	int retval = 0;
  
--	cn->size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
--	cn->corename = krealloc(old_corename, cn->size, GFP_KERNEL);
--
--	if (!cn->corename) {
--		kfree(old_corename);
-+	if (!corename)
- 		return -ENOMEM;
+ 	helper_lock();
+-	if (!sub_info->path) {
+-		retval = -EINVAL;
+-		goto out;
 -	}
- 
-+	cn->size = size;
-+	cn->corename = corename;
- 	return 0;
- }
- 
-@@ -157,10 +155,9 @@ static int format_corename(struct core_n
- 	int pid_in_pattern = 0;
- 	int err = 0;
- 
-+	cn->used = 0;
- 	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
- 	cn->corename = kmalloc(cn->size, GFP_KERNEL);
--	cn->used = 0;
 -
- 	if (!cn->corename)
- 		return -ENOMEM;
- 
-@@ -549,7 +546,7 @@ void do_coredump(siginfo_t *siginfo)
- 		if (ispipe < 0) {
- 			printk(KERN_WARNING "format_corename failed\n");
- 			printk(KERN_WARNING "Aborting core\n");
--			goto fail_corename;
-+			goto fail_unlock;
- 		}
- 
- 		if (cprm.limit == 1) {
-@@ -669,7 +666,6 @@ fail_dropcount:
- 		atomic_dec(&core_dump_count);
- fail_unlock:
- 	kfree(cn.corename);
--fail_corename:
- 	coredump_finish(mm, core_dumped);
- 	revert_creds(old_cred);
- fail_creds:
+-	if (sub_info->path[0] == '\0')
+-		goto out;
+-
+ 	if (!khelper_wq || usermodehelper_disabled) {
+ 		retval = -EBUSY;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
