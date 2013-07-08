@@ -1,72 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 12:35:17 -0700
-Message-ID: <51db1475.LEjlXtzJoT9yIr7t%akpm@linux-foundation.org>
+Subject: [merged] rtc-rtc-ds1216-use-module_platform_driver_probe.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:35:23 -0700
+Message-ID: <51db147b.QLQlG0+AWFSi2Bc0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51501 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51537 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753214Ab3GHTft (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:49 -0400
+	with ESMTP id S1753211Ab3GHTfz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ldewangan@nvidia.com, wni@nvidia.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com, a.zummo@towertech.it, fabio.porcedda@gmail.com
 
-Subject: [merged] drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch removed from -mm tree
-To: wni@nvidia.com,ldewangan@nvidia.com,mm-commits@vger.kernel.org
+Subject: [merged] rtc-rtc-ds1216-use-module_platform_driver_probe.patch removed from -mm tree
+To: fabio.porcedda@gmail.com,a.zummo@towertech.it,jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:17 -0700
+Date: Mon, 08 Jul 2013 12:35:23 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-palmas.c: init wakeup before device register
+     Subject: drivers/rtc/rtc-ds1216.c: use module_platform_driver_probe()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-palmasc-init-wakeup-before-device-register.patch
+     rtc-rtc-ds1216-use-module_platform_driver_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Ni <wni@nvidia.com>
-Subject: drivers/rtc/rtc-palmas.c: init wakeup before device register
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Subject: drivers/rtc/rtc-ds1216.c: use module_platform_driver_probe()
 
-Enable dev as wakeup device before calling rtc_device_register(), so that
-it can create the "wakealarm" sysfs.
+Use module_platform_driver_probe() macro which makes the code smaller and
+simpler.
 
-Signed-off-by: Wei Ni <wni@nvidia.com>
-Acked-by: Laxman Dewangan <ldewangan@nvidia.com>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-palmas.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-ds1216.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-init-wakeup-before-device-register drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-init-wakeup-before-device-register
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -265,6 +265,7 @@ static int palmas_rtc_probe(struct platf
+diff -puN drivers/rtc/rtc-ds1216.c~rtc-rtc-ds1216-use-module_platform_driver_probe drivers/rtc/rtc-ds1216.c
+--- a/drivers/rtc/rtc-ds1216.c~rtc-rtc-ds1216-use-module_platform_driver_probe
++++ a/drivers/rtc/rtc-ds1216.c
+@@ -174,21 +174,10 @@ static struct platform_driver ds1216_rtc
+ 	},
+ };
  
- 	palmas_rtc->irq = platform_get_irq(pdev, 0);
+-static int __init ds1216_rtc_init(void)
+-{
+-	return platform_driver_probe(&ds1216_rtc_platform_driver, ds1216_rtc_probe);
+-}
+-
+-static void __exit ds1216_rtc_exit(void)
+-{
+-	platform_driver_unregister(&ds1216_rtc_platform_driver);
+-}
++module_platform_driver_probe(ds1216_rtc_platform_driver, ds1216_rtc_probe);
  
-+	device_init_wakeup(&pdev->dev, 1);
- 	palmas_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
- 				&palmas_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(palmas_rtc->rtc)) {
-@@ -283,7 +284,6 @@ static int palmas_rtc_probe(struct platf
- 		return ret;
- 	}
- 
--	device_set_wakeup_capable(&pdev->dev, 1);
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from wni@nvidia.com are
-
-origin.patch
-
+ MODULE_AUTHOR("Thomas Bogendoerfer <tsbogend@alpha.franken.de>");
+ MODULE_DESCRIPTION("DS1216 RTC driver");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
+ MODULE_ALIAS("platform:rtc-ds1216");
