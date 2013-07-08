@@ -1,192 +1,160 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:25:38 -0700
-Message-ID: <51db1232.IYw61h+14gtGVWZg%akpm@linux-foundation.org>
+ mm-tune-vm_committed_as-percpu_counter-batching-size.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:26:00 -0700
+Message-ID: <51db1248./w98KyH1SjcQUqUJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50536 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821Ab3GHTZu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:50 -0400
+	with ESMTP id S1752849Ab3GHT0B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tytso@mit.edu, sanbai@taobao.com, riel@redhat.com, jack@suse.cz, hughd@google.com, hannes@cmpxchg.org, dhowells@redhat.com, bernd.schubert@fastmail.fm, anserper@ya.ru, alexey.lyashkov@gmail.com, Trond.Myklebust@netapp.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, tj@kernel.org, fengguang.wu@intel.com, eric.dumazet@gmail.com, dave.hansen@intel.com, ak@linux.intel.com, tim.c.chen@linux.intel.com
 
-Subject: [merged] mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch removed from -mm tree
-To: mgorman@suse.de,Trond.Myklebust@netapp.com,alexey.lyashkov@gmail.com,anserper@ya.ru,bernd.schubert@fastmail.fm,dhowells@redhat.com,hannes@cmpxchg.org,hughd@google.com,jack@suse.cz,riel@redhat.com,sanbai@taobao.com,tytso@mit.edu,mm-commits@vger.kernel.org
+Subject: [merged] mm-tune-vm_committed_as-percpu_counter-batching-size.patch removed from -mm tree
+To: tim.c.chen@linux.intel.com,ak@linux.intel.com,dave.hansen@intel.com,eric.dumazet@gmail.com,fengguang.wu@intel.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:25:38 -0700
+Date: Mon, 08 Jul 2013 12:26:00 -0700
 
 
 The patch titled
-     Subject: mm: activate !PageLRU pages on mark_page_accessed if page is on local pagevec
+     Subject: mm: tune vm_committed_as percpu_counter batching size
 has been removed from the -mm tree.  Its filename was
-     mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec.patch
+     mm-tune-vm_committed_as-percpu_counter-batching-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: activate !PageLRU pages on mark_page_accessed if page is on local pagevec
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: mm: tune vm_committed_as percpu_counter batching size
 
-If a page is on a pagevec then it is !PageLRU and mark_page_accessed() may
-fail to move a page to the active list as expected.  Now that the LRU is
-selected at LRU drain time, mark pages PageActive if they are on the local
-pagevec so it gets moved to the correct list at LRU drain time.  Using a
-debugging patch it was found that for a simple git checkout based workload
-that pages were never added to the active file list in practice but with
-this patch applied they are.
+Currently the per cpu counter's batch size for memory accounting is
+configured as twice the number of cpus in the system.  However, for system
+with very large memory, it is more appropriate to make it proportional to
+the memory size per cpu in the system.
 
-				before   after
-LRU Add Active File                  0      750583
-LRU Add Active Anon            2640587     2702818
-LRU Add Inactive File          8833662     8068353
-LRU Add Inactive Anon              207         200
+For example, for a x86_64 system with 64 cpus and 128 GB of memory, the
+batch size is only 2*64 pages (0.5 MB).  So any memory accounting changes
+of more than 0.5MB will overflow the per cpu counter into the global
+counter.  Instead, for the new scheme, the batch size is configured to be
+0.4% of the memory/cpu = 8MB (128 GB/64 /256), which is more inline with
+the memory size.
 
-Note that only pages on the local pagevec are considered on purpose.  A
-!PageLRU page could be in the process of being released, reclaimed,
-migrated or on a remote pagevec that is currently being drained.  Marking
-it PageActive is vunerable to races where PageLRU and Active bits are
-checked at the wrong time.  Page reclaim will trigger VM_BUG_ONs but
-depending on when the race hits, it could also free a PageActive page to
-the page allocator and trigger a bad_page warning.  Similarly a potential
-race exists between a per-cpu drain on a pagevec list and an activation on
-a remote CPU.
+I've done a repeated brk test of 800KB (from will-it-scale test suite)
+with 80 concurrent processes on a 4 socket Westmere machine with a total
+of 40 cores.  Without the patch, about 80% of cpu is spent on spin-lock
+contention within the vm_committed_as counter.  With the patch, there's a
+73x speedup on the benchmark and the lock contention drops off almost
+entirely.
 
-				lru_add_drain_cpu
-				__pagevec_lru_add
-				  lru = page_lru(page);
-mark_page_accessed
-  if (PageLRU(page))
-    activate_page
-  else
-    SetPageActive
-				  SetPageLRU(page);
-				  add_page_to_lru_list(page, lruvec, lru);
-
-In this case a PageActive page is added to the inactivate list and later
-the inactive/active stats will get skewed.  While the PageActive checks in
-vmscan could be removed and potentially dealt with, a skew in the
-statistics would be very difficult to detect.  Hence this patch deals just
-with the common case where a page being marked accessed has just been
-added to the local pagevec.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexey Lyahkov <alexey.lyashkov@gmail.com>
-Cc: Andrew Perepechko <anserper@ya.ru>
-Cc: Robin Dong <sanbai@taobao.com>
-Cc: Theodore Tso <tytso@mit.edu>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Bernd Schubert <bernd.schubert@fastmail.fm>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+[akpm@linux-foundation.org: fix section mismatch]
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   41 +++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 39 insertions(+), 2 deletions(-)
+ include/linux/mman.h |    8 ++++++
+ mm/mm_init.c         |   47 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec mm/swap.c
---- a/mm/swap.c~mm-activate-pagelru-pages-on-mark_page_accessed-if-page-is-on-local-pagevec
-+++ a/mm/swap.c
-@@ -432,6 +432,33 @@ void activate_page(struct page *page)
- }
- #endif
+diff -puN include/linux/mman.h~mm-tune-vm_committed_as-percpu_counter-batching-size include/linux/mman.h
+--- a/include/linux/mman.h~mm-tune-vm_committed_as-percpu_counter-batching-size
++++ a/include/linux/mman.h
+@@ -11,11 +11,17 @@ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern struct percpu_counter vm_committed_as;
  
-+static void __lru_cache_activate_page(struct page *page)
++#ifdef CONFIG_SMP
++extern s32 vm_committed_as_batch;
++#else
++#define vm_committed_as_batch 0
++#endif
++
+ unsigned long vm_memory_committed(void);
+ 
+ static inline void vm_acct_memory(long pages)
+ {
+-	percpu_counter_add(&vm_committed_as, pages);
++	__percpu_counter_add(&vm_committed_as, pages, vm_committed_as_batch);
+ }
+ 
+ static inline void vm_unacct_memory(long pages)
+diff -puN mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size mm/mm_init.c
+--- a/mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size
++++ a/mm/mm_init.c
+@@ -9,6 +9,8 @@
+ #include <linux/init.h>
+ #include <linux/kobject.h>
+ #include <linux/export.h>
++#include <linux/memory.h>
++#include <linux/notifier.h>
+ #include "internal.h"
+ 
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+@@ -147,6 +149,51 @@ early_param("mminit_loglevel", set_mmini
+ struct kobject *mm_kobj;
+ EXPORT_SYMBOL_GPL(mm_kobj);
+ 
++#ifdef CONFIG_SMP
++s32 vm_committed_as_batch = 32;
++
++static void __meminit mm_compute_batch(void)
 +{
-+	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
-+	int i;
++	u64 memsized_batch;
++	s32 nr = num_present_cpus();
++	s32 batch = max_t(s32, nr*2, 32);
 +
-+	/*
-+	 * Search backwards on the optimistic assumption that the page being
-+	 * activated has just been added to this pagevec. Note that only
-+	 * the local pagevec is examined as a !PageLRU page could be in the
-+	 * process of being released, reclaimed, migrated or on a remote
-+	 * pagevec that is currently being drained. Furthermore, marking
-+	 * a remote pagevec's page PageActive potentially hits a race where
-+	 * a page is marked PageActive just after it is added to the inactive
-+	 * list causing accounting errors and BUG_ON checks to trigger.
-+	 */
-+	for (i = pagevec_count(pvec) - 1; i >= 0; i--) {
-+		struct page *pagevec_page = pvec->pages[i];
++	/* batch size set to 0.4% of (total memory/#cpus), or max int32 */
++	memsized_batch = min_t(u64, (totalram_pages/nr)/256, 0x7fffffff);
 +
-+		if (pagevec_page == page) {
-+			SetPageActive(page);
-+			break;
-+		}
-+	}
-+
-+	put_cpu_var(lru_add_pvec);
++	vm_committed_as_batch = max_t(s32, memsized_batch, batch);
 +}
 +
- /*
-  * Mark a page as having seen activity.
-  *
-@@ -442,8 +469,18 @@ void activate_page(struct page *page)
- void mark_page_accessed(struct page *page)
- {
- 	if (!PageActive(page) && !PageUnevictable(page) &&
--			PageReferenced(page) && PageLRU(page)) {
--		activate_page(page);
-+			PageReferenced(page)) {
++static int __meminit mm_compute_batch_notifier(struct notifier_block *self,
++					unsigned long action, void *arg)
++{
++	switch (action) {
++	case MEM_ONLINE:
++	case MEM_OFFLINE:
++		mm_compute_batch();
++	default:
++		break;
++	}
++	return NOTIFY_OK;
++}
 +
-+		/*
-+		 * If the page is on the LRU, queue it for activation via
-+		 * activate_page_pvecs. Otherwise, assume the page is on a
-+		 * pagevec, mark it active and it'll be moved to the active
-+		 * LRU on the next drain.
-+		 */
-+		if (PageLRU(page))
-+			activate_page(page);
-+		else
-+			__lru_cache_activate_page(page);
- 		ClearPageReferenced(page);
- 	} else if (!PageReferenced(page)) {
- 		SetPageReferenced(page);
++static struct notifier_block compute_batch_nb __meminitdata = {
++	.notifier_call = mm_compute_batch_notifier,
++	.priority = IPC_CALLBACK_PRI, /* use lowest priority */
++};
++
++static int __init mm_compute_batch_init(void)
++{
++	mm_compute_batch();
++	register_hotmemory_notifier(&compute_batch_nb);
++
++	return 0;
++}
++
++__initcall(mm_compute_batch_init);
++
++#endif
++
+ static int __init mm_sysfs_init(void)
+ {
+ 	mm_kobj = kobject_create_and_add("mm", kernel_kobj);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
 
 origin.patch
-linux-next.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-api.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
-zbud-add-to-mm.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch
-mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
-mm-memmap_init_zone-performance-improvement.patch
 
