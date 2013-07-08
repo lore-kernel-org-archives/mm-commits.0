@@ -1,154 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:23:59 -0700
-Message-ID: <51db11cf.xZW3A4AbjOGdqlee%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-compressed-copy-from-zram-in-memory.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:24:01 -0700
+Message-ID: <51db11d1.IFlDiOnhAu1IM9we%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50130 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753049Ab3GHTYA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:00 -0400
+	with ESMTP id S1753063Ab3GHTYC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, shli@kernel.org, ngupta@vflare.org, konrad@darnok.org, hughd@google.com, dan.magenheimer@oracle.com, artem.savkov@gmail.com, minchan@kernel.org
 
-Subject: [merged] mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch removed from -mm tree
-To: rientjes@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-remove-compressed-copy-from-zram-in-memory.patch removed from -mm tree
+To: minchan@kernel.org,artem.savkov@gmail.com,dan.magenheimer@oracle.com,hughd@google.com,konrad@darnok.org,ngupta@vflare.org,shli@kernel.org,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:59 -0700
+Date: Mon, 08 Jul 2013 12:24:01 -0700
 
 
 The patch titled
-     Subject: mm, memcg: don't take task_lock in task_in_mem_cgroup
+     Subject: mm: remove compressed copy from zram in-memory
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup.patch
+     mm-remove-compressed-copy-from-zram-in-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: don't take task_lock in task_in_mem_cgroup
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: remove compressed copy from zram in-memory
 
-For processes that have detached their mm's, task_in_mem_cgroup()
-unnecessarily takes task_lock() when rcu_read_lock() is all that is
-necessary to call mem_cgroup_from_task().
+Swap subsystem does lazy swap slot free with expecting the page would be
+swapped out again so we can avoid unnecessary write.
 
-While we're here, switch task_in_mem_cgroup() to return bool.
+But the problem in in-memory swap(ex, zram) is that it consumes memory
+space until vm_swap_full(ie, used half of all of swap device) condition
+meet.  It could be bad if we use multiple swap device, small in-memory
+swap and big storage swap or in-memory swap alone.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+This patch makes swap subsystem free swap slot as soon as swap-read is
+completed and make the swapcache page dirty so the page should be written
+out the swap device to reclaim it.  It means we never lose it.
+
+I tested this patch with kernel compile workload.
+
+1. before
+
+compile time : 9882.42
+zram max wasted space by fragmentation: 13471881 byte
+memory space consumed by zram: 174227456 byte
+the number of slot free notify: 206684
+
+2. after
+
+compile time : 9653.90
+zram max wasted space by fragmentation: 11805932 byte
+memory space consumed by zram: 154001408 byte
+the number of slot free notify: 426972
+
+[akpm@linux-foundation.org: tweak comment text]
+[artem.savkov@gmail.com: fix BUG due to non-swapcache pages in end_swap_bio_read()]
+[akpm@linux-foundation.org: invert unlikely() test, augment comment, 80-col cleanup]
+Signed-off-by: Dan Magenheimer <dan.magenheimer@oracle.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Artem Savkov <artem.savkov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    9 +++++----
- mm/memcontrol.c            |   11 ++++++-----
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ mm/page_io.c |   50 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 48 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup
-+++ a/include/linux/memcontrol.h
-@@ -77,7 +77,8 @@ extern void mem_cgroup_uncharge_cache_pa
+diff -puN mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory mm/page_io.c
+--- a/mm/page_io.c~mm-remove-compressed-copy-from-zram-in-memory
++++ a/mm/page_io.c
+@@ -21,6 +21,7 @@
+ #include <linux/writeback.h>
+ #include <linux/frontswap.h>
+ #include <linux/aio.h>
++#include <linux/blkdev.h>
+ #include <asm/pgtable.h>
  
- bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
- 				  struct mem_cgroup *memcg);
--int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg);
-+bool task_in_mem_cgroup(struct task_struct *task,
-+			const struct mem_cgroup *memcg);
- 
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
- extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
-@@ -273,10 +274,10 @@ static inline bool mm_match_cgroup(struc
- 	return true;
- }
- 
--static inline int task_in_mem_cgroup(struct task_struct *task,
--				     const struct mem_cgroup *memcg)
-+static inline bool task_in_mem_cgroup(struct task_struct *task,
-+				      const struct mem_cgroup *memcg)
- {
--	return 1;
-+	return true;
- }
- 
- static inline struct cgroup_subsys_state
-diff -puN mm/memcontrol.c~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-dont-take-task_lock-in-task_in_mem_cgroup
-+++ a/mm/memcontrol.c
-@@ -1448,11 +1448,12 @@ static bool mem_cgroup_same_or_subtree(c
- 	return ret;
- }
- 
--int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg)
-+bool task_in_mem_cgroup(struct task_struct *task,
-+			const struct mem_cgroup *memcg)
- {
--	int ret;
- 	struct mem_cgroup *curr = NULL;
- 	struct task_struct *p;
-+	bool ret;
- 
- 	p = find_lock_task_mm(task);
- 	if (p) {
-@@ -1464,14 +1465,14 @@ int task_in_mem_cgroup(struct task_struc
- 		 * killer still needs to detect if they have already been oom
- 		 * killed to prevent needlessly killing additional tasks.
- 		 */
--		task_lock(task);
-+		rcu_read_lock();
- 		curr = mem_cgroup_from_task(task);
- 		if (curr)
- 			css_get(&curr->css);
--		task_unlock(task);
-+		rcu_read_unlock();
+ static struct bio *get_swap_bio(gfp_t gfp_flags,
+@@ -80,9 +81,54 @@ void end_swap_bio_read(struct bio *bio,
+ 				imajor(bio->bi_bdev->bd_inode),
+ 				iminor(bio->bi_bdev->bd_inode),
+ 				(unsigned long long)bio->bi_sector);
+-	} else {
+-		SetPageUptodate(page);
++		goto out;
  	}
- 	if (!curr)
--		return 0;
-+		return false;
- 	/*
- 	 * We should check use_hierarchy of "memcg" not "curr". Because checking
- 	 * use_hierarchy of "curr" here make this function true if hierarchy is
++
++	SetPageUptodate(page);
++
++	/*
++	 * There is no guarantee that the page is in swap cache - the software
++	 * suspend code (at least) uses end_swap_bio_read() against a non-
++	 * swapcache page.  So we must check PG_swapcache before proceeding with
++	 * this optimization.
++	 */
++	if (likely(PageSwapCache(page))) {
++		struct swap_info_struct *sis;
++
++		sis = page_swap_info(page);
++		if (sis->flags & SWP_BLKDEV) {
++			/*
++			 * The swap subsystem performs lazy swap slot freeing,
++			 * expecting that the page will be swapped out again.
++			 * So we can avoid an unnecessary write if the page
++			 * isn't redirtied.
++			 * This is good for real swap storage because we can
++			 * reduce unnecessary I/O and enhance wear-leveling
++			 * if an SSD is used as the as swap device.
++			 * But if in-memory swap device (eg zram) is used,
++			 * this causes a duplicated copy between uncompressed
++			 * data in VM-owned memory and compressed data in
++			 * zram-owned memory.  So let's free zram-owned memory
++			 * and make the VM-owned decompressed page *dirty*,
++			 * so the page should be swapped out somewhere again if
++			 * we again wish to reclaim it.
++			 */
++			struct gendisk *disk = sis->bdev->bd_disk;
++			if (disk->fops->swap_slot_free_notify) {
++				swp_entry_t entry;
++				unsigned long offset;
++
++				entry.val = page_private(page);
++				offset = swp_offset(entry);
++
++				SetPageDirty(page);
++				disk->fops->swap_slot_free_notify(sis->bdev,
++						offset);
++			}
++		}
++	}
++
++out:
+ 	unlock_page(page);
+ 	bio_put(bio);
+ }
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
 linux-next.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-api.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
-mm-mremap-validate-input-before-taking-lock.patch
-memcg-clean-up-memcg-nodeinfo.patch
-mm-invoke-oom-killer-from-remaining-unconverted-page-fault-handlers.patch
-mm-remove-zone_type-argument-of-build_zonelists_node.patch
-mm-remove-unlikely-from-the-current_order-test.patch
-mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+zbud-add-to-mm.patch
+zswap-add-to-mm.patch
+zswap-add-documentation.patch
 mm-vmallocc-fix-an-overflow-bug-in-alloc_vmap_area.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+debugging-keep-track-of-page-owners-fix-2.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
