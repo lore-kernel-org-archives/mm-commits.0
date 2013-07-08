@@ -1,107 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 12:36:19 -0700
-Message-ID: <51db14b3.yC/CIjm7i2xG0Tc9%akpm@linux-foundation.org>
+Subject: [merged] ia64-remove-setting-for-saved_max_pfn.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:36:25 -0700
+Message-ID: <51db14b9.qmvMrMEnMC3rAhnb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51654 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753262Ab3GHTgU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:20 -0400
+	with ESMTP id S1752613Ab3GHTg0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vgoyal@redhat.com, tony.luck@intel.com, schwidefsky@de.ibm.com, ralf@linux-mips.org, paulus@samba.org, matt.fleming@intel.com, hpa@zytor.com, holzheu@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, ebiederm@xmission.com, dave@sr71.net, benh@kernel.crashing.org, zhangyanfei@cn.fujitsu.com
 
-Subject: [merged] documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch removed from -mm tree
+Subject: [merged] ia64-remove-setting-for-saved_max_pfn.patch removed from -mm tree
 To: zhangyanfei@cn.fujitsu.com,benh@kernel.crashing.org,dave@sr71.net,ebiederm@xmission.com,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,holzheu@linux.vnet.ibm.com,hpa@zytor.com,matt.fleming@intel.com,paulus@samba.org,ralf@linux-mips.org,schwidefsky@de.ibm.com,tony.luck@intel.com,vgoyal@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:19 -0700
+Date: Mon, 08 Jul 2013 12:36:25 -0700
 
 
 The patch titled
-     Subject: Documentation/kdump/kdump.txt: remove /dev/oldmem description
+     Subject: ia64: remove setting for saved_max_pfn
 has been removed from the -mm tree.  Its filename was
-     documentation-kdump-kdumptxt-remove-dev-oldmem-description.patch
+     ia64-remove-setting-for-saved_max_pfn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: Documentation/kdump/kdump.txt: remove /dev/oldmem description
+Subject: ia64: remove setting for saved_max_pfn
+
+The only user of saved_max_pfn in ia64 is read_oldmem interface but we
+have removed that interface, so saved_max_pfn is now unneeded in ia64, and
+we needn't set it anymore.
 
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dave Hansen <dave@sr71.net>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Matt Fleming <matt.fleming@intel.com>
 Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   31 ++++++-------------------------
- 1 file changed, 6 insertions(+), 25 deletions(-)
+ arch/ia64/kernel/efi.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~documentation-kdump-kdumptxt-remove-dev-oldmem-description Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~documentation-kdump-kdumptxt-remove-dev-oldmem-description
-+++ a/Documentation/kdump/kdump.txt
-@@ -47,19 +47,12 @@ parameter. Optionally the size of the EL
- when using the elfcorehdr=[size[KMG]@]offset[KMG] syntax.
+diff -puN arch/ia64/kernel/efi.c~ia64-remove-setting-for-saved_max_pfn arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~ia64-remove-setting-for-saved_max_pfn
++++ a/arch/ia64/kernel/efi.c
+@@ -1116,11 +1116,6 @@ efi_memmap_init(u64 *s, u64 *e)
+ 		if (!is_memory_available(md))
+ 			continue;
  
- 
--With the dump-capture kernel, you can access the memory image, or "old
--memory," in two ways:
--
--- Through a /dev/oldmem device interface. A capture utility can read the
--  device file and write out the memory in raw format. This is a raw dump
--  of memory. Analysis and capture tools must be intelligent enough to
--  determine where to look for the right information.
--
--- Through /proc/vmcore. This exports the dump as an ELF-format file that
--  you can write out using file copy commands such as cp or scp. Further,
--  you can use analysis tools such as the GNU Debugger (GDB) and the Crash
--  tool to debug the dump file. This method ensures that the dump pages are
--  correctly ordered.
-+With the dump-capture kernel, you can access the memory image through
-+/proc/vmcore. This exports the dump as an ELF-format file that you can
-+write out using file copy commands such as cp or scp. Further, you can
-+use analysis tools such as the GNU Debugger (GDB) and the Crash tool to
-+debug the dump file. This method ensures that the dump pages are correctly
-+ordered.
- 
- 
- Setup and Installation
-@@ -423,18 +416,6 @@ the following command:
- 
-    cp /proc/vmcore <dump-file>
- 
--You can also access dumped memory as a /dev/oldmem device for a linear
--and raw view. To create the device, use the following command:
--
--    mknod /dev/oldmem c 1 12
--
--Use the dd command with suitable options for count, bs, and skip to
--access specific portions of the dump.
--
--To see the entire memory, use the following command:
--
--   dd if=/dev/oldmem of=oldmem.001
--
- 
- Analysis
- ========
+-#ifdef CONFIG_CRASH_DUMP
+-		/* saved_max_pfn should ignore max_addr= command line arg */
+-		if (saved_max_pfn < (efi_md_end(md) >> PAGE_SHIFT))
+-			saved_max_pfn = (efi_md_end(md) >> PAGE_SHIFT);
+-#endif
+ 		/*
+ 		 * Round ends inward to granule boundaries
+ 		 * Give trimmings to uncached allocator
 _
 
 Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
