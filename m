@@ -1,74 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 15:31:57 -0700
-Message-ID: <51db3ddd.MWvaBZDez92pYTAi%akpm@linux-foundation.org>
+ partitions-add-aix-lvm-partition-support-files-v2.patch removed from -mm
+ tree
+Date: Mon, 08 Jul 2013 15:32:18 -0700
+Message-ID: <51db3df2.9eAQK0MLdPXW9bw+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53067 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633Ab3GHWb5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:31:57 -0400
+	with ESMTP id S1751633Ab3GHWcT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:32:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, davidlohr.bueso@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, kzak@redhat.com, axboe@kernel.dk, phdm@macqel.be
 
-Subject: [folded-merged] ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch removed from -mm tree
-To: manfred@colorfullife.com,davidlohr.bueso@hp.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] partitions-add-aix-lvm-partition-support-files-v2.patch removed from -mm tree
+To: phdm@macqel.be,axboe@kernel.dk,kzak@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 15:31:57 -0700
+Date: Mon, 08 Jul 2013 15:32:18 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: scan complex wait-for-zero after undefined updates
+     Subject: partitions-add-aix-lvm-partition-support-files-v2
 has been removed from the -mm tree.  Its filename was
-     ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch
+     partitions-add-aix-lvm-partition-support-files-v2.patch
 
-This patch was dropped because it was folded into ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
+This patch was dropped because it was folded into partitions-add-aix-lvm-partition-support-files.patch
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: scan complex wait-for-zero after undefined updates
+From: Philippe De Muyter <phdm@macqel.be>
+Subject: partitions-add-aix-lvm-partition-support-files-v2
 
-After an update of a semaphore array that does not use struct sembuf,
-complex wait-for-zero operations were not checked if they are able to
-proceed.
+Fix a problem in the discovering of small (1 pp) partitions in presence of
+discontiguous partitions.
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ block/partitions/aix.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN ipc/sem.c~ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix ipc/sem.c
---- a/ipc/sem.c~ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix
-+++ a/ipc/sem.c
-@@ -726,8 +726,10 @@ static int do_smart_wakeup_zero(struct s
- 		 * Assume all were changed.
- 		 */
- 		for (i = 0; i < sma->sem_nsems; i++) {
--			if (sma->sem_base[i].semval == 0)
-+			if (sma->sem_base[i].semval == 0) {
-+				got_zero = 1;
- 				semop_completed |= wake_const_ops(sma, i, pt);
+diff -puN block/partitions/aix.c~partitions-add-aix-lvm-partition-support-files-v2 block/partitions/aix.c
+--- a/block/partitions/aix.c~partitions-add-aix-lvm-partition-support-files-v2
++++ a/block/partitions/aix.c
+@@ -257,12 +257,13 @@ int aix_partition(struct parsed_partitio
+ 				continue;
+ 			}
+ 			lvip[lv_ix].pps_found += 1;
+-			if (lp_ix != next_lp_ix)
+-				continue;
+-			if (lp_ix == 1)
++			if (lp_ix == 1) {
+ 				cur_lv_ix = lv_ix;
+-			else if (lv_ix != cur_lv_ix)
+ 				next_lp_ix = 1;
++			} else if (lv_ix != cur_lv_ix || lp_ix != next_lp_ix) {
++				next_lp_ix = 1;
++				continue;
 +			}
- 		}
- 	}
- 	/*
+ 			if (lp_ix == lvip[lv_ix].pps_per_lv) {
+ 				char tmp[70];
+ 
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
-ipc-semc-cacheline-align-the-semaphore-structures.patch
-ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
-ipc-semc-always-use-only-one-queue-for-alter-operations.patch
-ipc-semc-replace-shared-sem_otime-with-per-semaphore-value.patch
-ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
+partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
+partitions-add-aix-lvm-partition-support-files.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-compile-aixc-if-configured.patch
+partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry.patch
+partitions-msdos-enumerate-also-aix-lvm-partitions.patch
 
