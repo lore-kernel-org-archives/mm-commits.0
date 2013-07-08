@@ -1,104 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 15:31:40 -0700
-Message-ID: <51db3dcc.jjb/1Tnn8zU28baI%akpm@linux-foundation.org>
+ ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 15:31:57 -0700
+Message-ID: <51db3ddd.MWvaBZDez92pYTAi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53056 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633Ab3GHWbl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:31:41 -0400
+	with ESMTP id S1751633Ab3GHWb5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:31:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, manfred@colorfullife.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: [folded-merged] ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,manfred@colorfullife.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch removed from -mm tree
+To: manfred@colorfullife.com,davidlohr.bueso@hp.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 15:31:40 -0700
+Date: Mon, 08 Jul 2013 15:31:57 -0700
 
 
 The patch titled
-     Subject: ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes
+     Subject: ipc/sem.c: scan complex wait-for-zero after undefined updates
 has been removed from the -mm tree.  Its filename was
-     ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
+     ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix.patch
 
-This patch was dropped because it was folded into ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
+This patch was dropped because it was folded into ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: scan complex wait-for-zero after undefined updates
 
-ERROR: "(foo*)" should be "(foo *)"
-#47: FILE: ipc/util.c:493:
-+	struct ipc_rcu *p = ((struct ipc_rcu*)ptr)-1;
+After an update of a semaphore array that does not use struct sembuf,
+complex wait-for-zero operations were not checked if they are able to
+proceed.
 
-ERROR: "(foo*)" should be "(foo *)"
-#58: FILE: ipc/util.c:509:
-+	struct ipc_rcu *p = ((struct ipc_rcu*)ptr)-1;
-
-total: 2 errors, 0 warnings, 34 lines checked
-
-./patches/ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/sem.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN ipc/util.c~ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes ipc/util.c
---- a/ipc/util.c~ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes
-+++ a/ipc/util.c
-@@ -486,12 +486,12 @@ void *ipc_rcu_alloc(int size)
- 	if (unlikely(!out))
- 		return NULL;
- 	atomic_set(&out->refcount, 1);
--	return out+1;
-+	return out + 1;
- }
- 
- int ipc_rcu_getref(void *ptr)
- {
--	struct ipc_rcu *p = ((struct ipc_rcu*)ptr)-1;
-+	struct ipc_rcu *p = ((struct ipc_rcu *)ptr) - 1;
- 
- 	return atomic_inc_not_zero(&p->refcount);
- }
-@@ -507,7 +507,7 @@ static void ipc_schedule_free(struct rcu
- 
- void ipc_rcu_putref(void *ptr)
- {
--	struct ipc_rcu *p = ((struct ipc_rcu*)ptr)-1;
-+	struct ipc_rcu *p = ((struct ipc_rcu *)ptr) - 1;
- 
- 	if (!atomic_dec_and_test(&p->refcount))
- 		return;
+diff -puN ipc/sem.c~ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues-fix
++++ a/ipc/sem.c
+@@ -726,8 +726,10 @@ static int do_smart_wakeup_zero(struct s
+ 		 * Assume all were changed.
+ 		 */
+ 		for (i = 0; i < sma->sem_nsems; i++) {
+-			if (sma->sem_base[i].semval == 0)
++			if (sma->sem_base[i].semval == 0) {
++				got_zero = 1;
+ 				semop_completed |= wake_const_ops(sma, i, pt);
++			}
+ 		}
+ 	}
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-origin.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
-memcg-use-css_get-put-when-charging-uncharging-kmem.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
 ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
-partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
-lib-add-lz4-compressor-module-fix.patch
-crypto-add-lz4-cryptographic-api-fix.patch
+ipc-semc-cacheline-align-the-semaphore-structures.patch
+ipc-sem-separate-wait-for-zero-and-alter-tasks-into-seperate-queues.patch
+ipc-semc-always-use-only-one-queue-for-alter-operations.patch
+ipc-semc-replace-shared-sem_otime-with-per-semaphore-value.patch
+ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
 
