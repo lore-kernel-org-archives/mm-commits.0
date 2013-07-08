@@ -1,81 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware.patch removed from
- -mm tree
-Date: Mon, 08 Jul 2013 12:23:43 -0700
-Message-ID: <51db11bf.eZVq8F7Zw7YJCsrE%akpm@linux-foundation.org>
+Subject: [merged] block-do-not-pass-disk-names-as-format-strings.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:23:45 -0700
+Message-ID: <51db11c1.4Q/KBgKO9gQ3HOlN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50079 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50083 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752975Ab3GHTXn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:43 -0400
+	with ESMTP id S1752980Ab3GHTXp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, axboe@kernel.dk, jonathan.salwan@gmail.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, axboe@kernel.dk, keescook@chromium.org
 
-Subject: [merged] drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware.patch removed from -mm tree
-To: jonathan.salwan@gmail.com,axboe@kernel.dk,dan.carpenter@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] block-do-not-pass-disk-names-as-format-strings.patch removed from -mm tree
+To: keescook@chromium.org,axboe@kernel.dk,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:43 -0700
+Date: Mon, 08 Jul 2013 12:23:45 -0700
 
 
 The patch titled
-     Subject: drivers/cdrom/cdrom.c: use kzalloc() for failing hardware
+     Subject: block: do not pass disk names as format strings
 has been removed from the -mm tree.  Its filename was
-     drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware.patch
+     block-do-not-pass-disk-names-as-format-strings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jonathan Salwan <jonathan.salwan@gmail.com>
-Subject: drivers/cdrom/cdrom.c: use kzalloc() for failing hardware
+From: Kees Cook <keescook@chromium.org>
+Subject: block: do not pass disk names as format strings
 
-In drivers/cdrom/cdrom.c mmc_ioctl_cdrom_read_data() allocates a memory
-area with kmalloc in line 2885.
+Disk names may contain arbitrary strings, so they must not be interpreted
+as format strings. It seems that only md allows arbitrary strings to be
+used for disk names, but this could allow for a local memory corruption
+from uid 0 into ring 0.
 
-2885         cgc->buffer = kmalloc(blocksize, GFP_KERNEL);
-2886         if (cgc->buffer == NULL)
-2887                 return -ENOMEM;
+CVE-2013-2851
 
-In line 2908 we can find the copy_to_user function:
-
-2908         if (!ret && copy_to_user(arg, cgc->buffer, blocksize))
-
-The cgc->buffer is never cleaned and initialized before this function.  If
-ret = 0 with the previous basic block, it's possible to display some
-memory bytes in kernel space from userspace.
-
-When we read a block from the disk it normally fills the ->buffer but if
-the drive is malfunctioning there is a chance that it would only be
-partially filled.  The result is an leak information to userspace.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/genhd.c              |    2 +-
+ drivers/block/nbd.c        |    3 ++-
+ drivers/scsi/osd/osd_uld.c |    2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-use-kzalloc-for-failing-hardware
-+++ a/drivers/cdrom/cdrom.c
-@@ -2882,7 +2882,7 @@ static noinline int mmc_ioctl_cdrom_read
- 	if (lba < 0)
- 		return -EINVAL;
+diff -puN block/genhd.c~block-do-not-pass-disk-names-as-format-strings block/genhd.c
+--- a/block/genhd.c~block-do-not-pass-disk-names-as-format-strings
++++ a/block/genhd.c
+@@ -512,7 +512,7 @@ static void register_disk(struct gendisk
  
--	cgc->buffer = kmalloc(blocksize, GFP_KERNEL);
-+	cgc->buffer = kzalloc(blocksize, GFP_KERNEL);
- 	if (cgc->buffer == NULL)
- 		return -ENOMEM;
+ 	ddev->parent = disk->driverfs_dev;
  
+-	dev_set_name(ddev, disk->disk_name);
++	dev_set_name(ddev, "%s", disk->disk_name);
+ 
+ 	/* delay uevents, until we scanned partition table */
+ 	dev_set_uevent_suppress(ddev, 1);
+diff -puN drivers/block/nbd.c~block-do-not-pass-disk-names-as-format-strings drivers/block/nbd.c
+--- a/drivers/block/nbd.c~block-do-not-pass-disk-names-as-format-strings
++++ a/drivers/block/nbd.c
+@@ -714,7 +714,8 @@ static int __nbd_ioctl(struct block_devi
+ 		else
+ 			blk_queue_flush(nbd->disk->queue, 0);
+ 
+-		thread = kthread_create(nbd_thread, nbd, nbd->disk->disk_name);
++		thread = kthread_create(nbd_thread, nbd, "%s",
++					nbd->disk->disk_name);
+ 		if (IS_ERR(thread)) {
+ 			mutex_lock(&nbd->tx_lock);
+ 			return PTR_ERR(thread);
+diff -puN drivers/scsi/osd/osd_uld.c~block-do-not-pass-disk-names-as-format-strings drivers/scsi/osd/osd_uld.c
+--- a/drivers/scsi/osd/osd_uld.c~block-do-not-pass-disk-names-as-format-strings
++++ a/drivers/scsi/osd/osd_uld.c
+@@ -485,7 +485,7 @@ static int osd_probe(struct device *dev)
+ 	oud->class_dev.class = &osd_uld_class;
+ 	oud->class_dev.parent = dev;
+ 	oud->class_dev.release = __remove;
+-	error = dev_set_name(&oud->class_dev, disk->disk_name);
++	error = dev_set_name(&oud->class_dev, "%s", disk->disk_name);
+ 	if (error) {
+ 		OSD_ERR("dev_set_name failed => %d\n", error);
+ 		goto err_put_cdev;
 _
 
-Patches currently in -mm which might be from jonathan.salwan@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
+linux-next.patch
+drivers-mtd-chips-gen_probec-refactor-call-to-request_module.patch
+isdn-clean-up-debug-format-string-usage.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 
