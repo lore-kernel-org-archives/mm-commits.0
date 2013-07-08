@@ -1,70 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:23:14 -0700
-Message-ID: <51db11a2.+gPIzzfAGXcEWwk4%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-xattr-remove-useless-free-space-checking.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:23:16 -0700
+Message-ID: <51db11a4.3KJ309hJghB6gKUo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752792Ab3GHTXP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:15 -0400
+	with ESMTP id S1752074Ab3GHTXR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
 
-Subject: [merged] fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch removed from -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-xattr-remove-useless-free-space-checking.patch removed from -mm tree
+To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:14 -0700
+Date: Mon, 08 Jul 2013 12:23:16 -0700
 
 
 The patch titled
-     Subject: fs/ocfs2/cluster/tcp.c: free sc->sc_page in sc_kref_release()
+     Subject: ocfs2: xattr: remove useless free space checking
 has been removed from the -mm tree.  Its filename was
-     fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release.patch
+     ocfs2-xattr-remove-useless-free-space-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: fs/ocfs2/cluster/tcp.c: free sc->sc_page in sc_kref_release()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: xattr: remove useless free space checking
 
-There is a memory leak in sc_kref_release().  When free struct
-o2net_sock_container (sc), we should release sc->sc_page.
+Free space checking will be done in ocfs2_xattr_ibody_init().  So remove
+here.
 
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
+[akpm@linux-foundation.org: remove unused local]
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
 Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Acked-by: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/xattr.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-tcpc-free-sc-sc_page-in-sc_kref_release
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -406,6 +406,9 @@ static void sc_kref_release(struct kref
- 	sc->sc_node = NULL;
+diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-remove-useless-free-space-checking fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-xattr-remove-useless-free-space-checking
++++ a/fs/ocfs2/xattr.c
+@@ -2751,7 +2751,6 @@ static int ocfs2_xattr_ibody_set(struct
+ {
+ 	int ret;
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+-	struct ocfs2_dinode *di = (struct ocfs2_dinode *)xs->inode_bh->b_data;
+ 	struct ocfs2_xa_loc loc;
  
- 	o2net_debug_del_sc(sc);
-+
-+	if (sc->sc_page)
-+		__free_page(sc->sc_page);
- 	kfree(sc);
- }
+ 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
+@@ -2759,13 +2758,6 @@ static int ocfs2_xattr_ibody_set(struct
  
-_
-
-Patches currently in -mm which might be from younger.liu@huawei.com are
-
-origin.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
-
+ 	down_write(&oi->ip_alloc_sem);
+ 	if (!(oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL)) {
+-		if (!ocfs2_xattr_has_space_inline(inode, di)) {
+-			ret = -ENOSPC;
+-			goto out;
+-		}
+-	}
