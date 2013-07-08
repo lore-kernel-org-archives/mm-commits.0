@@ -1,144 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 12:23:26 -0700
-Message-ID: <51db11ae.bXWB/pVRzqSdZKqX%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-xattr-fix-inlined-xattr-reflink.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:23:28 -0700
+Message-ID: <51db11b0.Lf5nz7LujN80Z0v4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50026 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50037 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752074Ab3GHTX1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:27 -0400
+	with ESMTP id S1752074Ab3GHTX3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, stable@kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
 
-Subject: [merged] ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch removed from -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-xattr-fix-inlined-xattr-reflink.patch removed from -mm tree
+To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,stable@kernel.org,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:26 -0700
+Date: Mon, 08 Jul 2013 12:23:28 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix readonly issue in ocfs2_unlink()
+     Subject: ocfs2: xattr: fix inlined xattr reflink
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-readonly-issue-in-ocfs2_unlink.patch
+     ocfs2-xattr-fix-inlined-xattr-reflink.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: fix readonly issue in ocfs2_unlink()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: xattr: fix inlined xattr reflink
 
-While deleting a file with ocfs2_unlink(), there is a bug in this
-function.  This bug will result in filesystem read-only.
+Inlined xattr shared free space of inode block with inlined data or data
+extent record, so the size of the later two should be adjusted when
+inlined xattr is enabled.  See ocfs2_xattr_ibody_init().  But this isn't
+done well when reflink.  For inode with inlined data, its max inlined data
+size is adjusted in ocfs2_duplicate_inline_data(), no problem.  But for
+inode with data extent record, its record count isn't adjusted.  Fix it,
+or data extent record and inlined xattr may overwrite each other, then
+cause data corruption or xattr failure.
 
-After calling ocfs2_orphan_add(), the file which will be deleted is added
-into orphan dir.  If ocfs2_delete_entry() fails, the file still exists in
-the parent dir.  And this scenario introduces a conflict of metadata.
+One panic caused by this bug in our test environment is the following:
 
-If a file is added into orphan dir, when we put inode of the file with
-iput(), the inode i_flags is setted (~OCFS2_VALID_FL) in
-ocfs2_remove_inode(), and then write back to disk.
+kernel BUG at fs/ocfs2/xattr.c:1435!
+invalid opcode: 0000 [#1] SMP
+CPU 0
+Modules linked in: ocfs2 jbd2 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm
+ocfs2_nodemanager ocfs2_stackglue configfs sunrpc parport_pc lp parport
+snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device
+snd_pcm_oss snd_mixer_oss snd_pcm snd_timer snd soundcore snd_page_alloc
+pcspkr xen_netfront dm_snapshot dm_zero dm_mirror dm_region_hash dm_log
+dm_mod xen_blkfront ext3 jbd mbcache [last unloaded: configfs]
 
-But as previously mentioned, the file still exists in the parent dir.  On
-other nodes, the file can be still accessed.  When first read the file
-with ocfs2_read_blocks() from disk, It will check and avalidate inode
-using ocfs2_validate_inode_block().  So File system will be readonly
-because the inode is invalid.  In other words, the inode i_flags has been
-set (~OCFS2_VALID_FL).
+Pid: 10871, comm: multi_reflink_t Not tainted 2.6.39-300.17.1.el5uek #1
+RIP: e030:[<ffffffffa04cd197>]  [<ffffffffa04cd197>]
+ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP: e02b:ffff88007a587948  EFLAGS: 00010283
+RAX: 0000000000000000 RBX: 0000000000000010 RCX: 00000000000051e4
+RDX: ffff880057092060 RSI: 0000000000000f80 RDI: ffff88007a587a68
+RBP: ffff88007a587948 R08: 00000000000062f4 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000010
+R13: ffff88007a587a68 R14: 0000000000000001 R15: ffff88007a587c68
+FS:  00007fccff7f06e0(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+CS:  e033 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00000000015cf000 CR3: 000000007aa76000 CR4: 0000000000000660
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process multi_reflink_t (pid: 10871, threadinfo ffff88007a586000, task
+ffff88007911c380)
+Stack:
+ffff88007a5879a8 ffffffffa04d0a60 ffff88007a587998 ffffffffa04cd514
+ffff88007a587c38 ffffffffa04cc125 000000007a587998 ffff88007a587a68
+ffff88007a587c68 0000000000000000 00000000000003c2 ffff88007a587c38
+Call Trace:
+[<ffffffffa04d0a60>] ocfs2_xa_reuse_entry+0x60/0x280 [ocfs2]
+[<ffffffffa04cd514>] ? ocfs2_xa_block_check_space+0x84/0xa0 [ocfs2]
+[<ffffffffa04cc125>] ? namevalue_size_xi+0x15/0x20 [ocfs2]
+[<ffffffffa04d0dfe>] ocfs2_xa_prepare_entry+0x17e/0x2a0 [ocfs2]
+[<ffffffffa04da55c>] ocfs2_xa_set+0xcc/0x250 [ocfs2]
+[<ffffffffa04daf58>] ocfs2_xattr_ibody_set+0x98/0x230 [ocfs2]
+[<ffffffff8115ac4b>] ? kmem_cache_alloc+0xab/0x190
+[<ffffffffa04db13f>] __ocfs2_xattr_set_handle+0x4f/0x700 [ocfs2]
+[<ffffffffa014ad03>] ? jbd2_journal_start+0x13/0x20 [jbd2]
+[<ffffffffa04dbeb6>] ocfs2_xattr_set+0x6c6/0x890 [ocfs2]
+[<ffffffffa04dc0c6>] ocfs2_xattr_user_set+0x46/0x50 [ocfs2]
+[<ffffffff81190960>] generic_setxattr+0x70/0x90
+[<ffffffff81191670>] __vfs_setxattr_noperm+0x80/0x1a0
+[<ffffffff81191839>] vfs_setxattr+0xa9/0xb0
+[<ffffffff81191903>] setxattr+0xc3/0x120
+[<ffffffff81061c40>] ? finish_task_switch+0x70/0xe0
+[<ffffffff81505a54>] ? __schedule+0x364/0x6d0
+[<ffffffff81191a08>] sys_fsetxattr+0xa8/0xd0
+[<ffffffff81510642>] system_call_fastpath+0x16/0x1b
+Code: 0f 1f 40 00 eb ae 0f 0b eb fe 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5
+66 66 66 66 90 39 77 10 7e 09 48 8b 47 28 ff 50 10 c9 c3 <0f> 0b eb fe 0f 1f
+44 00 00 55 48 89 e5 53 48 83 ec 08 66 66 66
+RIP  [<ffffffffa04cd197>] ocfs2_xa_offset_pointer+0x17/0x20 [ocfs2]
+RSP <ffff88007a587948>
+---[ end trace 33461d2444bd1e5e ]---
 
-[akpm@linux-foundation.org: cleanups]
-[jeff.liu@oracle.com: s/inode_is_unlinkable/ocfs2_inode_is_unlinkable/]
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Signed-off-by: Jensen <shencanquan@huawei.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ fs/ocfs2/xattr.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-readonly-issue-in-ocfs2_unlink
-+++ a/fs/ocfs2/namei.c
-@@ -773,7 +773,7 @@ static int ocfs2_remote_dentry_delete(st
- 	return ret;
- }
- 
--static inline int inode_is_unlinkable(struct inode *inode)
-+static inline int ocfs2_inode_is_unlinkable(struct inode *inode)
- {
- 	if (S_ISDIR(inode->i_mode)) {
- 		if (inode->i_nlink == 2)
-@@ -791,6 +791,7 @@ static int ocfs2_unlink(struct inode *di
- {
- 	int status;
- 	int child_locked = 0;
-+	bool is_unlinkable = false;
- 	struct inode *inode = dentry->d_inode;
- 	struct inode *orphan_dir = NULL;
- 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
-@@ -865,7 +866,7 @@ static int ocfs2_unlink(struct inode *di
- 		goto leave;
+diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-xattr-fix-inlined-xattr-reflink
++++ a/fs/ocfs2/xattr.c
+@@ -6491,6 +6491,16 @@ static int ocfs2_reflink_xattr_inline(st
  	}
  
--	if (inode_is_unlinkable(inode)) {
-+	if (ocfs2_inode_is_unlinkable(inode)) {
- 		status = ocfs2_prepare_orphan_dir(osb, &orphan_dir,
- 						  OCFS2_I(inode)->ip_blkno,
- 						  orphan_name, &orphan_insert);
-@@ -873,6 +874,7 @@ static int ocfs2_unlink(struct inode *di
- 			mlog_errno(status);
- 			goto leave;
- 		}
-+		is_unlinkable = true;
- 	}
- 
- 	handle = ocfs2_start_trans(osb, ocfs2_unlink_credits(osb->sb));
-@@ -892,15 +894,6 @@ static int ocfs2_unlink(struct inode *di
- 
- 	fe = (struct ocfs2_dinode *) fe_bh->b_data;
- 
--	if (inode_is_unlinkable(inode)) {
--		status = ocfs2_orphan_add(osb, handle, inode, fe_bh, orphan_name,
--					  &orphan_insert, orphan_dir);
--		if (status < 0) {
--			mlog_errno(status);
--			goto leave;
--		}
--	}
--
- 	/* delete the name from the parent dir */
- 	status = ocfs2_delete_entry(handle, dir, &lookup);
- 	if (status < 0) {
-@@ -923,6 +916,14 @@ static int ocfs2_unlink(struct inode *di
- 		mlog_errno(status);
- 		if (S_ISDIR(inode->i_mode))
- 			inc_nlink(dir);
-+		goto leave;
+ 	new_oi = OCFS2_I(args->new_inode);
++	/*
++	 * Adjust extent record count to reserve space for extended attribute.
++	 * Inline data count had been adjusted in ocfs2_duplicate_inline_data().
++	 */
++	if (!(new_oi->ip_dyn_features & OCFS2_INLINE_DATA_FL) &&
++	    !(ocfs2_inode_is_fast_symlink(args->new_inode))) {
++		struct ocfs2_extent_list *el = &new_di->id2.i_list;
++		le16_add_cpu(&el->l_count, -(inline_size /
++					sizeof(struct ocfs2_extent_rec)));
 +	}
-+
-+	if (is_unlinkable) {
-+		status = ocfs2_orphan_add(osb, handle, inode, fe_bh,
-+				orphan_name, &orphan_insert, orphan_dir);
-+		if (status < 0)
-+			mlog_errno(status);
- 	}
- 
- leave:
+ 	spin_lock(&new_oi->ip_lock);
+ 	new_oi->ip_dyn_features |= OCFS2_HAS_XATTR_FL | OCFS2_INLINE_XATTR_FL;
+ 	new_di->i_dyn_features = cpu_to_le16(new_oi->ip_dyn_features);
 _
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
+linux-next.patch
 
