@@ -1,84 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-kill-tif_debug.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:35:37 -0700
-Message-ID: <51db1489.pwuEnZWhN+MLUuZX%akpm@linux-foundation.org>
+Subject: [merged] signals-eventpoll-do-not-use-sigprocmask.patch removed
+ from -mm tree
+Date: Mon, 08 Jul 2013 12:35:41 -0700
+Message-ID: <51db148d.C59khmXh2rzSEpT0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138Ab3GHTfi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:38 -0400
+	with ESMTP id S1753201Ab3GHTfm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will.deacon@arm.com, prasad@linux.vnet.ibm.com, paulus@samba.org, mingo@kernel.org, mikey@neuling.org, linux@arm.linux.org.uk, lethal@linux-sh.org, jan.kratochvil@redhat.com, fweisbec@gmail.com, benh@kernel.crashing.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, normalperson@yhbt.net, jbaron@redhat.com, dvlasenk@redhat.com, oleg@redhat.com
 
-Subject: [merged] x86-kill-tif_debug.patch removed from -mm tree
-To: oleg@redhat.com,benh@kernel.crashing.org,fweisbec@gmail.com,jan.kratochvil@redhat.com,lethal@linux-sh.org,linux@arm.linux.org.uk,mikey@neuling.org,mingo@kernel.org,paulus@samba.org,prasad@linux.vnet.ibm.com,will.deacon@arm.com,mm-commits@vger.kernel.org
+Subject: [merged] signals-eventpoll-do-not-use-sigprocmask.patch removed from -mm tree
+To: oleg@redhat.com,dvlasenk@redhat.com,jbaron@redhat.com,normalperson@yhbt.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:37 -0700
+Date: Mon, 08 Jul 2013 12:35:41 -0700
 
 
 The patch titled
-     Subject: x86: kill TIF_DEBUG
+     Subject: signals: eventpoll: do not use sigprocmask()
 has been removed from the -mm tree.  Its filename was
-     x86-kill-tif_debug.patch
+     signals-eventpoll-do-not-use-sigprocmask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: x86: kill TIF_DEBUG
+Subject: signals: eventpoll: do not use sigprocmask()
 
-Because it is not used.
+sigprocmask() should die. None of the current callers actually
+need this strange interface.
+
+Change fs/eventpoll.c to use set_current_blocked(). This also
+means we should not worry about SIGKILL/SIGSTOP.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Michael Neuling <mikey@neuling.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Prasad <prasad@linux.vnet.ibm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/thread_info.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/eventpoll.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/include/asm/thread_info.h~x86-kill-tif_debug arch/x86/include/asm/thread_info.h
---- a/arch/x86/include/asm/thread_info.h~x86-kill-tif_debug
-+++ a/arch/x86/include/asm/thread_info.h
-@@ -89,7 +89,6 @@ struct thread_info {
- #define TIF_FORK		18	/* ret_from_fork */
- #define TIF_NOHZ		19	/* in adaptive nohz mode */
- #define TIF_MEMDIE		20	/* is terminating due to OOM killer */
--#define TIF_DEBUG		21	/* uses debug registers */
- #define TIF_IO_BITMAP		22	/* uses I/O bitmap */
- #define TIF_FORCED_TF		24	/* true if TF in eflags artificially */
- #define TIF_BLOCKSTEP		25	/* set when we want DEBUGCTLMSR_BTF */
-@@ -113,7 +112,6 @@ struct thread_info {
- #define _TIF_IA32		(1 << TIF_IA32)
- #define _TIF_FORK		(1 << TIF_FORK)
- #define _TIF_NOHZ		(1 << TIF_NOHZ)
--#define _TIF_DEBUG		(1 << TIF_DEBUG)
- #define _TIF_IO_BITMAP		(1 << TIF_IO_BITMAP)
- #define _TIF_FORCED_TF		(1 << TIF_FORCED_TF)
- #define _TIF_BLOCKSTEP		(1 << TIF_BLOCKSTEP)
-@@ -154,7 +152,7 @@ struct thread_info {
- 	(_TIF_IO_BITMAP|_TIF_NOTSC|_TIF_BLOCKSTEP)
+diff -puN fs/eventpoll.c~signals-eventpoll-do-not-use-sigprocmask fs/eventpoll.c
+--- a/fs/eventpoll.c~signals-eventpoll-do-not-use-sigprocmask
++++ a/fs/eventpoll.c
+@@ -1975,8 +1975,8 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 			return -EINVAL;
+ 		if (copy_from_user(&ksigmask, sigmask, sizeof(ksigmask)))
+ 			return -EFAULT;
+-		sigdelsetmask(&ksigmask, sigmask(SIGKILL) | sigmask(SIGSTOP));
+-		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
++		sigsaved = current->blocked;
++		set_current_blocked(&ksigmask);
+ 	}
  
- #define _TIF_WORK_CTXSW_PREV (_TIF_WORK_CTXSW|_TIF_USER_RETURN_NOTIFY)
--#define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW|_TIF_DEBUG)
-+#define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW)
+ 	error = sys_epoll_wait(epfd, events, maxevents, timeout);
+@@ -1993,7 +1993,7 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 			       sizeof(sigsaved));
+ 			set_restore_sigmask();
+ 		} else
+-			sigprocmask(SIG_SETMASK, &sigsaved, NULL);
++			set_current_blocked(&sigsaved);
+ 	}
  
- #define PREEMPT_ACTIVE		0x10000000
+ 	return error;
+@@ -2020,8 +2020,8 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 		if (copy_from_user(&csigmask, sigmask, sizeof(csigmask)))
+ 			return -EFAULT;
+ 		sigset_from_compat(&ksigmask, &csigmask);
+-		sigdelsetmask(&ksigmask, sigmask(SIGKILL) | sigmask(SIGSTOP));
+-		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
++		sigsaved = current->blocked;
++		set_current_blocked(&ksigmask);
+ 	}
  
+ 	err = sys_epoll_wait(epfd, events, maxevents, timeout);
+@@ -2038,7 +2038,7 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 			       sizeof(sigsaved));
+ 			set_restore_sigmask();
+ 		} else
+-			sigprocmask(SIG_SETMASK, &sigsaved, NULL);
++			set_current_blocked(&sigsaved);
+ 	}
+ 
+ 	return err;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
