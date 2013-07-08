@@ -1,51 +1,42 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch removed
+ coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch removed
  from -mm tree
-Date: Mon, 08 Jul 2013 12:35:55 -0700
-Message-ID: <51db149b.6CeYboDHyJPj/eP8%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:35:49 -0700
+Message-ID: <51db1495.MiDJ1H2R6m6r0W7o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51543 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51507 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231Ab3GHTf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:56 -0400
+	with ESMTP id S1753218Ab3GHTfu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: [merged] coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch removed from -mm tree
+Subject: [merged] coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch removed from -mm tree
 To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:55 -0700
+Date: Mon, 08 Jul 2013 12:35:49 -0700
 
 
 The patch titled
-     Subject: coredump: '% at the end' shouldn't bypass core_uses_pid logic
+     Subject: coredump: cn_vprintf() has no reason to call vsnprintf() twice
 has been removed from the -mm tree.  Its filename was
-     coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic.patch
+     coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: '% at the end' shouldn't bypass core_uses_pid logic
+Subject: coredump: cn_vprintf() has no reason to call vsnprintf() twice
 
-"goto end" should not bypass the "Backward compatibility with
-core_uses_pid" code, move this label up.
-
-While at it,
-
-	- It is ugly to copy '|' into cn->corename and then inc
-	  the pointer for argv_split().
-
-	  Change format_corename() to increment pat_ptr instead.
-
-	- Remove the dead "if (*pat_ptr == 0)" in format_corename(),
-	  we already checked it is not zero.
+cn_vprintf() looks really overcomplicated and sub-optimal.  We do not need
+vsnprintf(NULL) to calculate the size we need, we can simply try to print
+into the current buffer and expand/retry only if necessary.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -58,64 +49,50 @@ Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ fs/coredump.c |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN fs/coredump.c~coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic fs/coredump.c
---- a/fs/coredump.c~coredump-%-at-the-end-shouldnt-bypass-core_uses_pid-logic
+diff -puN fs/coredump.c~coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice fs/coredump.c
+--- a/fs/coredump.c~coredump-cn_vprintf-has-no-reason-to-call-vsnprintf-twice
 +++ a/fs/coredump.c
-@@ -165,13 +165,15 @@ static int format_corename(struct core_n
- 	cn->corename = NULL;
- 	if (expand_corename(cn, core_name_size))
- 		return -ENOMEM;
-+	cn->corename[0] = '\0';
-+
-+	if (ispipe)
-+		++pat_ptr;
+@@ -71,26 +71,20 @@ static int expand_corename(struct core_n
  
- 	/* Repeat as long as we have more pattern to process and more output
- 	   space */
- 	while (*pat_ptr) {
- 		if (*pat_ptr != '%') {
--			if (*pat_ptr == 0)
--				goto out;
- 			err = cn_printf(cn, "%c", *pat_ptr++);
- 		} else {
- 			switch (*++pat_ptr) {
-@@ -240,6 +242,7 @@ static int format_corename(struct core_n
- 			return err;
- 	}
+ static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
+ {
+-	char *cur;
+-	int need;
+-	int ret;
++	int free, need;
  
-+out:
- 	/* Backward compatibility with core_uses_pid:
- 	 *
- 	 * If core_pattern does not include a %p (as is the default)
-@@ -250,7 +253,6 @@ static int format_corename(struct core_n
- 		if (err)
- 			return err;
- 	}
--out:
- 	return ispipe;
+-	need = vsnprintf(NULL, 0, fmt, arg);
+-	if (likely(need < cn->size - cn->used - 1))
+-		goto out_printf;
++again:
++	free = cn->size - cn->used;
++	need = vsnprintf(cn->corename + cn->used, free, fmt, arg);
++	if (need < free) {
++		cn->used += need;
++		return 0;
++	}
+ 
+-	ret = expand_corename(cn);
+-	if (ret)
+-		goto expand_fail;
++	if (!expand_corename(cn))
++		goto again;
+ 
+-out_printf:
+-	cur = cn->corename + cn->used;
+-	vsnprintf(cur, need + 1, fmt, arg);
+-	cn->used += need;
+-	return 0;
+-
+-expand_fail:
+-	return ret;
++	return -ENOMEM;
  }
  
-@@ -580,7 +582,7 @@ void do_coredump(siginfo_t *siginfo)
- 			goto fail_dropcount;
- 		}
- 
--		helper_argv = argv_split(GFP_KERNEL, cn.corename+1, NULL);
-+		helper_argv = argv_split(GFP_KERNEL, cn.corename, NULL);
- 		if (!helper_argv) {
- 			printk(KERN_WARNING "%s failed to allocate memory\n",
- 			       __func__);
-@@ -597,7 +599,7 @@ void do_coredump(siginfo_t *siginfo)
- 
- 		argv_free(helper_argv);
- 		if (retval) {
--			printk(KERN_INFO "Core dump to %s pipe failed\n",
-+			printk(KERN_INFO "Core dump to |%s pipe failed\n",
- 			       cn.corename);
- 			goto close_fail;
- 		}
+ static int cn_printf(struct core_name *cn, const char *fmt, ...)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
