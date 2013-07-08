@@ -1,150 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+Subject: [merged] coredump-format_corename-can-leak-cn-corename.patch
  removed from -mm tree
-Date: Mon, 08 Jul 2013 12:35:39 -0700
-Message-ID: <51db148b.nVeKeRp9nsfZS1pM%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:35:45 -0700
+Message-ID: <51db1491.wv5I7j6UX3NkeZno%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51479 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138Ab3GHTfn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:43 -0400
+	with ESMTP id S1753214Ab3GHTfq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, roland@redhat.com, oleg@redhat.com, mtk.manpages@gmail.com, gorcunov@openvz.org, avagin@openvz.org
+To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: [merged] ptrace-add-ability-to-get-set-signal-blocked-mask.patch removed from -mm tree
-To: avagin@openvz.org,gorcunov@openvz.org,mtk.manpages@gmail.com,oleg@redhat.com,roland@redhat.com,xemul@parallels.com,mm-commits@vger.kernel.org
+Subject: [merged] coredump-format_corename-can-leak-cn-corename.patch removed from -mm tree
+To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:39 -0700
+Date: Mon, 08 Jul 2013 12:35:45 -0700
 
 
 The patch titled
-     Subject: ptrace: add ability to get/set signal-blocked mask
+     Subject: coredump: format_corename() can leak cn->corename
 has been removed from the -mm tree.  Its filename was
-     ptrace-add-ability-to-get-set-signal-blocked-mask.patch
+     coredump-format_corename-can-leak-cn-corename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: ptrace: add ability to get/set signal-blocked mask
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: format_corename() can leak cn->corename
 
-crtools uses a parasite code for dumping processes.  The parasite code is
-injected into a process with help PTRACE_SEIZE.
+do_coredump() assumes that format_corename() can only fail if
+expand_corename() fails and frees cn->corename.  This is not true, for
+example cn_print_exe_file() can fail and in this case nobody frees
+cn->corename.
 
-Currently crtools blocks signals from a parasite code.  If a process has
-pending signals, crtools wait while a process handles these signals.
+Change do_coredump() to always do kfree(cn->corename) after it calls
+format_corename() (NULL is fine), change expand_corename() to do nothing
+if kmalloc() fails.
 
-This method is not suitable for stopped tasks.  A stopped task can have a
-few pending signals, when we will try to execute a parasite code, we will
-need to drop SIGSTOP, but all other signals must remain pending, because a
-state of processes must not be changed during checkpointing.
-
-This patch adds two ptrace commands to set/get signal-blocked mask.
-
-I think gdb can use this commands too.
-
-[akpm@linux-foundation.org: be consistent with brace layout]
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Colin Walters <walters@verbum.org>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/ptrace.h |    3 ++
- kernel/ptrace.c             |   44 ++++++++++++++++++++++++++++++++--
- 2 files changed, 45 insertions(+), 2 deletions(-)
+ fs/coredump.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN include/uapi/linux/ptrace.h~ptrace-add-ability-to-get-set-signal-blocked-mask include/uapi/linux/ptrace.h
---- a/include/uapi/linux/ptrace.h~ptrace-add-ability-to-get-set-signal-blocked-mask
-+++ a/include/uapi/linux/ptrace.h
-@@ -61,6 +61,9 @@ struct ptrace_peeksiginfo_args {
- 	__s32 nr;	/* how may siginfos to take */
- };
+diff -puN fs/coredump.c~coredump-format_corename-can-leak-cn-corename fs/coredump.c
+--- a/fs/coredump.c~coredump-format_corename-can-leak-cn-corename
++++ a/fs/coredump.c
+@@ -58,16 +58,14 @@ static atomic_t call_count = ATOMIC_INIT
  
-+#define PTRACE_GETSIGMASK	0x420a
-+#define PTRACE_SETSIGMASK	0x420b
-+
- /* Read signals from a shared (process wide) queue */
- #define PTRACE_PEEKSIGINFO_SHARED	(1 << 0)
+ static int expand_corename(struct core_name *cn)
+ {
+-	char *old_corename = cn->corename;
++	int size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
++	char *corename = krealloc(cn->corename, size, GFP_KERNEL);
  
-diff -puN kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-add-ability-to-get-set-signal-blocked-mask
-+++ a/kernel/ptrace.c
-@@ -844,6 +844,47 @@ int ptrace_request(struct task_struct *c
- 			ret = ptrace_setsiginfo(child, &siginfo);
- 		break;
+-	cn->size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
+-	cn->corename = krealloc(old_corename, cn->size, GFP_KERNEL);
+-
+-	if (!cn->corename) {
+-		kfree(old_corename);
++	if (!corename)
+ 		return -ENOMEM;
+-	}
  
-+	case PTRACE_GETSIGMASK:
-+		if (addr != sizeof(sigset_t)) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (copy_to_user(datavp, &child->blocked, sizeof(sigset_t)))
-+			ret = -EFAULT;
-+		else
-+			ret = 0;
-+
-+		break;
-+
-+	case PTRACE_SETSIGMASK: {
-+		sigset_t new_set;
-+
-+		if (addr != sizeof(sigset_t)) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (copy_from_user(&new_set, datavp, sizeof(sigset_t))) {
-+			ret = -EFAULT;
-+			break;
-+		}
-+
-+		sigdelsetmask(&new_set, sigmask(SIGKILL)|sigmask(SIGSTOP));
-+
-+		/*
-+		 * Every thread does recalc_sigpending() after resume, so
-+		 * retarget_shared_pending() and recalc_sigpending() are not
-+		 * called here.
-+		 */
-+		spin_lock_irq(&child->sighand->siglock);
-+		child->blocked = new_set;
-+		spin_unlock_irq(&child->sighand->siglock);
-+
-+		ret = 0;
-+		break;
-+	}
-+
- 	case PTRACE_INTERRUPT:
- 		/*
- 		 * Stop tracee without any side-effect on signal or job
-@@ -948,8 +989,7 @@ int ptrace_request(struct task_struct *c
++	cn->size = size;
++	cn->corename = corename;
+ 	return 0;
+ }
  
- #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
- 	case PTRACE_GETREGSET:
--	case PTRACE_SETREGSET:
--	{
-+	case PTRACE_SETREGSET: {
- 		struct iovec kiov;
- 		struct iovec __user *uiov = datavp;
+@@ -157,10 +155,9 @@ static int format_corename(struct core_n
+ 	int pid_in_pattern = 0;
+ 	int err = 0;
  
++	cn->used = 0;
+ 	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
+ 	cn->corename = kmalloc(cn->size, GFP_KERNEL);
+-	cn->used = 0;
+-
+ 	if (!cn->corename)
+ 		return -ENOMEM;
+ 
+@@ -549,7 +546,7 @@ void do_coredump(siginfo_t *siginfo)
+ 		if (ispipe < 0) {
+ 			printk(KERN_WARNING "format_corename failed\n");
+ 			printk(KERN_WARNING "Aborting core\n");
+-			goto fail_corename;
++			goto fail_unlock;
+ 		}
+ 
+ 		if (cprm.limit == 1) {
+@@ -669,7 +666,6 @@ fail_dropcount:
+ 		atomic_dec(&core_dump_count);
+ fail_unlock:
+ 	kfree(cn.corename);
+-fail_corename:
+ 	coredump_finish(mm, core_dumped);
+ 	revert_creds(old_cred);
+ fail_creds:
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
 fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
 fput-turn-list_head-delayed_fput_list-into-llist_head.patch
 llist-fix-simplify-llist_add-and-llist_add_batch.patch
 llist-llist_add-can-use-llist_add_batch.patch
+vfree-dont-schedule-free_work-if-llist_add-returns-false.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 
