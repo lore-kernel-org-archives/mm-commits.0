@@ -1,101 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-ds1302c-handle-write-protection.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 12:34:50 -0700
-Message-ID: <51db145a.KZ7NH4DY5K0Ftx+U%akpm@linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-m48t35c-use-ptr_ret.patch removed from
+ -mm tree
+Date: Mon, 08 Jul 2013 12:34:58 -0700
+Message-ID: <51db1462.zl5HpWlD6npQBhQ2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51385 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098Ab3GHTev (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:34:51 -0400
+	with ESMTP id S1753098Ab3GHTe6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:34:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org, maz@misterjones.org, jg1.han@samsung.com, a.zummo@towertech.it, ynvich@gmail.com
+To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, sachin.kamat@linaro.org
 
-Subject: [merged] drivers-rtc-rtc-ds1302c-handle-write-protection.patch removed from -mm tree
-To: ynvich@gmail.com,a.zummo@towertech.it,jg1.han@samsung.com,maz@misterjones.org,sachin.kamat@linaro.org,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-m48t35c-use-ptr_ret.patch removed from -mm tree
+To: sachin.kamat@linaro.org,tsbogend@alpha.franken.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:34:50 -0700
+Date: Mon, 08 Jul 2013 12:34:58 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1302.c: handle write protection
+     Subject: drivers/rtc/rtc-m48t35.c: use PTR_RET()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-ds1302c-handle-write-protection.patch
+     drivers-rtc-rtc-m48t35c-use-ptr_ret.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Yanovich <ynvich@gmail.com>
-Subject: drivers/rtc/rtc-ds1302.c: handle write protection
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-m48t35.c: use PTR_RET()
 
-This chip has a control register and can prevent altering saved clock.
-Without this patch we could have:
+Use of PTR_RET() simplifies the code.
 
-(arm)root@pac14:~# date
-Tue May 21 03:08:27 MSK 2013
-(arm)root@pac14:~# /etc/init.d/hwclock.sh show
-Tue May 21 11:13:58 2013  -0.067322 seconds
-(arm)root@pac14:~# /etc/init.d/hwclock.sh stop
-[info] Saving the system clock.
-[info] Hardware Clock updated to Tue May 21 03:09:01 MSK 2013.
-(arm)root@pac14:~# /etc/init.d/hwclock.sh show
-Tue May 21 11:14:15 2013  -0.624272 seconds
-
-The patch enables write access to rtc before the driver tries to write
-time and re-disables when time data is written.
-
-Signed-off-by: Sergey Yanovich <ynvich@gmail.com>
-Acked-by: Marc Zyngier <maz@misterjones.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1302.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/rtc/rtc-m48t35.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-handle-write-protection drivers/rtc/rtc-ds1302.c
---- a/drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-handle-write-protection
-+++ a/drivers/rtc/rtc-ds1302.c
-@@ -23,8 +23,12 @@
- #define	RTC_CMD_READ	0x81		/* Read command */
- #define	RTC_CMD_WRITE	0x80		/* Write command */
+diff -puN drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-ptr_ret drivers/rtc/rtc-m48t35.c
+--- a/drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-use-ptr_ret
++++ a/drivers/rtc/rtc-m48t35.c
+@@ -20,6 +20,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/bcd.h>
+ #include <linux/io.h>
++#include <linux/err.h>
  
-+#define	RTC_CMD_WRITE_ENABLE	0x00		/* Write enable */
-+#define	RTC_CMD_WRITE_DISABLE	0x80		/* Write disable */
-+
- #define RTC_ADDR_RAM0	0x20		/* Address of RAM0 */
- #define RTC_ADDR_TCR	0x08		/* Address of trickle charge register */
-+#define	RTC_ADDR_CTRL	0x07		/* Address of control register */
- #define	RTC_ADDR_YEAR	0x06		/* Address of year register */
- #define	RTC_ADDR_DAY	0x05		/* Address of day of week register */
- #define	RTC_ADDR_MON	0x04		/* Address of month register */
-@@ -161,6 +165,7 @@ static int ds1302_rtc_read_time(struct d
+ #define DRV_VERSION		"1.0"
  
- static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *tm)
- {
-+	ds1302_writebyte(RTC_ADDR_CTRL, RTC_CMD_WRITE_ENABLE);
- 	/* Stop RTC */
- 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) | 0x80);
+@@ -174,10 +175,7 @@ static int m48t35_probe(struct platform_
  
-@@ -175,6 +180,8 @@ static int ds1302_rtc_set_time(struct de
- 	/* Start RTC */
- 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) & ~0x80);
- 
-+	ds1302_writebyte(RTC_ADDR_CTRL, RTC_CMD_WRITE_DISABLE);
-+
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from ynvich@gmail.com are
-
-origin.patch
-
+ 	priv->rtc = devm_rtc_device_register(&pdev->dev, "m48t35",
+ 				  &m48t35_ops, THIS_MODULE);
+-	if (IS_ERR(priv->rtc))
+-		return PTR_ERR(priv->rtc);
