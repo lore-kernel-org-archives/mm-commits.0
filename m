@@ -1,159 +1,146 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 15:30:53 -0700
-Message-ID: <51db3d9d.kY9gaa2/wJKIW+wT%akpm@linux-foundation.org>
+ ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch removed
+ from -mm tree
+Date: Mon, 08 Jul 2013 15:31:20 -0700
+Message-ID: <51db3db8.H2Vd1hLDg2PRB9DE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633Ab3GHWay (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:30:54 -0400
+	with ESMTP id S1751884Ab3GHWbV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:31:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, fengguang.wu@intel.com, andi@firstfloor.org, davidlohr.bueso@hp.com
+To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
 
-Subject: [folded-merged] ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid.patch removed from -mm tree
-To: davidlohr.bueso@hp.com,andi@firstfloor.org,fengguang.wu@intel.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch removed from -mm tree
+To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 15:30:53 -0700
+Date: Mon, 08 Jul 2013 15:31:20 -0700
 
 
 The patch titled
-     Subject: ipc: restore rcu locking in ipc_addid
+     Subject: ipc,msq: fix race in msgrcv(2)
 has been removed from the -mm tree.  Its filename was
-     ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid.patch
+     ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch
 
-This patch was dropped because it was folded into ipc-move-rcu-lock-out-of-ipc_addid.patch
+This patch was dropped because it was folded into ipcmsg-shorten-critical-region-in-msgrcv.patch
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc: restore rcu locking in ipc_addid
+Subject: ipc,msq: fix race in msgrcv(2)
 
-Fengguang reported the following trinity triggered issue:
+Sedat reported the following issue when building the latest linux-next:
 
-[   51.524946]
-[   51.525983] ===============================
-[   51.532875] [ INFO: suspicious RCU usage. ]
-[   51.535385] 3.10.0-rc4-next-20130606 #6 Not tainted
-[   51.538304] -------------------------------
-[   51.540937] include/linux/rcupdate.h:471 Illegal context switch in RCU read-side critical section!
-[   51.548110]
-[   51.548110] other info that might help us debug this:
-[   51.548110]
-[   51.553055]
-[   51.553055] rcu_scheduler_active = 1, debug_locks = 1
-[   51.557199] 2 locks held by trinity/1107:
-[   51.560168]  #0:  (&ids->rw_mutex){+.+.+.}, at: [<ffffffff811e15ee>] ipcget+0x38/0x2b3
-[   51.566465]  #1:  (rcu_read_lock){.+.+..}, at: [<ffffffff811e7698>] newseg+0x19d/0x3fd
-[   51.572413]
-[   51.572413] stack backtrace:
-[   51.574761] CPU: 0 PID: 1107 Comm: trinity Not tainted 3.10.0-rc4-next-20130606 #6
-[   51.579331] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2007
-[   51.583068]  0000000000000001 ffff880004a07d88 ffffffff817b1f5c ffff880004a07db8
-[   51.592119]  ffffffff810f2f1d ffffffff81b78569 00000000000001a8 0000000000000000
-[   51.596726]  0000000000000000 ffff880004a07de8 ffffffff810ded5e ffff880004a07fd8
-[   51.605189] Call Trace:
-[   51.606409]  [<ffffffff817b1f5c>] dump_stack+0x19/0x1b
-[   51.609632]  [<ffffffff810f2f1d>] lockdep_rcu_suspicious+0xeb/0xf4
-[   51.612905]  [<ffffffff810ded5e>] __might_sleep+0x59/0x1dc
-[   51.618614]  [<ffffffff81238623>] idr_preload+0x9b/0x142
-[   51.621939]  [<ffffffff811e0e56>] ipc_addid+0x3d/0x193
-[   51.624373]  [<ffffffff811e771c>] newseg+0x221/0x3fd
-[   51.626596]  [<ffffffff811e7698>] ? newseg+0x19d/0x3fd
-[   51.630177]  [<ffffffff811e1774>] ipcget+0x1be/0x2b3
-[   51.633174]  [<ffffffff817bc094>] ? retint_swapgs+0x13/0x1b
-[   51.636356]  [<ffffffff811e7a5a>] SyS_shmget+0x59/0x5d
-[   51.639576]  [<ffffffff811e74fb>] ? shm_try_destroy_orphaned+0xbf/0xbf
-[   51.643673]  [<ffffffff811e6ce5>] ? shm_get_unmapped_area+0x20/0x20
-[   51.647321]  [<ffffffff811e6cf0>] ? shm_security+0xb/0xb
-[   51.650831]  [<ffffffff817bcb27>] system_call_fastpath+0x16/0x1b
+Building via 'make deb-pkg' with fakeroot fails here like this:
 
-The issue was caused because we were allocating memory in GFP_KERNEL
-context after calling rcu_read_lock.  This patch restores the
-rcu_read_lock call into ipc_addid() and thus maintains the original
-behavior.
+make: *** [deb-pkg] Terminated
+/usr/bin/fakeroot: line 181:  2386 Terminated
+FAKEROOTKEY=$FAKEROOTKEY LD_LIBRARY_PATH="$PATHS" LD_PRELOAD="$LIB"
+"$@"
+semop(1): encountered an error: Identifier removed
+semop(2): encountered an error: Invalid argument
+semop(1): encountered an error: Identifier removed
+semop(1): encountered an error: Identifier removed
+semop(1): encountered an error: Invalid argument
+semop(1): encountered an error: Invalid argument
+semop(1): encountered an error: Invalid argument
+
+The issue was caused by a race in find_msg(), so acquire the q_perm.lock
+before calling the function. This also broke some LTP test cases:
+
+<<<test_start>>>
+tag=msgctl08 stime=1372174954
+cmdline="msgctl08"
+contacts=""
+analysis=exit
+<<<test_output>>>
+msgctl08    0  TWARN  :  Verify error in child 0, *buf = 28, val = 27, size = 8
+msgctl08    1  TFAIL  :  in child 0 read # = 73,key =  127
+msgctl08    0  TWARN  :  Verify error in child 3, *buf = ffffff8a, val
+= ffffff89, size = 52
+msgctl08    1  TFAIL  :  in child 3 read # = 157,key =  189
+msgctl08    0  TWARN  :  Verify error in child 2, *buf = ffffff87, val
+= ffffff86, size = 71
+msgctl08    1  TFAIL  :  in child 2 read # = 15954,key =  3e86
+msgctl08    0  TWARN  :  Verify error in child 12, *buf = ffffffa9,
+val = ffffffa8, size = 22
+msgctl08    1  TFAIL  :  in child 12 read # = 12904,key =  32a8
+msgctl08    0  TWARN  :  Verify error in child 13, *buf = 36, val =
+35, size = 27
+...
+
+Also update a comment referring to ipc_lock_by_ptr(), which has already
+been deleted and no longer applies to this context.
 
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    2 --
- ipc/sem.c  |    2 --
- ipc/shm.c  |    2 --
- ipc/util.c |    3 ++-
- 4 files changed, 2 insertions(+), 7 deletions(-)
+ ipc/msg.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN ipc/msg.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid ipc/msg.c
---- a/ipc/msg.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid
+diff -puN ipc/msg.c~ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2 ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2
 +++ a/ipc/msg.c
-@@ -200,10 +200,8 @@ static int newque(struct ipc_namespace *
- 	}
+@@ -920,6 +920,7 @@ long do_msgrcv(int msqid, void __user *b
+ 		if (ipcperms(ns, &msq->q_perm, S_IRUGO))
+ 			goto out_unlock1;
  
- 	/* ipc_addid() locks msq upon success. */
--	rcu_read_lock();
- 	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
- 	if (id < 0) {
--		rcu_read_unlock();
- 		security_msg_queue_free(msq);
- 		ipc_rcu_putref(msq);
- 		return id;
-diff -puN ipc/sem.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid ipc/sem.c
---- a/ipc/sem.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid
-+++ a/ipc/sem.c
-@@ -407,10 +407,8 @@ static int newary(struct ipc_namespace *
- 		return retval;
- 	}
++		ipc_lock_object(&msq->q_perm);
+ 		msg = find_msg(msq, &msgtyp, mode);
+ 		if (!IS_ERR(msg)) {
+ 			/*
+@@ -928,7 +929,7 @@ long do_msgrcv(int msqid, void __user *b
+ 			 */
+ 			if ((bufsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
+ 				msg = ERR_PTR(-E2BIG);
+-				goto out_unlock1;
++				goto out_unlock0;
+ 			}
+ 			/*
+ 			 * If we are copying, then do not unlink message and do
+@@ -936,10 +937,9 @@ long do_msgrcv(int msqid, void __user *b
+ 			 */
+ 			if (msgflg & MSG_COPY) {
+ 				msg = copy_msg(msg, copy);
+-				goto out_unlock1;
++				goto out_unlock0;
+ 			}
  
--	rcu_read_lock();
- 	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
- 	if (id < 0) {
--		rcu_read_unlock();
- 		security_sem_free(sma);
- 		ipc_rcu_putref(sma);
- 		return id;
-diff -puN ipc/shm.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid ipc/shm.c
---- a/ipc/shm.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid
-+++ a/ipc/shm.c
-@@ -521,11 +521,9 @@ static int newseg(struct ipc_namespace *
- 	if (IS_ERR(file))
- 		goto no_file;
+-			ipc_lock_object(&msq->q_perm);
+ 			list_del(&msg->m_list);
+ 			msq->q_qnum--;
+ 			msq->q_rtime = get_seconds();
+@@ -955,10 +955,9 @@ long do_msgrcv(int msqid, void __user *b
+ 		/* No message waiting. Wait for a message */
+ 		if (msgflg & IPC_NOWAIT) {
+ 			msg = ERR_PTR(-ENOMSG);
+-			goto out_unlock1;
++			goto out_unlock0;
+ 		}
  
--	rcu_read_lock();
- 	id = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
- 	if (id < 0) {
- 		error = id;
--		rcu_read_unlock();
- 		goto no_id;
- 	}
+-		ipc_lock_object(&msq->q_perm);
+ 		list_add_tail(&msr_d.r_list, &msq->q_receivers);
+ 		msr_d.r_tsk = current;
+ 		msr_d.r_msgtype = msgtyp;
+@@ -982,7 +981,7 @@ long do_msgrcv(int msqid, void __user *b
+ 		 * Prior to destruction, expunge_all(-EIRDM) changes r_msg.
+ 		 * Thus if r_msg is -EAGAIN, then the queue not yet destroyed.
+ 		 * rcu_read_lock() prevents preemption between reading r_msg
+-		 * and the spin_lock() inside ipc_lock_by_ptr().
++		 * and acquiring the q_perm.lock in ipc_lock_object().
+ 		 */
+ 		rcu_read_lock();
  
-diff -puN ipc/util.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid ipc/util.c
---- a/ipc/util.c~ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid
-+++ a/ipc/util.c
-@@ -246,7 +246,7 @@ int ipc_get_maxid(struct ipc_ids *ids)
-  *	is returned. The 'new' entry is returned in a locked state on success.
-  *	On failure the entry is not locked and a negative err-code is returned.
-  *
-- *	Called with RCU read lock and writer ipc_ids.rw_mutex held.
-+ *	Called with writer ipc_ids.rw_mutex held.
-  */
- int ipc_addid(struct ipc_ids* ids, struct kern_ipc_perm* new, int size)
- {
-@@ -265,6 +265,7 @@ int ipc_addid(struct ipc_ids* ids, struc
- 
- 	spin_lock_init(&new->lock);
- 	new->deleted = 0;
-+	rcu_read_lock();
- 	spin_lock(&new->lock);
- 
- 	id = idr_alloc(&ids->ipcs_idr, new,
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
@@ -169,7 +156,6 @@ ipcmsg-introduce-lockless-functions-to-obtain-the-ipc-object.patch
 ipcmsg-make-msgctl_nolock-lockless.patch
 ipcmsg-shorten-critical-region-in-msgsnd.patch
 ipcmsg-shorten-critical-region-in-msgrcv.patch
-ipcmsg-shorten-critical-region-in-msgrcv-fix-race-in-msgrcv2.patch
 ipc-remove-unused-functions.patch
 ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
 ipc-semc-cacheline-align-the-semaphore-structures.patch
