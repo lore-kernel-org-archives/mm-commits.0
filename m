@@ -1,93 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-dma-iop-admac-fix-new-warnings.patch added to -mm tree
-Date: Mon, 08 Jul 2013 14:11:56 -0700
-Message-ID: <51db2b1c.SqRD8myaVzeGWquY%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 15:25:42 -0700
+Message-ID: <51db3c66.05Iq/n96AdfZFnXq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53007 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087Ab3GHVL5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 17:11:57 -0400
+	with ESMTP id S1753296Ab3GHWZn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:25:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sebastian.hesselbarth@gmail.com, kyungmin.park@samsung.com, b.zolnierkie@samsung.com, olof@lixom.net
+To: mm-commits@vger.kernel.org, libo.chen@huawei.com, james.hogan@imgtec.com, dwmw2@infradead.org, davidb@codeaurora.org, clbchenlibo.chen@huawei.com, akpm@linux-foundation.org
 
-Subject: + drivers-dma-iop-admac-fix-new-warnings.patch added to -mm tree
-To: olof@lixom.net,b.zolnierkie@samsung.com,kyungmin.park@samsung.com,sebastian.hesselbarth@gmail.com
+Subject: [folded-merged] drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,clbchenlibo.chen@huawei.com,davidb@codeaurora.org,dwmw2@infradead.org,james.hogan@imgtec.com,libo.chen@huawei.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 14:11:56 -0700
+Date: Mon, 08 Jul 2013 15:25:42 -0700
 
 
 The patch titled
-     Subject: drivers/dma/iop-adma.c: fix new warnings
-has been added to the -mm tree.  Its filename is
-     drivers-dma-iop-admac-fix-new-warnings.patch
+     Subject: drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix
+has been removed from the -mm tree.  Its filename was
+     drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-iop-admac-fix-new-warnings.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-iop-admac-fix-new-warnings.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
 
 ------------------------------------------------------
-From: Olof Johansson <olof@lixom.net>
-Subject: drivers/dma/iop-adma.c: fix new warnings
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix
 
-The recent "drivers/dma: remove unused support for MEMSET operations"
-change has fallout from lack of build testing by the author.  This fixes:
+remove now-unneeded initialization of ctx_drvdata, remove unneeded braces
 
-drivers/dma/iop-adma.c:1020:13: warning: unused variable 'dma_addr' [-Wunused-variable]
-drivers/dma/iop-adma.c:1519:2: warning: format '%s' expects a matching 'char *' argument [-Wformat=]
-
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Cc: David Brown <davidb@codeaurora.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Libo Chen <clbchenlibo.chen@huawei.com>
+Cc: Libo Chen <libo.chen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/iop-adma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/iommu/msm_iommu_dev.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/dma/iop-adma.c~drivers-dma-iop-admac-fix-new-warnings drivers/dma/iop-adma.c
---- a/drivers/dma/iop-adma.c~drivers-dma-iop-admac-fix-new-warnings
-+++ a/drivers/dma/iop-adma.c
-@@ -1017,7 +1017,7 @@ iop_adma_xor_val_self_test(struct iop_ad
- 	struct page *xor_srcs[IOP_ADMA_NUM_SRC_TEST];
- 	struct page *zero_sum_srcs[IOP_ADMA_NUM_SRC_TEST + 1];
- 	dma_addr_t dma_srcs[IOP_ADMA_NUM_SRC_TEST + 1];
--	dma_addr_t dma_addr, dest_dma;
-+	dma_addr_t dest_dma;
- 	struct dma_async_tx_descriptor *tx;
- 	struct dma_chan *dma_chan;
- 	dma_cookie_t cookie;
-@@ -1516,7 +1516,7 @@ static int iop_adma_probe(struct platfor
- 			goto err_free_iop_chan;
- 	}
+diff -puN drivers/iommu/msm_iommu_dev.c~drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix drivers/iommu/msm_iommu_dev.c
+--- a/drivers/iommu/msm_iommu_dev.c~drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths-fix
++++ a/drivers/iommu/msm_iommu_dev.c
+@@ -291,22 +291,19 @@ static int msm_iommu_ctx_probe(struct pl
+ {
+ 	struct msm_iommu_ctx_dev *c = pdev->dev.platform_data;
+ 	struct msm_iommu_drvdata *drvdata;
+-	struct msm_iommu_ctx_drvdata *ctx_drvdata = NULL;
++	struct msm_iommu_ctx_drvdata *ctx_drvdata;
+ 	int i, ret;
+-	if (!c || !pdev->dev.parent) {
++
++	if (!c || !pdev->dev.parent)
+ 		return -EINVAL;
+-	}
  
--	dev_info(&pdev->dev, "Intel(R) IOP: ( %s%s%s%s%s%s%s)\n",
-+	dev_info(&pdev->dev, "Intel(R) IOP: ( %s%s%s%s%s%s)\n",
- 		 dma_has_cap(DMA_PQ, dma_dev->cap_mask) ? "pq " : "",
- 		 dma_has_cap(DMA_PQ_VAL, dma_dev->cap_mask) ? "pq_val " : "",
- 		 dma_has_cap(DMA_XOR, dma_dev->cap_mask) ? "xor " : "",
+ 	drvdata = dev_get_drvdata(pdev->dev.parent);
+-
+-	if (!drvdata) {
++	if (!drvdata)
+ 		return -ENODEV;
+-	}
+ 
+ 	ctx_drvdata = kzalloc(sizeof(*ctx_drvdata), GFP_KERNEL);
+-	if (!ctx_drvdata) {
++	if (!ctx_drvdata)
+ 		return -ENOMEM;
+-	}
+ 
+ 	ctx_drvdata->num = c->num;
+ 	ctx_drvdata->pdev = pdev;
 _
 
-Patches currently in -mm which might be from olof@lixom.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-dma-iop-admac-fix-new-warnings.patch
-linux-next.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem-fix.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix-fix.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks-fix.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation-checkpatch-fixes.patch
+partitions-add-aix-lvm-partition-support-files-checkpatch-fixes.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
 
