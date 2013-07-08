@@ -1,154 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-switches-remove-tsi500-driver.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:36:31 -0700
-Message-ID: <51db14bf.zhTM+PlhkmjJ2/lH%akpm@linux-foundation.org>
+Subject: [merged] drivers-rapidio-rio-scanc-make-functions-static.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:36:33 -0700
+Message-ID: <51db14c1.4YTUQXYhrRlviiY9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51673 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51677 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3GHTgc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:32 -0400
+	with ESMTP id S1752613Ab3GHTgd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mporter@kernel.crashing.org, leoli@freescale.com, galak@kernel.crashing.org, alexandre.bounine@idt.com
+To: mm-commits@vger.kernel.org, Alexandre.Bounine@idt.com, fengguang.wu@intel.com
 
-Subject: [merged] rapidio-switches-remove-tsi500-driver.patch removed from -mm tree
-To: alexandre.bounine@idt.com,galak@kernel.crashing.org,leoli@freescale.com,mporter@kernel.crashing.org,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rapidio-rio-scanc-make-functions-static.patch removed from -mm tree
+To: fengguang.wu@intel.com,Alexandre.Bounine@idt.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:31 -0700
+Date: Mon, 08 Jul 2013 12:36:33 -0700
 
 
 The patch titled
-     Subject: rapidio/switches: remove tsi500 driver
+     Subject: drivers/rapidio/rio-scan.c: make functions static
 has been removed from the -mm tree.  Its filename was
-     rapidio-switches-remove-tsi500-driver.patch
+     drivers-rapidio-rio-scanc-make-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/switches: remove tsi500 driver
+From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: drivers/rapidio/rio-scan.c: make functions static
 
-Remove the driver for Tsi500 Parallel RapidIO switch because this device
-has not been available for several years.  Since the first introduction of
-Tsi500, the parallel RapidIO interface was replaced by the serial RapidIO
-(sRIO) and therefore there is no value in keeping this driver.
+sparse warnings:
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
+drivers/rapidio/rio-scan.c:1143:5: sparse: symbol 'rio_enum_mport' was not declared. Should it be static?
+drivers/rapidio/rio-scan.c:1246:5: sparse: symbol 'rio_disc_mport' was not declared. Should it be static?
+
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: "Bounine, Alexandre" <Alexandre.Bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/switches/Kconfig  |    7 --
- drivers/rapidio/switches/Makefile |    1 
- drivers/rapidio/switches/tsi500.c |   78 ----------------------------
- 3 files changed, 86 deletions(-)
+ drivers/rapidio/rio-scan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/switches/Kconfig~rapidio-switches-remove-tsi500-driver drivers/rapidio/switches/Kconfig
---- a/drivers/rapidio/switches/Kconfig~rapidio-switches-remove-tsi500-driver
-+++ a/drivers/rapidio/switches/Kconfig
-@@ -26,10 +26,3 @@ config RAPIDIO_CPS_GEN2
- 	default n
- 	---help---
- 	  Includes support for ITD CPS Gen.2 serial RapidIO switches.
--
--config RAPIDIO_TSI500
--	bool "Tsi500 Parallel RapidIO switch support"
--	depends on RAPIDIO
--	default n
--	---help---
--	  Includes support for IDT Tsi500 parallel RapidIO switch.
-diff -puN drivers/rapidio/switches/Makefile~rapidio-switches-remove-tsi500-driver drivers/rapidio/switches/Makefile
---- a/drivers/rapidio/switches/Makefile~rapidio-switches-remove-tsi500-driver
-+++ a/drivers/rapidio/switches/Makefile
-@@ -5,5 +5,4 @@
- obj-$(CONFIG_RAPIDIO_TSI57X)	+= tsi57x.o
- obj-$(CONFIG_RAPIDIO_CPS_XX)	+= idtcps.o
- obj-$(CONFIG_RAPIDIO_TSI568)	+= tsi568.o
--obj-$(CONFIG_RAPIDIO_TSI500)	+= tsi500.o
- obj-$(CONFIG_RAPIDIO_CPS_GEN2)	+= idt_gen2.o
-diff -puN drivers/rapidio/switches/tsi500.c~rapidio-switches-remove-tsi500-driver /dev/null
---- a/drivers/rapidio/switches/tsi500.c
-+++ /dev/null
-@@ -1,78 +0,0 @@
--/*
-- * RapidIO Tsi500 switch support
-- *
-- * Copyright 2009-2010 Integrated Device Technology, Inc.
-- * Alexandre Bounine <alexandre.bounine@idt.com>
-- *  - Modified switch operations initialization.
-- *
-- * Copyright 2005 MontaVista Software, Inc.
-- * Matt Porter <mporter@kernel.crashing.org>
-- *
-- * This program is free software; you can redistribute  it and/or modify it
-- * under  the terms of  the GNU General  Public License as published by the
-- * Free Software Foundation;  either version 2 of the  License, or (at your
-- * option) any later version.
-- */
--
--#include <linux/rio.h>
--#include <linux/rio_drv.h>
--#include <linux/rio_ids.h>
--#include "../rio.h"
--
--static int
--tsi500_route_add_entry(struct rio_mport *mport, u16 destid, u8 hopcount, u16 table, u16 route_destid, u8 route_port)
--{
--	int i;
--	u32 offset = 0x10000 + 0xa00 + ((route_destid / 2)&~0x3);
--	u32 result;
--
--	if (table == 0xff) {
--		rio_mport_read_config_32(mport, destid, hopcount, offset, &result);
--		result &= ~(0xf << (4*(route_destid & 0x7)));
--		for (i=0;i<4;i++)
--			rio_mport_write_config_32(mport, destid, hopcount, offset + (0x20000*i), result | (route_port << (4*(route_destid & 0x7))));
--	}
--	else {
--		rio_mport_read_config_32(mport, destid, hopcount, offset + (0x20000*table), &result);
--		result &= ~(0xf << (4*(route_destid & 0x7)));
--		rio_mport_write_config_32(mport, destid, hopcount, offset + (0x20000*table), result | (route_port << (4*(route_destid & 0x7))));
--	}
--
--	return 0;
--}
--
--static int
--tsi500_route_get_entry(struct rio_mport *mport, u16 destid, u8 hopcount, u16 table, u16 route_destid, u8 *route_port)
--{
--	int ret = 0;
--	u32 offset = 0x10000 + 0xa00 + ((route_destid / 2)&~0x3);
--	u32 result;
--
--	if (table == 0xff)
--		rio_mport_read_config_32(mport, destid, hopcount, offset, &result);
--	else
--		rio_mport_read_config_32(mport, destid, hopcount, offset + (0x20000*table), &result);
--
--	result &= 0xf << (4*(route_destid & 0x7));
--	*route_port = result >> (4*(route_destid & 0x7));
--	if (*route_port > 3)
--		ret = -1;
--
--	return ret;
--}
--
--static int tsi500_switch_init(struct rio_dev *rdev, int do_enum)
--{
--	pr_debug("RIO: %s for %s\n", __func__, rio_name(rdev));
--	rdev->rswitch->add_entry = tsi500_route_add_entry;
--	rdev->rswitch->get_entry = tsi500_route_get_entry;
--	rdev->rswitch->clr_table = NULL;
--	rdev->rswitch->set_domain = NULL;
--	rdev->rswitch->get_domain = NULL;
--	rdev->rswitch->em_init = NULL;
--	rdev->rswitch->em_handle = NULL;
--
--	return 0;
--}
+diff -puN drivers/rapidio/rio-scan.c~drivers-rapidio-rio-scanc-make-functions-static drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~drivers-rapidio-rio-scanc-make-functions-static
++++ a/drivers/rapidio/rio-scan.c
+@@ -1141,7 +1141,7 @@ static void rio_pw_enable(struct rio_mpo
+  * link, then start recursive peer enumeration. Returns %0 if
+  * enumeration succeeds or %-EBUSY if enumeration fails.
+  */
+-int rio_enum_mport(struct rio_mport *mport, u32 flags)
++static int rio_enum_mport(struct rio_mport *mport, u32 flags)
+ {
+ 	struct rio_net *net = NULL;
+ 	int rc = 0;
+@@ -1256,7 +1256,7 @@ static void rio_build_route_tables(struc
+  * peer discovery. Returns %0 if discovery succeeds or %-EBUSY
+  * on failure.
+  */
+-int rio_disc_mport(struct rio_mport *mport, u32 flags)
++static int rio_disc_mport(struct rio_mport *mport, u32 flags)
+ {
+ 	struct rio_net *net = NULL;
+ 	unsigned long to_end;
+_
+
+Patches currently in -mm which might be from fengguang.wu@intel.com are
+
+origin.patch
+linux-next.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid-v2-fix.patch
+zswap-add-to-mm-fix-kconfig-to-depend-on-crypto=y.patch
+fs-fs-writebackc-make-wb_do_writeback-as-static.patch
+mm-writeback-remove-wb_reason_name.patch
+mm-writeback-dont-check-force_wait-to-handle-bdi-work_list.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem-fix-fix-fix.patch
+smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+ipc-move-rcu-lock-out-of-ipc_addid-restore-rcu-locking-in-ipc_addid.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
+
