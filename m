@@ -1,199 +1,135 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+ mm-ppc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
  removed from -mm tree
-Date: Mon, 08 Jul 2013 12:27:42 -0700
-Message-ID: <51db12ae.9/D4AMHx/oJ6ccdG%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:27:34 -0700
+Message-ID: <51db12a6.gPAMYD7B701GaqFK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51001 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752792Ab3GHT1n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:27:43 -0400
+	with ESMTP id S1752752Ab3GHT1e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:27:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com, sam@ravnborg.org, jiang.liu@huawei.com, isimatu.yasuaki@jp.fujitsu.com, davem@davemloft.net, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, paulus@samba.org, jiang.liu@huawei.com, benh@kernel.crashing.org, liuj97@gmail.com
 
-Subject: [merged] mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch removed from -mm tree
-To: liuj97@gmail.com,davem@davemloft.net,isimatu.yasuaki@jp.fujitsu.com,jiang.liu@huawei.com,sam@ravnborg.org,tangchen@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-ppc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch removed from -mm tree
+To: liuj97@gmail.com,benh@kernel.crashing.org,jiang.liu@huawei.com,paulus@samba.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:27:42 -0700
+Date: Mon, 08 Jul 2013 12:27:34 -0700
 
 
 The patch titled
-     Subject: mm/SPARC: prepare for removing num_physpages and simplify mem_init()
+     Subject: mm/ppc: prepare for removing num_physpages and simplify mem_init()
 has been removed from the -mm tree.  Its filename was
-     mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
+     mm-ppc-prepare-for-removing-num_physpages-and-simplify-mem_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm/SPARC: prepare for removing num_physpages and simplify mem_init()
+Subject: mm/ppc: prepare for removing num_physpages and simplify mem_init()
 
 Prepare for removing num_physpages and simplify mem_init().
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/leon_smp.c |    3 --
- arch/sparc/mm/init_32.c      |   34 +++------------------------------
- arch/sparc/mm/init_64.c      |   24 ++---------------------
- 3 files changed, 7 insertions(+), 54 deletions(-)
+ arch/powerpc/mm/mem.c |   56 ++++++++--------------------------------
+ 1 file changed, 12 insertions(+), 44 deletions(-)
 
-diff -puN arch/sparc/kernel/leon_smp.c~mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init arch/sparc/kernel/leon_smp.c
---- a/arch/sparc/kernel/leon_smp.c~mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/sparc/kernel/leon_smp.c
-@@ -254,15 +254,12 @@ void __init leon_smp_done(void)
- 	/* Free unneeded trap tables */
- 	if (!cpu_present(1)) {
- 		free_reserved_page(virt_to_page(&trapbase_cpu1));
--		num_physpages++;
- 	}
- 	if (!cpu_present(2)) {
- 		free_reserved_page(virt_to_page(&trapbase_cpu2));
--		num_physpages++;
- 	}
- 	if (!cpu_present(3)) {
- 		free_reserved_page(virt_to_page(&trapbase_cpu3));
--		num_physpages++;
- 	}
- 	/* Ok, they are spinning and ready to go. */
- 	smp_processors_ready = 1;
-diff -puN arch/sparc/mm/init_32.c~mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init arch/sparc/mm/init_32.c
---- a/arch/sparc/mm/init_32.c~mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/sparc/mm/init_32.c
-@@ -288,10 +288,6 @@ static void map_high_region(unsigned lon
+diff -puN arch/powerpc/mm/mem.c~mm-ppc-prepare-for-removing-num_physpages-and-simplify-mem_init arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~mm-ppc-prepare-for-removing-num_physpages-and-simplify-mem_init
++++ a/arch/powerpc/mm/mem.c
+@@ -299,46 +299,27 @@ void __init paging_init(void)
  
  void __init mem_init(void)
  {
--	int codepages = 0;
--	int datapages = 0;
--	int initpages = 0; 
--	int reservedpages = 0;
- 	int i;
- 
- 	if (PKMAP_BASE+LAST_PKMAP*PAGE_SIZE >= FIXADDR_START) {
-@@ -329,8 +325,6 @@ void __init mem_init(void)
- 		unsigned long start_pfn = sp_banks[i].base_addr >> PAGE_SHIFT;
- 		unsigned long end_pfn = (sp_banks[i].base_addr + sp_banks[i].num_bytes) >> PAGE_SHIFT;
- 
--		num_physpages += sp_banks[i].num_bytes >> PAGE_SHIFT;
+-#ifdef CONFIG_NEED_MULTIPLE_NODES
+-	int nid;
+-#endif
+-	pg_data_t *pgdat;
+-	unsigned long i;
+-	struct page *page;
+-	unsigned long reservedpages = 0, codesize, initsize, datasize, bsssize;
 -
- 		if (end_pfn <= highstart_pfn)
- 			continue;
- 
-@@ -340,39 +334,19 @@ void __init mem_init(void)
- 		map_high_region(start_pfn, end_pfn);
- 	}
- 	
--	codepages = (((unsigned long) &_etext) - ((unsigned long)&_start));
--	codepages = PAGE_ALIGN(codepages) >> PAGE_SHIFT;
--	datapages = (((unsigned long) &_edata) - ((unsigned long)&_etext));
--	datapages = PAGE_ALIGN(datapages) >> PAGE_SHIFT;
--	initpages = (((unsigned long) &__init_end) - ((unsigned long) &__init_begin));
--	initpages = PAGE_ALIGN(initpages) >> PAGE_SHIFT;
--
--	/* Ignore memory holes for the purpose of counting reserved pages */
--	for (i=0; i < max_low_pfn; i++)
--		if (test_bit(i >> (20 - PAGE_SHIFT), sparc_valid_addr_bitmap)
--		    && PageReserved(pfn_to_page(i)))
--			reservedpages++;
--
--	printk(KERN_INFO "Memory: %luk/%luk available (%dk kernel code, %dk reserved, %dk data, %dk init, %ldk highmem)\n",
--	       nr_free_pages() << (PAGE_SHIFT-10),
--	       num_physpages << (PAGE_SHIFT - 10),
--	       codepages << (PAGE_SHIFT-10),
--	       reservedpages << (PAGE_SHIFT - 10),
--	       datapages << (PAGE_SHIFT-10), 
--	       initpages << (PAGE_SHIFT-10),
--	       totalhigh_pages << (PAGE_SHIFT-10));
-+	mem_init_print_info(NULL);
- }
- 
- void free_initmem (void)
- {
--	num_physpages += free_initmem_default(POISON_FREE_INITMEM);
-+	free_initmem_default(POISON_FREE_INITMEM);
- }
- 
- #ifdef CONFIG_BLK_DEV_INITRD
- void free_initrd_mem(unsigned long start, unsigned long end)
- {
--	num_physpages += free_reserved_area((void *)start, (void *)end,
--					    POISON_FREE_INITMEM, "initrd");
-+	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
-+			   "initrd");
- }
+ #ifdef CONFIG_SWIOTLB
+ 	swiotlb_init(0);
  #endif
  
-diff -puN arch/sparc/mm/init_64.c~mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init arch/sparc/mm/init_64.c
---- a/arch/sparc/mm/init_64.c~mm-sparc-prepare-for-removing-num_physpages-and-simplify-mem_init
-+++ a/arch/sparc/mm/init_64.c
-@@ -2045,7 +2045,6 @@ static void __init register_page_bootmem
- }
- void __init mem_init(void)
- {
--	unsigned long codepages, datapages, initpages;
- 	unsigned long addr, last;
+-	num_physpages = memblock_phys_mem_size() >> PAGE_SHIFT;
+ 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
  
- 	addr = PAGE_OFFSET + kern_base;
-@@ -2063,11 +2062,6 @@ void __init mem_init(void)
- 	register_page_bootmem_info();
+ #ifdef CONFIG_NEED_MULTIPLE_NODES
+-        for_each_online_node(nid) {
+-		if (NODE_DATA(nid)->node_spanned_pages != 0) {
+-			printk("freeing bootmem node %d\n", nid);
+-			free_all_bootmem_node(NODE_DATA(nid));
+-		}
++	{
++		pg_data_t *pgdat;
++
++		for_each_online_pgdat(pgdat)
++			if (pgdat->node_spanned_pages != 0) {
++				printk("freeing bootmem node %d\n",
++					pgdat->node_id);
++				free_all_bootmem_node(pgdat);
++			}
+ 	}
+ #else
+ 	max_mapnr = max_pfn;
  	free_all_bootmem();
- 
--	/* We subtract one to account for the mem_map_zero page
--	 * allocated below.
--	 */
--	num_physpages = totalram_pages - 1;
+ #endif
+-	for_each_online_pgdat(pgdat) {
+-		for (i = 0; i < pgdat->node_spanned_pages; i++) {
+-			if (!pfn_valid(pgdat->node_start_pfn + i))
+-				continue;
+-			page = pgdat_page_nr(pgdat, i);
+-			if (PageReserved(page))
+-				reservedpages++;
+-		}
+-	}
 -
- 	/*
- 	 * Set up the zero page, mark it reserved, so that page count
- 	 * is not manipulated when freeing the page from user ptes.
-@@ -2079,19 +2073,7 @@ void __init mem_init(void)
+-	codesize = (unsigned long)&_sdata - (unsigned long)&_stext;
+-	datasize = (unsigned long)&_edata - (unsigned long)&_sdata;
+-	initsize = (unsigned long)&__init_end - (unsigned long)&__init_begin;
+-	bsssize = (unsigned long)&__bss_stop - (unsigned long)&__bss_start;
+ 
+ #ifdef CONFIG_HIGHMEM
+ 	{
+@@ -348,13 +329,9 @@ void __init mem_init(void)
+ 		for (pfn = highmem_mapnr; pfn < max_mapnr; ++pfn) {
+ 			phys_addr_t paddr = (phys_addr_t)pfn << PAGE_SHIFT;
+ 			struct page *page = pfn_to_page(pfn);
+-			if (memblock_is_reserved(paddr))
+-				continue;
+-			free_highmem_page(page);
+-			reservedpages--;
++			if (!memblock_is_reserved(paddr))
++				free_highmem_page(page);
+ 		}
+-		printk(KERN_DEBUG "High memory: %luk\n",
+-		       totalhigh_pages << (PAGE_SHIFT-10));
  	}
- 	mark_page_reserved(mem_map_zero);
+ #endif /* CONFIG_HIGHMEM */
  
--	codepages = (((unsigned long) _etext) - ((unsigned long) _start));
--	codepages = PAGE_ALIGN(codepages) >> PAGE_SHIFT;
--	datapages = (((unsigned long) _edata) - ((unsigned long) _etext));
--	datapages = PAGE_ALIGN(datapages) >> PAGE_SHIFT;
--	initpages = (((unsigned long) __init_end) - ((unsigned long) __init_begin));
--	initpages = PAGE_ALIGN(initpages) >> PAGE_SHIFT;
--
--	printk("Memory: %luk available (%ldk kernel code, %ldk data, %ldk init) [%016lx,%016lx]\n",
--	       nr_free_pages() << (PAGE_SHIFT-10),
--	       codepages << (PAGE_SHIFT-10),
--	       datapages << (PAGE_SHIFT-10), 
--	       initpages << (PAGE_SHIFT-10), 
--	       PAGE_OFFSET, (last_valid_pfn << PAGE_SHIFT));
-+	mem_init_print_info(NULL);
- 
- 	if (tlb_type == cheetah || tlb_type == cheetah_plus)
- 		cheetah_ecache_flush_init();
-@@ -2131,8 +2113,8 @@ void free_initmem(void)
- #ifdef CONFIG_BLK_DEV_INITRD
- void free_initrd_mem(unsigned long start, unsigned long end)
- {
--	num_physpages += free_reserved_area((void *)start, (void *)end,
--					    POISON_FREE_INITMEM, "initrd");
-+	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
-+			   "initrd");
- }
+@@ -367,16 +344,7 @@ void __init mem_init(void)
+ 		(mfspr(SPRN_TLB1CFG) & TLBnCFG_N_ENTRY) - 1;
  #endif
  
-_
-
-Patches currently in -mm which might be from liuj97@gmail.com are
-
-origin.patch
-linux-next.patch
-
+-	printk(KERN_INFO "Memory: %luk/%luk available (%luk kernel code, "
+-	       "%luk reserved, %luk data, %luk bss, %luk init)\n",
+-		nr_free_pages() << (PAGE_SHIFT-10),
+-		num_physpages << (PAGE_SHIFT-10),
+-		codesize >> 10,
+-		reservedpages << (PAGE_SHIFT-10),
+-		datasize >> 10,
+-		bsssize >> 10,
+-		initsize >> 10);
