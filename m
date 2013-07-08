@@ -1,45 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-kill-cn_escape-introduce-cn_esc_printf.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 12:35:51 -0700
-Message-ID: <51db1497.c1ejGiydyRt7kbik%akpm@linux-foundation.org>
+Subject: [merged] coredump-introduce-cn_vprintf.patch removed from -mm
+ tree
+Date: Mon, 08 Jul 2013 12:35:47 -0700
+Message-ID: <51db1493.43gqesf8ragJana0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51517 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51497 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab3GHTfw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:52 -0400
+	with ESMTP id S1753208Ab3GHTfs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: [merged] coredump-kill-cn_escape-introduce-cn_esc_printf.patch removed from -mm tree
+Subject: [merged] coredump-introduce-cn_vprintf.patch removed from -mm tree
 To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:51 -0700
+Date: Mon, 08 Jul 2013 12:35:47 -0700
 
 
 The patch titled
-     Subject: coredump: kill cn_escape(), introduce cn_esc_printf()
+     Subject: coredump: introduce cn_vprintf()
 has been removed from the -mm tree.  Its filename was
-     coredump-kill-cn_escape-introduce-cn_esc_printf.patch
+     coredump-introduce-cn_vprintf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: kill cn_escape(), introduce cn_esc_printf()
+Subject: coredump: introduce cn_vprintf()
 
-The usage of cn_escape() looks really annoying, imho this sequence needs a
-wrapper.  And it is buggy.  If cn_printf() does expand_corename()
-cn_escape() writes to the freed memory.
+Turn cn_printf(...) into cn_vprintf(va_list args), reintroduce
+cn_printf() as a trivial wrapper.
 
-Introduce cn_esc_printf() which hopefully does this all right.  It records
-the index before cn_vprintf(), not "char *" which is no longer valid (in
-general) after krealloc().
+This simplifies the next change and cn_vprintf() will have more
+callers.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -52,23 +50,47 @@ Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   44 +++++++++++++++++++++-----------------------
- 1 file changed, 21 insertions(+), 23 deletions(-)
+ fs/coredump.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN fs/coredump.c~coredump-kill-cn_escape-introduce-cn_esc_printf fs/coredump.c
---- a/fs/coredump.c~coredump-kill-cn_escape-introduce-cn_esc_printf
+diff -puN fs/coredump.c~coredump-introduce-cn_vprintf fs/coredump.c
+--- a/fs/coredump.c~coredump-introduce-cn_vprintf
 +++ a/fs/coredump.c
-@@ -99,11 +99,21 @@ static int cn_printf(struct core_name *c
+@@ -69,17 +69,13 @@ static int expand_corename(struct core_n
+ 	return 0;
+ }
+ 
+-static int cn_printf(struct core_name *cn, const char *fmt, ...)
++static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
+ {
+ 	char *cur;
+ 	int need;
+ 	int ret;
+-	va_list arg;
+ 
+-	va_start(arg, fmt);
+ 	need = vsnprintf(NULL, 0, fmt, arg);
+-	va_end(arg);
+-
+ 	if (likely(need < cn->size - cn->used - 1))
+ 		goto out_printf;
+ 
+@@ -89,9 +85,7 @@ static int cn_printf(struct core_name *c
+ 
+ out_printf:
+ 	cur = cn->corename + cn->used;
+-	va_start(arg, fmt);
+ 	vsnprintf(cur, need + 1, fmt, arg);
+-	va_end(arg);
+ 	cn->used += need;
+ 	return 0;
+ 
+@@ -99,6 +93,18 @@ expand_fail:
  	return ret;
  }
  
--static void cn_escape(char *str)
-+static int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
- {
--	for (; *str; str++)
--		if (*str == '/')
--			*str = '!';
-+	int cur = cn->used;
++static int cn_printf(struct core_name *cn, const char *fmt, ...)
++{
 +	va_list arg;
 +	int ret;
 +
@@ -76,67 +98,12 @@ diff -puN fs/coredump.c~coredump-kill-cn_escape-introduce-cn_esc_printf fs/cored
 +	ret = cn_vprintf(cn, fmt, arg);
 +	va_end(arg);
 +
-+	for (; cur < cn->used; ++cur) {
-+		if (cn->corename[cur] == '/')
-+			cn->corename[cur] = '!';
-+	}
 +	return ret;
- }
- 
- static int cn_print_exe_file(struct core_name *cn)
-@@ -113,12 +123,8 @@ static int cn_print_exe_file(struct core
- 	int ret;
- 
- 	exe_file = get_mm_exe_file(current->mm);
--	if (!exe_file) {
--		char *commstart = cn->corename + cn->used;
--		ret = cn_printf(cn, "%s (path unknown)", current->comm);
--		cn_escape(commstart);
--		return ret;
--	}
-+	if (!exe_file)
-+		return cn_esc_printf(cn, "%s (path unknown)", current->comm);
- 
- 	pathbuf = kmalloc(PATH_MAX, GFP_TEMPORARY);
- 	if (!pathbuf) {
-@@ -132,9 +138,7 @@ static int cn_print_exe_file(struct core
- 		goto free_buf;
- 	}
- 
--	cn_escape(path);
--
--	ret = cn_printf(cn, "%s", path);
-+	ret = cn_esc_printf(cn, "%s", path);
- 
- free_buf:
- 	kfree(pathbuf);
-@@ -207,22 +211,16 @@ static int format_corename(struct core_n
- 				break;
- 			}
- 			/* hostname */
--			case 'h': {
--				char *namestart = cn->corename + cn->used;
-+			case 'h':
- 				down_read(&uts_sem);
--				err = cn_printf(cn, "%s",
-+				err = cn_esc_printf(cn, "%s",
- 					      utsname()->nodename);
- 				up_read(&uts_sem);
--				cn_escape(namestart);
- 				break;
--			}
- 			/* executable */
--			case 'e': {
--				char *commstart = cn->corename + cn->used;
--				err = cn_printf(cn, "%s", current->comm);
--				cn_escape(commstart);
-+			case 'e':
-+				err = cn_esc_printf(cn, "%s", current->comm);
- 				break;
--			}
- 			case 'E':
- 				err = cn_print_exe_file(cn);
- 				break;
++}
++
+ static void cn_escape(char *str)
+ {
+ 	for (; *str; str++)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
