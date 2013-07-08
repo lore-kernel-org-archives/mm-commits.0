@@ -1,67 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe.patch
+Subject: [merged] drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
  removed from -mm tree
-Date: Mon, 08 Jul 2013 12:33:20 -0700
-Message-ID: <51db1400.Fj0wWnWyPI7KEMP8%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:33:02 -0700
+Message-ID: <51db13ee.MdNXivg3zu9fdfXb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51213 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752844Ab3GHTdV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:33:21 -0400
+	with ESMTP id S1752379Ab3GHTdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yongjun_wei@trendmicro.com.cn
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: [merged] rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe.patch removed from -mm tree
-To: yongjun_wei@trendmicro.com.cn,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-dm355evmc-remove-empty-function.patch removed from -mm tree
+To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:33:20 -0700
+Date: Mon, 08 Jul 2013 12:33:02 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-vr41xx.c: fix error return code in rtc_probe()
+     Subject: drivers/rtc/rtc-dm355evm.c: remove empty function
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe.patch
+     drivers-rtc-rtc-dm355evmc-remove-empty-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: drivers/rtc/rtc-vr41xx.c: fix error return code in rtc_probe()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-dm355evm.c: remove empty function
 
-Fix to return -EBUSY in the platform irq get error handling case instead
-of 0, as done elsewhere in this function.
+After the switch to devm_ functions and the removal of
+rtc_device_unregister(), the 'remove' function does not do anything. 
+Delete it.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vr41xx.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-dm355evm.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-fix-error-return-code-in-rtc_probe
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -339,8 +339,10 @@ static int rtc_probe(struct platform_dev
- 		goto err_device_unregister;
+diff -puN drivers/rtc/rtc-dm355evm.c~drivers-rtc-rtc-dm355evmc-remove-empty-function drivers/rtc/rtc-dm355evm.c
+--- a/drivers/rtc/rtc-dm355evm.c~drivers-rtc-rtc-dm355evmc-remove-empty-function
++++ a/drivers/rtc/rtc-dm355evm.c
+@@ -139,18 +139,12 @@ static int dm355evm_rtc_probe(struct pla
+ 	return 0;
+ }
  
- 	pie_irq = platform_get_irq(pdev, 1);
--	if (pie_irq <= 0)
-+	if (pie_irq <= 0) {
-+		retval = -EBUSY;
- 		goto err_free_irq;
-+	}
- 
- 	retval = request_irq(pie_irq, rtclong1_interrupt, 0,
- 			     "rtclong1", pdev);
-_
-
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
-
-origin.patch
-linux-next.patch
-
+-static int dm355evm_rtc_remove(struct platform_device *pdev)
+-{
+-	return 0;
+-}
