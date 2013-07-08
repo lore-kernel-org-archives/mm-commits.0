@@ -1,68 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch removed from
- -mm tree
-Date: Mon, 08 Jul 2013 12:23:00 -0700
-Message-ID: <51db1194.veRnA4vHRl9DRlbY%akpm@linux-foundation.org>
+ ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:23:04 -0700
+Message-ID: <51db1198.K9a06qN3lZ5lUYDe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49979 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665Ab3GHTXB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:01 -0400
+	with ESMTP id S1751665Ab3GHTXF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, shencanquan@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
 
-Subject: [merged] fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch removed from -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch removed from -mm tree
+To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,shencanquan@huawei.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:00 -0700
+Date: Mon, 08 Jul 2013 12:23:04 -0700
 
 
 The patch titled
-     Subject: fs/ocfs2/dlm/dlmrecovery.c: remove duplicate declarations
+     Subject: ocfs2: should not use le32_add_cpu to set ocfs2_dinode i_flags
 has been removed from the -mm tree.  Its filename was
-     fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations.patch
+     ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@huawei.com>
-Subject: fs/ocfs2/dlm/dlmrecovery.c: remove duplicate declarations
+Subject: ocfs2: should not use le32_add_cpu to set ocfs2_dinode i_flags
 
-Below 3 functions have already been declared in dlmcommon.h, so we have
-no need to declare them again in dlmrecovery.c.
-dlm_complete_recovery_thread
-dlm_launch_recovery_thread
-dlm_kick_recovery_thread
+If we use le32_add_cpu to set ocfs2_dinode i_flags, it may lead to the
+corresponding flag corrupted.  So we should change it to bitwise and/or
+operation.
 
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
-Acked-by: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: shencanquan <shencanquan@huawei.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ocfs2/namei.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~fs-ocfs2-dlm-dlmrecoveryc-remove-duplicate-declarations
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -55,9 +55,6 @@
- static void dlm_do_local_recovery_cleanup(struct dlm_ctxt *dlm, u8 dead_node);
+diff -puN fs/ocfs2/namei.c~ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-should-not-use-le32_add_cpu-to-set-ocfs2_dinode-i_flags
++++ a/fs/ocfs2/namei.c
+@@ -522,7 +522,7 @@ static int __ocfs2_mknod_locked(struct i
  
- static int dlm_recovery_thread(void *data);
--void dlm_complete_recovery_thread(struct dlm_ctxt *dlm);
--int dlm_launch_recovery_thread(struct dlm_ctxt *dlm);
--void dlm_kick_recovery_thread(struct dlm_ctxt *dlm);
- static int dlm_do_recovery(struct dlm_ctxt *dlm);
+ 	fe->i_last_eb_blk = 0;
+ 	strcpy(fe->i_signature, OCFS2_INODE_SIGNATURE);
+-	le32_add_cpu(&fe->i_flags, OCFS2_VALID_FL);
++	fe->i_flags |= cpu_to_le32(OCFS2_VALID_FL);
+ 	fe->i_atime = fe->i_ctime = fe->i_mtime =
+ 		cpu_to_le64(CURRENT_TIME.tv_sec);
+ 	fe->i_mtime_nsec = fe->i_ctime_nsec = fe->i_atime_nsec =
+@@ -2044,7 +2044,7 @@ static int ocfs2_orphan_add(struct ocfs2
+ 		goto leave;
+ 	}
  
- static int dlm_pick_recovery_master(struct dlm_ctxt *dlm);
+-	le32_add_cpu(&fe->i_flags, OCFS2_ORPHANED_FL);
++	fe->i_flags |= cpu_to_le32(OCFS2_ORPHANED_FL);
+ 	OCFS2_I(inode)->ip_flags &= ~OCFS2_INODE_SKIP_ORPHAN_DIR;
+ 
+ 	/* Record which orphan dir our inode now resides
+@@ -2434,7 +2434,7 @@ int ocfs2_mv_orphaned_inode_to_new(struc
+ 	}
+ 
+ 	di = (struct ocfs2_dinode *)di_bh->b_data;
+-	le32_add_cpu(&di->i_flags, -OCFS2_ORPHANED_FL);
++	di->i_flags &= ~cpu_to_le32(OCFS2_ORPHANED_FL);
+ 	di->i_orphaned_slot = 0;
+ 	set_nlink(inode, 1);
+ 	ocfs2_set_links_count(di, inode->i_nlink);
 _
 
 Patches currently in -mm which might be from joseph.qi@huawei.com are
