@@ -1,160 +1,237 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-tune-vm_committed_as-percpu_counter-batching-size.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:26:00 -0700
-Message-ID: <51db1248./w98KyH1SjcQUqUJ%akpm@linux-foundation.org>
+ swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch removed
+ from -mm tree
+Date: Mon, 08 Jul 2013 12:26:02 -0700
+Message-ID: <51db124a.Z6WVtej0iO97OzgQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50540 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849Ab3GHT0B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:01 -0400
+	with ESMTP id S1752477Ab3GHT0D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, fengguang.wu@intel.com, eric.dumazet@gmail.com, dave.hansen@intel.com, ak@linux.intel.com, tim.c.chen@linux.intel.com
+To: mm-commits@vger.kernel.org, shli@kernel.org, riel@redhat.com, mel@csn.ul.ie, lwoodman@redhat.com, kzak@redhat.com, kosaki.motohiro@jp.fujitsu.com, jmoyer@redhat.com, hughd@google.com, aquini@redhat.com
 
-Subject: [merged] mm-tune-vm_committed_as-percpu_counter-batching-size.patch removed from -mm tree
-To: tim.c.chen@linux.intel.com,ak@linux.intel.com,dave.hansen@intel.com,eric.dumazet@gmail.com,fengguang.wu@intel.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch removed from -mm tree
+To: aquini@redhat.com,hughd@google.com,jmoyer@redhat.com,kosaki.motohiro@jp.fujitsu.com,kzak@redhat.com,lwoodman@redhat.com,mel@csn.ul.ie,riel@redhat.com,shli@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:26:00 -0700
+Date: Mon, 08 Jul 2013 12:26:02 -0700
 
 
 The patch titled
-     Subject: mm: tune vm_committed_as percpu_counter batching size
+     Subject: swap: discard while swapping only if SWAP_FLAG_DISCARD_PAGES
 has been removed from the -mm tree.  Its filename was
-     mm-tune-vm_committed_as-percpu_counter-batching-size.patch
+     swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: mm: tune vm_committed_as percpu_counter batching size
+From: Rafael Aquini <aquini@redhat.com>
+Subject: swap: discard while swapping only if SWAP_FLAG_DISCARD_PAGES
 
-Currently the per cpu counter's batch size for memory accounting is
-configured as twice the number of cpus in the system.  However, for system
-with very large memory, it is more appropriate to make it proportional to
-the memory size per cpu in the system.
+Considering the use cases where the swap device supports discard:
+a) and can do it quickly;
+b) but it's slow to do in small granularities (or concurrent with other
+   I/O);
+c) but the implementation is so horrendous that you don't even want to
+   send one down;
 
-For example, for a x86_64 system with 64 cpus and 128 GB of memory, the
-batch size is only 2*64 pages (0.5 MB).  So any memory accounting changes
-of more than 0.5MB will overflow the per cpu counter into the global
-counter.  Instead, for the new scheme, the batch size is configured to be
-0.4% of the memory/cpu = 8MB (128 GB/64 /256), which is more inline with
-the memory size.
+And assuming that the sysadmin considers it useful to send the discards down
+at all, we would (probably) want the following solutions:
 
-I've done a repeated brk test of 800KB (from will-it-scale test suite)
-with 80 concurrent processes on a 4 socket Westmere machine with a total
-of 40 cores.  Without the patch, about 80% of cpu is spent on spin-lock
-contention within the vm_committed_as counter.  With the patch, there's a
-73x speedup on the benchmark and the lock contention drops off almost
-entirely.
+  i. do the fine-grained discards for freed swap pages, if device is 
+     capable of doing so optimally;
+ ii. do single-time (batched) swap area discards, either at swapon 
+     or via something like fstrim (not implemented yet);
+iii. allow doing both single-time and fine-grained discards; or
+ iv. turn it off completely (default behavior)
 
-[akpm@linux-foundation.org: fix section mismatch]
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+
+As implemented today, one can only enable/disable discards for swap, but
+one cannot select, for instance, solution (ii) on a swap device like (b)
+even though the single-time discard is regarded to be interesting, or
+necessary to the workload because it would imply (1), and the device is
+not capable of performing it optimally.
+
+This patch addresses the scenario depicted above by introducing a way to
+ensure the (probably) wanted solutions (i, ii, iii and iv) can be flexibly
+flagged through swapon(8) to allow a sysadmin to select the best suitable
+swap discard policy accordingly to system constraints.
+
+
+
+This patch introduces SWAP_FLAG_DISCARD_PAGES and SWAP_FLAG_DISCARD_ONCE
+new flags to allow more flexibe swap discard policies being flagged
+through swapon(8).  The default behavior is to keep both single-time, or
+batched, area discards (SWAP_FLAG_DISCARD_ONCE) and fine-grained discards
+for page-clusters (SWAP_FLAG_DISCARD_PAGES) enabled, in order to keep
+consistentcy with older kernel behavior, as well as maintain compatibility
+with older swapon(8).  However, through the new introduced flags the best
+suitable discard policy can be selected accordingly to any given swap
+device constraint.
+
+[akpm@linux-foundation.org: tweak comments]
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mman.h |    8 ++++++
- mm/mm_init.c         |   47 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 54 insertions(+), 1 deletion(-)
+ include/linux/swap.h |   13 ++++++---
+ mm/swapfile.c        |   55 +++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 59 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mman.h~mm-tune-vm_committed_as-percpu_counter-batching-size include/linux/mman.h
---- a/include/linux/mman.h~mm-tune-vm_committed_as-percpu_counter-batching-size
-+++ a/include/linux/mman.h
-@@ -11,11 +11,17 @@ extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern struct percpu_counter vm_committed_as;
+diff -puN include/linux/swap.h~swap-discard-while-swapping-only-if-swap_flag_discard_pages include/linux/swap.h
+--- a/include/linux/swap.h~swap-discard-while-swapping-only-if-swap_flag_discard_pages
++++ a/include/linux/swap.h
+@@ -20,10 +20,13 @@ struct bio;
+ #define SWAP_FLAG_PREFER	0x8000	/* set if swap priority specified */
+ #define SWAP_FLAG_PRIO_MASK	0x7fff
+ #define SWAP_FLAG_PRIO_SHIFT	0
+-#define SWAP_FLAG_DISCARD	0x10000 /* discard swap cluster after use */
++#define SWAP_FLAG_DISCARD	0x10000 /* enable discard for swap */
++#define SWAP_FLAG_DISCARD_ONCE	0x20000 /* discard swap area at swapon-time */
++#define SWAP_FLAG_DISCARD_PAGES 0x40000 /* discard page-clusters after use */
  
-+#ifdef CONFIG_SMP
-+extern s32 vm_committed_as_batch;
-+#else
-+#define vm_committed_as_batch 0
-+#endif
-+
- unsigned long vm_memory_committed(void);
+ #define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
+-				 SWAP_FLAG_DISCARD)
++				 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
++				 SWAP_FLAG_DISCARD_PAGES)
  
- static inline void vm_acct_memory(long pages)
+ static inline int current_is_kswapd(void)
  {
--	percpu_counter_add(&vm_committed_as, pages);
-+	__percpu_counter_add(&vm_committed_as, pages, vm_committed_as_batch);
+@@ -147,14 +150,16 @@ struct swap_extent {
+ enum {
+ 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
+ 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
+-	SWP_DISCARDABLE = (1 << 2),	/* swapon+blkdev support discard */
++	SWP_DISCARDABLE = (1 << 2),	/* blkdev support discard */
+ 	SWP_DISCARDING	= (1 << 3),	/* now discarding a free cluster */
+ 	SWP_SOLIDSTATE	= (1 << 4),	/* blkdev seeks are cheap */
+ 	SWP_CONTINUED	= (1 << 5),	/* swap_map has count continuation */
+ 	SWP_BLKDEV	= (1 << 6),	/* its a block device */
+ 	SWP_FILE	= (1 << 7),	/* set after swap_activate success */
++	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
++	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
+ 					/* add others here before... */
+-	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
++	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
+ };
+ 
+ #define SWAP_CLUSTER_MAX 32UL
+diff -puN mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages mm/swapfile.c
+--- a/mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages
++++ a/mm/swapfile.c
+@@ -212,7 +212,7 @@ static unsigned long scan_swap_map(struc
+ 			si->cluster_nr = SWAPFILE_CLUSTER - 1;
+ 			goto checks;
+ 		}
+-		if (si->flags & SWP_DISCARDABLE) {
++		if (si->flags & SWP_PAGE_DISCARD) {
+ 			/*
+ 			 * Start range check on racing allocations, in case
+ 			 * they overlap the cluster we eventually decide on
+@@ -322,7 +322,7 @@ checks:
+ 
+ 	if (si->lowest_alloc) {
+ 		/*
+-		 * Only set when SWP_DISCARDABLE, and there's a scan
++		 * Only set when SWP_PAGE_DISCARD, and there's a scan
+ 		 * for a free cluster in progress or just completed.
+ 		 */
+ 		if (found_free_cluster) {
+@@ -2016,6 +2016,20 @@ static int setup_swap_map_and_extents(st
+ 	return nr_extents;
  }
  
- static inline void vm_unacct_memory(long pages)
-diff -puN mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size mm/mm_init.c
---- a/mm/mm_init.c~mm-tune-vm_committed_as-percpu_counter-batching-size
-+++ a/mm/mm_init.c
-@@ -9,6 +9,8 @@
- #include <linux/init.h>
- #include <linux/kobject.h>
- #include <linux/export.h>
-+#include <linux/memory.h>
-+#include <linux/notifier.h>
- #include "internal.h"
- 
- #ifdef CONFIG_DEBUG_MEMORY_INIT
-@@ -147,6 +149,51 @@ early_param("mminit_loglevel", set_mmini
- struct kobject *mm_kobj;
- EXPORT_SYMBOL_GPL(mm_kobj);
- 
-+#ifdef CONFIG_SMP
-+s32 vm_committed_as_batch = 32;
-+
-+static void __meminit mm_compute_batch(void)
++/*
++ * Helper to sys_swapon determining if a given swap
++ * backing device queue supports DISCARD operations.
++ */
++static bool swap_discardable(struct swap_info_struct *si)
 +{
-+	u64 memsized_batch;
-+	s32 nr = num_present_cpus();
-+	s32 batch = max_t(s32, nr*2, 32);
++	struct request_queue *q = bdev_get_queue(si->bdev);
 +
-+	/* batch size set to 0.4% of (total memory/#cpus), or max int32 */
-+	memsized_batch = min_t(u64, (totalram_pages/nr)/256, 0x7fffffff);
++	if (!q || !blk_queue_discard(q))
++		return false;
 +
-+	vm_committed_as_batch = max_t(s32, memsized_batch, batch);
++	return true;
 +}
 +
-+static int __meminit mm_compute_batch_notifier(struct notifier_block *self,
-+					unsigned long action, void *arg)
-+{
-+	switch (action) {
-+	case MEM_ONLINE:
-+	case MEM_OFFLINE:
-+		mm_compute_batch();
-+	default:
-+		break;
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block compute_batch_nb __meminitdata = {
-+	.notifier_call = mm_compute_batch_notifier,
-+	.priority = IPC_CALLBACK_PRI, /* use lowest priority */
-+};
-+
-+static int __init mm_compute_batch_init(void)
-+{
-+	mm_compute_batch();
-+	register_hotmemory_notifier(&compute_batch_nb);
-+
-+	return 0;
-+}
-+
-+__initcall(mm_compute_batch_init);
-+
-+#endif
-+
- static int __init mm_sysfs_init(void)
+ SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
  {
- 	mm_kobj = kobject_create_and_add("mm", kernel_kobj);
+ 	struct swap_info_struct *p;
+@@ -2123,8 +2137,37 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 			p->flags |= SWP_SOLIDSTATE;
+ 			p->cluster_next = 1 + (prandom_u32() % p->highest_bit);
+ 		}
+-		if ((swap_flags & SWAP_FLAG_DISCARD) && discard_swap(p) == 0)
+-			p->flags |= SWP_DISCARDABLE;
++
++		if ((swap_flags & SWAP_FLAG_DISCARD) && swap_discardable(p)) {
++			/*
++			 * When discard is enabled for swap with no particular
++			 * policy flagged, we set all swap discard flags here in
++			 * order to sustain backward compatibility with older
++			 * swapon(8) releases.
++			 */
++			p->flags |= (SWP_DISCARDABLE | SWP_AREA_DISCARD |
++				     SWP_PAGE_DISCARD);
++
++			/*
++			 * By flagging sys_swapon, a sysadmin can tell us to
++			 * either do single-time area discards only, or to just
++			 * perform discards for released swap page-clusters.
++			 * Now it's time to adjust the p->flags accordingly.
++			 */
++			if (swap_flags & SWAP_FLAG_DISCARD_ONCE)
++				p->flags &= ~SWP_PAGE_DISCARD;
++			else if (swap_flags & SWAP_FLAG_DISCARD_PAGES)
++				p->flags &= ~SWP_AREA_DISCARD;
++
++			/* issue a swapon-time discard if it's still required */
++			if (p->flags & SWP_AREA_DISCARD) {
++				int err = discard_swap(p);
++				if (unlikely(err))
++					printk(KERN_ERR
++					       "swapon: discard_swap(%p): %d\n",
++						p, err);
++			}
++		}
+ 	}
+ 
+ 	mutex_lock(&swapon_mutex);
+@@ -2135,11 +2178,13 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	enable_swap_info(p, prio, swap_map, frontswap_map);
+ 
+ 	printk(KERN_INFO "Adding %uk swap on %s.  "
+-			"Priority:%d extents:%d across:%lluk %s%s%s\n",
++			"Priority:%d extents:%d across:%lluk %s%s%s%s%s\n",
+ 		p->pages<<(PAGE_SHIFT-10), name->name, p->prio,
+ 		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
+ 		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
+ 		(p->flags & SWP_DISCARDABLE) ? "D" : "",
++		(p->flags & SWP_AREA_DISCARD) ? "s" : "",
++		(p->flags & SWP_PAGE_DISCARD) ? "c" : "",
+ 		(frontswap_map) ? "FS" : "");
+ 
+ 	mutex_unlock(&swapon_mutex);
 _
 
-Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
 origin.patch
+linux-next.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
