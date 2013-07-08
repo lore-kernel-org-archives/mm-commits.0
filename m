@@ -1,121 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-pps-clients-pps-gpioc-convert-to-devm_-helpers.patch removed from
- -mm tree
-Date: Mon, 08 Jul 2013 12:37:06 -0700
-Message-ID: <51db14e2.ayFVFwVXjgH0gFHP%akpm@linux-foundation.org>
+Subject: [merged] drivers-parport-use-kzalloc.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:37:04 -0700
+Message-ID: <51db14e0.h6xFPD4kC9xuDrhI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51751 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51749 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752510Ab3GHThG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:37:06 -0400
+	with ESMTP id S1752510Ab3GHThE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:37:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, giometti@enneenne.com, jlu@pengutronix.de
+To: mm-commits@vger.kernel.org, gheorghiuandru@gmail.com
 
-Subject: [merged] drivers-pps-clients-pps-gpioc-convert-to-devm_-helpers.patch removed from -mm tree
-To: jlu@pengutronix.de,giometti@enneenne.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-parport-use-kzalloc.patch removed from -mm tree
+To: gheorghiuandru@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:37:06 -0700
+Date: Mon, 08 Jul 2013 12:37:04 -0700
 
 
 The patch titled
-     Subject: drivers/pps/clients/pps-gpio.c: convert to devm_* helpers
+     Subject: drivers/parport/share.c: use kzalloc
 has been removed from the -mm tree.  Its filename was
-     drivers-pps-clients-pps-gpioc-convert-to-devm_-helpers.patch
+     drivers-parport-use-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Luebbe <jlu@pengutronix.de>
-Subject: drivers/pps/clients/pps-gpio.c: convert to devm_* helpers
+From: Alexandru Gheorghiu <gheorghiuandru@gmail.com>
+Subject: drivers/parport/share.c: use kzalloc
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Replaced calls to kmalloc and memset with kzalloc.
+Patch found using coccinelle.
+
+Signed-off-by: Alexandru Gheorghiu <gheorghiuandru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-gpio.c |   28 +++++++---------------------
- 1 file changed, 7 insertions(+), 21 deletions(-)
+ drivers/parport/share.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/pps/clients/pps-gpio.c~drivers-pps-clients-pps-gpioc-convert-to-devm_-helpers drivers/pps/clients/pps-gpio.c
---- a/drivers/pps/clients/pps-gpio.c~drivers-pps-clients-pps-gpioc-convert-to-devm_-helpers
-+++ a/drivers/pps/clients/pps-gpio.c
-@@ -74,7 +74,7 @@ static int pps_gpio_setup(struct platfor
- 	int ret;
- 	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
+diff -puN drivers/parport/share.c~drivers-parport-use-kzalloc drivers/parport/share.c
+--- a/drivers/parport/share.c~drivers-parport-use-kzalloc
++++ a/drivers/parport/share.c
+@@ -282,14 +282,13 @@ struct parport *parport_register_port(un
+ 	int device;
+ 	char *name;
  
--	ret = gpio_request(pdata->gpio_pin, pdata->gpio_label);
-+	ret = devm_gpio_request(&pdev->dev, pdata->gpio_pin, pdata->gpio_label);
- 	if (ret) {
- 		pr_warning("failed to request GPIO %u\n", pdata->gpio_pin);
- 		return -EINVAL;
-@@ -83,7 +83,6 @@ static int pps_gpio_setup(struct platfor
- 	ret = gpio_direction_input(pdata->gpio_pin);
- 	if (ret) {
- 		pr_warning("failed to set pin direction\n");
--		gpio_free(pdata->gpio_pin);
- 		return -EINVAL;
+-	tmp = kmalloc(sizeof(struct parport), GFP_KERNEL);
++	tmp = kzalloc(sizeof(struct parport), GFP_KERNEL);
+ 	if (!tmp) {
+ 		printk(KERN_WARNING "parport: memory squeeze\n");
+ 		return NULL;
  	}
  
-@@ -109,7 +108,6 @@ static int pps_gpio_probe(struct platfor
- 	struct pps_gpio_device_data *data;
- 	int irq;
- 	int ret;
--	int err;
- 	int pps_default_params;
- 	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
- 
-@@ -123,17 +121,14 @@ static int pps_gpio_probe(struct platfor
- 	irq = gpio_to_irq(pdata->gpio_pin);
- 	if (irq < 0) {
- 		pr_err("failed to map GPIO to IRQ: %d\n", irq);
--		err = -EINVAL;
--		goto return_error;
-+		return -EINVAL;
- 	}
- 
- 	/* allocate space for device info */
- 	data = devm_kzalloc(&pdev->dev, sizeof(struct pps_gpio_device_data),
- 			    GFP_KERNEL);
--	if (data == NULL) {
--		err = -ENOMEM;
--		goto return_error;
--	}
-+	if (data == NULL)
-+		return -ENOMEM;
- 
- 	/* initialize PPS specific parts of the bookkeeping data structure. */
- 	data->info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
-@@ -152,41 +147,32 @@ static int pps_gpio_probe(struct platfor
- 	data->pps = pps_register_source(&data->info, pps_default_params);
- 	if (data->pps == NULL) {
- 		pr_err("failed to register IRQ %d as PPS source\n", irq);
--		err = -EINVAL;
--		goto return_error;
-+		return -EINVAL;
- 	}
- 
- 	data->irq = irq;
- 	data->pdata = pdata;
- 
- 	/* register IRQ interrupt handler */
--	ret = request_irq(irq, pps_gpio_irq_handler,
-+	ret = devm_request_irq(&pdev->dev, irq, pps_gpio_irq_handler,
- 			get_irqf_trigger_flags(pdata), data->info.name, data);
- 	if (ret) {
- 		pps_unregister_source(data->pps);
- 		pr_err("failed to acquire IRQ %d\n", irq);
--		err = -EINVAL;
--		goto return_error;
-+		return -EINVAL;
- 	}
- 
- 	platform_set_drvdata(pdev, data);
- 	dev_info(data->pps->dev, "Registered IRQ %d as PPS source\n", irq);
- 
- 	return 0;
+ 	/* Init our structure */
+- 	memset(tmp, 0, sizeof(struct parport));
+ 	tmp->base = base;
+ 	tmp->irq = irq;
+ 	tmp->dma = dma;
+_
+
+Patches currently in -mm which might be from gheorghiuandru@gmail.com are
+
+origin.patch
+
