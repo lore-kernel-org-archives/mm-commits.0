@@ -1,109 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 12:25:52 -0700
-Message-ID: <51db1240.c5iQPt3FYdEGtJVF%akpm__40378.1474604786$1373311566$gmane$org@linux-foundation.org>
+ mm-hugetlb-use-already-exist-interface-huge_page_shift.patch removed from
+ -mm tree
+Date: Mon, 08 Jul 2013 12:25:58 -0700
+Message-ID: <51db1246.ZJPwmzsZpBBeoR7z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab3GHTZx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:53 -0400
+	with ESMTP id S1752524Ab3GHTZ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:25:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, benh@kernel.crashing.org, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch removed from -mm tree
-To: liwanp@linux.vnet.ibm.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-hugetlb-use-already-exist-interface-huge_page_shift.patch removed from -mm tree
+To: liwanp@linux.vnet.ibm.com,benh@kernel.crashing.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:25:52 -0700
+Date: Mon, 08 Jul 2013 12:25:58 -0700
 
 
 The patch titled
-     Subject: mm/memory-hotplug: fix lowmem count overflow when offline pages
+     Subject: mm/hugetlb: use already existing interface huge_page_shift
 has been removed from the -mm tree.  Its filename was
-     mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+     mm-hugetlb-use-already-exist-interface-huge_page_shift.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/memory-hotplug: fix lowmem count overflow when offline pages
+Subject: mm/hugetlb: use already existing interface huge_page_shift
 
-Logic memory-remove code fails to correctly account the Total High Memory
-when a memory block which contains High Memory is offlined as shown in the
-example below.  The following patch fixes it.
+Use the already existing interface huge_page_shift instead of h->order +
+PAGE_SHIFT.
 
-Before logic memory remove:
-
-MemTotal:        7603740 kB
-MemFree:         6329612 kB
-Buffers:           94352 kB
-Cached:           872008 kB
-SwapCached:            0 kB
-Active:           626932 kB
-Inactive:         519216 kB
-Active(anon):     180776 kB
-Inactive(anon):   222944 kB
-Active(file):     446156 kB
-Inactive(file):   296272 kB
-Unevictable:           0 kB
-Mlocked:               0 kB
-HighTotal:       7294672 kB
-HighFree:        5704696 kB
-LowTotal:         309068 kB
-LowFree:          624916 kB
-
-After logic memory remove:
-
-MemTotal:        7079452 kB
-MemFree:         5805976 kB
-Buffers:           94372 kB
-Cached:           872000 kB
-SwapCached:            0 kB
-Active:           626936 kB
-Inactive:         519236 kB
-Active(anon):     180780 kB
-Inactive(anon):   222944 kB
-Active(file):     446156 kB
-Inactive(file):   296292 kB
-Unevictable:           0 kB
-Mlocked:               0 kB
-HighTotal:       7294672 kB
-HighFree:        5181024 kB
-LowTotal:       4294752076 kB
-LowFree:          624952 kB
-
-[mhocko@suse.cz: fix CONFIG_HIGHMEM=n build]
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[2.6.24+]
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/powerpc/mm/hugetlbpage.c |    2 +-
+ mm/hugetlb.c                  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages
-+++ a/mm/page_alloc.c
-@@ -6185,6 +6185,10 @@ __offline_isolated_pages(unsigned long s
- 		list_del(&page->lru);
- 		rmv_page_order(page);
- 		zone->free_area[order].nr_free--;
-+#ifdef CONFIG_HIGHMEM
-+		if (PageHighMem(page))
-+			totalhigh_pages -= 1 << order;
-+#endif
- 		for (i = 0; i < (1 << order); i++)
- 			SetPageReserved((page+i));
- 		pfn += (1 << order);
+diff -puN arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-use-already-exist-interface-huge_page_shift arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-use-already-exist-interface-huge_page_shift
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -357,7 +357,7 @@ void add_gpage(u64 addr, u64 page_size,
+ int alloc_bootmem_huge_page(struct hstate *hstate)
+ {
+ 	struct huge_bootmem_page *m;
+-	int idx = shift_to_mmu_psize(hstate->order + PAGE_SHIFT);
++	int idx = shift_to_mmu_psize(huge_page_shift(hstate));
+ 	int nr_gpages = gpage_freearray[idx].nr_gpages;
+ 
+ 	if (nr_gpages == 0)
+diff -puN mm/hugetlb.c~mm-hugetlb-use-already-exist-interface-huge_page_shift mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-use-already-exist-interface-huge_page_shift
++++ a/mm/hugetlb.c
+@@ -319,7 +319,7 @@ unsigned long vma_kernel_pagesize(struct
+ 
+ 	hstate = hstate_vma(vma);
+ 
+-	return 1UL << (hstate->order + PAGE_SHIFT);
++	return 1UL << huge_page_shift(hstate);
+ }
+ EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
+ 
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
