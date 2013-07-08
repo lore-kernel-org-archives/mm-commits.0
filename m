@@ -1,157 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:33:16 -0700
-Message-ID: <51db13fc.9IHDPhIEZNFfkUUq%akpm@linux-foundation.org>
+ rtc-add-ability-to-push-out-an-existing-wakealarm-using-sysfs.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:33:18 -0700
+Message-ID: <51db13fe.5MTaDuC8iAiT4RQy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51206 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51210 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379Ab3GHTdR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:33:17 -0400
+	with ESMTP id S1752379Ab3GHTdT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lars@metafoo.de, john.stultz@linaro.org, jkosina@suse.cz, jic23@cam.ac.uk, jg1.han@samsung.com, a.zummo@towertech.it, holler@ahsoftware.de
+To: mm-commits@vger.kernel.org, rjw@sisk.pl, dianders@chromium.org, a.zummo@towertech.it, bhthompson@chromium.org
 
-Subject: [merged] rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes.patch removed from -mm tree
-To: holler@ahsoftware.de,a.zummo@towertech.it,jg1.han@samsung.com,jic23@cam.ac.uk,jkosina@suse.cz,john.stultz@linaro.org,lars@metafoo.de,mm-commits@vger.kernel.org
+Subject: [merged] rtc-add-ability-to-push-out-an-existing-wakealarm-using-sysfs.patch removed from -mm tree
+To: bhthompson@chromium.org,a.zummo@towertech.it,dianders@chromium.org,rjw@sisk.pl,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:33:16 -0700
+Date: Mon, 08 Jul 2013 12:33:18 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-hid-sensor-time: allow 16 and 32 bit values for all attributes.
+     Subject: rtc: add ability to push out an existing wakealarm using sysfs
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes.patch
+     rtc-add-ability-to-push-out-an-existing-wakealarm-using-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: rtc: rtc-hid-sensor-time: allow 16 and 32 bit values for all attributes.
+From: Bernie Thompson <bhthompson@chromium.org>
+Subject: rtc: add ability to push out an existing wakealarm using sysfs
 
-There is no real reason to not support 16 or 32 bit values too.
+This adds the ability for the rtc sysfs code to handle += characters at
+the beginning of a wakealarm setting string.  This will allow the user to
+attempt to push out an existing wakealarm by a provided amount.
 
-Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+In the case that the += characters are provided but the alarm is not
+active -EINVAL is returned.
+
+his is useful, at least for my purposes in suspend/resume testing.  The
+basic test goes something like:
+
+1. Set a wake alarm from userspace 5 seconds in the future
+
+2. Start the suspend process (echo mem > /sys/power/state)
+
+3. After ~2.5 seconds if userspace is still running (using another
+   thread to check this), move the wake alarm 5 more seconds
+
+If the "move" involves an unset of the wakealarm then there's a period
+   of time where the system is midway through suspending but has no wake
+   alarm.  It will get stuck.
+
+We'd rather not remove the "move" since the idea is to avoid a
+cancelled suspend when the alarm fires _during_ suspend.  It is
+difficult for the test to tell the difference between a suspend that
+was cancelled because the alarm fired too early and a suspend that was
+
+Signed-off-by: Bernie Thompson <bhthompson@chromium.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hid-sensor-time.c |   59 +++++++++++++++-------------
- 1 file changed, 32 insertions(+), 27 deletions(-)
+ Documentation/rtc.txt   |    7 ++++---
+ drivers/rtc/rtc-sysfs.c |   20 +++++++++++++++-----
+ 2 files changed, 19 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes drivers/rtc/rtc-hid-sensor-time.c
---- a/drivers/rtc/rtc-hid-sensor-time.c~rtc-rtc-hid-sensor-time-allow-16-and-32-bit-values-for-all-attributes
-+++ a/drivers/rtc/rtc-hid-sensor-time.c
-@@ -76,6 +76,20 @@ static int hid_time_proc_event(struct hi
- 	return 0;
- }
+diff -puN Documentation/rtc.txt~rtc-add-ability-to-push-out-an-existing-wakealarm-using-sysfs Documentation/rtc.txt
+--- a/Documentation/rtc.txt~rtc-add-ability-to-push-out-an-existing-wakealarm-using-sysfs
++++ a/Documentation/rtc.txt
+@@ -153,9 +153,10 @@ since_epoch:	 The number of seconds sinc
+ time:		 RTC-provided time
+ wakealarm:	 The time at which the clock will generate a system wakeup
+ 		 event. This is a one shot wakeup event, so must be reset
+-		 after wake if a daily wakeup is required. Format is either
+-		 seconds since the epoch or, if there's a leading +, seconds
+-		 in the future.
++		 after wake if a daily wakeup is required. Format is seconds since
++		 the epoch by default, or if there's a leading +, seconds in the
++		 future, or if there is a leading +=, seconds ahead of the current
++		 alarm.
  
-+static u32 hid_time_value(size_t raw_len, char *raw_data)
-+{
-+	switch (raw_len) {
-+	case 1:
-+		return *(u8 *)raw_data;
-+	case 2:
-+		return *(u16 *)raw_data;
-+	case 4:
-+		return *(u32 *)raw_data;
-+	default:
-+		return (u32)(~0U); /* 0xff... or -1 to denote an error */
-+	}
-+}
-+
- static int hid_time_capture_sample(struct hid_sensor_hub_device *hsdev,
- 				unsigned usage_id, size_t raw_len,
- 				char *raw_data, void *priv)
-@@ -85,29 +99,35 @@ static int hid_time_capture_sample(struc
- 
- 	switch (usage_id) {
- 	case HID_USAGE_SENSOR_TIME_YEAR:
-+		/*
-+		 * The draft for HID-sensors (HUTRR39) currently doesn't define
-+		 * the range for the year attribute. Therefor we support
-+		 * 8 bit (0-99) and 16 or 32 bits (full) as size for the year.
-+		 */
- 		if (raw_len == 1) {
- 			time_buf->tm_year = *(u8 *)raw_data;
- 			if (time_buf->tm_year < 70)
- 				/* assume we are in 1970...2069 */
- 				time_buf->tm_year += 100;
- 		} else
--			time_buf->tm_year = *(u16 *)raw_data-1900;
-+			time_buf->tm_year =
-+				(int)hid_time_value(raw_len, raw_data)-1900;
- 		break;
- 	case HID_USAGE_SENSOR_TIME_MONTH:
--		/* sensor sending the month as 1-12, we need 0-11 */
--		time_buf->tm_mon = *(u8 *)raw_data-1;
-+		/* sensors are sending the month as 1-12, we need 0-11 */
-+		time_buf->tm_mon = (int)hid_time_value(raw_len, raw_data)-1;
- 		break;
- 	case HID_USAGE_SENSOR_TIME_DAY:
--		time_buf->tm_mday = *(u8 *)raw_data;
-+		time_buf->tm_mday = (int)hid_time_value(raw_len, raw_data);
- 		break;
- 	case HID_USAGE_SENSOR_TIME_HOUR:
--		time_buf->tm_hour = *(u8 *)raw_data;
-+		time_buf->tm_hour = (int)hid_time_value(raw_len, raw_data);
- 		break;
- 	case HID_USAGE_SENSOR_TIME_MINUTE:
--		time_buf->tm_min = *(u8 *)raw_data;
-+		time_buf->tm_min = (int)hid_time_value(raw_len, raw_data);
- 		break;
- 	case HID_USAGE_SENSOR_TIME_SECOND:
--		time_buf->tm_sec = *(u8 *)raw_data;
-+		time_buf->tm_sec = (int)hid_time_value(raw_len, raw_data);
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -153,28 +173,13 @@ static int hid_time_parse_report(struct
- 				"not all needed attributes inside the same report!\n");
- 			return -EINVAL;
- 		}
--		if (time_state->info[i].size != 1) {
--			/*
--			 * The draft for HID-sensors (HUTRR39) currently
--			 * doesn't define the range for the year attribute.
--			 * Therefor we support both 8 bit (0-99) and 16 bit
--			 * (full) as size for the year.
--			 */
--			if (time_state->info[i].attrib_id !=
--				HID_USAGE_SENSOR_TIME_YEAR) {
--				dev_err(&pdev->dev,
--					"attribute '%s' not 8 bits wide!\n",
--				hid_time_attrib_name(
--					time_state->info[i].attrib_id));
--				return -EINVAL;
--			}
--			if (time_state->info[i].size != 2) {
--				dev_err(&pdev->dev,
--					"attribute '%s' not 8 or 16 bits wide!\n",
-+		if (time_state->info[i].size == 3 ||
-+				time_state->info[i].size > 4) {
-+			dev_err(&pdev->dev,
-+				"attribute '%s' not 8, 16 or 32 bits wide!\n",
- 				hid_time_attrib_name(
- 					time_state->info[i].attrib_id));
--				return -EINVAL;
--			}
-+			return -EINVAL;
- 		}
- 		if (time_state->info[i].units !=
- 				HID_USAGE_SENSOR_UNITS_NOT_SPECIFIED &&
-_
-
-Patches currently in -mm which might be from holler@ahsoftware.de are
-
-origin.patch
-
+ IOCTL INTERFACE
+ ---------------
+diff -puN drivers/rtc/rtc-sysfs.c~rtc-add-ability-to-push-out-an-existing-wakealarm-using-sysfs drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc-add-ability-to-push-out-an-existing-wakealarm-using-sysfs
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -164,6 +164,7 @@ rtc_sysfs_set_wakealarm(struct device *d
+ {
+ 	ssize_t retval;
+ 	unsigned long now, alarm;
++	unsigned long push = 0;
+ 	struct rtc_wkalrm alm;
+ 	struct rtc_device *rtc = to_rtc_device(dev);
+ 	char *buf_ptr;
+@@ -180,13 +181,17 @@ rtc_sysfs_set_wakealarm(struct device *d
+ 	buf_ptr = (char *)buf;
+ 	if (*buf_ptr == '+') {
+ 		buf_ptr++;
+-		adjust = 1;
++		if (*buf_ptr == '=') {
++			buf_ptr++;
++			push = 1;
++		} else
++			adjust = 1;
+ 	}
+ 	alarm = simple_strtoul(buf_ptr, NULL, 0);
+ 	if (adjust) {
+ 		alarm += now;
+ 	}
+-	if (alarm > now) {
++	if (alarm > now || push) {
+ 		/* Avoid accidentally clobbering active alarms; we can't
+ 		 * entirely prevent that here, without even the minimal
+ 		 * locking from the /dev/rtcN api.
+@@ -194,9 +199,14 @@ rtc_sysfs_set_wakealarm(struct device *d
+ 		retval = rtc_read_alarm(rtc, &alm);
+ 		if (retval < 0)
+ 			return retval;
+-		if (alm.enabled)
+-			return -EBUSY;
