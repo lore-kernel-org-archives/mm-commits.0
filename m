@@ -1,237 +1,109 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 12:26:02 -0700
-Message-ID: <51db124a.Z6WVtej0iO97OzgQ%akpm@linux-foundation.org>
+ mm-tile-use-common-help-functions-to-free-reserved-pages.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:26:12 -0700
+Message-ID: <51db1254.RRATD5HMQUbbsYSF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50649 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab3GHT0D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:03 -0400
+	with ESMTP id S1751665Ab3GHT0O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shli@kernel.org, riel@redhat.com, mel@csn.ul.ie, lwoodman@redhat.com, kzak@redhat.com, kosaki.motohiro@jp.fujitsu.com, jmoyer@redhat.com, hughd@google.com, aquini@redhat.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, wujianguo@huawei.com, will.deacon@arm.com, wency@cn.fujitsu.com, walken@google.com, tj@kernel.org, tglx@linutronix.de, tangchen@cn.fujitsu.com, sworddragon2@aol.com, rusty@rustcorp.com.au, rmk@arm.linux.org.uk, riel@redhat.com, mst@redhat.com, mingo@redhat.com, minchan@kernel.org, mel@csn.ul.ie, m.szyprowski@samsung.com, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, js1304@gmail.com, jiang.liu@huawei.com, jeremy@goop.org, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, geert@linux-m68k.org, dhowells@redhat.com, cmetcalf@tilera.com, catalin.marinas@arm.com, arnd@arndb.de, liuj97@gmail.com
 
-Subject: [merged] swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch removed from -mm tree
-To: aquini@redhat.com,hughd@google.com,jmoyer@redhat.com,kosaki.motohiro@jp.fujitsu.com,kzak@redhat.com,lwoodman@redhat.com,mel@csn.ul.ie,riel@redhat.com,shli@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-tile-use-common-help-functions-to-free-reserved-pages.patch removed from -mm tree
+To: liuj97@gmail.com,arnd@arndb.de,catalin.marinas@arm.com,cmetcalf@tilera.com,dhowells@redhat.com,geert@linux-m68k.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,jeremy@goop.org,jiang.liu@huawei.com,js1304@gmail.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,m.szyprowski@samsung.com,mel@csn.ul.ie,minchan@kernel.org,mingo@redhat.com,mst@redhat.com,riel@redhat.com,rmk@arm.linux.org.uk,rusty@rustcorp.com.au,sworddragon2@aol.com,tangchen@cn.fujitsu.com,tglx@linutronix.de,tj@kernel.org,walken@google.com,wency@cn.fujitsu.com,will.deacon@arm.com,wujianguo@huawei.com,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:26:02 -0700
+Date: Mon, 08 Jul 2013 12:26:12 -0700
 
 
 The patch titled
-     Subject: swap: discard while swapping only if SWAP_FLAG_DISCARD_PAGES
+     Subject: mm/tile: use common help functions to free reserved pages
 has been removed from the -mm tree.  Its filename was
-     swap-discard-while-swapping-only-if-swap_flag_discard_pages.patch
+     mm-tile-use-common-help-functions-to-free-reserved-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: swap: discard while swapping only if SWAP_FLAG_DISCARD_PAGES
+From: Jiang Liu <liuj97@gmail.com>
+Subject: mm/tile: use common help functions to free reserved pages
 
-Considering the use cases where the swap device supports discard:
-a) and can do it quickly;
-b) but it's slow to do in small granularities (or concurrent with other
-   I/O);
-c) but the implementation is so horrendous that you don't even want to
-   send one down;
+Use common help functions to free reserved pages.
 
-And assuming that the sysadmin considers it useful to send the discards down
-at all, we would (probably) want the following solutions:
-
-  i. do the fine-grained discards for freed swap pages, if device is 
-     capable of doing so optimally;
- ii. do single-time (batched) swap area discards, either at swapon 
-     or via something like fstrim (not implemented yet);
-iii. allow doing both single-time and fine-grained discards; or
- iv. turn it off completely (default behavior)
-
-
-As implemented today, one can only enable/disable discards for swap, but
-one cannot select, for instance, solution (ii) on a swap device like (b)
-even though the single-time discard is regarded to be interesting, or
-necessary to the workload because it would imply (1), and the device is
-not capable of performing it optimally.
-
-This patch addresses the scenario depicted above by introducing a way to
-ensure the (probably) wanted solutions (i, ii, iii and iv) can be flexibly
-flagged through swapon(8) to allow a sysadmin to select the best suitable
-swap discard policy accordingly to system constraints.
-
-
-
-This patch introduces SWAP_FLAG_DISCARD_PAGES and SWAP_FLAG_DISCARD_ONCE
-new flags to allow more flexibe swap discard policies being flagged
-through swapon(8).  The default behavior is to keep both single-time, or
-batched, area discards (SWAP_FLAG_DISCARD_ONCE) and fine-grained discards
-for page-clusters (SWAP_FLAG_DISCARD_PAGES) enabled, in order to keep
-consistentcy with older kernel behavior, as well as maintain compatibility
-with older swapon(8).  However, through the new introduced flags the best
-suitable discard policy can be selected accordingly to any given swap
-device constraint.
-
-[akpm@linux-foundation.org: tweak comments]
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: <sworddragon2@aol.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   13 ++++++---
- mm/swapfile.c        |   55 +++++++++++++++++++++++++++++++++++++----
- 2 files changed, 59 insertions(+), 9 deletions(-)
+ arch/tile/mm/init.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/swap.h~swap-discard-while-swapping-only-if-swap_flag_discard_pages include/linux/swap.h
---- a/include/linux/swap.h~swap-discard-while-swapping-only-if-swap_flag_discard_pages
-+++ a/include/linux/swap.h
-@@ -20,10 +20,13 @@ struct bio;
- #define SWAP_FLAG_PREFER	0x8000	/* set if swap priority specified */
- #define SWAP_FLAG_PRIO_MASK	0x7fff
- #define SWAP_FLAG_PRIO_SHIFT	0
--#define SWAP_FLAG_DISCARD	0x10000 /* discard swap cluster after use */
-+#define SWAP_FLAG_DISCARD	0x10000 /* enable discard for swap */
-+#define SWAP_FLAG_DISCARD_ONCE	0x20000 /* discard swap area at swapon-time */
-+#define SWAP_FLAG_DISCARD_PAGES 0x40000 /* discard page-clusters after use */
- 
- #define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
--				 SWAP_FLAG_DISCARD)
-+				 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
-+				 SWAP_FLAG_DISCARD_PAGES)
- 
- static inline int current_is_kswapd(void)
- {
-@@ -147,14 +150,16 @@ struct swap_extent {
- enum {
- 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
- 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
--	SWP_DISCARDABLE = (1 << 2),	/* swapon+blkdev support discard */
-+	SWP_DISCARDABLE = (1 << 2),	/* blkdev support discard */
- 	SWP_DISCARDING	= (1 << 3),	/* now discarding a free cluster */
- 	SWP_SOLIDSTATE	= (1 << 4),	/* blkdev seeks are cheap */
- 	SWP_CONTINUED	= (1 << 5),	/* swap_map has count continuation */
- 	SWP_BLKDEV	= (1 << 6),	/* its a block device */
- 	SWP_FILE	= (1 << 7),	/* set after swap_activate success */
-+	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
-+	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
- 					/* add others here before... */
--	SWP_SCANNING	= (1 << 8),	/* refcount in scan_swap_map */
-+	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
- };
- 
- #define SWAP_CLUSTER_MAX 32UL
-diff -puN mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages mm/swapfile.c
---- a/mm/swapfile.c~swap-discard-while-swapping-only-if-swap_flag_discard_pages
-+++ a/mm/swapfile.c
-@@ -212,7 +212,7 @@ static unsigned long scan_swap_map(struc
- 			si->cluster_nr = SWAPFILE_CLUSTER - 1;
- 			goto checks;
+diff -puN arch/tile/mm/init.c~mm-tile-use-common-help-functions-to-free-reserved-pages arch/tile/mm/init.c
+--- a/arch/tile/mm/init.c~mm-tile-use-common-help-functions-to-free-reserved-pages
++++ a/arch/tile/mm/init.c
+@@ -720,7 +720,7 @@ static void __init init_free_pfn_range(u
  		}
--		if (si->flags & SWP_DISCARDABLE) {
-+		if (si->flags & SWP_PAGE_DISCARD) {
- 			/*
- 			 * Start range check on racing allocations, in case
- 			 * they overlap the cluster we eventually decide on
-@@ -322,7 +322,7 @@ checks:
+ 		init_page_count(page);
+ 		__free_pages(page, order);
+-		totalram_pages += count;
++		adjust_managed_page_count(page, count);
  
- 	if (si->lowest_alloc) {
- 		/*
--		 * Only set when SWP_DISCARDABLE, and there's a scan
-+		 * Only set when SWP_PAGE_DISCARD, and there's a scan
- 		 * for a free cluster in progress or just completed.
- 		 */
- 		if (found_free_cluster) {
-@@ -2016,6 +2016,20 @@ static int setup_swap_map_and_extents(st
- 	return nr_extents;
- }
- 
-+/*
-+ * Helper to sys_swapon determining if a given swap
-+ * backing device queue supports DISCARD operations.
-+ */
-+static bool swap_discardable(struct swap_info_struct *si)
-+{
-+	struct request_queue *q = bdev_get_queue(si->bdev);
-+
-+	if (!q || !blk_queue_discard(q))
-+		return false;
-+
-+	return true;
-+}
-+
- SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
- {
- 	struct swap_info_struct *p;
-@@ -2123,8 +2137,37 @@ SYSCALL_DEFINE2(swapon, const char __use
- 			p->flags |= SWP_SOLIDSTATE;
- 			p->cluster_next = 1 + (prandom_u32() % p->highest_bit);
+ 		page += count;
+ 		pfn += count;
+@@ -1024,16 +1024,13 @@ static void free_init_pages(char *what,
+ 			pte_clear(&init_mm, addr, ptep);
+ 			continue;
  		}
--		if ((swap_flags & SWAP_FLAG_DISCARD) && discard_swap(p) == 0)
--			p->flags |= SWP_DISCARDABLE;
-+
-+		if ((swap_flags & SWAP_FLAG_DISCARD) && swap_discardable(p)) {
-+			/*
-+			 * When discard is enabled for swap with no particular
-+			 * policy flagged, we set all swap discard flags here in
-+			 * order to sustain backward compatibility with older
-+			 * swapon(8) releases.
-+			 */
-+			p->flags |= (SWP_DISCARDABLE | SWP_AREA_DISCARD |
-+				     SWP_PAGE_DISCARD);
-+
-+			/*
-+			 * By flagging sys_swapon, a sysadmin can tell us to
-+			 * either do single-time area discards only, or to just
-+			 * perform discards for released swap page-clusters.
-+			 * Now it's time to adjust the p->flags accordingly.
-+			 */
-+			if (swap_flags & SWAP_FLAG_DISCARD_ONCE)
-+				p->flags &= ~SWP_PAGE_DISCARD;
-+			else if (swap_flags & SWAP_FLAG_DISCARD_PAGES)
-+				p->flags &= ~SWP_AREA_DISCARD;
-+
-+			/* issue a swapon-time discard if it's still required */
-+			if (p->flags & SWP_AREA_DISCARD) {
-+				int err = discard_swap(p);
-+				if (unlikely(err))
-+					printk(KERN_ERR
-+					       "swapon: discard_swap(%p): %d\n",
-+						p, err);
-+			}
-+		}
+-		__ClearPageReserved(page);
+-		init_page_count(page);
+ 		if (pte_huge(*ptep))
+ 			BUG_ON(!kdata_huge);
+ 		else
+ 			set_pte_at(&init_mm, addr, ptep,
+ 				   pfn_pte(pfn, PAGE_KERNEL));
+ 		memset((void *)addr, POISON_FREE_INITMEM, PAGE_SIZE);
+-		free_page(addr);
+-		totalram_pages++;
++		free_reserved_page(page);
  	}
- 
- 	mutex_lock(&swapon_mutex);
-@@ -2135,11 +2178,13 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	enable_swap_info(p, prio, swap_map, frontswap_map);
- 
- 	printk(KERN_INFO "Adding %uk swap on %s.  "
--			"Priority:%d extents:%d across:%lluk %s%s%s\n",
-+			"Priority:%d extents:%d across:%lluk %s%s%s%s%s\n",
- 		p->pages<<(PAGE_SHIFT-10), name->name, p->prio,
- 		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
- 		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
- 		(p->flags & SWP_DISCARDABLE) ? "D" : "",
-+		(p->flags & SWP_AREA_DISCARD) ? "s" : "",
-+		(p->flags & SWP_PAGE_DISCARD) ? "c" : "",
- 		(frontswap_map) ? "FS" : "");
- 
- 	mutex_unlock(&swapon_mutex);
+ 	pr_info("Freeing %s: %ldk freed\n", what, (end - begin) >> 10);
+ }
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from liuj97@gmail.com are
 
 origin.patch
 linux-next.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
