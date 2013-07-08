@@ -1,44 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-tsi721-convert-to-modular-mport-driver.patch
- removed from -mm tree
-Date: Mon, 08 Jul 2013 12:36:41 -0700
-Message-ID: <51db14c9.fseRzq1nXvjbnvNg%akpm@linux-foundation.org>
+Subject: [merged]
+ rapidio-add-modular-build-option-for-the-subsystem-core.patch removed from
+ -mm tree
+Date: Mon, 08 Jul 2013 12:36:43 -0700
+Message-ID: <51db14cb.Xx7fTQkB2KAUvkPE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3GHTgm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:42 -0400
+	with ESMTP id S1752613Ab3GHTgo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stef.van.os@Prodrive.nl, mporter@kernel.crashing.org, micha.nelissen@Prodrive.nl, leoli@freescale.com, jdelvare@suse.de, galak@kernel.crashing.org, andre.van.herk@Prodrive.nl, alexandre.bounine@idt.com
 
-Subject: [merged] rapidio-tsi721-convert-to-modular-mport-driver.patch removed from -mm tree
+Subject: [merged] rapidio-add-modular-build-option-for-the-subsystem-core.patch removed from -mm tree
 To: alexandre.bounine@idt.com,andre.van.herk@Prodrive.nl,galak@kernel.crashing.org,jdelvare@suse.de,leoli@freescale.com,micha.nelissen@Prodrive.nl,mporter@kernel.crashing.org,stef.van.os@Prodrive.nl,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:41 -0700
+Date: Mon, 08 Jul 2013 12:36:43 -0700
 
 
 The patch titled
-     Subject: rapidio/tsi721: convert to modular mport driver
+     Subject: rapidio: add modular build option for the subsystem core
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-convert-to-modular-mport-driver.patch
+     rapidio-add-modular-build-option-for-the-subsystem-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: convert to modular mport driver
+Subject: rapidio: add modular build option for the subsystem core
 
-This patch adds an option to build device driver for Tsi721 PCIe-to-SRIO
-bridge device as a kernel module.
+Add a configuration option to build RapidIO subsystem core code as a
+loadable kernel module.  Currently this option is available only for
+x86-based platforms, with the additional patch for PowerPC planned to be
+provided later.
 
-Currently this module cannot be unloaded because the existing RapidIO
-subsystem code does not support dynamic removal of local RapidIO
-controllers (TODO).
+This patch replaces kernel command line parameter "riohdid=" with its
+module-specific analog "rapidio.hdid=".
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -51,46 +53,92 @@ Cc: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/Kconfig  |    2 +-
- drivers/rapidio/devices/Makefile |    7 +++----
- drivers/rapidio/devices/tsi721.c |    9 ++++-----
- drivers/rapidio/rio.c            |    1 +
- 4 files changed, 9 insertions(+), 10 deletions(-)
+ arch/x86/Kconfig         |    4 ++--
+ drivers/rapidio/Makefile |    4 +++-
+ drivers/rapidio/rio.c    |   27 ++++++++++++++-------------
+ 3 files changed, 19 insertions(+), 16 deletions(-)
 
-diff -puN drivers/rapidio/devices/Kconfig~rapidio-tsi721-convert-to-modular-mport-driver drivers/rapidio/devices/Kconfig
---- a/drivers/rapidio/devices/Kconfig~rapidio-tsi721-convert-to-modular-mport-driver
-+++ a/drivers/rapidio/devices/Kconfig
-@@ -3,7 +3,7 @@
- #
+diff -puN arch/x86/Kconfig~rapidio-add-modular-build-option-for-the-subsystem-core arch/x86/Kconfig
+--- a/arch/x86/Kconfig~rapidio-add-modular-build-option-for-the-subsystem-core
++++ a/arch/x86/Kconfig
+@@ -2259,11 +2259,11 @@ source "drivers/pcmcia/Kconfig"
+ source "drivers/pci/hotplug/Kconfig"
  
- config RAPIDIO_TSI721
--	bool "IDT Tsi721 PCI Express SRIO Controller support"
-+	tristate "IDT Tsi721 PCI Express SRIO Controller support"
- 	depends on RAPIDIO && PCIEPORTBUS
- 	default "n"
- 	---help---
-diff -puN drivers/rapidio/devices/Makefile~rapidio-tsi721-convert-to-modular-mport-driver drivers/rapidio/devices/Makefile
---- a/drivers/rapidio/devices/Makefile~rapidio-tsi721-convert-to-modular-mport-driver
-+++ a/drivers/rapidio/devices/Makefile
-@@ -2,7 +2,6 @@
- # Makefile for RapidIO devices
- #
+ config RAPIDIO
+-	bool "RapidIO support"
++	tristate "RapidIO support"
+ 	depends on PCI
+ 	default n
+ 	help
+-	  If you say Y here, the kernel will include drivers and
++	  If enabled this option will include drivers and the core
+ 	  infrastructure code to support RapidIO interconnect devices.
  
--obj-$(CONFIG_RAPIDIO_TSI721)	+= tsi721.o
--ifeq ($(CONFIG_RAPIDIO_DMA_ENGINE),y)
--obj-$(CONFIG_RAPIDIO_TSI721)	+= tsi721_dma.o
--endif
-+obj-$(CONFIG_RAPIDIO_TSI721)	+= tsi721_mport.o
-+tsi721_mport-y			:= tsi721.o
-+tsi721_mport-$(CONFIG_RAPIDIO_DMA_ENGINE) += tsi721_dma.o
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-convert-to-modular-mport-driver drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-convert-to-modular-mport-driver
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2515,9 +2515,8 @@ static int __init tsi721_init(void)
- 	return pci_register_driver(&tsi721_driver);
+ source "drivers/rapidio/Kconfig"
+diff -puN drivers/rapidio/Makefile~rapidio-add-modular-build-option-for-the-subsystem-core drivers/rapidio/Makefile
+--- a/drivers/rapidio/Makefile~rapidio-add-modular-build-option-for-the-subsystem-core
++++ a/drivers/rapidio/Makefile
+@@ -1,7 +1,9 @@
+ #
+ # Makefile for RapidIO interconnect services
+ #
+-obj-y += rio.o rio-access.o rio-driver.o rio-sysfs.o
++obj-$(CONFIG_RAPIDIO) += rapidio.o
++rapidio-y := rio.o rio-access.o rio-driver.o rio-sysfs.o
++
+ obj-$(CONFIG_RAPIDIO_ENUM_BASIC) += rio-scan.o
+ 
+ obj-$(CONFIG_RAPIDIO)		+= switches/
+diff -puN drivers/rapidio/rio.c~rapidio-add-modular-build-option-for-the-subsystem-core drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-add-modular-build-option-for-the-subsystem-core
++++ a/drivers/rapidio/rio.c
+@@ -5,7 +5,7 @@
+  * Copyright 2005 MontaVista Software, Inc.
+  * Matt Porter <mporter@kernel.crashing.org>
+  *
+- * Copyright 2009 Integrated Device Technology, Inc.
++ * Copyright 2009 - 2013 Integrated Device Technology, Inc.
+  * Alex Bounine <alexandre.bounine@idt.com>
+  *
+  * This program is free software; you can redistribute  it and/or modify it
+@@ -30,6 +30,17 @@
+ 
+ #include "rio.h"
+ 
++MODULE_DESCRIPTION("RapidIO Subsystem Core");
++MODULE_AUTHOR("Matt Porter <mporter@kernel.crashing.org>");
++MODULE_AUTHOR("Alexandre Bounine <alexandre.bounine@idt.com>");
++MODULE_LICENSE("GPL");
++
++static int hdid[RIO_MAX_MPORTS];
++static int ids_num;
++module_param_array(hdid, int, &ids_num, 0);
++MODULE_PARM_DESC(hdid,
++	"Destination ID assignment to local RapidIO controllers");
++
+ static LIST_HEAD(rio_devices);
+ static DEFINE_SPINLOCK(rio_global_list_lock);
+ 
+@@ -1860,24 +1871,14 @@ no_disc:
+ 	return 0;
  }
  
--static void __exit tsi721_exit(void)
--{
--	pci_unregister_driver(&tsi721_driver);
+-static int hdids[RIO_MAX_MPORTS + 1];
+-
+ static int rio_get_hdid(int index)
+ {
+-	if (!hdids[0] || hdids[0] <= index || index >= RIO_MAX_MPORTS)
++	if (ids_num == 0 || ids_num <= index || index >= RIO_MAX_MPORTS)
+ 		return -1;
+ 
+-	return hdids[index + 1];
 -}
+-
+-static int rio_hdid_setup(char *str)
+-{
+-	(void)get_options(str, ARRAY_SIZE(hdids), hdids);
+-	return 1;
++	return hdid[index];
+ }
+ 
+-__setup("riohdid=", rio_hdid_setup);
