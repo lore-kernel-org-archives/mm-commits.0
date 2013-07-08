@@ -1,133 +1,146 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- tile-normalize-global-variables-exported-by-vmlinuxlds.patch removed from
+ uml-normalize-global-variables-exported-by-vmlinuxlds.patch removed from
  -mm tree
-Date: Mon, 08 Jul 2013 12:26:44 -0700
-Message-ID: <51db1274.ZUfNZHyfe+MlfZcQ%akpm@linux-foundation.org>
+Date: Mon, 08 Jul 2013 12:26:46 -0700
+Message-ID: <51db1276.oPvlmm/Cv/iwH5JB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50846 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753048Ab3GHT0p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:45 -0400
+	with ESMTP id S1753020Ab3GHT0r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wency@cn.fujitsu.com, rusty@rustcorp.com.au, jiang.liu@huawei.com, dhowells@redhat.com, davem@davemloft.net, cmetcalf@tilera.com, bhelgaas@google.com, liuj97@gmail.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, richard@nod.at, jiang.liu@huawei.com, jdike@addtoit.com, liuj97@gmail.com
 
-Subject: [merged] tile-normalize-global-variables-exported-by-vmlinuxlds.patch removed from -mm tree
-To: liuj97@gmail.com,bhelgaas@google.com,cmetcalf@tilera.com,davem@davemloft.net,dhowells@redhat.com,jiang.liu@huawei.com,rusty@rustcorp.com.au,wency@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] uml-normalize-global-variables-exported-by-vmlinuxlds.patch removed from -mm tree
+To: liuj97@gmail.com,jdike@addtoit.com,jiang.liu@huawei.com,richard@nod.at,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:26:44 -0700
+Date: Mon, 08 Jul 2013 12:26:46 -0700
 
 
 The patch titled
-     Subject: tile: normalize global variables exported by vmlinux.lds
+     Subject: UML: normalize global variables exported by vmlinux.lds
 has been removed from the -mm tree.  Its filename was
-     tile-normalize-global-variables-exported-by-vmlinuxlds.patch
+     uml-normalize-global-variables-exported-by-vmlinuxlds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: tile: normalize global variables exported by vmlinux.lds
+Subject: UML: normalize global variables exported by vmlinux.lds
 
 Normalize global variables exported by vmlinux.lds to conform usage
 guidelines from include/asm-generic/sections.h.
 
 1) Use _text to mark the start of the kernel image including the head
 text, and _stext to mark the start of the .text section.
-2) Export mandatory global variables __init_begin and __init_end.
+2) Export mandatory global variables __bss_stop.
+3) Adjust __init_begin and __init_end to avoid acrossing .text and
+   .data sections.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/include/asm/sections.h |    2 +-
- arch/tile/kernel/setup.c         |    4 ++--
- arch/tile/kernel/vmlinux.lds.S   |    4 +++-
- arch/tile/mm/init.c              |    2 +-
- 4 files changed, 7 insertions(+), 5 deletions(-)
+ arch/um/include/asm/common.lds.S |    1 -
+ arch/um/kernel/dyn.lds.S         |    6 ++++--
+ arch/um/kernel/uml.lds.S         |    7 +++++--
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN arch/tile/include/asm/sections.h~tile-normalize-global-variables-exported-by-vmlinuxlds arch/tile/include/asm/sections.h
---- a/arch/tile/include/asm/sections.h~tile-normalize-global-variables-exported-by-vmlinuxlds
-+++ a/arch/tile/include/asm/sections.h
-@@ -34,7 +34,7 @@ extern char __sys_cmpxchg_grab_lock[];
- extern char __start_atomic_asm_code[], __end_atomic_asm_code[];
- #endif
+diff -puN arch/um/include/asm/common.lds.S~uml-normalize-global-variables-exported-by-vmlinuxlds arch/um/include/asm/common.lds.S
+--- a/arch/um/include/asm/common.lds.S~uml-normalize-global-variables-exported-by-vmlinuxlds
++++ a/arch/um/include/asm/common.lds.S
+@@ -57,7 +57,6 @@
+ 	*(.uml.initcall.init)
+ 	__uml_initcall_end = .;
+   }
+-  __init_end = .;
  
--/* Handle the discontiguity between _sdata and _stext. */
-+/* Handle the discontiguity between _sdata and _text. */
- static inline int arch_is_kernel_data(unsigned long addr)
- {
- 	return addr >= (unsigned long)_sdata &&
-diff -puN arch/tile/kernel/setup.c~tile-normalize-global-variables-exported-by-vmlinuxlds arch/tile/kernel/setup.c
---- a/arch/tile/kernel/setup.c~tile-normalize-global-variables-exported-by-vmlinuxlds
-+++ a/arch/tile/kernel/setup.c
-@@ -307,8 +307,8 @@ static void __cpuinit store_permanent_ma
- 		hv_store_mapping(addr, pages << PAGE_SHIFT, pa);
- 	}
+   SECURITY_INIT
  
--	hv_store_mapping((HV_VirtAddr)_stext,
--			 (uint32_t)(_einittext - _stext), 0);
-+	hv_store_mapping((HV_VirtAddr)_text,
-+			 (uint32_t)(_einittext - _text), 0);
- }
+diff -puN arch/um/kernel/dyn.lds.S~uml-normalize-global-variables-exported-by-vmlinuxlds arch/um/kernel/dyn.lds.S
+--- a/arch/um/kernel/dyn.lds.S~uml-normalize-global-variables-exported-by-vmlinuxlds
++++ a/arch/um/kernel/dyn.lds.S
+@@ -14,8 +14,6 @@ SECTIONS
+   __binary_start = .;
+   . = ALIGN(4096);		/* Init code and data */
+   _text = .;
+-  _stext = .;
+-  __init_begin = .;
+   INIT_TEXT_SECTION(PAGE_SIZE)
  
- /*
-diff -puN arch/tile/kernel/vmlinux.lds.S~tile-normalize-global-variables-exported-by-vmlinuxlds arch/tile/kernel/vmlinux.lds.S
---- a/arch/tile/kernel/vmlinux.lds.S~tile-normalize-global-variables-exported-by-vmlinuxlds
-+++ a/arch/tile/kernel/vmlinux.lds.S
-@@ -27,7 +27,6 @@ SECTIONS
-   .intrpt1 (LOAD_OFFSET) : AT ( 0 )   /* put at the start of physical memory */
-   {
-     _text = .;
--    _stext = .;
-     *(.intrpt1)
-   } :intrpt1 =0
- 
-@@ -36,6 +35,7 @@ SECTIONS
- 
-   /* Now the real code */
-   . = ALIGN(0x20000);
-+  _stext = .;
-   .text : AT (ADDR(.text) - LOAD_OFFSET) {
-     HEAD_TEXT
+   . = ALIGN(PAGE_SIZE);
+@@ -67,6 +65,7 @@ SECTIONS
+   } =0x90909090
+   .plt            : { *(.plt) }
+   .text           : {
++    _stext = .;
+     TEXT_TEXT
      SCHED_TEXT
-@@ -58,11 +58,13 @@ SECTIONS
-   #define LOAD_OFFSET PAGE_OFFSET
+     LOCK_TEXT
+@@ -91,7 +90,9 @@ SECTIONS
  
-   . = ALIGN(PAGE_SIZE);
+   #include <asm/common.lds.S>
+ 
 +  __init_begin = .;
-   VMLINUX_SYMBOL(_sinitdata) = .;
-   INIT_DATA_SECTION(16) :data =0
-   PERCPU_SECTION(L2_CACHE_BYTES)
-   . = ALIGN(PAGE_SIZE);
-   VMLINUX_SYMBOL(_einitdata) = .;
+   init.data : { INIT_DATA }
 +  __init_end = .;
  
-   _sdata = .;                   /* Start of data section */
+   /* Ensure the __preinit_array_start label is properly aligned.  We
+      could instead move the label definition inside the section, but
+@@ -155,6 +156,7 @@ SECTIONS
+    . = ALIGN(32 / 8);
+   . = ALIGN(32 / 8);
+   }
++   __bss_stop = .;
+   _end = .;
+   PROVIDE (end = .);
  
-diff -puN arch/tile/mm/init.c~tile-normalize-global-variables-exported-by-vmlinuxlds arch/tile/mm/init.c
---- a/arch/tile/mm/init.c~tile-normalize-global-variables-exported-by-vmlinuxlds
-+++ a/arch/tile/mm/init.c
-@@ -562,7 +562,7 @@ static void __init kernel_physical_mappi
- 			prot = ktext_set_nocache(prot);
- 		}
+diff -puN arch/um/kernel/uml.lds.S~uml-normalize-global-variables-exported-by-vmlinuxlds arch/um/kernel/uml.lds.S
+--- a/arch/um/kernel/uml.lds.S~uml-normalize-global-variables-exported-by-vmlinuxlds
++++ a/arch/um/kernel/uml.lds.S
+@@ -20,13 +20,12 @@ SECTIONS
+   . = START + SIZEOF_HEADERS;
  
--		BUG_ON(address != (unsigned long)_stext);
-+		BUG_ON(address != (unsigned long)_text);
- 		pte = NULL;
- 		for (; address < (unsigned long)_einittext;
- 		     pfn++, address += PAGE_SIZE) {
+   _text = .;
+-  _stext = .;
+-  __init_begin = .;
+   INIT_TEXT_SECTION(0)
+   . = ALIGN(PAGE_SIZE);
+ 
+   .text      :
+   {
++    _stext = .;
+     TEXT_TEXT
+     SCHED_TEXT
+     LOCK_TEXT
+@@ -62,7 +61,10 @@ SECTIONS
+ 
+   #include <asm/common.lds.S>
+ 
++  __init_begin = .;
+   init.data : { INIT_DATA }
++  __init_end = .;
++
+   .data    :
+   {
+     INIT_TASK_DATA(KERNEL_STACK_SIZE)
+@@ -97,6 +99,7 @@ SECTIONS
+   PROVIDE(_bss_start = .);
+   SBSS(0)
+   BSS(0)
++   __bss_stop = .;
+   _end = .;
+   PROVIDE (end = .);
+ 
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
