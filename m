@@ -1,43 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-introduce-cn_vprintf.patch removed from -mm
- tree
-Date: Mon, 08 Jul 2013 12:35:47 -0700
-Message-ID: <51db1493.43gqesf8ragJana0%akpm@linux-foundation.org>
+Subject: [merged] coredump-kill-call_count-add-core_name_size.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:35:53 -0700
+Message-ID: <51db1499.7MZTtiKgOJrKIfcI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51497 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab3GHTfs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:48 -0400
+	with ESMTP id S1753211Ab3GHTfy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:35:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walters@verbum.org, vda.linux@googlemail.com, nhorman@tuxdriver.com, mzxreary@0pointer.de, lucas.de.marchi@gmail.com, jslaby@suse.cz, andi@firstfloor.org, oleg@redhat.com
 
-Subject: [merged] coredump-introduce-cn_vprintf.patch removed from -mm tree
+Subject: [merged] coredump-kill-call_count-add-core_name_size.patch removed from -mm tree
 To: oleg@redhat.com,andi@firstfloor.org,jslaby@suse.cz,lucas.de.marchi@gmail.com,mzxreary@0pointer.de,nhorman@tuxdriver.com,vda.linux@googlemail.com,walters@verbum.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:35:47 -0700
+Date: Mon, 08 Jul 2013 12:35:53 -0700
 
 
 The patch titled
-     Subject: coredump: introduce cn_vprintf()
+     Subject: coredump: kill call_count, add core_name_size
 has been removed from the -mm tree.  Its filename was
-     coredump-introduce-cn_vprintf.patch
+     coredump-kill-call_count-add-core_name_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: introduce cn_vprintf()
+Subject: coredump: kill call_count, add core_name_size
 
-Turn cn_printf(...) into cn_vprintf(va_list args), reintroduce
-cn_printf() as a trivial wrapper.
+Imho, "atomic_t call_count" is ugly and should die.  It buys nothing and
+in fact it can grow more than necessary, expand doesn't check if it was
+already incremented by another task.
 
-This simplifies the next change and cn_vprintf() will have more
-callers.
+Kill it, and introduce "static int core_name_size" updated by
+expand_corename().  This is obviously racy too but harmless, and
+core_name_size never grows for no reason.
+
+We do not bother to to calculate the "right" new size, we simply do
+kmalloc(size_we_need) and use ksize() to rely on kmalloc_index's decision.
+
+Finally change format_corename() to use expand_corename(), krealloc(NULL)
+is fine.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -50,60 +58,67 @@ Acked-by: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ fs/coredump.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN fs/coredump.c~coredump-introduce-cn_vprintf fs/coredump.c
---- a/fs/coredump.c~coredump-introduce-cn_vprintf
+diff -puN fs/coredump.c~coredump-kill-call_count-add-core_name_size fs/coredump.c
+--- a/fs/coredump.c~coredump-kill-call_count-add-core_name_size
 +++ a/fs/coredump.c
-@@ -69,17 +69,13 @@ static int expand_corename(struct core_n
+@@ -45,26 +45,28 @@
+ #include <trace/events/sched.h>
+ 
+ int core_uses_pid;
+-char core_pattern[CORENAME_MAX_SIZE] = "core";
+ unsigned int core_pipe_limit;
++char core_pattern[CORENAME_MAX_SIZE] = "core";
++static int core_name_size = CORENAME_MAX_SIZE;
+ 
+ struct core_name {
+ 	char *corename;
+ 	int used, size;
+ };
+-static atomic_t call_count = ATOMIC_INIT(1);
+ 
+ /* The maximal length of core_pattern is also specified in sysctl.c */
+ 
+-static int expand_corename(struct core_name *cn)
++static int expand_corename(struct core_name *cn, int size)
+ {
+-	int size = CORENAME_MAX_SIZE * atomic_inc_return(&call_count);
+ 	char *corename = krealloc(cn->corename, size, GFP_KERNEL);
+ 
+ 	if (!corename)
+ 		return -ENOMEM;
+ 
+-	cn->size = size;
++	if (size > core_name_size) /* racy but harmless */
++		core_name_size = size;
++
++	cn->size = ksize(corename);
+ 	cn->corename = corename;
  	return 0;
  }
+@@ -81,7 +83,7 @@ again:
+ 		return 0;
+ 	}
  
--static int cn_printf(struct core_name *cn, const char *fmt, ...)
-+static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
- {
- 	char *cur;
- 	int need;
- 	int ret;
--	va_list arg;
+-	if (!expand_corename(cn))
++	if (!expand_corename(cn, cn->size + need - free + 1))
+ 		goto again;
  
--	va_start(arg, fmt);
- 	need = vsnprintf(NULL, 0, fmt, arg);
--	va_end(arg);
--
- 	if (likely(need < cn->size - cn->used - 1))
- 		goto out_printf;
+ 	return -ENOMEM;
+@@ -160,9 +162,8 @@ static int format_corename(struct core_n
+ 	int err = 0;
  
-@@ -89,9 +85,7 @@ static int cn_printf(struct core_name *c
+ 	cn->used = 0;
+-	cn->size = CORENAME_MAX_SIZE * atomic_read(&call_count);
+-	cn->corename = kmalloc(cn->size, GFP_KERNEL);
+-	if (!cn->corename)
++	cn->corename = NULL;
++	if (expand_corename(cn, core_name_size))
+ 		return -ENOMEM;
  
- out_printf:
- 	cur = cn->corename + cn->used;
--	va_start(arg, fmt);
- 	vsnprintf(cur, need + 1, fmt, arg);
--	va_end(arg);
- 	cn->used += need;
- 	return 0;
- 
-@@ -99,6 +93,18 @@ expand_fail:
- 	return ret;
- }
- 
-+static int cn_printf(struct core_name *cn, const char *fmt, ...)
-+{
-+	va_list arg;
-+	int ret;
-+
-+	va_start(arg, fmt);
-+	ret = cn_vprintf(cn, fmt, arg);
-+	va_end(arg);
-+
-+	return ret;
-+}
-+
- static void cn_escape(char *str)
- {
- 	for (; *str; str++)
+ 	/* Repeat as long as we have more pattern to process and more output
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
