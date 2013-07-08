@@ -1,100 +1,422 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:24:29 -0700
-Message-ID: <51db11ed.no91a5LVPQ5FqWWL%akpm@linux-foundation.org>
+ mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:24:33 -0700
+Message-ID: <51db11f1.8ig1W7U9L4VFhNO0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50214 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100Ab3GHTYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:30 -0400
+	with ESMTP id S1753100Ab3GHTYe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, mgorman@suse.de, kosaki.motohiro@gmail.com, gilad@benyossef.com, cody@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
 
-Subject: [merged] mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch removed from -mm tree
-To: cody@linux.vnet.ibm.com,gilad@benyossef.com,kosaki.motohiro@gmail.com,mgorman@suse.de,penberg@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch removed from -mm tree
+To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,zcalusic@bitsync.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:24:29 -0700
+Date: Mon, 08 Jul 2013 12:24:33 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc: rename setup_pagelist_highmark() to match naming of pageset_set_batch()
+     Subject: mm: vmscan: limit the number of pages kswapd reclaims at each priority
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch.patch
+     mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: mm/page_alloc: rename setup_pagelist_highmark() to match naming of pageset_set_batch()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: limit the number of pages kswapd reclaims at each priority
 
-Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
-Cc: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pekka Enberg <penberg@kernel.org>
+This series does not fix all the current known problems with reclaim but
+it addresses one important swapping bug when there is background IO.
+
+Changelog since V3
+o Drop the slab shrink changes in light of Glaubers series and
+  discussions highlighted that there were a number of potential
+  problems with the patch.					(mel)
+o Rebased to 3.10-rc1
+
+Changelog since V2
+o Preserve ratio properly for proportional scanning		(kamezawa)
+
+Changelog since V1
+o Rename ZONE_DIRTY to ZONE_TAIL_LRU_DIRTY			(andi)
+o Reformat comment in shrink_page_list				(andi)
+o Clarify some comments						(dhillf)
+o Rework how the proportional scanning is preserved
+o Add PageReclaim check before kswapd starts writeback
+o Reset sc.nr_reclaimed on every full zone scan
+
+Kswapd and page reclaim behaviour has been screwy in one way or the other
+for a long time.  Very broadly speaking it worked in the far past because
+machines were limited in memory so it did not have that many pages to scan
+and it stalled congestion_wait() frequently to prevent it going completely
+nuts.  In recent times it has behaved very unsatisfactorily with some of
+the problems compounded by the removal of stall logic and the introduction
+of transparent hugepage support with high-order reclaims.
+
+There are many variations of bugs that are rooted in this area.  One
+example is reports of a large copy operations or backup causing the
+machine to grind to a halt or applications pushed to swap.  Sometimes in
+low memory situations a large percentage of memory suddenly gets
+reclaimed.  In other cases an application starts and kswapd hits 100% CPU
+usage for prolonged periods of time and so on.  There is now talk of
+introducing features like an extra free kbytes tunable to work around
+aspects of the problem instead of trying to deal with it.  It's compounded
+by the problem that it can be very workload and machine specific.
+
+This series aims at addressing some of the worst of these problems without
+attempting to fundmentally alter how page reclaim works.
+
+Patches 1-2 limits the number of pages kswapd reclaims while still obeying
+	the anon/file proportion of the LRUs it should be scanning.
+
+Patches 3-4 control how and when kswapd raises its scanning priority and
+	deletes the scanning restart logic which is tricky to follow.
+
+Patch 5 notes that it is too easy for kswapd to reach priority 0 when
+	scanning and then reclaim the world. Down with that sort of thing.
+
+Patch 6 notes that kswapd starts writeback based on scanning priority which
+	is not necessarily related to dirty pages. It will have kswapd
+	writeback pages if a number of unqueued dirty pages have been
+	recently encountered at the tail of the LRU.
+
+Patch 7 notes that sometimes kswapd should stall waiting on IO to complete
+	to reduce LRU churn and the likelihood that it'll reclaim young
+	clean pages or push applications to swap. It will cause kswapd
+	to block on IO if it detects that pages being reclaimed under
+	writeback are recycling through the LRU before the IO completes.
+
+Patchies 8-9 are cosmetic but balance_pgdat() is easier to follow after they
+	are applied.
+
+This was tested using memcached+memcachetest while some background IO was
+in progress as implemented by the parallel IO tests implement in MM Tests.
+ memcachetest benchmarks how many operations/second memcached can service
+and it is run multiple times.  It starts with no background IO and then
+re-runs the test with larger amounts of IO in the background to roughly
+simulate a large copy in progress.  The expectation is that the IO should
+have little or no impact on memcachetest which is running entirely in
+memory.
+
+                                        3.10.0-rc1                  3.10.0-rc1
+                                           vanilla            lessdisrupt-v4
+Ops memcachetest-0M             22155.00 (  0.00%)          22180.00 (  0.11%)
+Ops memcachetest-715M           22720.00 (  0.00%)          22355.00 ( -1.61%)
+Ops memcachetest-2385M           3939.00 (  0.00%)          23450.00 (495.33%)
+Ops memcachetest-4055M           3628.00 (  0.00%)          24341.00 (570.92%)
+Ops io-duration-0M                  0.00 (  0.00%)              0.00 (  0.00%)
+Ops io-duration-715M               12.00 (  0.00%)              7.00 ( 41.67%)
+Ops io-duration-2385M             118.00 (  0.00%)             21.00 ( 82.20%)
+Ops io-duration-4055M             162.00 (  0.00%)             36.00 ( 77.78%)
+Ops swaptotal-0M                    0.00 (  0.00%)              0.00 (  0.00%)
+Ops swaptotal-715M             140134.00 (  0.00%)             18.00 ( 99.99%)
+Ops swaptotal-2385M            392438.00 (  0.00%)              0.00 (  0.00%)
+Ops swaptotal-4055M            449037.00 (  0.00%)          27864.00 ( 93.79%)
+Ops swapin-0M                       0.00 (  0.00%)              0.00 (  0.00%)
+Ops swapin-715M                     0.00 (  0.00%)              0.00 (  0.00%)
+Ops swapin-2385M               148031.00 (  0.00%)              0.00 (  0.00%)
+Ops swapin-4055M               135109.00 (  0.00%)              0.00 (  0.00%)
+Ops minorfaults-0M            1529984.00 (  0.00%)        1530235.00 ( -0.02%)
+Ops minorfaults-715M          1794168.00 (  0.00%)        1613750.00 ( 10.06%)
+Ops minorfaults-2385M         1739813.00 (  0.00%)        1609396.00 (  7.50%)
+Ops minorfaults-4055M         1754460.00 (  0.00%)        1614810.00 (  7.96%)
+Ops majorfaults-0M                  0.00 (  0.00%)              0.00 (  0.00%)
+Ops majorfaults-715M              185.00 (  0.00%)            180.00 (  2.70%)
+Ops majorfaults-2385M           24472.00 (  0.00%)            101.00 ( 99.59%)
+Ops majorfaults-4055M           22302.00 (  0.00%)            229.00 ( 98.97%)
+
+Note how the vanilla kernels performance collapses when there is enough IO
+taking place in the background.  This drop in performance is part of what
+users complain of when they start backups.  Note how the swapin and major
+fault figures indicate that processes were being pushed to swap
+prematurely.  With the series applied, there is no noticable performance
+drop and while there is still some swap activity, it's tiny.
+
+20 iterations of this test were run in total and averaged.  Every 5
+iterations, additional IO was generated in the background using dd to
+measure how the workload was impacted.  The 0M, 715M, 2385M and 4055M
+subblock refer to the amount of IO going on in the background at each
+iteration.  So memcachetest-2385M is reporting how many
+transactions/second memcachetest recorded on average over 5 iterations
+while there was 2385M of IO going on in the ground.  There are six blocks
+of information reported here
+
+memcachetest is the transactions/second reported by memcachetest. In
+	the vanilla kernel note that performance drops from around
+	22K/sec to just under 4K/second when there is 2385M of IO going
+	on in the background. This is one type of performance collapse
+	users complain about if a large cp or backup starts in the
+	background
+
+io-duration refers to how long it takes for the background IO to
+	complete. It's showing that with the patched kernel that the IO
+	completes faster while not interfering with the memcache
+	workload
+
+swaptotal is the total amount of swap traffic. With the patched kernel,
+	the total amount of swapping is much reduced although it is
+	still not zero.
+
+swapin in this case is an indication as to whether we are swap trashing.
+	The closer the swapin/swapout ratio is to 1, the worse the
+	trashing is.  Note with the patched kernel that there is no swapin
+	activity indicating that all the pages swapped were really inactive
+	unused pages.
+
+minorfaults are just minor faults. An increased number of minor faults
+	can indicate that page reclaim is unmapping the pages but not
+	swapping them out before they are faulted back in. With the
+	patched kernel, there is only a small change in minor faults
+
+majorfaults are just major faults in the target workload and a high
+	number can indicate that a workload is being prematurely
+	swapped. With the patched kernel, major faults are much reduced. As
+	there are no swapin's recorded so it's not being swapped. The likely
+	explanation is that that libraries or configuration files used by
+	the workload during startup get paged out by the background IO.
+
+Overall with the series applied, there is no noticable performance drop
+due to background IO and while there is still some swap activity, it's
+tiny and the lack of swapins imply that the swapped pages were inactive
+and unused.
+
+
+                            3.10.0-rc1  3.10.0-rc1
+                               vanilla lessdisrupt-v4
+Page Ins                       1234608      101892
+Page Outs                     12446272    11810468
+Swap Ins                        283406           0
+Swap Outs                       698469       27882
+Direct pages scanned                 0      136480
+Kswapd pages scanned           6266537     5369364
+Kswapd pages reclaimed         1088989      930832
+Direct pages reclaimed               0      120901
+Kswapd efficiency                  17%         17%
+Kswapd velocity               5398.371    4635.115
+Direct efficiency                 100%         88%
+Direct velocity                  0.000     117.817
+Percentage direct scans             0%          2%
+Page writes by reclaim         1655843     4009929
+Page writes file                957374     3982047
+Page writes anon                698469       27882
+Page reclaim immediate            5245        1745
+Page rescued immediate               0           0
+Slabs scanned                    33664       25216
+Direct inode steals                  0           0
+Kswapd inode steals              19409         778
+Kswapd skipped wait                  0           0
+THP fault alloc                     35          30
+THP collapse alloc                 472         401
+THP splits                          27          22
+THP fault fallback                   0           0
+THP collapse fail                    0           1
+Compaction stalls                    0           4
+Compaction success                   0           0
+Compaction failures                  0           4
+Page migrate success                 0           0
+Page migrate failure                 0           0
+Compaction pages isolated            0           0
+Compaction migrate scanned           0           0
+Compaction free scanned              0           0
+Compaction cost                      0           0
+NUMA PTE updates                     0           0
+NUMA hint faults                     0           0
+NUMA hint local faults               0           0
+NUMA pages migrated                  0           0
+AutoNUMA cost                        0           0
+
+Unfortunately, note that there is a small amount of direct reclaim due to
+kswapd no longer reclaiming the world.  ftrace indicates that the direct
+reclaim stalls are mostly harmless with the vast bulk of the stalls
+incurred by dd
+
+     23 tclsh-3367
+     38 memcachetest-13733
+     49 memcachetest-12443
+     57 tee-3368
+   1541 dd-13826
+   1981 dd-12539
+
+A consequence of the direct reclaim for dd is that the processes for the
+IO workload may show a higher system CPU usage.  There is also a risk that
+kswapd not reclaiming the world may mean that it stays awake balancing
+zones, does not stall on the appropriate events and continually scans
+pages it cannot reclaim consuming CPU.  This will be visible as continued
+high CPU usage but in my own tests I only saw a single spike lasting less
+than a second and I did not observe any problems related to reclaim while
+running the series on my desktop.
+
+
+
+This patch:
+
+The number of pages kswapd can reclaim is bound by the number of pages it
+scans which is related to the size of the zone and the scanning priority. 
+In many cases the priority remains low because it's reset every
+SWAP_CLUSTER_MAX reclaimed pages but in the event kswapd scans a large
+number of pages it cannot reclaim, it will raise the priority and
+potentially discard a large percentage of the zone as sc->nr_to_reclaim is
+ULONG_MAX.  The user-visible effect is a reclaim "spike" where a large
+percentage of memory is suddenly freed.  It would be bad enough if this
+was just unused memory but because of how anon/file pages are balanced it
+is possible that applications get pushed to swap unnecessarily.
+
+This patch limits the number of pages kswapd will reclaim to the high
+watermark.  Reclaim will still overshoot due to it not being a hard limit
+as shrink_lruvec() will ignore the sc.nr_to_reclaim at DEF_PRIORITY but it
+prevents kswapd reclaiming the world at higher priorities.  The number of
+pages it reclaims is not adjusted for high-order allocations as kswapd
+will reclaim excessively if it is to balance zones for high-order
+allocations.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Tested-by: Zlatko Calusic <zcalusic@bitsync.net>
+Cc: dormando <dormando@rydia.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   49 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 29 insertions(+), 20 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-rename-setup_pagelist_highmark-to-match-naming-of-pageset_set_batch
-+++ a/mm/page_alloc.c
-@@ -4065,7 +4065,7 @@ static void pageset_update(struct per_cp
- 	pcp->batch = batch;
- }
- 
--/* a companion to setup_pagelist_highmark() */
-+/* a companion to pageset_set_high() */
- static void pageset_set_batch(struct per_cpu_pageset *p, unsigned long batch)
- {
- 	pageset_update(&p->pcp, 6 * batch, max(1UL, 1 * batch));
-@@ -4091,10 +4091,10 @@ static void setup_pageset(struct per_cpu
+diff -puN mm/vmscan.c~mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-limit-the-number-of-pages-kswapd-reclaims-at-each-priority
++++ a/mm/vmscan.c
+@@ -2601,6 +2601,32 @@ static bool prepare_kswapd_sleep(pg_data
  }
  
  /*
-- * setup_pagelist_highmark() sets the high water mark for hot per_cpu_pagelist
-+ * pageset_set_high() sets the high water mark for hot per_cpu_pagelist
-  * to the value high for the pageset p.
-  */
--static void setup_pagelist_highmark(struct per_cpu_pageset *p,
-+static void pageset_set_high(struct per_cpu_pageset *p,
- 				unsigned long high)
- {
- 	unsigned long batch = max(1UL, high / 4);
-@@ -4110,7 +4110,7 @@ static void __meminit zone_pageset_init(
++ * kswapd shrinks the zone by the number of pages required to reach
++ * the high watermark.
++ */
++static void kswapd_shrink_zone(struct zone *zone,
++			       struct scan_control *sc,
++			       unsigned long lru_pages)
++{
++	unsigned long nr_slab;
++	struct reclaim_state *reclaim_state = current->reclaim_state;
++	struct shrink_control shrink = {
++		.gfp_mask = sc->gfp_mask,
++	};
++
++	/* Reclaim above the high watermark. */
++	sc->nr_to_reclaim = max(SWAP_CLUSTER_MAX, high_wmark_pages(zone));
++	shrink_zone(zone, sc);
++
++	reclaim_state->reclaimed_slab = 0;
++	nr_slab = shrink_slab(&shrink, sc->nr_scanned, lru_pages);
++	sc->nr_reclaimed += reclaim_state->reclaimed_slab;
++
++	if (nr_slab == 0 && !zone_reclaimable(zone))
++		zone->all_unreclaimable = 1;
++}
++
++/*
+  * For kswapd, balance_pgdat() will work across all this node's zones until
+  * they are all at high_wmark_pages(zone).
+  *
+@@ -2627,24 +2653,15 @@ static unsigned long balance_pgdat(pg_da
+ 	bool pgdat_is_balanced = false;
+ 	int i;
+ 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
+-	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.may_unmap = 1,
+ 		.may_swap = 1,
+-		/*
+-		 * kswapd doesn't want to be bailed out while reclaim. because
+-		 * we want to put equal scanning pressure on each zone.
+-		 */
+-		.nr_to_reclaim = ULONG_MAX,
+ 		.order = order,
+ 		.target_mem_cgroup = NULL,
+ 	};
+-	struct shrink_control shrink = {
+-		.gfp_mask = sc.gfp_mask,
+-	};
+ loop_again:
+ 	sc.priority = DEF_PRIORITY;
+ 	sc.nr_reclaimed = 0;
+@@ -2716,7 +2733,7 @@ loop_again:
+ 		 */
+ 		for (i = 0; i <= end_zone; i++) {
+ 			struct zone *zone = pgdat->node_zones + i;
+-			int nr_slab, testorder;
++			int testorder;
+ 			unsigned long balance_gap;
  
- 	pageset_init(pcp);
- 	if (percpu_pagelist_fraction)
--		setup_pagelist_highmark(pcp,
-+		pageset_set_high(pcp,
- 			(zone->managed_pages /
- 				percpu_pagelist_fraction));
- 	else
-@@ -5599,8 +5599,8 @@ int percpu_pagelist_fraction_sysctl_hand
- 		unsigned long  high;
- 		high = zone->managed_pages / percpu_pagelist_fraction;
- 		for_each_possible_cpu(cpu)
--			setup_pagelist_highmark(
--					per_cpu_ptr(zone->pageset, cpu), high);
-+			pageset_set_high(per_cpu_ptr(zone->pageset, cpu),
-+					 high);
- 	}
- 	mutex_unlock(&pcp_batch_high_lock);
- 	return 0;
+ 			if (!populated_zone(zone))
+@@ -2764,16 +2781,8 @@ loop_again:
+ 
+ 			if ((buffer_heads_over_limit && is_highmem_idx(i)) ||
+ 			    !zone_balanced(zone, testorder,
+-					   balance_gap, end_zone)) {
+-				shrink_zone(zone, &sc);
+-
+-				reclaim_state->reclaimed_slab = 0;
+-				nr_slab = shrink_slab(&shrink, sc.nr_scanned, lru_pages);
+-				sc.nr_reclaimed += reclaim_state->reclaimed_slab;
+-
+-				if (nr_slab == 0 && !zone_reclaimable(zone))
+-					zone->all_unreclaimable = 1;
+-			}
++					   balance_gap, end_zone))
++				kswapd_shrink_zone(zone, &sc, lru_pages);
+ 
+ 			/*
+ 			 * If we're getting trouble reclaiming, start doing
 _
 
-Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+linux-next.patch
+fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+dentry-move-to-per-sb-lru-locks.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+list-add-a-new-lru-list-type.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code.patch
+dcache-convert-to-use-new-lru-list-infrastructure.patch
+list_lru-per-node-list-infrastructure.patch
+list_lru-per-node-api.patch
+shrinker-add-node-awareness.patch
+vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
 zbud-add-to-mm.patch
 zswap-add-to-mm.patch
 zswap-add-documentation.patch
+mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch
+mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
+mm-memmap_init_zone-performance-improvement.patch
 
