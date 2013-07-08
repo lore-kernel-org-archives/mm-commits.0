@@ -1,67 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch removed from -mm
- tree
-Date: Mon, 08 Jul 2013 12:23:06 -0700
-Message-ID: <51db119a.maSo+5+6yAcZzEkV%akpm@linux-foundation.org>
+ ocfs2-fix-mutex_unlock-and-possible-memory-leak-in-ocfs2_remove_btree_range.patch removed from -mm tree
+Date: Mon, 08 Jul 2013 12:23:10 -0700
+Message-ID: <51db119e.4vixby5alY2QSfkj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49990 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665Ab3GHTXH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:07 -0400
+	with ESMTP id S1752821Ab3GHTXL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:23:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, xuejiufei@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
 
-Subject: [merged] ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch removed from -mm tree
-To: xuejiufei@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-fix-mutex_unlock-and-possible-memory-leak-in-ocfs2_remove_btree_range.patch removed from -mm tree
+To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:23:06 -0700
+Date: Mon, 08 Jul 2013 12:23:10 -0700
 
 
 The patch titled
-     Subject: ocfs2: add missing dlm_put() in dlm_begin_reco_handler()
+     Subject: ocfs2: fix mutex_unlock and possible memory leak in ocfs2_remove_btree_range
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler.patch
+     ocfs2-fix-mutex_unlock-and-possible-memory-leak-in-ocfs2_remove_btree_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: add missing dlm_put() in dlm_begin_reco_handler()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix mutex_unlock and possible memory leak in ocfs2_remove_btree_range
 
-dlm_begin_reco_handler() returns without putting dlm when dlm recovery
-state is DLM_RECO_STATE_FINALIZE.
+In ocfs2_remove_btree_range, when calling ocfs2_lock_refcount_tree and
+ocfs2_prepare_refcount_change_for_del failed, it goes to out and then
+tries to call mutex_unlock without mutex_lock before.  And when calling
+ocfs2_reserve_blocks_for_rec_trunc failed, it should free ref_tree before
+return.
 
-Signed-off-by: joyce <xuejiufei@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Acked-by: Joel Becker <jlbec@evilplan.org>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/alloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-add-missing-dlm_put-in-dlm_begin_reco_handler
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2692,6 +2692,7 @@ int dlm_begin_reco_handler(struct o2net_
- 		     dlm->name, br->node_idx, br->dead_node,
- 		     dlm->reco.dead_node, dlm->reco.new_master);
- 		spin_unlock(&dlm->spinlock);
-+		dlm_put(dlm);
- 		return -EAGAIN;
+diff -puN fs/ocfs2/alloc.c~ocfs2-fix-mutex_unlock-and-possible-memory-leak-in-ocfs2_remove_btree_range fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-fix-mutex_unlock-and-possible-memory-leak-in-ocfs2_remove_btree_range
++++ a/fs/ocfs2/alloc.c
+@@ -5655,7 +5655,7 @@ int ocfs2_remove_btree_range(struct inod
+ 					       &ref_tree, NULL);
+ 		if (ret) {
+ 			mlog_errno(ret);
+-			goto out;
++			goto bail;
+ 		}
+ 
+ 		ret = ocfs2_prepare_refcount_change_for_del(inode,
+@@ -5666,7 +5666,7 @@ int ocfs2_remove_btree_range(struct inod
+ 							    &extra_blocks);
+ 		if (ret < 0) {
+ 			mlog_errno(ret);
+-			goto out;
++			goto bail;
+ 		}
  	}
- 	spin_unlock(&dlm->spinlock);
-_
-
-Patches currently in -mm which might be from xuejiufei@huawei.com are
-
-origin.patch
-linux-next.patch
-
+ 
+@@ -5674,7 +5674,7 @@ int ocfs2_remove_btree_range(struct inod
+ 						 extra_blocks);
+ 	if (ret) {
+ 		mlog_errno(ret);
+-		return ret;
++		goto bail;
+ 	}
+ 
+ 	mutex_lock(&tl_inode->i_mutex);
+@@ -5734,7 +5734,7 @@ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ out:
+ 	mutex_unlock(&tl_inode->i_mutex);
