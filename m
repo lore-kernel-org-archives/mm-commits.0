@@ -1,76 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-mpc5121c-use-platform_getset_drvdata.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:34:52 -0700
-Message-ID: <51db145c./nMmR/U13a0t8JZg%akpm@linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-ds1302c-handle-write-protection.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:34:50 -0700
+Message-ID: <51db145a.KZ7NH4DY5K0Ftx+U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51372 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098Ab3GHTew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:34:52 -0400
+	with ESMTP id S1753098Ab3GHTev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob.herring@calxeda.com, grant.likely@linaro.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org, maz@misterjones.org, jg1.han@samsung.com, a.zummo@towertech.it, ynvich@gmail.com
 
-Subject: [merged] drivers-rtc-rtc-mpc5121c-use-platform_getset_drvdata.patch removed from -mm tree
-To: jg1.han@samsung.com,grant.likely@linaro.org,rob.herring@calxeda.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-ds1302c-handle-write-protection.patch removed from -mm tree
+To: ynvich@gmail.com,a.zummo@towertech.it,jg1.han@samsung.com,maz@misterjones.org,sachin.kamat@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:34:52 -0700
+Date: Mon, 08 Jul 2013 12:34:50 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-mpc5121.c: use platform_{get,set}_drvdata()
+     Subject: drivers/rtc/rtc-ds1302.c: handle write protection
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-mpc5121c-use-platform_getset_drvdata.patch
+     drivers-rtc-rtc-ds1302c-handle-write-protection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-mpc5121.c: use platform_{get,set}_drvdata()
+From: Sergey Yanovich <ynvich@gmail.com>
+Subject: drivers/rtc/rtc-ds1302.c: handle write protection
 
-Use the wrapper functions for getting and setting the driver data using
-platform_device instead of using dev_{get,set}_drvdata() with &pdev->dev,
-so we can directly pass a struct platform_device.
+This chip has a control register and can prevent altering saved clock.
+Without this patch we could have:
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <rob.herring@calxeda.com>
+(arm)root@pac14:~# date
+Tue May 21 03:08:27 MSK 2013
+(arm)root@pac14:~# /etc/init.d/hwclock.sh show
+Tue May 21 11:13:58 2013  -0.067322 seconds
+(arm)root@pac14:~# /etc/init.d/hwclock.sh stop
+[info] Saving the system clock.
+[info] Hardware Clock updated to Tue May 21 03:09:01 MSK 2013.
+(arm)root@pac14:~# /etc/init.d/hwclock.sh show
+Tue May 21 11:14:15 2013  -0.624272 seconds
+
+The patch enables write access to rtc before the driver tries to write
+time and re-disables when time data is written.
+
+Signed-off-by: Sergey Yanovich <ynvich@gmail.com>
+Acked-by: Marc Zyngier <maz@misterjones.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mpc5121.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ds1302.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-use-platform_getset_drvdata drivers/rtc/rtc-mpc5121.c
---- a/drivers/rtc/rtc-mpc5121.c~drivers-rtc-rtc-mpc5121c-use-platform_getset_drvdata
-+++ a/drivers/rtc/rtc-mpc5121.c
-@@ -324,7 +324,7 @@ static int mpc5121_rtc_probe(struct plat
+diff -puN drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-handle-write-protection drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~drivers-rtc-rtc-ds1302c-handle-write-protection
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -23,8 +23,12 @@
+ #define	RTC_CMD_READ	0x81		/* Read command */
+ #define	RTC_CMD_WRITE	0x80		/* Write command */
  
- 	device_init_wakeup(&op->dev, 1);
++#define	RTC_CMD_WRITE_ENABLE	0x00		/* Write enable */
++#define	RTC_CMD_WRITE_DISABLE	0x80		/* Write disable */
++
+ #define RTC_ADDR_RAM0	0x20		/* Address of RAM0 */
+ #define RTC_ADDR_TCR	0x08		/* Address of trickle charge register */
++#define	RTC_ADDR_CTRL	0x07		/* Address of control register */
+ #define	RTC_ADDR_YEAR	0x06		/* Address of year register */
+ #define	RTC_ADDR_DAY	0x05		/* Address of day of week register */
+ #define	RTC_ADDR_MON	0x04		/* Address of month register */
+@@ -161,6 +165,7 @@ static int ds1302_rtc_read_time(struct d
  
--	dev_set_drvdata(&op->dev, rtc);
-+	platform_set_drvdata(op, rtc);
- 
- 	rtc->irq = irq_of_parse_and_map(op->dev.of_node, 1);
- 	err = request_irq(rtc->irq, mpc5121_rtc_handler, 0,
-@@ -382,7 +382,7 @@ out_dispose:
- 
- static int mpc5121_rtc_remove(struct platform_device *op)
+ static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *tm)
  {
--	struct mpc5121_rtc_data *rtc = dev_get_drvdata(&op->dev);
-+	struct mpc5121_rtc_data *rtc = platform_get_drvdata(op);
- 	struct mpc5121_rtc_regs __iomem *regs = rtc->regs;
++	ds1302_writebyte(RTC_ADDR_CTRL, RTC_CMD_WRITE_ENABLE);
+ 	/* Stop RTC */
+ 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) | 0x80);
  
- 	/* disable interrupt, so there are no nasty surprises */
+@@ -175,6 +180,8 @@ static int ds1302_rtc_set_time(struct de
+ 	/* Start RTC */
+ 	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) & ~0x80);
+ 
++	ds1302_writebyte(RTC_ADDR_CTRL, RTC_CMD_WRITE_DISABLE);
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from ynvich@gmail.com are
 
 origin.patch
-linux-next.patch
 
