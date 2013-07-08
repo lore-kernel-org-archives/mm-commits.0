@@ -1,59 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] lib-add-lz4-compressor-module-fix.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 15:34:52 -0700
-Message-ID: <51db3e8c.wvGPt5wI+yV+mMTJ%akpm@linux-foundation.org>
+Subject: [folded-merged] crypto-add-lz4-cryptographic-api-fix.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 15:35:21 -0700
+Message-ID: <51db3ea9.1X8pWnu208CMGH55%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975Ab3GHWex (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:34:53 -0400
+	with ESMTP id S1753296Ab3GHWfW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:35:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, chanho.min@lge.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yann.collet.73@gmail.com, rpearson@systemfabricworks.com, richard@nod.at, kyungsik.lee@lge.com, herbert@gondor.hengli.com.au, fengguang.wu@intel.com, djwong@us.ibm.com, chanho.min@lge.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] lib-add-lz4-compressor-module-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,chanho.min@lge.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] crypto-add-lz4-cryptographic-api-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,chanho.min@lge.com,djwong@us.ibm.com,fengguang.wu@intel.com,herbert@gondor.hengli.com.au,kyungsik.lee@lge.com,richard@nod.at,rpearson@systemfabricworks.com,yann.collet.73@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 15:34:52 -0700
+Date: Mon, 08 Jul 2013 15:35:21 -0700
 
 
 The patch titled
-     Subject: lib-add-lz4-compressor-module-fix
+     Subject: crypto-add-lz4-cryptographic-api-fix
 has been removed from the -mm tree.  Its filename was
-     lib-add-lz4-compressor-module-fix.patch
+     crypto-add-lz4-cryptographic-api-fix.patch
 
-This patch was dropped because it was folded into lib-add-lz4-compressor-module.patch
+This patch was dropped because it was folded into crypto-add-lz4-cryptographic-api.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-add-lz4-compressor-module-fix
+Subject: crypto-add-lz4-cryptographic-api-fix
 
-make lz4_compresshcctx() static
+fix warnings
 
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
 Cc: Chanho Min <chanho.min@lge.com>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Yann Collet <yann.collet.73@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lz4/lz4hc_compress.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crypto/lz4.c   |    3 ++-
+ crypto/lz4hc.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN lib/lz4/lz4hc_compress.c~lib-add-lz4-compressor-module-fix lib/lz4/lz4hc_compress.c
---- a/lib/lz4/lz4hc_compress.c~lib-add-lz4-compressor-module-fix
-+++ a/lib/lz4/lz4hc_compress.c
-@@ -314,7 +314,7 @@ static inline int lz4_encodesequence(con
- 	return 0;
- }
+diff -puN crypto/lz4.c~crypto-add-lz4-cryptographic-api-fix crypto/lz4.c
+--- a/crypto/lz4.c~crypto-add-lz4-cryptographic-api-fix
++++ a/crypto/lz4.c
+@@ -66,8 +66,9 @@ static int lz4_decompress_crypto(struct
+ {
+ 	int err;
+ 	size_t tmp_len = *dlen;
++	size_t __slen = slen;
  
--int lz4_compresshcctx(struct lz4hc_data *ctx,
-+static int lz4_compresshcctx(struct lz4hc_data *ctx,
- 		const char *source,
- 		char *dest,
- 		int isize)
+-	err = lz4_decompress(src, &slen, dst, tmp_len);
++	err = lz4_decompress(src, &__slen, dst, tmp_len);
+ 	if (err < 0)
+ 		return -EINVAL;
+ 
+diff -puN crypto/lz4hc.c~crypto-add-lz4-cryptographic-api-fix crypto/lz4hc.c
+--- a/crypto/lz4hc.c~crypto-add-lz4-cryptographic-api-fix
++++ a/crypto/lz4hc.c
+@@ -66,8 +66,9 @@ static int lz4hc_decompress_crypto(struc
+ {
+ 	int err;
+ 	size_t tmp_len = *dlen;
++	size_t __slen = slen;
+ 
+-	err = lz4_decompress(src, &slen, dst, tmp_len);
++	err = lz4_decompress(src, &__slen, dst, tmp_len);
+ 	if (err < 0)
+ 		return -EINVAL;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,5 +92,5 @@ ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
 partitions-add-aix-lvm-partition-support-files.patch
 reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
 lib-add-lz4-compressor-module.patch
-crypto-add-lz4-cryptographic-api-fix.patch
+crypto-add-lz4-cryptographic-api.patch
 
