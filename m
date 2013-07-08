@@ -1,76 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 15:32:25 -0700
-Message-ID: <51db3df9.C5Gsle/r01goRf7O%akpm@linux-foundation.org>
+ reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch removed
+ from -mm tree
+Date: Mon, 08 Jul 2013 15:33:44 -0700
+Message-ID: <51db3e48.m6PObcTjQo91Zktq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53079 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53083 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab3GHWc0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:32:26 -0400
+	with ESMTP id S1753100Ab3GHWdp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 18:33:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kzak@redhat.com, axboe@kernel.dk, phdm@macqel.be
+To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, rja@sgi.com, hpa@zytor.com, holt@sgi.com, gxt@mprc.pku.edu.cn, akpm@linux-foundation.org
 
-Subject: [folded-merged] partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry.patch removed from -mm tree
-To: phdm@macqel.be,axboe@kernel.dk,kzak@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,gxt@mprc.pku.edu.cn,holt@sgi.com,hpa@zytor.com,rja@sgi.com,rmk+kernel@arm.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 15:32:25 -0700
+Date: Mon, 08 Jul 2013 15:33:44 -0700
 
 
 The patch titled
-     Subject: partitions-add-aix-lvm-partition-support-files: add the AIX_PARTITION entry
+     Subject: reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix
 has been removed from the -mm tree.  Its filename was
-     partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry.patch
+     reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix.patch
 
-This patch was dropped because it was folded into partitions-add-aix-lvm-partition-support-files.patch
+This patch was dropped because it was folded into reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
 
 ------------------------------------------------------
-From: Philippe De Muyter <phdm@macqel.be>
-Subject: partitions-add-aix-lvm-partition-support-files: add the AIX_PARTITION entry
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix
 
-This is the final patch enabling a user to select AIX lvm partitions
-detection.
+fix arch/arm/mach-socfpga/socfpga.c
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/Kconfig |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/mach-socfpga/socfpga.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/partitions/Kconfig~partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry block/partitions/Kconfig
---- a/block/partitions/Kconfig~partitions-add-aix-lvm-partition-support-files-add-the-aix_partition-entry
-+++ a/block/partitions/Kconfig
-@@ -68,6 +68,17 @@ config ACORN_PARTITION_RISCIX
- 	  of machines called RISCiX.  If you say 'Y' here, Linux will be able
- 	  to read disks partitioned under RISCiX.
+diff -puN arch/arm/mach-socfpga/socfpga.c~reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix arch/arm/mach-socfpga/socfpga.c
+--- a/arch/arm/mach-socfpga/socfpga.c~reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix
++++ a/arch/arm/mach-socfpga/socfpga.c
+@@ -96,7 +96,7 @@ static void socfpga_cyclone5_restart(enu
  
-+config AIX_PARTITION
-+	bool "AIX basic partition table support" if PARTITION_ADVANCED
-+	help
-+	  Say Y here if you would like to be able to read the hard disk
-+	  partition table format used by IBM or Motorola PowerPC machines
-+	  running AIX.  AIX actually uses a Logical Volume Manager, where
-+	  "logical volumes" can be spread across one or multiple disks,
-+	  but this driver works only for the simple case of partitions which
-+	  are contiguous.
-+	  Otherwise, say N.
-+
- config OSF_PARTITION
- 	bool "Alpha OSF partition support" if PARTITION_ADVANCED
- 	default y if ALPHA
+ 	temp = readl(rst_manager_base_addr + SOCFPGA_RSTMGR_CTRL);
+ 
+-	if (mode == 'h')
++	if (mode == REBOOT_HARD)
+ 		temp |= RSTMGR_CTRL_SWCOLDRSTREQ;
+ 	else
+ 		temp |= RSTMGR_CTRL_SWWARMRSTREQ;
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
+origin.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
+memcg-use-css_get-put-when-charging-uncharging-kmem.patch
+panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
+shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
+ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
 partitions-add-aix-lvm-partition-support-files.patch
-partitions-msdos-enumerate-also-aix-lvm-partitions.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
+reboot-arm-change-reboot_mode-to-use-enum-reboot_mode-fix-fix.patch
+lib-add-lz4-compressor-module-fix.patch
+crypto-add-lz4-cryptographic-api-fix.patch
 
