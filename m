@@ -1,61 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-flatten-kswapd-priority-loop.patch removed
- from -mm tree
-Date: Mon, 08 Jul 2013 12:24:37 -0700
-Message-ID: <51db11f5.x3zp8UQwamJ6tdbs%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
+ removed from -mm tree
+Date: Mon, 08 Jul 2013 12:24:45 -0700
+Message-ID: <51db11fd.mMRCQK9zQ2Fkcrz4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50263 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100Ab3GHTYi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:38 -0400
+	with ESMTP id S1753100Ab3GHTYq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:24:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, jslaby@suse.cz, hannes@cmpxchg.org, dormando@rydia.net, Valdis.Kletnieks@vt.edu, mgorman@suse.de
 
-Subject: [merged] mm-vmscan-flatten-kswapd-priority-loop.patch removed from -mm tree
+Subject: [merged] mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch removed from -mm tree
 To: mgorman@suse.de,Valdis.Kletnieks@vt.edu,dormando@rydia.net,hannes@cmpxchg.org,jslaby@suse.cz,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,zcalusic@bitsync.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:24:37 -0700
+Date: Mon, 08 Jul 2013 12:24:45 -0700
 
 
 The patch titled
-     Subject: mm: vmscan: flatten kswapd priority loop
+     Subject: mm: vmscan: block kswapd if it is encountering pages under writeback
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-flatten-kswapd-priority-loop.patch
+     mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: flatten kswapd priority loop
+Subject: mm: vmscan: block kswapd if it is encountering pages under writeback
 
-kswapd stops raising the scanning priority when at least SWAP_CLUSTER_MAX
-pages have been reclaimed or the pgdat is considered balanced.  It then
-rechecks if it needs to restart at DEF_PRIORITY and whether high-order
-reclaim needs to be reset.  This is not wrong per-se but it is confusing
-to follow and forcing kswapd to stay at DEF_PRIORITY may require several
-restarts before it has scanned enough pages to meet the high watermark
-even at 100% efficiency.  This patch irons out the logic a bit by
-controlling when priority is raised and removing the "goto loop_again".
+Historically, kswapd used to congestion_wait() at higher priorities if it
+was not making forward progress.  This made no sense as the failure to
+make progress could be completely independent of IO.  It was later
+replaced by wait_iff_congested() and removed entirely by commit 258401a6
+(mm: don't wait on congested zones in balance_pgdat()) as it was
+duplicating logic in shrink_inactive_list().
 
-This patch has kswapd raise the scanning priority until it is scanning
-enough pages that it could meet the high watermark in one shrink of the
-LRU lists if it is able to reclaim at 100% efficiency.  It will not raise
-the scanning prioirty higher unless it is failing to reclaim any pages.
+This is problematic.  If kswapd encounters many pages under writeback and
+it continues to scan until it reaches the high watermark then it will
+quickly skip over the pages under writeback and reclaim clean young pages
+or push applications out to swap.
 
-To avoid infinite looping for high-order allocation requests kswapd will
-not reclaim for high-order allocations when it has reclaimed at least
-twice the number of pages as the allocation request.
+The use of wait_iff_congested() is not suited to kswapd as it will only
+stall if the underlying BDI is really congested or a direct reclaimer was
+unable to write to the underlying BDI.  kswapd bypasses the BDI congestion
+as it sets PF_SWAPWRITE but even if this was taken into account then it
+would cause direct reclaimers to stall on writeback which is not
+desirable.
+
+This patch sets a ZONE_WRITEBACK flag if direct reclaim or kswapd is
+encountering too many pages under writeback.  If this flag is set and
+kswapd encounters a PageReclaim page under writeback then it'll assume
+that the LRU lists are being recycled too quickly before IO can complete
+and block waiting for some IO to complete.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Jiri Slaby <jslaby@suse.cz>
 Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Tested-by: Zlatko Calusic <zcalusic@bitsync.net>
@@ -63,170 +71,159 @@ Cc: dormando <dormando@rydia.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   86 +++++++++++++++++++++++---------------------------
- 1 file changed, 41 insertions(+), 45 deletions(-)
+ include/linux/mmzone.h |    8 +++
+ mm/vmscan.c            |   82 ++++++++++++++++++++++++++++-----------
+ 2 files changed, 68 insertions(+), 22 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-flatten-kswapd-priority-loop mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-flatten-kswapd-priority-loop
-+++ a/mm/vmscan.c
-@@ -2654,8 +2654,12 @@ static bool prepare_kswapd_sleep(pg_data
- /*
-  * kswapd shrinks the zone by the number of pages required to reach
-  * the high watermark.
-+ *
-+ * Returns true if kswapd scanned at least the requested number of pages to
-+ * reclaim. This is used to determine if the scanning priority needs to be
-+ * raised.
-  */
--static void kswapd_shrink_zone(struct zone *zone,
-+static bool kswapd_shrink_zone(struct zone *zone,
- 			       struct scan_control *sc,
- 			       unsigned long lru_pages)
- {
-@@ -2675,6 +2679,8 @@ static void kswapd_shrink_zone(struct zo
+diff -puN include/linux/mmzone.h~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback
++++ a/include/linux/mmzone.h
+@@ -499,6 +499,9 @@ typedef enum {
+ 					 * many dirty file pages at the tail
+ 					 * of the LRU.
+ 					 */
++	ZONE_WRITEBACK,			/* reclaim scanning has recently found
++					 * many pages under writeback
++					 */
+ } zone_flags_t;
  
- 	if (nr_slab == 0 && !zone_reclaimable(zone))
- 		zone->all_unreclaimable = 1;
-+
-+	return sc->nr_scanned >= sc->nr_to_reclaim;
+ static inline void zone_set_flag(struct zone *zone, zone_flags_t flag)
+@@ -526,6 +529,11 @@ static inline int zone_is_reclaim_dirty(
+ 	return test_bit(ZONE_TAIL_LRU_DIRTY, &zone->flags);
  }
  
- /*
-@@ -2701,26 +2707,26 @@ static void kswapd_shrink_zone(struct zo
- static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
- 							int *classzone_idx)
- {
--	bool pgdat_is_balanced = false;
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
- 	unsigned long nr_soft_reclaimed;
- 	unsigned long nr_soft_scanned;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
-+		.priority = DEF_PRIORITY,
- 		.may_unmap = 1,
- 		.may_swap = 1,
-+		.may_writepage = !laptop_mode,
- 		.order = order,
- 		.target_mem_cgroup = NULL,
- 	};
--loop_again:
--	sc.priority = DEF_PRIORITY;
--	sc.nr_reclaimed = 0;
--	sc.may_writepage = !laptop_mode;
- 	count_vm_event(PAGEOUTRUN);
- 
- 	do {
- 		unsigned long lru_pages = 0;
-+		bool raise_priority = true;
++static inline int zone_is_reclaim_writeback(const struct zone *zone)
++{
++	return test_bit(ZONE_WRITEBACK, &zone->flags);
++}
 +
-+		sc.nr_reclaimed = 0;
+ static inline int zone_is_reclaim_locked(const struct zone *zone)
+ {
+ 	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
+diff -puN mm/vmscan.c~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-block-kswapd-if-it-is-encountering-pages-under-writeback
++++ a/mm/vmscan.c
+@@ -724,25 +724,55 @@ static unsigned long shrink_page_list(st
+ 		may_enter_fs = (sc->gfp_mask & __GFP_FS) ||
+ 			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
  
- 		/*
- 		 * Scan in the highmem->dma direction for the highest
-@@ -2762,10 +2768,8 @@ loop_again:
++		/*
++		 * If a page at the tail of the LRU is under writeback, there
++		 * are three cases to consider.
++		 *
++		 * 1) If reclaim is encountering an excessive number of pages
++		 *    under writeback and this page is both under writeback and
++		 *    PageReclaim then it indicates that pages are being queued
++		 *    for IO but are being recycled through the LRU before the
++		 *    IO can complete. Waiting on the page itself risks an
++		 *    indefinite stall if it is impossible to writeback the
++		 *    page due to IO error or disconnected storage so instead
++		 *    block for HZ/10 or until some IO completes then clear the
++		 *    ZONE_WRITEBACK flag to recheck if the condition exists.
++		 *
++		 * 2) Global reclaim encounters a page, memcg encounters a
++		 *    page that is not marked for immediate reclaim or
++		 *    the caller does not have __GFP_IO. In this case mark
++		 *    the page for immediate reclaim and continue scanning.
++		 *
++		 *    __GFP_IO is checked  because a loop driver thread might
++		 *    enter reclaim, and deadlock if it waits on a page for
++		 *    which it is needed to do the write (loop masks off
++		 *    __GFP_IO|__GFP_FS for this reason); but more thought
++		 *    would probably show more reasons.
++		 *
++		 *    Don't require __GFP_FS, since we're not going into the
++		 *    FS, just waiting on its writeback completion. Worryingly,
++		 *    ext4 gfs2 and xfs allocate pages with
++		 *    grab_cache_page_write_begin(,,AOP_FLAG_NOFS), so testing
++		 *    may_enter_fs here is liable to OOM on them.
++		 *
++		 * 3) memcg encounters a page that is not already marked
++		 *    PageReclaim. memcg does not have any dirty pages
++		 *    throttling so we could easily OOM just because too many
++		 *    pages are in writeback and there is nothing else to
++		 *    reclaim. Wait for the writeback to complete.
++		 */
+ 		if (PageWriteback(page)) {
+-			/*
+-			 * memcg doesn't have any dirty pages throttling so we
+-			 * could easily OOM just because too many pages are in
+-			 * writeback and there is nothing else to reclaim.
+-			 *
+-			 * Check __GFP_IO, certainly because a loop driver
+-			 * thread might enter reclaim, and deadlock if it waits
+-			 * on a page for which it is needed to do the write
+-			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
+-			 * but more thought would probably show more reasons.
+-			 *
+-			 * Don't require __GFP_FS, since we're not going into
+-			 * the FS, just waiting on its writeback completion.
+-			 * Worryingly, ext4 gfs2 and xfs allocate pages with
+-			 * grab_cache_page_write_begin(,,AOP_FLAG_NOFS), so
+-			 * testing may_enter_fs here is liable to OOM on them.
+-			 */
+-			if (global_reclaim(sc) ||
++			/* Case 1 above */
++			if (current_is_kswapd() &&
++			    PageReclaim(page) &&
++			    zone_is_reclaim_writeback(zone)) {
++				unlock_page(page);
++				congestion_wait(BLK_RW_ASYNC, HZ/10);
++				zone_clear_flag(zone, ZONE_WRITEBACK);
++				goto keep;
++
++			/* Case 2 above */
++			} else if (global_reclaim(sc) ||
+ 			    !PageReclaim(page) || !(sc->gfp_mask & __GFP_IO)) {
+ 				/*
+ 				 * This is slightly racy - end_page_writeback()
+@@ -757,9 +787,13 @@ static unsigned long shrink_page_list(st
+ 				 */
+ 				SetPageReclaim(page);
+ 				nr_writeback++;
++
+ 				goto keep_locked;
++
++			/* Case 3 above */
++			} else {
++				wait_on_page_writeback(page);
  			}
+-			wait_on_page_writeback(page);
  		}
  
--		if (i < 0) {
--			pgdat_is_balanced = true;
-+		if (i < 0)
- 			goto out;
--		}
- 
- 		for (i = 0; i <= end_zone; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
-@@ -2832,8 +2836,16 @@ loop_again:
- 
- 			if ((buffer_heads_over_limit && is_highmem_idx(i)) ||
- 			    !zone_balanced(zone, testorder,
--					   balance_gap, end_zone))
--				kswapd_shrink_zone(zone, &sc, lru_pages);
-+					   balance_gap, end_zone)) {
-+				/*
-+				 * There should be no need to raise the
-+				 * scanning priority if enough pages are
-+				 * already being scanned that high
-+				 * watermark would be met at 100% efficiency.
-+				 */
-+				if (kswapd_shrink_zone(zone, &sc, lru_pages))
-+					raise_priority = false;
-+			}
- 
- 			/*
- 			 * If we're getting trouble reclaiming, start doing
-@@ -2868,46 +2880,29 @@ loop_again:
- 				pfmemalloc_watermark_ok(pgdat))
- 			wake_up(&pgdat->pfmemalloc_wait);
- 
--		if (pgdat_balanced(pgdat, order, *classzone_idx)) {
--			pgdat_is_balanced = true;
--			break;		/* kswapd: all done */
--		}
--
- 		/*
--		 * We do this so kswapd doesn't build up large priorities for
--		 * example when it is freeing in parallel with allocators. It
--		 * matches the direct reclaim path behaviour in terms of impact
--		 * on zone->*_priority.
-+		 * Fragmentation may mean that the system cannot be rebalanced
-+		 * for high-order allocations in all zones. If twice the
-+		 * allocation size has been reclaimed and the zones are still
-+		 * not balanced then recheck the watermarks at order-0 to
-+		 * prevent kswapd reclaiming excessively. Assume that a
-+		 * process requested a high-order can direct reclaim/compact.
- 		 */
--		if (sc.nr_reclaimed >= SWAP_CLUSTER_MAX)
--			break;
--	} while (--sc.priority >= 0);
--
--out:
--	if (!pgdat_is_balanced) {
--		cond_resched();
-+		if (order && sc.nr_reclaimed >= 2UL << order)
-+			order = sc.order = 0;
- 
--		try_to_freeze();
-+		/* Check if kswapd should be suspending */
-+		if (try_to_freeze() || kthread_should_stop())
-+			break;
- 
- 		/*
--		 * Fragmentation may mean that the system cannot be
--		 * rebalanced for high-order allocations in all zones.
--		 * At this point, if nr_reclaimed < SWAP_CLUSTER_MAX,
--		 * it means the zones have been fully scanned and are still
--		 * not balanced. For high-order allocations, there is
--		 * little point trying all over again as kswapd may
--		 * infinite loop.
--		 *
--		 * Instead, recheck all watermarks at order-0 as they
--		 * are the most important. If watermarks are ok, kswapd will go
--		 * back to sleep. High-order users can still perform direct
--		 * reclaim if they wish.
-+		 * Raise priority if scanning rate is too low or there was no
-+		 * progress in reclaiming pages
- 		 */
--		if (sc.nr_reclaimed < SWAP_CLUSTER_MAX)
--			order = sc.order = 0;
--
--		goto loop_again;
--	}
-+		if (raise_priority || !sc.nr_reclaimed)
-+			sc.priority--;
-+	} while (sc.priority >= 0 &&
-+		 !pgdat_balanced(pgdat, order, *classzone_idx));
+ 		if (!force_reclaim)
+@@ -1374,8 +1408,10 @@ shrink_inactive_list(unsigned long nr_to
+ 	 *                     isolated page is PageWriteback
+ 	 */
+ 	if (nr_writeback && nr_writeback >=
+-			(nr_taken >> (DEF_PRIORITY - sc->priority)))
++			(nr_taken >> (DEF_PRIORITY - sc->priority))) {
+ 		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
++		zone_set_flag(zone, ZONE_WRITEBACK);
++	}
  
  	/*
- 	 * If kswapd was reclaiming at a higher order, it has the option of
-@@ -2936,6 +2931,7 @@ out:
- 			compact_pgdat(pgdat, order);
- 	}
+ 	 * Similarly, if many dirty pages are encountered that are not
+@@ -2669,8 +2705,8 @@ static bool prepare_kswapd_sleep(pg_data
+  * the high watermark.
+  *
+  * Returns true if kswapd scanned at least the requested number of pages to
+- * reclaim. This is used to determine if the scanning priority needs to be
+- * raised.
++ * reclaim or if the lack of progress was due to pages under writeback.
++ * This is used to determine if the scanning priority needs to be raised.
+  */
+ static bool kswapd_shrink_zone(struct zone *zone,
+ 			       struct scan_control *sc,
+@@ -2697,6 +2733,8 @@ static bool kswapd_shrink_zone(struct zo
+ 	if (nr_slab == 0 && !zone_reclaimable(zone))
+ 		zone->all_unreclaimable = 1;
  
-+out:
- 	/*
- 	 * Return the order we were reclaiming at so prepare_kswapd_sleep()
- 	 * makes a decision on the order we were last reclaiming at. However,
++	zone_clear_flag(zone, ZONE_WRITEBACK);
++
+ 	return sc->nr_scanned >= sc->nr_to_reclaim;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
