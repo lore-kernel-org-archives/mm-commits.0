@@ -1,86 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aoe-update-copyright-date.patch removed from -mm tree
-Date: Mon, 08 Jul 2013 12:36:58 -0700
-Message-ID: <51db14da.SwsEMk/r3s/VnnY6%akpm@linux-foundation.org>
+Subject: [merged] nbd-remove-bogus-bug_on-in-nbd_clear_que.patch removed
+ from -mm tree
+Date: Mon, 08 Jul 2013 12:36:52 -0700
+Message-ID: <51db14d4.eZAbv1Wgq4T5mBSB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51727 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295Ab3GHTg6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:58 -0400
+	with ESMTP id S1753252Ab3GHTgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jul 2013 15:36:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ecashin@coraid.com
+To: mm-commits@vger.kernel.org, paul.clements@steeleye.com, belczyk@bsd.krakow.pl
 
-Subject: [merged] aoe-update-copyright-date.patch removed from -mm tree
-To: ecashin@coraid.com,mm-commits@vger.kernel.org
+Subject: [merged] nbd-remove-bogus-bug_on-in-nbd_clear_que.patch removed from -mm tree
+To: belczyk@bsd.krakow.pl,paul.clements@steeleye.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 08 Jul 2013 12:36:58 -0700
+Date: Mon, 08 Jul 2013 12:36:52 -0700
 
 
 The patch titled
-     Subject: aoe: update copyright date
+     Subject: nbd: remove bogus BUG_ON in NBD_CLEAR_QUE
 has been removed from the -mm tree.  Its filename was
-     aoe-update-copyright-date.patch
+     nbd-remove-bogus-bug_on-in-nbd_clear_que.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: update copyright date
+From: Michal Belczyk <belczyk@bsd.krakow.pl>
+Subject: nbd: remove bogus BUG_ON in NBD_CLEAR_QUE
 
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+The NBD_CLEAR_QUE ioctl has been deprecated for quite some time (its job
+is now done by two other ioctls).  We should stop trying to make bogus
+assertions in it.  Also, user-level code should remove calls to
+NBD_CLEAR_QUE, ASAP.
+
+Signed-off-by: Michal Belczyk <belczyk@bsd.krakow.pl>
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    2 +-
- drivers/block/aoe/aoecmd.c |    2 +-
- drivers/block/aoe/aoedev.c |    2 +-
- drivers/block/aoe/aoenet.c |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/nbd.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-update-copyright-date drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-update-copyright-date
-+++ a/drivers/block/aoe/aoe.h
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2013 Coraid, Inc.  See COPYING for GPL terms. */
- #define VERSION "81"
- #define AOE_MAJOR 152
- #define DEVICE_NAME "aoe"
-diff -puN drivers/block/aoe/aoecmd.c~aoe-update-copyright-date drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-update-copyright-date
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2013 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoecmd.c
-  * Filesystem request handling methods
-diff -puN drivers/block/aoe/aoedev.c~aoe-update-copyright-date drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-update-copyright-date
-+++ a/drivers/block/aoe/aoedev.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2013 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoedev.c
-  * AoE device utility functions; maintains device list.
-diff -puN drivers/block/aoe/aoenet.c~aoe-update-copyright-date drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-update-copyright-date
-+++ a/drivers/block/aoe/aoenet.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2013 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoenet.c
-  * Ethernet portion of AoE driver
+diff -puN drivers/block/nbd.c~nbd-remove-bogus-bug_on-in-nbd_clear_que drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-remove-bogus-bug_on-in-nbd_clear_que
++++ a/drivers/block/nbd.c
+@@ -751,7 +751,6 @@ static int __nbd_ioctl(struct block_devi
+ 		 * This is for compatibility only.  The queue is always cleared
+ 		 * by NBD_DO_IT or NBD_CLEAR_SOCK.
+ 		 */
+-		BUG_ON(!nbd->sock && !list_empty(&nbd->queue_head));
+ 		return 0;
+ 
+ 	case NBD_PRINT_DEBUG:
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from belczyk@bsd.krakow.pl are
 
 origin.patch
 
