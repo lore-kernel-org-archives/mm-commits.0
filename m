@@ -1,60 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-writeback-remove-wb_reason_name.patch removed from
- -mm tree
-Date: Tue, 09 Jul 2013 16:20:05 -0700
-Message-ID: <51dc9aa5.6F0KlQS0fkicK4d0%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch removed
+ from -mm tree
+Date: Tue, 09 Jul 2013 16:20:15 -0700
+Message-ID: <51dc9aaf.wuECgVHd6X+CCaMo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38877 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38893 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab3GIXUF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:05 -0400
+	with ESMTP id S1753945Ab3GIXUP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, fengguang.wu@intel.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] mm-writeback-remove-wb_reason_name.patch removed from -mm tree
-To: liwanp@linux.vnet.ibm.com,fengguang.wu@intel.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch removed from -mm tree
+To: liwanp@linux.vnet.ibm.com,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:20:05 -0700
+Date: Tue, 09 Jul 2013 16:20:15 -0700
 
 
 The patch titled
-     Subject: mm/writeback: remove wb_reason_name
+     Subject: mm/pgtable: don't accumulate addr during pgd prepopulate pmd
 has been removed from the -mm tree.  Its filename was
-     mm-writeback-remove-wb_reason_name.patch
+     mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/writeback: remove wb_reason_name
+Subject: mm/pgtable: don't accumulate addr during pgd prepopulate pmd
 
-wb_reason_name is not used any more - remove it.
+The old codes accumulate addr to get right pmd, however, currently pmds
+are preallocated and transfered as a parameter, there is unnecessary to
+accumulate addr variable any more, this patch remove it.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/mm/pgtable.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/writeback.h~mm-writeback-remove-wb_reason_name include/linux/writeback.h
---- a/include/linux/writeback.h~mm-writeback-remove-wb_reason_name
-+++ a/include/linux/writeback.h
-@@ -51,7 +51,6 @@ enum wb_reason {
+diff -puN arch/x86/mm/pgtable.c~mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd arch/x86/mm/pgtable.c
+--- a/arch/x86/mm/pgtable.c~mm-pgtable-dont-accumulate-addr-during-pgd-prepopulate-pmd
++++ a/arch/x86/mm/pgtable.c
+@@ -240,7 +240,6 @@ static void pgd_mop_up_pmds(struct mm_st
+ static void pgd_prepopulate_pmd(struct mm_struct *mm, pgd_t *pgd, pmd_t *pmds[])
+ {
+ 	pud_t *pud;
+-	unsigned long addr;
+ 	int i;
  
- 	WB_REASON_MAX,
- };
--extern const char *wb_reason_name[];
+ 	if (PREALLOCATED_PMDS == 0) /* Work around gcc-3.4.x bug */
+@@ -248,8 +247,7 @@ static void pgd_prepopulate_pmd(struct m
  
- /*
-  * A control structure which tells the writeback code what to do.  These are
+ 	pud = pud_offset(pgd, 0);
+ 
+- 	for (addr = i = 0; i < PREALLOCATED_PMDS;
+-	     i++, pud++, addr += PUD_SIZE) {
++	for (i = 0; i < PREALLOCATED_PMDS; i++, pud++) {
+ 		pmd_t *pmd = pmds[i];
+ 
+ 		if (i >= KERNEL_PGD_BOUNDARY)
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
