@@ -1,147 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-use-css_get-put-for-swap-memcg.patch removed from
- -mm tree
-Date: Tue, 09 Jul 2013 16:20:43 -0700
-Message-ID: <51dc9acb.Bepg319Bz3NOA1o7%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too.patch
+ removed from -mm tree
+Date: Tue, 09 Jul 2013 16:20:57 -0700
+Message-ID: <51dc9ad9.k4l+jLYpvzwqS80A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753659Ab3GIXUo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:44 -0400
+	with ESMTP id S1754006Ab3GIXU5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, glommer@openvz.org, lizefan@huawei.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] memcg-use-css_get-put-for-swap-memcg.patch removed from -mm tree
-To: lizefan@huawei.com,glommer@openvz.org,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:20:43 -0700
+Date: Tue, 09 Jul 2013 16:20:57 -0700
 
 
 The patch titled
-     Subject: memcg: use css_get/put for swap memcg
+     Subject: checkpatch: make the CamelCase cache work for non-git trees too
 has been removed from the -mm tree.  Its filename was
-     memcg-use-css_get-put-for-swap-memcg.patch
+     checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Zefan <lizefan@huawei.com>
-Subject: memcg: use css_get/put for swap memcg
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: make the CamelCase cache work for non-git trees too
 
-Use css_get/put instead of mem_cgroup_get/put. A simple replacement
-will do.
+Might as well check include timestamps and cache the include file
+CamelCase uses for the non-git case too.
 
-The historical reason that memcg has its own refcnt instead of always
-using css_get/put, is that cgroup couldn't be removed if there're still
-css refs, so css refs can't be used as long-lived reference.  The
-situation has changed so that rmdir a cgroup will succeed regardless css
-refs, but won't be freed until css refs goes down to 0.
+The camelcase cache file is now named:
 
-Signed-off-by: Li Zefan <lizefan@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Glauber Costa <glommer@openvz.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+for git:	.checkpatch-camelcase.git.<commit_id>
+for non-git:	.checkpatch-camelcase.date.<YYYYMMDDhhmm>
+
+All .checkpatch-camelcase* files are deleted if not current.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |   54 +++++++++++++++++++++++++---------------
+ 1 file changed, 35 insertions(+), 19 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-css_get-put-for-swap-memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-css_get-put-for-swap-memcg
-+++ a/mm/memcontrol.c
-@@ -4231,12 +4231,12 @@ __mem_cgroup_uncharge_common(struct page
- 	unlock_page_cgroup(pc);
- 	/*
- 	 * even after unlock, we have memcg->res.usage here and this memcg
--	 * will never be freed.
-+	 * will never be freed, so it's safe to call css_get().
- 	 */
- 	memcg_check_events(memcg, page);
- 	if (do_swap_account && ctype == MEM_CGROUP_CHARGE_TYPE_SWAPOUT) {
- 		mem_cgroup_swap_statistics(memcg, true);
--		mem_cgroup_get(memcg);
-+		css_get(&memcg->css);
- 	}
- 	/*
- 	 * Migration does not charge the res_counter for the
-@@ -4348,7 +4348,7 @@ mem_cgroup_uncharge_swapcache(struct pag
+diff -puN scripts/checkpatch.pl~checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too
++++ a/scripts/checkpatch.pl
+@@ -6,6 +6,7 @@
+ # Licensed under the terms of the GNU GPL License version 2
  
- 	/*
- 	 * record memcg information,  if swapout && memcg != NULL,
--	 * mem_cgroup_get() was called in uncharge().
-+	 * css_get() was called in uncharge().
- 	 */
- 	if (do_swap_account && swapout && memcg)
- 		swap_cgroup_record(ent, css_id(&memcg->css));
-@@ -4379,7 +4379,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
- 		if (!mem_cgroup_is_root(memcg))
- 			res_counter_uncharge(&memcg->memsw, PAGE_SIZE);
- 		mem_cgroup_swap_statistics(memcg, false);
--		mem_cgroup_put(memcg);
-+		css_put(&memcg->css);
- 	}
- 	rcu_read_unlock();
- }
-@@ -4413,11 +4413,14 @@ static int mem_cgroup_move_swap_account(
- 		 * This function is only called from task migration context now.
- 		 * It postpones res_counter and refcount handling till the end
- 		 * of task migration(mem_cgroup_clear_mc()) for performance
--		 * improvement. But we cannot postpone mem_cgroup_get(to)
--		 * because if the process that has been moved to @to does
--		 * swap-in, the refcount of @to might be decreased to 0.
-+		 * improvement. But we cannot postpone css_get(to)  because if
-+		 * the process that has been moved to @to does swap-in, the
-+		 * refcount of @to might be decreased to 0.
-+		 *
-+		 * We are in attach() phase, so the cgroup is guaranteed to be
-+		 * alive, so we can just call css_get().
- 		 */
--		mem_cgroup_get(to);
-+		css_get(&to->css);
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -6718,6 +6721,7 @@ static void __mem_cgroup_clear_mc(void)
- {
- 	struct mem_cgroup *from = mc.from;
- 	struct mem_cgroup *to = mc.to;
-+	int i;
+ use strict;
++use POSIX;
  
- 	/* we must uncharge all the leftover precharges from mc.to */
- 	if (mc.precharge) {
-@@ -6738,7 +6742,9 @@ static void __mem_cgroup_clear_mc(void)
- 		if (!mem_cgroup_is_root(mc.from))
- 			res_counter_uncharge(&mc.from->memsw,
- 						PAGE_SIZE * mc.moved_swap);
--		__mem_cgroup_put(mc.from, mc.moved_swap);
+ my $P = $0;
+ $P =~ s@.*/@@g;
+@@ -399,37 +400,52 @@ sub seed_camelcase_includes {
+ 	return if ($camelcase_seeded);
+ 
+ 	my $files;
+-	my $camelcase_git_file = "";
++	my $camelcase_cache = "";
++	my @include_files = ();
 +
-+		for (i = 0; i < mc.moved_swap; i++)
-+			css_put(&mc.from->css);
++	$camelcase_seeded = 1;
  
- 		if (!mem_cgroup_is_root(mc.to)) {
- 			/*
-@@ -6748,7 +6754,7 @@ static void __mem_cgroup_clear_mc(void)
- 			res_counter_uncharge(&mc.to->res,
- 						PAGE_SIZE * mc.moved_swap);
- 		}
--		/* we've already done mem_cgroup_get(mc.to) */
-+		/* we've already done css_get(mc.to) */
- 		mc.moved_swap = 0;
+ 	if (-d ".git") {
+ 		my $git_last_include_commit = `git log --no-merges --pretty=format:"%h%n" -1 -- include`;
+ 		chomp $git_last_include_commit;
+-		$camelcase_git_file = ".checkpatch-camelcase.$git_last_include_commit";
+-		if (-f $camelcase_git_file) {
+-			open(my $camelcase_file, '<', "$camelcase_git_file")
+-			    or warn "$P: Can't read '$camelcase_git_file' $!\n";
+-			while (<$camelcase_file>) {
+-				chomp;
+-				$camelcase{$_} = 1;
+-			}
+-			close($camelcase_file);
+-
+-			return;
+-		}
+-		$files = `git ls-files include`;
++		$camelcase_cache = ".checkpatch-camelcase.git.$git_last_include_commit";
+ 	} else {
++		my $last_mod_date = 0;
+ 		$files = `find $root/include -name "*.h"`;
++		@include_files = split('\n', $files);
++		foreach my $file (@include_files) {
++			my $date = POSIX::strftime("%Y%m%d%H%M",
++						   localtime((stat $file)[9]));
++			$last_mod_date = $date if ($last_mod_date < $date);
++		}
++		$camelcase_cache = ".checkpatch-camelcase.date.$last_mod_date";
++	}
++
++	if ($camelcase_cache ne "" && -f $camelcase_cache) {
++		open(my $camelcase_file, '<', "$camelcase_cache")
++		    or warn "$P: Can't read '$camelcase_cache' $!\n";
++		while (<$camelcase_file>) {
++			chomp;
++			$camelcase{$_} = 1;
++		}
++		close($camelcase_file);
++
++		return;
  	}
- 	memcg_oom_recover(from);
+-	my @include_files = split('\n', $files);
++
++	if (-d ".git") {
++		$files = `git ls-files "include/*.h"`;
++		@include_files = split('\n', $files);
++	}
++
+ 	foreach my $file (@include_files) {
+ 		seed_camelcase_file($file);
+ 	}
+-	$camelcase_seeded = 1;
+ 
+-	if ($camelcase_git_file ne "") {
++	if ($camelcase_cache ne "") {
+ 		unlink glob ".checkpatch-camelcase.*";
+-		open(my $camelcase_file, '>', "$camelcase_git_file")
+-		    or warn "$P: Can't write '$camelcase_git_file' $!\n";
++		open(my $camelcase_file, '>', "$camelcase_cache")
++		    or warn "$P: Can't write '$camelcase_cache' $!\n";
+ 		foreach (sort { lc($a) cmp lc($b) } keys(%camelcase)) {
+ 			print $camelcase_file ("$_\n");
+ 		}
 _
 
-Patches currently in -mm which might be from lizefan@huawei.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+zbud-add-to-mm.patch
+zswap-add-to-mm.patch
+zswap-add-documentation.patch
 linux-next.patch
 
