@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
- added to -mm tree
-Date: Tue, 09 Jul 2013 14:38:44 -0700
-Message-ID: <51dc82e4.aAK3+BHDaKkG1+4D%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch added to -mm tree
+Date: Tue, 09 Jul 2013 14:56:50 -0700
+Message-ID: <51dc8722.UXYITu6Y/wcEF+Jg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37809 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734Ab3GIVip (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 17:38:45 -0400
+	with ESMTP id S1751316Ab3GIV4v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 17:56:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, glommer@gmail.com, dchinner@redhat.com
+To: mm-commits@vger.kernel.org, steven.t.hampson@intel.com, stable@vger.kernel.org, riel@redhat.com, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, oleg@redhat.com
 
-Subject: + list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch added to -mm tree
-To: dchinner@redhat.com,glommer@gmail.com,mhocko@suse.cz
+Subject: + mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch added to -mm tree
+To: oleg@redhat.com,andi@firstfloor.org,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,riel@redhat.com,stable@vger.kernel.org,steven.t.hampson@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 14:38:44 -0700
+Date: Tue, 09 Jul 2013 14:56:50 -0700
 
 
 The patch titled
-     Subject: list_lru: fix broken LRU_RETRY behaviour
+     Subject: mm: mempolicy: fix mbind_range() && vma_adjust() interaction
 has been added to the -mm tree.  Its filename is
-     list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
+     mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,138 +43,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Chinner <dchinner@redhat.com>
-Subject: list_lru: fix broken LRU_RETRY behaviour
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: mempolicy: fix mbind_range() && vma_adjust() interaction
 
-The LRU_RETRY code assumes that the list traversal status after we have
-dropped and regained the list lock.  Unfortunately, this is not a valid
-assumption, and that can lead to racing traversals isolating objects that
-the other traversal expects to be the next item on the list.
+vma_adjust() does vma_set_policy(vma, vma_policy(next)) and this
+is doubly wrong:
 
-This is causing problems with the inode cache shrinker isolation, with
-races resulting in an inode on a dispose list being "isolated" because a
-racing traversal still thinks it is on the LRU.  The inode is then never
-reclaimed and that causes hangs if a subsequent lookup on that inode
-occurs.
+1. This leaks vma->vm_policy if it is not NULL and not equal to
+   next->vm_policy.
 
-Fix it by always restarting the list walk on a LRU_RETRY return from the
-isolate callback.  Avoid the possibility of livelocks the current code was
-trying to aavoid by always decrementing the nr_to_walk counter on retries
-so that even if we keep hitting the same item on the list we'll eventually
-stop trying to walk and exit out of the situation causing the problem.
+   This can happen if vma_merge() expands "area", not prev (case 8).
 
-Reported-by: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
-Cc: Glauber Costa <glommer@gmail.com>
+2. This sets the wrong policy if vma_merge() joins prev and area,
+   area is the vma the caller needs to update and it still has the
+   old policy.
+
+Revert 1444f92c "mm: merging memory blocks resets mempolicy" which
+introduced these problems.
+
+Change mbind_range() to recheck mpol_equal() after vma_merge() to
+fix the problem 1444f92c tried to address.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Steven T Hampson <steven.t.hampson@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |   29 ++++++++++++-----------------
- 1 file changed, 12 insertions(+), 17 deletions(-)
+ mm/mempolicy.c |    6 +++++-
+ mm/mmap.c      |    2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/list_lru.c~list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour mm/list_lru.c
---- a/mm/list_lru.c~list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour
-+++ a/mm/list_lru.c
-@@ -73,19 +73,19 @@ list_lru_walk_node(struct list_lru *lru,
- 	struct list_lru_node	*nlru = &lru->node[nid];
- 	struct list_head *item, *n;
- 	unsigned long isolated = 0;
--	/*
--	 * If we don't keep state of at which pass we are, we can loop at
--	 * LRU_RETRY, since we have no guarantees that the caller will be able
--	 * to do something other than retry on the next pass. We handle this by
--	 * allowing at most one retry per object. This should not be altered
--	 * by any condition other than LRU_RETRY.
--	 */
--	bool first_pass = true;
- 
- 	spin_lock(&nlru->lock);
- restart:
- 	list_for_each_safe(item, n, &nlru->list) {
- 		enum lru_status ret;
-+
-+		/*
-+		 * decrement nr_to_walk first so that we don't livelock if we
-+		 * get stuck on large numbesr of LRU_RETRY items
-+		 */
-+		if (--(*nr_to_walk) == 0)
-+			break;
-+
- 		ret = isolate(item, &nlru->lock, cb_arg);
- 		switch (ret) {
- 		case LRU_REMOVED:
-@@ -100,19 +100,14 @@ restart:
- 		case LRU_SKIP:
- 			break;
- 		case LRU_RETRY:
--			if (!first_pass) {
--				first_pass = true;
--				break;
--			}
--			first_pass = false;
-+			/*
-+			 * The lru lock has been dropped, our list traversal is
-+			 * now invalid and so we have to restart from scratch.
-+			 */
- 			goto restart;
- 		default:
- 			BUG();
+diff -puN mm/mempolicy.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction
++++ a/mm/mempolicy.c
+@@ -732,7 +732,10 @@ static int mbind_range(struct mm_struct
+ 		if (prev) {
+ 			vma = prev;
+ 			next = vma->vm_next;
+-			continue;
++			if (mpol_equal(vma_policy(vma), new_pol))
++				continue;
++			/* vma_merge() joined vma && vma->next, case 8 */
++			goto replace;
  		}
--
--		if ((*nr_to_walk)-- == 0)
--			break;
--
- 	}
- 
- 	spin_unlock(&nlru->lock);
+ 		if (vma->vm_start != vmstart) {
+ 			err = split_vma(vma->vm_mm, vma, vmstart, 1);
+@@ -744,6 +747,7 @@ static int mbind_range(struct mm_struct
+ 			if (err)
+ 				goto out;
+ 		}
++ replace:
+ 		err = vma_replace_policy(vma, new_pol);
+ 		if (err)
+ 			goto out;
+diff -puN mm/mmap.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction mm/mmap.c
+--- a/mm/mmap.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction
++++ a/mm/mmap.c
+@@ -865,7 +865,7 @@ again:			remove_next = 1 + (end > next->
+ 		if (next->anon_vma)
+ 			anon_vma_merge(vma, next);
+ 		mm->map_count--;
+-		vma_set_policy(vma, vma_policy(next));
++		mpol_put(vma_policy(next));
+ 		kmem_cache_free(vm_area_cachep, next);
+ 		/*
+ 		 * In mprotect's case 6 (see comments on vma_merge),
 _
 
-Patches currently in -mm which might be from dchinner@redhat.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+vfree-dont-schedule-free_work-if-llist_add-returns-false.patch
+ptrace-x86-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-powerpc-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-arm-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-sh-revert-hw_breakpoints-fix-racy-access-to-ptrace-breakpoints.patch
+ptrace-revert-prepare-to-fix-racy-accesses-on-task-breakpoints.patch
+ptrace-x86-simplify-the-disable-logic-in-ptrace_write_dr7.patch
+ptrace-x86-dont-delay-disable-till-second-pass-in-ptrace_write_dr7.patch
+ptrace-x86-introduce-ptrace_register_breakpoint.patch
+ptrace-x86-ptrace_write_dr7-should-create-bp-if-disabled.patch
+ptrace-x86-cleanup-ptrace_set_debugreg.patch
+ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+ptrace-x86-flush_ptrace_hw_breakpoint-shoule-clear-the-virtual-debug-registers.patch
 linux-next.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-list-infrastructure-fix.patch
-list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
-list_lru-per-node-api.patch
-list_lru-remove-special-case-function-list_lru_dispose_all.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
-list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
-staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
-staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
-staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
-staging-lustre-libcfs-cleanup-linux-memh.patch
-staging-lustre-replace-num_physpages-with-totalram_pages.patch
+mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
+fput-turn-list_head-delayed_fput_list-into-llist_head.patch
+llist-fix-simplify-llist_add-and-llist_add_batch.patch
+llist-llist_add-can-use-llist_add_batch.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 
