@@ -1,81 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] partitions-msdos-enumerate-also-aix-lvm-partitions.patch removed from -mm tree
-Date: Tue, 09 Jul 2013 16:22:07 -0700
-Message-ID: <51dc9b1f.ZGONnSso3quMrSfS%akpm@linux-foundation.org>
+Subject: [merged] mwave-fix-info-leak-in-mwave_ioctl.patch removed from
+ -mm tree
+Date: Tue, 09 Jul 2013 16:22:01 -0700
+Message-ID: <51dc9b19.laz6szJGGlITU1sM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39219 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545Ab3GIXWH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:22:07 -0400
+	with ESMTP id S1753545Ab3GIXWC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kzak@redhat.com, axboe@kernel.dk, phdm@macqel.be
+To: mm-commits@vger.kernel.org, jkosina@suse.cz, greg@kroah.com, dan.carpenter@oracle.com
 
-Subject: [merged] partitions-msdos-enumerate-also-aix-lvm-partitions.patch removed from -mm tree
-To: phdm@macqel.be,axboe@kernel.dk,kzak@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] mwave-fix-info-leak-in-mwave_ioctl.patch removed from -mm tree
+To: dan.carpenter@oracle.com,greg@kroah.com,jkosina@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:22:07 -0700
+Date: Tue, 09 Jul 2013 16:22:01 -0700
 
 
 The patch titled
-     Subject: partitions/msdos: enumerate also AIX LVM partitions
+     Subject: mwave: fix info leak in mwave_ioctl()
 has been removed from the -mm tree.  Its filename was
-     partitions-msdos-enumerate-also-aix-lvm-partitions.patch
+     mwave-fix-info-leak-in-mwave_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Philippe De Muyter <phdm@macqel.be>
-Subject: partitions/msdos: enumerate also AIX LVM partitions
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: mwave: fix info leak in mwave_ioctl()
 
-Graft AIX partitions enumeration into partitions/msdos.c
+Smatch complains that on 64 bit systems, there is a hole in the
+MW_ABILITIES struct between ->component_count and ->component_list[].  It
+leaks stack information from the mwave_ioctl() function.
 
-There is already a AIX disks detection logic in msdos.c.  When an AIX disk
-has been found, and if configured to, call the aix partitions recognizer. 
-This avoids removal of AIX disks protection from msdos.c, avoids code
-duplication, and ensures that AIX partitions enumeration is called before
-plain msdos partitions enumeration.
+I've added a memset() to initialize the struct to zero.
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/msdos.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/char/mwave/tp3780i.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN block/partitions/msdos.c~partitions-msdos-enumerate-also-aix-lvm-partitions block/partitions/msdos.c
---- a/block/partitions/msdos.c~partitions-msdos-enumerate-also-aix-lvm-partitions
-+++ a/block/partitions/msdos.c
-@@ -23,6 +23,7 @@
- #include "check.h"
- #include "msdos.h"
- #include "efi.h"
-+#include "aix.h"
+diff -puN drivers/char/mwave/tp3780i.c~mwave-fix-info-leak-in-mwave_ioctl drivers/char/mwave/tp3780i.c
+--- a/drivers/char/mwave/tp3780i.c~mwave-fix-info-leak-in-mwave_ioctl
++++ a/drivers/char/mwave/tp3780i.c
+@@ -479,6 +479,7 @@ int tp3780I_QueryAbilities(THINKPAD_BD_D
+ 	PRINTK_2(TRACE_TP3780I,
+ 		"tp3780i::tp3780I_QueryAbilities entry pBDData %p\n", pBDData);
  
- /*
-  * Many architectures don't like unaligned accesses, while
-@@ -462,8 +463,12 @@ int msdos_partition(struct parsed_partit
- 	 */
- 	if (aix_magic_present(state, data)) {
- 		put_dev_sector(sect);
-+#ifdef CONFIG_AIX_PARTITION
-+		return aix_partition(state);
-+#else
- 		strlcat(state->pp_buf, " [AIX]", PAGE_SIZE);
- 		return 0;
-+#endif
- 	}
- 
- 	if (!msdos_magic_present(data + 510)) {
++	memset(pAbilities, 0, sizeof(*pAbilities));
+ 	/* fill out standard constant fields */
+ 	pAbilities->instr_per_sec = pBDData->rDspSettings.uIps;
+ 	pAbilities->data_size = pBDData->rDspSettings.uDStoreSize;
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
+linux-next.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix.patch
 
