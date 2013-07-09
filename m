@@ -1,123 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-remove-zone_type-argument-of-build_zonelists_node.patch removed from -mm tree
-Date: Tue, 09 Jul 2013 16:19:51 -0700
-Message-ID: <51dc9a97.NmrC+ak8nZ6mIIEQ%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-unlikely-from-the-current_order-test.patch
+ removed from -mm tree
+Date: Tue, 09 Jul 2013 16:19:55 -0700
+Message-ID: <51dc9a9b.AK72GAWhvulxQ+Ru%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38856 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38860 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753646Ab3GIXTv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:19:51 -0400
+	with ESMTP id S1753938Ab3GIXTz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:19:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, zhangyanfei@cn.fujitsu.com
 
-Subject: [merged] mm-remove-zone_type-argument-of-build_zonelists_node.patch removed from -mm tree
+Subject: [merged] mm-remove-unlikely-from-the-current_order-test.patch removed from -mm tree
 To: zhangyanfei@cn.fujitsu.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:19:51 -0700
+Date: Tue, 09 Jul 2013 16:19:55 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc.c: remove zone_type argument of build_zonelists_node
+     Subject: mm/page_alloc.c: remove unlikely() from the current_order test
 has been removed from the -mm tree.  Its filename was
-     mm-remove-zone_type-argument-of-build_zonelists_node.patch
+     mm-remove-unlikely-from-the-current_order-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm/page_alloc.c: remove zone_type argument of build_zonelists_node
+Subject: mm/page_alloc.c: remove unlikely() from the current_order test
 
-The callers of build_zonelists_node always pass MAX_NR_ZONES -1 as the
-zone_type argument, so we can directly use the value in
-build_zonelists_node and remove zone_type argument.
+In __rmqueue_fallback(), current_order loops down from MAX_ORDER - 1 to
+the order passed.  MAX_ORDER is typically 11 and pageblock_order is
+typically 9 on x86.  Integer division truncates, so pageblock_order / 2 is
+4.  For the first eight iterations, it's guaranteed that current_order >=
+pageblock_order / 2 if it even gets that far!
+
+So just remove the unlikely(), it's completely bogus.
 
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Suggested-by: David Rientjes <rientjes@google.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-remove-zone_type-argument-of-build_zonelists_node mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-zone_type-argument-of-build_zonelists_node
+diff -puN mm/page_alloc.c~mm-remove-unlikely-from-the-current_order-test mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-unlikely-from-the-current_order-test
 +++ a/mm/page_alloc.c
-@@ -3153,12 +3153,10 @@ static void zoneref_set_zone(struct zone
-  * Add all populated zones of a node to the zonelist.
-  */
- static int build_zonelists_node(pg_data_t *pgdat, struct zonelist *zonelist,
--				int nr_zones, enum zone_type zone_type)
-+				int nr_zones)
- {
- 	struct zone *zone;
--
--	BUG_ON(zone_type >= MAX_NR_ZONES);
--	zone_type++;
-+	enum zone_type zone_type = MAX_NR_ZONES;
- 
- 	do {
- 		zone_type--;
-@@ -3168,8 +3166,8 @@ static int build_zonelists_node(pg_data_
- 				&zonelist->_zonerefs[nr_zones++]);
- 			check_highest_zone(zone_type);
- 		}
--
- 	} while (zone_type);
-+
- 	return nr_zones;
- }
- 
-@@ -3363,8 +3361,7 @@ static void build_zonelists_in_node_orde
- 	zonelist = &pgdat->node_zonelists[0];
- 	for (j = 0; zonelist->_zonerefs[j].zone != NULL; j++)
- 		;
--	j = build_zonelists_node(NODE_DATA(node), zonelist, j,
--							MAX_NR_ZONES - 1);
-+	j = build_zonelists_node(NODE_DATA(node), zonelist, j);
- 	zonelist->_zonerefs[j].zone = NULL;
- 	zonelist->_zonerefs[j].zone_idx = 0;
- }
-@@ -3378,7 +3375,7 @@ static void build_thisnode_zonelists(pg_
- 	struct zonelist *zonelist;
- 
- 	zonelist = &pgdat->node_zonelists[1];
--	j = build_zonelists_node(pgdat, zonelist, 0, MAX_NR_ZONES - 1);
-+	j = build_zonelists_node(pgdat, zonelist, 0);
- 	zonelist->_zonerefs[j].zone = NULL;
- 	zonelist->_zonerefs[j].zone_idx = 0;
- }
-@@ -3586,7 +3583,7 @@ static void build_zonelists(pg_data_t *p
- 	local_node = pgdat->node_id;
- 
- 	zonelist = &pgdat->node_zonelists[0];
--	j = build_zonelists_node(pgdat, zonelist, 0, MAX_NR_ZONES - 1);
-+	j = build_zonelists_node(pgdat, zonelist, 0);
- 
- 	/*
- 	 * Now we build the zonelist so that it contains the zones
-@@ -3599,14 +3596,12 @@ static void build_zonelists(pg_data_t *p
- 	for (node = local_node + 1; node < MAX_NUMNODES; node++) {
- 		if (!node_online(node))
- 			continue;
--		j = build_zonelists_node(NODE_DATA(node), zonelist, j,
--							MAX_NR_ZONES - 1);
-+		j = build_zonelists_node(NODE_DATA(node), zonelist, j);
- 	}
- 	for (node = 0; node < local_node; node++) {
- 		if (!node_online(node))
- 			continue;
--		j = build_zonelists_node(NODE_DATA(node), zonelist, j,
--							MAX_NR_ZONES - 1);
-+		j = build_zonelists_node(NODE_DATA(node), zonelist, j);
- 	}
- 
- 	zonelist->_zonerefs[j].zone = NULL;
+@@ -1046,7 +1046,7 @@ __rmqueue_fallback(struct zone *zone, in
+ 			 * MIGRATE_CMA areas.
+ 			 */
+ 			if (!is_migrate_cma(migratetype) &&
+-			    (unlikely(current_order >= pageblock_order / 2) ||
++			    (current_order >= pageblock_order / 2 ||
+ 			     start_migratetype == MIGRATE_RECLAIMABLE ||
+ 			     page_group_by_mobility_disabled)) {
+ 				int pages;
 _
 
 Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
