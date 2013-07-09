@@ -1,124 +1,108 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
+ partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
  removed from -mm tree
-Date: Tue, 09 Jul 2013 16:22:00 -0700
-Message-ID: <51dc9b18.gxhFEDcmJ1nM0aZk%akpm@linux-foundation.org>
+Date: Tue, 09 Jul 2013 16:22:03 -0700
+Message-ID: <51dc9b1b.hm6P+ykhOzRrXKvy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545Ab3GIXWB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:22:01 -0400
+	with ESMTP id S1753545Ab3GIXWD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:22:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, davidlohr.bueso@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, kzak@redhat.com, axboe@kernel.dk, phdm@macqel.be
 
-Subject: [merged] ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch removed from -mm tree
-To: manfred@colorfullife.com,davidlohr.bueso@hp.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch removed from -mm tree
+To: phdm@macqel.be,axboe@kernel.dk,kzak@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:22:00 -0700
+Date: Tue, 09 Jul 2013 16:22:03 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: rename try_atomic_semop() to perform_atomic_semop(), docu update
+     Subject: partitions/msdos.c: end-of-line whitespace and semicolon cleanup
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update.patch
+     partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: rename try_atomic_semop() to perform_atomic_semop(), docu update
+From: Philippe De Muyter <phdm@macqel.be>
+Subject: partitions/msdos.c: end-of-line whitespace and semicolon cleanup
 
-Cleanup: Some minor points that I noticed while writing the
-previous patches
-
-1) The name try_atomic_semop() is misleading: The function performs the
-   operation (if it is possible).
-
-2) Some documentation updates.
-
-No real code change, a rename and documentation changes.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
+ block/partitions/msdos.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update ipc/sem.c
---- a/ipc/sem.c~ipc-semc-rename-try_atomic_semop-to-perform_atomic_semop-docu-update
-+++ a/ipc/sem.c
-@@ -154,12 +154,15 @@ static int sysvipc_sem_proc_show(struct
- #define SEMOPM_FAST	64  /* ~ 372 bytes on stack */
- 
- /*
-- * linked list protection:
-+ * Locking:
-  *	sem_undo.id_next,
-+ *	sem_array.complex_count,
-  *	sem_array.pending{_alter,_cont},
-- *	sem_array.sem_undo: sem_lock() for read/write
-+ *	sem_array.sem_undo: global sem_lock() for read/write
-  *	sem_undo.proc_next: only "current" is allowed to read/write that field.
-  *	
-+ *	sem_array.sem_base[i].pending_{const,alter}:
-+ *		global or semaphore sem_lock() for read/write
-  */
- 
- #define sc_semmsl	sem_ctls[0]
-@@ -536,12 +539,19 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
- 	return ipcget(ns, &sem_ids(ns), &sem_ops, &sem_params);
+diff -puN block/partitions/msdos.c~partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup block/partitions/msdos.c
+--- a/block/partitions/msdos.c~partitions-msdosc-end-of-line-whitespace-and-semicolon-cleanup
++++ a/block/partitions/msdos.c
+@@ -90,7 +90,7 @@ static int aix_magic_present(struct pars
+ 		if (d[0] == '_' && d[1] == 'L' && d[2] == 'V' && d[3] == 'M')
+ 			ret = 1;
+ 		put_dev_sector(sect);
+-	};
++	}
+ 	return ret;
  }
  
--/*
-- * Determine whether a sequence of semaphore operations would succeed
-- * all at once. Return 0 if yes, 1 if need to sleep, else return error code.
-+/** perform_atomic_semop - Perform (if possible) a semaphore operation
-+ * @sma: semaphore array
-+ * @sops: array with operations that should be checked
-+ * @nsems: number of sops
-+ * @un: undo array
-+ * @pid: pid that did the change
-+ *
-+ * Returns 0 if the operation was possible.
-+ * Returns 1 if the operation is impossible, the caller must sleep.
-+ * Negative values are error codes.
+@@ -142,7 +142,7 @@ static void parse_extended(struct parsed
+ 			return;
+ 
+ 		if (!msdos_magic_present(data + 510))
+-			goto done; 
++			goto done;
+ 
+ 		p = (struct partition *) (data + 0x1be);
+ 
+@@ -155,7 +155,7 @@ static void parse_extended(struct parsed
+ 		 * and OS/2 seems to use all four entries.
+ 		 */
+ 
+-		/* 
++		/*
+ 		 * First process the data partition(s)
+ 		 */
+ 		for (i=0; i<4; i++, p++) {
+@@ -263,7 +263,7 @@ static void parse_solaris_x86(struct par
+ }
+ 
+ #if defined(CONFIG_BSD_DISKLABEL)
+-/* 
++/*
+  * Create devices for BSD partitions listed in a disklabel, under a
+  * dos-like partition. See parse_extended() for more information.
   */
+@@ -294,7 +294,7 @@ static void parse_bsd(struct parsed_part
  
--static int try_atomic_semop (struct sem_array * sma, struct sembuf * sops,
-+static int perform_atomic_semop(struct sem_array *sma, struct sembuf *sops,
- 			     int nsops, struct sem_undo *un, int pid)
- {
- 	int result, sem_op;
-@@ -724,8 +734,8 @@ static int wake_const_ops(struct sem_arr
- 		q = container_of(walk, struct sem_queue, list);
- 		walk = walk->next;
- 
--		error = try_atomic_semop(sma, q->sops, q->nsops,
--						q->undo, q->pid);
-+		error = perform_atomic_semop(sma, q->sops, q->nsops,
-+						 q->undo, q->pid);
- 
- 		if (error <= 0) {
- 			/* operation completed, remove from queue & wakeup */
-@@ -838,7 +848,7 @@ again:
- 		if (semnum != -1 && sma->sem_base[semnum].semval == 0)
+ 		if (state->next == state->limit)
  			break;
- 
--		error = try_atomic_semop(sma, q->sops, q->nsops,
-+		error = perform_atomic_semop(sma, q->sops, q->nsops,
- 					 q->undo, q->pid);
- 
- 		/* Does q->sleeper still need to sleep? */
-@@ -1686,7 +1696,6 @@ static int get_queue_result(struct sem_q
- 	return error;
- }
- 
+-		if (p->p_fstype == BSD_FS_UNUSED) 
++		if (p->p_fstype == BSD_FS_UNUSED)
+ 			continue;
+ 		bsd_start = le32_to_cpu(p->p_offset);
+ 		bsd_size = le32_to_cpu(p->p_size);
+@@ -441,7 +441,7 @@ static struct {
+ 	{NEW_SOLARIS_X86_PARTITION, parse_solaris_x86},
+ 	{0, NULL},
+ };
+- 
++
+ int msdos_partition(struct parsed_partitions *state)
+ {
+ 	sector_t sector_size = bdev_logical_block_size(state->bdev) / 512;
+_
+
+Patches currently in -mm which might be from phdm@macqel.be are
+
+origin.patch
+
