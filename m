@@ -1,125 +1,135 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+ reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
  removed from -mm tree
-Date: Tue, 09 Jul 2013 16:22:13 -0700
-Message-ID: <51dc9b25.Y8ehiRVsOZH3OxU4%akpm@linux-foundation.org>
+Date: Tue, 09 Jul 2013 16:22:16 -0700
+Message-ID: <51dc9b28.gZdp8ocX6+viyTBU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39269 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753977Ab3GIXWO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:22:14 -0400
+	with ESMTP id S1754100Ab3GIXWR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:22:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, rja@sgi.com, mingo@kernel.org, mboton.lkml@gmail.com, hpa@zytor.com, gxt@mprc.pku.edu.cn, holt@sgi.com
+To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, rja@sgi.com, hpa@zytor.com, gxt@mprc.pku.edu.cn, holt@sgi.com
 
-Subject: [merged] reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch removed from -mm tree
-To: holt@sgi.com,gxt@mprc.pku.edu.cn,hpa@zytor.com,mboton.lkml@gmail.com,mingo@kernel.org,rja@sgi.com,rmk+kernel@arm.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch removed from -mm tree
+To: holt@sgi.com,gxt@mprc.pku.edu.cn,hpa@zytor.com,rja@sgi.com,rmk+kernel@arm.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:22:13 -0700
+Date: Tue, 09 Jul 2013 16:22:16 -0700
 
 
 The patch titled
-     Subject: reboot: x86: prepare reboot_mode for moving to generic kernel code
+     Subject: reboot: arm: prepare reboot_mode for moving to generic kernel code
 has been removed from the -mm tree.  Its filename was
-     reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
+     reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Robin Holt <holt@sgi.com>
-Subject: reboot: x86: prepare reboot_mode for moving to generic kernel code
+Subject: reboot: arm: prepare reboot_mode for moving to generic kernel code
 
 Prepare for the moving the parsing of reboot= to the generic kernel code
 by making reboot_mode into a more generic form.
 
 Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Miguel Boton <mboton.lkml@gmail.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: Russ Anderson <rja@sgi.com>
 Cc: Robin Holt <holt@sgi.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |   12 +++++++-----
- include/linux/reboot.h   |    5 +++++
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ arch/arm/include/asm/mach/arch.h   |    3 ++-
+ arch/arm/kernel/process.c          |    8 ++++----
+ arch/arm/kernel/setup.c            |    6 +++---
+ arch/arm/mach-footbridge/cats-hw.c |    2 +-
+ 4 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/reboot.c~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code
-+++ a/arch/x86/kernel/reboot.c
-@@ -36,7 +36,7 @@ void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
+diff -puN arch/arm/include/asm/mach/arch.h~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/arm/include/asm/mach/arch.h
+--- a/arch/arm/include/asm/mach/arch.h~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/arch/arm/include/asm/mach/arch.h
+@@ -11,6 +11,7 @@
+ #include <linux/types.h>
  
- static const struct desc_ptr no_idt = {};
--static int reboot_mode;
-+static enum reboot_mode reboot_mode;
- enum reboot_type reboot_type = BOOT_ACPI;
- int reboot_force;
+ #ifndef __ASSEMBLY__
++#include <linux/reboot.h>
  
-@@ -88,11 +88,11 @@ static int __init reboot_setup(char *str
+ struct tag;
+ struct meminfo;
+@@ -43,7 +44,7 @@ struct machine_desc {
+ 	unsigned char		reserve_lp0 :1;	/* never has lp0	*/
+ 	unsigned char		reserve_lp1 :1;	/* never has lp1	*/
+ 	unsigned char		reserve_lp2 :1;	/* never has lp2	*/
+-	char			restart_mode;	/* default restart mode	*/
++	enum reboot_mode	reboot_mode;	/* default restart mode	*/
+ 	struct smp_operations	*smp;		/* SMP operations	*/
+ 	bool			(*smp_init)(void);
+ 	void			(*fixup)(struct tag *, char **,
+diff -puN arch/arm/kernel/process.c~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/arch/arm/kernel/process.c
+@@ -175,14 +175,14 @@ void arch_cpu_idle(void)
+ 		default_idle();
+ }
  
- 		switch (*str) {
- 		case 'w':
--			reboot_mode = 0x1234;
-+			reboot_mode = REBOOT_WARM;
- 			break;
+-static char reboot_mode = 'h';
++enum reboot_mode reboot_mode = REBOOT_HARD;
  
- 		case 'c':
--			reboot_mode = 0;
-+			reboot_mode = REBOOT_COLD;
- 			break;
+-int __init reboot_setup(char *str)
++static int __init reboot_setup(char *str)
+ {
+-	reboot_mode = str[0];
++	if ('s' == str[0])
++		reboot_mode = REBOOT_SOFT;
+ 	return 1;
+ }
+-
+ __setup("reboot=", reboot_setup);
  
- #ifdef CONFIG_SMP
-@@ -536,6 +536,7 @@ static void native_machine_emergency_res
- 	int i;
- 	int attempt = 0;
- 	int orig_reboot_type = reboot_type;
-+	unsigned short mode;
+ /*
+diff -puN arch/arm/kernel/setup.c~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/arm/kernel/setup.c
+--- a/arch/arm/kernel/setup.c~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/arch/arm/kernel/setup.c
+@@ -74,7 +74,7 @@ __setup("fpe=", fpe_setup);
  
- 	if (reboot_emergency)
- 		emergency_vmx_disable_all();
-@@ -543,7 +544,8 @@ static void native_machine_emergency_res
- 	tboot_shutdown(TB_SHUTDOWN_REBOOT);
+ extern void paging_init(struct machine_desc *desc);
+ extern void sanity_check_meminfo(void);
+-extern void reboot_setup(char *str);
++extern enum reboot_mode reboot_mode;
+ extern void setup_dma_zone(struct machine_desc *desc);
  
- 	/* Tell the BIOS if we want cold or warm reboot */
--	*((unsigned short *)__va(0x472)) = reboot_mode;
-+	mode = reboot_mode == REBOOT_WARM ? 0x1234 : 0;
-+	*((unsigned short *)__va(0x472)) = mode;
+ unsigned int processor_id;
+@@ -861,8 +861,8 @@ void __init setup_arch(char **cmdline_p)
  
- 	for (;;) {
- 		/* Could also try the reset bit in the Hammer NB */
-@@ -585,7 +587,7 @@ static void native_machine_emergency_res
+ 	setup_dma_zone(mdesc);
  
- 		case BOOT_EFI:
- 			if (efi_enabled(EFI_RUNTIME_SERVICES))
--				efi.reset_system(reboot_mode ?
-+				efi.reset_system(reboot_mode == REBOOT_WARM ?
- 						 EFI_RESET_WARM :
- 						 EFI_RESET_COLD,
- 						 EFI_SUCCESS, 0, NULL);
-diff -puN include/linux/reboot.h~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code include/linux/reboot.h
---- a/include/linux/reboot.h~reboot-x86-prepare-reboot_mode-for-moving-to-generic-kernel-code
-+++ a/include/linux/reboot.h
-@@ -10,6 +10,11 @@
- #define SYS_HALT	0x0002	/* Notify of system halt */
- #define SYS_POWER_OFF	0x0003	/* Notify of system power off */
+-	if (mdesc->restart_mode)
+-		reboot_setup(&mdesc->restart_mode);
++	if (mdesc->reboot_mode != REBOOT_HARD)
++		reboot_mode = mdesc->reboot_mode;
  
-+enum reboot_mode {
-+	REBOOT_COLD = 0,
-+	REBOOT_WARM,
-+};
-+
- extern int register_reboot_notifier(struct notifier_block *);
- extern int unregister_reboot_notifier(struct notifier_block *);
- 
+ 	init_mm.start_code = (unsigned long) _text;
+ 	init_mm.end_code   = (unsigned long) _etext;
+diff -puN arch/arm/mach-footbridge/cats-hw.c~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code arch/arm/mach-footbridge/cats-hw.c
+--- a/arch/arm/mach-footbridge/cats-hw.c~reboot-arm-prepare-reboot_mode-for-moving-to-generic-kernel-code
++++ a/arch/arm/mach-footbridge/cats-hw.c
+@@ -86,7 +86,7 @@ fixup_cats(struct tag *tags, char **cmdl
+ MACHINE_START(CATS, "Chalice-CATS")
+ 	/* Maintainer: Philip Blundell */
+ 	.atag_offset	= 0x100,
+-	.restart_mode	= 's',
++	.reboot_mode	= REBOOT_SOFT,
+ 	.fixup		= fixup_cats,
+ 	.map_io		= footbridge_map_io,
+ 	.init_irq	= footbridge_init_irq,
 _
 
 Patches currently in -mm which might be from holt@sgi.com are
