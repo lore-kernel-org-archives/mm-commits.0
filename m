@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch added to -mm tree
-Date: Tue, 09 Jul 2013 15:23:49 -0700
-Message-ID: <51dc8d75.IL0YynA2sjYKw3J5%akpm@linux-foundation.org>
+ kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch added to -mm tree
+Date: Tue, 09 Jul 2013 15:48:02 -0700
+Message-ID: <51dc9322.1M5bYHvjMSgYTpX3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38203 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38518 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750723Ab3GIWXu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 18:23:50 -0400
+	with ESMTP id S1753256Ab3GIWsD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 18:48:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, guz.fnst@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rth@twiddle.net, oleg@redhat.com, mattst88@gmail.com, ink@jurassic.park.msu.ru, davem@davemloft.net, axboe@kernel.dk, mathieu.desnoyers@efficios.com
 
-Subject: + ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,guz.fnst@cn.fujitsu.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch added to -mm tree
+To: mathieu.desnoyers@efficios.com,axboe@kernel.dk,davem@davemloft.net,ink@jurassic.park.msu.ru,mattst88@gmail.com,oleg@redhat.com,rth@twiddle.net
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 15:23:49 -0700
+Date: Tue, 09 Jul 2013 15:48:02 -0700
 
 
 The patch titled
-     Subject: ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix
+     Subject: kernel-wide: fix missing validations on __get/__put/__copy_to/__copy_from_user()
 has been added to the -mm tree.  Its filename is
-     ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+     kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,74 +44,210 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: kernel-wide: fix missing validations on __get/__put/__copy_to/__copy_from_user()
 
-fix layout, per Joel
+I found the following pattern that leads in to interesting findings:
 
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+grep -r "ret.*|=.*__put_user" *
+grep -r "ret.*|=.*__get_user" *
+grep -r "ret.*|=.*__copy" *
+
+The __put_user() calls in compat_ioctl.c, ptrace compat, signal compat,
+since those appear in compat code, we could probably expect the kernel
+addresses not to be reachable in the lower 32-bit range, so I think they
+might not be exploitable.
+
+For the "__get_user" cases, I don't think those are exploitable: the worse
+that can happen is that the kernel will copy kernel memory into in-kernel
+buffers, and will fail immediately afterward.
+
+The alpha csum_partial_copy_from_user() seems to be missing the
+access_ok() check entirely.  The fix is inspired from x86.  This could
+lead to information leak on alpha.  I also noticed that many architectures
+map csum_partial_copy_from_user() to csum_partial_copy_generic(), but I
+wonder if the latter is performing the access checks on every
+architectures.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/lib/csum_partial_copy.c |    5 ++
+ arch/sparc/kernel/sys_sparc32.c    |   12 +++---
+ block/compat_ioctl.c               |    2 -
+ kernel/signal.c                    |    4 +-
+ net/socket.c                       |   50 +++++++++++++--------------
+ 5 files changed, 39 insertions(+), 34 deletions(-)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2970,6 +2970,7 @@ int ocfs2_duplicate_clusters_by_page(han
- 			mlog_errno(ret);
- 			break;
- 		}
-+
- 		/*
- 		 * In case PAGE_CACHE_SIZE <= CLUSTER_SIZE, This page
- 		 * can't be dirtied before we CoW it out.
+diff -puN arch/alpha/lib/csum_partial_copy.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user arch/alpha/lib/csum_partial_copy.c
+--- a/arch/alpha/lib/csum_partial_copy.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user
++++ a/arch/alpha/lib/csum_partial_copy.c
+@@ -338,6 +338,11 @@ csum_partial_copy_from_user(const void _
+ 	unsigned long doff = 7 & (unsigned long) dst;
+ 
+ 	if (len) {
++		if (!access_ok(VERIFY_READ, src, len)) {
++			*errp = -EFAULT;
++			memset(dst, 0, len);
++			return sum;
++		}
+ 		if (!doff) {
+ 			if (!soff)
+ 				checksum = csum_partial_cfu_aligned(
+diff -puN arch/sparc/kernel/sys_sparc32.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user arch/sparc/kernel/sys_sparc32.c
+--- a/arch/sparc/kernel/sys_sparc32.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user
++++ a/arch/sparc/kernel/sys_sparc32.c
+@@ -169,10 +169,10 @@ COMPAT_SYSCALL_DEFINE5(rt_sigaction, int
+ 		new_ka.ka_restorer = restorer;
+ 		ret = get_user(u_handler, &act->sa_handler);
+ 		new_ka.sa.sa_handler =  compat_ptr(u_handler);
+-		ret |= __copy_from_user(&set32, &act->sa_mask, sizeof(compat_sigset_t));
++		ret |= copy_from_user(&set32, &act->sa_mask, sizeof(compat_sigset_t));
+ 		sigset_from_compat(&new_ka.sa.sa_mask, &set32);
+-		ret |= __get_user(new_ka.sa.sa_flags, &act->sa_flags);
+-		ret |= __get_user(u_restorer, &act->sa_restorer);
++		ret |= get_user(new_ka.sa.sa_flags, &act->sa_flags);
++		ret |= get_user(u_restorer, &act->sa_restorer);
+ 		new_ka.sa.sa_restorer = compat_ptr(u_restorer);
+                 if (ret)
+                 	return -EFAULT;
+@@ -183,9 +183,9 @@ COMPAT_SYSCALL_DEFINE5(rt_sigaction, int
+ 	if (!ret && oact) {
+ 		sigset_to_compat(&set32, &old_ka.sa.sa_mask);
+ 		ret = put_user(ptr_to_compat(old_ka.sa.sa_handler), &oact->sa_handler);
+-		ret |= __copy_to_user(&oact->sa_mask, &set32, sizeof(compat_sigset_t));
+-		ret |= __put_user(old_ka.sa.sa_flags, &oact->sa_flags);
+-		ret |= __put_user(ptr_to_compat(old_ka.sa.sa_restorer), &oact->sa_restorer);
++		ret |= copy_to_user(&oact->sa_mask, &set32, sizeof(compat_sigset_t));
++		ret |= put_user(old_ka.sa.sa_flags, &oact->sa_flags);
++		ret |= put_user(ptr_to_compat(old_ka.sa.sa_restorer), &oact->sa_restorer);
+ 		if (ret)
+ 			ret = -EFAULT;
+         }
+diff -puN block/compat_ioctl.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user block/compat_ioctl.c
+--- a/block/compat_ioctl.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user
++++ a/block/compat_ioctl.c
+@@ -70,7 +70,7 @@ static int compat_hdio_getgeo(struct gen
+ 		return ret;
+ 
+ 	ret = copy_to_user(ugeo, &geo, 4);
+-	ret |= __put_user(geo.start, &ugeo->start);
++	ret |= put_user(geo.start, &ugeo->start);
+ 	if (ret)
+ 		ret = -EFAULT;
+ 
+diff -puN kernel/ptrace.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user kernel/ptrace.c
+diff -puN kernel/signal.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user kernel/signal.c
+--- a/kernel/signal.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user
++++ a/kernel/signal.c
+@@ -3394,7 +3394,7 @@ COMPAT_SYSCALL_DEFINE4(rt_sigaction, int
+ 		new_ka.sa.sa_restorer = compat_ptr(restorer);
+ #endif
+ 		ret |= copy_from_user(&mask, &act->sa_mask, sizeof(mask));
+-		ret |= __get_user(new_ka.sa.sa_flags, &act->sa_flags);
++		ret |= get_user(new_ka.sa.sa_flags, &act->sa_flags);
+ 		if (ret)
+ 			return -EFAULT;
+ 		sigset_from_compat(&new_ka.sa.sa_mask, &mask);
+@@ -3406,7 +3406,7 @@ COMPAT_SYSCALL_DEFINE4(rt_sigaction, int
+ 		ret = put_user(ptr_to_compat(old_ka.sa.sa_handler), 
+ 			       &oact->sa_handler);
+ 		ret |= copy_to_user(&oact->sa_mask, &mask, sizeof(mask));
+-		ret |= __put_user(old_ka.sa.sa_flags, &oact->sa_flags);
++		ret |= put_user(old_ka.sa.sa_flags, &oact->sa_flags);
+ #ifdef __ARCH_HAS_SA_RESTORER
+ 		ret |= put_user(ptr_to_compat(old_ka.sa.sa_restorer),
+ 				&oact->sa_restorer);
+diff -puN net/socket.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user net/socket.c
+--- a/net/socket.c~kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user
++++ a/net/socket.c
+@@ -3072,12 +3072,12 @@ static int compat_sioc_ifmap(struct net
+ 
+ 	uifmap32 = &uifr32->ifr_ifru.ifru_map;
+ 	err = copy_from_user(&ifr, uifr32, sizeof(ifr.ifr_name));
+-	err |= __get_user(ifr.ifr_map.mem_start, &uifmap32->mem_start);
+-	err |= __get_user(ifr.ifr_map.mem_end, &uifmap32->mem_end);
+-	err |= __get_user(ifr.ifr_map.base_addr, &uifmap32->base_addr);
+-	err |= __get_user(ifr.ifr_map.irq, &uifmap32->irq);
+-	err |= __get_user(ifr.ifr_map.dma, &uifmap32->dma);
+-	err |= __get_user(ifr.ifr_map.port, &uifmap32->port);
++	err |= get_user(ifr.ifr_map.mem_start, &uifmap32->mem_start);
++	err |= get_user(ifr.ifr_map.mem_end, &uifmap32->mem_end);
++	err |= get_user(ifr.ifr_map.base_addr, &uifmap32->base_addr);
++	err |= get_user(ifr.ifr_map.irq, &uifmap32->irq);
++	err |= get_user(ifr.ifr_map.dma, &uifmap32->dma);
++	err |= get_user(ifr.ifr_map.port, &uifmap32->port);
+ 	if (err)
+ 		return -EFAULT;
+ 
+@@ -3088,12 +3088,12 @@ static int compat_sioc_ifmap(struct net
+ 
+ 	if (cmd == SIOCGIFMAP && !err) {
+ 		err = copy_to_user(uifr32, &ifr, sizeof(ifr.ifr_name));
+-		err |= __put_user(ifr.ifr_map.mem_start, &uifmap32->mem_start);
+-		err |= __put_user(ifr.ifr_map.mem_end, &uifmap32->mem_end);
+-		err |= __put_user(ifr.ifr_map.base_addr, &uifmap32->base_addr);
+-		err |= __put_user(ifr.ifr_map.irq, &uifmap32->irq);
+-		err |= __put_user(ifr.ifr_map.dma, &uifmap32->dma);
+-		err |= __put_user(ifr.ifr_map.port, &uifmap32->port);
++		err |= put_user(ifr.ifr_map.mem_start, &uifmap32->mem_start);
++		err |= put_user(ifr.ifr_map.mem_end, &uifmap32->mem_end);
++		err |= put_user(ifr.ifr_map.base_addr, &uifmap32->base_addr);
++		err |= put_user(ifr.ifr_map.irq, &uifmap32->irq);
++		err |= put_user(ifr.ifr_map.dma, &uifmap32->dma);
++		err |= put_user(ifr.ifr_map.port, &uifmap32->port);
+ 		if (err)
+ 			err = -EFAULT;
+ 	}
+@@ -3167,25 +3167,25 @@ static int routing_ioctl(struct net *net
+ 		struct in6_rtmsg32 __user *ur6 = argp;
+ 		ret = copy_from_user(&r6.rtmsg_dst, &(ur6->rtmsg_dst),
+ 			3 * sizeof(struct in6_addr));
+-		ret |= __get_user(r6.rtmsg_type, &(ur6->rtmsg_type));
+-		ret |= __get_user(r6.rtmsg_dst_len, &(ur6->rtmsg_dst_len));
+-		ret |= __get_user(r6.rtmsg_src_len, &(ur6->rtmsg_src_len));
+-		ret |= __get_user(r6.rtmsg_metric, &(ur6->rtmsg_metric));
+-		ret |= __get_user(r6.rtmsg_info, &(ur6->rtmsg_info));
+-		ret |= __get_user(r6.rtmsg_flags, &(ur6->rtmsg_flags));
+-		ret |= __get_user(r6.rtmsg_ifindex, &(ur6->rtmsg_ifindex));
++		ret |= get_user(r6.rtmsg_type, &(ur6->rtmsg_type));
++		ret |= get_user(r6.rtmsg_dst_len, &(ur6->rtmsg_dst_len));
++		ret |= get_user(r6.rtmsg_src_len, &(ur6->rtmsg_src_len));
++		ret |= get_user(r6.rtmsg_metric, &(ur6->rtmsg_metric));
++		ret |= get_user(r6.rtmsg_info, &(ur6->rtmsg_info));
++		ret |= get_user(r6.rtmsg_flags, &(ur6->rtmsg_flags));
++		ret |= get_user(r6.rtmsg_ifindex, &(ur6->rtmsg_ifindex));
+ 
+ 		r = (void *) &r6;
+ 	} else { /* ipv4 */
+ 		struct rtentry32 __user *ur4 = argp;
+ 		ret = copy_from_user(&r4.rt_dst, &(ur4->rt_dst),
+ 					3 * sizeof(struct sockaddr));
+-		ret |= __get_user(r4.rt_flags, &(ur4->rt_flags));
+-		ret |= __get_user(r4.rt_metric, &(ur4->rt_metric));
+-		ret |= __get_user(r4.rt_mtu, &(ur4->rt_mtu));
+-		ret |= __get_user(r4.rt_window, &(ur4->rt_window));
+-		ret |= __get_user(r4.rt_irtt, &(ur4->rt_irtt));
+-		ret |= __get_user(rtdev, &(ur4->rt_dev));
++		ret |= get_user(r4.rt_flags, &(ur4->rt_flags));
++		ret |= get_user(r4.rt_metric, &(ur4->rt_metric));
++		ret |= get_user(r4.rt_mtu, &(ur4->rt_mtu));
++		ret |= get_user(r4.rt_window, &(ur4->rt_window));
++		ret |= get_user(r4.rt_irtt, &(ur4->rt_irtt));
++		ret |= get_user(rtdev, &(ur4->rt_dev));
+ 		if (rtdev) {
+ 			ret |= copy_from_user(devname, compat_ptr(rtdev), 15);
+ 			r4.rt_dev = (char __user __force *)devname;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
-origin.patch
-drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
-mm-remove-duplicated-call-of-get_pfn_range_for_nid.patch
-memcg-use-css_get-put-when-charging-uncharging-kmem.patch
-panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
-shm-fix-null-pointer-deref-when-userspace-specifies-invalid-hugepage-size-fix.patch
-ipc-utilc-ipc_rcu_alloc-cacheline-align-allocation.patch
-partitions-add-aix-lvm-partition-support-files.patch
-reboot-arm-change-reboot_mode-to-use-enum-reboot_mode.patch
-lib-add-lz4-compressor-module.patch
-crypto-add-lz4-cryptographic-api.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-include-linux-mmzoneh-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
 
