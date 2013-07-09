@@ -1,144 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
- removed from -mm tree
-Date: Tue, 09 Jul 2013 16:21:23 -0700
-Message-ID: <51dc9af3.ZRKuzCkS08ZCW1bM%akpm@linux-foundation.org>
+Subject: [merged] ipc-move-rcu-lock-out-of-ipc_addid.patch removed from
+ -mm tree
+Date: Tue, 09 Jul 2013 16:21:29 -0700
+Message-ID: <51dc9af9.ihMHuHLP+ImuPBPj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39137 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39155 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753974Ab3GIXVY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:21:24 -0400
+	with ESMTP id S1754064Ab3GIXVa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:21:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will.deacon@arm.com, prasad@linux.vnet.ibm.com, paulus@samba.org, mingo@kernel.org, mikey@neuling.org, linux@arm.linux.org.uk, lethal@linux-sh.org, jan.kratochvil@redhat.com, fweisbec@gmail.com, benh@kernel.crashing.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, andi@firstfloor.org, davidlohr.bueso@hp.com
 
-Subject: [merged] ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch removed from -mm tree
-To: oleg@redhat.com,benh@kernel.crashing.org,fweisbec@gmail.com,jan.kratochvil@redhat.com,lethal@linux-sh.org,linux@arm.linux.org.uk,mikey@neuling.org,mingo@kernel.org,paulus@samba.org,prasad@linux.vnet.ibm.com,will.deacon@arm.com,mm-commits@vger.kernel.org
+Subject: [merged] ipc-move-rcu-lock-out-of-ipc_addid.patch removed from -mm tree
+To: davidlohr.bueso@hp.com,andi@firstfloor.org,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:21:23 -0700
+Date: Tue, 09 Jul 2013 16:21:29 -0700
 
 
 The patch titled
-     Subject: ptrace: PTRACE_DETACH should do flush_ptrace_hw_breakpoint(child)
+     Subject: ipc: move rcu lock out of ipc_addid
 has been removed from the -mm tree.  Its filename was
-     ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild.patch
+     ipc-move-rcu-lock-out-of-ipc_addid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace: PTRACE_DETACH should do flush_ptrace_hw_breakpoint(child)
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: ipc: move rcu lock out of ipc_addid
 
-Change ptrace_detach() to call flush_ptrace_hw_breakpoint(child).  This
-frees the slots for non-ptrace PERF_TYPE_BREAKPOINT users, and this
-ensures that the tracee won't be killed by SIGTRAP triggered by the active
-breakpoints.
+This patchset continues the work that began in the sysv ipc semaphore
+scaling series: https://lkml.org/lkml/2013/3/20/546
 
-Test-case:
+Just like semaphores used to be, sysv shared memory and msg queues also
+abuse the ipc lock, unnecessarily holding it for operations such as
+permission and security checks.  This patchset mostly deals with mqueues,
+and while shared mem can be done in a very similar way, I want to get
+these patches out in the open first.  It also does some pending cleanups,
+mostly focused on the two level locking we have in ipc code, taking care
+of ipc_addid() and ipcctl_pre_down_nolock() - yes there are still
+functions that need to be updated as well.
 
-	unsigned long encode_dr7(int drnum, int enable, unsigned int type, unsigned int len)
-	{
-		unsigned long dr7;
 
-		dr7 = ((len | type) & 0xf)
-			<< (DR_CONTROL_SHIFT + drnum * DR_CONTROL_SIZE);
-		if (enable)
-			dr7 |= (DR_GLOBAL_ENABLE << (drnum * DR_ENABLE_SIZE));
 
-		return dr7;
-	}
+This patch:
 
-	int write_dr(int pid, int dr, unsigned long val)
-	{
-		return ptrace(PTRACE_POKEUSER, pid,
-				offsetof (struct user, u_debugreg[dr]),
-				val);
-	}
+Make all callers explicitly take and release the RCU read lock.
 
-	void func(void)
-	{
-	}
+This addresses the two level locking seen in newary(), newseg() and
+newqueue().  For the last two, explicitly unlock the ipc object and the
+rcu lock, instead of calling the custom shm_unlock and msg_unlock
+functions.  The next patch will deal with the open coded locking for
+->perm.lock
 
-	int main(void)
-	{
-		int pid, stat;
-		unsigned long dr7;
-
-		pid = fork();
-		if (!pid) {
-			assert(ptrace(PTRACE_TRACEME, 0,0,0) == 0);
-			kill(getpid(), SIGHUP);
-
-			func();
-			return 0x13;
-		}
-
-		assert(pid == waitpid(-1, &stat, 0));
-		assert(WSTOPSIG(stat) == SIGHUP);
-
-		assert(write_dr(pid, 0, (long)func) == 0);
-		dr7 = encode_dr7(0, 1, DR_RW_EXECUTE, DR_LEN_1);
-		assert(write_dr(pid, 7, dr7) == 0);
-
-		assert(ptrace(PTRACE_DETACH, pid, 0,0) == 0);
-		assert(pid == waitpid(-1, &stat, 0));
-		assert(stat == 0x1300);
-
-		return 0;
-	}
-
-Before this patch the child is killed after PTRACE_DETACH.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Michael Neuling <mikey@neuling.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Prasad <prasad@linux.vnet.ibm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    1 +
- 1 file changed, 1 insertion(+)
+ ipc/msg.c  |    7 +++----
+ ipc/shm.c  |    5 ++++-
+ ipc/util.c |    3 +--
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-ptrace_detach-should-do-flush_ptrace_hw_breakpointchild
-+++ a/kernel/ptrace.c
-@@ -469,6 +469,7 @@ static int ptrace_detach(struct task_str
- 	/* Architecture-specific hardware disable .. */
- 	ptrace_disable(child);
- 	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
-+	flush_ptrace_hw_breakpoint(child);
+diff -puN ipc/msg.c~ipc-move-rcu-lock-out-of-ipc_addid ipc/msg.c
+--- a/ipc/msg.c~ipc-move-rcu-lock-out-of-ipc_addid
++++ a/ipc/msg.c
+@@ -199,9 +199,7 @@ static int newque(struct ipc_namespace *
+ 		return retval;
+ 	}
  
- 	write_lock_irq(&tasklist_lock);
+-	/*
+-	 * ipc_addid() locks msq
+-	 */
++	/* ipc_addid() locks msq upon success. */
+ 	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
+ 	if (id < 0) {
+ 		security_msg_queue_free(msq);
+@@ -218,7 +216,8 @@ static int newque(struct ipc_namespace *
+ 	INIT_LIST_HEAD(&msq->q_receivers);
+ 	INIT_LIST_HEAD(&msq->q_senders);
+ 
+-	msg_unlock(msq);
++	spin_unlock(&msq->q_perm.lock);
++	rcu_read_unlock();
+ 
+ 	return msq->q_perm.id;
+ }
+diff -puN ipc/shm.c~ipc-move-rcu-lock-out-of-ipc_addid ipc/shm.c
+--- a/ipc/shm.c~ipc-move-rcu-lock-out-of-ipc_addid
++++ a/ipc/shm.c
+@@ -535,6 +535,7 @@ static int newseg(struct ipc_namespace *
+ 	shp->shm_nattch = 0;
+ 	shp->shm_file = file;
+ 	shp->shm_creator = current;
++
  	/*
+ 	 * shmid gets reported as "inode#" in /proc/pid/maps.
+ 	 * proc-ps tools use this. Changing this will break them.
+@@ -543,7 +544,9 @@ static int newseg(struct ipc_namespace *
+ 
+ 	ns->shm_tot += numpages;
+ 	error = shp->shm_perm.id;
+-	shm_unlock(shp);
++
++	spin_unlock(&shp->shm_perm.lock);
++	rcu_read_unlock();
+ 	return error;
+ 
+ no_id:
+diff -puN ipc/util.c~ipc-move-rcu-lock-out-of-ipc_addid ipc/util.c
+--- a/ipc/util.c~ipc-move-rcu-lock-out-of-ipc_addid
++++ a/ipc/util.c
+@@ -246,9 +246,8 @@ int ipc_get_maxid(struct ipc_ids *ids)
+  *	is returned. The 'new' entry is returned in a locked state on success.
+  *	On failure the entry is not locked and a negative err-code is returned.
+  *
+- *	Called with ipc_ids.rw_mutex held as a writer.
++ *	Called with writer ipc_ids.rw_mutex held.
+  */
+- 
+ int ipc_addid(struct ipc_ids* ids, struct kern_ipc_perm* new, int size)
+ {
+ 	kuid_t euid;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
 origin.patch
-linux-next.patch
-mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
-lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-llist-fix-simplify-llist_add-and-llist_add_batch.patch
-llist-llist_add-can-use-llist_add_batch.patch
-kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 
