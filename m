@@ -1,44 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipcmsg-introduce-msgctl_nolock.patch removed from -mm
- tree
-Date: Tue, 09 Jul 2013 16:21:39 -0700
-Message-ID: <51dc9b03.AM0RGHEN/t7FkipM%akpm@linux-foundation.org>
+Subject: [merged] ipc-move-locking-out-of-ipcctl_pre_down_nolock.patch
+ removed from -mm tree
+Date: Tue, 09 Jul 2013 16:21:35 -0700
+Message-ID: <51dc9aff.KXjTw4UYFzl+LxZE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39175 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39168 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754079Ab3GIXVk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:21:40 -0400
+	with ESMTP id S1753500Ab3GIXVg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, andi@firstfloor.org, davidlohr.bueso@hp.com
 
-Subject: [merged] ipcmsg-introduce-msgctl_nolock.patch removed from -mm tree
+Subject: [merged] ipc-move-locking-out-of-ipcctl_pre_down_nolock.patch removed from -mm tree
 To: davidlohr.bueso@hp.com,andi@firstfloor.org,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:21:39 -0700
+Date: Tue, 09 Jul 2013 16:21:35 -0700
 
 
 The patch titled
-     Subject: ipc,msg: introduce msgctl_nolock
+     Subject: ipc: move locking out of ipcctl_pre_down_nolock
 has been removed from the -mm tree.  Its filename was
-     ipcmsg-introduce-msgctl_nolock.patch
+     ipc-move-locking-out-of-ipcctl_pre_down_nolock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,msg: introduce msgctl_nolock
+Subject: ipc: move locking out of ipcctl_pre_down_nolock
 
-Similar to semctl, when calling msgctl, the *_INFO and *_STAT commands can
-be performed without acquiring the ipc object.
+This function currently acquires both the rw_mutex and the rcu lock on
+successful lookups, leaving the callers to explicitly unlock them,
+creating another two level locking situation.
 
-Add a msgctl_nolock() function and move the logic of *_INFO and *_STAT out
-of msgctl().  This change still takes the lock and it will be properly
-lockless in the next patch
+Make the callers (including those that still use ipcctl_pre_down())
+explicitly lock and unlock the rwsem and rcu lock.
 
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -46,102 +46,224 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   49 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 15 deletions(-)
+ ipc/msg.c  |   24 +++++++++++++++++-------
+ ipc/sem.c  |   27 ++++++++++++++++-----------
+ ipc/shm.c  |   23 +++++++++++++++++------
+ ipc/util.c |   21 ++++++---------------
+ 4 files changed, 56 insertions(+), 39 deletions(-)
 
-diff -puN ipc/msg.c~ipcmsg-introduce-msgctl_nolock ipc/msg.c
---- a/ipc/msg.c~ipcmsg-introduce-msgctl_nolock
+diff -puN ipc/msg.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock ipc/msg.c
+--- a/ipc/msg.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock
 +++ a/ipc/msg.c
-@@ -467,17 +467,11 @@ out_up:
- 	return err;
- }
+@@ -407,31 +407,38 @@ static int msgctl_down(struct ipc_namesp
+ 			return -EFAULT;
+ 	}
  
--SYSCALL_DEFINE3(msgctl, int, msqid, int, cmd, struct msqid_ds __user *, buf)
-+static int msgctl_nolock(struct ipc_namespace *ns, int msqid,
-+			 int cmd, int version, void __user *buf)
- {
-+	int err;
- 	struct msg_queue *msq;
--	int err, version;
--	struct ipc_namespace *ns;
--
--	if (msqid < 0 || cmd < 0)
--		return -EINVAL;
--
--	version = ipc_parse_version(&cmd);
--	ns = current->nsproxy->ipc_ns;
++	down_write(&msg_ids(ns).rw_mutex);
++	rcu_read_lock();
++
+ 	ipcp = ipcctl_pre_down(ns, &msg_ids(ns), msqid, cmd,
+ 			       &msqid64.msg_perm, msqid64.msg_qbytes);
+-	if (IS_ERR(ipcp))
+-		return PTR_ERR(ipcp);
++	if (IS_ERR(ipcp)) {
++		err = PTR_ERR(ipcp);
++		/* the ipc lock is not held upon failure */
++		goto out_unlock1;
++	}
+ 
+ 	msq = container_of(ipcp, struct msg_queue, q_perm);
+ 
+ 	err = security_msg_queue_msgctl(msq, cmd);
+ 	if (err)
+-		goto out_unlock;
++		goto out_unlock0;
  
  	switch (cmd) {
- 	case IPC_INFO:
-@@ -488,6 +482,7 @@ SYSCALL_DEFINE3(msgctl, int, msqid, int,
+ 	case IPC_RMID:
++		/* freeque unlocks the ipc object and rcu */
+ 		freeque(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+ 		if (msqid64.msg_qbytes > ns->msg_ctlmnb &&
+ 		    !capable(CAP_SYS_RESOURCE)) {
+ 			err = -EPERM;
+-			goto out_unlock;
++			goto out_unlock0;
+ 		}
  
- 		if (!buf)
- 			return -EFAULT;
-+
- 		/*
- 		 * We must not return kernel stack data.
- 		 * due to padding, it's not enough
-@@ -519,7 +514,8 @@ SYSCALL_DEFINE3(msgctl, int, msqid, int,
- 			return -EFAULT;
- 		return (max_id < 0) ? 0 : max_id;
- 	}
--	case MSG_STAT:	/* msqid is an index rather than a msg queue id */
-+
-+	case MSG_STAT:
- 	case IPC_STAT:
- 	{
- 		struct msqid64_ds tbuf;
-@@ -563,19 +559,42 @@ SYSCALL_DEFINE3(msgctl, int, msqid, int,
- 			return -EFAULT;
- 		return success_return;
- 	}
--	case IPC_SET:
--	case IPC_RMID:
--		err = msgctl_down(ns, msqid, cmd, buf, version);
--		return err;
-+
+ 		err = ipc_update_perm(&msqid64.msg_perm, ipcp);
+ 		if (err)
+-			goto out_unlock;
++			goto out_unlock0;
+ 
+ 		msq->q_qbytes = msqid64.msg_qbytes;
+ 
+@@ -448,8 +455,11 @@ static int msgctl_down(struct ipc_namesp
  	default:
--		return  -EINVAL;
-+		return -EINVAL;
+ 		err = -EINVAL;
+ 	}
+-out_unlock:
+-	msg_unlock(msq);
++
++out_unlock0:
++	ipc_unlock_object(&msq->q_perm);
++out_unlock1:
++	rcu_read_unlock();
+ out_up:
+ 	up_write(&msg_ids(ns).rw_mutex);
+ 	return err;
+diff -puN ipc/sem.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock ipc/sem.c
+--- a/ipc/sem.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock
++++ a/ipc/sem.c
+@@ -1289,39 +1289,44 @@ static int semctl_down(struct ipc_namesp
+ 			return -EFAULT;
  	}
  
-+	return err;
- out_unlock:
- 	msg_unlock(msq);
- 	return err;
- }
- 
-+SYSCALL_DEFINE3(msgctl, int, msqid, int, cmd, struct msqid_ds __user *, buf)
-+{
-+	int version;
-+	struct ipc_namespace *ns;
++	down_write(&sem_ids(ns).rw_mutex);
++	rcu_read_lock();
 +
-+	if (msqid < 0 || cmd < 0)
-+		return -EINVAL;
-+
-+	version = ipc_parse_version(&cmd);
-+	ns = current->nsproxy->ipc_ns;
-+
-+	switch (cmd) {
-+	case IPC_INFO:
-+	case MSG_INFO:
-+	case MSG_STAT:	/* msqid is an index rather than a msg queue id */
-+	case IPC_STAT:
-+		return msgctl_nolock(ns, msqid, cmd, version, buf);
-+	case IPC_SET:
-+	case IPC_RMID:
-+		return msgctl_down(ns, msqid, cmd, buf, version);
-+	default:
-+		return  -EINVAL;
+ 	ipcp = ipcctl_pre_down_nolock(ns, &sem_ids(ns), semid, cmd,
+ 				      &semid64.sem_perm, 0);
+-	if (IS_ERR(ipcp))
+-		return PTR_ERR(ipcp);
++	if (IS_ERR(ipcp)) {
++		err = PTR_ERR(ipcp);
++		/* the ipc lock is not held upon failure */
++		goto out_unlock1;
 +	}
-+}
+ 
+ 	sma = container_of(ipcp, struct sem_array, sem_perm);
+ 
+ 	err = security_sem_semctl(sma, cmd);
+-	if (err) {
+-		rcu_read_unlock();
+-		goto out_up;
+-	}
++	if (err)
++		goto out_unlock1;
+ 
+-	switch(cmd){
++	switch (cmd) {
+ 	case IPC_RMID:
+ 		sem_lock(sma, NULL, -1);
++		/* freeary unlocks the ipc object and rcu */
+ 		freeary(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+ 		sem_lock(sma, NULL, -1);
+ 		err = ipc_update_perm(&semid64.sem_perm, ipcp);
+ 		if (err)
+-			goto out_unlock;
++			goto out_unlock0;
+ 		sma->sem_ctime = get_seconds();
+ 		break;
+ 	default:
+-		rcu_read_unlock();
+ 		err = -EINVAL;
+-		goto out_up;
++		goto out_unlock1;
+ 	}
+ 
+-out_unlock:
++out_unlock0:
+ 	sem_unlock(sma, -1);
++out_unlock1:
+ 	rcu_read_unlock();
+ out_up:
+ 	up_write(&sem_ids(ns).rw_mutex);
+diff -puN ipc/shm.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock ipc/shm.c
+--- a/ipc/shm.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock
++++ a/ipc/shm.c
+@@ -757,31 +757,42 @@ static int shmctl_down(struct ipc_namesp
+ 			return -EFAULT;
+ 	}
+ 
++	down_write(&shm_ids(ns).rw_mutex);
++	rcu_read_lock();
 +
- static int testmsg(struct msg_msg *msg, long type, int mode)
- {
- 	switch(mode)
-_
-
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
-
-origin.patch
-
+ 	ipcp = ipcctl_pre_down(ns, &shm_ids(ns), shmid, cmd,
+ 			       &shmid64.shm_perm, 0);
+-	if (IS_ERR(ipcp))
+-		return PTR_ERR(ipcp);
++	if (IS_ERR(ipcp)) {
++		err = PTR_ERR(ipcp);
++		/* the ipc lock is not held upon failure */
++		goto out_unlock1;
++	}
+ 
+ 	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
+ 
+ 	err = security_shm_shmctl(shp, cmd);
+ 	if (err)
+-		goto out_unlock;
++		goto out_unlock0;
++
+ 	switch (cmd) {
+ 	case IPC_RMID:
++		/* do_shm_rmid unlocks the ipc object and rcu */
+ 		do_shm_rmid(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+ 		err = ipc_update_perm(&shmid64.shm_perm, ipcp);
+ 		if (err)
+-			goto out_unlock;
++			goto out_unlock0;
+ 		shp->shm_ctim = get_seconds();
+ 		break;
+ 	default:
+ 		err = -EINVAL;
+ 	}
+-out_unlock:
+-	shm_unlock(shp);
++
++out_unlock0:
++	ipc_unlock_object(&shp->shm_perm);
++out_unlock1:
++	rcu_read_unlock();
+ out_up:
+ 	up_write(&shm_ids(ns).rw_mutex);
+ 	return err;
+diff -puN ipc/util.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock ipc/util.c
+--- a/ipc/util.c~ipc-move-locking-out-of-ipcctl_pre_down_nolock
++++ a/ipc/util.c
+@@ -746,8 +746,10 @@ int ipc_update_perm(struct ipc64_perm *i
+  * It must be called without any lock held and
+  *  - retrieves the ipc with the given id in the given table.
+  *  - performs some audit and permission check, depending on the given cmd
+- *  - returns the ipc with both ipc and rw_mutex locks held in case of success
++ *  - returns the ipc with the ipc lock held in case of success
+  *    or an err-code without any lock held otherwise.
++ *
++ * Call holding the both the rw_mutex and the rcu read lock.
+  */
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_namespace *ns,
+ 				      struct ipc_ids *ids, int id, int cmd,
+@@ -772,13 +774,10 @@ struct kern_ipc_perm *ipcctl_pre_down_no
+ 	int err = -EPERM;
+ 	struct kern_ipc_perm *ipcp;
+ 
+-	down_write(&ids->rw_mutex);
+-	rcu_read_lock();
+-
+ 	ipcp = ipc_obtain_object_check(ids, id);
+ 	if (IS_ERR(ipcp)) {
+ 		err = PTR_ERR(ipcp);
+-		goto out_up;
++		goto err;
+ 	}
+ 
+ 	audit_ipc_obj(ipcp);
+@@ -789,16 +788,8 @@ struct kern_ipc_perm *ipcctl_pre_down_no
+ 	euid = current_euid();
+ 	if (uid_eq(euid, ipcp->cuid) || uid_eq(euid, ipcp->uid)  ||
+ 	    ns_capable(ns->user_ns, CAP_SYS_ADMIN))
+-		return ipcp;
+-
+-out_up:
+-	/*
+-	 * Unsuccessful lookup, unlock and return
+-	 * the corresponding error.
+-	 */
+-	rcu_read_unlock();
+-	up_write(&ids->rw_mutex);
