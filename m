@@ -1,115 +1,204 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch removed from -mm tree
-Date: Tue, 09 Jul 2013 16:20:27 -0700
-Message-ID: <51dc9abb.sw6KmmYnerjxY7f0%akpm@linux-foundation.org>
+ memcg-use-css_get-put-when-charging-uncharging-kmem.patch removed from -mm
+ tree
+Date: Tue, 09 Jul 2013 16:20:41 -0700
+Message-ID: <51dc9ac9.IIBXS4rSzfwozv/a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38917 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753788Ab3GIXU2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:28 -0400
+	with ESMTP id S1753557Ab3GIXUm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, david@fromorbit.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, lizefan@huawei.com
 
-Subject: [merged] mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch removed from -mm tree
-To: mgorman@suse.de,david@fromorbit.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-use-css_get-put-when-charging-uncharging-kmem.patch removed from -mm tree
+To: lizefan@huawei.com,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:20:27 -0700
+Date: Tue, 09 Jul 2013 16:20:41 -0700
 
 
 The patch titled
-     Subject: mm: vmscan: do not continue scanning if reclaim was aborted for compaction
+     Subject: memcg: use css_get/put when charging/uncharging kmem
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch
+     memcg-use-css_get-put-when-charging-uncharging-kmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: do not continue scanning if reclaim was aborted for compaction
+From: Li Zefan <lizefan@huawei.com>
+Subject: memcg: use css_get/put when charging/uncharging kmem
 
-Direct reclaim is not aborting to allow compaction to go ahead properly. 
-do_try_to_free_pages is told to abort reclaim which is happily ignores and
-instead increases priority instead until it reaches 0 and starts shrinking
-file/anon equally.  This patch corrects the situation by aborting reclaim
-when requested instead of raising priority.
+Use css_get/put instead of mem_cgroup_get/put.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+We can't do a simple replacement, because here mem_cgroup_put() is called
+during mem_cgroup_css_free(), while mem_cgroup_css_free() won't be called
+until css refcnt goes down to 0.
+
+Instead we increment css refcnt in mem_cgroup_css_offline(), and then
+check if there's still kmem charges.  If not, css refcnt will be
+decremented immediately, otherwise the refcnt will be released after the
+last kmem allocation is uncahred.
+
+[akpm@linux-foundation.org: tweak comment]
+Signed-off-by: Li Zefan <lizefan@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Glauber Costa <glommer@openvz.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   80 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 54 insertions(+), 26 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction
-+++ a/mm/vmscan.c
-@@ -2361,8 +2361,10 @@ static unsigned long do_try_to_free_page
- 		aborted_reclaim = shrink_zones(zonelist, sc);
+diff -puN mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-css_get-put-when-charging-uncharging-kmem
++++ a/mm/memcontrol.c
+@@ -406,6 +406,11 @@ static void memcg_kmem_clear_activated(s
  
- 		/*
--		 * Don't shrink slabs when reclaiming memory from
--		 * over limit cgroups
-+		 * Don't shrink slabs when reclaiming memory from over limit
-+		 * cgroups but do shrink slab at least once when aborting
-+		 * reclaim for compaction to avoid unevenly scanning file/anon
-+		 * LRU pages over slab pages.
+ static void memcg_kmem_mark_dead(struct mem_cgroup *memcg)
+ {
++	/*
++	 * Our caller must use css_get() first, because memcg_uncharge_kmem()
++	 * will call css_put() if it sees the memcg is dead.
++	 */
++	smp_wmb();
+ 	if (test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags))
+ 		set_bit(KMEM_ACCOUNTED_DEAD, &memcg->kmem_account_flags);
+ }
+@@ -3050,8 +3055,16 @@ static void memcg_uncharge_kmem(struct m
+ 	if (res_counter_uncharge(&memcg->kmem, size))
+ 		return;
+ 
++	/*
++	 * Releases a reference taken in kmem_cgroup_css_offline in case
++	 * this last uncharge is racing with the offlining code or it is
++	 * outliving the memcg existence.
++	 *
++	 * The memory barrier imposed by test&clear is paired with the
++	 * explicit one in memcg_kmem_mark_dead().
++	 */
+ 	if (memcg_kmem_test_and_clear_dead(memcg))
+-		mem_cgroup_put(memcg);
++		css_put(&memcg->css);
+ }
+ 
+ void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep)
+@@ -5183,14 +5196,6 @@ static int memcg_update_kmem_limit(struc
+ 		 * starts accounting before all call sites are patched
  		 */
- 		if (global_reclaim(sc)) {
- 			unsigned long lru_pages = 0;
-@@ -2404,7 +2406,7 @@ static unsigned long do_try_to_free_page
- 						WB_REASON_TRY_TO_FREE_PAGES);
- 			sc->may_writepage = 1;
- 		}
--	} while (--sc->priority >= 0);
-+	} while (--sc->priority >= 0 && !aborted_reclaim);
- 
+ 		memcg_kmem_set_active(memcg);
+-
+-		/*
+-		 * kmem charges can outlive the cgroup. In the case of slab
+-		 * pages, for instance, a page contain objects from various
+-		 * processes, so it is unfeasible to migrate them away. We
+-		 * need to reference count the memcg because of that.
+-		 */
+-		mem_cgroup_get(memcg);
+ 	} else
+ 		ret = res_counter_set_limit(&memcg->kmem, val);
  out:
- 	delayacct_freepages_end();
-_
-
-Patches currently in -mm which might be from mgorman@suse.de are
-
-origin.patch
-zbud-add-to-mm.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-linux-next.patch
-mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-api.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
-mm-memmap_init_zone-performance-improvement.patch
-
+@@ -5223,12 +5228,10 @@ static int memcg_propagate_kmem(struct m
+ 		goto out;
+ 
+ 	/*
+-	 * destroy(), called if we fail, will issue static_key_slow_inc() and
+-	 * mem_cgroup_put() if kmem is enabled. We have to either call them
+-	 * unconditionally, or clear the KMEM_ACTIVE flag. I personally find
+-	 * this more consistent, since it always leads to the same destroy path
++	 * __mem_cgroup_free() will issue static_key_slow_dec() because this
++	 * memcg is active already. If the later initialization fails then the
++	 * cgroup core triggers the cleanup so we do not have to do it here.
+ 	 */
+-	mem_cgroup_get(memcg);
+ 	static_key_slow_inc(&memcg_kmem_enabled_key);
+ 
+ 	mutex_lock(&set_limit_mutex);
+@@ -5913,23 +5916,43 @@ static int memcg_init_kmem(struct mem_cg
+ 	return mem_cgroup_sockets_init(memcg, ss);
+ }
+ 
+-static void kmem_cgroup_destroy(struct mem_cgroup *memcg)
++static void memcg_destroy_kmem(struct mem_cgroup *memcg)
+ {
+ 	mem_cgroup_sockets_destroy(memcg);
++}
++
++static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
++{
++	if (!memcg_kmem_is_active(memcg))
++		return;
++
++	/*
++	 * kmem charges can outlive the cgroup. In the case of slab
++	 * pages, for instance, a page contain objects from various
++	 * processes. As we prevent from taking a reference for every
++	 * such allocation we have to be careful when doing uncharge
++	 * (see memcg_uncharge_kmem) and here during offlining.
++	 *
++	 * The idea is that that only the _last_ uncharge which sees
++	 * the dead memcg will drop the last reference. An additional
++	 * reference is taken here before the group is marked dead
++	 * which is then paired with css_put during uncharge resp. here.
++	 *
++	 * Although this might sound strange as this path is called from
++	 * css_offline() when the referencemight have dropped down to 0
++	 * and shouldn't be incremented anymore (css_tryget would fail)
++	 * we do not have other options because of the kmem allocations
++	 * lifetime.
++	 */
++	css_get(&memcg->css);
+ 
+ 	memcg_kmem_mark_dead(memcg);
+ 
+ 	if (res_counter_read_u64(&memcg->kmem, RES_USAGE) != 0)
+ 		return;
+ 
+-	/*
+-	 * Charges already down to 0, undo mem_cgroup_get() done in the charge
+-	 * path here, being careful not to race with memcg_uncharge_kmem: it is
+-	 * possible that the charges went down to 0 between mark_dead and the
+-	 * res_counter read, so in that case, we don't need the put
+-	 */
+ 	if (memcg_kmem_test_and_clear_dead(memcg))
+-		mem_cgroup_put(memcg);
++		css_put(&memcg->css);
+ }
+ #else
+ static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
+@@ -5937,7 +5960,11 @@ static int memcg_init_kmem(struct mem_cg
+ 	return 0;
+ }
+ 
+-static void kmem_cgroup_destroy(struct mem_cgroup *memcg)
++static void memcg_destroy_kmem(struct mem_cgroup *memcg)
++{
++}
++
++static void kmem_cgroup_css_offline(struct mem_cgroup *memcg)
+ {
+ }
+ #endif
+@@ -6370,6 +6397,8 @@ static void mem_cgroup_css_offline(struc
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 
++	kmem_cgroup_css_offline(memcg);
++
+ 	mem_cgroup_invalidate_reclaim_iterators(memcg);
+ 	mem_cgroup_reparent_charges(memcg);
+ 	mem_cgroup_destroy_all_caches(memcg);
+@@ -6379,9 +6408,8 @@ static void mem_cgroup_css_free(struct c
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 
+-	kmem_cgroup_destroy(memcg);
