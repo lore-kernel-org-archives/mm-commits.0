@@ -1,115 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+Subject: [merged] mm-mremap-validate-input-before-taking-lock.patch
  removed from -mm tree
-Date: Tue, 09 Jul 2013 16:19:20 -0700
-Message-ID: <51dc9a78.GAo8AyLaIx4H0kMG%akpm@linux-foundation.org>
+Date: Tue, 09 Jul 2013 16:19:22 -0700
+Message-ID: <51dc9a7a.dHcOgCnADlJ/4hfJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab3GIXTV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:19:21 -0400
+	with ESMTP id S1752509Ab3GIXTW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:19:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, libo.chen@huawei.com, james.hogan@imgtec.com, dwmw2@infradead.org, davidb@codeaurora.org, clbchenlibo.chen@huawei.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, linux@rasmusvillemoes.dk
 
-Subject: [merged] drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch removed from -mm tree
-To: clbchenlibo.chen@huawei.com,davidb@codeaurora.org,dwmw2@infradead.org,james.hogan@imgtec.com,libo.chen@huawei.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-mremap-validate-input-before-taking-lock.patch removed from -mm tree
+To: linux@rasmusvillemoes.dk,kosaki.motohiro@jp.fujitsu.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:19:20 -0700
+Date: Tue, 09 Jul 2013 16:19:22 -0700
 
 
 The patch titled
-     Subject: drivers/iommu/msm_iommu_dev.c: fix leak and clean up error paths
+     Subject: mm: mremap: validate input before taking lock
 has been removed from the -mm tree.  Its filename was
-     drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
+     mm-mremap-validate-input-before-taking-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Libo Chen <clbchenlibo.chen@huawei.com>
-Subject: drivers/iommu/msm_iommu_dev.c: fix leak and clean up error paths
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm: mremap: validate input before taking lock
 
-Fix two obvious problems:
+This patch is very similar to 84d96d897671 ("mm: madvise: complete input
+validation before taking lock"): perform some basic validation of the
+input to mremap() before taking the &current->mm->mmap_sem lock.  This
+also makes the MREMAP_FIXED => MREMAP_MAYMOVE dependency slightly more
+explicit.
 
-1. We have registered msm_iommu_driver first, and need unregister it
-   when registered msm_iommu_ctx_driver fail
-
-2. We don't need to kfree drvdata before kzalloc was successful.
-
-[akpm@linux-foundation.org: remove now-unneeded initialization of ctx_drvdata, remove unneeded braces]
-Signed-off-by: Libo Chen <libo.chen@huawei.com>
-Acked-by: David Brown <davidb@codeaurora.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: James Hogan <james.hogan@imgtec.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/msm_iommu_dev.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ mm/mremap.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/iommu/msm_iommu_dev.c~drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths drivers/iommu/msm_iommu_dev.c
---- a/drivers/iommu/msm_iommu_dev.c~drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths
-+++ a/drivers/iommu/msm_iommu_dev.c
-@@ -291,25 +291,20 @@ static int msm_iommu_ctx_probe(struct pl
- {
- 	struct msm_iommu_ctx_dev *c = pdev->dev.platform_data;
- 	struct msm_iommu_drvdata *drvdata;
--	struct msm_iommu_ctx_drvdata *ctx_drvdata = NULL;
-+	struct msm_iommu_ctx_drvdata *ctx_drvdata;
- 	int i, ret;
--	if (!c || !pdev->dev.parent) {
--		ret = -EINVAL;
--		goto fail;
--	}
+diff -puN mm/mremap.c~mm-mremap-validate-input-before-taking-lock mm/mremap.c
+--- a/mm/mremap.c~mm-mremap-validate-input-before-taking-lock
++++ a/mm/mremap.c
+@@ -456,13 +456,14 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	unsigned long charged = 0;
+ 	bool locked = false;
  
--	drvdata = dev_get_drvdata(pdev->dev.parent);
-+	if (!c || !pdev->dev.parent)
-+		return -EINVAL;
- 
--	if (!drvdata) {
--		ret = -ENODEV;
--		goto fail;
--	}
-+	drvdata = dev_get_drvdata(pdev->dev.parent);
-+	if (!drvdata)
-+		return -ENODEV;
- 
- 	ctx_drvdata = kzalloc(sizeof(*ctx_drvdata), GFP_KERNEL);
--	if (!ctx_drvdata) {
--		ret = -ENOMEM;
--		goto fail;
--	}
-+	if (!ctx_drvdata)
-+		return -ENOMEM;
+-	down_write(&current->mm->mmap_sem);
+-
+ 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
+-		goto out;
++		return ret;
 +
- 	ctx_drvdata->num = c->num;
- 	ctx_drvdata->pdev = pdev;
++	if (flags & MREMAP_FIXED && !(flags & MREMAP_MAYMOVE))
++		return ret;
  
-@@ -403,6 +398,7 @@ static int __init msm_iommu_driver_init(
+ 	if (addr & ~PAGE_MASK)
+-		goto out;
++		return ret;
  
- 	ret = platform_driver_register(&msm_iommu_ctx_driver);
- 	if (ret != 0) {
-+		platform_driver_unregister(&msm_iommu_driver);
- 		pr_err("Failed to register IOMMU context driver\n");
- 		goto error;
+ 	old_len = PAGE_ALIGN(old_len);
+ 	new_len = PAGE_ALIGN(new_len);
+@@ -473,12 +474,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	 * a zero new-len is nonsensical.
+ 	 */
+ 	if (!new_len)
+-		goto out;
++		return ret;
++
++	down_write(&current->mm->mmap_sem);
+ 
+ 	if (flags & MREMAP_FIXED) {
+-		if (flags & MREMAP_MAYMOVE)
+-			ret = mremap_to(addr, old_len, new_addr, new_len,
+-					&locked);
++		ret = mremap_to(addr, old_len, new_addr, new_len,
++				&locked);
+ 		goto out;
  	}
+ 
 _
 
-Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
-linux-next.patch
-drivers-ide-delkin_cb-convert-to-module_pci_driver.patch
-drivers-atm-he-convert-to-module_pci_driver.patch
-drivers-scsi-a100u2w-convert-to-module_pci_driver.patch
-drivers-scsi-dc395x-convert-to-module_pci_driver.patch
-drivers-scsi-dmx3191d-convert-to-module_pci_driver.patch
-drivers-scsi-initio-convert-to-module_pci_driver.patch
-drivers-scsi-mvumi-convert-to-module_pci_driver.patch
-drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
 
