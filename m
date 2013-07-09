@@ -1,84 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ncpfs-fix-error-return-code-in-ncp_parse_options.patch
- removed from -mm tree
-Date: Tue, 09 Jul 2013 14:04:40 -0700
-Message-ID: <51dc7ae8.1zFhGT9Aj6rSPu/g%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch removed
+ from -mm tree
+Date: Tue, 09 Jul 2013 14:04:43 -0700
+Message-ID: <51dc7aeb.YeeWMLnZY5UC+TwY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37523 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950Ab3GIVEl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 17:04:41 -0400
+	with ESMTP id S1751950Ab3GIVEn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 17:04:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, petr@vandrovec.name, yongjun_wei@trendmicro.com.cn
+To: mm-commits@vger.kernel.org, matthew.garrett@nebula.com, libo.chen@huawei.com, clbchenlibo.chen@huawei.com
 
-Subject: [merged] ncpfs-fix-error-return-code-in-ncp_parse_options.patch removed from -mm tree
-To: yongjun_wei@trendmicro.com.cn,petr@vandrovec.name,mm-commits@vger.kernel.org
+Subject: [merged] drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch removed from -mm tree
+To: clbchenlibo.chen@huawei.com,libo.chen@huawei.com,matthew.garrett@nebula.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 14:04:40 -0700
+Date: Tue, 09 Jul 2013 14:04:43 -0700
 
 
 The patch titled
-     Subject: ncpfs: fix error return code in ncp_parse_options()
+     Subject: drivers/platform/x86/intel_ips.c: convert to module_pci_driver
 has been removed from the -mm tree.  Its filename was
-     ncpfs-fix-error-return-code-in-ncp_parse_options.patch
+     drivers-platform-x86-intel_ips-convert-to-module_pci_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: ncpfs: fix error return code in ncp_parse_options()
+From: Libo Chen <clbchenlibo.chen@huawei.com>
+Subject: drivers/platform/x86/intel_ips.c: convert to module_pci_driver
 
-Fix to return -EINVAL from the option parse error handling case instead of
-0, as done elsewhere in this function.
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Petr Vandrovec <petr@vandrovec.name>
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/inode.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/platform/x86/intel_ips.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN fs/ncpfs/inode.c~ncpfs-fix-error-return-code-in-ncp_parse_options fs/ncpfs/inode.c
---- a/fs/ncpfs/inode.c~ncpfs-fix-error-return-code-in-ncp_parse_options
-+++ a/fs/ncpfs/inode.c
-@@ -403,18 +403,24 @@ static int ncp_parse_options(struct ncp_
- 		switch (optval) {
- 			case 'u':
- 				data->uid = make_kuid(current_user_ns(), optint);
--				if (!uid_valid(data->uid))
-+				if (!uid_valid(data->uid)) {
-+					ret = -EINVAL;
- 					goto err;
-+				}
- 				break;
- 			case 'g':
- 				data->gid = make_kgid(current_user_ns(), optint);
--				if (!gid_valid(data->gid))
-+				if (!gid_valid(data->gid)) {
-+					ret = -EINVAL;
- 					goto err;
-+				}
- 				break;
- 			case 'o':
- 				data->mounted_uid = make_kuid(current_user_ns(), optint);
--				if (!uid_valid(data->mounted_uid))
-+				if (!uid_valid(data->mounted_uid)) {
-+					ret = -EINVAL;
- 					goto err;
-+				}
- 				break;
- 			case 'm':
- 				data->file_mode = optint;
+diff -puN drivers/platform/x86/intel_ips.c~drivers-platform-x86-intel_ips-convert-to-module_pci_driver drivers/platform/x86/intel_ips.c
+--- a/drivers/platform/x86/intel_ips.c~drivers-platform-x86-intel_ips-convert-to-module_pci_driver
++++ a/drivers/platform/x86/intel_ips.c
+@@ -1731,18 +1731,7 @@ static struct pci_driver ips_pci_driver
+ 	.shutdown = ips_shutdown,
+ };
+ 
+-static int __init ips_init(void)
+-{
+-	return pci_register_driver(&ips_pci_driver);
+-}
+-module_init(ips_init);
+-
+-static void ips_exit(void)
+-{
+-	pci_unregister_driver(&ips_pci_driver);
+-	return;
+-}
+-module_exit(ips_exit);
++module_pci_driver(ips_pci_driver);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jesse Barnes <jbarnes@virtuousgeek.org>");
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from clbchenlibo.chen@huawei.com are
 
 origin.patch
+drivers-iommu-msm_iommu_devc-fix-leak-and-clean-up-error-paths.patch
 linux-next.patch
+drivers-ide-delkin_cb-convert-to-module_pci_driver.patch
+drivers-atm-he-convert-to-module_pci_driver.patch
+drivers-scsi-a100u2w-convert-to-module_pci_driver.patch
+drivers-scsi-dc395x-convert-to-module_pci_driver.patch
+drivers-scsi-dmx3191d-convert-to-module_pci_driver.patch
+drivers-scsi-initio-convert-to-module_pci_driver.patch
+drivers-scsi-mvumi-convert-to-module_pci_driver.patch
+drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
 
