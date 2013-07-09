@@ -1,58 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch removed
- from -mm tree
-Date: Tue, 09 Jul 2013 16:19:33 -0700
-Message-ID: <51dc9a85.f8DG2cNswuRX4DsO%akpm@linux-foundation.org>
+ page-migration-fix-wrong-comment-in-address_space_operationsmigratepage.patch removed from -mm tree
+Date: Tue, 09 Jul 2013 16:20:21 -0700
+Message-ID: <51dc9ab5.x3yIEH01Gb+ywrJr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38907 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753728Ab3GIXTd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:19:33 -0400
+	with ESMTP id S1753873Ab3GIXUV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, hannes@cmpxchg.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com
 
-Subject: [merged] mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch removed from -mm tree
-To: zhangyanfei@cn.fujitsu.com,hannes@cmpxchg.org,mel@csn.ul.ie,mm-commits@vger.kernel.org
+Subject: [merged] page-migration-fix-wrong-comment-in-address_space_operationsmigratepage.patch removed from -mm tree
+To: tangchen@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:19:33 -0700
+Date: Tue, 09 Jul 2013 16:20:21 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc.c: remove unused purge_fragmented_blocks_thiscpu
+     Subject: page migration: fix wrong comment in address_space_operations.migratepage()
 has been removed from the -mm tree.  Its filename was
-     mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu.patch
+     page-migration-fix-wrong-comment-in-address_space_operationsmigratepage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm/vmalloc.c: remove unused purge_fragmented_blocks_thiscpu
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: page migration: fix wrong comment in address_space_operations.migratepage()
 
-This function is nowhere used now, so remove it.
+There is no parameter "sync" in address_space_operations->migratepage(). 
+It should be mograte_mode.  And the comment is for MIGRATE_ASYNC.
 
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/fs.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-remove-unused-purge_fragmented_blocks_thiscpu
-+++ a/mm/vmalloc.c
-@@ -891,11 +891,6 @@ static void purge_fragmented_blocks(int
- 	}
- }
- 
--static void purge_fragmented_blocks_thiscpu(void)
--{
--	purge_fragmented_blocks(smp_processor_id());
--}
+diff -puN include/linux/fs.h~page-migration-fix-wrong-comment-in-address_space_operationsmigratepage include/linux/fs.h
+--- a/include/linux/fs.h~page-migration-fix-wrong-comment-in-address_space_operationsmigratepage
++++ a/include/linux/fs.h
+@@ -372,8 +372,8 @@ struct address_space_operations {
+ 	int (*get_xip_mem)(struct address_space *, pgoff_t, int,
+ 						void **, unsigned long *);
+ 	/*
+-	 * migrate the contents of a page to the specified target. If sync
+-	 * is false, it must not block.
++	 * migrate the contents of a page to the specified target. If
++	 * migrate_mode is MIGRATE_ASYNC, it must not block.
+ 	 */
+ 	int (*migratepage) (struct address_space *,
+ 			struct page *, struct page *, enum migrate_mode);
+_
+
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+
+origin.patch
+
