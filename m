@@ -1,48 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch removed from -mm tree
-Date: Tue, 09 Jul 2013 16:20:29 -0700
-Message-ID: <51dc9abd.WSaSSbgCMqscDxqG%akpm@linux-foundation.org>
+ mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch removed from -mm tree
+Date: Tue, 09 Jul 2013 16:20:27 -0700
+Message-ID: <51dc9abb.sw6KmmYnerjxY7f0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38925 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38917 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759Ab3GIXUa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:30 -0400
+	with ESMTP id S1753788Ab3GIXU2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, david@fromorbit.com, mgorman@suse.de
 
-Subject: [merged] mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch removed from -mm tree
+Subject: [merged] mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch removed from -mm tree
 To: mgorman@suse.de,david@fromorbit.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:20:29 -0700
+Date: Tue, 09 Jul 2013 16:20:27 -0700
 
 
 The patch titled
-     Subject: mm: vmscan: do not scale writeback pages when deciding whether to set ZONE_WRITEBACK
+     Subject: mm: vmscan: do not continue scanning if reclaim was aborted for compaction
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback.patch
+     mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: do not scale writeback pages when deciding whether to set ZONE_WRITEBACK
+Subject: mm: vmscan: do not continue scanning if reclaim was aborted for compaction
 
-After the patch "mm: vmscan: Flatten kswapd priority loop" was merged the
-scanning priority of kswapd changed.  The priority now raises until it is
-scanning enough pages to meet the high watermark.  shrink_inactive_list
-sets ZONE_WRITEBACK if a number of pages were encountered under writeback
-but this value is scaled based on the priority.  As kswapd frequently
-scans with a higher priority now it is relatively easy to set
-ZONE_WRITEBACK.  This patch removes the scaling and treates writeback
-pages similar to how it treats unqueued dirty pages and congested pages. 
-The user-visible effect should be that kswapd will writeback fewer pages
-from reclaim context.
+Direct reclaim is not aborting to allow compaction to go ahead properly. 
+do_try_to_free_pages is told to abort reclaim which is happily ignores and
+instead increases priority instead until it reaches 0 and starts shrinking
+file/anon equally.  This patch corrects the situation by aborting reclaim
+when requested instead of raising priority.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
@@ -53,39 +48,34 @@ Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ mm/vmscan.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-scale-writeback-pages-when-deciding-whether-to-set-zone_writeback
+diff -puN mm/vmscan.c~mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-continue-scanning-if-reclaim-was-aborted-for-compaction
 +++ a/mm/vmscan.c
-@@ -1443,25 +1443,11 @@ shrink_inactive_list(unsigned long nr_to
- 	 * as there is no guarantee the dirtying process is throttled in the
- 	 * same way balance_dirty_pages() manages.
- 	 *
--	 * This scales the number of dirty pages that must be under writeback
--	 * before a zone gets flagged ZONE_WRITEBACK. It is a simple backoff
--	 * function that has the most effect in the range DEF_PRIORITY to
--	 * DEF_PRIORITY-2 which is the priority reclaim is considered to be
--	 * in trouble and reclaim is considered to be in trouble.
--	 *
--	 * DEF_PRIORITY   100% isolated pages must be PageWriteback to throttle
--	 * DEF_PRIORITY-1  50% must be PageWriteback
--	 * DEF_PRIORITY-2  25% must be PageWriteback, kswapd in trouble
--	 * ...
--	 * DEF_PRIORITY-6 For SWAP_CLUSTER_MAX isolated pages, throttle if any
--	 *                     isolated page is PageWriteback
--	 *
- 	 * Once a zone is flagged ZONE_WRITEBACK, kswapd will count the number
- 	 * of pages under pages flagged for immediate reclaim and stall if any
- 	 * are encountered in the nr_immediate check below.
- 	 */
--	if (nr_writeback && nr_writeback >=
--			(nr_taken >> (DEF_PRIORITY - sc->priority)))
-+	if (nr_writeback && nr_writeback == nr_taken)
- 		zone_set_flag(zone, ZONE_WRITEBACK);
+@@ -2361,8 +2361,10 @@ static unsigned long do_try_to_free_page
+ 		aborted_reclaim = shrink_zones(zonelist, sc);
  
- 	/*
+ 		/*
+-		 * Don't shrink slabs when reclaiming memory from
+-		 * over limit cgroups
++		 * Don't shrink slabs when reclaiming memory from over limit
++		 * cgroups but do shrink slab at least once when aborting
++		 * reclaim for compaction to avoid unevenly scanning file/anon
++		 * LRU pages over slab pages.
+ 		 */
+ 		if (global_reclaim(sc)) {
+ 			unsigned long lru_pages = 0;
+@@ -2404,7 +2406,7 @@ static unsigned long do_try_to_free_page
+ 						WB_REASON_TRY_TO_FREE_PAGES);
+ 			sc->may_writepage = 1;
+ 		}
+-	} while (--sc->priority >= 0);
++	} while (--sc->priority >= 0 && !aborted_reclaim);
+ 
+ out:
+ 	delayacct_freepages_end();
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
