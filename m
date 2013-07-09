@@ -1,146 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too.patch
- removed from -mm tree
-Date: Tue, 09 Jul 2013 16:20:57 -0700
-Message-ID: <51dc9ad9.k4l+jLYpvzwqS80A%akpm@linux-foundation.org>
+Subject: [merged] fatfs-add-fat_ioctl_get_volume_id.patch removed from -mm tree
+Date: Tue, 09 Jul 2013 16:21:01 -0700
+Message-ID: <51dc9add.04FOX9/V0u8pZhAQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39020 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006Ab3GIXU5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:57 -0400
+	with ESMTP id S1753790Ab3GIXVC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, sean@mcneil.com, john.stultz@linaro.org, hirofumi@mail.parknet.co.jp, dpervushin@gmail.com, ccross@android.com, bintian.wang@linaro.org, lockwood@android.com
 
-Subject: [merged] checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] fatfs-add-fat_ioctl_get_volume_id.patch removed from -mm tree
+To: lockwood@android.com,bintian.wang@linaro.org,ccross@android.com,dpervushin@gmail.com,hirofumi@mail.parknet.co.jp,john.stultz@linaro.org,sean@mcneil.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:20:57 -0700
+Date: Tue, 09 Jul 2013 16:21:01 -0700
 
 
 The patch titled
-     Subject: checkpatch: make the CamelCase cache work for non-git trees too
+     Subject: fatfs: add FAT_IOCTL_GET_VOLUME_ID
 has been removed from the -mm tree.  Its filename was
-     checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too.patch
+     fatfs-add-fat_ioctl_get_volume_id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: make the CamelCase cache work for non-git trees too
+From: Mike Lockwood <lockwood@android.com>
+Subject: fatfs: add FAT_IOCTL_GET_VOLUME_ID
 
-Might as well check include timestamps and cache the include file
-CamelCase uses for the non-git case too.
+This patch, originally from Android kernel, adds vfat ioctl command
+FAT_IOCTL_GET_VOLUME_ID, with this command we can get the vfat volume ID
+using following code:
 
-The camelcase cache file is now named:
+	ioctl(fd, FAT_IOCTL_GET_VOLUME_ID, &volume_ID)
 
-for git:	.checkpatch-camelcase.git.<commit_id>
-for non-git:	.checkpatch-camelcase.date.<YYYYMMDDhhmm>
+This patch is a modified version of the patch by Mike Lockwood, with
+changes from Dmitry Pervushin, who noticed the original patch makes some
+volume IDs abiguous with error returns: for example, if volume id is
+0xFFFFFDAD, that matches -ENOIOCTLCMD, we get "FFFFFFFF" from the user
+space.
 
-All .checkpatch-camelcase* files are deleted if not current.
+So add a parameter to ioctl to get the correct volume ID.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Android uses vfat volume ID to identify different sd card, when a new sd
+card is inserted to device, android can scan the media on it and pop up
+new contents.
+
+Signed-off-by: Bintian Wang <bintian.wang@linaro.org>
+Cc: dmitry pervushin <dpervushin@gmail.com>
+Cc: Mike Lockwood <lockwood@android.com>
+Cc: Colin Cross <ccross@android.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Sean McNeil <sean@mcneil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   54 +++++++++++++++++++++++++---------------
- 1 file changed, 35 insertions(+), 19 deletions(-)
+ fs/fat/fat.h                  |    1 +
+ fs/fat/file.c                 |    8 ++++++++
+ fs/fat/inode.c                |   12 ++++++++++++
+ include/uapi/linux/msdos_fs.h |   10 ++++++++++
+ 4 files changed, 31 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-make-the-camelcase-cache-work-for-non-git-trees-too
-+++ a/scripts/checkpatch.pl
-@@ -6,6 +6,7 @@
- # Licensed under the terms of the GNU GPL License version 2
+diff -puN fs/fat/fat.h~fatfs-add-fat_ioctl_get_volume_id fs/fat/fat.h
+--- a/fs/fat/fat.h~fatfs-add-fat_ioctl_get_volume_id
++++ a/fs/fat/fat.h
+@@ -86,6 +86,7 @@ struct msdos_sb_info {
+ 	const void *dir_ops;	      /* Opaque; default directory operations */
+ 	int dir_per_block;	      /* dir entries per block */
+ 	int dir_per_block_bits;	      /* log2(dir_per_block) */
++	unsigned int vol_id;		/*volume ID*/
  
- use strict;
-+use POSIX;
+ 	int fatent_shift;
+ 	struct fatent_operations *fatent_ops;
+diff -puN fs/fat/file.c~fatfs-add-fat_ioctl_get_volume_id fs/fat/file.c
+--- a/fs/fat/file.c~fatfs-add-fat_ioctl_get_volume_id
++++ a/fs/fat/file.c
+@@ -114,6 +114,12 @@ out:
+ 	return err;
+ }
  
- my $P = $0;
- $P =~ s@.*/@@g;
-@@ -399,37 +400,52 @@ sub seed_camelcase_includes {
- 	return if ($camelcase_seeded);
- 
- 	my $files;
--	my $camelcase_git_file = "";
-+	my $camelcase_cache = "";
-+	my @include_files = ();
++static int fat_ioctl_get_volume_id(struct inode *inode, u32 __user *user_attr)
++{
++	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
++	return put_user(sbi->vol_id, user_attr);
++}
 +
-+	$camelcase_seeded = 1;
- 
- 	if (-d ".git") {
- 		my $git_last_include_commit = `git log --no-merges --pretty=format:"%h%n" -1 -- include`;
- 		chomp $git_last_include_commit;
--		$camelcase_git_file = ".checkpatch-camelcase.$git_last_include_commit";
--		if (-f $camelcase_git_file) {
--			open(my $camelcase_file, '<', "$camelcase_git_file")
--			    or warn "$P: Can't read '$camelcase_git_file' $!\n";
--			while (<$camelcase_file>) {
--				chomp;
--				$camelcase{$_} = 1;
--			}
--			close($camelcase_file);
--
--			return;
--		}
--		$files = `git ls-files include`;
-+		$camelcase_cache = ".checkpatch-camelcase.git.$git_last_include_commit";
- 	} else {
-+		my $last_mod_date = 0;
- 		$files = `find $root/include -name "*.h"`;
-+		@include_files = split('\n', $files);
-+		foreach my $file (@include_files) {
-+			my $date = POSIX::strftime("%Y%m%d%H%M",
-+						   localtime((stat $file)[9]));
-+			$last_mod_date = $date if ($last_mod_date < $date);
-+		}
-+		$camelcase_cache = ".checkpatch-camelcase.date.$last_mod_date";
-+	}
-+
-+	if ($camelcase_cache ne "" && -f $camelcase_cache) {
-+		open(my $camelcase_file, '<', "$camelcase_cache")
-+		    or warn "$P: Can't read '$camelcase_cache' $!\n";
-+		while (<$camelcase_file>) {
-+			chomp;
-+			$camelcase{$_} = 1;
-+		}
-+		close($camelcase_file);
-+
-+		return;
+ long fat_generic_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ {
+ 	struct inode *inode = file_inode(filp);
+@@ -124,6 +130,8 @@ long fat_generic_ioctl(struct file *filp
+ 		return fat_ioctl_get_attributes(inode, user_attr);
+ 	case FAT_IOCTL_SET_ATTRIBUTES:
+ 		return fat_ioctl_set_attributes(filp, user_attr);
++	case FAT_IOCTL_GET_VOLUME_ID:
++		return fat_ioctl_get_volume_id(inode, user_attr);
+ 	default:
+ 		return -ENOTTY;	/* Inappropriate ioctl for device */
  	}
--	my @include_files = split('\n', $files);
-+
-+	if (-d ".git") {
-+		$files = `git ls-files "include/*.h"`;
-+		@include_files = split('\n', $files);
-+	}
-+
- 	foreach my $file (@include_files) {
- 		seed_camelcase_file($file);
+diff -puN fs/fat/inode.c~fatfs-add-fat_ioctl_get_volume_id fs/fat/inode.c
+--- a/fs/fat/inode.c~fatfs-add-fat_ioctl_get_volume_id
++++ a/fs/fat/inode.c
+@@ -1415,6 +1415,18 @@ int fat_fill_super(struct super_block *s
+ 		brelse(fsinfo_bh);
  	}
--	$camelcase_seeded = 1;
  
--	if ($camelcase_git_file ne "") {
-+	if ($camelcase_cache ne "") {
- 		unlink glob ".checkpatch-camelcase.*";
--		open(my $camelcase_file, '>', "$camelcase_git_file")
--		    or warn "$P: Can't write '$camelcase_git_file' $!\n";
-+		open(my $camelcase_file, '>', "$camelcase_cache")
-+		    or warn "$P: Can't write '$camelcase_cache' $!\n";
- 		foreach (sort { lc($a) cmp lc($b) } keys(%camelcase)) {
- 			print $camelcase_file ("$_\n");
- 		}
++	/* interpret volume ID as a little endian 32 bit integer */
++	if (sbi->fat_bits == 32)
++		sbi->vol_id = (((u32)b->fat32.vol_id[0]) |
++					((u32)b->fat32.vol_id[1] << 8) |
++					((u32)b->fat32.vol_id[2] << 16) |
++					((u32)b->fat32.vol_id[3] << 24));
++	else /* fat 16 or 12 */
++		sbi->vol_id = (((u32)b->fat16.vol_id[0]) |
++					((u32)b->fat16.vol_id[1] << 8) |
++					((u32)b->fat16.vol_id[2] << 16) |
++					((u32)b->fat16.vol_id[3] << 24));
++
+ 	sbi->dir_per_block = sb->s_blocksize / sizeof(struct msdos_dir_entry);
+ 	sbi->dir_per_block_bits = ffs(sbi->dir_per_block) - 1;
+ 
+diff -puN include/uapi/linux/msdos_fs.h~fatfs-add-fat_ioctl_get_volume_id include/uapi/linux/msdos_fs.h
+--- a/include/uapi/linux/msdos_fs.h~fatfs-add-fat_ioctl_get_volume_id
++++ a/include/uapi/linux/msdos_fs.h
+@@ -104,6 +104,8 @@ struct __fat_dirent {
+ /* <linux/videotext.h> has used 0x72 ('r') in collision, so skip a few */
+ #define FAT_IOCTL_GET_ATTRIBUTES	_IOR('r', 0x10, __u32)
+ #define FAT_IOCTL_SET_ATTRIBUTES	_IOW('r', 0x11, __u32)
++/*Android kernel has used 0x12, so we use 0x13*/
++#define FAT_IOCTL_GET_VOLUME_ID		_IOR('r', 0x13, __u32)
+ 
+ struct fat_boot_sector {
+ 	__u8	ignored[3];	/* Boot strap short or near jump */
+@@ -128,6 +130,10 @@ struct fat_boot_sector {
+ 			__u8	drive_number;	/* Physical drive number */
+ 			__u8	state;		/* undocumented, but used
+ 						   for mount state. */
++			__u8	signature;  /* extended boot signature */
++			__u8	vol_id[4];	/* volume ID */
++			__u8	vol_label[11];	/* volume label */
++			__u8	fs_type[8];		/* file system type */
+ 			/* other fiealds are not added here */
+ 		} fat16;
+ 
+@@ -147,6 +153,10 @@ struct fat_boot_sector {
+ 			__u8	drive_number;   /* Physical drive number */
+ 			__u8    state;       	/* undocumented, but used
+ 						   for mount state. */
++			__u8	signature;  /* extended boot signature */
++			__u8	vol_id[4];	/* volume ID */
++			__u8	vol_label[11];	/* volume label */
++			__u8	fs_type[8];		/* file system type */
+ 			/* other fiealds are not added here */
+ 		} fat32;
+ 	};
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from lockwood@android.com are
 
 origin.patch
-zbud-add-to-mm.patch
-zswap-add-to-mm.patch
-zswap-add-documentation.patch
-linux-next.patch
 
