@@ -1,73 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch removed
- from -mm tree
-Date: Tue, 09 Jul 2013 16:20:55 -0700
-Message-ID: <51dc9ad7.S2tGpOYsB4xUfTug%akpm@linux-foundation.org>
+Subject: [merged] mm-honor-min_free_kbytes-set-by-user.patch removed from
+ -mm tree
+Date: Tue, 09 Jul 2013 16:20:51 -0700
+Message-ID: <51dc9ad3.K++HtOntGSMS/Czv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39011 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39003 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753767Ab3GIXU4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:56 -0400
+	with ESMTP id S1754031Ab3GIXUw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, sboyd@codeaurora.org, rusty@rustcorp.com.au, markivx@codeaurora.org, holt@sgi.com, athorlton@sgi.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz
 
-Subject: [merged] panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch removed from -mm tree
-To: athorlton@sgi.com,holt@sgi.com,markivx@codeaurora.org,rusty@rustcorp.com.au,sboyd@codeaurora.org,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-honor-min_free_kbytes-set-by-user.patch removed from -mm tree
+To: mhocko@suse.cz,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:20:55 -0700
+Date: Tue, 09 Jul 2013 16:20:51 -0700
 
 
 The patch titled
-     Subject: panic: add cpu/pid to warn_slowpath_common in WARNING printk()s
+     Subject: mm: honor min_free_kbytes set by user
 has been removed from the -mm tree.  Its filename was
-     panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks.patch
+     mm-honor-min_free_kbytes-set-by-user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Thorlton <athorlton@sgi.com>
-Subject: panic: add cpu/pid to warn_slowpath_common in WARNING printk()s
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm: honor min_free_kbytes set by user
 
-Add the cpu/pid that called WARN() so that the stack traces can be matched
-up with the WARNING messages.
+min_free_kbytes is updated during memory hotplug (by
+init_per_zone_wmark_min) currently which is right thing to do in most
+cases but this could be unexpected if admin increased the value to prevent
+from allocation failures and the new min_free_kbytes would be decreased as
+a result of memory hotadd.
 
-[akpm@linux-foundation.org: remove stray quote]
-Signed-off-by: Alex Thorlton <athorlton@sgi.com>
-Reviewed-by: Robin Holt <holt@sgi.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Vikram Mulukutla <markivx@codeaurora.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
+This patch saves the user defined value and allows updating
+min_free_kbytes only if it is higher than the saved one.
+
+A warning is printed when the new value is ignored.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-diff -puN kernel/panic.c~panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks kernel/panic.c
---- a/kernel/panic.c~panic-add-cpu-pid-to-warn_slowpath_common-in-warning-printks
-+++ a/kernel/panic.c
-@@ -399,8 +399,9 @@ struct slowpath_args {
- static void warn_slowpath_common(const char *file, int line, void *caller,
- 				 unsigned taint, struct slowpath_args *args)
- {
--	printk(KERN_WARNING "------------[ cut here ]------------\n");
--	printk(KERN_WARNING "WARNING: at %s:%d %pS()\n", file, line, caller);
-+	pr_warn("------------[ cut here ]------------\n");
-+	pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS()\n",
-+		raw_smp_processor_id(), current->pid, file, line, caller);
+diff -puN mm/page_alloc.c~mm-honor-min_free_kbytes-set-by-user mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-honor-min_free_kbytes-set-by-user
++++ a/mm/page_alloc.c
+@@ -204,6 +204,7 @@ static char * const zone_names[MAX_NR_ZO
+ };
  
- 	if (args)
- 		vprintk(args->fmt, args->args);
+ int min_free_kbytes = 1024;
++int user_min_free_kbytes;
+ 
+ static unsigned long __meminitdata nr_kernel_pages;
+ static unsigned long __meminitdata nr_all_pages;
+@@ -5589,14 +5590,21 @@ static void __meminit setup_per_zone_ina
+ int __meminit init_per_zone_wmark_min(void)
+ {
+ 	unsigned long lowmem_kbytes;
++	int new_min_free_kbytes;
+ 
+ 	lowmem_kbytes = nr_free_buffer_pages() * (PAGE_SIZE >> 10);
++	new_min_free_kbytes = int_sqrt(lowmem_kbytes * 16);
+ 
+-	min_free_kbytes = int_sqrt(lowmem_kbytes * 16);
+-	if (min_free_kbytes < 128)
+-		min_free_kbytes = 128;
+-	if (min_free_kbytes > 65536)
+-		min_free_kbytes = 65536;
++	if (new_min_free_kbytes > user_min_free_kbytes) {
++		min_free_kbytes = new_min_free_kbytes;
++		if (min_free_kbytes < 128)
++			min_free_kbytes = 128;
++		if (min_free_kbytes > 65536)
++			min_free_kbytes = 65536;
++	} else {
++		pr_warn("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
++				new_min_free_kbytes, user_min_free_kbytes);
++	}
+ 	setup_per_zone_wmarks();
+ 	refresh_zone_stat_thresholds();
+ 	setup_per_zone_lowmem_reserve();
+@@ -5614,8 +5622,10 @@ int min_free_kbytes_sysctl_handler(ctl_t
+ 	void __user *buffer, size_t *length, loff_t *ppos)
+ {
+ 	proc_dointvec(table, write, buffer, length, ppos);
+-	if (write)
++	if (write) {
++		user_min_free_kbytes = min_free_kbytes;
+ 		setup_per_zone_wmarks();
++	}
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from athorlton@sgi.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
+linux-next.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
+list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
+list_lru-remove-special-case-function-list_lru_dispose_all.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
+list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
+staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
+staging-lustre-replace-num_physpages-with-totalram_pages.patch
 
