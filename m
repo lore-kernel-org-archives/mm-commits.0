@@ -1,78 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-dma-iop-admac-fix-new-warnings.patch removed
- from -mm tree
-Date: Tue, 09 Jul 2013 16:18:58 -0700
-Message-ID: <51dc9a62.WKPSeZZLq1Jq5Snr%akpm@linux-foundation.org>
+Subject: [merged]
+ audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record.patch removed from -mm tree
+Date: Tue, 09 Jul 2013 16:19:00 -0700
+Message-ID: <51dc9a64.5oNTRDTJ/WcYSDrO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38746 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38751 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850Ab3GIXS7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:18:59 -0400
+	with ESMTP id S1751850Ab3GIXTB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:19:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sebastian.hesselbarth@gmail.com, kyungmin.park@samsung.com, b.zolnierkie@samsung.com, olof@lixom.net
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sgrubb@redhat.com, jjaburek@redhat.com, eparis@redhat.com, jlayton@redhat.com
 
-Subject: [merged] drivers-dma-iop-admac-fix-new-warnings.patch removed from -mm tree
-To: olof@lixom.net,b.zolnierkie@samsung.com,kyungmin.park@samsung.com,sebastian.hesselbarth@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record.patch removed from -mm tree
+To: jlayton@redhat.com,eparis@redhat.com,jjaburek@redhat.com,sgrubb@redhat.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:18:58 -0700
+Date: Tue, 09 Jul 2013 16:19:00 -0700
 
 
 The patch titled
-     Subject: drivers/dma/iop-adma.c: fix new warnings
+     Subject: audit: fix mq_open and mq_unlink to add the MQ root as a hidden parent audit_names record
 has been removed from the -mm tree.  Its filename was
-     drivers-dma-iop-admac-fix-new-warnings.patch
+     audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Olof Johansson <olof@lixom.net>
-Subject: drivers/dma/iop-adma.c: fix new warnings
+From: Jeff Layton <jlayton@redhat.com>
+Subject: audit: fix mq_open and mq_unlink to add the MQ root as a hidden parent audit_names record
 
-The recent "drivers/dma: remove unused support for MEMSET operations"
-change has fallout from lack of build testing by the author.  This fixes:
+The old audit PATH records for mq_open looked like this:
 
-drivers/dma/iop-adma.c:1020:13: warning: unused variable 'dma_addr' [-Wunused-variable]
-drivers/dma/iop-adma.c:1519:2: warning: format '%s' expects a matching 'char *' argument [-Wformat=]
+type=PATH msg=audit(1366282323.982:869): item=1 name=(null) inode=6777
+dev=00:0c mode=041777 ouid=0 ogid=0 rdev=00:00
+obj=system_u:object_r:tmpfs_t:s15:c0.c1023
+type=PATH msg=audit(1366282323.982:869): item=0 name="test_mq" inode=26732
+dev=00:0c mode=0100700 ouid=0 ogid=0 rdev=00:00
+obj=staff_u:object_r:user_tmpfs_t:s15:c0.c1023
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+...with the audit related changes that went into 3.7, they now look like this:
+
+type=PATH msg=audit(1366282236.776:3606): item=2 name=(null) inode=66655
+dev=00:0c mode=0100700 ouid=0 ogid=0 rdev=00:00
+obj=staff_u:object_r:user_tmpfs_t:s15:c0.c1023
+type=PATH msg=audit(1366282236.776:3606): item=1 name=(null) inode=6926
+dev=00:0c mode=041777 ouid=0 ogid=0 rdev=00:00
+obj=system_u:object_r:tmpfs_t:s15:c0.c1023
+type=PATH msg=audit(1366282236.776:3606): item=0 name="test_mq"
+
+Both of these look wrong to me.  As Steve Grubb pointed out:
+
+"What we need is 1 PATH record that identifies the MQ. The other PATH
+ records probably should not be there."
+
+Fix it to record the mq root as a parent, and flag it such that it should
+be hidden from view when the names are logged, since the root of the mq
+filesystem isn't terribly interesting.  With this change, we get a single
+PATH record that looks more like this:
+
+type=PATH msg=audit(1368021604.836:484): item=0 name="test_mq" inode=16914
+dev=00:0c mode=0100644 ouid=0 ogid=0 rdev=00:00
+obj=unconfined_u:object_r:user_tmpfs_t:s0
+
+In order to do this, a new audit_inode_parent_hidden() function is added. 
+If we do it this way, then we avoid having the existing callers of
+audit_inode needing to do any sort of flag conversion if auditing is
+inactive.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Reported-by: Jiri Jaburek <jjaburek@redhat.com>
+Cc: Steve Grubb <sgrubb@redhat.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/iop-adma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/audit.h |   26 ++++++++++++++++++++++----
+ ipc/mqueue.c          |    2 ++
+ kernel/audit.h        |    1 +
+ kernel/auditsc.c      |   12 +++++++++---
+ 4 files changed, 34 insertions(+), 7 deletions(-)
 
-diff -puN drivers/dma/iop-adma.c~drivers-dma-iop-admac-fix-new-warnings drivers/dma/iop-adma.c
---- a/drivers/dma/iop-adma.c~drivers-dma-iop-admac-fix-new-warnings
-+++ a/drivers/dma/iop-adma.c
-@@ -1017,7 +1017,7 @@ iop_adma_xor_val_self_test(struct iop_ad
- 	struct page *xor_srcs[IOP_ADMA_NUM_SRC_TEST];
- 	struct page *zero_sum_srcs[IOP_ADMA_NUM_SRC_TEST + 1];
- 	dma_addr_t dma_srcs[IOP_ADMA_NUM_SRC_TEST + 1];
--	dma_addr_t dma_addr, dest_dma;
-+	dma_addr_t dest_dma;
- 	struct dma_async_tx_descriptor *tx;
- 	struct dma_chan *dma_chan;
- 	dma_cookie_t cookie;
-@@ -1516,7 +1516,7 @@ static int iop_adma_probe(struct platfor
- 			goto err_free_iop_chan;
+diff -puN include/linux/audit.h~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record include/linux/audit.h
+--- a/include/linux/audit.h~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record
++++ a/include/linux/audit.h
+@@ -103,8 +103,11 @@ extern void __audit_syscall_exit(int ret
+ extern struct filename *__audit_reusename(const __user char *uptr);
+ extern void __audit_getname(struct filename *name);
+ extern void audit_putname(struct filename *name);
++
++#define AUDIT_INODE_PARENT	1	/* dentry represents the parent */
++#define AUDIT_INODE_HIDDEN	2	/* audit record should be hidden */
+ extern void __audit_inode(struct filename *name, const struct dentry *dentry,
+-				unsigned int parent);
++				unsigned int flags);
+ extern void __audit_inode_child(const struct inode *parent,
+ 				const struct dentry *dentry,
+ 				const unsigned char type);
+@@ -148,10 +151,22 @@ static inline void audit_getname(struct
+ 	if (unlikely(!audit_dummy_context()))
+ 		__audit_getname(name);
+ }
+-static inline void audit_inode(struct filename *name, const struct dentry *dentry,
++static inline void audit_inode(struct filename *name,
++				const struct dentry *dentry,
+ 				unsigned int parent) {
++	if (unlikely(!audit_dummy_context())) {
++		unsigned int flags = 0;
++		if (parent)
++			flags |= AUDIT_INODE_PARENT;
++		__audit_inode(name, dentry, flags);
++	}
++}
++static inline void audit_inode_parent_hidden(struct filename *name,
++						const struct dentry *dentry)
++{
+ 	if (unlikely(!audit_dummy_context()))
+-		__audit_inode(name, dentry, parent);
++		__audit_inode(name, dentry,
++				AUDIT_INODE_PARENT | AUDIT_INODE_HIDDEN);
+ }
+ static inline void audit_inode_child(const struct inode *parent,
+ 				     const struct dentry *dentry,
+@@ -311,7 +326,7 @@ static inline void audit_putname(struct
+ { }
+ static inline void __audit_inode(struct filename *name,
+ 					const struct dentry *dentry,
+-					unsigned int parent)
++					unsigned int flags)
+ { }
+ static inline void __audit_inode_child(const struct inode *parent,
+ 					const struct dentry *dentry,
+@@ -321,6 +336,9 @@ static inline void audit_inode(struct fi
+ 				const struct dentry *dentry,
+ 				unsigned int parent)
+ { }
++static inline void audit_inode_parent_hidden(struct filename *name,
++				const struct dentry *dentry)
++{ }
+ static inline void audit_inode_child(const struct inode *parent,
+ 				     const struct dentry *dentry,
+ 				     const unsigned char type)
+diff -puN ipc/mqueue.c~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record ipc/mqueue.c
+--- a/ipc/mqueue.c~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record
++++ a/ipc/mqueue.c
+@@ -823,6 +823,7 @@ SYSCALL_DEFINE4(mq_open, const char __us
+ 				error = ro;
+ 				goto out;
+ 			}
++			audit_inode_parent_hidden(name, root);
+ 			filp = do_create(ipc_ns, root->d_inode,
+ 						&path, oflag, mode,
+ 						u_attr ? &attr : NULL);
+@@ -868,6 +869,7 @@ SYSCALL_DEFINE1(mq_unlink, const char __
+ 	if (IS_ERR(name))
+ 		return PTR_ERR(name);
+ 
++	audit_inode_parent_hidden(name, mnt->mnt_root);
+ 	err = mnt_want_write(mnt);
+ 	if (err)
+ 		goto out_name;
+diff -puN kernel/audit.h~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record kernel/audit.h
+--- a/kernel/audit.h~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record
++++ a/kernel/audit.h
+@@ -85,6 +85,7 @@ struct audit_names {
+ 
+ 	struct filename		*name;
+ 	int			name_len;	/* number of chars to log */
++	bool			hidden;		/* don't log this record */
+ 	bool			name_put;	/* call __putname()? */
+ 
+ 	unsigned long		ino;
+diff -puN kernel/auditsc.c~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-fix-mq_open-and-mq_unlink-to-add-the-mq-root-as-a-hidden-parent-audit_names-record
++++ a/kernel/auditsc.c
+@@ -1399,8 +1399,11 @@ static void audit_log_exit(struct audit_
  	}
  
--	dev_info(&pdev->dev, "Intel(R) IOP: ( %s%s%s%s%s%s%s)\n",
-+	dev_info(&pdev->dev, "Intel(R) IOP: ( %s%s%s%s%s%s)\n",
- 		 dma_has_cap(DMA_PQ, dma_dev->cap_mask) ? "pq " : "",
- 		 dma_has_cap(DMA_PQ_VAL, dma_dev->cap_mask) ? "pq_val " : "",
- 		 dma_has_cap(DMA_XOR, dma_dev->cap_mask) ? "xor " : "",
+ 	i = 0;
+-	list_for_each_entry(n, &context->names_list, list)
++	list_for_each_entry(n, &context->names_list, list) {
++		if (n->hidden)
++			continue;
+ 		audit_log_name(context, n, NULL, i++, &call_panic);
++	}
+ 
+ 	/* Send end of event record to help user space know we are finished */
+ 	ab = audit_log_start(context, GFP_KERNEL, AUDIT_EOE);
+@@ -1769,14 +1772,15 @@ void audit_putname(struct filename *name
+  * __audit_inode - store the inode and device from a lookup
+  * @name: name being audited
+  * @dentry: dentry being audited
+- * @parent: does this dentry represent the parent?
++ * @flags: attributes for this particular entry
+  */
+ void __audit_inode(struct filename *name, const struct dentry *dentry,
+-		   unsigned int parent)
++		   unsigned int flags)
+ {
+ 	struct audit_context *context = current->audit_context;
+ 	const struct inode *inode = dentry->d_inode;
+ 	struct audit_names *n;
++	bool parent = flags & AUDIT_INODE_PARENT;
+ 
+ 	if (!context->in_syscall)
+ 		return;
+@@ -1831,6 +1835,8 @@ out:
+ 	if (parent) {
+ 		n->name_len = n->name ? parent_len(n->name->name) : AUDIT_NAME_FULL;
+ 		n->type = AUDIT_TYPE_PARENT;
++		if (flags & AUDIT_INODE_HIDDEN)
++			n->hidden = true;
+ 	} else {
+ 		n->name_len = AUDIT_NAME_FULL;
+ 		n->type = AUDIT_TYPE_NORMAL;
 _
 
-Patches currently in -mm which might be from olof@lixom.net are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
 origin.patch
 linux-next.patch
