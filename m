@@ -1,77 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fs-writebackc-make-wb_do_writeback-as-static.patch
+Subject: [merged]
+ mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
  removed from -mm tree
-Date: Tue, 09 Jul 2013 16:20:03 -0700
-Message-ID: <51dc9aa3.moPeJ24sys97RkBt%akpm@linux-foundation.org>
+Date: Tue, 09 Jul 2013 16:20:01 -0700
+Message-ID: <51dc9aa1.etHKTKTwurUV7S+H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38869 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753848Ab3GIXUE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:04 -0400
+	with ESMTP id S1753725Ab3GIXUC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:20:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, jack@suse.cz, fengguang.wu@intel.com, haicheng.li@linux.intel.com
+To: mm-commits@vger.kernel.org, toshi.kani@hp.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com
 
-Subject: [merged] fs-fs-writebackc-make-wb_do_writeback-as-static.patch removed from -mm tree
-To: haicheng.li@linux.intel.com,fengguang.wu@intel.com,jack@suse.cz,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch removed from -mm tree
+To: zhangyanfei@cn.fujitsu.com,rientjes@google.com,toshi.kani@hp.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:20:03 -0700
+Date: Tue, 09 Jul 2013 16:20:01 -0700
 
 
 The patch titled
-     Subject: fs/fs-writeback.c: : make wb_do_writeback() as static
+     Subject: mm/sparse.c: put clear_hwpoisoned_pages within CONFIG_MEMORY_HOTREMOVE
 has been removed from the -mm tree.  Its filename was
-     fs-fs-writebackc-make-wb_do_writeback-as-static.patch
+     mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Haicheng Li <haicheng.li@linux.intel.com>
-Subject: fs/fs-writeback.c: : make wb_do_writeback() as static
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: mm/sparse.c: put clear_hwpoisoned_pages within CONFIG_MEMORY_HOTREMOVE
 
-It's not used globally and could be static.
+With CONFIG_MEMORY_HOTREMOVE unset, there is a compile warning:
 
-Signed-off-by: Haicheng Li <haicheng.li@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+mm/sparse.c:755: warning: `clear_hwpoisoned_pages' defined but not used
+
+And Bisecting it ended up pointing to 4edd7ceff ("mm, hotplug: avoid
+compiling memory hotremove functions when disabled").
+
+This is because the commit above put sparse_remove_one_section() within
+the protection of CONFIG_MEMORY_HOTREMOVE but the only user of
+clear_hwpoisoned_pages() is sparse_remove_one_section(), and it is not
+within the protection of CONFIG_MEMORY_HOTREMOVE.
+
+So put clear_hwpoisoned_pages within CONFIG_MEMORY_HOTREMOVE should fix
+the warning.
+
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c         |    2 +-
- include/linux/writeback.h |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~fs-fs-writebackc-make-wb_do_writeback-as-static fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-fs-writebackc-make-wb_do_writeback-as-static
-+++ a/fs/fs-writeback.c
-@@ -963,7 +963,7 @@ static long wb_check_old_data_flush(stru
- /*
-  * Retrieve work items and do the writeback they describe
-  */
--long wb_do_writeback(struct bdi_writeback *wb, int force_wait)
-+static long wb_do_writeback(struct bdi_writeback *wb, int force_wait)
- {
- 	struct backing_dev_info *bdi = wb->bdi;
- 	struct wb_writeback_work *work;
-diff -puN include/linux/writeback.h~fs-fs-writebackc-make-wb_do_writeback-as-static include/linux/writeback.h
---- a/include/linux/writeback.h~fs-fs-writebackc-make-wb_do_writeback-as-static
-+++ a/include/linux/writeback.h
-@@ -95,7 +95,6 @@ int try_to_writeback_inodes_sb_nr(struct
- void sync_inodes_sb(struct super_block *);
- long writeback_inodes_wb(struct bdi_writeback *wb, long nr_pages,
- 				enum wb_reason reason);
--long wb_do_writeback(struct bdi_writeback *wb, int force_wait);
- void wakeup_flusher_threads(long nr_pages, enum wb_reason reason);
- void inode_wait_for_writeback(struct inode *inode);
+diff -puN mm/sparse.c~mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove mm/sparse.c
+--- a/mm/sparse.c~mm-sparsec-put-clear_hwpoisoned_pages-within-config_memory_hotremove
++++ a/mm/sparse.c
+@@ -753,6 +753,7 @@ out:
+ 	return ret;
+ }
  
++#ifdef CONFIG_MEMORY_HOTREMOVE
+ #ifdef CONFIG_MEMORY_FAILURE
+ static void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+ {
+@@ -774,7 +775,6 @@ static inline void clear_hwpoisoned_page
+ }
+ #endif
+ 
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+ static void free_section_usemap(struct page *memmap, unsigned long *usemap)
+ {
+ 	struct page *usemap_page;
 _
 
-Patches currently in -mm which might be from haicheng.li@linux.intel.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
