@@ -1,111 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [-] include-linux-mmzoneh-cleanups.patch removed from -mm tree
-Date: Wed, 10 Jul 2013 13:24:58 -0700
-Message-ID: <51ddc31a.Fu/Rjnl/A/KQTtxB%akpm@linux-foundation.org>
+Subject: [-] mm-memmap_init_zone-performance-improvement.patch removed
+ from -mm tree
+Date: Wed, 10 Jul 2013 13:25:01 -0700
+Message-ID: <51ddc31d.MX12dHZGxIQKD5ea%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54679 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54684 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754162Ab3GJUY7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jul 2013 16:24:59 -0400
+	with ESMTP id S1754342Ab3GJUZC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jul 2013 16:25:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, linfeng@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mgorman@suse.de, hannes@cmpxchg.org, mike.yoknis@hp.com
 
-Subject: [-] include-linux-mmzoneh-cleanups.patch removed from -mm tree
-To: akpm@linux-foundation.org,linfeng@cn.fujitsu.com,mel@csn.ul.ie,mm-commits@vger.kernel.org
+Subject: [-] mm-memmap_init_zone-performance-improvement.patch removed from -mm tree
+To: mike.yoknis@hp.com,hannes@cmpxchg.org,mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 10 Jul 2013 13:24:58 -0700
+Date: Wed, 10 Jul 2013 13:25:01 -0700
 
 
 The patch titled
-     Subject: include/linux/mmzone.h: cleanups
+     Subject: mm: memmap_init_zone() performance improvement
 has been removed from the -mm tree.  Its filename was
-     include-linux-mmzoneh-cleanups.patch
+     mm-memmap_init_zone-performance-improvement.patch
 
 This patch was dropped because it has gone stale
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/mmzone.h: cleanups
+From: Mike Yoknis <mike.yoknis@hp.com>
+Subject: mm: memmap_init_zone() performance improvement
 
-- implement zone_idx() in C to fix its references-args-twice macro bug
+We have what we call an "architectural simulator".  It is a computer
+program that pretends that it is a computer system.  We use it to test the
+firmware before real hardware is available.  We have booted Linux on our
+simulator.  As you would expect it takes longer to boot on the simulator
+than it does on real hardware.
 
-- use zone_idx() in is_highmem() to remove large amounts of silly fluff.
+With my patch - boot time 41 minutes
+Without patch - boot time 94 minutes
 
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+These numbers do not scale linearly to real hardware.  But indicate to me
+a place where Linux can be improved.
+
+
+memmap_init_zone() loops through every Page Frame Number (pfn), including
+pfn values that are within the gaps between existing memory sections.  The
+unneeded looping will become a boot performance issue when machines
+configure larger memory ranges that will contain larger and more numerous
+gaps.
+
+The code will skip across invalid pfn values to reduce the number of loops
+executed.
+
+Signed-off-by: Mike Yoknis <mike.yoknis@hp.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~include-linux-mmzoneh-cleanups include/linux/mmzone.h
---- a/include/linux/mmzone.h~include-linux-mmzoneh-cleanups
-+++ a/include/linux/mmzone.h
-@@ -841,7 +841,10 @@ unsigned long __init node_memmap_size_by
- /*
-  * zone_idx() returns 0 for the ZONE_DMA zone, 1 for the ZONE_NORMAL zone, etc.
-  */
--#define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
-+static inline enum zone_type zone_idx(struct zone *zone)
-+{
-+	return zone - zone->zone_pgdat->node_zones;
-+}
- 
- static inline int populated_zone(struct zone *zone)
- {
-@@ -878,10 +881,10 @@ static inline int is_highmem_idx(enum zo
- static inline int is_highmem(struct zone *zone)
- {
- #ifdef CONFIG_HIGHMEM
--	int zone_off = (char *)zone - (char *)zone->zone_pgdat->node_zones;
--	return zone_off == ZONE_HIGHMEM * sizeof(*zone) ||
--	       (zone_off == ZONE_MOVABLE * sizeof(*zone) &&
--		zone_movable_is_highmem());
-+	enum zone_type idx = zone_idx(zone);
-+
-+	return idx == ZONE_HIGHMEM ||
-+	       (idx == ZONE_MOVABLE && zone_movable_is_highmem());
- #else
- 	return 0;
- #endif
+diff -puN mm/page_alloc.c~mm-memmap_init_zone-performance-improvement mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memmap_init_zone-performance-improvement
++++ a/mm/page_alloc.c
+@@ -3933,8 +3933,11 @@ void __meminit memmap_init_zone(unsigned
+ 		 * exist on hotplugged memory.
+ 		 */
+ 		if (context == MEMMAP_EARLY) {
+-			if (!early_pfn_valid(pfn))
++			if (!early_pfn_valid(pfn)) {
++				pfn = ALIGN(pfn + MAX_ORDER_NR_PAGES,
++						MAX_ORDER_NR_PAGES) - 1;
+ 				continue;
++			}
+ 			if (!early_pfn_in_nid(pfn, nid))
+ 				continue;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mike.yoknis@hp.com are
 
-origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
