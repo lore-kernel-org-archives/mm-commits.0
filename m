@@ -1,68 +1,239 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-scatterlist-error-handling-in-__sg_alloc_table.patch removed from -mm tree
-Date: Tue, 09 Jul 2013 16:22:39 -0700
-Message-ID: <51dc9b3f.hi//+U2F/SRmTNw0%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+ added to -mm tree
+Date: Wed, 10 Jul 2013 13:24:26 -0700
+Message-ID: <51ddc2fa.2OXP8GJ2AkZlLYXR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54676 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753611Ab3GIXWk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jul 2013 19:22:40 -0400
+	with ESMTP id S1754162Ab3GJUY1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jul 2013 16:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, maximlevitsky@gmail.com, imre.deak@intel.com, daniel.vetter@ffwll.ch, akinobu.mita@gmail.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, oleg@redhat.com
 
-Subject: [merged] lib-scatterlist-error-handling-in-__sg_alloc_table.patch removed from -mm tree
-To: dan.carpenter@oracle.com,akinobu.mita@gmail.com,daniel.vetter@ffwll.ch,imre.deak@intel.com,maximlevitsky@gmail.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: + mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch added to -mm tree
+To: oleg@redhat.com,andi@firstfloor.org,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 09 Jul 2013 16:22:39 -0700
+Date: Wed, 10 Jul 2013 13:24:26 -0700
 
 
 The patch titled
-     Subject: lib/scatterlist: error handling in __sg_alloc_table()
-has been removed from the -mm tree.  Its filename was
-     lib-scatterlist-error-handling-in-__sg_alloc_table.patch
+     Subject: mm: mempolicy: turn vma_set_policy() into vma_dup_policy()
+has been added to the -mm tree.  Its filename is
+     mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: lib/scatterlist: error handling in __sg_alloc_table()
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: mempolicy: turn vma_set_policy() into vma_dup_policy()
 
-I was reviewing code which I suspected might allocate a zero size SG
-table.  That will cause memory corruption.  Also we can't return before
-doing the memset or we could end up using uninitialized memory in the
-cleanup path.
+Simple cleanup. Every user of vma_set_policy() does the same work,
+this looks a bit annoying imho. And the new trivial helper which
+does mpol_dup() + vma_set_policy() to simplify the callers.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Imre Deak <imre.deak@intel.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mempolicy.h |    9 +++++++--
+ kernel/fork.c             |    9 +++------
+ mm/mempolicy.c            |   10 ++++++++++
+ mm/mmap.c                 |   17 +++++------------
+ 4 files changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN lib/scatterlist.c~lib-scatterlist-error-handling-in-__sg_alloc_table lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlist-error-handling-in-__sg_alloc_table
-+++ a/lib/scatterlist.c
-@@ -247,13 +247,15 @@ int __sg_alloc_table(struct sg_table *ta
- 	struct scatterlist *sg, *prv;
- 	unsigned int left;
+diff -puN include/linux/mempolicy.h~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy
++++ a/include/linux/mempolicy.h
+@@ -91,7 +91,6 @@ static inline struct mempolicy *mpol_dup
+ }
  
-+	memset(table, 0, sizeof(*table));
+ #define vma_policy(vma) ((vma)->vm_policy)
+-#define vma_set_policy(vma, pol) ((vma)->vm_policy = (pol))
+ 
+ static inline void mpol_get(struct mempolicy *pol)
+ {
+@@ -126,6 +125,7 @@ struct shared_policy {
+ 	spinlock_t lock;
+ };
+ 
++int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst);
+ void mpol_shared_policy_init(struct shared_policy *sp, struct mempolicy *mpol);
+ int mpol_set_shared_policy(struct shared_policy *info,
+ 				struct vm_area_struct *vma,
+@@ -240,7 +240,12 @@ mpol_shared_policy_lookup(struct shared_
+ }
+ 
+ #define vma_policy(vma) NULL
+-#define vma_set_policy(vma, pol) do {} while(0)
 +
-+	if (nents == 0)
-+		return -EINVAL;
- #ifndef ARCH_HAS_SG_CHAIN
- 	if (WARN_ON_ONCE(nents > max_ents))
- 		return -EINVAL;
- #endif
++static inline int
++vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
++{
++	return 0;
++}
  
--	memset(table, 0, sizeof(*table));
+ static inline void numa_policy_init(void)
+ {
+diff -puN kernel/fork.c~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy kernel/fork.c
+--- a/kernel/fork.c~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy
++++ a/kernel/fork.c
+@@ -351,7 +351,6 @@ static int dup_mmap(struct mm_struct *mm
+ 	struct rb_node **rb_link, *rb_parent;
+ 	int retval;
+ 	unsigned long charge;
+-	struct mempolicy *pol;
+ 
+ 	uprobe_start_dup_mmap();
+ 	down_write(&oldmm->mmap_sem);
+@@ -400,11 +399,9 @@ static int dup_mmap(struct mm_struct *mm
+ 			goto fail_nomem;
+ 		*tmp = *mpnt;
+ 		INIT_LIST_HEAD(&tmp->anon_vma_chain);
+-		pol = mpol_dup(vma_policy(mpnt));
+-		retval = PTR_ERR(pol);
+-		if (IS_ERR(pol))
++		retval = vma_dup_policy(mpnt, tmp);
++		if (retval)
+ 			goto fail_nomem_policy;
+-		vma_set_policy(tmp, pol);
+ 		tmp->vm_mm = mm;
+ 		if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+@@ -472,7 +469,7 @@ out:
+ 	uprobe_end_dup_mmap();
+ 	return retval;
+ fail_nomem_anon_vma_fork:
+-	mpol_put(pol);
++	mpol_put(vma_policy(tmp));
+ fail_nomem_policy:
+ 	kmem_cache_free(vm_area_cachep, tmp);
+ fail_nomem:
+diff -puN mm/mempolicy.c~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy
++++ a/mm/mempolicy.c
+@@ -2065,6 +2065,16 @@ retry_cpuset:
+ }
+ EXPORT_SYMBOL(alloc_pages_current);
+ 
++int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
++{
++	struct mempolicy *pol = mpol_dup(vma_policy(src));
++
++	if (IS_ERR(pol))
++		return PTR_ERR(pol);
++	dst->vm_policy = pol;
++	return 0;
++}
++
+ /*
+  * If mpol_dup() sees current->cpuset == cpuset_being_rebound, then it
+  * rebinds the mempolicy its copying by calling mpol_rebind_policy()
+diff -puN mm/mmap.c~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy mm/mmap.c
+--- a/mm/mmap.c~mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy
++++ a/mm/mmap.c
+@@ -2380,7 +2380,6 @@ detach_vmas_to_be_unmapped(struct mm_str
+ static int __split_vma(struct mm_struct * mm, struct vm_area_struct * vma,
+ 	      unsigned long addr, int new_below)
+ {
+-	struct mempolicy *pol;
+ 	struct vm_area_struct *new;
+ 	int err = -ENOMEM;
+ 
+@@ -2404,12 +2403,9 @@ static int __split_vma(struct mm_struct
+ 		new->vm_pgoff += ((addr - vma->vm_start) >> PAGE_SHIFT);
+ 	}
+ 
+-	pol = mpol_dup(vma_policy(vma));
+-	if (IS_ERR(pol)) {
+-		err = PTR_ERR(pol);
++	err = vma_dup_policy(vma, new);
++	if (err)
+ 		goto out_free_vma;
+-	}
+-	vma_set_policy(new, pol);
+ 
+ 	if (anon_vma_clone(new, vma))
+ 		goto out_free_mpol;
+@@ -2437,7 +2433,7 @@ static int __split_vma(struct mm_struct
+ 		fput(new->vm_file);
+ 	unlink_anon_vmas(new);
+  out_free_mpol:
+-	mpol_put(pol);
++	mpol_put(vma_policy(new));
+  out_free_vma:
+ 	kmem_cache_free(vm_area_cachep, new);
+  out_err:
+@@ -2780,7 +2776,6 @@ struct vm_area_struct *copy_vma(struct v
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *new_vma, *prev;
+ 	struct rb_node **rb_link, *rb_parent;
+-	struct mempolicy *pol;
+ 	bool faulted_in_anon_vma = true;
+ 
+ 	/*
+@@ -2825,10 +2820,8 @@ struct vm_area_struct *copy_vma(struct v
+ 			new_vma->vm_start = addr;
+ 			new_vma->vm_end = addr + len;
+ 			new_vma->vm_pgoff = pgoff;
+-			pol = mpol_dup(vma_policy(vma));
+-			if (IS_ERR(pol))
++			if (vma_dup_policy(vma, new_vma))
+ 				goto out_free_vma;
+-			vma_set_policy(new_vma, pol);
+ 			INIT_LIST_HEAD(&new_vma->anon_vma_chain);
+ 			if (anon_vma_clone(new_vma, vma))
+ 				goto out_free_mempol;
+@@ -2843,7 +2836,7 @@ struct vm_area_struct *copy_vma(struct v
+ 	return new_vma;
+ 
+  out_free_mempol:
+-	mpol_put(pol);
++	mpol_put(vma_policy(new_vma));
+  out_free_vma:
+ 	kmem_cache_free(vm_area_cachep, new_vma);
+ 	return NULL;
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+origin.patch
+linux-next.patch
+mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
+fput-turn-list_head-delayed_fput_list-into-llist_head.patch
+llist-fix-simplify-llist_add-and-llist_add_batch.patch
+llist-llist_add-can-use-llist_add_batch.patch
+mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+
