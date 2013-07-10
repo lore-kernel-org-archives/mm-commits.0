@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-dmi_scan-drop-oom-messages.patch added to -mm tree
-Date: Wed, 10 Jul 2013 14:34:44 -0700
-Message-ID: <51ddd374.pNkMVHAV7OnG+D+q%akpm@linux-foundation.org>
+Subject: + relay-fix-timer-madness-v2.patch added to -mm tree
+Date: Wed, 10 Jul 2013 15:23:03 -0700
+Message-ID: <51dddec7.K3TbNwW5PuwqGLDb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55716 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755059Ab3GJVep (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jul 2013 17:34:45 -0400
+	with ESMTP id S1753447Ab3GJWXE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jul 2013 18:23:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, jdelvare@suse.de
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, rostedt@goodmis.org, mingo@elte.hu, edumazet@google.com, axboe@kernel.dk, jovi.zhangwei@huawei.com
 
-Subject: + firmware-dmi_scan-drop-oom-messages.patch added to -mm tree
-To: jdelvare@suse.de,joe@perches.com
+Subject: + relay-fix-timer-madness-v2.patch added to -mm tree
+To: jovi.zhangwei@huawei.com,axboe@kernel.dk,edumazet@google.com,mingo@elte.hu,rostedt@goodmis.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 10 Jul 2013 14:34:44 -0700
+Date: Wed, 10 Jul 2013 15:23:03 -0700
 
 
 The patch titled
-     Subject: firmware/dmi_scan: drop OOM messages
+     Subject: relay-fix-timer-madness-v2
 has been added to the -mm tree.  Its filename is
-     firmware-dmi_scan-drop-oom-messages.patch
+     relay-fix-timer-madness-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/firmware-dmi_scan-drop-oom-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/relay-fix-timer-madness-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/firmware-dmi_scan-drop-oom-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/relay-fix-timer-madness-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,104 +43,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: firmware/dmi_scan: drop OOM messages
+From: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
+Subject: relay-fix-timer-madness-v2
 
-As reported by Joe Perches: OOM messages generally aren't useful. 
-dmi_alloc is either a trivial front-end to kzalloc, and kzalloc already
-does a dump_stack() when OOM, or for x86, dmi_alloc uses extend_brk which
-BUGs when unsuccessful.
+Changed from v1:
+mod timer interval changed from jiffies+1 to HZ/10, as Ingo suggested.
 
-So we can remove all 6 such log messages in the dmi_scan driver, to shrink
-the binary size (by 528 bytes on x86_64.)
-
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Reported-by: Joe Perches <joe@perches.com>
+Signed-off-by: "zhangwei(Jovi)" <jovi.zhangwei@huawei.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |   23 ++++++-----------------
- 1 file changed, 6 insertions(+), 17 deletions(-)
+ kernel/relay.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~firmware-dmi_scan-drop-oom-messages drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~firmware-dmi_scan-drop-oom-messages
-+++ a/drivers/firmware/dmi_scan.c
-@@ -62,8 +62,6 @@ static const char * __init dmi_string(co
- 	str = dmi_alloc(len);
- 	if (str != NULL)
- 		strcpy(str, bp);
--	else
--		pr_err("dmi_string: cannot allocate %Zu bytes.\n", len);
- 
- 	return str;
+diff -puN kernel/relay.c~relay-fix-timer-madness-v2 kernel/relay.c
+--- a/kernel/relay.c~relay-fix-timer-madness-v2
++++ a/kernel/relay.c
+@@ -342,7 +342,7 @@ static void wakeup_readers(unsigned long
+ 	/*
+ 	 * Stupid polling for now:
+ 	 */
+-	mod_timer(&buf->timer, jiffies + 1);
++	mod_timer(&buf->timer, HZ / 10);
  }
-@@ -219,10 +217,8 @@ static void __init dmi_save_one_device(i
- 		return;
  
- 	dev = dmi_alloc(sizeof(*dev) + strlen(name) + 1);
--	if (!dev) {
--		pr_err("dmi_save_one_device: out of memory.\n");
-+	if (!dev)
- 		return;
--	}
+ /**
+@@ -360,7 +360,7 @@ static void __relay_reset(struct rchan_b
+ 		init_waitqueue_head(&buf->read_wait);
+ 		kref_init(&buf->kref);
+ 		setup_timer(&buf->timer, wakeup_readers, (unsigned long)buf);
+-		mod_timer(&buf->timer, jiffies + 1);
++		mod_timer(&buf->timer, HZ / 10);
+ 	} else
+ 		del_timer_sync(&buf->timer);
  
- 	dev->type = type;
- 	strcpy((char *)(dev + 1), name);
-@@ -258,10 +254,8 @@ static void __init dmi_save_oem_strings_
- 			continue;
- 
- 		dev = dmi_alloc(sizeof(*dev));
--		if (!dev) {
--			pr_err("dmi_save_oem_strings_devices: out of memory.\n");
-+		if (!dev)
- 			break;
--		}
- 
- 		dev->type = DMI_DEV_TYPE_OEM_STRING;
- 		dev->name = devname;
-@@ -277,18 +271,14 @@ static void __init dmi_save_ipmi_device(
- 	void *data;
- 
- 	data = dmi_alloc(dm->length);
--	if (data == NULL) {
--		pr_err("dmi_save_ipmi_device: out of memory.\n");
-+	if (data == NULL)
- 		return;
--	}
- 
- 	memcpy(data, dm, dm->length);
- 
- 	dev = dmi_alloc(sizeof(*dev));
--	if (!dev) {
--		pr_err("dmi_save_ipmi_device: out of memory.\n");
-+	if (!dev)
- 		return;
--	}
- 
- 	dev->type = DMI_DEV_TYPE_IPMI;
- 	dev->name = "IPMI controller";
-@@ -303,10 +293,9 @@ static void __init dmi_save_dev_onboard(
- 	struct dmi_dev_onboard *onboard_dev;
- 
- 	onboard_dev = dmi_alloc(sizeof(*onboard_dev) + strlen(name) + 1);
--	if (!onboard_dev) {
--		pr_err("dmi_save_dev_onboard: out of memory.\n");
-+	if (!onboard_dev)
- 		return;
--	}
-+
- 	onboard_dev->instance = instance;
- 	onboard_dev->segment = segment;
- 	onboard_dev->bus = bus;
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from jovi.zhangwei@huawei.com are
 
-origin.patch
 linux-next.patch
-dmi_scan-add-comments-on-dmi_present-and-the-loop-in-dmi_scan_machine.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
+relay-fix-timer-madness.patch
+relay-fix-timer-madness-v2.patch
 
