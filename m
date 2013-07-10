@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-dmi_scan-constify-strings.patch added to -mm tree
-Date: Wed, 10 Jul 2013 14:34:43 -0700
-Message-ID: <51ddd373.qqvGJY3DDfmA3FB1%akpm@linux-foundation.org>
+Subject: + firmware-dmi_scan-drop-oom-messages.patch added to -mm tree
+Date: Wed, 10 Jul 2013 14:34:44 -0700
+Message-ID: <51ddd374.pNkMVHAV7OnG+D+q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55236 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755123Ab3GJVeo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jul 2013 17:34:44 -0400
+	with ESMTP id S1755059Ab3GJVep (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jul 2013 17:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com, jdelvare@suse.de
 
-Subject: + firmware-dmi_scan-constify-strings.patch added to -mm tree
+Subject: + firmware-dmi_scan-drop-oom-messages.patch added to -mm tree
 To: jdelvare@suse.de,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 10 Jul 2013 14:34:43 -0700
+Date: Wed, 10 Jul 2013 14:34:44 -0700
 
 
 The patch titled
-     Subject: firmware/dmi_scan: constify strings
+     Subject: firmware/dmi_scan: drop OOM messages
 has been added to the -mm tree.  Its filename is
-     firmware-dmi_scan-constify-strings.patch
+     firmware-dmi_scan-drop-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/firmware-dmi_scan-constify-strings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/firmware-dmi_scan-drop-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/firmware-dmi_scan-constify-strings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/firmware-dmi_scan-drop-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,67 +44,94 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jean Delvare <jdelvare@suse.de>
-Subject: firmware/dmi_scan: constify strings
+Subject: firmware/dmi_scan: drop OOM messages
 
-Add const to all DMI string pointers where this is possible.  This fixes a
-checkpatch warning.
+As reported by Joe Perches: OOM messages generally aren't useful. 
+dmi_alloc is either a trivial front-end to kzalloc, and kzalloc already
+does a dump_stack() when OOM, or for x86, dmi_alloc uses extend_brk which
+BUGs when unsuccessful.
+
+So we can remove all 6 such log messages in the dmi_scan driver, to shrink
+the binary size (by 528 bytes on x86_64.)
 
 Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Joe Perches <joe@perches.com>
+Reported-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/firmware/dmi_scan.c |   23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~firmware-dmi_scan-constify-strings drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~firmware-dmi_scan-constify-strings
+diff -puN drivers/firmware/dmi_scan.c~firmware-dmi_scan-drop-oom-messages drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~firmware-dmi_scan-drop-oom-messages
 +++ a/drivers/firmware/dmi_scan.c
-@@ -14,7 +14,7 @@
-  * of and an antecedent to, SMBIOS, which stands for System
-  * Management BIOS.  See further: http://www.dmtf.org/standards
-  */
--static char dmi_empty_string[] = "        ";
-+static const char dmi_empty_string[] = "        ";
+@@ -62,8 +62,6 @@ static const char * __init dmi_string(co
+ 	str = dmi_alloc(len);
+ 	if (str != NULL)
+ 		strcpy(str, bp);
+-	else
+-		pr_err("dmi_string: cannot allocate %Zu bytes.\n", len);
  
- static u16 __initdata dmi_ver;
- /*
-@@ -49,7 +49,7 @@ static const char * __init dmi_string_no
- 	return "";
+ 	return str;
  }
- 
--static char * __init dmi_string(const struct dmi_header *dm, u8 s)
-+static const char * __init dmi_string(const struct dmi_header *dm, u8 s)
- {
- 	const char *bp = dmi_string_nosave(dm, s);
- 	char *str;
-@@ -133,7 +133,7 @@ static int __init dmi_checksum(const u8
- 	return sum == 0;
- }
- 
--static char *dmi_ident[DMI_STRING_MAX];
-+static const char *dmi_ident[DMI_STRING_MAX];
- static LIST_HEAD(dmi_devices);
- int dmi_available;
- 
-@@ -144,7 +144,7 @@ static void __init dmi_save_ident(const
- 		int string)
- {
- 	const char *d = (const char *) dm;
--	char *p;
-+	const char *p;
- 
- 	if (dmi_ident[slot])
+@@ -219,10 +217,8 @@ static void __init dmi_save_one_device(i
  		return;
-@@ -252,7 +252,7 @@ static void __init dmi_save_oem_strings_
- 	struct dmi_device *dev;
  
- 	for (i = 1; i <= count; i++) {
--		char *devname = dmi_string(dm, i);
-+		const char *devname = dmi_string(dm, i);
+ 	dev = dmi_alloc(sizeof(*dev) + strlen(name) + 1);
+-	if (!dev) {
+-		pr_err("dmi_save_one_device: out of memory.\n");
++	if (!dev)
+ 		return;
+-	}
  
- 		if (devname == dmi_empty_string)
+ 	dev->type = type;
+ 	strcpy((char *)(dev + 1), name);
+@@ -258,10 +254,8 @@ static void __init dmi_save_oem_strings_
  			continue;
+ 
+ 		dev = dmi_alloc(sizeof(*dev));
+-		if (!dev) {
+-			pr_err("dmi_save_oem_strings_devices: out of memory.\n");
++		if (!dev)
+ 			break;
+-		}
+ 
+ 		dev->type = DMI_DEV_TYPE_OEM_STRING;
+ 		dev->name = devname;
+@@ -277,18 +271,14 @@ static void __init dmi_save_ipmi_device(
+ 	void *data;
+ 
+ 	data = dmi_alloc(dm->length);
+-	if (data == NULL) {
+-		pr_err("dmi_save_ipmi_device: out of memory.\n");
++	if (data == NULL)
+ 		return;
+-	}
+ 
+ 	memcpy(data, dm, dm->length);
+ 
+ 	dev = dmi_alloc(sizeof(*dev));
+-	if (!dev) {
+-		pr_err("dmi_save_ipmi_device: out of memory.\n");
++	if (!dev)
+ 		return;
+-	}
+ 
+ 	dev->type = DMI_DEV_TYPE_IPMI;
+ 	dev->name = "IPMI controller";
+@@ -303,10 +293,9 @@ static void __init dmi_save_dev_onboard(
+ 	struct dmi_dev_onboard *onboard_dev;
+ 
+ 	onboard_dev = dmi_alloc(sizeof(*onboard_dev) + strlen(name) + 1);
+-	if (!onboard_dev) {
+-		pr_err("dmi_save_dev_onboard: out of memory.\n");
++	if (!onboard_dev)
+ 		return;
+-	}
++
+ 	onboard_dev->instance = instance;
+ 	onboard_dev->segment = segment;
+ 	onboard_dev->bus = bus;
 _
 
 Patches currently in -mm which might be from jdelvare@suse.de are
