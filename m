@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-madvisec-fix-coding-style-errors.patch added to -mm tree
-Date: Thu, 11 Jul 2013 14:48:09 -0700
-Message-ID: <51df2819.1IpmHJVklcmIBxtO%akpm@linux-foundation.org>
+Subject: + rapidio-fix-use-after-free-in-rio_unregister_scan.patch added
+ to -mm tree
+Date: Thu, 11 Jul 2013 15:04:32 -0700
+Message-ID: <51df2bf0.NNiyq+XsdyXlyV/+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42931 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43130 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756703Ab3GKVsK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 17:48:10 -0400
+	with ESMTP id S1756629Ab3GKWEd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 18:04:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, gg.kaspersky@gmail.com
+To: mm-commits@vger.kernel.org, rmallon@gmail.com, mporter@kernel.crashing.org, alexandre.bounine@idt.com, dan.carpenter@oracle.com
 
-Subject: + mm-madvisec-fix-coding-style-errors.patch added to -mm tree
-To: gg.kaspersky@gmail.com,penberg@kernel.org
+Subject: + rapidio-fix-use-after-free-in-rio_unregister_scan.patch added to -mm tree
+To: dan.carpenter@oracle.com,alexandre.bounine@idt.com,mporter@kernel.crashing.org,rmallon@gmail.com
 From: akpm@linux-foundation.org
-Date: Thu, 11 Jul 2013 14:48:09 -0700
+Date: Thu, 11 Jul 2013 15:04:32 -0700
 
 
 The patch titled
-     Subject: mm/madvise.c: fix coding-style errors
+     Subject: rapidio: fix use after free in rio_unregister_scan()
 has been added to the -mm tree.  Its filename is
-     mm-madvisec-fix-coding-style-errors.patch
+     rapidio-fix-use-after-free-in-rio_unregister_scan.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvisec-fix-coding-style-errors.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-fix-use-after-free-in-rio_unregister_scan.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvisec-fix-coding-style-errors.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-fix-use-after-free-in-rio_unregister_scan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,72 +44,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Cernov <gg.kaspersky@gmail.com>
-Subject: mm/madvise.c: fix coding-style errors
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: rapidio: fix use after free in rio_unregister_scan()
 
-This fixes following errors:
-	- ERROR: "(foo*)" should be "(foo *)"
-	- ERROR: "foo ** bar" should be "foo **bar"
+We're freeing the list iterator so we can't move to the next entry.  Since
+there is only one matching mport_id, we can just break after finding it.
 
-Signed-off-by: Vladimir Cernov <gg.kaspersky@gmail.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Ryan Mallon <rmallon@gmail.com>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/rapidio/rio.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-madvisec-fix-coding-style-errors mm/madvise.c
---- a/mm/madvise.c~mm-madvisec-fix-coding-style-errors
-+++ a/mm/madvise.c
-@@ -42,11 +42,11 @@ static int madvise_need_mmap_write(int b
-  * We can potentially split a vm area into separate
-  * areas, each area with its own behavior.
-  */
--static long madvise_behavior(struct vm_area_struct * vma,
-+static long madvise_behavior(struct vm_area_struct *vma,
- 		     struct vm_area_struct **prev,
- 		     unsigned long start, unsigned long end, int behavior)
- {
--	struct mm_struct * mm = vma->vm_mm;
-+	struct mm_struct *mm = vma->vm_mm;
- 	int error = 0;
- 	pgoff_t pgoff;
- 	unsigned long new_flags = vma->vm_flags;
-@@ -215,8 +215,8 @@ static void force_shm_swapin_readahead(s
- /*
-  * Schedule all required I/O operations.  Do not wait for completion.
-  */
--static long madvise_willneed(struct vm_area_struct * vma,
--			     struct vm_area_struct ** prev,
-+static long madvise_willneed(struct vm_area_struct *vma,
-+			     struct vm_area_struct **prev,
- 			     unsigned long start, unsigned long end)
- {
- 	struct file *file = vma->vm_file;
-@@ -270,8 +270,8 @@ static long madvise_willneed(struct vm_a
-  * An interface that causes the system to free clean pages and flush
-  * dirty pages is already available as msync(MS_INVALIDATE).
-  */
--static long madvise_dontneed(struct vm_area_struct * vma,
--			     struct vm_area_struct ** prev,
-+static long madvise_dontneed(struct vm_area_struct *vma,
-+			     struct vm_area_struct **prev,
- 			     unsigned long start, unsigned long end)
- {
- 	*prev = vma;
-@@ -459,7 +459,7 @@ madvise_behavior_valid(int behavior)
- SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
- {
- 	unsigned long end, tmp;
--	struct vm_area_struct * vma, *prev;
-+	struct vm_area_struct *vma, *prev;
- 	int unmapped_error = 0;
- 	int error = -EINVAL;
- 	int write;
+diff -puN drivers/rapidio/rio.c~rapidio-fix-use-after-free-in-rio_unregister_scan drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-fix-use-after-free-in-rio_unregister_scan
++++ a/drivers/rapidio/rio.c
+@@ -1715,11 +1715,13 @@ int rio_unregister_scan(int mport_id, st
+ 		    (mport_id == RIO_MPORT_ANY && port->nscan == scan_ops))
+ 			port->nscan = NULL;
+ 
+-	list_for_each_entry(scan, &rio_scans, node)
++	list_for_each_entry(scan, &rio_scans, node) {
+ 		if (scan->mport_id == mport_id) {
+ 			list_del(&scan->node);
+ 			kfree(scan);
++			break;
+ 		}
++	}
+ 
+ 	mutex_unlock(&rio_mport_list_lock);
+ 
 _
 
-Patches currently in -mm which might be from gg.kaspersky@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-madvisec-fix-coding-style-errors.patch
+origin.patch
+linux-next.patch
+rapidio-fix-use-after-free-in-rio_unregister_scan.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix.patch
 
