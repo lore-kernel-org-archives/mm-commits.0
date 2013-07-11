@@ -1,134 +1,681 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 11 Jul 2013 13:16:10 -0700
-Message-ID: <51df128a.H7Gq6MqK9z+iy5h/%akpm@linux-foundation.org>
+Subject: [merged] zbud-add-to-mm.patch removed from -mm tree
+Date: Thu, 11 Jul 2013 13:16:30 -0700
+Message-ID: <51df129e.1yZc0U+cytDL+rhn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41352 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754553Ab3GKUQL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 16:16:11 -0400
+	with ESMTP id S1754553Ab3GKUQc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 16:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, rcj@linux.vnet.ibm.com, paulus@samba.org, ngupta@vflare.org, minchan@kernel.org, mgorman@suse.de, lwoodman@redhat.com, konrad.wilk@oracle.com, jweiner@redhat.com, joe@perches.com, jhopper@us.ibm.com, iamjoonsoo.kim@lge.com, hughd@google.com, gregkh@linuxfoundation.org, dave@sr71.net, dan.magenheimer@oracle.com, cody@linux.vnet.ibm.com, bob.liu@oracle.com, benh@kernel.crashing.org, sjenning@linux.vnet.ibm.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] zbud-add-to-mm.patch removed from -mm tree
+To: sjenning@linux.vnet.ibm.com,benh@kernel.crashing.org,bob.liu@oracle.com,cody@linux.vnet.ibm.com,dan.magenheimer@oracle.com,dave@sr71.net,gregkh@linuxfoundation.org,hughd@google.com,iamjoonsoo.kim@lge.com,jhopper@us.ibm.com,joe@perches.com,jweiner@redhat.com,konrad.wilk@oracle.com,lwoodman@redhat.com,mgorman@suse.de,minchan@kernel.org,ngupta@vflare.org,paulus@samba.org,rcj@linux.vnet.ibm.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 11 Jul 2013 13:16:10 -0700
+Date: Thu, 11 Jul 2013 13:16:30 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: zbud: add to mm/
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     zbud-add-to-mm.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Subject: zbud: add to mm/
 
+zbud is an special purpose allocator for storing compressed pages.  It is
+designed to store up to two compressed pages per physical page.  While
+this design limits storage density, it has simple and deterministic
+reclaim properties that make it preferable to a higher density approach
+when reclaim will be used.
+
+zbud works by storing compressed pages, or "zpages", together in pairs in
+a single memory page called a "zbud page".  The first buddy is "left
+justifed" at the beginning of the zbud page, and the last buddy is "right
+justified" at the end of the zbud page.  The benefit is that if either
+buddy is freed, the freed buddy space, coalesced with whatever slack space
+that existed between the buddies, results in the largest possible free
+region within the zbud page.
+
+zbud also provides an attractive lower bound on density.  The ratio of
+zpages to zbud pages can not be less than 1.  This ensures that zbud can
+never "do harm" by using more pages to store zpages than the uncompressed
+zpages would have used on their own.
+
+This implementation is a rewrite of the zbud allocator internally used by
+zcache in the driver/staging tree.  The rewrite was necessary to remove
+some of the zcache specific elements that were ingrained throughout and
+provide a generic allocation interface that can later be used by zsmalloc
+and others.
+
+This patch adds zbud to mm/ for later use by zswap.
+
+Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Robert Jennings <rcj@linux.vnet.ibm.com>
+Cc: Jenifer Hopper <jhopper@us.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Joe Perches <joe@perches.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Bob Liu <bob.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/networking/netlink_mmap.txt |    4 ----
- drivers/net/wireless/ath/ath9k/xmit.c     |   18 ------------------
- net/bluetooth/hci_core.c                  |    4 ----
- 3 files changed, 26 deletions(-)
+ include/linux/zbud.h |   22 +
+ mm/Kconfig           |   10 
+ mm/Makefile          |    1 
+ mm/zbud.c            |  527 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 560 insertions(+)
 
-diff -puN Documentation/networking/netlink_mmap.txt~linux-next-git-rejects Documentation/networking/netlink_mmap.txt
---- a/Documentation/networking/netlink_mmap.txt~linux-next-git-rejects
-+++ a/Documentation/networking/netlink_mmap.txt
-@@ -113,11 +113,7 @@ Some parameters are constrained, specifi
+diff -puN /dev/null include/linux/zbud.h
+--- /dev/null
++++ a/include/linux/zbud.h
+@@ -0,0 +1,22 @@
++#ifndef _ZBUD_H_
++#define _ZBUD_H_
++
++#include <linux/types.h>
++
++struct zbud_pool;
++
++struct zbud_ops {
++	int (*evict)(struct zbud_pool *pool, unsigned long handle);
++};
++
++struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops);
++void zbud_destroy_pool(struct zbud_pool *pool);
++int zbud_alloc(struct zbud_pool *pool, int size, gfp_t gfp,
++	unsigned long *handle);
++void zbud_free(struct zbud_pool *pool, unsigned long handle);
++int zbud_reclaim_page(struct zbud_pool *pool, unsigned int retries);
++void *zbud_map(struct zbud_pool *pool, unsigned long handle);
++void zbud_unmap(struct zbud_pool *pool, unsigned long handle);
++u64 zbud_get_pool_size(struct zbud_pool *pool);
++
++#endif /* _ZBUD_H_ */
+diff -puN mm/Kconfig~zbud-add-to-mm mm/Kconfig
+--- a/mm/Kconfig~zbud-add-to-mm
++++ a/mm/Kconfig
+@@ -478,6 +478,16 @@ config FRONTSWAP
  
- - nm_frame_nr must equal the actual number of frames as specified above.
+ 	  If unsure, say Y to enable frontswap.
  
--<<<<<<< HEAD
--When the kernel can't allocate physically continuous memory for a ring block,
--=======
- When the kernel can't allocate phsyically continuous memory for a ring block,
-->>>>>>> linux-next/akpm-base
- it will fall back to use physically discontinuous memory. This might affect
- performance negatively, in order to avoid this the nm_frame_size parameter
- should be chosen to be as small as possible for the required frame size and
-diff -puN drivers/net/wireless/ath/ath9k/xmit.c~linux-next-git-rejects drivers/net/wireless/ath/ath9k/xmit.c
---- a/drivers/net/wireless/ath/ath9k/xmit.c~linux-next-git-rejects
-+++ a/drivers/net/wireless/ath/ath9k/xmit.c
-@@ -2251,25 +2251,7 @@ static void ath_tx_complete(struct ath_s
- 	spin_unlock_irqrestore(&sc->sc_pm_lock, flags);
- 
- 	__skb_queue_tail(&txq->complete_q, skb);
--<<<<<<< HEAD
--
--	q = skb_get_queue_mapping(skb);
--	if (txq == sc->tx.uapsdq)
--		txq = sc->tx.txq_map[q];
--
--	if (txq == sc->tx.txq_map[q]) {
--		if (WARN_ON(--txq->pending_frames < 0))
--			txq->pending_frames = 0;
--
--		if (txq->stopped &&
--		    txq->pending_frames < sc->tx.txq_max_pending[q]) {
--			ieee80211_wake_queue(sc->hw, q);
--			txq->stopped = false;
--		}
--	}
--=======
- 	ath_txq_skb_done(sc, txq, skb);
-->>>>>>> linux-next/akpm-base
- }
- 
- static void ath_tx_complete_buf(struct ath_softc *sc, struct ath_buf *bf,
-diff -puN net/bluetooth/hci_core.c~linux-next-git-rejects net/bluetooth/hci_core.c
---- a/net/bluetooth/hci_core.c~linux-next-git-rejects
-+++ a/net/bluetooth/hci_core.c
-@@ -605,11 +605,7 @@ static void hci_init3_req(struct hci_req
- 	 * as supported send it. If not supported assume that the controller
- 	 * does not have actual support for stored link keys which makes this
- 	 * command redundant anyway.
--<<<<<<< HEAD
--         */
--=======
- 	 */
-->>>>>>> linux-next/akpm-base
- 	if (hdev->commands[6] & 0x80) {
- 		struct hci_cp_delete_stored_link_key cp;
- 
++config ZBUD
++	tristate
++	default n
++	help
++	  A special purpose allocator for storing compressed pages.
++	  It is designed to store up to two compressed pages per physical
++	  page.  While this design limits storage density, it has simple and
++	  deterministic reclaim properties that make it preferable to a higher
++	  density approach when reclaim will be used.
++
+ config MEM_SOFT_DIRTY
+ 	bool "Track memory changes"
+ 	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY
+diff -puN mm/Makefile~zbud-add-to-mm mm/Makefile
+--- a/mm/Makefile~zbud-add-to-mm
++++ a/mm/Makefile
+@@ -58,3 +58,4 @@ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak
+ obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
+ obj-$(CONFIG_CLEANCACHE) += cleancache.o
+ obj-$(CONFIG_MEMORY_ISOLATION) += page_isolation.o
++obj-$(CONFIG_ZBUD)	+= zbud.o
+diff -puN /dev/null mm/zbud.c
+--- /dev/null
++++ a/mm/zbud.c
+@@ -0,0 +1,527 @@
++/*
++ * zbud.c
++ *
++ * Copyright (C) 2013, Seth Jennings, IBM
++ *
++ * Concepts based on zcache internal zbud allocator by Dan Magenheimer.
++ *
++ * zbud is an special purpose allocator for storing compressed pages.  Contrary
++ * to what its name may suggest, zbud is not a buddy allocator, but rather an
++ * allocator that "buddies" two compressed pages together in a single memory
++ * page.
++ *
++ * While this design limits storage density, it has simple and deterministic
++ * reclaim properties that make it preferable to a higher density approach when
++ * reclaim will be used.
++ *
++ * zbud works by storing compressed pages, or "zpages", together in pairs in a
++ * single memory page called a "zbud page".  The first buddy is "left
++ * justifed" at the beginning of the zbud page, and the last buddy is "right
++ * justified" at the end of the zbud page.  The benefit is that if either
++ * buddy is freed, the freed buddy space, coalesced with whatever slack space
++ * that existed between the buddies, results in the largest possible free region
++ * within the zbud page.
++ *
++ * zbud also provides an attractive lower bound on density. The ratio of zpages
++ * to zbud pages can not be less than 1.  This ensures that zbud can never "do
++ * harm" by using more pages to store zpages than the uncompressed zpages would
++ * have used on their own.
++ *
++ * zbud pages are divided into "chunks".  The size of the chunks is fixed at
++ * compile time and determined by NCHUNKS_ORDER below.  Dividing zbud pages
++ * into chunks allows organizing unbuddied zbud pages into a manageable number
++ * of unbuddied lists according to the number of free chunks available in the
++ * zbud page.
++ *
++ * The zbud API differs from that of conventional allocators in that the
++ * allocation function, zbud_alloc(), returns an opaque handle to the user,
++ * not a dereferenceable pointer.  The user must map the handle using
++ * zbud_map() in order to get a usable pointer by which to access the
++ * allocation data and unmap the handle with zbud_unmap() when operations
++ * on the allocation data are complete.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/atomic.h>
++#include <linux/list.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/preempt.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/zbud.h>
++
++/*****************
++ * Structures
++*****************/
++/*
++ * NCHUNKS_ORDER determines the internal allocation granularity, effectively
++ * adjusting internal fragmentation.  It also determines the number of
++ * freelists maintained in each pool. NCHUNKS_ORDER of 6 means that the
++ * allocation granularity will be in chunks of size PAGE_SIZE/64, and there
++ * will be 64 freelists per pool.
++ */
++#define NCHUNKS_ORDER	6
++
++#define CHUNK_SHIFT	(PAGE_SHIFT - NCHUNKS_ORDER)
++#define CHUNK_SIZE	(1 << CHUNK_SHIFT)
++#define NCHUNKS		(PAGE_SIZE >> CHUNK_SHIFT)
++#define ZHDR_SIZE_ALIGNED CHUNK_SIZE
++
++/**
++ * struct zbud_pool - stores metadata for each zbud pool
++ * @lock:	protects all pool fields and first|last_chunk fields of any
++ *		zbud page in the pool
++ * @unbuddied:	array of lists tracking zbud pages that only contain one buddy;
++ *		the lists each zbud page is added to depends on the size of
++ *		its free region.
++ * @buddied:	list tracking the zbud pages that contain two buddies;
++ *		these zbud pages are full
++ * @lru:	list tracking the zbud pages in LRU order by most recently
++ *		added buddy.
++ * @pages_nr:	number of zbud pages in the pool.
++ * @ops:	pointer to a structure of user defined operations specified at
++ *		pool creation time.
++ *
++ * This structure is allocated at pool creation time and maintains metadata
++ * pertaining to a particular zbud pool.
++ */
++struct zbud_pool {
++	spinlock_t lock;
++	struct list_head unbuddied[NCHUNKS];
++	struct list_head buddied;
++	struct list_head lru;
++	u64 pages_nr;
++	struct zbud_ops *ops;
++};
++
++/*
++ * struct zbud_header - zbud page metadata occupying the first chunk of each
++ *			zbud page.
++ * @buddy:	links the zbud page into the unbuddied/buddied lists in the pool
++ * @lru:	links the zbud page into the lru list in the pool
++ * @first_chunks:	the size of the first buddy in chunks, 0 if free
++ * @last_chunks:	the size of the last buddy in chunks, 0 if free
++ */
++struct zbud_header {
++	struct list_head buddy;
++	struct list_head lru;
++	unsigned int first_chunks;
++	unsigned int last_chunks;
++	bool under_reclaim;
++};
++
++/*****************
++ * Helpers
++*****************/
++/* Just to make the code easier to read */
++enum buddy {
++	FIRST,
++	LAST
++};
++
++/* Converts an allocation size in bytes to size in zbud chunks */
++static int size_to_chunks(int size)
++{
++	return (size + CHUNK_SIZE - 1) >> CHUNK_SHIFT;
++}
++
++#define for_each_unbuddied_list(_iter, _begin) \
++	for ((_iter) = (_begin); (_iter) < NCHUNKS; (_iter)++)
++
++/* Initializes the zbud header of a newly allocated zbud page */
++static struct zbud_header *init_zbud_page(struct page *page)
++{
++	struct zbud_header *zhdr = page_address(page);
++	zhdr->first_chunks = 0;
++	zhdr->last_chunks = 0;
++	INIT_LIST_HEAD(&zhdr->buddy);
++	INIT_LIST_HEAD(&zhdr->lru);
++	zhdr->under_reclaim = 0;
++	return zhdr;
++}
++
++/* Resets the struct page fields and frees the page */
++static void free_zbud_page(struct zbud_header *zhdr)
++{
++	__free_page(virt_to_page(zhdr));
++}
++
++/*
++ * Encodes the handle of a particular buddy within a zbud page
++ * Pool lock should be held as this function accesses first|last_chunks
++ */
++static unsigned long encode_handle(struct zbud_header *zhdr, enum buddy bud)
++{
++	unsigned long handle;
++
++	/*
++	 * For now, the encoded handle is actually just the pointer to the data
++	 * but this might not always be the case.  A little information hiding.
++	 * Add CHUNK_SIZE to the handle if it is the first allocation to jump
++	 * over the zbud header in the first chunk.
++	 */
++	handle = (unsigned long)zhdr;
++	if (bud == FIRST)
++		/* skip over zbud header */
++		handle += ZHDR_SIZE_ALIGNED;
++	else /* bud == LAST */
++		handle += PAGE_SIZE - (zhdr->last_chunks  << CHUNK_SHIFT);
++	return handle;
++}
++
++/* Returns the zbud page where a given handle is stored */
++static struct zbud_header *handle_to_zbud_header(unsigned long handle)
++{
++	return (struct zbud_header *)(handle & PAGE_MASK);
++}
++
++/* Returns the number of free chunks in a zbud page */
++static int num_free_chunks(struct zbud_header *zhdr)
++{
++	/*
++	 * Rather than branch for different situations, just use the fact that
++	 * free buddies have a length of zero to simplify everything. -1 at the
++	 * end for the zbud header.
++	 */
++	return NCHUNKS - zhdr->first_chunks - zhdr->last_chunks - 1;
++}
++
++/*****************
++ * API Functions
++*****************/
++/**
++ * zbud_create_pool() - create a new zbud pool
++ * @gfp:	gfp flags when allocating the zbud pool structure
++ * @ops:	user-defined operations for the zbud pool
++ *
++ * Return: pointer to the new zbud pool or NULL if the metadata allocation
++ * failed.
++ */
++struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops)
++{
++	struct zbud_pool *pool;
++	int i;
++
++	pool = kmalloc(sizeof(struct zbud_pool), gfp);
++	if (!pool)
++		return NULL;
++	spin_lock_init(&pool->lock);
++	for_each_unbuddied_list(i, 0)
++		INIT_LIST_HEAD(&pool->unbuddied[i]);
++	INIT_LIST_HEAD(&pool->buddied);
++	INIT_LIST_HEAD(&pool->lru);
++	pool->pages_nr = 0;
++	pool->ops = ops;
++	return pool;
++}
++
++/**
++ * zbud_destroy_pool() - destroys an existing zbud pool
++ * @pool:	the zbud pool to be destroyed
++ *
++ * The pool should be emptied before this function is called.
++ */
++void zbud_destroy_pool(struct zbud_pool *pool)
++{
++	kfree(pool);
++}
++
++/**
++ * zbud_alloc() - allocates a region of a given size
++ * @pool:	zbud pool from which to allocate
++ * @size:	size in bytes of the desired allocation
++ * @gfp:	gfp flags used if the pool needs to grow
++ * @handle:	handle of the new allocation
++ *
++ * This function will attempt to find a free region in the pool large enough to
++ * satisfy the allocation request.  A search of the unbuddied lists is
++ * performed first. If no suitable free region is found, then a new page is
++ * allocated and added to the pool to satisfy the request.
++ *
++ * gfp should not set __GFP_HIGHMEM as highmem pages cannot be used
++ * as zbud pool pages.
++ *
++ * Return: 0 if success and handle is set, otherwise -EINVAL is the size or
++ * gfp arguments are invalid or -ENOMEM if the pool was unable to allocate
++ * a new page.
++ */
++int zbud_alloc(struct zbud_pool *pool, int size, gfp_t gfp,
++			unsigned long *handle)
++{
++	int chunks, i, freechunks;
++	struct zbud_header *zhdr = NULL;
++	enum buddy bud;
++	struct page *page;
++
++	if (size <= 0 || gfp & __GFP_HIGHMEM)
++		return -EINVAL;
++	if (size > PAGE_SIZE - ZHDR_SIZE_ALIGNED)
++		return -ENOSPC;
++	chunks = size_to_chunks(size);
++	spin_lock(&pool->lock);
++
++	/* First, try to find an unbuddied zbud page. */
++	zhdr = NULL;
++	for_each_unbuddied_list(i, chunks) {
++		if (!list_empty(&pool->unbuddied[i])) {
++			zhdr = list_first_entry(&pool->unbuddied[i],
++					struct zbud_header, buddy);
++			list_del(&zhdr->buddy);
++			if (zhdr->first_chunks == 0)
++				bud = FIRST;
++			else
++				bud = LAST;
++			goto found;
++		}
++	}
++
++	/* Couldn't find unbuddied zbud page, create new one */
++	spin_unlock(&pool->lock);
++	page = alloc_page(gfp);
++	if (!page)
++		return -ENOMEM;
++	spin_lock(&pool->lock);
++	pool->pages_nr++;
++	zhdr = init_zbud_page(page);
++	bud = FIRST;
++
++found:
++	if (bud == FIRST)
++		zhdr->first_chunks = chunks;
++	else
++		zhdr->last_chunks = chunks;
++
++	if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0) {
++		/* Add to unbuddied list */
++		freechunks = num_free_chunks(zhdr);
++		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
++	} else {
++		/* Add to buddied list */
++		list_add(&zhdr->buddy, &pool->buddied);
++	}
++
++	/* Add/move zbud page to beginning of LRU */
++	if (!list_empty(&zhdr->lru))
++		list_del(&zhdr->lru);
++	list_add(&zhdr->lru, &pool->lru);
++
++	*handle = encode_handle(zhdr, bud);
++	spin_unlock(&pool->lock);
++
++	return 0;
++}
++
++/**
++ * zbud_free() - frees the allocation associated with the given handle
++ * @pool:	pool in which the allocation resided
++ * @handle:	handle associated with the allocation returned by zbud_alloc()
++ *
++ * In the case that the zbud page in which the allocation resides is under
++ * reclaim, as indicated by the PG_reclaim flag being set, this function
++ * only sets the first|last_chunks to 0.  The page is actually freed
++ * once both buddies are evicted (see zbud_reclaim_page() below).
++ */
++void zbud_free(struct zbud_pool *pool, unsigned long handle)
++{
++	struct zbud_header *zhdr;
++	int freechunks;
++
++	spin_lock(&pool->lock);
++	zhdr = handle_to_zbud_header(handle);
++
++	/* If first buddy, handle will be page aligned */
++	if ((handle - ZHDR_SIZE_ALIGNED) & ~PAGE_MASK)
++		zhdr->last_chunks = 0;
++	else
++		zhdr->first_chunks = 0;
++
++	if (zhdr->under_reclaim) {
++		/* zbud page is under reclaim, reclaim will free */
++		spin_unlock(&pool->lock);
++		return;
++	}
++
++	/* Remove from existing buddy list */
++	list_del(&zhdr->buddy);
++
++	if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
++		/* zbud page is empty, free */
++		list_del(&zhdr->lru);
++		free_zbud_page(zhdr);
++		pool->pages_nr--;
++	} else {
++		/* Add to unbuddied list */
++		freechunks = num_free_chunks(zhdr);
++		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
++	}
++
++	spin_unlock(&pool->lock);
++}
++
++#define list_tail_entry(ptr, type, member) \
++	list_entry((ptr)->prev, type, member)
++
++/**
++ * zbud_reclaim_page() - evicts allocations from a pool page and frees it
++ * @pool:	pool from which a page will attempt to be evicted
++ * @retires:	number of pages on the LRU list for which eviction will
++ *		be attempted before failing
++ *
++ * zbud reclaim is different from normal system reclaim in that the reclaim is
++ * done from the bottom, up.  This is because only the bottom layer, zbud, has
++ * information on how the allocations are organized within each zbud page. This
++ * has the potential to create interesting locking situations between zbud and
++ * the user, however.
++ *
++ * To avoid these, this is how zbud_reclaim_page() should be called:
++
++ * The user detects a page should be reclaimed and calls zbud_reclaim_page().
++ * zbud_reclaim_page() will remove a zbud page from the pool LRU list and call
++ * the user-defined eviction handler with the pool and handle as arguments.
++ *
++ * If the handle can not be evicted, the eviction handler should return
++ * non-zero. zbud_reclaim_page() will add the zbud page back to the
++ * appropriate list and try the next zbud page on the LRU up to
++ * a user defined number of retries.
++ *
++ * If the handle is successfully evicted, the eviction handler should
++ * return 0 _and_ should have called zbud_free() on the handle. zbud_free()
++ * contains logic to delay freeing the page if the page is under reclaim,
++ * as indicated by the setting of the PG_reclaim flag on the underlying page.
++ *
++ * If all buddies in the zbud page are successfully evicted, then the
++ * zbud page can be freed.
++ *
++ * Returns: 0 if page is successfully freed, otherwise -EINVAL if there are
++ * no pages to evict or an eviction handler is not registered, -EAGAIN if
++ * the retry limit was hit.
++ */
++int zbud_reclaim_page(struct zbud_pool *pool, unsigned int retries)
++{
++	int i, ret, freechunks;
++	struct zbud_header *zhdr;
++	unsigned long first_handle = 0, last_handle = 0;
++
++	spin_lock(&pool->lock);
++	if (!pool->ops || !pool->ops->evict || list_empty(&pool->lru) ||
++			retries == 0) {
++		spin_unlock(&pool->lock);
++		return -EINVAL;
++	}
++	for (i = 0; i < retries; i++) {
++		zhdr = list_tail_entry(&pool->lru, struct zbud_header, lru);
++		list_del(&zhdr->lru);
++		list_del(&zhdr->buddy);
++		/* Protect zbud page against free */
++		zhdr->under_reclaim = true;
++		/*
++		 * We need encode the handles before unlocking, since we can
++		 * race with free that will set (first|last)_chunks to 0
++		 */
++		first_handle = 0;
++		last_handle = 0;
++		if (zhdr->first_chunks)
++			first_handle = encode_handle(zhdr, FIRST);
++		if (zhdr->last_chunks)
++			last_handle = encode_handle(zhdr, LAST);
++		spin_unlock(&pool->lock);
++
++		/* Issue the eviction callback(s) */
++		if (first_handle) {
++			ret = pool->ops->evict(pool, first_handle);
++			if (ret)
++				goto next;
++		}
++		if (last_handle) {
++			ret = pool->ops->evict(pool, last_handle);
++			if (ret)
++				goto next;
++		}
++next:
++		spin_lock(&pool->lock);
++		zhdr->under_reclaim = false;
++		if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
++			/*
++			 * Both buddies are now free, free the zbud page and
++			 * return success.
++			 */
++			free_zbud_page(zhdr);
++			pool->pages_nr--;
++			spin_unlock(&pool->lock);
++			return 0;
++		} else if (zhdr->first_chunks == 0 ||
++				zhdr->last_chunks == 0) {
++			/* add to unbuddied list */
++			freechunks = num_free_chunks(zhdr);
++			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
++		} else {
++			/* add to buddied list */
++			list_add(&zhdr->buddy, &pool->buddied);
++		}
++
++		/* add to beginning of LRU */
++		list_add(&zhdr->lru, &pool->lru);
++	}
++	spin_unlock(&pool->lock);
++	return -EAGAIN;
++}
++
++/**
++ * zbud_map() - maps the allocation associated with the given handle
++ * @pool:	pool in which the allocation resides
++ * @handle:	handle associated with the allocation to be mapped
++ *
++ * While trivial for zbud, the mapping functions for others allocators
++ * implementing this allocation API could have more complex information encoded
++ * in the handle and could create temporary mappings to make the data
++ * accessible to the user.
++ *
++ * Returns: a pointer to the mapped allocation
++ */
++void *zbud_map(struct zbud_pool *pool, unsigned long handle)
++{
++	return (void *)(handle);
++}
++
++/**
++ * zbud_unmap() - maps the allocation associated with the given handle
++ * @pool:	pool in which the allocation resides
++ * @handle:	handle associated with the allocation to be unmapped
++ */
++void zbud_unmap(struct zbud_pool *pool, unsigned long handle)
++{
++}
++
++/**
++ * zbud_get_pool_size() - gets the zbud pool size in pages
++ * @pool:	pool whose size is being queried
++ *
++ * Returns: size in pages of the given pool.  The pool lock need not be
++ * taken to access pages_nr.
++ */
++u64 zbud_get_pool_size(struct zbud_pool *pool)
++{
++	return pool->pages_nr;
++}
++
++static int __init init_zbud(void)
++{
++	/* Make sure the zbud header will fit in one chunk */
++	BUILD_BUG_ON(sizeof(struct zbud_header) > ZHDR_SIZE_ALIGNED);
++	pr_info("loaded\n");
++	return 0;
++}
++
++static void __exit exit_zbud(void)
++{
++	pr_info("unloaded\n");
++}
++
++module_init(init_zbud);
++module_exit(exit_zbud);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Seth Jennings <sjenning@linux.vnet.ibm.com>");
++MODULE_DESCRIPTION("Buddy Allocator for Compressed Pages");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
 
 origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
-fput-task_work_add-can-fail-if-the-caller-has-passed-exit_task_work-fix.patch
-fput-turn-list_head-delayed_fput_list-into-llist_head.patch
-mm.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
