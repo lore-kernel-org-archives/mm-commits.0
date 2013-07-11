@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-use-after-free-in-rio_unregister_scan.patch added
+Subject: + mm-sched-numa-fix-numa-balancing-when-sched_debug.patch added
  to -mm tree
-Date: Thu, 11 Jul 2013 15:04:32 -0700
-Message-ID: <51df2bf0.NNiyq+XsdyXlyV/+%akpm@linux-foundation.org>
+Date: Thu, 11 Jul 2013 15:05:44 -0700
+Message-ID: <51df2c38.hhTC7ycqlNRfovKH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43141 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756629Ab3GKWEd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 18:04:33 -0400
+	with ESMTP id S1756747Ab3GKWFp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 18:05:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rmallon@gmail.com, mporter@kernel.crashing.org, alexandre.bounine@idt.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, dave.kleikamp@oracle.com
 
-Subject: + rapidio-fix-use-after-free-in-rio_unregister_scan.patch added to -mm tree
-To: dan.carpenter@oracle.com,alexandre.bounine@idt.com,mporter@kernel.crashing.org,rmallon@gmail.com
+Subject: + mm-sched-numa-fix-numa-balancing-when-sched_debug.patch added to -mm tree
+To: dave.kleikamp@oracle.com,mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Thu, 11 Jul 2013 15:04:32 -0700
+Date: Thu, 11 Jul 2013 15:05:44 -0700
 
 
 The patch titled
-     Subject: rapidio: fix use after free in rio_unregister_scan()
+     Subject: mm: sched: numa: fix NUMA balancing when !SCHED_DEBUG
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-use-after-free-in-rio_unregister_scan.patch
+     mm-sched-numa-fix-numa-balancing-when-sched_debug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-fix-use-after-free-in-rio_unregister_scan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sched-numa-fix-numa-balancing-when-sched_debug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-fix-use-after-free-in-rio_unregister_scan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sched-numa-fix-numa-balancing-when-sched_debug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,46 +44,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: rapidio: fix use after free in rio_unregister_scan()
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Subject: mm: sched: numa: fix NUMA balancing when !SCHED_DEBUG
 
-We're freeing the list iterator so we can't move to the next entry.  Since
-there is only one matching mport_id, we can just break after finding it.
+3105b86a ("mm: sched: numa: Control enabling and disabling of NUMA
+balancing if !SCHED_DEBUG") defined numabalancing_enabled to control the
+enabling and disabling of automatic NUMA balancing, but it is never used.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Ryan Mallon <rmallon@gmail.com>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+I believe the intention was to use this in place of sched_feat_numa(NUMA).
+
+Currently, if SCHED_DEBUG is not defined, sched_feat_numa(NUMA) will never
+be changed from the initial "false".
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/sched/fair.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-fix-use-after-free-in-rio_unregister_scan drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-fix-use-after-free-in-rio_unregister_scan
-+++ a/drivers/rapidio/rio.c
-@@ -1715,11 +1715,13 @@ int rio_unregister_scan(int mport_id, st
- 		    (mport_id == RIO_MPORT_ANY && port->nscan == scan_ops))
- 			port->nscan = NULL;
+diff -puN kernel/sched/fair.c~mm-sched-numa-fix-numa-balancing-when-sched_debug kernel/sched/fair.c
+--- a/kernel/sched/fair.c~mm-sched-numa-fix-numa-balancing-when-sched_debug
++++ a/kernel/sched/fair.c
+@@ -851,7 +851,7 @@ void task_numa_fault(int node, int pages
+ {
+ 	struct task_struct *p = current;
  
--	list_for_each_entry(scan, &rio_scans, node)
-+	list_for_each_entry(scan, &rio_scans, node) {
- 		if (scan->mport_id == mport_id) {
- 			list_del(&scan->node);
- 			kfree(scan);
-+			break;
- 		}
-+	}
+-	if (!sched_feat_numa(NUMA))
++	if (!numabalancing_enabled)
+ 		return;
  
- 	mutex_unlock(&rio_mport_list_lock);
+ 	/* FIXME: Allocate task-specific structure for placement policy here */
+@@ -5786,7 +5786,7 @@ static void task_tick_fair(struct rq *rq
+ 		entity_tick(cfs_rq, se, queued);
+ 	}
  
+-	if (sched_feat_numa(NUMA))
++	if (numabalancing_enabled)
+ 		task_tick_numa(rq, curr);
+ 
+ 	update_rq_runnable_avg(rq, 1);
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from dave.kleikamp@oracle.com are
 
 origin.patch
 linux-next.patch
-rapidio-fix-use-after-free-in-rio_unregister_scan.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix.patch
+mm-sched-numa-fix-numa-balancing-when-sched_debug.patch
 
