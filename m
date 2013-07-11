@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-dynamic-debug-jasons-not-there.patch added to -mm
- tree
-Date: Thu, 11 Jul 2013 14:19:06 -0700
-Message-ID: <51df214a.k8WSnxvaxMsLrfut%akpm@linux-foundation.org>
+Subject: + gitignore-ignore-lz4-files.patch added to -mm tree
+Date: Thu, 11 Jul 2013 14:24:44 -0700
+Message-ID: <51df229c.ciWu7AjwdVuR2NfW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42705 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756689Ab3GKVTH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 17:19:07 -0400
+	with ESMTP id S1756203Ab3GKVYp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jul 2013 17:24:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jbaron@redhat.com, jbaron@akamai.com, joe@perches.com
+To: mm-commits@vger.kernel.org, kyungsik.lee@lge.com, markus@trippelsdorf.de
 
-Subject: + maintainers-dynamic-debug-jasons-not-there.patch added to -mm tree
-To: joe@perches.com,jbaron@akamai.com,jbaron@redhat.com
+Subject: + gitignore-ignore-lz4-files.patch added to -mm tree
+To: markus@trippelsdorf.de,kyungsik.lee@lge.com
 From: akpm@linux-foundation.org
-Date: Thu, 11 Jul 2013 14:19:06 -0700
+Date: Thu, 11 Jul 2013 14:24:44 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: dynamic debug: Jason's not there...
+     Subject: .gitignore: ignore *.lz4 files
 has been added to the -mm tree.  Its filename is
-     maintainers-dynamic-debug-jasons-not-there.patch
+     gitignore-ignore-lz4-files.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-dynamic-debug-jasons-not-there.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gitignore-ignore-lz4-files.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-dynamic-debug-jasons-not-there.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gitignore-ignore-lz4-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,41 +43,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: dynamic debug: Jason's not there...
+From: Markus Trippelsdorf <markus@trippelsdorf.de>
+Subject: .gitignore: ignore *.lz4 files
 
-He must be too, umm, busy to update his own bouncing email address too.
+Now that lz4 kernel compression is available, add *.lz4 to .gitignore.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jason Baron <jbaron@redhat.com>
-Cc: Jason Baron <jbaron@akamai.com>
+Signed-off-by: Markus Trippelsdorf <markus@trippelsdorf.de>
+Acked-by: Kyungsik Lee <kyungsik.lee@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .gitignore |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-dynamic-debug-jasons-not-there MAINTAINERS
---- a/MAINTAINERS~maintainers-dynamic-debug-jasons-not-there
-+++ a/MAINTAINERS
-@@ -2871,7 +2871,7 @@ F:	drivers/media/usb/dvb-usb-v2/dvb_usb*
- F:	drivers/media/usb/dvb-usb-v2/usb_urb.c
- 
- DYNAMIC DEBUG
--M:	Jason Baron <jbaron@redhat.com>
-+M:	Jason Baron <jbaron@akamai.com>
- S:	Maintained
- F:	lib/dynamic_debug.c
- F:	include/linux/dynamic_debug.h
+diff -puN .gitignore~gitignore-ignore-lz4-files .gitignore
+--- a/.gitignore~gitignore-ignore-lz4-files
++++ a/.gitignore
+@@ -29,6 +29,7 @@ modules.builtin
+ *.bz2
+ *.lzma
+ *.xz
++*.lz4
+ *.lzo
+ *.patch
+ *.gcno
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from markus@trippelsdorf.de are
 
-origin.patch
-linux-next.patch
-maintainers-dynamic-debug-jasons-not-there.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
+gitignore-ignore-lz4-files.patch
 
