@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swapfilec-convert-to-pr_foo.patch added to -mm tree
-Date: Mon, 15 Jul 2013 14:12:52 -0700
-Message-ID: <51e465d4.SJAF64wNhpv7EslF%akpm@linux-foundation.org>
+Subject: + ocfs2-update-inode-size-after-zeronig-the-hole.patch added to
+ -mm tree
+Date: Mon, 15 Jul 2013 14:51:05 -0700
+Message-ID: <51e46ec9.ItKlNBbyaGHGe4U5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49846 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755086Ab3GOVMw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Jul 2013 17:12:52 -0400
+	with ESMTP id S1758093Ab3GOVvL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Jul 2013 17:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, younger.liu@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, junxiao.bi@oracle.com
 
-Subject: + mm-swapfilec-convert-to-pr_foo.patch added to -mm tree
-To: akpm@linux-foundation.org,hughd@google.com
+Subject: + ocfs2-update-inode-size-after-zeronig-the-hole.patch added to -mm tree
+To: junxiao.bi@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,younger.liu@huawei.com
 From: akpm@linux-foundation.org
-Date: Mon, 15 Jul 2013 14:12:52 -0700
+Date: Mon, 15 Jul 2013 14:51:05 -0700
 
 
 The patch titled
-     Subject: mm/swapfile.c: convert to pr_foo()
+     Subject: ocfs2: update inode size after zeronig the hole
 has been added to the -mm tree.  Its filename is
-     mm-swapfilec-convert-to-pr_foo.patch
+     ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-convert-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-update-inode-size-after-zeronig-the-hole.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-convert-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,149 +44,142 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/swapfile.c: convert to pr_foo()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: update inode size after zeronig the hole
 
-A few 80-col gymnastics were cleaned up as a result.
+fs-writeback will release the dirty pages without page lock whose offset
+are over inode size, the release happens at block_write_full_page_endio().
+ If not update, dirty pages in file holes may be released before flushed
+to the disk, then file holes will contain some non-zero data, this will
+cause sparse file md5sum error.
 
-Cc: Hugh Dickins <hughd@google.com>
+To reproduce the bug, find a big sparse file with many holes, like vm
+image file, its actual size should be bigger than available mem size to
+make writeback work more frequently, tar it with -S option, then keep
+untar it and check its md5sum again and again until you get a wrong
+md5sum.
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Younger Liu <younger.liu@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   30 +++++++++++++-----------------
- 1 file changed, 13 insertions(+), 17 deletions(-)
+ fs/ocfs2/file.c |   40 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 32 insertions(+), 8 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swapfilec-convert-to-pr_foo mm/swapfile.c
---- a/mm/swapfile.c~mm-swapfilec-convert-to-pr_foo
-+++ a/mm/swapfile.c
-@@ -527,16 +527,16 @@ static struct swap_info_struct *swap_inf
- 	return p;
+diff -puN fs/ocfs2/file.c~ocfs2-update-inode-size-after-zeronig-the-hole fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-update-inode-size-after-zeronig-the-hole
++++ a/fs/ocfs2/file.c
+@@ -718,7 +718,8 @@ leave:
+  * While a write will already be ordering the data, a truncate will not.
+  * Thus, we need to explicitly order the zeroed pages.
+  */
+-static handle_t *ocfs2_zero_start_ordered_transaction(struct inode *inode)
++static handle_t *ocfs2_zero_start_ordered_transaction(struct inode *inode,
++						struct buffer_head *di_bh)
+ {
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	handle_t *handle = NULL;
+@@ -735,7 +736,14 @@ static handle_t *ocfs2_zero_start_ordere
+ 	}
  
- bad_free:
--	printk(KERN_ERR "swap_free: %s%08lx\n", Unused_offset, entry.val);
-+	pr_err("swap_free: %s%08lx\n", Unused_offset, entry.val);
- 	goto out;
- bad_offset:
--	printk(KERN_ERR "swap_free: %s%08lx\n", Bad_offset, entry.val);
-+	pr_err("swap_free: %s%08lx\n", Bad_offset, entry.val);
- 	goto out;
- bad_device:
--	printk(KERN_ERR "swap_free: %s%08lx\n", Unused_file, entry.val);
-+	pr_err("swap_free: %s%08lx\n", Unused_file, entry.val);
- 	goto out;
- bad_nofile:
--	printk(KERN_ERR "swap_free: %s%08lx\n", Bad_file, entry.val);
-+	pr_err("swap_free: %s%08lx\n", Bad_file, entry.val);
+ 	ret = ocfs2_jbd2_file_inode(handle, inode);
+-	if (ret < 0)
++	if (ret < 0) {
++		mlog_errno(ret);
++		goto out;
++	}
++
++	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
++				      OCFS2_JOURNAL_ACCESS_WRITE);
++	if (ret)
+ 		mlog_errno(ret);
+ 
  out:
- 	return NULL;
- }
-@@ -1914,7 +1914,7 @@ static unsigned long read_swap_header(st
- 	unsigned long last_page;
+@@ -751,7 +759,7 @@ out:
+  * to be too fragile to do exactly what we need without us having to
+  * worry about recursive locking in ->write_begin() and ->write_end(). */
+ static int ocfs2_write_zero_page(struct inode *inode, u64 abs_from,
+-				 u64 abs_to)
++				 u64 abs_to, struct buffer_head *di_bh)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct page *page;
+@@ -759,6 +767,7 @@ static int ocfs2_write_zero_page(struct
+ 	handle_t *handle = NULL;
+ 	int ret = 0;
+ 	unsigned zero_from, zero_to, block_start, block_end;
++	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
  
- 	if (memcmp("SWAPSPACE2", swap_header->magic.magic, 10)) {
--		printk(KERN_ERR "Unable to find swap-space signature\n");
-+		pr_err("Unable to find swap-space signature\n");
- 		return 0;
- 	}
- 
-@@ -1928,9 +1928,8 @@ static unsigned long read_swap_header(st
- 	}
- 	/* Check the swap header's sub-version */
- 	if (swap_header->info.version != 1) {
--		printk(KERN_WARNING
--		       "Unable to handle swap header version %d\n",
--		       swap_header->info.version);
-+		pr_warn("Unable to handle swap header version %d\n",
-+			swap_header->info.version);
- 		return 0;
- 	}
- 
-@@ -1956,8 +1955,7 @@ static unsigned long read_swap_header(st
- 			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
- 	last_page = swap_header->info.last_page;
- 	if (last_page > maxpages) {
--		printk(KERN_WARNING
--			"Truncating oversized swap area, only using %luk out of %luk\n",
-+		pr_warn("Truncating oversized swap area, only using %luk out of %luk\n",
- 			maxpages << (PAGE_SHIFT - 10),
- 			last_page << (PAGE_SHIFT - 10));
- 	}
-@@ -1973,8 +1971,7 @@ static unsigned long read_swap_header(st
- 		return 0;
- 	swapfilepages = i_size_read(inode) >> PAGE_SHIFT;
- 	if (swapfilepages && maxpages > swapfilepages) {
--		printk(KERN_WARNING
--		       "Swap area shorter than signature indicates\n");
-+		pr_warn("Swap area shorter than signature indicates\n");
- 		return 0;
- 	}
- 	if (swap_header->info.nr_badpages && S_ISREG(inode->i_mode))
-@@ -2017,7 +2014,7 @@ static int setup_swap_map_and_extents(st
- 		nr_good_pages = p->pages;
- 	}
- 	if (!nr_good_pages) {
--		printk(KERN_WARNING "Empty swap-file\n");
-+		pr_warn("Empty swap-file\n");
- 		return -EINVAL;
- 	}
- 
-@@ -2171,8 +2168,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 			if (p->flags & SWP_AREA_DISCARD) {
- 				int err = discard_swap(p);
- 				if (unlikely(err))
--					printk(KERN_ERR
--					       "swapon: discard_swap(%p): %d\n",
-+					pr_err("swapon: discard_swap(%p): %d\n",
- 						p, err);
- 			}
+ 	BUG_ON(abs_from >= abs_to);
+ 	BUG_ON(abs_to > (((u64)index + 1) << PAGE_CACHE_SHIFT));
+@@ -801,7 +810,8 @@ static int ocfs2_write_zero_page(struct
  		}
-@@ -2185,7 +2181,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		  (swap_flags & SWAP_FLAG_PRIO_MASK) >> SWAP_FLAG_PRIO_SHIFT;
- 	enable_swap_info(p, prio, swap_map, frontswap_map);
  
--	printk(KERN_INFO "Adding %uk swap on %s.  "
-+	pr_info("Adding %uk swap on %s.  "
- 			"Priority:%d extents:%d across:%lluk %s%s%s%s%s\n",
- 		p->pages<<(PAGE_SHIFT-10), name->name, p->prio,
- 		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
-@@ -2319,7 +2315,7 @@ out:
- 	return err;
+ 		if (!handle) {
+-			handle = ocfs2_zero_start_ordered_transaction(inode);
++			handle = ocfs2_zero_start_ordered_transaction(inode,
++								      di_bh);
+ 			if (IS_ERR(handle)) {
+ 				ret = PTR_ERR(handle);
+ 				handle = NULL;
+@@ -818,8 +828,22 @@ static int ocfs2_write_zero_page(struct
+ 			ret = 0;
+ 	}
  
- bad_file:
--	printk(KERN_ERR "swap_dup: %s%08lx\n", Bad_file, entry.val);
-+	pr_err("swap_dup: %s%08lx\n", Bad_file, entry.val);
- 	goto out;
- }
+-	if (handle)
++	if (handle) {
++		/*
++		 * fs-writeback will release the dirty pages without page lock
++		 * whose offset are over inode size, the release happens at
++		 * block_write_full_page_endio().
++		 */
++		i_size_write(inode, abs_to);
++		inode->i_blocks = ocfs2_inode_sector_count(inode);
++		di->i_size = cpu_to_le64((u64)i_size_read(inode));
++		inode->i_mtime = inode->i_ctime = CURRENT_TIME;
++		di->i_mtime = di->i_ctime = cpu_to_le64(inode->i_mtime.tv_sec);
++		di->i_ctime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
++		di->i_mtime_nsec = di->i_ctime_nsec;
++		ocfs2_journal_dirty(handle, di_bh);
+ 		ocfs2_commit_trans(OCFS2_SB(inode->i_sb), handle);
++	}
  
+ out_unlock:
+ 	unlock_page(page);
+@@ -915,7 +939,7 @@ out:
+  * has made sure that the entire range needs zeroing.
+  */
+ static int ocfs2_zero_extend_range(struct inode *inode, u64 range_start,
+-				   u64 range_end)
++				   u64 range_end, struct buffer_head *di_bh)
+ {
+ 	int rc = 0;
+ 	u64 next_pos;
+@@ -931,7 +955,7 @@ static int ocfs2_zero_extend_range(struc
+ 		next_pos = (zero_pos & PAGE_CACHE_MASK) + PAGE_CACHE_SIZE;
+ 		if (next_pos > range_end)
+ 			next_pos = range_end;
+-		rc = ocfs2_write_zero_page(inode, zero_pos, next_pos);
++		rc = ocfs2_write_zero_page(inode, zero_pos, next_pos, di_bh);
+ 		if (rc < 0) {
+ 			mlog_errno(rc);
+ 			break;
+@@ -977,7 +1001,7 @@ int ocfs2_zero_extend(struct inode *inod
+ 			range_end = zero_to_size;
+ 
+ 		ret = ocfs2_zero_extend_range(inode, range_start,
+-					      range_end);
++					      range_end, di_bh);
+ 		if (ret) {
+ 			mlog_errno(ret);
+ 			break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
-mm.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
