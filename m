@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically.patch added to -mm tree
-Date: Mon, 15 Jul 2013 13:57:02 -0700
-Message-ID: <51e4621e.TblAKeacW7RjHURx%akpm@linux-foundation.org>
+Subject: + swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
+ added to -mm tree
+Date: Mon, 15 Jul 2013 14:06:35 -0700
+Message-ID: <51e4645b.nQknfGyAOepndZt2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49439 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755228Ab3GOU5C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Jul 2013 16:57:02 -0400
+	with ESMTP id S1755263Ab3GOVGg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Jul 2013 17:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holler@ahsoftware.de
+To: mm-commits@vger.kernel.org, valdis.kletnieks@vt.edu, hughd@google.com, shentino@gmail.com
 
-Subject: + drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically.patch added to -mm tree
-To: holler@ahsoftware.de
+Subject: + swap-warn-when-a-swap-area-overflows-the-maximum-size.patch added to -mm tree
+To: shentino@gmail.com,hughd@google.com,valdis.kletnieks@vt.edu
 From: akpm@linux-foundation.org
-Date: Mon, 15 Jul 2013 13:57:02 -0700
+Date: Mon, 15 Jul 2013 14:06:35 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-hid-sensor-time.c: add module alias to let the module load automatically
+     Subject: swap: warn when a swap area overflows the maximum size
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically.patch
+     swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,62 +44,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: drivers/rtc/rtc-hid-sensor-time.c: add module alias to let the module load automatically
+From: Raymond Jennings <shentino@gmail.com>
+Subject: swap: warn when a swap area overflows the maximum size
 
-In order to get the module automatically loaded by hotplug mechanisms a
-MODULE_DEVICE_TABLE is needed.
+It is possible to swapon a swap area that is too big for the pte width
+to handle.
 
-Therefore add one.
+Presently this failure happens silently.
 
-This makes it also possible to use a module name other than
-HID-SENSOR-2000a0 which isn't very descriptive in kernel messages.
+Instead, emit a diagnostic to warn the user.
 
-Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+Testing results, root prompt commands and kernel log messages:
+
+# lvresize /dev/system/swap --size 16G
+# mkswap /dev/system/swap
+# swapon /dev/system/swap
+
+Jul  7 04:27:22 warfang kernel: Adding 16777212k swap
+on /dev/mapper/system-swap.  Priority:-1 extents:1 across:16777212k 
+
+# lvresize /dev/system/swap --size 16G
+# mkswap /dev/system/swap
+# swapon /dev/system/swap
+
+Jul  7 04:27:22 warfang kernel: Truncating oversized swap area, only
+using 33554432k out of 67108860k
+Jul  7 04:27:22 warfang kernel: Adding 33554428k swap
+on /dev/mapper/system-swap.  Priority:-1 extents:1 across:33554428k 
+
+Signed-off-by: Raymond Jennings <shentino@gmail.com>
+Acked-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hid-sensor-time.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/swapfile.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/rtc/rtc-hid-sensor-time.c~drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically drivers/rtc/rtc-hid-sensor-time.c
---- a/drivers/rtc/rtc-hid-sensor-time.c~drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically
-+++ a/drivers/rtc/rtc-hid-sensor-time.c
-@@ -23,10 +23,6 @@
- #include <linux/iio/iio.h>
- #include <linux/rtc.h>
- 
--/* Format: HID-SENSOR-usage_id_in_hex */
--/* Usage ID from spec for Time: 0x2000A0 */
--#define DRIVER_NAME "HID-SENSOR-2000a0" /* must be lowercase */
--
- enum hid_time_channel {
- 	CHANNEL_SCAN_INDEX_YEAR,
- 	CHANNEL_SCAN_INDEX_MONTH,
-@@ -300,9 +296,19 @@ static int hid_time_remove(struct platfo
- 	return 0;
- }
- 
-+static struct platform_device_id hid_time_ids[] = {
-+	{
-+		/* Format: HID-SENSOR-usage_id_in_hex_lowercase */
-+		.name = "HID-SENSOR-2000a0",
-+	},
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(platform, hid_time_ids);
-+
- static struct platform_driver hid_time_platform_driver = {
-+	.id_table = hid_time_ids,
- 	.driver = {
--		.name	= DRIVER_NAME,
-+		.name	= KBUILD_MODNAME,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe		= hid_time_probe,
+diff -puN mm/swapfile.c~swap-warn-when-a-swap-area-overflows-the-maximum-size mm/swapfile.c
+--- a/mm/swapfile.c~swap-warn-when-a-swap-area-overflows-the-maximum-size
++++ a/mm/swapfile.c
+@@ -1953,6 +1953,12 @@ static unsigned long read_swap_header(st
+ 	 */
+ 	maxpages = swp_offset(pte_to_swp_entry(
+ 			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
++	if (swap_header->info.last_page > maxpages) {
++		printk(KERN_WARNING
++			"Truncating oversized swap area, only using %luk out of %luk\n",
++			maxpages << (PAGE_SHIFT - 10),
++			swap_header->info.last_page << (PAGE_SHIFT - 10));
++	}
+ 	if (maxpages > swap_header->info.last_page) {
+ 		maxpages = swap_header->info.last_page + 1;
+ 		/* p->max is an unsigned int: don't overflow it */
 _
 
-Patches currently in -mm which might be from holler@ahsoftware.de are
+Patches currently in -mm which might be from shentino@gmail.com are
 
-drivers-rtc-rtc-hid-sensor-timec-add-module-alias-to-let-the-module-load-automatically.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
 
