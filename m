@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-shorten-critical-region-for-shmat.patch added to -mm
- tree
-Date: Tue, 16 Jul 2013 15:51:51 -0700
-Message-ID: <51e5ce87.citaFUebzYXiMZP+%akpm@linux-foundation.org>
+Subject: + ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 16 Jul 2013 15:52:43 -0700
+Message-ID: <51e5cebb.qGifkkPc2+VzzgcD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38134 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933657Ab3GPWwE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:52:04 -0400
+	with ESMTP id S933479Ab3GPWwo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:52:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
+To: mm-commits@vger.kernel.org, davidlohr.bueso@hp.com, akpm@linux-foundation.org
 
-Subject: + ipcshm-shorten-critical-region-for-shmat.patch added to -mm tree
-To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
+Subject: + ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,davidlohr.bueso@hp.com
 From: akpm@linux-foundation.org
-Date: Tue, 16 Jul 2013 15:51:51 -0700
+Date: Tue, 16 Jul 2013 15:52:43 -0700
 
 
 The patch titled
-     Subject: ipc,shm: shorten critical region for shmat
+     Subject: ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     ipcshm-shorten-critical-region-for-shmat.patch
+     ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-shorten-critical-region-for-shmat.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-shorten-critical-region-for-shmat.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,84 +43,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,shm: shorten critical region for shmat
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
 
-Similar to other system calls, acquire the kern_ipc_perm lock after doing
-the initial permission and security checks.
+WARNING: space prohibited between function name and open parenthesis '('
+#65: FILE: ipc/shm.c:921:
++		if (copy_shmid_to_user (buf, &tbuf, version))
 
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+total: 0 errors, 1 warnings, 54 lines checked
+
+./patches/ipcshm-make-shmctl_nolock-lockless.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ ipc/shm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/shm.c~ipcshm-shorten-critical-region-for-shmat ipc/shm.c
---- a/ipc/shm.c~ipcshm-shorten-critical-region-for-shmat
+diff -puN ipc/shm.c~ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes ipc/shm.c
+--- a/ipc/shm.c~ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
 +++ a/ipc/shm.c
-@@ -19,6 +19,9 @@
-  * namespaces support
-  * OpenVZ, SWsoft Inc.
-  * Pavel Emelianov <xemul@openvz.org>
-+ *
-+ * Better ipc lock (kern_ipc_perm.lock) handling
-+ * Davidlohr Bueso <davidlohr.bueso@hp.com>, June 2013.
-  */
+@@ -918,7 +918,7 @@ static int shmctl_nolock(struct ipc_name
+ 		tbuf.shm_nattch	= shp->shm_nattch;
+ 		rcu_read_unlock();
  
- #include <linux/slab.h>
-@@ -1086,7 +1089,8 @@ long do_shmat(int shmid, char __user *sh
- 	 * additional creator id...
- 	 */
- 	ns = current->nsproxy->ipc_ns;
--	shp = shm_lock_check(ns, shmid);
-+	rcu_read_lock();
-+	shp = shm_obtain_object_check(ns, shmid);
- 	if (IS_ERR(shp)) {
- 		err = PTR_ERR(shp);
- 		goto out;
-@@ -1100,11 +1104,13 @@ long do_shmat(int shmid, char __user *sh
- 	if (err)
- 		goto out_unlock;
- 
-+	ipc_lock_object(&shp->shm_perm);
- 	path = shp->shm_file->f_path;
- 	path_get(&path);
- 	shp->shm_nattch++;
- 	size = i_size_read(path.dentry->d_inode);
--	shm_unlock(shp);
-+	ipc_unlock_object(&shp->shm_perm);
-+	rcu_read_unlock();
- 
- 	err = -ENOMEM;
- 	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
-@@ -1175,7 +1181,7 @@ out_nattch:
- 	return err;
- 
- out_unlock:
--	shm_unlock(shp);
-+	rcu_read_unlock();
- out:
- 	return err;
- }
+-		if (copy_shmid_to_user (buf, &tbuf, version))
++		if (copy_shmid_to_user(buf, &tbuf, version))
+ 			err = -EFAULT;
+ 		else
+ 			err = result;
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-ipcshm-introduce-lockless-functions-to-obtain-the-ipc-object.patch
-ipcshm-shorten-critical-region-in-shmctl_down.patch
-ipc-drop-ipcctl_pre_down.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+mm.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-introduce-shmctl_nolock.patch
-ipcshm-make-shmctl_nolock-lockless.patch
-ipcshm-shorten-critical-region-for-shmctl.patch
-ipcshm-cleanup-do_shmat-pasta.patch
-ipcshm-shorten-critical-region-for-shmat.patch
-ipc-rename-ids-rw_mutex.patch
-ipcmsg-drop-msg_unlock.patch
-ipc-document-general-ipc-locking-scheme.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
