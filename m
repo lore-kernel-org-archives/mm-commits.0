@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-make-shmctl_nolock-lockless.patch added to -mm tree
-Date: Tue, 16 Jul 2013 15:51:48 -0700
-Message-ID: <51e5ce84.cNXnCXgn6Al6y7Os%akpm@linux-foundation.org>
+Subject: + ipcshm-cleanup-do_shmat-pasta.patch added to -mm tree
+Date: Tue, 16 Jul 2013 15:51:50 -0700
+Message-ID: <51e5ce86.StDdGqI/2XGc53xU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38090 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933246Ab3GPWvt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:51:49 -0400
+	with ESMTP id S933657Ab3GPWvv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:51:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
 
-Subject: + ipcshm-make-shmctl_nolock-lockless.patch added to -mm tree
+Subject: + ipcshm-cleanup-do_shmat-pasta.patch added to -mm tree
 To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 16 Jul 2013 15:51:48 -0700
+Date: Tue, 16 Jul 2013 15:51:50 -0700
 
 
 The patch titled
-     Subject: ipc,shm: make shmctl_nolock lockless
+     Subject: ipc,shm: cleanup do_shmat pasta
 has been added to the -mm tree.  Its filename is
-     ipcshm-make-shmctl_nolock-lockless.patch
+     ipcshm-cleanup-do_shmat-pasta.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-make-shmctl_nolock-lockless.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-cleanup-do_shmat-pasta.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-make-shmctl_nolock-lockless.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-cleanup-do_shmat-pasta.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,11 +44,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,shm: make shmctl_nolock lockless
+Subject: ipc,shm: cleanup do_shmat pasta
 
-While the INFO cmd doesn't take the ipc lock, the STAT commands do acquire
-it unnecessarily.  We can do the permissions and security checks only
-holding the rcu lock.
+Clean up some of the messy do_shmat() spaghetti code, getting rid of
+out_free and out_put_dentry labels.  This makes shortening the critical
+region of this function in the next patch a little easier to do and read.
 
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
@@ -57,69 +57,69 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ ipc/shm.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-make-shmctl_nolock-lockless ipc/shm.c
---- a/ipc/shm.c~ipcshm-make-shmctl_nolock-lockless
+diff -puN ipc/shm.c~ipcshm-cleanup-do_shmat-pasta ipc/shm.c
+--- a/ipc/shm.c~ipcshm-cleanup-do_shmat-pasta
 +++ a/ipc/shm.c
-@@ -882,27 +882,31 @@ static int shmctl_nolock(struct ipc_name
- 		struct shmid64_ds tbuf;
- 		int result;
+@@ -1108,16 +1108,21 @@ long do_shmat(int shmid, char __user *sh
  
-+		rcu_read_lock();
- 		if (cmd == SHM_STAT) {
--			shp = shm_lock(ns, shmid);
-+			shp = shm_obtain_object(ns, shmid);
- 			if (IS_ERR(shp)) {
- 				err = PTR_ERR(shp);
--				goto out;
-+				goto out_unlock;
- 			}
- 			result = shp->shm_perm.id;
- 		} else {
--			shp = shm_lock_check(ns, shmid);
-+			shp = shm_obtain_object_check(ns, shmid);
- 			if (IS_ERR(shp)) {
- 				err = PTR_ERR(shp);
--				goto out;
-+				goto out_unlock;
- 			}
- 			result = 0;
- 		}
-+
- 		err = -EACCES;
- 		if (ipcperms(ns, &shp->shm_perm, S_IRUGO))
- 			goto out_unlock;
-+
- 		err = security_shm_shmctl(shp, cmd);
- 		if (err)
- 			goto out_unlock;
-+
- 		memset(&tbuf, 0, sizeof(tbuf));
- 		kernel_to_ipc64_perm(&shp->shm_perm, &tbuf.shm_perm);
- 		tbuf.shm_segsz	= shp->shm_segsz;
-@@ -912,8 +916,9 @@ static int shmctl_nolock(struct ipc_name
- 		tbuf.shm_cpid	= shp->shm_cprid;
- 		tbuf.shm_lpid	= shp->shm_lprid;
- 		tbuf.shm_nattch	= shp->shm_nattch;
--		shm_unlock(shp);
--		if(copy_shmid_to_user (buf, &tbuf, version))
-+		rcu_read_unlock();
-+
-+		if (copy_shmid_to_user (buf, &tbuf, version))
- 			err = -EFAULT;
- 		else
- 			err = result;
-@@ -924,7 +929,7 @@ static int shmctl_nolock(struct ipc_name
+ 	err = -ENOMEM;
+ 	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
+-	if (!sfd)
+-		goto out_put_dentry;
++	if (!sfd) {
++		path_put(&path);
++		goto out_nattch;
++	}
+ 
+ 	file = alloc_file(&path, f_mode,
+ 			  is_file_hugepages(shp->shm_file) ?
+ 				&shm_file_operations_huge :
+ 				&shm_file_operations);
+ 	err = PTR_ERR(file);
+-	if (IS_ERR(file))
+-		goto out_free;
++	if (IS_ERR(file)) {
++		kfree(sfd);
++		path_put(&path);
++		goto out_nattch;
++	}
+ 
+ 	file->private_data = sfd;
+ 	file->f_mapping = shp->shm_file->f_mapping;
+@@ -1143,7 +1148,7 @@ long do_shmat(int shmid, char __user *sh
+ 		    addr > current->mm->start_stack - size - PAGE_SIZE * 5)
+ 			goto invalid;
  	}
+-		
++
+ 	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate);
+ 	*raddr = addr;
+ 	err = 0;
+@@ -1167,19 +1172,12 @@ out_nattch:
+ 	else
+ 		shm_unlock(shp);
+ 	up_write(&shm_ids(ns).rw_mutex);
+-
+-out:
+ 	return err;
  
  out_unlock:
--	shm_unlock(shp);
-+	rcu_read_unlock();
- out:
- 	return err;
+ 	shm_unlock(shp);
+-	goto out;
+-
+-out_free:
+-	kfree(sfd);
+-out_put_dentry:
+-	path_put(&path);
+-	goto out_nattch;
++out:
++	return err;
  }
+ 
+ SYSCALL_DEFINE3(shmat, int, shmid, char __user *, shmaddr, int, shmflg)
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
