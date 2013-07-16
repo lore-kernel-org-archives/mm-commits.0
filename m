@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-cleanup-do_shmat-pasta.patch added to -mm tree
-Date: Tue, 16 Jul 2013 15:51:50 -0700
-Message-ID: <51e5ce86.StDdGqI/2XGc53xU%akpm@linux-foundation.org>
+Subject: + ipc-drop-ipcctl_pre_down-fix.patch added to -mm tree
+Date: Tue, 16 Jul 2013 15:51:46 -0700
+Message-ID: <51e5ce82.JlR1Im/GHu259wAp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38095 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933657Ab3GPWvv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:51:51 -0400
+	with ESMTP id S933657Ab3GPWvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
+To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com, akpm@linux-foundation.org
 
-Subject: + ipcshm-cleanup-do_shmat-pasta.patch added to -mm tree
-To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
+Subject: + ipc-drop-ipcctl_pre_down-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 16 Jul 2013 15:51:50 -0700
+Date: Tue, 16 Jul 2013 15:51:46 -0700
 
 
 The patch titled
-     Subject: ipc,shm: cleanup do_shmat pasta
+     Subject: ipc-drop-ipcctl_pre_down-fix
 has been added to the -mm tree.  Its filename is
-     ipcshm-cleanup-do_shmat-pasta.patch
+     ipc-drop-ipcctl_pre_down-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-cleanup-do_shmat-pasta.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-drop-ipcctl_pre_down-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-cleanup-do_shmat-pasta.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-drop-ipcctl_pre_down-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,98 +43,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,shm: cleanup do_shmat pasta
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-drop-ipcctl_pre_down-fix
 
-Clean up some of the messy do_shmat() spaghetti code, getting rid of
-out_free and out_put_dentry labels.  This makes shortening the critical
-region of this function in the next patch a little easier to do and read.
+fix function name in kerneldoc, cleanups
 
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ ipc/util.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-cleanup-do_shmat-pasta ipc/shm.c
---- a/ipc/shm.c~ipcshm-cleanup-do_shmat-pasta
-+++ a/ipc/shm.c
-@@ -1108,16 +1108,21 @@ long do_shmat(int shmid, char __user *sh
- 
- 	err = -ENOMEM;
- 	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
--	if (!sfd)
--		goto out_put_dentry;
-+	if (!sfd) {
-+		path_put(&path);
-+		goto out_nattch;
-+	}
- 
- 	file = alloc_file(&path, f_mode,
- 			  is_file_hugepages(shp->shm_file) ?
- 				&shm_file_operations_huge :
- 				&shm_file_operations);
- 	err = PTR_ERR(file);
--	if (IS_ERR(file))
--		goto out_free;
-+	if (IS_ERR(file)) {
-+		kfree(sfd);
-+		path_put(&path);
-+		goto out_nattch;
-+	}
- 
- 	file->private_data = sfd;
- 	file->f_mapping = shp->shm_file->f_mapping;
-@@ -1143,7 +1148,7 @@ long do_shmat(int shmid, char __user *sh
- 		    addr > current->mm->start_stack - size - PAGE_SIZE * 5)
- 			goto invalid;
- 	}
--		
-+
- 	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate);
- 	*raddr = addr;
- 	err = 0;
-@@ -1167,19 +1172,12 @@ out_nattch:
- 	else
- 		shm_unlock(shp);
- 	up_write(&shm_ids(ns).rw_mutex);
--
--out:
- 	return err;
- 
- out_unlock:
- 	shm_unlock(shp);
--	goto out;
--
--out_free:
--	kfree(sfd);
--out_put_dentry:
--	path_put(&path);
--	goto out_nattch;
-+out:
-+	return err;
+diff -puN ipc/util.c~ipc-drop-ipcctl_pre_down-fix ipc/util.c
+--- a/ipc/util.c~ipc-drop-ipcctl_pre_down-fix
++++ a/ipc/util.c
+@@ -733,7 +733,7 @@ int ipc_update_perm(struct ipc64_perm *i
  }
  
- SYSCALL_DEFINE3(shmat, int, shmid, char __user *, shmaddr, int, shmflg)
+ /**
+- * ipcctl_pre_down - retrieve an ipc and check permissions for some IPC_XXX cmd
++ * ipcctl_pre_down_nolock - retrieve an ipc and check permissions for some IPC_XXX cmd
+  * @ns:  the ipc namespace
+  * @ids:  the table of ids where to look for the ipc
+  * @id:   the id of the ipc to retrieve
+@@ -751,8 +751,8 @@ int ipc_update_perm(struct ipc64_perm *i
+  * Call holding the both the rw_mutex and the rcu read lock.
+  */
+ struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
+-					     struct ipc_ids *ids, int id, int cmd,
+-					     struct ipc64_perm *perm, int extra_perm)
++					struct ipc_ids *ids, int id, int cmd,
++					struct ipc64_perm *perm, int extra_perm)
+ {
+ 	kuid_t euid;
+ 	int err = -EPERM;
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-ipcshm-introduce-lockless-functions-to-obtain-the-ipc-object.patch
-ipcshm-shorten-critical-region-in-shmctl_down.patch
-ipc-drop-ipcctl_pre_down.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+mm.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-introduce-shmctl_nolock.patch
-ipcshm-make-shmctl_nolock-lockless.patch
-ipcshm-shorten-critical-region-for-shmctl.patch
-ipcshm-cleanup-do_shmat-pasta.patch
-ipcshm-shorten-critical-region-for-shmat.patch
-ipc-rename-ids-rw_mutex.patch
-ipcmsg-drop-msg_unlock.patch
-ipc-document-general-ipc-locking-scheme.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
