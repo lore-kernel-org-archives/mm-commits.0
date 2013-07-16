@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-shorten-critical-region-in-shmctl_down.patch added to
- -mm tree
-Date: Tue, 16 Jul 2013 15:51:44 -0700
-Message-ID: <51e5ce80.TCbceCLV3EbVN2oc%akpm@linux-foundation.org>
+Subject: + ipcshm-introduce-shmctl_nolock.patch added to -mm tree
+Date: Tue, 16 Jul 2013 15:51:47 -0700
+Message-ID: <51e5ce83.6ozM8swN2DsPrEuT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38080 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933246Ab3GPWvp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:51:45 -0400
+	with ESMTP id S933246Ab3GPWvs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:51:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
 
-Subject: + ipcshm-shorten-critical-region-in-shmctl_down.patch added to -mm tree
+Subject: + ipcshm-introduce-shmctl_nolock.patch added to -mm tree
 To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 16 Jul 2013 15:51:44 -0700
+Date: Tue, 16 Jul 2013 15:51:47 -0700
 
 
 The patch titled
-     Subject: ipc,shm: shorten critical region in shmctl_down
+     Subject: ipc,shm: introduce shmctl_nolock
 has been added to the -mm tree.  Its filename is
-     ipcshm-shorten-critical-region-in-shmctl_down.patch
+     ipcshm-introduce-shmctl_nolock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-shorten-critical-region-in-shmctl_down.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-introduce-shmctl_nolock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-shorten-critical-region-in-shmctl_down.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-introduce-shmctl_nolock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,11 +44,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc,shm: shorten critical region in shmctl_down
+Subject: ipc,shm: introduce shmctl_nolock
 
-Instead of holding the ipc lock for the entire function, use the
-ipcctl_pre_down_nolock and only acquire the lock for specific commands:
-RMID and SET.
+Similar to semctl and msgctl, when calling msgctl, the *_INFO and *_STAT
+commands can be performed without acquiring the ipc object.
+
+Add a shmctl_nolock() function and move the logic of *_INFO and *_STAT out
+of msgctl().  Since we are just moving functionality, this change still
+takes the lock and it will be properly lockless in the next patch.
 
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
@@ -58,52 +60,99 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ ipc/shm.c |   57 +++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 39 insertions(+), 18 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-shorten-critical-region-in-shmctl_down ipc/shm.c
---- a/ipc/shm.c~ipcshm-shorten-critical-region-in-shmctl_down
+diff -puN ipc/shm.c~ipcshm-introduce-shmctl_nolock ipc/shm.c
+--- a/ipc/shm.c~ipcshm-introduce-shmctl_nolock
 +++ a/ipc/shm.c
-@@ -780,11 +780,10 @@ static int shmctl_down(struct ipc_namesp
- 	down_write(&shm_ids(ns).rw_mutex);
- 	rcu_read_lock();
+@@ -820,29 +820,24 @@ out_up:
+ 	return err;
+ }
  
--	ipcp = ipcctl_pre_down(ns, &shm_ids(ns), shmid, cmd,
--			       &shmid64.shm_perm, 0);
-+	ipcp = ipcctl_pre_down_nolock(ns, &shm_ids(ns), shmid, cmd,
-+				      &shmid64.shm_perm, 0);
- 	if (IS_ERR(ipcp)) {
- 		err = PTR_ERR(ipcp);
--		/* the ipc lock is not held upon failure */
- 		goto out_unlock1;
+-SYSCALL_DEFINE3(shmctl, int, shmid, int, cmd, struct shmid_ds __user *, buf)
++static int shmctl_nolock(struct ipc_namespace *ns, int shmid,
++			 int cmd, int version, void __user *buf)
+ {
++	int err;
+ 	struct shmid_kernel *shp;
+-	int err, version;
+-	struct ipc_namespace *ns;
+ 
+-	if (cmd < 0 || shmid < 0) {
+-		err = -EINVAL;
+-		goto out;
++	/* preliminary security checks for *_INFO */
++	if (cmd == IPC_INFO || cmd == SHM_INFO) {
++		err = security_shm_shmctl(NULL, cmd);
++		if (err)
++			return err;
  	}
  
-@@ -792,14 +791,16 @@ static int shmctl_down(struct ipc_namesp
+-	version = ipc_parse_version(&cmd);
+-	ns = current->nsproxy->ipc_ns;
+-
+-	switch (cmd) { /* replace with proc interface ? */
++	switch (cmd) {
+ 	case IPC_INFO:
+ 	{
+ 		struct shminfo64 shminfo;
  
- 	err = security_shm_shmctl(shp, cmd);
- 	if (err)
--		goto out_unlock0;
-+		goto out_unlock1;
+-		err = security_shm_shmctl(NULL, cmd);
+-		if (err)
+-			return err;
+-
+ 		memset(&shminfo, 0, sizeof(shminfo));
+ 		shminfo.shmmni = shminfo.shmseg = ns->shm_ctlmni;
+ 		shminfo.shmmax = ns->shm_ctlmax;
+@@ -864,10 +859,6 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
+ 	{
+ 		struct shm_info shm_info;
  
- 	switch (cmd) {
- 	case IPC_RMID:
-+		ipc_lock_object(&shp->shm_perm);
- 		/* do_shm_rmid unlocks the ipc object and rcu */
- 		do_shm_rmid(ns, ipcp);
- 		goto out_up;
- 	case IPC_SET:
-+		ipc_lock_object(&shp->shm_perm);
- 		err = ipc_update_perm(&shmid64.shm_perm, ipcp);
- 		if (err)
- 			goto out_unlock0;
-@@ -807,6 +808,7 @@ static int shmctl_down(struct ipc_namesp
- 		break;
- 	default:
- 		err = -EINVAL;
-+		goto out_unlock1;
+-		err = security_shm_shmctl(NULL, cmd);
+-		if (err)
+-			return err;
+-
+ 		memset(&shm_info, 0, sizeof(shm_info));
+ 		down_read(&shm_ids(ns).rw_mutex);
+ 		shm_info.used_ids = shm_ids(ns).in_use;
+@@ -928,6 +919,36 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
+ 			err = result;
+ 		goto out;
  	}
- 
- out_unlock0:
++	default:
++		return -EINVAL;
++	}
++
++out_unlock:
++	shm_unlock(shp);
++out:
++	return err;
++}
++
++SYSCALL_DEFINE3(shmctl, int, shmid, int, cmd, struct shmid_ds __user *, buf)
++{
++	struct shmid_kernel *shp;
++	int err, version;
++	struct ipc_namespace *ns;
++
++	if (cmd < 0 || shmid < 0) {
++		err = -EINVAL;
++		goto out;
++	}
++
++	version = ipc_parse_version(&cmd);
++	ns = current->nsproxy->ipc_ns;
++
++	switch (cmd) {
++	case IPC_INFO:
++	case SHM_INFO:
++	case SHM_STAT:
++	case IPC_STAT:
++		return shmctl_nolock(ns, shmid, cmd, version, buf);
+ 	case SHM_LOCK:
+ 	case SHM_UNLOCK:
+ 	{
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
