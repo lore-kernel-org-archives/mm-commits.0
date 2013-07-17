@@ -1,115 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 16 Jul 2013 15:52:43 -0700
-Message-ID: <51e5cebb.qGifkkPc2+VzzgcD%akpm@linux-foundation.org>
+Subject: [merged] list-remove-__list_for_each.patch removed from -mm tree
+Date: Wed, 17 Jul 2013 12:42:19 -0700
+Message-ID: <51e6f39b.Pre6LBOxx6chA4xe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933479Ab3GPWwo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jul 2013 18:52:44 -0400
+	with ESMTP id S1757098Ab3GQTmU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Jul 2013 15:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davidlohr.bueso@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yamanetoshi@gmail.com, vyasevich@gmail.com, tiwai@suse.de, stas.yakovlev@gmail.com, snsehahn@cip.cs.fau.de, perex@perex.cz, nhorman@tuxdriver.com, linville@tuxdriver.com, gregkh@linuxfoundation.org, davem@davemloft.net, clemens@ladisch.de, airlied@linux.ie, Jennifer.Naumann@informatik.stud.uni-erlangen.de, davej@redhat.com
 
-Subject: + ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,davidlohr.bueso@hp.com
+Subject: [merged] list-remove-__list_for_each.patch removed from -mm tree
+To: davej@redhat.com,Jennifer.Naumann@informatik.stud.uni-erlangen.de,airlied@linux.ie,clemens@ladisch.de,davem@davemloft.net,gregkh@linuxfoundation.org,linville@tuxdriver.com,nhorman@tuxdriver.com,perex@perex.cz,snsehahn@cip.cs.fau.de,stas.yakovlev@gmail.com,tiwai@suse.de,vyasevich@gmail.com,yamanetoshi@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 16 Jul 2013 15:52:43 -0700
+Date: Wed, 17 Jul 2013 12:42:19 -0700
 
 
 The patch titled
-     Subject: ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+     Subject: list: remove __list_for_each()
+has been removed from the -mm tree.  Its filename was
+     list-remove-__list_for_each.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
+From: Dave Jones <davej@redhat.com>
+Subject: list: remove __list_for_each()
 
-WARNING: space prohibited between function name and open parenthesis '('
-#65: FILE: ipc/shm.c:921:
-+		if (copy_shmid_to_user (buf, &tbuf, version))
+__list_for_each used to be the non prefetch() aware list walking
+primitive.  When we removed the prefetch macros from the list routines, it
+became redundant.  Given it does exactly the same thing as list_for_each
+now, we might as well remove it and call list_for_each directly.
 
-total: 0 errors, 1 warnings, 54 lines checked
-
-./patches/ipcshm-make-shmctl_nolock-lockless.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jennifer Naumann <Jennifer.Naumann@informatik.stud.uni-erlangen.de>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Sebastian Hahn <snsehahn@cip.cs.fau.de>
+Cc: Stanislav Yakovlev <stas.yakovlev@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Vlad Yasevich <vyasevich@gmail.com>
+Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/list.h |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes ipc/shm.c
---- a/ipc/shm.c~ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
-+++ a/ipc/shm.c
-@@ -918,7 +918,7 @@ static int shmctl_nolock(struct ipc_name
- 		tbuf.shm_nattch	= shp->shm_nattch;
- 		rcu_read_unlock();
+diff -puN include/linux/list.h~list-remove-__list_for_each include/linux/list.h
+--- a/include/linux/list.h~list-remove-__list_for_each
++++ a/include/linux/list.h
+@@ -381,17 +381,6 @@ static inline void list_splice_tail_init
+ 	for (pos = (head)->next; pos != (head); pos = pos->next)
  
--		if (copy_shmid_to_user (buf, &tbuf, version))
-+		if (copy_shmid_to_user(buf, &tbuf, version))
- 			err = -EFAULT;
- 		else
- 			err = result;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
-arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
-mm.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+ /**
+- * __list_for_each	-	iterate over a list
+- * @pos:	the &struct list_head to use as a loop cursor.
+- * @head:	the head for your list.
+- *
+- * This variant doesn't differ from list_for_each() any more.
+- * We don't do prefetching in either case.
+- */
+-#define __list_for_each(pos, head) \
+-	for (pos = (head)->next; pos != (head); pos = pos->next)
