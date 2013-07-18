@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + printk-rename-struct-log-to-struct-printk_log.patch added to
- -mm tree
-Date: Wed, 17 Jul 2013 15:29:18 -0700
-Message-ID: <51e71abe.yKthy6QblIHUQBUq%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 18 Jul 2013 13:22:01 -0700
+Message-ID: <51e84e69.+IitIinXsUbJFxz1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756256Ab3GQW3T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Jul 2013 18:29:19 -0400
+	with ESMTP id S933196Ab3GRUWC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jul 2013 16:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, samuel.thibault@ens-lyon.org, ming.lei@canonical.com, joe@perches.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + printk-rename-struct-log-to-struct-printk_log.patch added to -mm tree
-To: joe@perches.com,ming.lei@canonical.com,samuel.thibault@ens-lyon.org
+Subject: + linux-next-git-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Wed, 17 Jul 2013 15:29:18 -0700
+Date: Thu, 18 Jul 2013 13:22:01 -0700
 
 
 The patch titled
-     Subject: printk: rename struct log to struct printk_log
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     printk-rename-struct-log-to-struct-printk_log.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-rename-struct-log-to-struct-printk_log.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-rename-struct-log-to-struct-printk_log.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,324 +43,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: rename struct log to struct printk_log
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Rename the struct to enable moving portions of
-printk.c to separate files.
-
-The rename changes output of /proc/vmcoreinfo.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Ming Lei <ming.lei@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   80 +++++++++++++++++++--------------------
- 1 file changed, 40 insertions(+), 40 deletions(-)
+ drivers/hwmon/coretemp.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-rename-struct-log-to-struct-printk_log kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-rename-struct-log-to-struct-printk_log
-+++ a/kernel/printk/printk.c
-@@ -171,7 +171,7 @@ static int console_may_schedule;
-  *         67                           "g"
-  *   0032     00 00 00                  padding to next message header
-  *
-- * The 'struct log' buffer header must never be directly exported to
-+ * The 'struct printk_log' buffer header must never be directly exported to
-  * userspace, it is a kernel-private implementation detail that might
-  * need to be changed in the future, when the requirements change.
-  *
-@@ -193,7 +193,7 @@ enum log_flags {
- 	LOG_CONT	= 8,	/* text is a fragment of a continuation line */
- };
- 
--struct log {
-+struct printk_log {
- 	u64 ts_nsec;		/* timestamp in nanoseconds */
- 	u16 len;		/* length of entire record */
- 	u16 text_len;		/* length of text buffer */
-@@ -241,7 +241,7 @@ static u32 clear_idx;
- #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
- #define LOG_ALIGN 4
- #else
--#define LOG_ALIGN __alignof__(struct log)
-+#define LOG_ALIGN __alignof__(struct printk_log)
- #endif
- #define __LOG_BUF_LEN (1 << CONFIG_LOG_BUF_SHIFT)
- static char __log_buf[__LOG_BUF_LEN] __aligned(LOG_ALIGN);
-@@ -252,35 +252,35 @@ static u32 log_buf_len = __LOG_BUF_LEN;
- static volatile unsigned int logbuf_cpu = UINT_MAX;
- 
- /* human readable text of the record */
--static char *log_text(const struct log *msg)
-+static char *log_text(const struct printk_log *msg)
- {
--	return (char *)msg + sizeof(struct log);
-+	return (char *)msg + sizeof(struct printk_log);
+diff -puN drivers/hwmon/coretemp.c~linux-next-git-rejects drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~linux-next-git-rejects
++++ a/drivers/hwmon/coretemp.c
+@@ -316,9 +316,6 @@ static int adjust_tjmax(struct cpuinfo_x
+ 	return tjmax;
  }
  
- /* optional key/value pair dictionary attached to the record */
--static char *log_dict(const struct log *msg)
-+static char *log_dict(const struct printk_log *msg)
+-<<<<<<< HEAD
+-static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+-=======
+ static bool cpu_has_tjmax(struct cpuinfo_x86 *c)
  {
--	return (char *)msg + sizeof(struct log) + msg->text_len;
-+	return (char *)msg + sizeof(struct printk_log) + msg->text_len;
- }
+ 	u8 model = c->x86_model;
+@@ -333,7 +330,6 @@ static bool cpu_has_tjmax(struct cpuinfo
  
- /* get record by index; idx must point to valid msg */
--static struct log *log_from_idx(u32 idx)
-+static struct printk_log *log_from_idx(u32 idx)
+ static int __cpuinit get_tjmax(struct cpuinfo_x86 *c, u32 id,
+ 			       struct device *dev)
+->>>>>>> linux-next/akpm-base
  {
--	struct log *msg = (struct log *)(log_buf + idx);
-+	struct printk_log *msg = (struct printk_log *)(log_buf + idx);
- 
- 	/*
- 	 * A length == 0 record is the end of buffer marker. Wrap around and
- 	 * read the message at the start of the buffer.
- 	 */
- 	if (!msg->len)
--		return (struct log *)log_buf;
-+		return (struct printk_log *)log_buf;
- 	return msg;
- }
- 
- /* get next record; idx must point to valid msg */
- static u32 log_next(u32 idx)
- {
--	struct log *msg = (struct log *)(log_buf + idx);
-+	struct printk_log *msg = (struct printk_log *)(log_buf + idx);
- 
- 	/* length == 0 indicates the end of the buffer; wrap */
- 	/*
-@@ -289,7 +289,7 @@ static u32 log_next(u32 idx)
- 	 * return the one after that.
- 	 */
- 	if (!msg->len) {
--		msg = (struct log *)log_buf;
-+		msg = (struct printk_log *)log_buf;
- 		return msg->len;
- 	}
- 	return idx + msg->len;
-@@ -301,11 +301,11 @@ static void log_store(int facility, int
- 		      const char *dict, u16 dict_len,
- 		      const char *text, u16 text_len)
- {
--	struct log *msg;
-+	struct printk_log *msg;
- 	u32 size, pad_len;
- 
- 	/* number of '\0' padding bytes to next message */
--	size = sizeof(struct log) + text_len + dict_len;
-+	size = sizeof(struct printk_log) + text_len + dict_len;
- 	pad_len = (-size) & (LOG_ALIGN - 1);
- 	size += pad_len;
- 
-@@ -317,7 +317,7 @@ static void log_store(int facility, int
- 		else
- 			free = log_first_idx - log_next_idx;
- 
--		if (free > size + sizeof(struct log))
-+		if (free > size + sizeof(struct printk_log))
- 			break;
- 
- 		/* drop old messages until we have enough contiuous space */
-@@ -325,18 +325,18 @@ static void log_store(int facility, int
- 		log_first_seq++;
- 	}
- 
--	if (log_next_idx + size + sizeof(struct log) >= log_buf_len) {
-+	if (log_next_idx + size + sizeof(struct printk_log) >= log_buf_len) {
- 		/*
- 		 * This message + an additional empty header does not fit
- 		 * at the end of the buffer. Add an empty header with len == 0
- 		 * to signify a wrap around.
- 		 */
--		memset(log_buf + log_next_idx, 0, sizeof(struct log));
-+		memset(log_buf + log_next_idx, 0, sizeof(struct printk_log));
- 		log_next_idx = 0;
- 	}
- 
- 	/* fill message */
--	msg = (struct log *)(log_buf + log_next_idx);
-+	msg = (struct printk_log *)(log_buf + log_next_idx);
- 	memcpy(log_text(msg), text, text_len);
- 	msg->text_len = text_len;
- 	memcpy(log_dict(msg), dict, dict_len);
-@@ -349,7 +349,7 @@ static void log_store(int facility, int
- 	else
- 		msg->ts_nsec = local_clock();
- 	memset(log_dict(msg) + dict_len, 0, pad_len);
--	msg->len = sizeof(struct log) + text_len + dict_len + pad_len;
-+	msg->len = sizeof(struct printk_log) + text_len + dict_len + pad_len;
- 
- 	/* insert message */
- 	log_next_idx += msg->len;
-@@ -472,7 +472,7 @@ static ssize_t devkmsg_read(struct file
- 			    size_t count, loff_t *ppos)
- {
- 	struct devkmsg_user *user = file->private_data;
--	struct log *msg;
-+	struct printk_log *msg;
- 	u64 ts_usec;
- 	size_t i;
- 	char cont = '-';
-@@ -717,14 +717,14 @@ void log_buf_kexec_setup(void)
- 	VMCOREINFO_SYMBOL(log_first_idx);
- 	VMCOREINFO_SYMBOL(log_next_idx);
- 	/*
--	 * Export struct log size and field offsets. User space tools can
-+	 * Export struct printk_log size and field offsets. User space tools can
- 	 * parse it and detect any changes to structure down the line.
- 	 */
--	VMCOREINFO_STRUCT_SIZE(log);
--	VMCOREINFO_OFFSET(log, ts_nsec);
--	VMCOREINFO_OFFSET(log, len);
--	VMCOREINFO_OFFSET(log, text_len);
--	VMCOREINFO_OFFSET(log, dict_len);
-+	VMCOREINFO_STRUCT_SIZE(printk_log);
-+	VMCOREINFO_OFFSET(printk_log, ts_nsec);
-+	VMCOREINFO_OFFSET(printk_log, len);
-+	VMCOREINFO_OFFSET(printk_log, text_len);
-+	VMCOREINFO_OFFSET(printk_log, dict_len);
- }
- #endif
- 
-@@ -877,7 +877,7 @@ static size_t print_time(u64 ts, char *b
- 		       (unsigned long)ts, rem_nsec / 1000);
- }
- 
--static size_t print_prefix(const struct log *msg, bool syslog, char *buf)
-+static size_t print_prefix(const struct printk_log *msg, bool syslog, char *buf)
- {
- 	size_t len = 0;
- 	unsigned int prefix = (msg->facility << 3) | msg->level;
-@@ -900,7 +900,7 @@ static size_t print_prefix(const struct
- 	return len;
- }
- 
--static size_t msg_print_text(const struct log *msg, enum log_flags prev,
-+static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
- 			     bool syslog, char *buf, size_t size)
- {
- 	const char *text = log_text(msg);
-@@ -962,7 +962,7 @@ static size_t msg_print_text(const struc
- static int syslog_print(char __user *buf, int size)
- {
- 	char *text;
--	struct log *msg;
-+	struct printk_log *msg;
- 	int len = 0;
- 
- 	text = kmalloc(LOG_LINE_MAX + PREFIX_MAX, GFP_KERNEL);
-@@ -1053,7 +1053,7 @@ static int syslog_print_all(char __user
- 		idx = clear_idx;
- 		prev = 0;
- 		while (seq < log_next_seq) {
--			struct log *msg = log_from_idx(idx);
-+			struct printk_log *msg = log_from_idx(idx);
- 
- 			len += msg_print_text(msg, prev, true, NULL, 0);
- 			prev = msg->flags;
-@@ -1066,7 +1066,7 @@ static int syslog_print_all(char __user
- 		idx = clear_idx;
- 		prev = 0;
- 		while (len > size && seq < log_next_seq) {
--			struct log *msg = log_from_idx(idx);
-+			struct printk_log *msg = log_from_idx(idx);
- 
- 			len -= msg_print_text(msg, prev, true, NULL, 0);
- 			prev = msg->flags;
-@@ -1080,7 +1080,7 @@ static int syslog_print_all(char __user
- 		len = 0;
- 		prev = 0;
- 		while (len >= 0 && seq < next_seq) {
--			struct log *msg = log_from_idx(idx);
-+			struct printk_log *msg = log_from_idx(idx);
- 			int textlen;
- 
- 			textlen = msg_print_text(msg, prev, true, text,
-@@ -1226,7 +1226,7 @@ int do_syslog(int type, char __user *buf
- 
- 			error = 0;
- 			while (seq < log_next_seq) {
--				struct log *msg = log_from_idx(idx);
-+				struct printk_log *msg = log_from_idx(idx);
- 
- 				error += msg_print_text(msg, prev, true, NULL, 0);
- 				idx = log_next(idx);
-@@ -1713,10 +1713,10 @@ static struct cont {
- 	u8 level;
- 	bool flushed:1;
- } cont;
--static struct log *log_from_idx(u32 idx) { return NULL; }
-+static struct printk_log *log_from_idx(u32 idx) { return NULL; }
- static u32 log_next(u32 idx) { return 0; }
- static void call_console_drivers(int level, const char *text, size_t len) {}
--static size_t msg_print_text(const struct log *msg, enum log_flags prev,
-+static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
- 			     bool syslog, char *buf, size_t size) { return 0; }
- static size_t cont_print_text(char *text, size_t size) { return 0; }
- 
-@@ -2028,7 +2028,7 @@ void console_unlock(void)
- 	console_cont_flush(text, sizeof(text));
- again:
- 	for (;;) {
--		struct log *msg;
-+		struct printk_log *msg;
- 		size_t len;
- 		int level;
- 
-@@ -2644,7 +2644,7 @@ void kmsg_dump(enum kmsg_dump_reason rea
- bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper, bool syslog,
- 			       char *line, size_t size, size_t *len)
- {
--	struct log *msg;
-+	struct printk_log *msg;
- 	size_t l = 0;
- 	bool ret = false;
- 
-@@ -2756,7 +2756,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	idx = dumper->cur_idx;
- 	prev = 0;
- 	while (seq < dumper->next_seq) {
--		struct log *msg = log_from_idx(idx);
-+		struct printk_log *msg = log_from_idx(idx);
- 
- 		l += msg_print_text(msg, prev, true, NULL, 0);
- 		idx = log_next(idx);
-@@ -2769,7 +2769,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	idx = dumper->cur_idx;
- 	prev = 0;
- 	while (l > size && seq < dumper->next_seq) {
--		struct log *msg = log_from_idx(idx);
-+		struct printk_log *msg = log_from_idx(idx);
- 
- 		l -= msg_print_text(msg, prev, true, NULL, 0);
- 		idx = log_next(idx);
-@@ -2784,7 +2784,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	l = 0;
- 	prev = 0;
- 	while (seq < dumper->next_seq) {
--		struct log *msg = log_from_idx(idx);
-+		struct printk_log *msg = log_from_idx(idx);
- 
- 		l += msg_print_text(msg, prev, syslog, buf + l, size - l);
- 		idx = log_next(idx);
+ 	int err;
+ 	u32 eax, edx;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 linux-next.patch
-maintainers-dynamic-debug-jasons-not-there.patch
-printk-move-to-separate-directory-for-easier-modification.patch
-printk-add-console_cmdlineh.patch
-printk-move-braille-console-support-into-separate-braille-files.patch
-printk-use-pointer-for-console_cmdline-indexing.patch
-printk-rename-struct-log-to-struct-printk_log.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+mm.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+linux-next-git-rejects.patch
 
