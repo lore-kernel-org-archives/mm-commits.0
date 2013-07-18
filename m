@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstats-tlb-flush-counters.patch added to -mm tree
-Date: Thu, 18 Jul 2013 13:48:58 -0700
-Message-ID: <51e854ba.7OrnZN7S/6HCzyEY%akpm@linux-foundation.org>
+Subject: + mm-zbud-fix-condition-check-on-allocation-size.patch added to
+ -mm tree
+Date: Thu, 18 Jul 2013 14:20:38 -0700
+Message-ID: <51e85c26.PeZJbnFqvueOzQSn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35206 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754929Ab3GRUs7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jul 2013 16:48:59 -0400
+	with ESMTP id S1759144Ab3GRVUj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jul 2013 17:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, dave.hansen@linux.intel.com, a.p.zijlstra@chello.nl, dave@sr71.net
+To: mm-commits@vger.kernel.org, sunae.seo@samsung.com, sjenning@linux.vnet.ibm.com, d.j.shin@samsung.com, bob.liu@oracle.com, heesub.shin@samsung.com
 
-Subject: + mm-vmstats-tlb-flush-counters.patch added to -mm tree
-To: dave@sr71.net,a.p.zijlstra@chello.nl,dave.hansen@linux.intel.com,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
+Subject: + mm-zbud-fix-condition-check-on-allocation-size.patch added to -mm tree
+To: heesub.shin@samsung.com,bob.liu@oracle.com,d.j.shin@samsung.com,sjenning@linux.vnet.ibm.com,sunae.seo@samsung.com
 From: akpm@linux-foundation.org
-Date: Thu, 18 Jul 2013 13:48:58 -0700
+Date: Thu, 18 Jul 2013 14:20:38 -0700
 
 
 The patch titled
-     Subject: mm: vmstats: tlb flush counters
+     Subject: mm: zbud: fix condition check on allocation size
 has been added to the -mm tree.  Its filename is
-     mm-vmstats-tlb-flush-counters.patch
+     mm-zbud-fix-condition-check-on-allocation-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstats-tlb-flush-counters.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-fix-condition-check-on-allocation-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstats-tlb-flush-counters.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-fix-condition-check-on-allocation-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,143 +44,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave@sr71.net>
-Subject: mm: vmstats: tlb flush counters
+From: Heesub Shin <heesub.shin@samsung.com>
+Subject: mm: zbud: fix condition check on allocation size
 
-I was investigating some TLB flush scaling issues and realized that we do
-not have any good methods for figuring out how many TLB flushes we are
-doing.
+zbud_alloc() incorrectly verifies the size of allocation limit.  It should
+deny the allocation request greater than (PAGE_SIZE - ZHDR_SIZE_ALIGNED -
+CHUNK_SIZE), not (PAGE_SIZE - ZHDR_SIZE_ALIGNED) which has no remaining
+spaces for its buddy.  There is no point in spending the entire zbud page
+storing only a single page, since we don't have any benefits.
 
-It would be nice to be able to do these in generic code, but the
-arch-independent calls don't explicitly specify whether we actually need
-to do remote flushes or not.  In the end, we really need to know if we
-actually _did_ global vs.  local invalidations, so that leaves us with few
-options other than to muck with the counters from arch-specific code.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Heesub Shin <heesub.shin@samsung.com>
+Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Dongjun Shin <d.j.shin@samsung.com>
+Cc: Sunae Seo <sunae.seo@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/tlb.c             |   18 ++++++++++++++----
- include/linux/vm_event_item.h |    5 +++++
- mm/vmstat.c                   |    5 +++++
- 3 files changed, 24 insertions(+), 4 deletions(-)
+ mm/zbud.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/tlb.c~mm-vmstats-tlb-flush-counters arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~mm-vmstats-tlb-flush-counters
-+++ a/arch/x86/mm/tlb.c
-@@ -103,6 +103,7 @@ static void flush_tlb_func(void *info)
- 	if (f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
- 		return;
+diff -puN mm/zbud.c~mm-zbud-fix-condition-check-on-allocation-size mm/zbud.c
+--- a/mm/zbud.c~mm-zbud-fix-condition-check-on-allocation-size
++++ a/mm/zbud.c
+@@ -257,7 +257,7 @@ int zbud_alloc(struct zbud_pool *pool, i
  
-+	count_vm_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
- 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
- 		if (f->flush_end == TLB_FLUSH_ALL)
- 			local_flush_tlb();
-@@ -130,6 +131,7 @@ void native_flush_tlb_others(const struc
- 	info.flush_start = start;
- 	info.flush_end = end;
- 
-+	count_vm_event(NR_TLB_REMOTE_FLUSH);
- 	if (is_uv_system()) {
- 		unsigned int cpu;
- 
-@@ -149,6 +151,7 @@ void flush_tlb_current_task(void)
- 
- 	preempt_disable();
- 
-+	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	local_flush_tlb();
- 	if (cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids)
- 		flush_tlb_others(mm_cpumask(mm), mm, 0UL, TLB_FLUSH_ALL);
-@@ -211,16 +214,19 @@ void flush_tlb_mm_range(struct mm_struct
- 	act_entries = mm->total_vm > tlb_entries ? tlb_entries : mm->total_vm;
- 
- 	/* tlb_flushall_shift is on balance point, details in commit log */
--	if ((end - start) >> PAGE_SHIFT > act_entries >> tlb_flushall_shift)
-+	if ((end - start) >> PAGE_SHIFT > act_entries >> tlb_flushall_shift) {
-+		count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
- 		local_flush_tlb();
--	else {
-+	} else {
- 		if (has_large_page(mm, start, end)) {
- 			local_flush_tlb();
- 			goto flush_all;
- 		}
- 		/* flush range by one by one 'invlpg' */
--		for (addr = start; addr < end;	addr += PAGE_SIZE)
-+		for (addr = start; addr < end;	addr += PAGE_SIZE) {
-+			count_vm_event(NR_TLB_LOCAL_FLUSH_ONE);
- 			__flush_tlb_single(addr);
-+		}
- 
- 		if (cpumask_any_but(mm_cpumask(mm),
- 				smp_processor_id()) < nr_cpu_ids)
-@@ -256,6 +262,7 @@ void flush_tlb_page(struct vm_area_struc
- 
- static void do_flush_tlb_all(void *info)
- {
-+	count_vm_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
- 	__flush_tlb_all();
- 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_LAZY)
- 		leave_mm(smp_processor_id());
-@@ -263,6 +270,7 @@ static void do_flush_tlb_all(void *info)
- 
- void flush_tlb_all(void)
- {
-+	count_vm_event(NR_TLB_REMOTE_FLUSH);
- 	on_each_cpu(do_flush_tlb_all, NULL, 1);
- }
- 
-@@ -272,8 +280,10 @@ static void do_kernel_range_flush(void *
- 	unsigned long addr;
- 
- 	/* flush range by one by one 'invlpg' */
--	for (addr = f->flush_start; addr < f->flush_end; addr += PAGE_SIZE)
-+	for (addr = f->flush_start; addr < f->flush_end; addr += PAGE_SIZE) {
-+		count_vm_event(NR_TLB_LOCAL_FLUSH_ONE_KERNEL);
- 		__flush_tlb_single(addr);
-+	}
- }
- 
- void flush_tlb_kernel_range(unsigned long start, unsigned long end)
-diff -puN include/linux/vm_event_item.h~mm-vmstats-tlb-flush-counters include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-vmstats-tlb-flush-counters
-+++ a/include/linux/vm_event_item.h
-@@ -70,6 +70,11 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		THP_ZERO_PAGE_ALLOC,
- 		THP_ZERO_PAGE_ALLOC_FAILED,
- #endif
-+		NR_TLB_REMOTE_FLUSH,	/* cpu tried to flush others' tlbs */
-+		NR_TLB_REMOTE_FLUSH_RECEIVED,/* cpu received ipi for flush */
-+		NR_TLB_LOCAL_FLUSH_ALL,
-+		NR_TLB_LOCAL_FLUSH_ONE,
-+		NR_TLB_LOCAL_FLUSH_ONE_KERNEL,
- 		NR_VM_EVENT_ITEMS
- };
- 
-diff -puN mm/vmstat.c~mm-vmstats-tlb-flush-counters mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstats-tlb-flush-counters
-+++ a/mm/vmstat.c
-@@ -817,6 +817,11 @@ const char * const vmstat_text[] = {
- 	"thp_zero_page_alloc",
- 	"thp_zero_page_alloc_failed",
- #endif
-+	"nr_tlb_remote_flush",
-+	"nr_tlb_remote_flush_received",
-+	"nr_tlb_local_flush_all",
-+	"nr_tlb_local_flush_one",
-+	"nr_tlb_local_flush_one_kernel",
- 
- #endif /* CONFIG_VM_EVENTS_COUNTERS */
- };
+ 	if (size <= 0 || gfp & __GFP_HIGHMEM)
+ 		return -EINVAL;
+-	if (size > PAGE_SIZE - ZHDR_SIZE_ALIGNED)
++	if (size > PAGE_SIZE - ZHDR_SIZE_ALIGNED - CHUNK_SIZE)
+ 		return -ENOSPC;
+ 	chunks = size_to_chunks(size);
+ 	spin_lock(&pool->lock);
 _
 
-Patches currently in -mm which might be from dave@sr71.net are
+Patches currently in -mm which might be from heesub.shin@samsung.com are
 
-mm-vmstats-tlb-flush-counters.patch
+mm-zbud-fix-condition-check-on-allocation-size.patch
 
