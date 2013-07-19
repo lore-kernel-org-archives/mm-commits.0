@@ -1,46 +1,52 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch removed from -mm tree
-Date: Fri, 19 Jul 2013 12:11:26 -0700
-Message-ID: <51e98f5e.UyNUuZbNaqgm7hZr%akpm@linux-foundation.org>
+ lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
+ removed from -mm tree
+Date: Fri, 19 Jul 2013 12:11:28 -0700
+Message-ID: <51e98f60.eSJS30SrlRqffZUJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50359 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50374 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926Ab3GSTL1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 15:11:27 -0400
+	with ESMTP id S1751926Ab3GSTL3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 15:11:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, srivatsa.bhat@linux.vnet.ibm.com, rusty@rustcorp.com.au, rostedt@goodmis.org, peterz@infradead.org, paulmck@us.ibm.com, oleg@redhat.com, mingo@redhat.com, laijs@cn.fujitsu.com, ak@linux.intel.com, walken@google.com
 
-Subject: [merged] lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch removed from -mm tree
+Subject: [merged] lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch removed from -mm tree
 To: walken@google.com,ak@linux.intel.com,laijs@cn.fujitsu.com,mingo@redhat.com,oleg@redhat.com,paulmck@us.ibm.com,peterz@infradead.org,rostedt@goodmis.org,rusty@rustcorp.com.au,srivatsa.bhat@linux.vnet.ibm.com,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 19 Jul 2013 12:11:26 -0700
+Date: Fri, 19 Jul 2013 12:11:28 -0700
 
 
 The patch titled
-     Subject: lockdep: introduce lock_acquire_exclusive/shared helper macros
+     Subject: lglock: update lockdep annotations to report recursive local locks
 has been removed from the -mm tree.  Its filename was
-     lockdep-introduce-lock_acquire_exclusive-shared-helper-macros.patch
+     lglock-update-lockdep-annotations-to-report-recursive-local-locks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: lockdep: introduce lock_acquire_exclusive/shared helper macros
+Subject: lglock: update lockdep annotations to report recursive local locks
 
-In lockdep.h, the spinlock/mutex/rwsem/rwlock/lock_map acquire macros have
-different definitions based on the value of CONFIG_PROVE_LOCKING.  We have
-separate ifdefs for each of these definitions, which seems redundant.
+Oleg Nesterov recently noticed that the lockdep annotations in lglock.c
+are not sufficient to detect some obvious deadlocks, such as
+lg_local_lock(LOCK) + lg_local_lock(LOCK) or spin_lock(X) +
+lg_local_lock(Y) vs lg_local_lock(Y) + spin_lock(X).
 
-Introduce lock_acquire_{exclusive,shared,shared_recursive} helpers which
-will have different definitions based on CONFIG_PROVE_LOCKING.  Then all
-other helper macros can be defined based on the above ones, which reduces
-the amount of ifdefined code.
+Both issues are easily fixed by indicating to lockdep that lglock's local
+locks are not recursive.  We shouldn't use the rwlock acquire/release
+functions here, as lglock doesn't share the same semantics.  Instead we
+can base our lockdep annotations on the lock_acquire_shared (for local
+lglock) and lock_acquire_exclusive (for global lglock) helpers.
+
+I am not proposing new lglock specific helpers as I don't see the point of
+the existing second level of helpers :)
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -56,131 +62,66 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |  102 ++++++++++----------------------------
- 1 file changed, 28 insertions(+), 74 deletions(-)
+ kernel/lglock.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockdep-introduce-lock_acquire_exclusive-shared-helper-macros include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-introduce-lock_acquire_exclusive-shared-helper-macros
-+++ a/include/linux/lockdep.h
-@@ -365,7 +365,7 @@ extern void lockdep_trace_alloc(gfp_t ma
+diff -puN kernel/lglock.c~lglock-update-lockdep-annotations-to-report-recursive-local-locks kernel/lglock.c
+--- a/kernel/lglock.c~lglock-update-lockdep-annotations-to-report-recursive-local-locks
++++ a/kernel/lglock.c
+@@ -21,7 +21,7 @@ void lg_local_lock(struct lglock *lg)
+ 	arch_spinlock_t *lock;
  
- #define lockdep_recursing(tsk)	((tsk)->lockdep_recursion)
- 
--#else /* !LOCKDEP */
-+#else /* !CONFIG_LOCKDEP */
- 
- static inline void lockdep_off(void)
+ 	preempt_disable();
+-	rwlock_acquire_read(&lg->lock_dep_map, 0, 0, _RET_IP_);
++	lock_acquire_shared(&lg->lock_dep_map, 0, 0, NULL, _RET_IP_);
+ 	lock = this_cpu_ptr(lg->lock);
+ 	arch_spin_lock(lock);
+ }
+@@ -31,7 +31,7 @@ void lg_local_unlock(struct lglock *lg)
  {
-@@ -479,82 +479,36 @@ static inline void print_irqtrace_events
-  * on the per lock-class debug mode:
-  */
+ 	arch_spinlock_t *lock;
  
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--# ifdef CONFIG_PROVE_LOCKING
--#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
--#  define spin_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
--# else
--#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
--#  define spin_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, NULL, i)
--# endif
--# define spin_release(l, n, i)			lock_release(l, n, i)
--#else
--# define spin_acquire(l, s, t, i)		do { } while (0)
--# define spin_release(l, n, i)			do { } while (0)
--#endif
--
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--# ifdef CONFIG_PROVE_LOCKING
--#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
--#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 2, NULL, i)
--# else
--#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
--#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 1, NULL, i)
--# endif
--# define rwlock_release(l, n, i)		lock_release(l, n, i)
--#else
--# define rwlock_acquire(l, s, t, i)		do { } while (0)
--# define rwlock_acquire_read(l, s, t, i)	do { } while (0)
--# define rwlock_release(l, n, i)		do { } while (0)
--#endif
--
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--# ifdef CONFIG_PROVE_LOCKING
--#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
--#  define mutex_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
--# else
--#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
--#  define mutex_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, n, i)
--# endif
--# define mutex_release(l, n, i)			lock_release(l, n, i)
--#else
--# define mutex_acquire(l, s, t, i)		do { } while (0)
--# define mutex_acquire_nest(l, s, t, n, i)	do { } while (0)
--# define mutex_release(l, n, i)			do { } while (0)
--#endif
--
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--# ifdef CONFIG_PROVE_LOCKING
--#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
--#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
--#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 2, NULL, i)
--# else
--#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
--#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, n, i)
--#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 1, NULL, i)
--# endif
-+#ifdef CONFIG_PROVE_LOCKING
-+ #define lock_acquire_exclusive(l, s, t, n, i)		lock_acquire(l, s, t, 0, 2, n, i)
-+ #define lock_acquire_shared(l, s, t, n, i)		lock_acquire(l, s, t, 1, 2, n, i)
-+ #define lock_acquire_shared_recursive(l, s, t, n, i)	lock_acquire(l, s, t, 2, 2, n, i)
-+#else
-+ #define lock_acquire_exclusive(l, s, t, n, i)		lock_acquire(l, s, t, 0, 1, n, i)
-+ #define lock_acquire_shared(l, s, t, n, i)		lock_acquire(l, s, t, 1, 1, n, i)
-+ #define lock_acquire_shared_recursive(l, s, t, n, i)	lock_acquire(l, s, t, 2, 1, n, i)
-+#endif
-+
-+#define spin_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
-+#define spin_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
-+#define spin_release(l, n, i)			lock_release(l, n, i)
-+
-+#define rwlock_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
-+#define rwlock_acquire_read(l, s, t, i)		lock_acquire_shared_recursive(l, s, t, NULL, i)
-+#define rwlock_release(l, n, i)			lock_release(l, n, i)
-+
-+#define mutex_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
-+#define mutex_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
-+#define mutex_release(l, n, i)			lock_release(l, n, i)
-+
-+#define rwsem_acquire(l, s, t, i)		lock_acquire_exclusive(l, s, t, NULL, i)
-+#define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire_exclusive(l, s, t, n, i)
-+#define rwsem_acquire_read(l, s, t, i)		lock_acquire_shared(l, s, t, NULL, i)
- # define rwsem_release(l, n, i)			lock_release(l, n, i)
--#else
--# define rwsem_acquire(l, s, t, i)		do { } while (0)
--# define rwsem_acquire_nest(l, s, t, n, i)	do { } while (0)
--# define rwsem_acquire_read(l, s, t, i)		do { } while (0)
--# define rwsem_release(l, n, i)			do { } while (0)
--#endif
+-	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
++	lock_release(&lg->lock_dep_map, 1, _RET_IP_);
+ 	lock = this_cpu_ptr(lg->lock);
+ 	arch_spin_unlock(lock);
+ 	preempt_enable();
+@@ -43,7 +43,7 @@ void lg_local_lock_cpu(struct lglock *lg
+ 	arch_spinlock_t *lock;
  
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--# ifdef CONFIG_PROVE_LOCKING
--#  define lock_map_acquire(l)		lock_acquire(l, 0, 0, 0, 2, NULL, _THIS_IP_)
--#  define lock_map_acquire_read(l)	lock_acquire(l, 0, 0, 2, 2, NULL, _THIS_IP_)
--# else
--#  define lock_map_acquire(l)		lock_acquire(l, 0, 0, 0, 1, NULL, _THIS_IP_)
--#  define lock_map_acquire_read(l)	lock_acquire(l, 0, 0, 2, 1, NULL, _THIS_IP_)
--# endif
-+#define lock_map_acquire(l)			lock_acquire_exclusive(l, 0, 0, NULL, _THIS_IP_)
-+#define lock_map_acquire_read(l)		lock_acquire_shared_recursive(l, 0, 0, NULL, _THIS_IP_)
- # define lock_map_release(l)			lock_release(l, 1, _THIS_IP_)
--#else
--# define lock_map_acquire(l)			do { } while (0)
--# define lock_map_acquire_read(l)		do { } while (0)
--# define lock_map_release(l)			do { } while (0)
--#endif
+ 	preempt_disable();
+-	rwlock_acquire_read(&lg->lock_dep_map, 0, 0, _RET_IP_);
++	lock_acquire_shared(&lg->lock_dep_map, 0, 0, NULL, _RET_IP_);
+ 	lock = per_cpu_ptr(lg->lock, cpu);
+ 	arch_spin_lock(lock);
+ }
+@@ -53,7 +53,7 @@ void lg_local_unlock_cpu(struct lglock *
+ {
+ 	arch_spinlock_t *lock;
  
- #ifdef CONFIG_PROVE_LOCKING
- # define might_lock(lock) 						\
+-	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
++	lock_release(&lg->lock_dep_map, 1, _RET_IP_);
+ 	lock = per_cpu_ptr(lg->lock, cpu);
+ 	arch_spin_unlock(lock);
+ 	preempt_enable();
+@@ -65,7 +65,7 @@ void lg_global_lock(struct lglock *lg)
+ 	int i;
+ 
+ 	preempt_disable();
+-	rwlock_acquire(&lg->lock_dep_map, 0, 0, _RET_IP_);
++	lock_acquire_exclusive(&lg->lock_dep_map, 0, 0, NULL, _RET_IP_);
+ 	for_each_possible_cpu(i) {
+ 		arch_spinlock_t *lock;
+ 		lock = per_cpu_ptr(lg->lock, i);
+@@ -78,7 +78,7 @@ void lg_global_unlock(struct lglock *lg)
+ {
+ 	int i;
+ 
+-	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
++	lock_release(&lg->lock_dep_map, 1, _RET_IP_);
+ 	for_each_possible_cpu(i) {
+ 		arch_spinlock_t *lock;
+ 		lock = per_cpu_ptr(lg->lock, i);
 _
 
 Patches currently in -mm which might be from walken@google.com are
