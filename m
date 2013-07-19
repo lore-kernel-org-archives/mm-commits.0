@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+Subject: + lz4-fix-compression-decompression-signedness-mismatch.patch
  added to -mm tree
-Date: Fri, 19 Jul 2013 15:32:30 -0700
-Message-ID: <51e9be7e.PeVmFdd0+zh+IBEV%akpm@linux-foundation.org>
+Date: Fri, 19 Jul 2013 15:34:15 -0700
+Message-ID: <51e9bee7.s8CQFUEqWLtaGx5a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52595 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52596 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752339Ab3GSWcb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 18:32:31 -0400
+	with ESMTP id S1752339Ab3GSWeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 18:34:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, guz.fnst@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yann.collet.73@gmail.com, kyungsik.lee@lge.com, geert@linux-m68k.org, sergey.senozhatsky@gmail.com
 
-Subject: + lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,guz.fnst@cn.fujitsu.com
+Subject: + lz4-fix-compression-decompression-signedness-mismatch.patch added to -mm tree
+To: sergey.senozhatsky@gmail.com,geert@linux-m68k.org,kyungsik.lee@lge.com,yann.collet.73@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 19 Jul 2013 15:32:30 -0700
+Date: Fri, 19 Jul 2013 15:34:15 -0700
 
 
 The patch titled
-     Subject: lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
+     Subject: lz4: fix compression/decompression signedness mismatch
 has been added to the -mm tree.  Its filename is
-     lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+     lz4-fix-compression-decompression-signedness-mismatch.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lz4-fix-compression-decompression-signedness-mismatch.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lz4-fix-compression-decompression-signedness-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,87 +44,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: lz4: fix compression/decompression signedness mismatch
 
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+LZ4 compression and decompression functions require different in
+signedness input/output parameters: unsigned char for compression and
+signed char for decompression.
 
-WARNING: please, no space before tabs
-#20: FILE: lib/crc32.c:135:
-+ * ^I^I^ICRC32/CRC32C$
+Change decompression API to require "(const) unsigned char *".
 
-WARNING: line over 80 characters
-#24: FILE: lib/crc32.c:137:
-+ *	other uses, or the previous crc32/crc32c value if computing incrementally.
-
-total: 0 errors, 2 warnings, 32 lines checked
-
-./patches/lib-crc32-update-the-comments-of-crc32_bele_generic.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Yann Collet <yann.collet.73@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/lz4.h      |    8 ++++----
+ lib/lz4/lz4_decompress.c |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes lib/crc32.c
---- a/lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
-+++ a/lib/crc32.c
-@@ -132,9 +132,9 @@ crc32_body(u32 crc, unsigned char const
+diff -puN include/linux/lz4.h~lz4-fix-compression-decompression-signedness-mismatch include/linux/lz4.h
+--- a/include/linux/lz4.h~lz4-fix-compression-decompression-signedness-mismatch
++++ a/include/linux/lz4.h
+@@ -67,8 +67,8 @@ int lz4hc_compress(const unsigned char *
+  *	note :  Destination buffer must be already allocated.
+  *		slightly faster than lz4_decompress_unknownoutputsize()
+  */
+-int lz4_decompress(const char *src, size_t *src_len, char *dest,
+-		size_t actual_dest_len);
++int lz4_decompress(const unsigned char *src, size_t *src_len,
++		unsigned char *dest, size_t actual_dest_len);
  
- /**
-  * crc32_le_generic() - Calculate bitwise little-endian Ethernet AUTODIN II
-- * 			CRC32/CRC32C
-- * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for
-- *	other uses, or the previous crc32/crc32c value if computing incrementally.
-+ *			CRC32/CRC32C
-+ * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for other
-+ *	 uses, or the previous crc32/crc32c value if computing incrementally.
-  * @p: pointer to buffer over which CRC32/CRC32C is run
-  * @len: length of buffer @p
-  * @tab: little-endian Ethernet table
+ /*
+  * lz4_decompress_unknownoutputsize()
+@@ -82,6 +82,6 @@ int lz4_decompress(const char *src, size
+  *		  Error if return (< 0)
+  *	note :  Destination buffer must be already allocated.
+  */
+-int lz4_decompress_unknownoutputsize(const char *src, size_t src_len,
+-		char *dest, size_t *dest_len);
++int lz4_decompress_unknownoutputsize(const unsigned char *src, size_t src_len,
++		unsigned char *dest, size_t *dest_len);
+ #endif
+diff -puN lib/lz4/lz4_decompress.c~lz4-fix-compression-decompression-signedness-mismatch lib/lz4/lz4_decompress.c
+--- a/lib/lz4/lz4_decompress.c~lz4-fix-compression-decompression-signedness-mismatch
++++ a/lib/lz4/lz4_decompress.c
+@@ -283,8 +283,8 @@ _output_error:
+ 	return (int) (-(((char *) ip) - source));
+ }
+ 
+-int lz4_decompress(const char *src, size_t *src_len, char *dest,
+-		size_t actual_dest_len)
++int lz4_decompress(const unsigned char *src, size_t *src_len,
++		unsigned char *dest, size_t actual_dest_len)
+ {
+ 	int ret = -1;
+ 	int input_len = 0;
+@@ -302,8 +302,8 @@ exit_0:
+ EXPORT_SYMBOL_GPL(lz4_decompress);
+ #endif
+ 
+-int lz4_decompress_unknownoutputsize(const char *src, size_t src_len,
+-		char *dest, size_t *dest_len)
++int lz4_decompress_unknownoutputsize(const unsigned char *src, size_t src_len,
++		unsigned char *dest, size_t *dest_len)
+ {
+ 	int ret = -1;
+ 	int out_len = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
-arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+origin.patch
+lz4-fix-compression-decompression-signedness-mismatch.patch
 linux-next.patch
-linux-next-git-rejects.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
