@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too.patch added to -mm
- tree
-Date: Fri, 19 Jul 2013 16:16:32 -0700
-Message-ID: <51e9c8d0.xRan8PmBrPV2D7Mv%akpm@linux-foundation.org>
+Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch added to
+ -mm tree
+Date: Fri, 19 Jul 2013 16:16:33 -0700
+Message-ID: <51e9c8d1.LefZigXrTyKbeKAI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52833 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753103Ab3GSXQd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 19:16:33 -0400
+	with ESMTP id S1753110Ab3GSXQe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 19:16:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, dave.hansen@linux.intel.com, a.p.zijlstra@chello.nl, dave@sr71.net
+To: mm-commits@vger.kernel.org, dave@sr71.net, akpm@linux-foundation.org
 
-Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too.patch added to -mm tree
-To: dave@sr71.net,a.p.zijlstra@chello.nl,dave.hansen@linux.intel.com,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
+Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,dave@sr71.net
 From: akpm@linux-foundation.org
-Date: Fri, 19 Jul 2013 16:16:32 -0700
+Date: Fri, 19 Jul 2013 16:16:33 -0700
 
 
 The patch titled
-     Subject: mm: vmstats: track TLB flush stats on UP too
+     Subject: mm-vmstats-track-tlb-flush-stats-on-up-too-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmstats-track-tlb-flush-stats-on-up-too.patch
+     mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,183 +44,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave@sr71.net>
-Subject: mm: vmstats: track TLB flush stats on UP too
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmstats-track-tlb-flush-stats-on-up-too-fix
 
-The previous patch doing vmstats for TLB flushes ("mm: vmstats: tlb flush
-counters") effectively missed UP since arch/x86/mm/tlb.c is only compiled
-for SMP.
-
-UP systems do not do remote TLB flushes, so compile those counters out on
-UP.
-
-arch/x86/kernel/cpu/mtrr/generic.c calls __flush_tlb() directly.  This is
-probably an optimization since both the mtrr code and __flush_tlb() write
-cr4.  It would probably be safe to make that a flush_tlb_all() (and then
-get these statistics), but the mtrr code is ancient and I'm hesitant to
-touch it other than to just stick in the counters.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dave Hansen <dave@sr71.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlbflush.h    |   38 ++++++++++++++++++++++-----
- arch/x86/kernel/cpu/mtrr/generic.c |    2 +
- arch/x86/mm/tlb.c                  |    4 --
- include/linux/vm_event_item.h      |    3 +-
- mm/vmstat.c                        |    3 +-
- 5 files changed, 39 insertions(+), 11 deletions(-)
+ arch/x86/include/asm/tlbflush.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too arch/x86/include/asm/tlbflush.h
---- a/arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too
+diff -puN arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too-fix arch/x86/include/asm/tlbflush.h
+--- a/arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too-fix
 +++ a/arch/x86/include/asm/tlbflush.h
-@@ -62,6 +62,7 @@ static inline void __flush_tlb_all(void)
- 
- static inline void __flush_tlb_one(unsigned long addr)
- {
-+	count_vm_event(NR_TLB_LOCAL_FLUSH_ONE);
- 	__flush_tlb_single(addr);
- }
- 
-@@ -84,14 +85,39 @@ static inline void __flush_tlb_one(unsig
+@@ -85,11 +85,10 @@ static inline void __flush_tlb_one(unsig
  
  #ifndef CONFIG_SMP
  
--#define flush_tlb() __flush_tlb()
--#define flush_tlb_all() __flush_tlb_all()
--#define local_flush_tlb() __flush_tlb()
-+/* "_up" is for UniProcessor
-+ *
-+ * This is a helper for other header functions.  *Not*
-+ * intended to be called directly.  All global TLB
-+ * flushes need to either call this, or do the bump the
-+ * vm statistics themselves.
-+ */
-+static inline void __flush_tlb_up(void)
-+{
-+	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+	__flush_tlb();
-+}
-+
-+static inline void flush_tlb_all(void)
-+{
-+	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+	__flush_tlb_all();
-+}
-+
-+static inline void flush_tlb(void)
-+{
-+	__flush_tlb_up();
-+}
-+
-+static inline void local_flush_tlb(void)
-+{
-+	__flush_tlb_up();
-+}
- 
- static inline void flush_tlb_mm(struct mm_struct *mm)
- {
- 	if (mm == current->active_mm)
--		__flush_tlb();
-+		__flush_tlb_up();
- }
- 
- static inline void flush_tlb_page(struct vm_area_struct *vma,
-@@ -105,14 +131,14 @@ static inline void flush_tlb_range(struc
- 				   unsigned long start, unsigned long end)
- {
- 	if (vma->vm_mm == current->active_mm)
--		__flush_tlb();
-+		__flush_tlb_up();
- }
- 
- static inline void flush_tlb_mm_range(struct mm_struct *mm,
- 	   unsigned long start, unsigned long end, unsigned long vmflag)
- {
- 	if (mm == current->active_mm)
--		__flush_tlb();
-+		__flush_tlb_up();
- }
- 
- static inline void native_flush_tlb_others(const struct cpumask *cpumask,
-diff -puN arch/x86/kernel/cpu/mtrr/generic.c~mm-vmstats-track-tlb-flush-stats-on-up-too arch/x86/kernel/cpu/mtrr/generic.c
---- a/arch/x86/kernel/cpu/mtrr/generic.c~mm-vmstats-track-tlb-flush-stats-on-up-too
-+++ a/arch/x86/kernel/cpu/mtrr/generic.c
-@@ -683,6 +683,7 @@ static void prepare_set(void) __acquires
- 	}
- 
- 	/* Flush all TLBs via a mov %cr3, %reg; mov %reg, %cr3 */
-+	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	__flush_tlb();
- 
- 	/* Save MTRR state */
-@@ -696,6 +697,7 @@ static void prepare_set(void) __acquires
- static void post_set(void) __releases(set_atomicity_lock)
- {
- 	/* Flush TLBs (no need to flush caches - they are disabled) */
-+	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	__flush_tlb();
- 
- 	/* Intel (P6) standard MTRRs */
-diff -puN arch/x86/mm/tlb.c~mm-vmstats-track-tlb-flush-stats-on-up-too arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~mm-vmstats-track-tlb-flush-stats-on-up-too
-+++ a/arch/x86/mm/tlb.c
-@@ -280,10 +280,8 @@ static void do_kernel_range_flush(void *
- 	unsigned long addr;
- 
- 	/* flush range by one by one 'invlpg' */
--	for (addr = f->flush_start; addr < f->flush_end; addr += PAGE_SIZE) {
--		count_vm_event(NR_TLB_LOCAL_FLUSH_ONE_KERNEL);
-+	for (addr = f->flush_start; addr < f->flush_end; addr += PAGE_SIZE)
- 		__flush_tlb_single(addr);
--	}
- }
- 
- void flush_tlb_kernel_range(unsigned long start, unsigned long end)
-diff -puN include/linux/vm_event_item.h~mm-vmstats-track-tlb-flush-stats-on-up-too include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-vmstats-track-tlb-flush-stats-on-up-too
-+++ a/include/linux/vm_event_item.h
-@@ -70,11 +70,12 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		THP_ZERO_PAGE_ALLOC,
- 		THP_ZERO_PAGE_ALLOC_FAILED,
- #endif
-+#ifdef CONFIG_SMP
- 		NR_TLB_REMOTE_FLUSH,	/* cpu tried to flush others' tlbs */
- 		NR_TLB_REMOTE_FLUSH_RECEIVED,/* cpu received ipi for flush */
-+#endif
- 		NR_TLB_LOCAL_FLUSH_ALL,
- 		NR_TLB_LOCAL_FLUSH_ONE,
--		NR_TLB_LOCAL_FLUSH_ONE_KERNEL,
- 		NR_VM_EVENT_ITEMS
- };
- 
-diff -puN mm/vmstat.c~mm-vmstats-track-tlb-flush-stats-on-up-too mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstats-track-tlb-flush-stats-on-up-too
-+++ a/mm/vmstat.c
-@@ -817,11 +817,12 @@ const char * const vmstat_text[] = {
- 	"thp_zero_page_alloc",
- 	"thp_zero_page_alloc_failed",
- #endif
-+#ifdef CONFIG_SMP
- 	"nr_tlb_remote_flush",
- 	"nr_tlb_remote_flush_received",
-+#endif
- 	"nr_tlb_local_flush_all",
- 	"nr_tlb_local_flush_one",
--	"nr_tlb_local_flush_one_kernel",
- 
- #endif /* CONFIG_VM_EVENTS_COUNTERS */
- };
+-/* "_up" is for UniProcessor
++/* "_up" is for UniProcessor.
+  *
+- * This is a helper for other header functions.  *Not*
+- * intended to be called directly.  All global TLB
+- * flushes need to either call this, or do the bump the
++ * This is a helper for other header functions.  *Not* intended to be called
++ * directly.  All global TLB flushes need to either call this, or to bump the
+  * vm statistics themselves.
+  */
+ static inline void __flush_tlb_up(void)
 _
 
-Patches currently in -mm which might be from dave@sr71.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmstats-tlb-flush-counters.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
 mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-mm-hotplug-x86-disable-arch_memory_probe-by-default.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
