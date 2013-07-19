@@ -1,85 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ssb-fix-alignment-of-struct-bcma_device_id.patch removed from -mm tree
-Date: Fri, 19 Jul 2013 12:11:30 -0700
-Message-ID: <51e98f62.LFs2WqU4NVFtxeZm%akpm@linux-foundation.org>
+Subject: + ipcshm-shorten-critical-region-in-shmctl_down-fix.patch added
+ to -mm tree
+Date: Fri, 19 Jul 2013 12:31:45 -0700
+Message-ID: <51e99421.OwqB6mj1BNd1Ut7o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926Ab3GSTLb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 15:11:31 -0400
+	with ESMTP id S1751354Ab3GSTbq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 15:31:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mb@bu3sch.de, linville@tuxdriver.com, linux@arm.linux.org.uk, Larry.Finger@lwfinger.net, arnd@arndb.de
+To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, sasha.levin@oracle.com
 
-Subject: [merged] ssb-fix-alignment-of-struct-bcma_device_id.patch removed from -mm tree
-To: arnd@arndb.de,Larry.Finger@lwfinger.net,linux@arm.linux.org.uk,linville@tuxdriver.com,mb@bu3sch.de,mm-commits@vger.kernel.org
+Subject: + ipcshm-shorten-critical-region-in-shmctl_down-fix.patch added to -mm tree
+To: sasha.levin@oracle.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 19 Jul 2013 12:11:30 -0700
+Date: Fri, 19 Jul 2013 12:31:45 -0700
 
 
 The patch titled
-     Subject: ssb: fix alignment of struct bcma_device_id
-has been removed from the -mm tree.  Its filename was
-     ssb-fix-alignment-of-struct-bcma_device_id.patch
+     Subject: ipc,shm: dont leave do_shmat with rcu lock held
+has been added to the -mm tree.  Its filename is
+     ipcshm-shorten-critical-region-in-shmctl_down-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-shorten-critical-region-in-shmctl_down-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-shorten-critical-region-in-shmctl_down-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: ssb: fix alignment of struct bcma_device_id
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: ipc,shm: dont leave do_shmat with rcu lock held
 
-The ARM OABI and EABI disagree on the alignment of structures with small
-members, so module init tools may interpret the ssb device table
-incorrectly, as shown by this warning when building the b43 device driver
-in an OABI kernel:
+Commit "ipc,shm: shorten critical region for shmat" had an issue that allowed
+us to exit do_shmat() without releasing the rcu lock that was taken previously
+in the function.
 
-FATAL: drivers/net/wireless/b43/b43: sizeof(struct ssb_device_id)=6 is not
-a modulo of the size of section __mod_ssb_device_table=88.
-
-Forcing the default (EABI) alignment on the structure makes this problem
-go away.  Since the ssb_device_id may have the same problem, better fix
-both structures.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mod_devicetable.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ ipc/shm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mod_devicetable.h~ssb-fix-alignment-of-struct-bcma_device_id include/linux/mod_devicetable.h
---- a/include/linux/mod_devicetable.h~ssb-fix-alignment-of-struct-bcma_device_id
-+++ a/include/linux/mod_devicetable.h
-@@ -361,7 +361,8 @@ struct ssb_device_id {
- 	__u16	vendor;
- 	__u16	coreid;
- 	__u8	revision;
--};
-+	__u8	__pad;
-+} __attribute__((packed, aligned(2)));
- #define SSB_DEVICE(_vendor, _coreid, _revision)  \
- 	{ .vendor = _vendor, .coreid = _coreid, .revision = _revision, }
- #define SSB_DEVTABLE_END  \
-@@ -377,7 +378,7 @@ struct bcma_device_id {
- 	__u16	id;
- 	__u8	rev;
- 	__u8	class;
--};
-+} __attribute__((packed,aligned(2)));
- #define BCMA_CORE(_manuf, _id, _rev, _class)  \
- 	{ .manuf = _manuf, .id = _id, .rev = _rev, .class = _class, }
- #define BCMA_CORETABLE_END  \
+diff -puN ipc/shm.c~ipcshm-shorten-critical-region-in-shmctl_down-fix ipc/shm.c
+--- a/ipc/shm.c~ipcshm-shorten-critical-region-in-shmctl_down-fix
++++ a/ipc/shm.c
+@@ -1062,7 +1062,7 @@ long do_shmat(int shmid, char __user *sh
+ 	shp = shm_lock_check(ns, shmid);
+ 	if (IS_ERR(shp)) {
+ 		err = PTR_ERR(shp);
+-		goto out;
++		goto out_unlock;
+ 	}
+ 
+ 	err = -EACCES;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
+watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
+ipcshm-shorten-critical-region-in-shmctl_down-fix.patch
 linux-next.patch
 
