@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-replace-strict_strtoul-with-kstrtoul.patch added to -mm tree
-Date: Fri, 19 Jul 2013 15:02:06 -0700
-Message-ID: <51e9b75e.eQ42vSCVvOU5v2lf%akpm@linux-foundation.org>
+Subject: + lib-crc32-update-the-comments-of-crc32_bele_generic.patch added to -mm tree
+Date: Fri, 19 Jul 2013 15:14:41 -0700
+Message-ID: <51e9ba51.C4gVprk7Lkh9LLIw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52301 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52419 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084Ab3GSWCG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 18:02:06 -0400
+	with ESMTP id S1753090Ab3GSWOm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 18:14:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, guz.fnst@cn.fujitsu.com
 
-Subject: + mm-replace-strict_strtoul-with-kstrtoul.patch added to -mm tree
-To: jg1.han@samsung.com
+Subject: + lib-crc32-update-the-comments-of-crc32_bele_generic.patch added to -mm tree
+To: guz.fnst@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Fri, 19 Jul 2013 15:02:06 -0700
+Date: Fri, 19 Jul 2013 15:14:41 -0700
 
 
 The patch titled
-     Subject: mm: replace strict_strtoul() with kstrtoul()
+     Subject: lib/crc32: update the comments of, crc32_{be,le}_generic()
 has been added to the -mm tree.  Its filename is
-     mm-replace-strict_strtoul-with-kstrtoul.patch
+     lib-crc32-update-the-comments-of-crc32_bele_generic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-strict_strtoul-with-kstrtoul.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-crc32-update-the-comments-of-crc32_bele_generic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-strict_strtoul-with-kstrtoul.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-crc32-update-the-comments-of-crc32_bele_generic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,170 +43,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: mm: replace strict_strtoul() with kstrtoul()
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: lib/crc32: update the comments of, crc32_{be,le}_generic()
 
-The use of strict_strtoul() is not preferred, because strict_strtoul() is
-obsolete.  Thus, kstrtoul() should be used.
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 ++++----
- mm/hugetlb.c     |    4 ++--
- mm/kmemleak.c    |    2 +-
- mm/ksm.c         |    6 +++---
- mm/slub.c        |    8 ++++----
- 5 files changed, 14 insertions(+), 14 deletions(-)
+ lib/crc32.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-replace-strict_strtoul-with-kstrtoul mm/huge_memory.c
---- a/mm/huge_memory.c~mm-replace-strict_strtoul-with-kstrtoul
-+++ a/mm/huge_memory.c
-@@ -417,7 +417,7 @@ static ssize_t scan_sleep_millisecs_stor
- 	unsigned long msecs;
- 	int err;
+diff -puN lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic lib/crc32.c
+--- a/lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic
++++ a/lib/crc32.c
+@@ -131,11 +131,14 @@ crc32_body(u32 crc, unsigned char const
+ #endif
  
--	err = strict_strtoul(buf, 10, &msecs);
-+	err = kstrtoul(buf, 10, &msecs);
- 	if (err || msecs > UINT_MAX)
- 		return -EINVAL;
+ /**
+- * crc32_le() - Calculate bitwise little-endian Ethernet AUTODIN II CRC32
++ * crc32_le_generic() - Calculate bitwise little-endian Ethernet AUTODIN II
++ * 			CRC32/CRC32C
+  * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for
+- *	other uses, or the previous crc32 value if computing incrementally.
+- * @p: pointer to buffer over which CRC is run
++ *	other uses, or the previous crc32/crc32c value if computing incrementally.
++ * @p: pointer to buffer over which CRC32/CRC32C is run
+  * @len: length of buffer @p
++ * @tab: little-endian Ethernet table
++ * @polynomial: CRC32/CRC32c LE polynomial
+  */
+ static inline u32 __pure crc32_le_generic(u32 crc, unsigned char const *p,
+ 					  size_t len, const u32 (*tab)[256],
+@@ -201,11 +204,13 @@ EXPORT_SYMBOL(crc32_le);
+ EXPORT_SYMBOL(__crc32c_le);
  
-@@ -444,7 +444,7 @@ static ssize_t alloc_sleep_millisecs_sto
- 	unsigned long msecs;
- 	int err;
- 
--	err = strict_strtoul(buf, 10, &msecs);
-+	err = kstrtoul(buf, 10, &msecs);
- 	if (err || msecs > UINT_MAX)
- 		return -EINVAL;
- 
-@@ -470,7 +470,7 @@ static ssize_t pages_to_scan_store(struc
- 	int err;
- 	unsigned long pages;
- 
--	err = strict_strtoul(buf, 10, &pages);
-+	err = kstrtoul(buf, 10, &pages);
- 	if (err || !pages || pages > UINT_MAX)
- 		return -EINVAL;
- 
-@@ -538,7 +538,7 @@ static ssize_t khugepaged_max_ptes_none_
- 	int err;
- 	unsigned long max_ptes_none;
- 
--	err = strict_strtoul(buf, 10, &max_ptes_none);
-+	err = kstrtoul(buf, 10, &max_ptes_none);
- 	if (err || max_ptes_none > HPAGE_PMD_NR-1)
- 		return -EINVAL;
- 
-diff -puN mm/hugetlb.c~mm-replace-strict_strtoul-with-kstrtoul mm/hugetlb.c
---- a/mm/hugetlb.c~mm-replace-strict_strtoul-with-kstrtoul
-+++ a/mm/hugetlb.c
-@@ -1526,7 +1526,7 @@ static ssize_t nr_hugepages_store_common
- 	struct hstate *h;
- 	NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | __GFP_NORETRY);
- 
--	err = strict_strtoul(buf, 10, &count);
-+	err = kstrtoul(buf, 10, &count);
- 	if (err)
- 		goto out;
- 
-@@ -1617,7 +1617,7 @@ static ssize_t nr_overcommit_hugepages_s
- 	if (h->order >= MAX_ORDER)
- 		return -EINVAL;
- 
--	err = strict_strtoul(buf, 10, &input);
-+	err = kstrtoul(buf, 10, &input);
- 	if (err)
- 		return err;
- 
-diff -puN mm/kmemleak.c~mm-replace-strict_strtoul-with-kstrtoul mm/kmemleak.c
---- a/mm/kmemleak.c~mm-replace-strict_strtoul-with-kstrtoul
-+++ a/mm/kmemleak.c
-@@ -1639,7 +1639,7 @@ static ssize_t kmemleak_write(struct fil
- 	else if (strncmp(buf, "scan=", 5) == 0) {
- 		unsigned long secs;
- 
--		ret = strict_strtoul(buf + 5, 0, &secs);
-+		ret = kstrtoul(buf + 5, 0, &secs);
- 		if (ret < 0)
- 			goto out;
- 		stop_scan_thread();
-diff -puN mm/ksm.c~mm-replace-strict_strtoul-with-kstrtoul mm/ksm.c
---- a/mm/ksm.c~mm-replace-strict_strtoul-with-kstrtoul
-+++ a/mm/ksm.c
-@@ -2194,7 +2194,7 @@ static ssize_t sleep_millisecs_store(str
- 	unsigned long msecs;
- 	int err;
- 
--	err = strict_strtoul(buf, 10, &msecs);
-+	err = kstrtoul(buf, 10, &msecs);
- 	if (err || msecs > UINT_MAX)
- 		return -EINVAL;
- 
-@@ -2217,7 +2217,7 @@ static ssize_t pages_to_scan_store(struc
- 	int err;
- 	unsigned long nr_pages;
- 
--	err = strict_strtoul(buf, 10, &nr_pages);
-+	err = kstrtoul(buf, 10, &nr_pages);
- 	if (err || nr_pages > UINT_MAX)
- 		return -EINVAL;
- 
-@@ -2239,7 +2239,7 @@ static ssize_t run_store(struct kobject
- 	int err;
- 	unsigned long flags;
- 
--	err = strict_strtoul(buf, 10, &flags);
-+	err = kstrtoul(buf, 10, &flags);
- 	if (err || flags > UINT_MAX)
- 		return -EINVAL;
- 	if (flags > KSM_RUN_UNMERGE)
-diff -puN mm/slub.c~mm-replace-strict_strtoul-with-kstrtoul mm/slub.c
---- a/mm/slub.c~mm-replace-strict_strtoul-with-kstrtoul
-+++ a/mm/slub.c
-@@ -4423,7 +4423,7 @@ static ssize_t order_store(struct kmem_c
- 	unsigned long order;
- 	int err;
- 
--	err = strict_strtoul(buf, 10, &order);
-+	err = kstrtoul(buf, 10, &order);
- 	if (err)
- 		return err;
- 
-@@ -4451,7 +4451,7 @@ static ssize_t min_partial_store(struct
- 	unsigned long min;
- 	int err;
- 
--	err = strict_strtoul(buf, 10, &min);
-+	err = kstrtoul(buf, 10, &min);
- 	if (err)
- 		return err;
- 
-@@ -4471,7 +4471,7 @@ static ssize_t cpu_partial_store(struct
- 	unsigned long objects;
- 	int err;
- 
--	err = strict_strtoul(buf, 10, &objects);
-+	err = kstrtoul(buf, 10, &objects);
- 	if (err)
- 		return err;
- 	if (objects && !kmem_cache_has_cpu_partial(s))
-@@ -4787,7 +4787,7 @@ static ssize_t remote_node_defrag_ratio_
- 	unsigned long ratio;
- 	int err;
- 
--	err = strict_strtoul(buf, 10, &ratio);
-+	err = kstrtoul(buf, 10, &ratio);
- 	if (err)
- 		return err;
- 
+ /**
+- * crc32_be() - Calculate bitwise big-endian Ethernet AUTODIN II CRC32
++ * crc32_be_generic() - Calculate bitwise big-endian Ethernet AUTODIN II CRC32
+  * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for
+  *	other uses, or the previous crc32 value if computing incrementally.
+- * @p: pointer to buffer over which CRC is run
++ * @p: pointer to buffer over which CRC32 is run
+  * @len: length of buffer @p
++ * @tab: big-endian Ethernet table
++ * @polynomial: CRC32 BE polynomial
+  */
+ static inline u32 __pure crc32_be_generic(u32 crc, unsigned char const *p,
+ 					  size_t len, const u32 (*tab)[256],
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
 
-block-replace-strict_strtoul-with-kstrtoul.patch
-mm-replace-strict_strtoul-with-kstrtoul.patch
-drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic.patch
 linux-next.patch
 
