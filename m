@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hotplug-x86-disable-arch_memory_probe-by-default.patch added to -mm tree
-Date: Fri, 19 Jul 2013 16:04:59 -0700
-Message-ID: <51e9c61b.0U9kWVyIEB9MbFJM%akpm@linux-foundation.org>
+Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too.patch added to -mm
+ tree
+Date: Fri, 19 Jul 2013 16:16:32 -0700
+Message-ID: <51e9c8d0.xRan8PmBrPV2D7Mv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52829 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227Ab3GSXFA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 19:05:00 -0400
+	with ESMTP id S1753103Ab3GSXQd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 19:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, tangchen@cn.fujitsu.com, mingo@elte.hu, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, dave@sr71.net, toshi.kani@hp.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, dave.hansen@linux.intel.com, a.p.zijlstra@chello.nl, dave@sr71.net
 
-Subject: + mm-hotplug-x86-disable-arch_memory_probe-by-default.patch added to -mm tree
-To: toshi.kani@hp.com,dave@sr71.net,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mingo@elte.hu,tangchen@cn.fujitsu.com,tglx@linutronix.de
+Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too.patch added to -mm tree
+To: dave@sr71.net,a.p.zijlstra@chello.nl,dave.hansen@linux.intel.com,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Fri, 19 Jul 2013 16:04:59 -0700
+Date: Fri, 19 Jul 2013 16:16:32 -0700
 
 
 The patch titled
-     Subject: mm/hotplug, x86: disable ARCH_MEMORY_PROBE by default
+     Subject: mm: vmstats: track TLB flush stats on UP too
 has been added to the -mm tree.  Its filename is
-     mm-hotplug-x86-disable-arch_memory_probe-by-default.patch
+     mm-vmstats-track-tlb-flush-stats-on-up-too.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hotplug-x86-disable-arch_memory_probe-by-default.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hotplug-x86-disable-arch_memory_probe-by-default.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,93 +44,183 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm/hotplug, x86: disable ARCH_MEMORY_PROBE by default
+From: Dave Hansen <dave@sr71.net>
+Subject: mm: vmstats: track TLB flush stats on UP too
 
-CONFIG_ARCH_MEMORY_PROBE enables /sys/devices/system/memory/probe
-interface, which allows a given memory address to be hot-added as follows.
- (See Documentation/memory-hotplug.txt for more detail.)
+The previous patch doing vmstats for TLB flushes ("mm: vmstats: tlb flush
+counters") effectively missed UP since arch/x86/mm/tlb.c is only compiled
+for SMP.
 
-# echo start_address_of_new_memory > /sys/devices/system/memory/probe
+UP systems do not do remote TLB flushes, so compile those counters out on
+UP.
 
-This probe interface is required on powerpc.  On x86, however, ACPI
-notifies a memory hotplug event to the kernel, which performs its hotplug
-operation as the result.  Therefore, regular users do not need this
-interface on x86.  This probe interface is also error-prone and misleading
-that the kernel blindly adds a given memory address without checking if
-the memory is present on the system; no probing is done despite of its
-name.  The kernel crashes when a user requests to online a memory block
-that is not present on the system.  This interface is currently used for
-testing as it can fake a hotplug event.
+arch/x86/kernel/cpu/mtrr/generic.c calls __flush_tlb() directly.  This is
+probably an optimization since both the mtrr code and __flush_tlb() write
+cr4.  It would probably be safe to make that a flush_tlb_all() (and then
+get these statistics), but the mtrr code is ancient and I'm hesitant to
+touch it other than to just stick in the counters.
 
-This patch disables CONFIG_ARCH_MEMORY_PROBE by default on x86, adds its
-Kconfig menu entry on x86, and clarifies its use in Documentation/
-memory-hotplug.txt.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |   14 ++++++++------
- arch/x86/Kconfig                 |    7 ++++++-
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/tlbflush.h    |   38 ++++++++++++++++++++++-----
+ arch/x86/kernel/cpu/mtrr/generic.c |    2 +
+ arch/x86/mm/tlb.c                  |    4 --
+ include/linux/vm_event_item.h      |    3 +-
+ mm/vmstat.c                        |    3 +-
+ 5 files changed, 39 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/memory-hotplug.txt~mm-hotplug-x86-disable-arch_memory_probe-by-default Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~mm-hotplug-x86-disable-arch_memory_probe-by-default
-+++ a/Documentation/memory-hotplug.txt
-@@ -210,13 +210,15 @@ If memory device is found, memory hotplu
+diff -puN arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too arch/x86/include/asm/tlbflush.h
+--- a/arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too
++++ a/arch/x86/include/asm/tlbflush.h
+@@ -62,6 +62,7 @@ static inline void __flush_tlb_all(void)
  
- 4.2 Notify memory hot-add event by hand
- ------------
--In some environments, especially virtualized environment, firmware will not
--notify memory hotplug event to the kernel. For such environment, "probe"
--interface is supported. This interface depends on CONFIG_ARCH_MEMORY_PROBE.
-+On powerpc, the firmware does not notify a memory hotplug event to the kernel.
-+Therefore, "probe" interface is supported to notify the event to the kernel.
-+This interface depends on CONFIG_ARCH_MEMORY_PROBE.
+ static inline void __flush_tlb_one(unsigned long addr)
+ {
++	count_vm_event(NR_TLB_LOCAL_FLUSH_ONE);
+ 	__flush_tlb_single(addr);
+ }
  
--Now, CONFIG_ARCH_MEMORY_PROBE is supported only by powerpc but it does not
--contain highly architecture codes. Please add config if you need "probe"
--interface.
-+CONFIG_ARCH_MEMORY_PROBE is supported on powerpc only. On x86, this config
-+option is disabled by default since ACPI notifies a memory hotplug event to
-+the kernel, which performs its hotplug operation as the result. Please
-+enable this option if you need the "probe" interface for testing purposes
-+on x86.
+@@ -84,14 +85,39 @@ static inline void __flush_tlb_one(unsig
  
- Probe interface is located at
- /sys/devices/system/memory/probe
-diff -puN arch/x86/Kconfig~mm-hotplug-x86-disable-arch_memory_probe-by-default arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-hotplug-x86-disable-arch_memory_probe-by-default
-+++ a/arch/x86/Kconfig
-@@ -1344,8 +1344,13 @@ config ARCH_SELECT_MEMORY_MODEL
- 	depends on ARCH_SPARSEMEM_ENABLE
+ #ifndef CONFIG_SMP
  
- config ARCH_MEMORY_PROBE
--	def_bool y
-+	bool "Enable sysfs memory/probe interface"
-+	default n
- 	depends on X86_64 && MEMORY_HOTPLUG
-+	help
-+	  This option enables a sysfs memory/probe interface for testing.
-+	  See Documentation/memory-hotplug.txt for more information.
-+	  If you are unsure how to answer this question, answer N.
+-#define flush_tlb() __flush_tlb()
+-#define flush_tlb_all() __flush_tlb_all()
+-#define local_flush_tlb() __flush_tlb()
++/* "_up" is for UniProcessor
++ *
++ * This is a helper for other header functions.  *Not*
++ * intended to be called directly.  All global TLB
++ * flushes need to either call this, or do the bump the
++ * vm statistics themselves.
++ */
++static inline void __flush_tlb_up(void)
++{
++	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
++	__flush_tlb();
++}
++
++static inline void flush_tlb_all(void)
++{
++	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
++	__flush_tlb_all();
++}
++
++static inline void flush_tlb(void)
++{
++	__flush_tlb_up();
++}
++
++static inline void local_flush_tlb(void)
++{
++	__flush_tlb_up();
++}
  
- config ARCH_PROC_KCORE_TEXT
- 	def_bool y
+ static inline void flush_tlb_mm(struct mm_struct *mm)
+ {
+ 	if (mm == current->active_mm)
+-		__flush_tlb();
++		__flush_tlb_up();
+ }
+ 
+ static inline void flush_tlb_page(struct vm_area_struct *vma,
+@@ -105,14 +131,14 @@ static inline void flush_tlb_range(struc
+ 				   unsigned long start, unsigned long end)
+ {
+ 	if (vma->vm_mm == current->active_mm)
+-		__flush_tlb();
++		__flush_tlb_up();
+ }
+ 
+ static inline void flush_tlb_mm_range(struct mm_struct *mm,
+ 	   unsigned long start, unsigned long end, unsigned long vmflag)
+ {
+ 	if (mm == current->active_mm)
+-		__flush_tlb();
++		__flush_tlb_up();
+ }
+ 
+ static inline void native_flush_tlb_others(const struct cpumask *cpumask,
+diff -puN arch/x86/kernel/cpu/mtrr/generic.c~mm-vmstats-track-tlb-flush-stats-on-up-too arch/x86/kernel/cpu/mtrr/generic.c
+--- a/arch/x86/kernel/cpu/mtrr/generic.c~mm-vmstats-track-tlb-flush-stats-on-up-too
++++ a/arch/x86/kernel/cpu/mtrr/generic.c
+@@ -683,6 +683,7 @@ static void prepare_set(void) __acquires
+ 	}
+ 
+ 	/* Flush all TLBs via a mov %cr3, %reg; mov %reg, %cr3 */
++	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
+ 	__flush_tlb();
+ 
+ 	/* Save MTRR state */
+@@ -696,6 +697,7 @@ static void prepare_set(void) __acquires
+ static void post_set(void) __releases(set_atomicity_lock)
+ {
+ 	/* Flush TLBs (no need to flush caches - they are disabled) */
++	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
+ 	__flush_tlb();
+ 
+ 	/* Intel (P6) standard MTRRs */
+diff -puN arch/x86/mm/tlb.c~mm-vmstats-track-tlb-flush-stats-on-up-too arch/x86/mm/tlb.c
+--- a/arch/x86/mm/tlb.c~mm-vmstats-track-tlb-flush-stats-on-up-too
++++ a/arch/x86/mm/tlb.c
+@@ -280,10 +280,8 @@ static void do_kernel_range_flush(void *
+ 	unsigned long addr;
+ 
+ 	/* flush range by one by one 'invlpg' */
+-	for (addr = f->flush_start; addr < f->flush_end; addr += PAGE_SIZE) {
+-		count_vm_event(NR_TLB_LOCAL_FLUSH_ONE_KERNEL);
++	for (addr = f->flush_start; addr < f->flush_end; addr += PAGE_SIZE)
+ 		__flush_tlb_single(addr);
+-	}
+ }
+ 
+ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
+diff -puN include/linux/vm_event_item.h~mm-vmstats-track-tlb-flush-stats-on-up-too include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-vmstats-track-tlb-flush-stats-on-up-too
++++ a/include/linux/vm_event_item.h
+@@ -70,11 +70,12 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_ZERO_PAGE_ALLOC,
+ 		THP_ZERO_PAGE_ALLOC_FAILED,
+ #endif
++#ifdef CONFIG_SMP
+ 		NR_TLB_REMOTE_FLUSH,	/* cpu tried to flush others' tlbs */
+ 		NR_TLB_REMOTE_FLUSH_RECEIVED,/* cpu received ipi for flush */
++#endif
+ 		NR_TLB_LOCAL_FLUSH_ALL,
+ 		NR_TLB_LOCAL_FLUSH_ONE,
+-		NR_TLB_LOCAL_FLUSH_ONE_KERNEL,
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
+diff -puN mm/vmstat.c~mm-vmstats-track-tlb-flush-stats-on-up-too mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstats-track-tlb-flush-stats-on-up-too
++++ a/mm/vmstat.c
+@@ -817,11 +817,12 @@ const char * const vmstat_text[] = {
+ 	"thp_zero_page_alloc",
+ 	"thp_zero_page_alloc_failed",
+ #endif
++#ifdef CONFIG_SMP
+ 	"nr_tlb_remote_flush",
+ 	"nr_tlb_remote_flush_received",
++#endif
+ 	"nr_tlb_local_flush_all",
+ 	"nr_tlb_local_flush_one",
+-	"nr_tlb_local_flush_one_kernel",
+ 
+ #endif /* CONFIG_VM_EVENTS_COUNTERS */
+ };
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from dave@sr71.net are
 
-origin.patch
+mm-vmstats-tlb-flush-counters.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
 mm-hotplug-x86-disable-arch_memory_probe-by-default.patch
-linux-next.patch
 
