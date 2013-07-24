@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-gpio-vt8500-remove-file-pattern.patch added to -mm
- tree
-Date: Wed, 24 Jul 2013 13:16:28 -0700
-Message-ID: <51f0361c.USG2DH0FGPKEUQYc%akpm@linux-foundation.org>
+Subject: + maintainers-update-ssbi-patterns.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:33 -0700
+Message-ID: <51f03621.z+/cF9cyxKGQXHHF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54308 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752788Ab3GXUQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:29 -0400
+	with ESMTP id S1753500Ab3GXUQe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux@prisktech.co.nz, linus.walleij@linaro.org, joe@perches.com
+To: mm-commits@vger.kernel.org, sameo@linux.intel.com, arnd@arndb.de, joe@perches.com
 
-Subject: + maintainers-gpio-vt8500-remove-file-pattern.patch added to -mm tree
-To: joe@perches.com,linus.walleij@linaro.org,linux@prisktech.co.nz
+Subject: + maintainers-update-ssbi-patterns.patch added to -mm tree
+To: joe@perches.com,arnd@arndb.de,sameo@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:28 -0700
+Date: Wed, 24 Jul 2013 13:16:33 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: gpio: vt8500: remove file pattern
+     Subject: MAINTAINERS: update ssbi patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-gpio-vt8500-remove-file-pattern.patch
+     maintainers-update-ssbi-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-gpio-vt8500-remove-file-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-ssbi-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-gpio-vt8500-remove-file-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-ssbi-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,31 +44,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: gpio: vt8500: remove file pattern
+Subject: MAINTAINERS: update ssbi patterns
 
-Commit dc1010860b ("gpio: vt8500: Remove arch-vt8500 gpio driver") removed
-the file, remove the pattern.
+Commit 45fcac1aad5 ("mfd: Move ssbi driver into drivers/mfd") move the
+files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Tony Prisk <linux@prisktech.co.nz>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-gpio-vt8500-remove-file-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-gpio-vt8500-remove-file-pattern
+diff -puN MAINTAINERS~maintainers-update-ssbi-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-ssbi-patterns
 +++ a/MAINTAINERS
-@@ -1292,7 +1292,6 @@ L:	linux-arm-kernel@lists.infradead.org
+@@ -1044,7 +1044,7 @@ F:	drivers/mmc/host/msm_sdcc.h
+ F:	drivers/tty/serial/msm_serial.h
+ F:	drivers/tty/serial/msm_serial.c
+ F:	drivers/*/pm8???-*
+-F:	drivers/ssbi/
++F:	drivers/mfd/ssbi/
+ F:	include/linux/mfd/pm8xxx/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davidb/linux-msm.git
  S:	Maintained
- F:	arch/arm/mach-vt8500/
- F:	drivers/clocksource/vt8500_timer.c
--F:	drivers/gpio/gpio-vt8500.c
- F:	drivers/i2c/busses/i2c-wmt.c
- F:	drivers/mmc/host/wmt-sdmmc.c
- F:	drivers/pwm/pwm-vt8500.c
 _
 
 Patches currently in -mm which might be from joe@perches.com are
