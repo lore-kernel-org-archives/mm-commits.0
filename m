@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-drop-ipc_lock_by_ptr.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:23:28 -0700
-Message-ID: <51f037c0.Jwcqus97lYJ98PXd%akpm@linux-foundation.org>
+Subject: + ipc-shm-drop-shm_lock_check.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:23:29 -0700
+Message-ID: <51f037c1.7Ti0djVm4UfR5c8U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54431 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751189Ab3GXUX3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:23:29 -0400
+	with ESMTP id S1751189Ab3GXUXa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:23:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
 
-Subject: + ipc-drop-ipc_lock_by_ptr.patch added to -mm tree
+Subject: + ipc-shm-drop-shm_lock_check.patch added to -mm tree
 To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:23:28 -0700
+Date: Wed, 24 Jul 2013 13:23:29 -0700
 
 
 The patch titled
-     Subject: ipc: drop ipc_lock_by_ptr
+     Subject: ipc, shm: drop shm_lock_check
 has been added to the -mm tree.  Its filename is
-     ipc-drop-ipc_lock_by_ptr.patch
+     ipc-shm-drop-shm_lock_check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-drop-ipc_lock_by_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-drop-shm_lock_check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-drop-ipc_lock_by_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-drop-shm_lock_check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,11 +44,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc: drop ipc_lock_by_ptr
+Subject: ipc, shm: drop shm_lock_check
 
-After previous cleanups and optimizations, this function is no longer
-heavily used and we don't have a good reason to keep it.  Update the few
-remaining callers and get rid of it.
+This function was replaced by a the lockless shm_obtain_object_check(),
+and no longer has any users.
 
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Cc: Sedat Dilek <sedat.dilek@gmail.com>
@@ -57,63 +56,30 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/namespace.c |    3 ++-
- ipc/util.c      |    6 ++++--
- ipc/util.h      |    6 ------
- 3 files changed, 6 insertions(+), 9 deletions(-)
+ ipc/shm.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN ipc/namespace.c~ipc-drop-ipc_lock_by_ptr ipc/namespace.c
---- a/ipc/namespace.c~ipc-drop-ipc_lock_by_ptr
-+++ a/ipc/namespace.c
-@@ -89,7 +89,8 @@ void free_ipcs(struct ipc_namespace *ns,
- 		perm = idr_find(&ids->ipcs_idr, next_id);
- 		if (perm == NULL)
- 			continue;
--		ipc_lock_by_ptr(perm);
-+		rcu_read_lock();
-+		ipc_lock_object(perm);
- 		free(ns, perm);
- 		total++;
- 	}
-diff -puN ipc/util.c~ipc-drop-ipc_lock_by_ptr ipc/util.c
---- a/ipc/util.c~ipc-drop-ipc_lock_by_ptr
-+++ a/ipc/util.c
-@@ -205,7 +205,8 @@ static struct kern_ipc_perm *ipc_findkey
- 			continue;
- 		}
- 
--		ipc_lock_by_ptr(ipc);
-+		rcu_read_lock();
-+		ipc_lock_object(ipc);
- 		return ipc;
- 	}
- 
-@@ -838,7 +839,8 @@ static struct kern_ipc_perm *sysvipc_fin
- 		ipc = idr_find(&ids->ipcs_idr, pos);
- 		if (ipc != NULL) {
- 			*new_pos = pos + 1;
--			ipc_lock_by_ptr(ipc);
-+			rcu_read_lock();
-+			ipc_lock_object(ipc);
- 			return ipc;
- 		}
- 	}
-diff -puN ipc/util.h~ipc-drop-ipc_lock_by_ptr ipc/util.h
---- a/ipc/util.h~ipc-drop-ipc_lock_by_ptr
-+++ a/ipc/util.h
-@@ -171,12 +171,6 @@ static inline void ipc_assert_locked_obj
- 	assert_spin_locked(&perm->lock);
+diff -puN ipc/shm.c~ipc-shm-drop-shm_lock_check ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-drop-shm_lock_check
++++ a/ipc/shm.c
+@@ -167,17 +167,6 @@ static inline void shm_lock_by_ptr(struc
+ 	ipc_lock_object(&ipcp->shm_perm);
  }
  
--static inline void ipc_lock_by_ptr(struct kern_ipc_perm *perm)
+-static inline struct shmid_kernel *shm_lock_check(struct ipc_namespace *ns,
+-						int id)
 -{
--	rcu_read_lock();
--	ipc_lock_object(perm);
+-	struct kern_ipc_perm *ipcp = ipc_lock_check(&shm_ids(ns), id);
+-
+-	if (IS_ERR(ipcp))
+-		return (struct shmid_kernel *)ipcp;
+-
+-	return container_of(ipcp, struct shmid_kernel, shm_perm);
 -}
 -
- static inline void ipc_unlock(struct kern_ipc_perm *perm)
+ static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
  {
- 	ipc_unlock_object(perm);
+ 	ipc_rmid(&shm_ids(ns), &s->shm_perm);
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
