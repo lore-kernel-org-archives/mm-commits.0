@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + swap-make-cluster-allocation-per-cpu.patch added to -mm tree
-Date: Wed, 24 Jul 2013 14:36:09 -0700
-Message-ID: <51f048c9.Be6YaB6hYp07wOBv%akpm@linux-foundation.org>
+Subject: + swap-make-swap-discard-async-checkpatch-fixes.patch added to
+ -mm tree
+Date: Wed, 24 Jul 2013 14:37:49 -0700
+Message-ID: <51f0492d.Zyssg73YRhD3WJGt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55125 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187Ab3GXVgK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:36:10 -0400
+	with ESMTP id S1753048Ab3GXVhu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:37:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shli@fusionio.com, riel@redhat.com, minchan@kernel.org, kmpark@infradead.org, hughd@google.com, aquini@redhat.com, shli@kernel.org
+To: mm-commits@vger.kernel.org, shli@kernel.org, akpm@linux-foundation.org
 
-Subject: + swap-make-cluster-allocation-per-cpu.patch added to -mm tree
-To: shli@kernel.org,aquini@redhat.com,hughd@google.com,kmpark@infradead.org,minchan@kernel.org,riel@redhat.com,shli@fusionio.com
+Subject: + swap-make-swap-discard-async-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,shli@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 14:36:09 -0700
+Date: Wed, 24 Jul 2013 14:37:49 -0700
 
 
 The patch titled
-     Subject: swap: make cluster allocation per-cpu
+     Subject: swap-make-swap-discard-async-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     swap-make-cluster-allocation-per-cpu.patch
+     swap-make-swap-discard-async-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-make-cluster-allocation-per-cpu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-make-swap-discard-async-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-make-cluster-allocation-per-cpu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-make-swap-discard-async-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,290 +44,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shli@kernel.org>
-Subject: swap: make cluster allocation per-cpu
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: swap-make-swap-discard-async-checkpatch-fixes
 
-swap cluster allocation is to get better request merge to improve
-performance.  But the cluster is shared globally, if multiple tasks are
-doing swap, this will cause interleave disk access.  While multiple tasks
-swap is quite common, for example, each numa node has a kswapd thread
-doing swap and multiple threads/processes doing direct page reclaim.
+WARNING: line over 80 characters
+#81: FILE: include/linux/swap.h:243:
++	struct swap_cluster_info discard_cluster_head; /* list head of discard clusters */
 
-ioscheduler can't help too much here, because tasks don't send swapout IO
-down to block layer in the meantime.  Block layer does merge some IOs, but
-a lot not, depending on how many tasks are doing swapout concurrently.  In
-practice, I've seen a lot of small size IO in swapout workloads.
+WARNING: line over 80 characters
+#82: FILE: include/linux/swap.h:244:
++	struct swap_cluster_info discard_cluster_tail; /* list tail of discard clusters */
 
-We makes the cluster allocation per-cpu here.  The interleave disk access
-issue goes away.  All tasks swapout to their own cluster, so swapout will
-become sequential, which can be easily merged to big size IO.  If one CPU
-can't get its per-cpu cluster (for example, there is no free cluster
-anymore in the swap), it will fallback to scan swap_map.  The CPU can
-still continue swap.  We don't need recycle free swap entries of other
-CPUs.
+ERROR: space prohibited before that '--' (ctx:WxO)
+#255: FILE: mm/swapfile.c:449:
++				si->cluster_nr --;
+ 				               ^
 
-In my test (swap to a 2-disk raid0 partition), this improves around 10%
-swapout throughput, and request size is increased significantly.
+total: 1 errors, 2 warnings, 310 lines checked
 
-How does this impact swap readahead is uncertain though.  On one side,
-page reclaim always isolates and swaps several adjancent pages, this will
-make page reclaim write the pages sequentially and benefit readahead.  On
-the other side, several CPU write pages interleave means the pages don't
-live _sequentially_ but relatively _near_.  In the per-cpu allocation
-case, if adjancent pages are written by different cpus, they will live
-relatively _far_.  So how this impacts swap readahead depends on how many
-pages page reclaim isolates and swaps one time.  If the number is big,
-this patch will benefit swap readahead.  Of course, this is about
-sequential access pattern.  The patch has no impact for random access
-pattern, because the new cluster allocation algorithm is just for SSD.
+./patches/swap-make-swap-discard-async.patch has style problems, please review.
 
-Alternative solution is organizing swap layout to be per-mm instead of
-this per-cpu approach.  In the per-mm layout, we allocate a disk range for
-each mm, so pages of one mm live in swap disk adjacently.  per-mm layout
-has potential issues of lock contention if multiple reclaimers are swap
-pages from one mm.  For a sequential workload, per-mm layout is better to
-implement swap readahead, because pages from the mm are adjacent in disk. 
-But per-cpu layout isn't very bad in this workload, as page reclaim always
-isolates and swaps several pages one time, such pages will still live in
-disk sequentially and readahead can utilize this.  For a random workload,
-per-mm layout isn't beneficial of request merge, because it's quite
-possible pages from different mm are swapout in the meantime and IO can't
-be merged in per-mm layout.  while with per-cpu layout we can merge
-requests from any mm.  Considering random workload is more popular in
-workloads with swap (and per-cpu approach isn't too bad for sequential
-workload too), I'm choosing per-cpu layout.
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
-Signed-off-by: Shaohua Li <shli@fusionio.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Kyungmin Park <kmpark@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Please run checkpatch prior to sending patches
+
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   11 +++
- mm/swapfile.c        |  126 +++++++++++++++++++++++++++++------------
- 2 files changed, 103 insertions(+), 34 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~swap-make-cluster-allocation-per-cpu include/linux/swap.h
---- a/include/linux/swap.h~swap-make-cluster-allocation-per-cpu
-+++ a/include/linux/swap.h
-@@ -199,6 +199,16 @@ struct swap_cluster_info {
- #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
- 
- /*
-+ * We assign a cluster to each CPU, so each CPU can allocate swap entry from
-+ * its own cluster and swapout sequentially. The purpose is to optimize swapout
-+ * throughput.
-+ */
-+struct percpu_cluster {
-+	struct swap_cluster_info index; /* Current cluster index */
-+	unsigned int next; /* Likely next allocation offset */
-+};
-+
-+/*
-  * The in-memory structure used to track swap areas.
-  */
- struct swap_info_struct {
-@@ -217,6 +227,7 @@ struct swap_info_struct {
- 	unsigned int inuse_pages;	/* number of those currently in use */
- 	unsigned int cluster_next;	/* likely index for next allocation */
- 	unsigned int cluster_nr;	/* countdown to next cluster search */
-+	struct percpu_cluster __percpu *percpu_cluster; /* per cpu's swap location */
- 	struct swap_extent *curr_swap_extent;
- 	struct swap_extent first_swap_extent;
- 	struct block_device *bdev;	/* swap device or bdev of swap file */
-diff -puN mm/swapfile.c~swap-make-cluster-allocation-per-cpu mm/swapfile.c
---- a/mm/swapfile.c~swap-make-cluster-allocation-per-cpu
+diff -puN mm/swapfile.c~swap-make-swap-discard-async-checkpatch-fixes mm/swapfile.c
+--- a/mm/swapfile.c~swap-make-swap-discard-async-checkpatch-fixes
 +++ a/mm/swapfile.c
-@@ -392,13 +392,78 @@ static void dec_cluster_info_page(struct
-  * It's possible scan_swap_map() uses a free cluster in the middle of free
-  * cluster list. Avoiding such abuse to avoid list corruption.
-  */
--static inline bool scan_swap_map_recheck_cluster(struct swap_info_struct *si,
-+static bool
-+scan_swap_map_ssd_cluster_conflict(struct swap_info_struct *si,
- 	unsigned long offset)
- {
-+	struct percpu_cluster *percpu_cluster;
-+	bool conflict;
-+
- 	offset /= SWAPFILE_CLUSTER;
--	return !cluster_is_null(&si->free_cluster_head) &&
-+	conflict = !cluster_is_null(&si->free_cluster_head) &&
- 		offset != cluster_next(&si->free_cluster_head) &&
- 		cluster_is_free(&si->cluster_info[offset]);
-+
-+	if (!conflict)
-+		return false;
-+
-+	percpu_cluster = this_cpu_ptr(si->percpu_cluster);
-+	cluster_set_null(&percpu_cluster->index);
-+	return true;
-+}
-+
-+/*
-+ * Try to get a swap entry from current cpu's swap entry pool (a cluster). This
-+ * might involve allocating a new cluster for current CPU too.
-+ */
-+static void scan_swap_map_try_ssd_cluster(struct swap_info_struct *si,
-+	unsigned long *offset, unsigned long *scan_base)
-+{
-+	struct percpu_cluster *cluster;
-+	bool found_free;
-+	unsigned long tmp;
-+
-+new_cluster:
-+	cluster = this_cpu_ptr(si->percpu_cluster);
-+	if (cluster_is_null(&cluster->index)) {
-+		if (!cluster_is_null(&si->free_cluster_head)) {
-+			cluster->index = si->free_cluster_head;
-+			cluster->next = cluster_next(&cluster->index) *
-+					SWAPFILE_CLUSTER;
-+		} else if (!cluster_is_null(&si->discard_cluster_head)) {
-+			/*
-+			 * we don't have free cluster but have some clusters in
-+			 * discarding, do discard now and reclaim them
-+			 */
-+			swap_do_scheduled_discard(si);
-+			*scan_base = *offset = si->cluster_next;
-+			goto new_cluster;
-+		} else
-+			return;
-+	}
-+
-+	found_free = false;
-+
-+	/*
-+	 * Other CPUs can use our cluster if they can't find a free cluster,
-+	 * check if there is still free entry in the cluster
-+	 */
-+	tmp = cluster->next;
-+	while (tmp < si->max && tmp < (cluster_next(&cluster->index) + 1) *
-+	       SWAPFILE_CLUSTER) {
-+		if (!si->swap_map[tmp]) {
-+			found_free = true;
-+			break;
-+		}
-+		tmp++;
-+	}
-+	if (!found_free) {
-+		cluster_set_null(&cluster->index);
-+		goto new_cluster;
-+	}
-+	cluster->next = tmp + 1;
-+	*offset = tmp;
-+	*scan_base = tmp;
- }
- 
- static unsigned long scan_swap_map(struct swap_info_struct *si,
-@@ -423,41 +488,17 @@ static unsigned long scan_swap_map(struc
- 	si->flags += SWP_SCANNING;
- 	scan_base = offset = si->cluster_next;
- 
-+	/* SSD algorithm */
-+	if (si->cluster_info) {
-+		scan_swap_map_try_ssd_cluster(si, &offset, &scan_base);
-+		goto checks;
-+	}
-+
- 	if (unlikely(!si->cluster_nr--)) {
- 		if (si->pages - si->inuse_pages < SWAPFILE_CLUSTER) {
- 			si->cluster_nr = SWAPFILE_CLUSTER - 1;
- 			goto checks;
- 		}
--check_cluster:
--		if (!cluster_is_null(&si->free_cluster_head)) {
--			offset = cluster_next(&si->free_cluster_head) *
--						SWAPFILE_CLUSTER;
--			last_in_cluster = offset + SWAPFILE_CLUSTER - 1;
--			si->cluster_next = offset;
--			si->cluster_nr = SWAPFILE_CLUSTER - 1;
--			goto checks;
--		} else if (si->cluster_info) {
--			/*
--			 * we don't have free cluster but have some clusters in
--			 * discarding, do discard now and reclaim them
--			 */
--			if (!cluster_is_null(&si->discard_cluster_head)) {
--				si->cluster_nr = 0;
--				swap_do_scheduled_discard(si);
--				scan_base = offset = si->cluster_next;
--				if (!si->cluster_nr)
--					goto check_cluster;
+@@ -446,7 +446,7 @@ check_cluster:
+ 				scan_base = offset = si->cluster_next;
+ 				if (!si->cluster_nr)
+ 					goto check_cluster;
 -				si->cluster_nr --;
--				goto checks;
--			}
--
--			/*
--			 * Checking free cluster is fast enough, we can do the
--			 * check every time
--			 */
--			si->cluster_nr = 0;
--			goto checks;
--		}
++				si->cluster_nr--;
+ 				goto checks;
+ 			}
  
- 		spin_unlock(&si->lock);
- 
-@@ -516,8 +557,11 @@ check_cluster:
- 	}
- 
- checks:
--	if (scan_swap_map_recheck_cluster(si, offset))
--		goto check_cluster;
-+	if (si->cluster_info) {
-+		while (scan_swap_map_ssd_cluster_conflict(si, offset)) {
-+			scan_swap_map_try_ssd_cluster(si, &offset, &scan_base);
-+		}
-+	}
- 	if (!(si->flags & SWP_WRITEOK))
- 		goto no_page;
- 	if (!si->highest_bit)
-@@ -1869,6 +1913,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	spin_unlock(&swap_lock);
- 	frontswap_invalidate_area(type);
- 	mutex_unlock(&swapon_mutex);
-+	free_percpu(p->percpu_cluster);
-+	p->percpu_cluster = NULL;
- 	vfree(swap_map);
- 	vfree(cluster_info);
- 	vfree(frontswap_map);
-@@ -2388,6 +2434,16 @@ SYSCALL_DEFINE2(swapon, const char __use
- 			error = -ENOMEM;
- 			goto bad_swap;
- 		}
-+		p->percpu_cluster = alloc_percpu(struct percpu_cluster);
-+		if (!p->percpu_cluster) {
-+			error = -ENOMEM;
-+			goto bad_swap;
-+		}
-+		for_each_possible_cpu(i) {
-+			struct percpu_cluster *cluster;
-+			cluster = per_cpu_ptr(p->percpu_cluster, i);
-+			cluster_set_null(&cluster->index);
-+		}
- 	}
- 
- 	error = swap_cgroup_swapon(p->type, maxpages);
-@@ -2460,6 +2516,8 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	error = 0;
- 	goto out;
- bad_swap:
-+	free_percpu(p->percpu_cluster);
-+	p->percpu_cluster = NULL;
- 	if (inode && S_ISBLK(inode->i_mode) && p->bdev) {
- 		set_blocksize(p->bdev, p->old_block_size);
- 		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
 _
 
-Patches currently in -mm which might be from shli@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-swap-change-block-allocation-algorithm-for-ssd.patch
-swap-make-swap-discard-async.patch
-swap-fix-races-exposed-by-swap-discard.patch
-swap-make-cluster-allocation-per-cpu.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 linux-next.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
