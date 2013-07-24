@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-file-pattern-for-arc-uart.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:34 -0700
-Message-ID: <51f03622.JWXCoKlJ8tS9KX6j%akpm@linux-foundation.org>
+Subject: + maintainers-update-usb-ehci-platform-pattern.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:35 -0700
+Message-ID: <51f03623.4g7icobD5C9t4sGA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54311 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54314 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500Ab3GXUQf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:35 -0400
+	with ESMTP id S1753500Ab3GXUQg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, arnd@arndb.de, joe@perches.com
 
-Subject: + maintainers-update-file-pattern-for-arc-uart.patch added to -mm tree
-To: joe@perches.com
+Subject: + maintainers-update-usb-ehci-platform-pattern.patch added to -mm tree
+To: joe@perches.com,arnd@arndb.de
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:34 -0700
+Date: Wed, 24 Jul 2013 13:16:35 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update file pattern for ARC uart
+     Subject: MAINTAINERS: update USB EHCI platform pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-update-file-pattern-for-arc-uart.patch
+     maintainers-update-usb-ehci-platform-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-file-pattern-for-arc-uart.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-usb-ehci-platform-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-file-pattern-for-arc-uart.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-usb-ehci-platform-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,30 +44,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update file pattern for ARC uart
+Subject: MAINTAINERS: update USB EHCI platform pattern
 
-Commit 6659a20a76 ("ARC: MAINTAINERS update for ARC") typoed the file
-pattern.  Fix it.
+Commit f3bc64d6d1f ("USB: EHCI: DT support for generic bus glue") removed
+the ehci-vt8500.c file, update the file pattern to include
+ehci-platform.c.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-file-pattern-for-arc-uart MAINTAINERS
---- a/MAINTAINERS~maintainers-update-file-pattern-for-arc-uart
+diff -puN MAINTAINERS~maintainers-update-usb-ehci-platform-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-usb-ehci-platform-pattern
 +++ a/MAINTAINERS
-@@ -7968,7 +7968,7 @@ M:	Vineet Gupta <vgupta@synopsys.com>
- S:	Supported
- F:	arch/arc/
- F:	Documentation/devicetree/bindings/arc/
--F:	drivers/tty/serial/arc-uart.c
-+F:	drivers/tty/serial/arc_uart.c
- 
- SYSV FILESYSTEM
- M:	Christoph Hellwig <hch@infradead.org>
+@@ -1297,7 +1297,7 @@ F:	drivers/mmc/host/wmt-sdmmc.c
+ F:	drivers/pwm/pwm-vt8500.c
+ F:	drivers/rtc/rtc-vt8500.c
+ F:	drivers/tty/serial/vt8500_serial.c
+-F:	drivers/usb/host/ehci-vt8500.c
++F:	drivers/usb/host/ehci-platform.c
+ F:	drivers/usb/host/uhci-platform.c
+ F:	drivers/video/vt8500lcdfb.*
+ F:	drivers/video/wm8505fb*
 _
 
 Patches currently in -mm which might be from joe@perches.com are
