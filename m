@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shm-guard-against-non-existant-vma-in-shmdt2.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:23:27 -0700
-Message-ID: <51f037bf.SZMpQ0yYb99mByE+%akpm@linux-foundation.org>
+Subject: + ipc-drop-ipc_lock_by_ptr.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:23:28 -0700
+Message-ID: <51f037c0.Jwcqus97lYJ98PXd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54428 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab3GXUX2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:23:28 -0400
+	with ESMTP id S1751189Ab3GXUX3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:23:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
 
-Subject: + ipc-shm-guard-against-non-existant-vma-in-shmdt2.patch added to -mm tree
+Subject: + ipc-drop-ipc_lock_by_ptr.patch added to -mm tree
 To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:23:27 -0700
+Date: Wed, 24 Jul 2013 13:23:28 -0700
 
 
 The patch titled
-     Subject: ipc, shm: guard against non-existant vma in shmdt(2)
+     Subject: ipc: drop ipc_lock_by_ptr
 has been added to the -mm tree.  Its filename is
-     ipc-shm-guard-against-non-existant-vma-in-shmdt2.patch
+     ipc-drop-ipc_lock_by_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-guard-against-non-existant-vma-in-shmdt2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-drop-ipc_lock_by_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-guard-against-non-existant-vma-in-shmdt2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-drop-ipc_lock_by_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,13 +44,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc, shm: guard against non-existant vma in shmdt(2)
+Subject: ipc: drop ipc_lock_by_ptr
 
-When !CONFIG_MMU there's a chance we can derefence a NULL pointer when the
-VM area isn't found - check the return value of find_vma().
-
-Also, remove the redundant -EINVAL return: retval is set to the proper
-return code and *only* changed to 0, when we actually unmap the segments.
+After previous cleanups and optimizations, this function is no longer
+heavily used and we don't have a good reason to keep it.  Update the few
+remaining callers and get rid of it.
 
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Cc: Sedat Dilek <sedat.dilek@gmail.com>
@@ -59,22 +57,63 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ ipc/namespace.c |    3 ++-
+ ipc/util.c      |    6 ++++--
+ ipc/util.h      |    6 ------
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN ipc/shm.c~ipc-shm-guard-against-non-existant-vma-in-shmdt2 ipc/shm.c
---- a/ipc/shm.c~ipc-shm-guard-against-non-existant-vma-in-shmdt2
-+++ a/ipc/shm.c
-@@ -1288,8 +1288,7 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- #else /* CONFIG_MMU */
- 	/* under NOMMU conditions, the exact address to be destroyed must be
- 	 * given */
--	retval = -EINVAL;
--	if (vma->vm_start == addr && vma->vm_ops == &shm_vm_ops) {
-+	if (vma && vma->vm_start == addr && vma->vm_ops == &shm_vm_ops) {
- 		do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
- 		retval = 0;
+diff -puN ipc/namespace.c~ipc-drop-ipc_lock_by_ptr ipc/namespace.c
+--- a/ipc/namespace.c~ipc-drop-ipc_lock_by_ptr
++++ a/ipc/namespace.c
+@@ -89,7 +89,8 @@ void free_ipcs(struct ipc_namespace *ns,
+ 		perm = idr_find(&ids->ipcs_idr, next_id);
+ 		if (perm == NULL)
+ 			continue;
+-		ipc_lock_by_ptr(perm);
++		rcu_read_lock();
++		ipc_lock_object(perm);
+ 		free(ns, perm);
+ 		total++;
  	}
+diff -puN ipc/util.c~ipc-drop-ipc_lock_by_ptr ipc/util.c
+--- a/ipc/util.c~ipc-drop-ipc_lock_by_ptr
++++ a/ipc/util.c
+@@ -205,7 +205,8 @@ static struct kern_ipc_perm *ipc_findkey
+ 			continue;
+ 		}
+ 
+-		ipc_lock_by_ptr(ipc);
++		rcu_read_lock();
++		ipc_lock_object(ipc);
+ 		return ipc;
+ 	}
+ 
+@@ -838,7 +839,8 @@ static struct kern_ipc_perm *sysvipc_fin
+ 		ipc = idr_find(&ids->ipcs_idr, pos);
+ 		if (ipc != NULL) {
+ 			*new_pos = pos + 1;
+-			ipc_lock_by_ptr(ipc);
++			rcu_read_lock();
++			ipc_lock_object(ipc);
+ 			return ipc;
+ 		}
+ 	}
+diff -puN ipc/util.h~ipc-drop-ipc_lock_by_ptr ipc/util.h
+--- a/ipc/util.h~ipc-drop-ipc_lock_by_ptr
++++ a/ipc/util.h
+@@ -171,12 +171,6 @@ static inline void ipc_assert_locked_obj
+ 	assert_spin_locked(&perm->lock);
+ }
+ 
+-static inline void ipc_lock_by_ptr(struct kern_ipc_perm *perm)
+-{
+-	rcu_read_lock();
+-	ipc_lock_object(perm);
+-}
+-
+ static inline void ipc_unlock(struct kern_ipc_perm *perm)
+ {
+ 	ipc_unlock_object(perm);
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
