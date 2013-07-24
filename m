@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-ssbi-patterns.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:33 -0700
-Message-ID: <51f03621.z+/cF9cyxKGQXHHF%akpm@linux-foundation.org>
+Subject: + maintainers-update-sirf-patterns.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:32 -0700
+Message-ID: <51f03620.qJwpTgGW/ogQisux%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54308 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54302 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500Ab3GXUQe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:34 -0400
+	with ESMTP id S1753841Ab3GXUQd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sameo@linux.intel.com, arnd@arndb.de, joe@perches.com
+To: mm-commits@vger.kernel.org, linus.walleij@linaro.org, 21cnbao@gmail.com, joe@perches.com
 
-Subject: + maintainers-update-ssbi-patterns.patch added to -mm tree
-To: joe@perches.com,arnd@arndb.de,sameo@linux.intel.com
+Subject: + maintainers-update-sirf-patterns.patch added to -mm tree
+To: joe@perches.com,21cnbao@gmail.com,linus.walleij@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:33 -0700
+Date: Wed, 24 Jul 2013 13:16:32 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update ssbi patterns
+     Subject: MAINTAINERS: update sirf patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-ssbi-patterns.patch
+     maintainers-update-sirf-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-ssbi-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-sirf-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-ssbi-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-sirf-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update ssbi patterns
+Subject: MAINTAINERS: update sirf patterns
 
-Commit 45fcac1aad5 ("mfd: Move ssbi driver into drivers/mfd") move the
-files, update the patterns.
+Commit 3370dc916c ("pinctrl:sirf:re-arch and add support for new
+SiRFatlas6 SoC") moved the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-ssbi-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-ssbi-patterns
+diff -puN MAINTAINERS~maintainers-update-sirf-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-sirf-patterns
 +++ a/MAINTAINERS
-@@ -1044,7 +1044,7 @@ F:	drivers/mmc/host/msm_sdcc.h
- F:	drivers/tty/serial/msm_serial.h
- F:	drivers/tty/serial/msm_serial.c
- F:	drivers/*/pm8???-*
--F:	drivers/ssbi/
-+F:	drivers/mfd/ssbi/
- F:	include/linux/mfd/pm8xxx/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davidb/linux-msm.git
- S:	Maintained
+@@ -813,7 +813,7 @@ F:	arch/arm/mach-prima2/
+ F:	drivers/dma/sirf-dma.c
+ F:	drivers/i2c/busses/i2c-sirf.c
+ F:	drivers/mmc/host/sdhci-sirf.c
+-F:	drivers/pinctrl/pinctrl-sirf.c
++F:	drivers/pinctrl/sirf/
+ F:	drivers/spi/spi-sirf.c
+ 
+ ARM/EBSA110 MACHINE SUPPORT
 _
 
 Patches currently in -mm which might be from joe@perches.com are
