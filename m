@@ -1,81 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch added to
- -mm tree
-Date: Fri, 19 Jul 2013 16:16:33 -0700
-Message-ID: <51e9c8d1.LefZigXrTyKbeKAI%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 24 Jul 2013 12:25:42 -0700
+Message-ID: <51f02a36.4iiIlFiC9aIhYIub%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52833 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753110Ab3GSXQe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Jul 2013 19:16:34 -0400
+	with ESMTP id S1753378Ab3GXTZn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 15:25:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dave@sr71.net, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,dave@sr71.net
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 19 Jul 2013 16:16:33 -0700
+Date: Wed, 24 Jul 2013 12:25:42 -0700
 
 
 The patch titled
-     Subject: mm-vmstats-track-tlb-flush-stats-on-up-too-fix
-has been added to the -mm tree.  Its filename is
-     mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmstats-track-tlb-flush-stats-on-up-too-fix
+Subject: linux-next-git-rejects
 
-Cc: Dave Hansen <dave@sr71.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlbflush.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/md/raid1.c |   28 ----------------------------
+ 1 file changed, 28 deletions(-)
 
-diff -puN arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too-fix arch/x86/include/asm/tlbflush.h
---- a/arch/x86/include/asm/tlbflush.h~mm-vmstats-track-tlb-flush-stats-on-up-too-fix
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -85,11 +85,10 @@ static inline void __flush_tlb_one(unsig
- 
- #ifndef CONFIG_SMP
- 
--/* "_up" is for UniProcessor
-+/* "_up" is for UniProcessor.
-  *
-- * This is a helper for other header functions.  *Not*
-- * intended to be called directly.  All global TLB
-- * flushes need to either call this, or do the bump the
-+ * This is a helper for other header functions.  *Not* intended to be called
-+ * directly.  All global TLB flushes need to either call this, or to bump the
-  * vm statistics themselves.
-  */
- static inline void __flush_tlb_up(void)
+diff -puN drivers/md/raid1.c~linux-next-git-rejects drivers/md/raid1.c
+--- a/drivers/md/raid1.c~linux-next-git-rejects
++++ a/drivers/md/raid1.c
+@@ -1852,38 +1852,10 @@ static int process_checks(struct r1bio *
+ 	/* Fix variable parts of all bios */
+ 	vcnt = (r1_bio->sectors + PAGE_SIZE / 512 - 1) >> (PAGE_SHIFT - 9);
+ 	for (i = 0; i < conf->raid_disks * 2; i++) {
+-<<<<<<< HEAD
+-		int j;
+-		int size;
+-		struct bio *b = r1_bio->bios[i];
+-		if (b->bi_end_io != end_sync_read)
+-			continue;
+-		/* fixup the bio for reuse */
+-		bio_reset(b);
+-		b->bi_vcnt = vcnt;
+-		b->bi_size = r1_bio->sectors << 9;
+-		b->bi_sector = r1_bio->sector +
+-			conf->mirrors[i].rdev->data_offset;
+-		b->bi_bdev = conf->mirrors[i].rdev->bdev;
+-		b->bi_end_io = end_sync_read;
+-		b->bi_private = r1_bio;
+-
+-		size = b->bi_size;
+-		for (j = 0; j < vcnt ; j++) {
+-			struct bio_vec *bi;
+-			bi = &b->bi_io_vec[j];
+-			bi->bv_offset = 0;
+-			if (size > PAGE_SIZE)
+-				bi->bv_len = PAGE_SIZE;
+-			else
+-				bi->bv_len = size;
+-			size -= PAGE_SIZE;
+-=======
+ 		struct bio *b = r1_bio->bios[i];
+ 		if (b->bi_end_io == end_sync_read) {
+ 			b->bi_next = NULL;
+ 			bio_rewind(b);
+->>>>>>> linux-next/akpm-base
+ 		}
+ 	}
+ 	for (primary = 0; primary < conf->raid_disks * 2; primary++)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+linux-next.patch
 revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
@@ -94,8 +103,6 @@ initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
 ipc-drop-ipcctl_pre_down-fix.patch
 ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
 shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
 xfs-convert-buftarg-lru-to-generic-code-fix.patch
 xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
