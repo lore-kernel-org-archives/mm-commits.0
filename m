@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-exynos-remove-board-files.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:20 -0700
-Message-ID: <51f03614.o3xraGUwAZ+bP+Xd%akpm@linux-foundation.org>
+Subject: + maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch added to -mm
+ tree
+Date: Wed, 24 Jul 2013 13:16:26 -0700
+Message-ID: <51f0361a.fKZhW70cBhVGa6pl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364Ab3GXUQV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:21 -0400
+	with ESMTP id S1752364Ab3GXUQ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, t.figa@samsung.com, kyungmin.park@samsung.com, kgene.kim@samsung.com, joe@perches.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + maintainers-exynos-remove-board-files.patch added to -mm tree
-To: joe@perches.com,kgene.kim@samsung.com,kyungmin.park@samsung.com,t.figa@samsung.com
+Subject: + maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:20 -0700
+Date: Wed, 24 Jul 2013 13:16:26 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: EXYNOS: remove board files
+     Subject: MAINTAINERS: ARM: S3C24XX: remove plat-s3c24xx
 has been added to the -mm tree.  Its filename is
-     maintainers-exynos-remove-board-files.patch
+     maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-exynos-remove-board-files.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-exynos-remove-board-files.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,33 +45,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: EXYNOS: remove board files
+Subject: MAINTAINERS: ARM: S3C24XX: remove plat-s3c24xx
 
-Commit ca9143501c30 ("ARM: EXYNOS: Remove unused board files")
-removed the files, remove the patterns too.
+Commit 09ec1d7ea6 ("ARM: S3C24XX: Remove plat-s3c24xx directory in
+arch/arm/") moved the files, remove the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Tomasz Figa <t.figa@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 --
- 1 file changed, 2 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-exynos-remove-board-files MAINTAINERS
---- a/MAINTAINERS~maintainers-exynos-remove-board-files
+diff -puN MAINTAINERS~maintainers-arm-s3c24xx-remove-plat-s3c24xx MAINTAINERS
+--- a/MAINTAINERS~maintainers-arm-s3c24xx-remove-plat-s3c24xx
 +++ a/MAINTAINERS
-@@ -1154,8 +1154,6 @@ L:	linux-arm-kernel@lists.infradead.org
+@@ -1130,7 +1130,6 @@ L:	linux-samsung-soc@vger.kernel.org (mo
+ W:	http://www.fluff.org/ben/linux/
  S:	Maintained
- F:	arch/arm/mach-s5pv210/mach-aquila.c
- F:	arch/arm/mach-s5pv210/mach-goni.c
--F:	arch/arm/mach-exynos/mach-universal_c210.c
--F:	arch/arm/mach-exynos/mach-nuri.c
- 
- ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
- M:	Kyungmin Park <kyungmin.park@samsung.com>
+ F:	arch/arm/plat-samsung/
+-F:	arch/arm/plat-s3c24xx/
+ F:	arch/arm/mach-s3c24*/
+ F:	arch/arm/mach-s3c64xx/
+ F:	drivers/*/*s3c2410*
 _
 
 Patches currently in -mm which might be from joe@perches.com are
