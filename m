@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + decompressors-fix-no-limit-output-buffer-length.patch added to
- -mm tree
-Date: Wed, 24 Jul 2013 13:47:27 -0700
-Message-ID: <51f03d5f.Jmsl/n3WCS5SoyJ/%akpm@linux-foundation.org>
+Subject: + mm-page_allocc-use-__paginginit-instead-of-__init.patch added
+ to -mm tree
+Date: Wed, 24 Jul 2013 13:48:08 -0700
+Message-ID: <51f03d88.mJYlGQ4SdUbLsUVB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54566 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579Ab3GXUr2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:47:28 -0400
+	with ESMTP id S1751579Ab3GXUsI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:48:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tixy@linaro.org, swarren@wwwdotorg.org, acourbot@nvidia.com
+To: mm-commits@vger.kernel.org, gang.chen@asianux.com
 
-Subject: + decompressors-fix-no-limit-output-buffer-length.patch added to -mm tree
-To: acourbot@nvidia.com,swarren@wwwdotorg.org,tixy@linaro.org
+Subject: + mm-page_allocc-use-__paginginit-instead-of-__init.patch added to -mm tree
+To: gang.chen@asianux.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:47:27 -0700
+Date: Wed, 24 Jul 2013 13:48:08 -0700
 
 
 The patch titled
-     Subject: lib/decompressors: fix "no limit" output buffer length
+     Subject: mm/page_alloc.c: use '__paginginit' instead of '__init'
 has been added to the -mm tree.  Its filename is
-     decompressors-fix-no-limit-output-buffer-length.patch
+     mm-page_allocc-use-__paginginit-instead-of-__init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/decompressors-fix-no-limit-output-buffer-length.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-use-__paginginit-instead-of-__init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/decompressors-fix-no-limit-output-buffer-length.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-use-__paginginit-instead-of-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,63 +44,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Courbot <acourbot@nvidia.com>
-Subject: lib/decompressors: fix "no limit" output buffer length
+From: Chen Gang <gang.chen@asianux.com>
+Subject: mm/page_alloc.c: use '__paginginit' instead of '__init'
 
-When decompressing into memory, the output buffer length is set to some
-arbitrarily high value (0x7fffffff) to indicate the output is, virtually,
-unlimited in size.
+set_pageblock_order() may be called when memory hotplug, so need use
+'__paginginit' instead of '__init'.
 
-The problem with this is that some platforms have their physical memory at
-high physical addresses (0x80000000 or more), and that the output buffer
-address and its "unlimited" length cannot be added without overflowing. 
-An example of this can be found in inflate_fast():
+The related warning:
 
-/* next_out is the output buffer address */
-out = strm->next_out - OFF;
-/* avail_out is the output buffer size. end will overflow if the output
- * address is >= 0x80000104 */
-end = out + (strm->avail_out - 257);
+  The function __meminit .free_area_init_node() references
+  a function __init .set_pageblock_order().
+  If .set_pageblock_order is only used by .free_area_init_node then
+  annotate .set_pageblock_order with a matching annotation.
 
-This has huge consequences on the performance of kernel decompression,
-since the following exit condition of inflate_fast() will be always true:
-
-} while (in < last && out < end);
-
-Indeed, "end" has overflowed and is now always lower than "out".  As a
-result, inflate_fast() will return after processing one single byte of
-input data, and will thus need to be called an unreasonably high number of
-times.  This probably went unnoticed because kernel decompression is fast
-enough even with this issue.
-
-Nonetheless, adjusting the output buffer length in such a way that the
-above pointer arithmetic never overflows results in a kernel decompression
-that is about 3 times faster on affected machines.
-
-Signed-off-by: Alexandre Courbot <acourbot@nvidia.com>
-Tested-by: Jon Medhurst <tixy@linaro.org>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_inflate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/decompress_inflate.c~decompressors-fix-no-limit-output-buffer-length lib/decompress_inflate.c
---- a/lib/decompress_inflate.c~decompressors-fix-no-limit-output-buffer-length
-+++ a/lib/decompress_inflate.c
-@@ -48,7 +48,7 @@ STATIC int INIT gunzip(unsigned char *bu
- 		out_len = 0x8000; /* 32 K */
- 		out_buf = malloc(out_len);
- 	} else {
--		out_len = 0x7fffffff; /* no limit */
-+		out_len = ((size_t)~0) - (size_t)out_buf; /* no limit */
- 	}
- 	if (!out_buf) {
- 		error("Out of memory while allocating output buffer");
+diff -puN mm/page_alloc.c~mm-page_allocc-use-__paginginit-instead-of-__init mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-use-__paginginit-instead-of-__init
++++ a/mm/page_alloc.c
+@@ -4586,7 +4586,7 @@ static inline void setup_usemap(struct p
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+ 
+ /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
+-void __init set_pageblock_order(void)
++void __paginginit set_pageblock_order(void)
+ {
+ 	unsigned int order;
+ 
+@@ -4614,7 +4614,7 @@ void __init set_pageblock_order(void)
+  * include/linux/pageblock-flags.h for the values of pageblock_order based on
+  * the kernel config
+  */
+-void __init set_pageblock_order(void)
++void __paginginit set_pageblock_order(void)
+ {
+ }
+ 
 _
 
-Patches currently in -mm which might be from acourbot@nvidia.com are
+Patches currently in -mm which might be from gang.chen@asianux.com are
 
-decompressors-fix-no-limit-output-buffer-length.patch
+origin.patch
+include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
+mm-page_allocc-use-__paginginit-instead-of-__init.patch
+kernel-smpc-free-related-resources-when-failure-occurs-in-hotplug_cfd.patch
+linux-next.patch
 
