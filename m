@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-arm-plat-nomadik-update-patterns.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:25 -0700
-Message-ID: <51f03619.SIwo9Ny1CLAfFEtH%akpm@linux-foundation.org>
+Subject: + maintainers-arm-spear-consolidate-sections.patch added to -mm
+ tree
+Date: Wed, 24 Jul 2013 13:16:24 -0700
+Message-ID: <51f03618.eCvVJfQBopWKoF+I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54283 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54280 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab3GXUQ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:26 -0400
+	with ESMTP id S1752364Ab3GXUQZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linus.walleij@linaro.org, joe@perches.com
+To: mm-commits@vger.kernel.org, viresh.kumar@linaro.org, arnd@arndb.de, joe@perches.com
 
-Subject: + maintainers-arm-plat-nomadik-update-patterns.patch added to -mm tree
-To: joe@perches.com,linus.walleij@linaro.org
+Subject: + maintainers-arm-spear-consolidate-sections.patch added to -mm tree
+To: joe@perches.com,arnd@arndb.de,viresh.kumar@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:25 -0700
+Date: Wed, 24 Jul 2013 13:16:24 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: ARM: plat-nomadik: update patterns
+     Subject: MAINTAINERS: ARM: spear: consolidate sections
 has been added to the -mm tree.  Its filename is
-     maintainers-arm-plat-nomadik-update-patterns.patch
+     maintainers-arm-spear-consolidate-sections.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-arm-plat-nomadik-update-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-arm-spear-consolidate-sections.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-arm-plat-nomadik-update-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-arm-spear-consolidate-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,30 +45,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: ARM: plat-nomadik: update patterns
+Subject: MAINTAINERS: ARM: spear: consolidate sections
 
-Commit 694e33a7f4 ("ARM: plat-nomadik: move MTU, kill plat-nomadik") moved
-the files, update the patterns.
+Commit a7ed099ffc8 ("ARM: spear: move all files to mach-spear") moved all
+the files into a single directory, delete the now unnecessary duplicate
+sections and update the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |   30 +-----------------------------
+ 1 file changed, 1 insertion(+), 29 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-arm-plat-nomadik-update-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-arm-plat-nomadik-update-patterns
+diff -puN MAINTAINERS~maintainers-arm-spear-consolidate-sections MAINTAINERS
+--- a/MAINTAINERS~maintainers-arm-spear-consolidate-sections
 +++ a/MAINTAINERS
-@@ -1023,7 +1023,6 @@ M:	STEricsson <STEricsson_nomadik_linux@
+@@ -7708,35 +7708,7 @@ L:	spear-devel@list.st.com
  L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.st.com/spear
  S:	Maintained
- F:	arch/arm/mach-nomadik/
--F:	arch/arm/plat-nomadik/
- F:	drivers/i2c/busses/i2c-nomadik.c
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-nomadik.git
+-F:	arch/arm/plat-spear/
+-
+-SPEAR13XX MACHINE SUPPORT
+-M:	Viresh Kumar <viresh.linux@gmail.com>
+-M:	Shiraz Hashim <shiraz.hashim@st.com>
+-L:	spear-devel@list.st.com
+-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-W:	http://www.st.com/spear
+-S:	Maintained
+-F:	arch/arm/mach-spear13xx/
+-
+-SPEAR3XX MACHINE SUPPORT
+-M:	Viresh Kumar <viresh.linux@gmail.com>
+-M:	Shiraz Hashim <shiraz.hashim@st.com>
+-L:	spear-devel@list.st.com
+-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-W:	http://www.st.com/spear
+-S:	Maintained
+-F:	arch/arm/mach-spear3xx/
+-
+-SPEAR6XX MACHINE SUPPORT
+-M:	Rajeev Kumar <rajeev-dlh.kumar@st.com>
+-M:	Shiraz Hashim <shiraz.hashim@st.com>
+-M:	Viresh Kumar <viresh.linux@gmail.com>
+-L:	spear-devel@list.st.com
+-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-W:	http://www.st.com/spear
+-S:	Maintained
+-F:	arch/arm/mach-spear6xx/
++F:	arch/arm/mach-spear/
  
+ SPEAR CLOCK FRAMEWORK SUPPORT
+ M:	Viresh Kumar <viresh.linux@gmail.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
