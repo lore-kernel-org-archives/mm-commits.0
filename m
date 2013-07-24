@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-arm-s3c2410-update-patterns.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:23 -0700
-Message-ID: <51f03617.E3AxvnP4LYot/Esw%akpm@linux-foundation.org>
+Subject: + maintainers-arm-plat-nomadik-update-patterns.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:25 -0700
+Message-ID: <51f03619.SIwo9Ny1CLAfFEtH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54279 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54283 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418Ab3GXUQY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:24 -0400
+	with ESMTP id S1753731Ab3GXUQ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kgene.kim@samsung.com, joe@perches.com
+To: mm-commits@vger.kernel.org, linus.walleij@linaro.org, joe@perches.com
 
-Subject: + maintainers-arm-s3c2410-update-patterns.patch added to -mm tree
-To: joe@perches.com,kgene.kim@samsung.com
+Subject: + maintainers-arm-plat-nomadik-update-patterns.patch added to -mm tree
+To: joe@perches.com,linus.walleij@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:23 -0700
+Date: Wed, 24 Jul 2013 13:16:25 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: ARM: S3C2410: update patterns
+     Subject: MAINTAINERS: ARM: plat-nomadik: update patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-arm-s3c2410-update-patterns.patch
+     maintainers-arm-plat-nomadik-update-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-arm-s3c2410-update-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-arm-plat-nomadik-update-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-arm-s3c2410-update-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-arm-plat-nomadik-update-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,35 +44,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: ARM: S3C2410: update patterns
+Subject: MAINTAINERS: ARM: plat-nomadik: update patterns
 
-Commit 85fd6d63bf2 ("ARM: S3C2410: move mach-s3c2410/* into
-mach-s3c24xx/") moved the files, update the patterns.
+Commit 694e33a7f4 ("ARM: plat-nomadik: move MTU, kill plat-nomadik") moved
+the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-arm-s3c2410-update-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-arm-s3c2410-update-patterns
+diff -puN MAINTAINERS~maintainers-arm-plat-nomadik-update-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-arm-plat-nomadik-update-patterns
 +++ a/MAINTAINERS
-@@ -7453,9 +7453,9 @@ P:	Vincent Sanders <vince@simtec.co.uk>
- M:	Simtec Linux Team <linux@simtec.co.uk>
- W:	http://www.simtec.co.uk/products/EB2410ITX/
- S:	Supported
--F:	arch/arm/mach-s3c2410/mach-bast.c
--F:	arch/arm/mach-s3c2410/bast-ide.c
--F:	arch/arm/mach-s3c2410/bast-irq.c
-+F:	arch/arm/mach-s3c24xx/mach-bast.c
-+F:	arch/arm/mach-s3c24xx/bast-ide.c
-+F:	arch/arm/mach-s3c24xx/bast-irq.c
+@@ -1023,7 +1023,6 @@ M:	STEricsson <STEricsson_nomadik_linux@
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ F:	arch/arm/mach-nomadik/
+-F:	arch/arm/plat-nomadik/
+ F:	drivers/i2c/busses/i2c-nomadik.c
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-nomadik.git
  
- TI DAVINCI MACHINE SUPPORT
- M:	Sekhar Nori <nsekhar@ti.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
