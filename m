@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-fix-coding-style-and-spelling.patch added to -mm tree
-Date: Wed, 24 Jul 2013 14:46:59 -0700
-Message-ID: <51f04b53.CkqwHP5wrw+6+alk%akpm@linux-foundation.org>
+Subject: + checkpatch-add-a-few-more-fix-corrections.patch added to -mm
+ tree
+Date: Wed, 24 Jul 2013 14:53:11 -0700
+Message-ID: <51f04cc7.LWHaVMTg3cPnX1t8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55149 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55230 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab3GXVrA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:47:00 -0400
+	with ESMTP id S1751822Ab3GXVxM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:53:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pintu.k@samsung.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + mm-page_allocc-fix-coding-style-and-spelling.patch added to -mm tree
-To: pintu.k@samsung.com
+Subject: + checkpatch-add-a-few-more-fix-corrections.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 14:46:59 -0700
+Date: Wed, 24 Jul 2013 14:53:11 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc.c: fix coding style and spelling
+     Subject: checkpatch: add a few more --fix corrections
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-fix-coding-style-and-spelling.patch
+     checkpatch-add-a-few-more-fix-corrections.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-fix-coding-style-and-spelling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-a-few-more-fix-corrections.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-fix-coding-style-and-spelling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-a-few-more-fix-corrections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,180 +44,292 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pintu Kumar <pintu.k@samsung.com>
-Subject: mm/page_alloc.c: fix coding style and spelling
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add a few more --fix corrections
 
-Fix all errors reported by checkpatch and some small spelling mistakes.
+Suggest a few more single-line corrections.
 
-Signed-off-by: Pintu Kumar <pintu.k@samsung.com>
+Remove DOS line endings
+Simplify removing trailing whitespace
+Remove global/static initializations to 0/NULL
+Convert pr_warning to pr_warn
+Add space after brace
+Convert binary constants to hex
+Remove whitespace after line continuation
+Use inline not __inline or __inline__
+Use __printf and __scanf
+Use a single ; for statement terminations
+Convert __FUNCTION__ to __func__
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   45 ++++++++++++++++++++++++---------------------
- 1 file changed, 24 insertions(+), 21 deletions(-)
+ scripts/checkpatch.pl |  122 +++++++++++++++++++++++++++-------------
+ 1 file changed, 84 insertions(+), 38 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-fix-coding-style-and-spelling mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-fix-coding-style-and-spelling
-+++ a/mm/page_alloc.c
-@@ -721,7 +721,8 @@ static bool free_pages_prepare(struct pa
- 		return false;
+diff -puN scripts/checkpatch.pl~checkpatch-add-a-few-more-fix-corrections scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-a-few-more-fix-corrections
++++ a/scripts/checkpatch.pl
+@@ -1845,15 +1845,17 @@ sub process {
+ #trailing whitespace
+ 		if ($line =~ /^\+.*\015/) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+-			ERROR("DOS_LINE_ENDINGS",
+-			      "DOS line endings\n" . $herevet);
+-
++			if (ERROR("DOS_LINE_ENDINGS",
++				  "DOS line endings\n" . $herevet) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/[\s\015]+$//;
++			}
+ 		} elsif ($rawline =~ /^\+.*\S\s+$/ || $rawline =~ /^\+\s+$/) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ 			if (ERROR("TRAILING_WHITESPACE",
+ 				  "trailing whitespace\n" . $herevet) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~ s/^(\+.*?)\s+$/$1/;
++				$fixed[$linenr - 1] =~ s/\s+$//;
+ 			}
  
- 	if (!PageHighMem(page)) {
--		debug_check_no_locks_freed(page_address(page),PAGE_SIZE<<order);
-+		debug_check_no_locks_freed(page_address(page),
-+					   PAGE_SIZE << order);
- 		debug_check_no_obj_freed(page_address(page),
- 					   PAGE_SIZE << order);
- 	}
-@@ -885,7 +886,7 @@ struct page *__rmqueue_smallest(struct z
- 						int migratetype)
- {
- 	unsigned int current_order;
--	struct free_area * area;
-+	struct free_area *area;
- 	struct page *page;
+ 			$rpt_cleaners = 1;
+@@ -2486,16 +2488,22 @@ sub process {
+ 		}
  
- 	/* Find a page of the appropriate size in the preferred list */
-@@ -1011,7 +1012,7 @@ static void change_pageblock_range(struc
- static inline struct page *
- __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- {
--	struct free_area * area;
-+	struct free_area *area;
- 	int current_order;
- 	struct page *page;
- 	int migratetype, i;
-@@ -3104,7 +3105,7 @@ void show_free_areas(unsigned int filter
- 	}
+ # check for global initialisers.
+-		if ($line =~ /^.$Type\s*$Ident\s*(?:\s+$Modifier)*\s*=\s*(0|NULL|false)\s*;/) {
+-			ERROR("GLOBAL_INITIALISERS",
+-			      "do not initialise globals to 0 or NULL\n" .
+-				$herecurr);
++		if ($line =~ /^\+(\s*$Type\s*$Ident\s*(?:\s+$Modifier))*\s*=\s*(0|NULL|false)\s*;/) {
++			if (ERROR("GLOBAL_INITIALISERS",
++				  "do not initialise globals to 0 or NULL\n" .
++				      $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/($Type\s*$Ident\s*(?:\s+$Modifier))*\s*=\s*(0|NULL|false)\s*;/$1;/;
++			}
+ 		}
+ # check for static initialisers.
+-		if ($line =~ /\bstatic\s.*=\s*(0|NULL|false)\s*;/) {
+-			ERROR("INITIALISED_STATIC",
+-			      "do not initialise statics to 0 or NULL\n" .
+-				$herecurr);
++		if ($line =~ /^\+.*\bstatic\s.*=\s*(0|NULL|false)\s*;/) {
++			if (ERROR("INITIALISED_STATIC",
++				  "do not initialise statics to 0 or NULL\n" .
++				      $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/(\bstatic\s.*?)\s*=\s*(0|NULL|false)\s*;/$1;/;
++			}
+ 		}
  
- 	for_each_populated_zone(zone) {
-- 		unsigned long nr[MAX_ORDER], flags, order, total = 0;
-+		unsigned long nr[MAX_ORDER], flags, order, total = 0;
- 		unsigned char types[MAX_ORDER];
+ # check for static const char * arrays.
+@@ -2638,8 +2646,12 @@ sub process {
+ 		}
  
- 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-@@ -3416,11 +3417,11 @@ static void build_zonelists_in_zone_orde
- static int default_zonelist_order(void)
- {
- 	int nid, zone_type;
--	unsigned long low_kmem_size,total_size;
-+	unsigned long low_kmem_size, total_size;
- 	struct zone *z;
- 	int average_size;
- 	/*
--         * ZONE_DMA and ZONE_DMA32 can be very small area in the system.
-+	 * ZONE_DMA and ZONE_DMA32 can be very small area in the system.
- 	 * If they are really small and used heavily, the system can fall
- 	 * into OOM very easily.
- 	 * This function detect ZONE_DMA/DMA32 size and configures zone order.
-@@ -3452,9 +3453,9 @@ static int default_zonelist_order(void)
- 		return ZONELIST_ORDER_NODE;
- 	/*
- 	 * look into each node's config.
--  	 * If there is a node whose DMA/DMA32 memory is very big area on
-- 	 * local memory, NODE_ORDER may be suitable.
--         */
-+	 * If there is a node whose DMA/DMA32 memory is very big area on
-+	 * local memory, NODE_ORDER may be suitable.
-+	 */
- 	average_size = total_size /
- 				(nodes_weight(node_states[N_MEMORY]) + 1);
- 	for_each_online_node(nid) {
-@@ -4180,7 +4181,7 @@ int zone_wait_table_init(struct zone *zo
- 	if (!zone->wait_table)
- 		return -ENOMEM;
+ 		if ($line =~ /\bpr_warning\s*\(/) {
+-			WARN("PREFER_PR_LEVEL",
+-			     "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
++			if (WARN("PREFER_PR_LEVEL",
++				 "Prefer pr_warn(... to pr_warning(...\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~
++				    s/\bpr_warning\b/pr_warn/;
++			}
+ 		}
  
--	for(i = 0; i < zone->wait_table_hash_nr_entries; ++i)
-+	for (i = 0; i < zone->wait_table_hash_nr_entries; ++i)
- 		init_waitqueue_head(zone->wait_table + i);
+ 		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
+@@ -3031,8 +3043,7 @@ sub process {
+ 			if (ERROR("SPACING",
+ 				  "space required before the open brace '{'\n" . $herecurr) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
+-				    s/^(\+.*(?:do|\))){/$1 {/;
++				$fixed[$linenr - 1] =~ s/^(\+.*(?:do|\))){/$1 {/;
+ 			}
+ 		}
  
- 	return 0;
-@@ -4930,7 +4931,7 @@ static unsigned long __init early_calcul
- 		if (pages)
- 			node_set_state(nid, N_MEMORY);
- 	}
--  	return totalpages;
-+	return totalpages;
- }
+@@ -3047,8 +3058,12 @@ sub process {
+ # closing brace should have a space following it when it has anything
+ # on the line
+ 		if ($line =~ /}(?!(?:,|;|\)))\S/) {
+-			ERROR("SPACING",
+-			      "space required after that close brace '}'\n" . $herecurr);
++			if (ERROR("SPACING",
++				  "space required after that close brace '}'\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~
++				    s/}((?!(?:,|;|\)))\S)/} $1/;
++			}
+ 		}
  
- /*
-@@ -5047,7 +5048,7 @@ restart:
- 			/*
- 			 * Some kernelcore has been met, update counts and
- 			 * break if the kernelcore for this node has been
--			 * satisified
-+			 * satisfied
- 			 */
- 			required_kernelcore -= min(required_kernelcore,
- 								size_pages);
-@@ -5061,7 +5062,7 @@ restart:
- 	 * If there is still required_kernelcore, we do another pass with one
- 	 * less node in the count. This will push zone_movable_pfn[nid] further
- 	 * along on the nodes that still have memory until kernelcore is
--	 * satisified
-+	 * satisfied
- 	 */
- 	usable_nodes--;
- 	if (usable_nodes && required_kernelcore > usable_nodes)
-@@ -5286,8 +5287,10 @@ void __init mem_init_print_info(const ch
- 	 * 3) .rodata.* may be embedded into .text or .data sections.
- 	 */
- #define adj_init_size(start, end, size, pos, adj) \
--	if (start <= pos && pos < end && size > adj) \
--		size -= adj;
-+	do { \
-+		if (start <= pos && pos < end && size > adj) \
-+			size -= adj; \
-+	} while (0)
+ # check spacing on square brackets
+@@ -3271,8 +3286,13 @@ sub process {
  
- 	adj_init_size(__init_begin, __init_end, init_data_size,
- 		     _sinittext, init_code_size);
-@@ -5570,7 +5573,7 @@ static void __meminit setup_per_zone_ina
-  * we want it large (64MB max).  But it is not linear, because network
-  * bandwidth does not increase linearly with machine size.  We use
-  *
-- * 	min_free_kbytes = 4 * sqrt(lowmem_kbytes), for better accuracy:
-+ *	min_free_kbytes = 4 * sqrt(lowmem_kbytes), for better accuracy:
-  *	min_free_kbytes = sqrt(lowmem_kbytes * 16)
-  *
-  * which yields
-@@ -5614,11 +5617,11 @@ int __meminit init_per_zone_wmark_min(vo
- module_init(init_per_zone_wmark_min)
+ #gcc binary extension
+ 			if ($var =~ /^$Binary$/) {
+-				WARN("GCC_BINARY_CONSTANT",
+-				     "Avoid gcc v4.3+ binary constant extension: <$var>\n" . $herecurr);
++				if (WARN("GCC_BINARY_CONSTANT",
++					 "Avoid gcc v4.3+ binary constant extension: <$var>\n" . $herecurr) &&
++				    $fix) {
++					my $hexval = sprintf("0x%x", oct($var));
++					$fixed[$linenr - 1] =~
++					    s/\b$var\b/$hexval/;
++				}
+ 			}
  
- /*
-- * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so 
-+ * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so
-  *	that we can call two helper functions whenever min_free_kbytes
-  *	changes.
-  */
--int min_free_kbytes_sysctl_handler(ctl_table *table, int write, 
-+int min_free_kbytes_sysctl_handler(ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
- 	proc_dointvec(table, write, buffer, length, ppos);
-@@ -5682,8 +5685,8 @@ int lowmem_reserve_ratio_sysctl_handler(
+ #CamelCase
+@@ -3292,9 +3312,12 @@ sub process {
+ 		}
  
- /*
-  * percpu_pagelist_fraction - changes the pcp->high for each zone on each
-- * cpu.  It is the fraction of total pages in each zone that a hot per cpu pagelist
-- * can have before it gets flushed back to buddy allocator.
-+ * cpu.  It is the fraction of total pages in each zone that a hot per cpu
-+ * pagelist can have before it gets flushed back to buddy allocator.
-  */
- int percpu_pagelist_fraction_sysctl_handler(ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
-@@ -5901,7 +5904,7 @@ void set_pageblock_flags_group(struct pa
-  * This function checks whether pageblock includes unmovable pages or not.
-  * If @count is not zero, it is okay to include less @count unmovable pages
-  *
-- * PageLRU check wihtout isolation or lru_lock could race so that
-+ * PageLRU check without isolation or lru_lock could race so that
-  * MIGRATE_MOVABLE block might include unmovable pages. It means you can't
-  * expect this function should be exact.
-  */
+ #no spaces allowed after \ in define
+-		if ($line=~/\#\s*define.*\\\s$/) {
+-			WARN("WHITESPACE_AFTER_LINE_CONTINUATION",
+-			     "Whitepspace after \\ makes next lines useless\n" . $herecurr);
++		if ($line =~ /\#\s*define.*\\\s+$/) {
++			if (WARN("WHITESPACE_AFTER_LINE_CONTINUATION",
++				 "Whitespace after \\ makes next lines useless\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\s+$//;
++			}
+ 		}
+ 
+ #warn if <asm/foo.h> is #included and <linux/foo.h> is available (uses RAW line)
+@@ -3691,8 +3714,12 @@ sub process {
+ 
+ # Check for __inline__ and __inline, prefer inline
+ 		if ($line =~ /\b(__inline__|__inline)\b/) {
+-			WARN("INLINE",
+-			     "plain inline is preferred over $1\n" . $herecurr);
++			if (WARN("INLINE",
++				 "plain inline is preferred over $1\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\b(__inline__|__inline)\b/inline/;
++
++			}
+ 		}
+ 
+ # Check for __attribute__ packed, prefer __packed
+@@ -3709,14 +3736,21 @@ sub process {
+ 
+ # Check for __attribute__ format(printf, prefer __printf
+ 		if ($line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf/) {
+-			WARN("PREFER_PRINTF",
+-			     "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr);
++			if (WARN("PREFER_PRINTF",
++				 "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf\s*,\s*(.*)\)\s*\)\s*\)/"__printf(" . trim($1) . ")"/ex;
++
++			}
+ 		}
+ 
+ # Check for __attribute__ format(scanf, prefer __scanf
+ 		if ($line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\b/) {
+-			WARN("PREFER_SCANF",
+-			     "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr);
++			if (WARN("PREFER_SCANF",
++				 "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\s*,\s*(.*)\)\s*\)\s*\)/"__scanf(" . trim($1) . ")"/ex;
++			}
+ 		}
+ 
+ # check for sizeof(&)
+@@ -3727,8 +3761,11 @@ sub process {
+ 
+ # check for sizeof without parenthesis
+ 		if ($line =~ /\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/) {
+-			WARN("SIZEOF_PARENTHESIS",
+-			     "sizeof $1 should be sizeof($1)\n" . $herecurr);
++			if (WARN("SIZEOF_PARENTHESIS",
++				 "sizeof $1 should be sizeof($1)\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/"sizeof(" . trim($1) . ")"/ex;
++			}
+ 		}
+ 
+ # check for line continuations in quoted strings with odd counts of "
+@@ -3747,8 +3784,11 @@ sub process {
+ 		if ($line =~ /\bseq_printf\s*\(/) {
+ 			my $fmt = get_quoted_string($line, $rawline);
+ 			if ($fmt !~ /[^\\]\%/) {
+-				WARN("PREFER_SEQ_PUTS",
+-				     "Prefer seq_puts to seq_printf\n" . $herecurr);
++				if (WARN("PREFER_SEQ_PUTS",
++					 "Prefer seq_puts to seq_printf\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$linenr - 1] =~ s/\bseq_printf\b/seq_puts/;
++				}
+ 			}
+ 		}
+ 
+@@ -3879,8 +3919,11 @@ sub process {
+ 
+ # check for multiple semicolons
+ 		if ($line =~ /;\s*;\s*$/) {
+-			WARN("ONE_SEMICOLON",
+-			     "Statements terminations use 1 semicolon\n" . $herecurr);
++			if (WARN("ONE_SEMICOLON",
++				 "Statements terminations use 1 semicolon\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/(\s*;\s*){2,}$/;/g;
++			}
+ 		}
+ 
+ # check for switch/default statements without a break;
+@@ -3898,9 +3941,12 @@ sub process {
+ 		}
+ 
+ # check for gcc specific __FUNCTION__
+-		if ($line =~ /__FUNCTION__/) {
+-			WARN("USE_FUNC",
+-			     "__func__ should be used instead of gcc specific __FUNCTION__\n"  . $herecurr);
++		if ($line =~ /\b__FUNCTION__\b/) {
++			if (WARN("USE_FUNC",
++				 "__func__ should be used instead of gcc specific __FUNCTION__\n"  . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\b__FUNCTION__\b/__func__/g;
++			}
+ 		}
+ 
+ # check for use of yield()
 _
 
-Patches currently in -mm which might be from pintu.k@samsung.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-page_allocc-fix-coding-style-and-spelling.patch
+origin.patch
+maintainers-dynamic-debug-jasons-not-there.patch
+printk-move-to-separate-directory-for-easier-modification.patch
+printk-move-to-separate-directory-for-easier-modification-fix.patch
+printk-add-console_cmdlineh.patch
+printk-move-braille-console-support-into-separate-braille-files.patch
+printk-use-pointer-for-console_cmdline-indexing.patch
+printk-rename-struct-log-to-struct-printk_log.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-gpio-vt8500-remove-file-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-sirf-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+checkpatch-add-a-few-more-fix-corrections.patch
+checkpatch-check-camelcase-by-word-not-by-lval.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+linux-next.patch
 
