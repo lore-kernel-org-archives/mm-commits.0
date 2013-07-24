@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-usb-ehci-platform-pattern.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:35 -0700
-Message-ID: <51f03623.4g7icobD5C9t4sGA%akpm@linux-foundation.org>
+Subject: + maintainers-usb-phy-update-patterns.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:36 -0700
+Message-ID: <51f03624.e1YARMLIY0Ku2RrB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54314 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54316 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500Ab3GXUQg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:36 -0400
+	with ESMTP id S1753500Ab3GXUQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, arnd@arndb.de, joe@perches.com
+To: mm-commits@vger.kernel.org, balbi@ti.com, joe@perches.com
 
-Subject: + maintainers-update-usb-ehci-platform-pattern.patch added to -mm tree
-To: joe@perches.com,arnd@arndb.de
+Subject: + maintainers-usb-phy-update-patterns.patch added to -mm tree
+To: joe@perches.com,balbi@ti.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:35 -0700
+Date: Wed, 24 Jul 2013 13:16:36 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update USB EHCI platform pattern
+     Subject: MAINTAINERS: usb: phy: update patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-usb-ehci-platform-pattern.patch
+     maintainers-usb-phy-update-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-usb-ehci-platform-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-usb-phy-update-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-usb-ehci-platform-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-usb-phy-update-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update USB EHCI platform pattern
+Subject: MAINTAINERS: usb: phy: update patterns
 
-Commit f3bc64d6d1f ("USB: EHCI: DT support for generic bus glue") removed
-the ehci-vt8500.c file, update the file pattern to include
-ehci-platform.c.
+Commit a0e631235a0 ("usb: phy: move all PHY drivers to drivers/usb/phy/")
+deleted the files, remove the file pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-usb-ehci-platform-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-update-usb-ehci-platform-pattern
+diff -puN MAINTAINERS~maintainers-usb-phy-update-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-usb-phy-update-patterns
 +++ a/MAINTAINERS
-@@ -1297,7 +1297,7 @@ F:	drivers/mmc/host/wmt-sdmmc.c
- F:	drivers/pwm/pwm-vt8500.c
- F:	drivers/rtc/rtc-vt8500.c
- F:	drivers/tty/serial/vt8500_serial.c
--F:	drivers/usb/host/ehci-vt8500.c
-+F:	drivers/usb/host/ehci-platform.c
- F:	drivers/usb/host/uhci-platform.c
- F:	drivers/video/vt8500lcdfb.*
- F:	drivers/video/wm8505fb*
+@@ -8648,7 +8648,6 @@ L:	linux-usb@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+ S:	Maintained
+ F:	drivers/usb/phy/
+-F:	drivers/usb/otg/
+ 
+ USB PRINTER DRIVER (usblp)
+ M:	Pete Zaitcev <zaitcev@redhat.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
