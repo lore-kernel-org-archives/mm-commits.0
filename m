@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-omap-powerdomain-update-patterns.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:22 -0700
-Message-ID: <51f03616.GUWoah7MgQR9UK1f%akpm@linux-foundation.org>
+Subject: + maintainers-ghes_edac-update-pattern.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:27 -0700
+Message-ID: <51f0361b.gJtzE7kf6y4ffVb0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54289 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364Ab3GXUQX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:23 -0400
+	with ESMTP id S1753029Ab3GXUQ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, santosh.shilimkar@ti.com, rnayak@ti.com, paul@pwsan.com, cesarb@cesarb.eti.br, joe@perches.com
+To: mm-commits@vger.kernel.org, mchehab@redhat.com, joe@perches.com
 
-Subject: + maintainers-omap-powerdomain-update-patterns.patch added to -mm tree
-To: joe@perches.com,cesarb@cesarb.eti.br,paul@pwsan.com,rnayak@ti.com,santosh.shilimkar@ti.com
+Subject: + maintainers-ghes_edac-update-pattern.patch added to -mm tree
+To: joe@perches.com,mchehab@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:22 -0700
+Date: Wed, 24 Jul 2013 13:16:27 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: OMAP POWERDOMAIN, update patterns
+     Subject: MAINTAINERS: ghes_edac: update pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-omap-powerdomain-update-patterns.patch
+     maintainers-ghes_edac-update-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-omap-powerdomain-update-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-ghes_edac-update-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-omap-powerdomain-update-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-ghes_edac-update-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,43 +44,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: OMAP POWERDOMAIN, update patterns
+Subject: MAINTAINERS: ghes_edac: update pattern
 
-Commit 498153995b9 ("ARM: OMAP2+: powerdomain/PRM: move the low-level
-powerdomain") renamed the files, update the patterns.
-
-Identical to a patch earlier sent by Cesar Eduardo Barros.
+Commit 77c5f5d2 ("ghes_edac: Register at EDAC core the BIOS report")
+typoed the file pattern.  Fix it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Cesar Eduardo Barros <cesarb@cesarb.eti.br>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-omap-powerdomain-update-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-omap-powerdomain-update-patterns
+diff -puN MAINTAINERS~maintainers-ghes_edac-update-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-ghes_edac-update-pattern
 +++ a/MAINTAINERS
-@@ -5898,13 +5898,12 @@ S:	Maintained
- F:	arch/arm/*omap*/*pm*
- F:	drivers/cpufreq/omap-cpufreq.c
- 
--OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
-+OMAP POWERDOMAIN SOC ADAPTATION LAYER SUPPORT
- M:	Rajendra Nayak <rnayak@ti.com>
- M:	Paul Walmsley <paul@pwsan.com>
- L:	linux-omap@vger.kernel.org
+@@ -2981,7 +2981,7 @@ M:	Mauro Carvalho Chehab <m.chehab@samsu
+ L:	linux-edac@vger.kernel.org
+ W:	bluesmoke.sourceforge.net
  S:	Maintained
--F:	arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
--F:	arch/arm/mach-omap2/powerdomain44xx.c
-+F:	arch/arm/mach-omap2/prm*
+-F:	drivers/edac/ghes-edac.c
++F:	drivers/edac/ghes_edac.c
  
- OMAP AUDIO SUPPORT
- M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
+ EDAC-I82443BXGX
+ M:	Tim Small <tim@buttersideup.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
