@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-negative-left-shift-count-when-page_shift-20.patch added to -mm tree
-Date: Wed, 24 Jul 2013 12:51:49 -0700
-Message-ID: <51f03055.aCP3qVLJcYsV8tlb%akpm@linux-foundation.org>
+Subject: + maintainers-exynos-remove-board-files.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:20 -0700
+Message-ID: <51f03614.o3xraGUwAZ+bP+Xd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54264 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753029Ab3GXTvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 15:51:50 -0400
+	with ESMTP id S1752364Ab3GXUQV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, uulinux@gmail.com
+To: mm-commits@vger.kernel.org, t.figa@samsung.com, kyungmin.park@samsung.com, kgene.kim@samsung.com, joe@perches.com
 
-Subject: + mm-fix-negative-left-shift-count-when-page_shift-20.patch added to -mm tree
-To: uulinux@gmail.com
+Subject: + maintainers-exynos-remove-board-files.patch added to -mm tree
+To: joe@perches.com,kgene.kim@samsung.com,kyungmin.park@samsung.com,t.figa@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 12:51:49 -0700
+Date: Wed, 24 Jul 2013 13:16:20 -0700
 
 
 The patch titled
-     Subject: mm: fix negative left shift count when PAGE_SHIFT > 20
+     Subject: MAINTAINERS: EXYNOS: remove board files
 has been added to the -mm tree.  Its filename is
-     mm-fix-negative-left-shift-count-when-page_shift-20.patch
+     maintainers-exynos-remove-board-files.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-negative-left-shift-count-when-page_shift-20.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-exynos-remove-board-files.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-negative-left-shift-count-when-page_shift-20.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-exynos-remove-board-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,41 +43,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jerry Zhou <uulinux@gmail.com>
-Subject: mm: fix negative left shift count when PAGE_SHIFT > 20
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: EXYNOS: remove board files
 
-When PAGE_SHIFT > 20, the result of "20 - PAGE_SHIFT" is negative. The
-previous calculating here will generate an unexpected result. In
-addition, if PAGE_SIZE >= 1MB, The memory size of "numentries" was
-already integral multiple of 1MB.
+Commit ca9143501c30 ("ARM: EXYNOS: Remove unused board files")
+removed the files, remove the patterns too.
 
-Signed-off-by: Jerry Zhou <uulinux@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Tomasz Figa <t.figa@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-negative-left-shift-count-when-page_shift-20 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-negative-left-shift-count-when-page_shift-20
-+++ a/mm/page_alloc.c
-@@ -5745,9 +5745,10 @@ void *__init alloc_large_system_hash(con
- 	if (!numentries) {
- 		/* round applicable memory size up to nearest megabyte */
- 		numentries = nr_kernel_pages;
--		numentries += (1UL << (20 - PAGE_SHIFT)) - 1;
--		numentries >>= 20 - PAGE_SHIFT;
--		numentries <<= 20 - PAGE_SHIFT;
-+
-+		/* It isn't necessary when PAGE_SIZE >= 1MB */
-+		if (PAGE_SHIFT < 20)
-+			numentries = round_up(numentries, (1<<20)/PAGE_SIZE);
+diff -puN MAINTAINERS~maintainers-exynos-remove-board-files MAINTAINERS
+--- a/MAINTAINERS~maintainers-exynos-remove-board-files
++++ a/MAINTAINERS
+@@ -1154,8 +1154,6 @@ L:	linux-arm-kernel@lists.infradead.org
+ S:	Maintained
+ F:	arch/arm/mach-s5pv210/mach-aquila.c
+ F:	arch/arm/mach-s5pv210/mach-goni.c
+-F:	arch/arm/mach-exynos/mach-universal_c210.c
+-F:	arch/arm/mach-exynos/mach-nuri.c
  
- 		/* limit to 1 bucket per 2^scale bytes of low memory */
- 		if (scale > PAGE_SHIFT)
+ ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
 _
 
-Patches currently in -mm which might be from uulinux@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-fix-negative-left-shift-count-when-page_shift-20.patch
+origin.patch
+maintainers-dynamic-debug-jasons-not-there.patch
+printk-move-to-separate-directory-for-easier-modification.patch
+printk-move-to-separate-directory-for-easier-modification-fix.patch
+printk-add-console_cmdlineh.patch
+printk-move-braille-console-support-into-separate-braille-files.patch
+printk-use-pointer-for-console_cmdline-indexing.patch
+printk-rename-struct-log-to-struct-printk_log.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-gpio-vt8500-remove-file-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-sirf-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+linux-next.patch
 
