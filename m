@@ -1,122 +1,292 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 24 Jul 2013 12:25:42 -0700
-Message-ID: <51f02a36.4iiIlFiC9aIhYIub%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch removed
+ from -mm tree
+Date: Wed, 24 Jul 2013 12:29:48 -0700
+Message-ID: <51f02b2c.E+hWAncuhsAUdt2V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53560 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378Ab3GXTZn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 15:25:43 -0400
+	with ESMTP id S1753675Ab3GXT3t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 15:29:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tao.peng@emc.com, mhocko@suse.cz, dchinner@redhat.com, andreas.dilger@intel.com, bergwolf@gmail.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [to-be-updated] staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch removed from -mm tree
+To: bergwolf@gmail.com,andreas.dilger@intel.com,dchinner@redhat.com,mhocko@suse.cz,tao.peng@emc.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 12:25:42 -0700
+Date: Wed, 24 Jul 2013 12:29:48 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: staging/lustre/ldlm: convert to shrinkers to count/scan API
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Peng Tao <bergwolf@gmail.com>
+Subject: staging/lustre/ldlm: convert to shrinkers to count/scan API
 
+convert ldlm shrinker to new count/scan API.
+
+Signed-off-by: Peng Tao <tao.peng@emc.com>
+Signed-off-by: Andreas Dilger <andreas.dilger@intel.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid1.c |   28 ----------------------------
- 1 file changed, 28 deletions(-)
+ drivers/staging/lustre/lustre/ldlm/ldlm_pool.c |  139 ++++++++-------
+ 1 file changed, 75 insertions(+), 64 deletions(-)
 
-diff -puN drivers/md/raid1.c~linux-next-git-rejects drivers/md/raid1.c
---- a/drivers/md/raid1.c~linux-next-git-rejects
-+++ a/drivers/md/raid1.c
-@@ -1852,38 +1852,10 @@ static int process_checks(struct r1bio *
- 	/* Fix variable parts of all bios */
- 	vcnt = (r1_bio->sectors + PAGE_SIZE / 512 - 1) >> (PAGE_SHIFT - 9);
- 	for (i = 0; i < conf->raid_disks * 2; i++) {
--<<<<<<< HEAD
--		int j;
--		int size;
--		struct bio *b = r1_bio->bios[i];
--		if (b->bi_end_io != end_sync_read)
--			continue;
--		/* fixup the bio for reuse */
--		bio_reset(b);
--		b->bi_vcnt = vcnt;
--		b->bi_size = r1_bio->sectors << 9;
--		b->bi_sector = r1_bio->sector +
--			conf->mirrors[i].rdev->data_offset;
--		b->bi_bdev = conf->mirrors[i].rdev->bdev;
--		b->bi_end_io = end_sync_read;
--		b->bi_private = r1_bio;
--
--		size = b->bi_size;
--		for (j = 0; j < vcnt ; j++) {
--			struct bio_vec *bi;
--			bi = &b->bi_io_vec[j];
--			bi->bv_offset = 0;
--			if (size > PAGE_SIZE)
--				bi->bv_len = PAGE_SIZE;
--			else
--				bi->bv_len = size;
--			size -= PAGE_SIZE;
--=======
- 		struct bio *b = r1_bio->bios[i];
- 		if (b->bi_end_io == end_sync_read) {
- 			b->bi_next = NULL;
- 			bio_rewind(b);
-->>>>>>> linux-next/akpm-base
- 		}
+diff -puN drivers/staging/lustre/lustre/ldlm/ldlm_pool.c~staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api drivers/staging/lustre/lustre/ldlm/ldlm_pool.c
+--- a/drivers/staging/lustre/lustre/ldlm/ldlm_pool.c~staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api
++++ a/drivers/staging/lustre/lustre/ldlm/ldlm_pool.c
+@@ -524,7 +524,7 @@ static int ldlm_cli_pool_shrink(struct l
+ 				int nr, unsigned int gfp_mask)
+ {
+ 	struct ldlm_namespace *ns;
+-	int canceled = 0, unused;
++	int unused;
+ 
+ 	ns = ldlm_pl2ns(pl);
+ 
+@@ -543,14 +543,10 @@ static int ldlm_cli_pool_shrink(struct l
+ 	unused = ns->ns_nr_unused;
+ 	spin_unlock(&ns->ns_lock);
+ 
+-	if (nr) {
+-		canceled = ldlm_cancel_lru(ns, nr, LCF_ASYNC,
+-					   LDLM_CANCEL_SHRINK);
+-	}
+-	/*
+-	 * Return the number of potentially reclaimable locks.
+-	 */
+-	return ((unused - canceled) / 100) * sysctl_vfs_cache_pressure;
++	if (nr == 0)
++		return (unused / 100) * sysctl_vfs_cache_pressure;
++	else
++		return ldlm_cancel_lru(ns, nr, LCF_ASYNC, LDLM_CANCEL_SHRINK);
+ }
+ 
+ struct ldlm_pool_ops ldlm_srv_pool_ops = {
+@@ -605,9 +601,10 @@ int ldlm_pool_recalc(struct ldlm_pool *p
+ }
+ EXPORT_SYMBOL(ldlm_pool_recalc);
+ 
+-/**
++/*
+  * Pool shrink wrapper. Will call either client or server pool recalc callback
+- * depending what pool \a pl is used.
++ * depending what pool pl is used. When nr == 0, just return the number of
++ * freeable locks. Otherwise, return the number of canceled locks.
+  */
+ int ldlm_pool_shrink(struct ldlm_pool *pl, int nr,
+ 		     unsigned int gfp_mask)
+@@ -1025,28 +1022,23 @@ static int ldlm_pool_granted(struct ldlm
+ }
+ 
+ static struct ptlrpc_thread *ldlm_pools_thread;
+-static struct shrinker *ldlm_pools_srv_shrinker;
+-static struct shrinker *ldlm_pools_cli_shrinker;
+ static struct completion ldlm_pools_comp;
+ 
+ /*
+- * Cancel \a nr locks from all namespaces (if possible). Returns number of
+- * cached locks after shrink is finished. All namespaces are asked to
+- * cancel approximately equal amount of locks to keep balancing.
++ * count locks from all namespaces (if possible). Returns number of
++ * cached locks.
+  */
+-static int ldlm_pools_shrink(ldlm_side_t client, int nr,
+-			     unsigned int gfp_mask)
++static unsigned long ldlm_pools_count(ldlm_side_t client, unsigned int gfp_mask)
+ {
+-	int total = 0, cached = 0, nr_ns;
++	unsigned long total = 0, nr_ns;
+ 	struct ldlm_namespace *ns;
+ 	void *cookie;
+ 
+-	if (client == LDLM_NAMESPACE_CLIENT && nr != 0 &&
+-	    !(gfp_mask & __GFP_FS))
+-		return -1;
++	if (client == LDLM_NAMESPACE_CLIENT && !(gfp_mask & __GFP_FS))
++		return 0;
+ 
+-	CDEBUG(D_DLMTRACE, "Request to shrink %d %s locks from all pools\n",
+-	       nr, client == LDLM_NAMESPACE_CLIENT ? "client" : "server");
++	CDEBUG(D_DLMTRACE, "Request to count %s locks from all pools\n",
++	       client == LDLM_NAMESPACE_CLIENT ? "client" : "server");
+ 
+ 	cookie = cl_env_reenter();
+ 
+@@ -1070,16 +1062,26 @@ static int ldlm_pools_shrink(ldlm_side_t
+ 		ldlm_namespace_put(ns);
  	}
- 	for (primary = 0; primary < conf->raid_disks * 2; primary++)
+ 
+-	if (nr == 0 || total == 0) {
+-		cl_env_reexit(cookie);
+-		return total;
+-	}
++	cl_env_reexit(cookie);
++	return total;
++}
++
++static unsigned long ldlm_pools_scan(ldlm_side_t client, int nr, unsigned int gfp_mask)
++{
++	unsigned long freed = 0;
++        int tmp, nr_ns;
++	struct ldlm_namespace *ns;
++	void *cookie;
+ 
++	if (client == LDLM_NAMESPACE_CLIENT && !(gfp_mask & __GFP_FS))
++		return -1;
++
++	cookie = cl_env_reenter();
+ 	/*
+ 	 * Shrink at least ldlm_namespace_nr(client) namespaces.
+ 	 */
+-	for (nr_ns = atomic_read(ldlm_namespace_nr(client));
+-	     nr_ns > 0; nr_ns--)
++	for (tmp = nr_ns = atomic_read(ldlm_namespace_nr(client));
++	     tmp > 0; tmp--)
+ 	{
+ 		int cancel, nr_locks;
+ 
+@@ -1089,12 +1091,6 @@ static int ldlm_pools_shrink(ldlm_side_t
+ 		mutex_lock(ldlm_namespace_lock(client));
+ 		if (list_empty(ldlm_namespace_list(client))) {
+ 			mutex_unlock(ldlm_namespace_lock(client));
+-			/*
+-			 * If list is empty, we can't return any @cached > 0,
+-			 * that probably would cause needless shrinker
+-			 * call.
+-			 */
+-			cached = 0;
+ 			break;
+ 		}
+ 		ns = ldlm_namespace_first_locked(client);
+@@ -1103,29 +1099,42 @@ static int ldlm_pools_shrink(ldlm_side_t
+ 		mutex_unlock(ldlm_namespace_lock(client));
+ 
+ 		nr_locks = ldlm_pool_granted(&ns->ns_pool);
+-		cancel = 1 + nr_locks * nr / total;
+-		ldlm_pool_shrink(&ns->ns_pool, cancel, gfp_mask);
+-		cached += ldlm_pool_granted(&ns->ns_pool);
++		/*
++		 * We use to shrink propotionally but with new shrinker API,
++		 * we lost the total number of freeable locks.
++		 */
++		cancel = 1 + min_t(int, nr_locks, nr / nr_ns);
++		freed += ldlm_pool_shrink(&ns->ns_pool, cancel, gfp_mask);
+ 		ldlm_namespace_put(ns);
+ 	}
+ 	cl_env_reexit(cookie);
+-	/* we only decrease the SLV in server pools shrinker, return -1 to
+-	 * kernel to avoid needless loop. LU-1128 */
+-	return (client == LDLM_NAMESPACE_SERVER) ? -1 : cached;
++	/*
++	 * we only decrease the SLV in server pools shrinker, return
++	 * SHRINK_STOP to kernel to avoid needless loop. LU-1128
++	 */
++	return (client == LDLM_NAMESPACE_SERVER) ? SHRINK_STOP : freed;
++}
++
++static unsigned long ldlm_pools_srv_count(struct shrinker *s, struct shrink_control *sc)
++{
++	return ldlm_pools_count(LDLM_NAMESPACE_SERVER, sc->gfp_mask);
+ }
+ 
+-static int ldlm_pools_srv_shrink(SHRINKER_ARGS(sc, nr_to_scan, gfp_mask))
++static unsigned long ldlm_pools_srv_scan(struct shrinker *s, struct shrink_control *sc)
+ {
+-	return ldlm_pools_shrink(LDLM_NAMESPACE_SERVER,
+-				 shrink_param(sc, nr_to_scan),
+-				 shrink_param(sc, gfp_mask));
++	return ldlm_pools_scan(LDLM_NAMESPACE_SERVER, sc->nr_to_scan,
++			       sc->gfp_mask);
+ }
+ 
+-static int ldlm_pools_cli_shrink(SHRINKER_ARGS(sc, nr_to_scan, gfp_mask))
++static unsigned long ldlm_pools_cli_count(struct shrinker *s, struct shrink_control *sc)
+ {
+-	return ldlm_pools_shrink(LDLM_NAMESPACE_CLIENT,
+-				 shrink_param(sc, nr_to_scan),
+-				 shrink_param(sc, gfp_mask));
++	return ldlm_pools_count(LDLM_NAMESPACE_CLIENT, sc->gfp_mask);
++}
++
++static unsigned long ldlm_pools_cli_scan(struct shrinker *s, struct shrink_control *sc)
++{
++	return ldlm_pools_scan(LDLM_NAMESPACE_CLIENT, sc->nr_to_scan,
++			       sc->gfp_mask);
+ }
+ 
+ void ldlm_pools_recalc(ldlm_side_t client)
+@@ -1351,6 +1360,18 @@ static void ldlm_pools_thread_stop(void)
+ 	EXIT;
+ }
+ 
++static struct shrinker ldlm_pools_srv_shrinker = {
++	.count_objects	= ldlm_pools_srv_count,
++	.scan_objects	= ldlm_pools_srv_scan,
++	.seeks		= DEFAULT_SEEKS,
++};
++
++static struct shrinker ldlm_pools_cli_shrinker = {
++	.count_objects	= ldlm_pools_cli_count,
++	.scan_objects	= ldlm_pools_cli_scan,
++	.seeks		= DEFAULT_SEEKS,
++};
++
+ int ldlm_pools_init(void)
+ {
+ 	int rc;
+@@ -1358,12 +1379,8 @@ int ldlm_pools_init(void)
+ 
+ 	rc = ldlm_pools_thread_start();
+ 	if (rc == 0) {
+-		ldlm_pools_srv_shrinker =
+-			set_shrinker(DEFAULT_SEEKS,
+-					 ldlm_pools_srv_shrink);
+-		ldlm_pools_cli_shrinker =
+-			set_shrinker(DEFAULT_SEEKS,
+-					 ldlm_pools_cli_shrink);
++		register_shrinker(&ldlm_pools_srv_shrinker);
++		register_shrinker(&ldlm_pools_cli_shrinker);
+ 	}
+ 	RETURN(rc);
+ }
+@@ -1371,14 +1388,8 @@ EXPORT_SYMBOL(ldlm_pools_init);
+ 
+ void ldlm_pools_fini(void)
+ {
+-	if (ldlm_pools_srv_shrinker != NULL) {
+-		remove_shrinker(ldlm_pools_srv_shrinker);
+-		ldlm_pools_srv_shrinker = NULL;
+-	}
+-	if (ldlm_pools_cli_shrinker != NULL) {
+-		remove_shrinker(ldlm_pools_cli_shrinker);
+-		ldlm_pools_cli_shrinker = NULL;
+-	}
++	unregister_shrinker(&ldlm_pools_srv_shrinker);
++	unregister_shrinker(&ldlm_pools_cli_shrinker);
+ 	ldlm_pools_thread_stop();
+ }
+ EXPORT_SYMBOL(ldlm_pools_fini);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bergwolf@gmail.com are
 
 linux-next.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
-arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
-vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
 
