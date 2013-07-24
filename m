@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-si4713-fix-file-pattern.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:30 -0700
-Message-ID: <51f0361e.RNDkF/AUCRK56h3/%akpm@linux-foundation.org>
+Subject: + maintainers-update-gre-demux-patterns.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:37 -0700
+Message-ID: <51f03625.M7hLYyLOYzFeudaF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54299 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54318 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753647Ab3GXUQb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:31 -0400
+	with ESMTP id S1753675Ab3GXUQi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mchehab@redhat.com, edubezval@gmail.com, joe@perches.com
+To: mm-commits@vger.kernel.org, xeb@mail.ru, dborkman@redhat.com, davem@davemloft.net, joe@perches.com
 
-Subject: + maintainers-si4713-fix-file-pattern.patch added to -mm tree
-To: joe@perches.com,edubezval@gmail.com,mchehab@redhat.com
+Subject: + maintainers-update-gre-demux-patterns.patch added to -mm tree
+To: joe@perches.com,davem@davemloft.net,dborkman@redhat.com,xeb@mail.ru
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:30 -0700
+Date: Wed, 24 Jul 2013 13:16:37 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: SI4713: fix file pattern
+     Subject: MAINTAINERS: update GRE DEMUX patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-si4713-fix-file-pattern.patch
+     maintainers-update-gre-demux-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-si4713-fix-file-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-gre-demux-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-si4713-fix-file-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-gre-demux-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: SI4713: fix file pattern
+Subject: MAINTAINERS: update GRE DEMUX patterns
 
-Commit c937ca034a0 ("[media] MAINTAINERS: Add maintainer entry for si4713
-FM transmitter driver") typoed the pattern, fix it.
+Commit c50cd35788 ("net: gre: move GSO functions to gre_offload") renamed
+and separated the file into multiple files.  Update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Kozlov <xeb@mail.ru>
+Cc: Daniel Borkmann <dborkman@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-si4713-fix-file-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-si4713-fix-file-pattern
+diff -puN MAINTAINERS~maintainers-update-gre-demux-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-gre-demux-patterns
 +++ a/MAINTAINERS
-@@ -7401,7 +7401,7 @@ L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- W:	http://linuxtv.org
- S:	Odd Fixes
--F:	drivers/media/radio/radio-si4713.h
-+F:	drivers/media/radio/radio-si4713.c
+@@ -3629,7 +3629,8 @@ GRE DEMULTIPLEXER DRIVER
+ M:	Dmitry Kozlov <xeb@mail.ru>
+ L:	netdev@vger.kernel.org
+ S:	Maintained
+-F:	net/ipv4/gre.c
++F:	net/ipv4/gre_demux.c
++F:	net/ipv4/gre_offload.c
+ F:	include/net/gre.h
  
- SIANO DVB DRIVER
- M:	Mauro Carvalho Chehab <m.chehab@samsung.com>
+ GRETH 10/100/1G Ethernet MAC device driver
 _
 
 Patches currently in -mm which might be from joe@perches.com are
