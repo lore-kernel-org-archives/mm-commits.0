@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
- added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:21 -0700
-Message-ID: <51f03615.1WwNRpTtJfrDlQ3Z%akpm@linux-foundation.org>
+Subject: + maintainers-omap-powerdomain-update-patterns.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:22 -0700
+Message-ID: <51f03616.GUWoah7MgQR9UK1f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364Ab3GXUQW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:22 -0400
+	with ESMTP id S1752364Ab3GXUQX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, santosh.shilimkar@ti.com, rnayak@ti.com, paul@pwsan.com, cesarb@cesarb.eti.br, joe@perches.com
 
-Subject: + maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch added to -mm tree
+Subject: + maintainers-omap-powerdomain-update-patterns.patch added to -mm tree
 To: joe@perches.com,cesarb@cesarb.eti.br,paul@pwsan.com,rnayak@ti.com,santosh.shilimkar@ti.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:21 -0700
+Date: Wed, 24 Jul 2013 13:16:22 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: ARM: OMAP2/3: remove unused clockdomain files
+     Subject: MAINTAINERS: OMAP POWERDOMAIN, update patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+     maintainers-omap-powerdomain-update-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-omap-powerdomain-update-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-omap-powerdomain-update-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,10 +44,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: ARM: OMAP2/3: remove unused clockdomain files
+Subject: MAINTAINERS: OMAP POWERDOMAIN, update patterns
 
-Commit 4bd5259e53a ("ARM: OMAP2/3: clockdomain/PRM/CM: move the low-level
-clockdomain functions into PRM/CM") deleted the files, update the pattern.
+Commit 498153995b9 ("ARM: OMAP2+: powerdomain/PRM: move the low-level
+powerdomain") renamed the files, update the patterns.
 
 Identical to a patch earlier sent by Cesar Eduardo Barros.
 
@@ -60,18 +59,25 @@ Cc: Cesar Eduardo Barros <cesarb@cesarb.eti.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 --
- 1 file changed, 2 deletions(-)
+ MAINTAINERS |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-arm-omap2-3-remove-unused-clockdomain-files MAINTAINERS
---- a/MAINTAINERS~maintainers-arm-omap2-3-remove-unused-clockdomain-files
+diff -puN MAINTAINERS~maintainers-omap-powerdomain-update-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-omap-powerdomain-update-patterns
 +++ a/MAINTAINERS
-@@ -5905,8 +5905,6 @@ L:	linux-omap@vger.kernel.org
+@@ -5898,13 +5898,12 @@ S:	Maintained
+ F:	arch/arm/*omap*/*pm*
+ F:	drivers/cpufreq/omap-cpufreq.c
+ 
+-OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
++OMAP POWERDOMAIN SOC ADAPTATION LAYER SUPPORT
+ M:	Rajendra Nayak <rnayak@ti.com>
+ M:	Paul Walmsley <paul@pwsan.com>
+ L:	linux-omap@vger.kernel.org
  S:	Maintained
- F:	arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
- F:	arch/arm/mach-omap2/powerdomain44xx.c
--F:	arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
--F:	arch/arm/mach-omap2/clockdomain44xx.c
+-F:	arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+-F:	arch/arm/mach-omap2/powerdomain44xx.c
++F:	arch/arm/mach-omap2/prm*
  
  OMAP AUDIO SUPPORT
  M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
