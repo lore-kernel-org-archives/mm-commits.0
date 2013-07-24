@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-gre-demux-patterns.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:37 -0700
-Message-ID: <51f03625.M7hLYyLOYzFeudaF%akpm@linux-foundation.org>
+Subject: + maintainers-gpio-vt8500-remove-file-pattern.patch added to -mm
+ tree
+Date: Wed, 24 Jul 2013 13:16:28 -0700
+Message-ID: <51f0361c.USG2DH0FGPKEUQYc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54318 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753675Ab3GXUQi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:38 -0400
+	with ESMTP id S1752788Ab3GXUQ3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xeb@mail.ru, dborkman@redhat.com, davem@davemloft.net, joe@perches.com
+To: mm-commits@vger.kernel.org, linux@prisktech.co.nz, linus.walleij@linaro.org, joe@perches.com
 
-Subject: + maintainers-update-gre-demux-patterns.patch added to -mm tree
-To: joe@perches.com,davem@davemloft.net,dborkman@redhat.com,xeb@mail.ru
+Subject: + maintainers-gpio-vt8500-remove-file-pattern.patch added to -mm tree
+To: joe@perches.com,linus.walleij@linaro.org,linux@prisktech.co.nz
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:37 -0700
+Date: Wed, 24 Jul 2013 13:16:28 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update GRE DEMUX patterns
+     Subject: MAINTAINERS: gpio: vt8500: remove file pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-update-gre-demux-patterns.patch
+     maintainers-gpio-vt8500-remove-file-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-gre-demux-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-gpio-vt8500-remove-file-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-gre-demux-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-gpio-vt8500-remove-file-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,34 +45,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update GRE DEMUX patterns
+Subject: MAINTAINERS: gpio: vt8500: remove file pattern
 
-Commit c50cd35788 ("net: gre: move GSO functions to gre_offload") renamed
-and separated the file into multiple files.  Update the patterns.
+Commit dc1010860b ("gpio: vt8500: Remove arch-vt8500 gpio driver") removed
+the file, remove the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dmitry Kozlov <xeb@mail.ru>
-Cc: Daniel Borkmann <dborkman@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Tony Prisk <linux@prisktech.co.nz>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-gre-demux-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-gre-demux-patterns
+diff -puN MAINTAINERS~maintainers-gpio-vt8500-remove-file-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-gpio-vt8500-remove-file-pattern
 +++ a/MAINTAINERS
-@@ -3629,7 +3629,8 @@ GRE DEMULTIPLEXER DRIVER
- M:	Dmitry Kozlov <xeb@mail.ru>
- L:	netdev@vger.kernel.org
+@@ -1292,7 +1292,6 @@ L:	linux-arm-kernel@lists.infradead.org
  S:	Maintained
--F:	net/ipv4/gre.c
-+F:	net/ipv4/gre_demux.c
-+F:	net/ipv4/gre_offload.c
- F:	include/net/gre.h
- 
- GRETH 10/100/1G Ethernet MAC device driver
+ F:	arch/arm/mach-vt8500/
+ F:	drivers/clocksource/vt8500_timer.c
+-F:	drivers/gpio/gpio-vt8500.c
+ F:	drivers/i2c/busses/i2c-wmt.c
+ F:	drivers/mmc/host/wmt-sdmmc.c
+ F:	drivers/pwm/pwm-vt8500.c
 _
 
 Patches currently in -mm which might be from joe@perches.com are
