@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-use-__paginginit-instead-of-__init.patch added
- to -mm tree
-Date: Wed, 24 Jul 2013 13:48:08 -0700
-Message-ID: <51f03d88.mJYlGQ4SdUbLsUVB%akpm@linux-foundation.org>
+Subject: + kernel-replace-strict_strto-with-kstrto.patch added to -mm tree
+Date: Wed, 24 Jul 2013 14:05:00 -0700
+Message-ID: <51f0417c.H4xgLuZbnh6SEezt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54713 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579Ab3GXUsI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:48:08 -0400
+	with ESMTP id S1754155Ab3GXVFA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + mm-page_allocc-use-__paginginit-instead-of-__init.patch added to -mm tree
-To: gang.chen@asianux.com
+Subject: + kernel-replace-strict_strto-with-kstrto.patch added to -mm tree
+To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:48:08 -0700
+Date: Wed, 24 Jul 2013 14:05:00 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc.c: use '__paginginit' instead of '__init'
+     Subject: kernel: replace strict_strto*() with kstrto*()
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-use-__paginginit-instead-of-__init.patch
+     kernel-replace-strict_strto-with-kstrto.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-use-__paginginit-instead-of-__init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-replace-strict_strto-with-kstrto.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-use-__paginginit-instead-of-__init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-replace-strict_strto-with-kstrto.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,54 +43,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: mm/page_alloc.c: use '__paginginit' instead of '__init'
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: kernel: replace strict_strto*() with kstrto*()
 
-set_pageblock_order() may be called when memory hotplug, so need use
-'__paginginit' instead of '__init'.
+The usage of strict_strto*() is not preferred, because strict_strto*() is
+obsolete.  Thus, kstrto*() should be used.
 
-The related warning:
-
-  The function __meminit .free_area_init_node() references
-  a function __init .set_pageblock_order().
-  If .set_pageblock_order is only used by .free_area_init_node then
-  annotate .set_pageblock_order with a matching annotation.
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/gcov/fs.c |    2 +-
+ kernel/ksysfs.c  |    2 +-
+ kernel/params.c  |   14 +++++++-------
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-use-__paginginit-instead-of-__init mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-use-__paginginit-instead-of-__init
-+++ a/mm/page_alloc.c
-@@ -4586,7 +4586,7 @@ static inline void setup_usemap(struct p
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
- 
- /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
--void __init set_pageblock_order(void)
-+void __paginginit set_pageblock_order(void)
+diff -puN kernel/gcov/fs.c~kernel-replace-strict_strto-with-kstrto kernel/gcov/fs.c
+--- a/kernel/gcov/fs.c~kernel-replace-strict_strto-with-kstrto
++++ a/kernel/gcov/fs.c
+@@ -74,7 +74,7 @@ static int __init gcov_persist_setup(cha
  {
- 	unsigned int order;
+ 	unsigned long val;
  
-@@ -4614,7 +4614,7 @@ void __init set_pageblock_order(void)
-  * include/linux/pageblock-flags.h for the values of pageblock_order based on
-  * the kernel config
-  */
--void __init set_pageblock_order(void)
-+void __paginginit set_pageblock_order(void)
+-	if (strict_strtoul(str, 0, &val)) {
++	if (kstrtoul(str, 0, &val)) {
+ 		pr_warning("invalid gcov_persist parameter '%s'\n", str);
+ 		return 0;
+ 	}
+diff -puN kernel/ksysfs.c~kernel-replace-strict_strto-with-kstrto kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kernel-replace-strict_strto-with-kstrto
++++ a/kernel/ksysfs.c
+@@ -113,7 +113,7 @@ static ssize_t kexec_crash_size_store(st
+ 	unsigned long cnt;
+ 	int ret;
+ 
+-	if (strict_strtoul(buf, 0, &cnt))
++	if (kstrtoul(buf, 0, &cnt))
+ 		return -EINVAL;
+ 
+ 	ret = crash_shrink_memory(cnt);
+diff -puN kernel/params.c~kernel-replace-strict_strto-with-kstrto kernel/params.c
+--- a/kernel/params.c~kernel-replace-strict_strto-with-kstrto
++++ a/kernel/params.c
+@@ -252,13 +252,13 @@ int parse_args(const char *doing,
+ 	EXPORT_SYMBOL(param_ops_##name)
+ 
+ 
+-STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, strict_strtoul);
+-STANDARD_PARAM_DEF(short, short, "%hi", long, strict_strtol);
+-STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, strict_strtoul);
+-STANDARD_PARAM_DEF(int, int, "%i", long, strict_strtol);
+-STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, strict_strtoul);
+-STANDARD_PARAM_DEF(long, long, "%li", long, strict_strtol);
+-STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, strict_strtoul);
++STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, kstrtoul);
++STANDARD_PARAM_DEF(short, short, "%hi", long, kstrtol);
++STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, kstrtoul);
++STANDARD_PARAM_DEF(int, int, "%i", long, kstrtol);
++STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, kstrtoul);
++STANDARD_PARAM_DEF(long, long, "%li", long, kstrtol);
++STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, kstrtoul);
+ 
+ int param_set_charp(const char *val, const struct kernel_param *kp)
  {
- }
- 
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-origin.patch
-include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
-mm-page_allocc-use-__paginginit-instead-of-__init.patch
-kernel-smpc-free-related-resources-when-failure-occurs-in-hotplug_cfd.patch
+block-replace-strict_strtoul-with-kstrtoul.patch
+mm-replace-strict_strtoul-with-kstrtoul.patch
+drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
+kernel-replace-strict_strto-with-kstrto.patch
 linux-next.patch
 
