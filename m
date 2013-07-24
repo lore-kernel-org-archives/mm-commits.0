@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-replace-strict_strtoul-with-kstrtoul.patch added
- to -mm tree
-Date: Wed, 24 Jul 2013 14:07:04 -0700
-Message-ID: <51f041f8.daxIjXx0XjniEt0H%akpm@linux-foundation.org>
+Subject: + block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
+ added to -mm tree
+Date: Wed, 24 Jul 2013 14:07:43 -0700
+Message-ID: <51f0421f.fhGJY7QWx2HN1byB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54718 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753840Ab3GXVHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:07:05 -0400
+	with ESMTP id S1753969Ab3GXVHn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:07:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + documentation-replace-strict_strtoul-with-kstrtoul.patch added to -mm tree
+Subject: + block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 14:07:04 -0700
+Date: Wed, 24 Jul 2013 14:07:43 -0700
 
 
 The patch titled
-     Subject: Documentation: replace strict_strtoul() with kstrtoul()
+     Subject: block/blk-sysfs.c: replace strict_strtoul() with kstrtoul()
 has been added to the -mm tree.  Its filename is
-     documentation-replace-strict_strtoul-with-kstrtoul.patch
+     block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-replace-strict_strtoul-with-kstrtoul.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-replace-strict_strtoul-with-kstrtoul.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: Documentation: replace strict_strtoul() with kstrtoul()
+Subject: block/blk-sysfs.c: replace strict_strtoul() with kstrtoul()
 
 The usage of strict_strtoul() is not preferred, because strict_strtoul()
 is obsolete.  Thus, kstrtoul() should be used.
@@ -54,48 +54,27 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/target/tcm_mod_builder.py |    2 +-
- Documentation/trace/ftrace.txt          |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ block/blk-sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/target/tcm_mod_builder.py~documentation-replace-strict_strtoul-with-kstrtoul Documentation/target/tcm_mod_builder.py
---- a/Documentation/target/tcm_mod_builder.py~documentation-replace-strict_strtoul-with-kstrtoul
-+++ a/Documentation/target/tcm_mod_builder.py
-@@ -300,7 +300,7 @@ def tcm_mod_build_configfs(proto_ident,
- 	buf += "	int ret;\n\n"
- 	buf += "	if (strstr(name, \"tpgt_\") != name)\n"
- 	buf += "		return ERR_PTR(-EINVAL);\n"
--	buf += "	if (strict_strtoul(name + 5, 10, &tpgt) || tpgt > UINT_MAX)\n"
-+	buf += "	if (kstrtoul(name + 5, 10, &tpgt) || tpgt > UINT_MAX)\n"
- 	buf += "		return ERR_PTR(-EINVAL);\n\n"
- 	buf += "	tpg = kzalloc(sizeof(struct " + fabric_mod_name + "_tpg), GFP_KERNEL);\n"
- 	buf += "	if (!tpg) {\n"
-diff -puN Documentation/trace/ftrace.txt~documentation-replace-strict_strtoul-with-kstrtoul Documentation/trace/ftrace.txt
---- a/Documentation/trace/ftrace.txt~documentation-replace-strict_strtoul-with-kstrtoul
-+++ a/Documentation/trace/ftrace.txt
-@@ -735,7 +735,7 @@ Here are the available options:
- 		 function as well as the function being traced.
+diff -puN block/blk-sysfs.c~block-blk-sysfs-replace-strict_strtoul-with-kstrtoul block/blk-sysfs.c
+--- a/block/blk-sysfs.c~block-blk-sysfs-replace-strict_strtoul-with-kstrtoul
++++ a/block/blk-sysfs.c
+@@ -29,7 +29,7 @@ queue_var_store(unsigned long *var, cons
+ 	int err;
+ 	unsigned long v;
  
-   print-parent:
--   bash-4000  [01]  1477.606694: simple_strtoul <-strict_strtoul
-+   bash-4000  [01]  1477.606694: simple_strtoul <-kstrtoul
+-	err = strict_strtoul(page, 10, &v);
++	err = kstrtoul(page, 10, &v);
+ 	if (err || v > UINT_MAX)
+ 		return -EINVAL;
  
-   noprint-parent:
-    bash-4000  [01]  1477.606694: simple_strtoul
-@@ -759,7 +759,7 @@ Here are the available options:
-             latency-format option is enabled.
- 
-     bash  4000 1 0 00000000 00010a95 [58127d26] 1720.415ms \
--    (+0.000ms): simple_strtoul (strict_strtoul)
-+    (+0.000ms): simple_strtoul (kstrtoul)
- 
-   raw - This will display raw numbers. This option is best for
- 	use with user applications that can translate the raw
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
 block-replace-strict_strtoul-with-kstrtoul.patch
+block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
 mm-replace-strict_strtoul-with-kstrtoul.patch
 drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
 kernel-replace-strict_strto-with-kstrto.patch
