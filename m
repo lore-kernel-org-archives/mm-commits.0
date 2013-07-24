@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-siano-drivers.patch added to -mm tree
-Date: Wed, 24 Jul 2013 13:16:29 -0700
-Message-ID: <51f0361d.NAod9NEaCUt7Xd3X%akpm@linux-foundation.org>
+Subject: + maintainers-update-it913x-patterns.patch added to -mm tree
+Date: Wed, 24 Jul 2013 13:16:31 -0700
+Message-ID: <51f0361f.m/k25bxbXxne/lMG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54300 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753029Ab3GXUQa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:30 -0400
+	with ESMTP id S1753838Ab3GXUQc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 16:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mchehab@redhat.com, joe@perches.com
+To: mm-commits@vger.kernel.org, mchehab@redhat.com, crope@iki.fi, joe@perches.com
 
-Subject: + maintainers-update-siano-drivers.patch added to -mm tree
-To: joe@perches.com,mchehab@redhat.com
+Subject: + maintainers-update-it913x-patterns.patch added to -mm tree
+To: joe@perches.com,crope@iki.fi,mchehab@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 13:16:29 -0700
+Date: Wed, 24 Jul 2013 13:16:31 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update SIANO drivers
+     Subject: MAINTAINERS: update it913x patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-siano-drivers.patch
+     maintainers-update-it913x-patterns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-siano-drivers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-it913x-patterns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-siano-drivers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-it913x-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,12 +44,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update SIANO drivers
+Subject: MAINTAINERS: update it913x patterns
 
-Commit 786baecfe78 ("[media] dvb-usb: move it to
-drivers/media/usb/dvb-usb") moved the files, update the pattern.
+Commit d7104bffcfb ("[media] MAINTAINERS: add
+drivers/media/tuners/it913x*") used the incorrect file patterns.  Fix it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Antti Palosaari <crope@iki.fi>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -57,18 +58,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-siano-drivers MAINTAINERS
---- a/MAINTAINERS~maintainers-update-siano-drivers
+diff -puN MAINTAINERS~maintainers-update-it913x-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-it913x-patterns
 +++ a/MAINTAINERS
-@@ -7410,7 +7410,7 @@ W:	http://linuxtv.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Odd fixes
- F:	drivers/media/common/siano/
--F:	drivers/media/dvb/siano/
-+F:	drivers/media/usb/siano/
- F:	drivers/media/usb/siano/
- F:	drivers/media/mmc/siano
+@@ -4562,7 +4562,7 @@ W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+ T:	git git://linuxtv.org/anttip/media_tree.git
+ S:	Maintained
+-F:	drivers/media/tuners/it913x*
++F:	drivers/media/tuners/tuner_it913x*
  
+ IVTV VIDEO4LINUX DRIVER
+ M:	Andy Walls <awalls@md.metrocast.net>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
