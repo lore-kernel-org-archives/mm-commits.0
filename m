@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-replace-strict_strto-with-kstrto.patch added to -mm tree
-Date: Wed, 24 Jul 2013 14:05:00 -0700
-Message-ID: <51f0417c.H4xgLuZbnh6SEezt%akpm@linux-foundation.org>
+Subject: + documentation-replace-strict_strtoul-with-kstrtoul.patch added
+ to -mm tree
+Date: Wed, 24 Jul 2013 14:07:04 -0700
+Message-ID: <51f041f8.daxIjXx0XjniEt0H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54718 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab3GXVFA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:05:00 -0400
+	with ESMTP id S1753840Ab3GXVHF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 17:07:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + kernel-replace-strict_strto-with-kstrto.patch added to -mm tree
+Subject: + documentation-replace-strict_strtoul-with-kstrtoul.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 14:05:00 -0700
+Date: Wed, 24 Jul 2013 14:07:04 -0700
 
 
 The patch titled
-     Subject: kernel: replace strict_strto*() with kstrto*()
+     Subject: Documentation: replace strict_strtoul() with kstrtoul()
 has been added to the -mm tree.  Its filename is
-     kernel-replace-strict_strto-with-kstrto.patch
+     documentation-replace-strict_strtoul-with-kstrtoul.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-replace-strict_strto-with-kstrto.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-replace-strict_strtoul-with-kstrtoul.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-replace-strict_strto-with-kstrto.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-replace-strict_strtoul-with-kstrtoul.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,68 +45,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: kernel: replace strict_strto*() with kstrto*()
+Subject: Documentation: replace strict_strtoul() with kstrtoul()
 
-The usage of strict_strto*() is not preferred, because strict_strto*() is
-obsolete.  Thus, kstrto*() should be used.
+The usage of strict_strtoul() is not preferred, because strict_strtoul()
+is obsolete.  Thus, kstrtoul() should be used.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/fs.c |    2 +-
- kernel/ksysfs.c  |    2 +-
- kernel/params.c  |   14 +++++++-------
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ Documentation/target/tcm_mod_builder.py |    2 +-
+ Documentation/trace/ftrace.txt          |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/gcov/fs.c~kernel-replace-strict_strto-with-kstrto kernel/gcov/fs.c
---- a/kernel/gcov/fs.c~kernel-replace-strict_strto-with-kstrto
-+++ a/kernel/gcov/fs.c
-@@ -74,7 +74,7 @@ static int __init gcov_persist_setup(cha
- {
- 	unsigned long val;
+diff -puN Documentation/target/tcm_mod_builder.py~documentation-replace-strict_strtoul-with-kstrtoul Documentation/target/tcm_mod_builder.py
+--- a/Documentation/target/tcm_mod_builder.py~documentation-replace-strict_strtoul-with-kstrtoul
++++ a/Documentation/target/tcm_mod_builder.py
+@@ -300,7 +300,7 @@ def tcm_mod_build_configfs(proto_ident,
+ 	buf += "	int ret;\n\n"
+ 	buf += "	if (strstr(name, \"tpgt_\") != name)\n"
+ 	buf += "		return ERR_PTR(-EINVAL);\n"
+-	buf += "	if (strict_strtoul(name + 5, 10, &tpgt) || tpgt > UINT_MAX)\n"
++	buf += "	if (kstrtoul(name + 5, 10, &tpgt) || tpgt > UINT_MAX)\n"
+ 	buf += "		return ERR_PTR(-EINVAL);\n\n"
+ 	buf += "	tpg = kzalloc(sizeof(struct " + fabric_mod_name + "_tpg), GFP_KERNEL);\n"
+ 	buf += "	if (!tpg) {\n"
+diff -puN Documentation/trace/ftrace.txt~documentation-replace-strict_strtoul-with-kstrtoul Documentation/trace/ftrace.txt
+--- a/Documentation/trace/ftrace.txt~documentation-replace-strict_strtoul-with-kstrtoul
++++ a/Documentation/trace/ftrace.txt
+@@ -735,7 +735,7 @@ Here are the available options:
+ 		 function as well as the function being traced.
  
--	if (strict_strtoul(str, 0, &val)) {
-+	if (kstrtoul(str, 0, &val)) {
- 		pr_warning("invalid gcov_persist parameter '%s'\n", str);
- 		return 0;
- 	}
-diff -puN kernel/ksysfs.c~kernel-replace-strict_strto-with-kstrto kernel/ksysfs.c
---- a/kernel/ksysfs.c~kernel-replace-strict_strto-with-kstrto
-+++ a/kernel/ksysfs.c
-@@ -113,7 +113,7 @@ static ssize_t kexec_crash_size_store(st
- 	unsigned long cnt;
- 	int ret;
+   print-parent:
+-   bash-4000  [01]  1477.606694: simple_strtoul <-strict_strtoul
++   bash-4000  [01]  1477.606694: simple_strtoul <-kstrtoul
  
--	if (strict_strtoul(buf, 0, &cnt))
-+	if (kstrtoul(buf, 0, &cnt))
- 		return -EINVAL;
+   noprint-parent:
+    bash-4000  [01]  1477.606694: simple_strtoul
+@@ -759,7 +759,7 @@ Here are the available options:
+             latency-format option is enabled.
  
- 	ret = crash_shrink_memory(cnt);
-diff -puN kernel/params.c~kernel-replace-strict_strto-with-kstrto kernel/params.c
---- a/kernel/params.c~kernel-replace-strict_strto-with-kstrto
-+++ a/kernel/params.c
-@@ -252,13 +252,13 @@ int parse_args(const char *doing,
- 	EXPORT_SYMBOL(param_ops_##name)
+     bash  4000 1 0 00000000 00010a95 [58127d26] 1720.415ms \
+-    (+0.000ms): simple_strtoul (strict_strtoul)
++    (+0.000ms): simple_strtoul (kstrtoul)
  
- 
--STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, strict_strtoul);
--STANDARD_PARAM_DEF(short, short, "%hi", long, strict_strtol);
--STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, strict_strtoul);
--STANDARD_PARAM_DEF(int, int, "%i", long, strict_strtol);
--STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, strict_strtoul);
--STANDARD_PARAM_DEF(long, long, "%li", long, strict_strtol);
--STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, strict_strtoul);
-+STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, kstrtoul);
-+STANDARD_PARAM_DEF(short, short, "%hi", long, kstrtol);
-+STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, kstrtoul);
-+STANDARD_PARAM_DEF(int, int, "%i", long, kstrtol);
-+STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, kstrtoul);
-+STANDARD_PARAM_DEF(long, long, "%li", long, kstrtol);
-+STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, kstrtoul);
- 
- int param_set_charp(const char *val, const struct kernel_param *kp)
- {
+   raw - This will display raw numbers. This option is best for
+ 	use with user applications that can translate the raw
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -114,5 +99,6 @@ block-replace-strict_strtoul-with-kstrtoul.patch
 mm-replace-strict_strtoul-with-kstrtoul.patch
 drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
 kernel-replace-strict_strto-with-kstrto.patch
+documentation-replace-strict_strtoul-with-kstrtoul.patch
 linux-next.patch
 
