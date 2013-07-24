@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-lighten-up-allocate-transaction.patch added to -mm tree
-Date: Wed, 24 Jul 2013 16:03:57 -0700
-Message-ID: <51f05d5d.N9OvEicLnAG/G9by%akpm@linux-foundation.org>
+Subject: +
+ drivers-rtc-rtc-twlc-fix-rtcx-wakealarm-attribute-isnt-created.patch added
+ to -mm tree
+Date: Wed, 24 Jul 2013 16:10:24 -0700
+Message-ID: <51f05ee0.oqTzr03dLkFwUgUs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56046 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56059 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418Ab3GXXD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 19:03:58 -0400
+	with ESMTP id S1752699Ab3GXXKZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jul 2013 19:10:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, tony@atomide.com, khilman@linaro.org, grygorii.strashko@ti.com
 
-Subject: + ocfs2-lighten-up-allocate-transaction.patch added to -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + drivers-rtc-rtc-twlc-fix-rtcx-wakealarm-attribute-isnt-created.patch added to -mm tree
+To: grygorii.strashko@ti.com,khilman@linaro.org,tony@atomide.com
 From: akpm@linux-foundation.org
-Date: Wed, 24 Jul 2013 16:03:57 -0700
+Date: Wed, 24 Jul 2013 16:10:24 -0700
 
 
 The patch titled
-     Subject: ocfs2: lighten up allocate transaction
+     Subject: drivers/rtc/rtc-twl.c: fix: rtcX/wakealarm attribute isn't created
 has been added to the -mm tree.  Its filename is
-     ocfs2-lighten-up-allocate-transaction.patch
+     drivers-rtc-rtc-twlc-fix-rtcx-wakealarm-attribute-isnt-created.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-lighten-up-allocate-transaction.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-twlc-fix-rtcx-wakealarm-attribute-isnt-created.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-lighten-up-allocate-transaction.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-twlc-fix-rtcx-wakealarm-attribute-isnt-created.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,149 +45,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: lighten up allocate transaction
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Return-Path: <grygorii.strashko@ti.com>
+Received: from localhost (localhost [127.0.0.1])
+	by localhost.localdomain (8.14.3/8.14.3) with ESMTP id r6NBnmrh010894
+	for <akpm@localhost>; Tue, 23 Jul 2013 04:49:48 -0700
+X-Original-To: akpm@mail.linuxfoundation.org
+Delivered-To: akpm@mail.linuxfoundation.org
+Received: from mail.linuxfoundation.org [140.211.169.12]
+	by localhost with IMAP (fetchmail-6.3.11)
+	for <akpm@localhost> (single-drop); Tue, 23 Jul 2013 04:49:48 -0700 (PDT)
+Received: from smtp1.linuxfoundation.org (smtp1.linux-foundation.org [172.17.192.35])
+	by mail.linuxfoundation.org (Postfix) with ESMTP id 2C2549A7
+	for <akpm@mail.linuxfoundation.org>; Tue, 23 Jul 2013 11:50:19 +0000 (UTC)
+X-Greylist: whitelisted by SQLgrey-1.7.6
+Received: from mail-oa0-f44.google.com (mail-oa0-f44.google.com [209.85.219.44])
+	by smtp1.linuxfoundation.org (Postfix) with ESMTPS id 12A0C1F950
+	for <akpm@mail.linuxfoundation.org>; Tue, 23 Jul 2013 11:50:17 +0000 (UTC)
+Received: by mail-oa0-f44.google.com with SMTP id l10so10840218oag.17
+        for <akpm@mail.linuxfoundation.org>; Tue, 23 Jul 2013 04:50:17 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20120113;
+        h=from:to:cc:subject:date:message-id:x-mailer:mime-version
+         :content-type:delivered-to:x-gm-message-state;
+        bh=wBQCoFvsLuVPqp8urGoQRAySB/rIGkqYyiqNpUgf1Ks=;
+        b=jbBJBJin/awdOxRsSEfpvbCs0YgNqa8hDem/q7ZdVSxDAZelrYbRTRVw11eKqaObNf
+         HUVmCo9HgOfj16YEFR1C59CqPSAgdo4MiUucdf3BnGHYajZHj/9BLKwuzgWJUTWQREwf
+         oYjX2OiUxzYaifUtYpubbjt9qQEXhdNNILJnpU665XDgvtM0dy6nKuQtf6ukO9nnvco7
+         LsOuKfwGukyZ/mqhbf9TDOxyat6YZ+aAQFk1a+56m+JqS2ZNBMao5e3MVMUvUkF74plw
+         EP3REJ+i+caat5KGohYM8uthpWHStsXiP6W431mxWBAs0mibZH46D4cSauIikkBX5Dqz
+         1iyA==
+X-Received: by 10.60.52.78 with SMTP id r14mr30922629oeo.9.1374580217379;
+        Tue, 23 Jul 2013 04:50:17 -0700 (PDT)
+X-Received: by 10.60.52.78 with SMTP id r14mr30922608oeo.9.1374580217084;
+        Tue, 23 Jul 2013 04:50:17 -0700 (PDT)
+Received: from bear.ext.ti.com (bear.ext.ti.com. [192.94.94.41])
+        by mx.google.com with ESMTPS id dh9si10756940oeb.130.2013.07.23.04.50.16
+        for <akpm@linux-foundation.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Tue, 23 Jul 2013 04:50:16 -0700 (PDT)
+Received-SPF: pass (google.com: domain of grygorii.strashko@ti.com designates 192.94.94.41 as permitted sender) client-ip=192.94.94.41;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of grygorii.strashko@ti.com designates 192.94.94.41 as permitted sender) smtp.mail=grygorii.strashko@ti.com
+Received: from dlelxv90.itg.ti.com ([172.17.2.17])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id r6NBoC4T030533;
+	Tue, 23 Jul 2013 06:50:13 -0500
+Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
+	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id r6NBoC9T008249;
+	Tue, 23 Jul 2013 06:50:12 -0500
+Received: from dlelxv22.itg.ti.com (172.17.1.197) by DFLE72.ent.ti.com
+ (128.247.5.109) with Microsoft SMTP Server id 14.2.342.3; Tue, 23 Jul 2013
+ 06:50:12 -0500
+Received: from localhost (uglx0174654.ucm2.emeaucm.ext.ti.com
+ [10.167.145.172])	by dlelxv22.itg.ti.com (8.13.8/8.13.8) with ESMTP id
+ r6NBoBvH004676;	Tue, 23 Jul 2013 06:50:12 -0500
+To: Alessandro Zummo <a.zummo@towertech.it>,
+        Andrew Morton
+	<akpm@linux-foundation.org>
+Cc: <rtc-linux@googlegroups.com>, <linux-kernel@vger.kernel.org>,
+        Grygorii
+ Strashko <grygorii.strashko@ti.com>,
+        Kevin Hilman <khilman@linaro.org>, Tony
+ Lindgren <tony@atomide.com>
+Subject: drivers/rtc/rtc-twl.c: fix: rtcX/wakealarm attribute isn't created
+Date: Tue, 23 Jul 2013 14:48:33 +0300
+Message-ID: <1374580113-7474-1-git-send-email-grygorii.strashko@ti.com>
+X-Mailer: git-send-email 1.7.9.5
+MIME-Version: 1.0
+Content-Type: text/plain
+Delivered-To: akpm@linux-foundation.org
+X-Gm-Message-State: ALoCoQmDbKVWCpNsGpcdaNtjd/n9B3EubpEHbKv9tkqDXE0yCsdBfdipYCnfAv5v4jbbNJlKIV3o7p7HlhGdvxDcHGXDCOXJs8K+ADG0Qfy6443fgx+bdiRZufk5cAMRnkfb/izW26DJxi0kw3hYlFiOvaLlOcT0iQ==
+X-Spam-Status: No, score=-2.6 required=5.0 tests=BAYES_00,RCVD_IN_DNSWL_LOW
+	autolearn=ham version=3.3.1
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	smtp1.linux-foundation.org
 
-The issue scenario is as following:
+The device_init_wakeup() should be called before rtc_device_register().
+Otherwise, sysfs "sys/class/rtc/rtcX/wakealarm" attribute will not be
+seen from User space.
 
-When fallocating a very large disk space for a small file,
-__ocfs2_extend_allocation attempts to get a very large transaction.  For
-some journal sizes, there may be not enough room for this transaction, and
-the fallocate will fail.
-
-The patch below extends & restarts the transaction as necessary while
-allocating space, and should work with even the smallest journal.  This
-patch refers ext4 resize.
-
-Test:
-# mkfs.ocfs2 -b 4K -C 32K -T datafiles /dev/sdc
-...(jounral size is 32M)
-# mount.ocfs2 /dev/sdc /mnt/ocfs2/
-# touch /mnt/ocfs2/1.log
-# fallocate -o 0 -l 400G /mnt/ocfs2/1.log
-fallocate: /mnt/ocfs2/1.log: fallocate failed: Cannot allocate memory
-# tail -f /var/log/messages
-[ 7372.278591] JBD: fallocate wants too many credits (2051 > 2048)
-[ 7372.278597] (fallocate,6438,0):__ocfs2_extend_allocation:709 ERROR: status = -12
-[ 7372.278603] (fallocate,6438,0):ocfs2_allocate_unwritten_extents:1504 ERROR: status = -12
-[ 7372.278607] (fallocate,6438,0):__ocfs2_change_file_space:1955 ERROR: status = -12
-^C
-With this patch, the test works well.
-
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
+ drivers/rtc/rtc-twl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- fs/ocfs2/file.c        |    6 +-----
- fs/ocfs2/journal.c     |   35 +++++++++++++++++++++++++++++++++++
- fs/ocfs2/journal.h     |   11 +++++++++++
- fs/ocfs2/ocfs2_trace.h |    2 ++
- 4 files changed, 49 insertions(+), 5 deletions(-)
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index 02faf3c..c2e80d7 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -524,6 +524,8 @@ static int twl_rtc_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto out1;
+ 
++	device_init_wakeup(&pdev->dev, 1);
++
+ 	rtc = rtc_device_register(pdev->name,
+ 				  &pdev->dev, &twl_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+@@ -542,7 +544,6 @@ static int twl_rtc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	platform_set_drvdata(pdev, rtc);
+-	device_init_wakeup(&pdev->dev, 1);
+ 	return 0;
+ 
+ out2:
+-- 
+1.7.9.5
 
-diff -puN fs/ocfs2/file.c~ocfs2-lighten-up-allocate-transaction fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/file.c
-@@ -666,11 +666,7 @@ restarted_transaction:
- 		} else {
- 			BUG_ON(why != RESTART_TRANS);
- 
--			/* TODO: This can be more intelligent. */
--			credits = ocfs2_calc_extend_credits(osb->sb,
--							    &fe->id2.i_list,
--							    clusters_to_add);
--			status = ocfs2_extend_trans(handle, credits);
-+			status = ocfs2_allocate_extend_trans(handle, 1);
- 			if (status < 0) {
- 				/* handle still has to be committed at
- 				 * this point. */
-diff -puN fs/ocfs2/journal.c~ocfs2-lighten-up-allocate-transaction fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/journal.c
-@@ -455,6 +455,41 @@ bail:
- 	return status;
- }
- 
-+/*
-+ * If we have fewer than thresh credits, extend by OCFS2_MAX_TRANS_DATA.
-+ * If that fails, restart the transaction & regain write access for the
-+ * buffer head which is used for metadata modifications.
-+ * Taken from Ext4: extend_or_restart_transaction()
-+ */
-+int ocfs2_allocate_extend_trans(handle_t *handle, int thresh)
-+{
-+	int status, old_nblks;
-+
-+	BUG_ON(!handle);
-+
-+	old_nblks = handle->h_buffer_credits;
-+	trace_ocfs2_allocate_extend_trans(old_nblks, thresh);
-+
-+	if (old_nblks < thresh)
-+		return 0;
-+
-+	status = jbd2_journal_extend(handle, OCFS2_MAX_TRANS_DATA);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail;
-+	}
-+
-+	if (status > 0) {
-+		status = jbd2_journal_restart(handle, OCFS2_MAX_TRANS_DATA);
-+		if (status < 0)
-+			mlog_errno(status);
-+	}
-+
-+bail:
-+	return status;
-+}
-+
-+
- struct ocfs2_triggers {
- 	struct jbd2_buffer_trigger_type	ot_triggers;
- 	int				ot_offset;
-diff -puN fs/ocfs2/journal.h~ocfs2-lighten-up-allocate-transaction fs/ocfs2/journal.h
---- a/fs/ocfs2/journal.h~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/journal.h
-@@ -258,6 +258,17 @@ handle_t		    *ocfs2_start_trans(struct
- int			     ocfs2_commit_trans(struct ocfs2_super *osb,
- 						handle_t *handle);
- int			     ocfs2_extend_trans(handle_t *handle, int nblocks);
-+int			     ocfs2_allocate_extend_trans(handle_t *handle,
-+						int thresh);
-+
-+/*
-+ * Define an arbitrary limit for the amount of data we will anticipate
-+ * writing to any given transaction.  For unbounded transactions such as
-+ * fallocate(2) we can write more than this, but we always
-+ * start off at the maximum transaction size and grow the transaction
-+ * optimistically as we go.
-+ */
-+#define OCFS2_MAX_TRANS_DATA	64U
- 
- /*
-  * Create access is for when we get a newly created buffer and we're
-diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-lighten-up-allocate-transaction fs/ocfs2/ocfs2_trace.h
---- a/fs/ocfs2/ocfs2_trace.h~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/ocfs2_trace.h
-@@ -2579,6 +2579,8 @@ DEFINE_OCFS2_INT_INT_EVENT(ocfs2_extend_
- 
- DEFINE_OCFS2_INT_EVENT(ocfs2_extend_trans_restart);
- 
-+DEFINE_OCFS2_INT_INT_EVENT(ocfs2_allocate_extend_trans);
-+
- DEFINE_OCFS2_ULL_ULL_UINT_UINT_EVENT(ocfs2_journal_access);
- 
- DEFINE_OCFS2_ULL_EVENT(ocfs2_journal_dirty);
-_
+Patches currently in -mm which might be from grygorii.strashko@ti.com are
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
-
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
-ocfs2-lighten-up-allocate-transaction.patch
+drivers-rtc-rtc-twlc-fix-rtcx-wakealarm-attribute-isnt-created.patch
+linux-next.patch
 
