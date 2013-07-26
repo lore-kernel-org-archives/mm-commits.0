@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-using-i_size_read-to-access-i_size.patch added to -mm
- tree
-Date: Fri, 26 Jul 2013 15:12:01 -0700
-Message-ID: <51f2f431.LtSF6F4HOHuE2CVH%akpm@linux-foundation.org>
+Subject: + mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch
+ added to -mm tree
+Date: Fri, 26 Jul 2013 15:59:53 -0700
+Message-ID: <51f2ff69.8o7EFv6H+iyP00S4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52399 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757675Ab3GZWMC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jul 2013 18:12:02 -0400
+	with ESMTP id S1757898Ab3GZW7y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jul 2013 18:59:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, paul.bollee@gmail.com, mgorman@suse.de, aarcange@redhat.com, hannes@cmpxchg.org
 
-Subject: + ocfs2-using-i_size_read-to-access-i_size.patch added to -mm tree
-To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch added to -mm tree
+To: hannes@cmpxchg.org,aarcange@redhat.com,mgorman@suse.de,paul.bollee@gmail.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 26 Jul 2013 15:12:01 -0700
+Date: Fri, 26 Jul 2013 15:59:53 -0700
 
 
 The patch titled
-     Subject: ocfs2: use i_size_read() to access i_size
+     Subject: mm: vmscan: fix numa reclaim balance problem in kswapd
 has been added to the -mm tree.  Its filename is
-     ocfs2-using-i_size_read-to-access-i_size.patch
+     mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-using-i_size_read-to-access-i_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-using-i_size_read-to-access-i_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,200 +44,178 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: use i_size_read() to access i_size
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: fix numa reclaim balance problem in kswapd
 
-Though ocfs2 uses inode->i_mutex to protect i_size, there are both
-i_size_read/write() and direct accesses.  Clean up all direct access to
-eliminate confusion.
+The way the page allocator interacts with kswapd creates aging imbalances,
+where the amount of time a userspace page gets in memory under reclaim
+pressure is dependent on which zone, which node the allocator took the
+page frame from.
 
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+#1 fixes missed kswapd wakeups on NUMA systems, which lead to some
+   nodes falling behind for a full reclaim cycle relative to the other
+   nodes in the system
+
+#3 fixes an interaction where kswapd and a continuous stream of page
+   allocations keep the preferred zone of a task between the high and
+   low watermark (allocations succeed + kswapd does not go to sleep)
+   indefinitely, completely underutilizing the lower zones and
+   thrashing on the preferred zone
+
+These patches are the aging fairness part of the thrash-detection based
+file LRU balancing.  Andrea recommended to submit them separately as they
+are bugfixes in their own right.
+
+The following test ran a foreground workload (memcachetest) with
+background IO of various sizes on a 4 node 8G system (similar results were
+observed with single-node 4G systems):
+
+parallelio
+                                               BAS                    FAIRALLO
+                                              BASE                   FAIRALLOC
+Ops memcachetest-0M              5170.00 (  0.00%)           5283.00 (  2.19%)
+Ops memcachetest-791M            4740.00 (  0.00%)           5293.00 ( 11.67%)
+Ops memcachetest-2639M           2551.00 (  0.00%)           4950.00 ( 94.04%)
+Ops memcachetest-4487M           2606.00 (  0.00%)           3922.00 ( 50.50%)
+Ops io-duration-0M                  0.00 (  0.00%)              0.00 (  0.00%)
+Ops io-duration-791M               55.00 (  0.00%)             18.00 ( 67.27%)
+Ops io-duration-2639M             235.00 (  0.00%)            103.00 ( 56.17%)
+Ops io-duration-4487M             278.00 (  0.00%)            173.00 ( 37.77%)
+Ops swaptotal-0M                    0.00 (  0.00%)              0.00 (  0.00%)
+Ops swaptotal-791M             245184.00 (  0.00%)              0.00 (  0.00%)
+Ops swaptotal-2639M            468069.00 (  0.00%)         108778.00 ( 76.76%)
+Ops swaptotal-4487M            452529.00 (  0.00%)          76623.00 ( 83.07%)
+Ops swapin-0M                       0.00 (  0.00%)              0.00 (  0.00%)
+Ops swapin-791M                108297.00 (  0.00%)              0.00 (  0.00%)
+Ops swapin-2639M               169537.00 (  0.00%)          50031.00 ( 70.49%)
+Ops swapin-4487M               167435.00 (  0.00%)          34178.00 ( 79.59%)
+Ops minorfaults-0M            1518666.00 (  0.00%)        1503993.00 (  0.97%)
+Ops minorfaults-791M          1676963.00 (  0.00%)        1520115.00 (  9.35%)
+Ops minorfaults-2639M         1606035.00 (  0.00%)        1799717.00 (-12.06%)
+Ops minorfaults-4487M         1612118.00 (  0.00%)        1583825.00 (  1.76%)
+Ops majorfaults-0M                  6.00 (  0.00%)              0.00 (  0.00%)
+Ops majorfaults-791M            13836.00 (  0.00%)             10.00 ( 99.93%)
+Ops majorfaults-2639M           22307.00 (  0.00%)           6490.00 ( 70.91%)
+Ops majorfaults-4487M           21631.00 (  0.00%)           4380.00 ( 79.75%)
+
+                 BAS    FAIRALLO
+                BASE   FAIRALLOC
+User          287.78      460.97
+System       2151.67     3142.51
+Elapsed      9737.00     8879.34
+
+                                   BAS    FAIRALLO
+                                  BASE   FAIRALLOC
+Minor Faults                  53721925    57188551
+Major Faults                    392195       15157
+Swap Ins                       2994854      112770
+Swap Outs                      4907092      134982
+Direct pages scanned                 0       41824
+Kswapd pages scanned          32975063     8128269
+Kswapd pages reclaimed         6323069     7093495
+Direct pages reclaimed               0       41824
+Kswapd efficiency                  19%         87%
+Kswapd velocity               3386.573     915.414
+Direct efficiency                 100%        100%
+Direct velocity                  0.000       4.710
+Percentage direct scans             0%          0%
+Zone normal velocity          2011.338     550.661
+Zone dma32 velocity           1365.623     369.221
+Zone dma velocity                9.612       0.242
+Page writes by reclaim    18732404.000  614807.000
+Page writes file              13825312      479825
+Page writes anon               4907092      134982
+Page reclaim immediate           85490        5647
+Sector Reads                  12080532      483244
+Sector Writes                 88740508    65438876
+Page rescued immediate               0           0
+Slabs scanned                    82560       12160
+Direct inode steals                  0           0
+Kswapd inode steals              24401       40013
+Kswapd skipped wait                  0           0
+THP fault alloc                      6           8
+THP collapse alloc                5481        5812
+THP splits                          75          22
+THP fault fallback                   0           0
+THP collapse fail                    0           0
+Compaction stalls                    0          54
+Compaction success                   0          45
+Compaction failures                  0           9
+Page migrate success            881492       82278
+Page migrate failure                 0           0
+Compaction pages isolated            0       60334
+Compaction migrate scanned           0       53505
+Compaction free scanned              0     1537605
+Compaction cost                    914          86
+NUMA PTE updates              46738231    41988419
+NUMA hint faults              31175564    24213387
+NUMA hint local faults        10427393     6411593
+NUMA pages migrated             881492       55344
+AutoNUMA cost                   156221      121361
+
+The overall runtime was reduced, throughput for both the foreground
+workload as well as the background IO improved, major faults, swapping and
+reclaim activity shrunk significantly, reclaim efficiency more than
+quadrupled.
+
+
+
+This patch:
+
+When the page allocator fails to get a page from all zones in its given
+zonelist, it wakes up the per-node kswapds for all zones that are at their
+low watermark.
+
+However, with a system under load and the free page counters being per-cpu
+approximations, the observed counter value in a zone can fluctuate enough
+that the allocation fails but the kswapd wakeup is also skipped while the
+zone is still really close to the low watermark.
+
+When one node misses a wakeup like this, it won't be aged before all the
+other node's zones are down to their low watermarks again.  And skipping a
+full aging cycle is an obvious fairness problem.
+
+Kswapd runs until the high watermarks are restored, so it should also be
+woken when the high watermarks are not met.  This ages nodes more equally
+and creates a safety margin for the page counter fluctuation.
+
+By using zone_balanced(), it will now check, in addition to the watermark,
+if compaction requires more order-0 pages to create a higher order page.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Paul Bolle <paul.bollee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c         |    2 +-
- fs/ocfs2/extent_map.c   |   10 +++++-----
- fs/ocfs2/ioctl.c        |    2 +-
- fs/ocfs2/journal.c      |    8 ++++----
- fs/ocfs2/move_extents.c |    2 +-
- fs/ocfs2/quota_global.c |    6 +++---
- fs/ocfs2/quota_local.c  |   12 ++++++------
- 7 files changed, 21 insertions(+), 21 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/aops.c
-@@ -2050,7 +2050,7 @@ int ocfs2_write_end_nolock(struct addres
- 
- out_write_size:
- 	pos += copied;
--	if (pos > inode->i_size) {
-+	if (pos > i_size_read(inode)) {
- 		i_size_write(inode, pos);
- 		mark_inode_dirty(inode);
+diff -puN mm/vmscan.c~mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd
++++ a/mm/vmscan.c
+@@ -3237,7 +3237,7 @@ void wakeup_kswapd(struct zone *zone, in
  	}
-diff -puN fs/ocfs2/extent_map.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/extent_map.c
---- a/fs/ocfs2/extent_map.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/extent_map.c
-@@ -852,20 +852,20 @@ int ocfs2_seek_data_hole_offset(struct f
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
+-	if (zone_watermark_ok_safe(zone, order, low_wmark_pages(zone), 0, 0))
++	if (zone_balanced(zone, order, 0, 0))
+ 		return;
  
- 	down_read(&OCFS2_I(inode)->ip_alloc_sem);
- 
--	if (*offset >= inode->i_size) {
-+	if (*offset >= i_size_read(inode)) {
- 		ret = -ENXIO;
- 		goto out_unlock;
- 	}
- 
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
- 		if (whence == SEEK_HOLE)
--			*offset = inode->i_size;
-+			*offset = i_size_read(inode);
- 		goto out_unlock;
- 	}
- 
- 	clen = 0;
- 	cpos = *offset >> cs_bits;
--	cend = ocfs2_clusters_for_bytes(inode->i_sb, inode->i_size);
-+	cend = ocfs2_clusters_for_bytes(inode->i_sb, i_size_read(inode));
- 
- 	while (cpos < cend && !is_last) {
- 		ret = ocfs2_get_clusters_nocache(inode, di_bh, cpos, &hole_size,
-@@ -904,8 +904,8 @@ int ocfs2_seek_data_hole_offset(struct f
- 		extlen = clen;
- 		extlen <<=  cs_bits;
- 
--		if ((extoff + extlen) > inode->i_size)
--			extlen = inode->i_size - extoff;
-+		if ((extoff + extlen) > i_size_read(inode))
-+			extlen = i_size_read(inode) - extoff;
- 		extoff += extlen;
- 		if (extoff > *offset)
- 			*offset = extoff;
-diff -puN fs/ocfs2/ioctl.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/ioctl.c
---- a/fs/ocfs2/ioctl.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/ioctl.c
-@@ -303,7 +303,7 @@ int ocfs2_info_handle_journal_size(struc
- 	if (o2info_from_user(oij, req))
- 		goto bail;
- 
--	oij.ij_journal_size = osb->journal->j_inode->i_size;
-+	oij.ij_journal_size = i_size_read(osb->journal->j_inode);
- 
- 	o2info_set_request_filled(&oij.ij_req);
- 
-diff -puN fs/ocfs2/journal.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/journal.c
-@@ -836,14 +836,14 @@ int ocfs2_journal_init(struct ocfs2_jour
- 	inode_lock = 1;
- 	di = (struct ocfs2_dinode *)bh->b_data;
- 
--	if (inode->i_size <  OCFS2_MIN_JOURNAL_SIZE) {
-+	if (i_size_read(inode) <  OCFS2_MIN_JOURNAL_SIZE) {
- 		mlog(ML_ERROR, "Journal file size (%lld) is too small!\n",
--		     inode->i_size);
-+		     i_size_read(inode));
- 		status = -EINVAL;
- 		goto done;
- 	}
- 
--	trace_ocfs2_journal_init(inode->i_size,
-+	trace_ocfs2_journal_init(i_size_read(inode),
- 				 (unsigned long long)inode->i_blocks,
- 				 OCFS2_I(inode)->ip_clusters);
- 
-@@ -1131,7 +1131,7 @@ static int ocfs2_force_read_journal(stru
- 
- 	memset(bhs, 0, sizeof(struct buffer_head *) * CONCURRENT_JOURNAL_FILL);
- 
--	num_blocks = ocfs2_blocks_for_bytes(inode->i_sb, inode->i_size);
-+	num_blocks = ocfs2_blocks_for_bytes(inode->i_sb, i_size_read(inode));
- 	v_blkno = 0;
- 	while (v_blkno < num_blocks) {
- 		status = ocfs2_extent_map_get_blocks(inode, v_blkno,
-diff -puN fs/ocfs2/move_extents.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/move_extents.c
-@@ -845,7 +845,7 @@ static int __ocfs2_move_extents_range(st
- 	struct ocfs2_move_extents *range = context->range;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 
--	if ((inode->i_size == 0) || (range->me_len == 0))
-+	if ((i_size_read(inode) == 0) || (range->me_len == 0))
- 		return 0;
- 
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL)
-diff -puN fs/ocfs2/quota_global.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/quota_global.c
---- a/fs/ocfs2/quota_global.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/quota_global.c
-@@ -234,7 +234,7 @@ ssize_t ocfs2_quota_write(struct super_b
- 		len = sb->s_blocksize - OCFS2_QBLK_RESERVED_SPACE - offset;
- 	}
- 
--	if (gqinode->i_size < off + len) {
-+	if (i_size_read(gqinode) < off + len) {
- 		loff_t rounded_end =
- 				ocfs2_align_bytes_to_blocks(sb, off + len);
- 
-@@ -778,8 +778,8 @@ static int ocfs2_acquire_dquot(struct dq
- 		 */
- 		WARN_ON(journal_current_handle());
- 		status = ocfs2_extend_no_holes(gqinode, NULL,
--			gqinode->i_size + (need_alloc << sb->s_blocksize_bits),
--			gqinode->i_size);
-+			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
-+			i_size_read(gqinode));
- 		if (status < 0)
- 			goto out_dq;
- 	}
-diff -puN fs/ocfs2/quota_local.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/quota_local.c
---- a/fs/ocfs2/quota_local.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/quota_local.c
-@@ -982,14 +982,14 @@ static struct ocfs2_quota_chunk *ocfs2_l
- 
- 	/* We are protected by dqio_sem so no locking needed */
- 	status = ocfs2_extend_no_holes(lqinode, NULL,
--				       lqinode->i_size + 2 * sb->s_blocksize,
--				       lqinode->i_size);
-+				       i_size_read(lqinode) + 2 * sb->s_blocksize,
-+				       i_size_read(lqinode));
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
- 	}
- 	status = ocfs2_simple_size_update(lqinode, oinfo->dqi_lqi_bh,
--					  lqinode->i_size + 2 * sb->s_blocksize);
-+					  i_size_read(lqinode) + 2 * sb->s_blocksize);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
-@@ -1125,14 +1125,14 @@ static struct ocfs2_quota_chunk *ocfs2_e
- 
- 	/* We are protected by dqio_sem so no locking needed */
- 	status = ocfs2_extend_no_holes(lqinode, NULL,
--				       lqinode->i_size + sb->s_blocksize,
--				       lqinode->i_size);
-+				       i_size_read(lqinode) + sb->s_blocksize,
-+				       i_size_read(lqinode));
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
- 	}
- 	status = ocfs2_simple_size_update(lqinode, oinfo->dqi_lqi_bh,
--					  lqinode->i_size + sb->s_blocksize);
-+					  i_size_read(lqinode) + sb->s_blocksize);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
+ 	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, zone_idx(zone), order);
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
-ocfs2-using-i_size_read-to-access-i_size.patch
-linux-next.patch
+vmpressure-change-vmpressure-sr_lock-to-spinlock.patch
+vmpressure-do-not-check-for-pending-work-to-prevent-from-new-work.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch
+mm-kill-one-if-loop-in-__free_pages_bootmem.patch
+mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch
+mm-page_alloc-rearrange-watermark-checking-in-get_page_from_freelist.patch
+mm-page_alloc-fair-zone-allocator-policy.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
