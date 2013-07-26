@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-moxa-art-rtc-driver.patch added to -mm tree
-Date: Fri, 26 Jul 2013 14:42:20 -0700
-Message-ID: <51f2ed3c.S9JLNCB3Sp3/4X/K%akpm@linux-foundation.org>
+Subject: + lib-add-crc64-ecma-module.patch added to -mm tree
+Date: Fri, 26 Jul 2013 14:59:42 -0700
+Message-ID: <51f2f14e.NSZ2PeCs64bvQ+Pm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030192Ab3GZVmV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jul 2013 17:42:21 -0400
+	with ESMTP id S1759684Ab3GZV7n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jul 2013 17:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, broonie@linaro.org, jonas.jensen@gmail.com
+To: mm-commits@vger.kernel.org, andrei.varvara@freescale.com, AFLEMING@freescale.com, marian.chereji@freescale.com
 
-Subject: + rtc-add-moxa-art-rtc-driver.patch added to -mm tree
-To: jonas.jensen@gmail.com,broonie@linaro.org
+Subject: + lib-add-crc64-ecma-module.patch added to -mm tree
+To: marian.chereji@freescale.com,AFLEMING@freescale.com,andrei.varvara@freescale.com
 From: akpm@linux-foundation.org
-Date: Fri, 26 Jul 2013 14:42:20 -0700
+Date: Fri, 26 Jul 2013 14:59:42 -0700
 
 
 The patch titled
-     Subject: rtc: add MOXA ART RTC driver
+     Subject: lib: Add CRC64 ECMA module
 has been added to the -mm tree.  Its filename is
-     rtc-add-moxa-art-rtc-driver.patch
+     lib-add-crc64-ecma-module.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-moxa-art-rtc-driver.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-crc64-ecma-module.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-moxa-art-rtc-driver.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-crc64-ecma-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,407 +43,459 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jonas Jensen <jonas.jensen@gmail.com>
-Subject: rtc: add MOXA ART RTC driver
+From: Marian Chereji <marian.chereji@freescale.com>
+Subject: lib: Add CRC64 ECMA module
 
-Add RTC driver for MOXA ART SoCs.
+Add implementation of CRC64 ECMA checksum.
 
-Signed-off-by: Jonas Jensen <jonas.jensen@gmail.com>
-Reviewed-by: Mark Brown <broonie@linaro.org>
+Signed-off-by: Marian Chereji <marian.chereji@freescale.com>
+Reviewed-by: Varvara Andrei-B21317 <andrei.varvara@freescale.com>
+Reviewed-by: Fleming Andrew-AFLEMING <AFLEMING@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/moxa,moxart-rtc.txt |   17 
- drivers/rtc/Kconfig                                       |    9 
- drivers/rtc/Makefile                                      |    1 
- drivers/rtc/rtc-moxart.c                                  |  330 ++++++++++
- 4 files changed, 357 insertions(+)
+ include/linux/crc64_ecma.h |   56 +++++
+ lib/Kconfig                |    7 
+ lib/Makefile               |    1 
+ lib/crc64_ecma.c           |  341 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 405 insertions(+)
 
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/moxa,moxart-rtc.txt
+diff -puN /dev/null include/linux/crc64_ecma.h
 --- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/moxa,moxart-rtc.txt
-@@ -0,0 +1,17 @@
-+MOXA ART real-time clock
-+
-+Required properties:
-+
-+- compatible : Should be "moxa,moxart-rtc"
-+- gpio-rtc-sclk : RTC sclk gpio, with zero flags
-+- gpio-rtc-data : RTC data gpio, with zero flags
-+- gpio-rtc-reset : RTC reset gpio, with zero flags
-+
-+Example:
-+
-+	rtc: rtc {
-+		compatible = "moxa,moxart-rtc";
-+		gpio-rtc-sclk = <&gpio 5 0>;
-+		gpio-rtc-data = <&gpio 6 0>;
-+		gpio-rtc-reset = <&gpio 7 0>;
-+	};
-diff -puN drivers/rtc/Kconfig~rtc-add-moxa-art-rtc-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-moxa-art-rtc-driver
-+++ a/drivers/rtc/Kconfig
-@@ -1249,6 +1249,15 @@ config RTC_DRV_SIRFSOC
- 	  Say "yes" here to support the real time clock on SiRF SOC chips.
- 	  This driver can also be built as a module called rtc-sirfsoc.
- 
-+config RTC_DRV_MOXART
-+	tristate "MOXA ART RTC"
-+	help
-+	   If you say yes here you get support for the MOXA ART
-+	   RTC module.
-+
-+	   This driver can also be built as a module. If so, the module
-+	   will be called rtc-moxart
-+
- comment "HID Sensor RTC drivers"
- 
- config RTC_DRV_HID_SENSOR_TIME
-diff -puN drivers/rtc/Makefile~rtc-add-moxa-art-rtc-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-moxa-art-rtc-driver
-+++ a/drivers/rtc/Makefile
-@@ -130,3 +130,4 @@ obj-$(CONFIG_RTC_DRV_WM831X)	+= rtc-wm83
- obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
- obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
- obj-$(CONFIG_RTC_DRV_SIRFSOC)	+= rtc-sirfsoc.o
-+obj-$(CONFIG_RTC_DRV_MOXART)	+= rtc-moxart.o
-diff -puN /dev/null drivers/rtc/rtc-moxart.c
---- /dev/null
-+++ a/drivers/rtc/rtc-moxart.c
-@@ -0,0 +1,330 @@
++++ a/include/linux/crc64_ecma.h
+@@ -0,0 +1,56 @@
 +/*
-+ * MOXA ART RTC driver.
++ * Copyright 2013 Freescale Semiconductor Inc.
 + *
-+ * Copyright (C) 2013 Jonas Jensen
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *       notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *       notice, this list of conditions and the following disclaimer in the
++ *       documentation and/or other materials provided with the distribution.
++ *     * Neither the name of Freescale Semiconductor nor the
++ *       names of its contributors may be used to endorse or promote products
++ *       derived from this software without specific prior written permission.
 + *
-+ * Jonas Jensen <jonas.jensen@gmail.com>
 + *
-+ * Based on code from
-+ * Moxa Technology Co., Ltd. <www.moxa.com>
++ * ALTERNATIVELY, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") as published by the Free Software
++ * Foundation, either version 2 of that License or (at your option) any
++ * later version.
 + *
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2.  This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
++#ifndef __CRC64_ECMA_H_
++#define __CRC64_ECMA_H_
++
++#include <linux/types.h>
++
++
++#define CRC64_DEFAULT_INITVAL           0xFFFFFFFFFFFFFFFFULL
++
++
++/*
++ * crc64_ecma_seed - Initializes the CRC64 ECMA seed.
++ */
++u64 crc64_ecma_seed(void);
++
++/*
++ * crc64_ecma - Computes the 64 bit ECMA CRC.
++ *
++ * @pdata:	pointer to the data to compute checksum for.
++ * @nbytes:	number of bytes in data buffer.
++ * @seed:	CRC seed.
++ */
++u64 crc64_ecma(u8 const *pdata, u32 nbytes, u64 seed);
++
++#endif /* __CRC64_ECMA_H_ */
+diff -puN lib/Kconfig~lib-add-crc64-ecma-module lib/Kconfig
+--- a/lib/Kconfig~lib-add-crc64-ecma-module
++++ a/lib/Kconfig
+@@ -172,6 +172,13 @@ config CRC8
+ 	  when they need to do cyclic redundancy check according CRC8
+ 	  algorithm. Module will be called crc8.
+ 
++config CRC64_ECMA
++	tristate "CRC64 ECMA function"
++	help
++	  This option provides CRC64 ECMA function. Drivers may select this
++	  when they need to do cyclic redundancy check according to the CRC64
++	  ECMA algorithm.
++
+ config AUDIT_GENERIC
+ 	bool
+ 	depends on AUDIT && !AUDIT_ARCH
+diff -puN lib/Makefile~lib-add-crc64-ecma-module lib/Makefile
+--- a/lib/Makefile~lib-add-crc64-ecma-module
++++ a/lib/Makefile
+@@ -67,6 +67,7 @@ obj-$(CONFIG_CRC32)	+= crc32.o
+ obj-$(CONFIG_CRC7)	+= crc7.o
+ obj-$(CONFIG_LIBCRC32C)	+= libcrc32c.o
+ obj-$(CONFIG_CRC8)	+= crc8.o
++obj-$(CONFIG_CRC64_ECMA)	+= crc64_ecma.o
+ obj-$(CONFIG_GENERIC_ALLOCATOR) += genalloc.o
+ 
+ obj-$(CONFIG_ZLIB_INFLATE) += zlib_inflate/
+diff -puN /dev/null lib/crc64_ecma.c
+--- /dev/null
++++ a/lib/crc64_ecma.c
+@@ -0,0 +1,341 @@
++/*
++ * Copyright 2013 Freescale Semiconductor Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *       notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *       notice, this list of conditions and the following disclaimer in the
++ *       documentation and/or other materials provided with the distribution.
++ *     * Neither the name of Freescale Semiconductor nor the
++ *       names of its contributors may be used to endorse or promote products
++ *       derived from this software without specific prior written permission.
++ *
++ *
++ * ALTERNATIVELY, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") as published by the Free Software
++ * Foundation, either version 2 of that License or (at your option) any
++ * later version.
++ *
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
 +#include <linux/module.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
++#include <linux/crc64_ecma.h>
 +
-+#define GPIO_RTC_RESERVED			0x0C
-+#define GPIO_RTC_DATA_SET			0x10
-+#define GPIO_RTC_DATA_CLEAR			0x14
-+#define GPIO_RTC_PIN_PULL_ENABLE		0x18
-+#define GPIO_RTC_PIN_PULL_TYPE			0x1C
-+#define GPIO_RTC_INT_ENABLE			0x20
-+#define GPIO_RTC_INT_RAW_STATE			0x24
-+#define GPIO_RTC_INT_MASKED_STATE		0x28
-+#define GPIO_RTC_INT_MASK			0x2C
-+#define GPIO_RTC_INT_CLEAR			0x30
-+#define GPIO_RTC_INT_TRIGGER			0x34
-+#define GPIO_RTC_INT_BOTH			0x38
-+#define GPIO_RTC_INT_RISE_NEG			0x3C
-+#define GPIO_RTC_BOUNCE_ENABLE			0x40
-+#define GPIO_RTC_BOUNCE_PRE_SCALE		0x44
-+#define GPIO_RTC_PROTECT_W			0x8E
-+#define GPIO_RTC_PROTECT_R			0x8F
-+#define GPIO_RTC_YEAR_W				0x8C
-+#define GPIO_RTC_YEAR_R				0x8D
-+#define GPIO_RTC_DAY_W				0x8A
-+#define GPIO_RTC_DAY_R				0x8B
-+#define GPIO_RTC_MONTH_W			0x88
-+#define GPIO_RTC_MONTH_R			0x89
-+#define GPIO_RTC_DATE_W				0x86
-+#define GPIO_RTC_DATE_R				0x87
-+#define GPIO_RTC_HOURS_W			0x84
-+#define GPIO_RTC_HOURS_R			0x85
-+#define GPIO_RTC_MINUTES_W			0x82
-+#define GPIO_RTC_MINUTES_R			0x83
-+#define GPIO_RTC_SECONDS_W			0x80
-+#define GPIO_RTC_SECONDS_R			0x81
-+#define GPIO_RTC_DELAY_TIME			8
 +
-+struct moxart_rtc {
-+	struct rtc_device *rtc;
-+	spinlock_t rtc_lock;
-+	int gpio_data, gpio_sclk, gpio_reset;
++#define CRC64_BYTE_MASK			0xFF
++#define CRC64_TABLE_SIZE		256
++
++
++struct crc64_table {
++	u64 seed;
++	u64 table[CRC64_TABLE_SIZE];
 +};
 +
-+static int day_of_year[12] =	{ 0, 31, 59, 90, 120, 151, 181,
-+				  212, 243, 273, 304, 334 };
 +
-+static void moxart_rtc_write_byte(struct device *dev, u8 data)
-+{
-+	struct moxart_rtc *moxart_rtc = dev_get_drvdata(dev);
-+	int i;
-+
-+	for (i = 0; i < 8; i++, data >>= 1) {
-+		gpio_set_value(moxart_rtc->gpio_sclk, 0);
-+		gpio_set_value(moxart_rtc->gpio_data, ((data & 1) == 1));
-+		udelay(GPIO_RTC_DELAY_TIME);
-+		gpio_set_value(moxart_rtc->gpio_sclk, 1);
-+		udelay(GPIO_RTC_DELAY_TIME);
++static struct crc64_table CRC64_ECMA_182 = {
++	CRC64_DEFAULT_INITVAL,
++	{
++		0x0000000000000000ULL,
++		0xb32e4cbe03a75f6fULL,
++		0xf4843657a840a05bULL,
++		0x47aa7ae9abe7ff34ULL,
++		0x7bd0c384ff8f5e33ULL,
++		0xc8fe8f3afc28015cULL,
++		0x8f54f5d357cffe68ULL,
++		0x3c7ab96d5468a107ULL,
++		0xf7a18709ff1ebc66ULL,
++		0x448fcbb7fcb9e309ULL,
++		0x0325b15e575e1c3dULL,
++		0xb00bfde054f94352ULL,
++		0x8c71448d0091e255ULL,
++		0x3f5f08330336bd3aULL,
++		0x78f572daa8d1420eULL,
++		0xcbdb3e64ab761d61ULL,
++		0x7d9ba13851336649ULL,
++		0xceb5ed8652943926ULL,
++		0x891f976ff973c612ULL,
++		0x3a31dbd1fad4997dULL,
++		0x064b62bcaebc387aULL,
++		0xb5652e02ad1b6715ULL,
++		0xf2cf54eb06fc9821ULL,
++		0x41e11855055bc74eULL,
++		0x8a3a2631ae2dda2fULL,
++		0x39146a8fad8a8540ULL,
++		0x7ebe1066066d7a74ULL,
++		0xcd905cd805ca251bULL,
++		0xf1eae5b551a2841cULL,
++		0x42c4a90b5205db73ULL,
++		0x056ed3e2f9e22447ULL,
++		0xb6409f5cfa457b28ULL,
++		0xfb374270a266cc92ULL,
++		0x48190ecea1c193fdULL,
++		0x0fb374270a266cc9ULL,
++		0xbc9d3899098133a6ULL,
++		0x80e781f45de992a1ULL,
++		0x33c9cd4a5e4ecdceULL,
++		0x7463b7a3f5a932faULL,
++		0xc74dfb1df60e6d95ULL,
++		0x0c96c5795d7870f4ULL,
++		0xbfb889c75edf2f9bULL,
++		0xf812f32ef538d0afULL,
++		0x4b3cbf90f69f8fc0ULL,
++		0x774606fda2f72ec7ULL,
++		0xc4684a43a15071a8ULL,
++		0x83c230aa0ab78e9cULL,
++		0x30ec7c140910d1f3ULL,
++		0x86ace348f355aadbULL,
++		0x3582aff6f0f2f5b4ULL,
++		0x7228d51f5b150a80ULL,
++		0xc10699a158b255efULL,
++		0xfd7c20cc0cdaf4e8ULL,
++		0x4e526c720f7dab87ULL,
++		0x09f8169ba49a54b3ULL,
++		0xbad65a25a73d0bdcULL,
++		0x710d64410c4b16bdULL,
++		0xc22328ff0fec49d2ULL,
++		0x85895216a40bb6e6ULL,
++		0x36a71ea8a7ace989ULL,
++		0x0adda7c5f3c4488eULL,
++		0xb9f3eb7bf06317e1ULL,
++		0xfe5991925b84e8d5ULL,
++		0x4d77dd2c5823b7baULL,
++		0x64b62bcaebc387a1ULL,
++		0xd7986774e864d8ceULL,
++		0x90321d9d438327faULL,
++		0x231c512340247895ULL,
++		0x1f66e84e144cd992ULL,
++		0xac48a4f017eb86fdULL,
++		0xebe2de19bc0c79c9ULL,
++		0x58cc92a7bfab26a6ULL,
++		0x9317acc314dd3bc7ULL,
++		0x2039e07d177a64a8ULL,
++		0x67939a94bc9d9b9cULL,
++		0xd4bdd62abf3ac4f3ULL,
++		0xe8c76f47eb5265f4ULL,
++		0x5be923f9e8f53a9bULL,
++		0x1c4359104312c5afULL,
++		0xaf6d15ae40b59ac0ULL,
++		0x192d8af2baf0e1e8ULL,
++		0xaa03c64cb957be87ULL,
++		0xeda9bca512b041b3ULL,
++		0x5e87f01b11171edcULL,
++		0x62fd4976457fbfdbULL,
++		0xd1d305c846d8e0b4ULL,
++		0x96797f21ed3f1f80ULL,
++		0x2557339fee9840efULL,
++		0xee8c0dfb45ee5d8eULL,
++		0x5da24145464902e1ULL,
++		0x1a083bacedaefdd5ULL,
++		0xa9267712ee09a2baULL,
++		0x955cce7fba6103bdULL,
++		0x267282c1b9c65cd2ULL,
++		0x61d8f8281221a3e6ULL,
++		0xd2f6b4961186fc89ULL,
++		0x9f8169ba49a54b33ULL,
++		0x2caf25044a02145cULL,
++		0x6b055fede1e5eb68ULL,
++		0xd82b1353e242b407ULL,
++		0xe451aa3eb62a1500ULL,
++		0x577fe680b58d4a6fULL,
++		0x10d59c691e6ab55bULL,
++		0xa3fbd0d71dcdea34ULL,
++		0x6820eeb3b6bbf755ULL,
++		0xdb0ea20db51ca83aULL,
++		0x9ca4d8e41efb570eULL,
++		0x2f8a945a1d5c0861ULL,
++		0x13f02d374934a966ULL,
++		0xa0de61894a93f609ULL,
++		0xe7741b60e174093dULL,
++		0x545a57dee2d35652ULL,
++		0xe21ac88218962d7aULL,
++		0x5134843c1b317215ULL,
++		0x169efed5b0d68d21ULL,
++		0xa5b0b26bb371d24eULL,
++		0x99ca0b06e7197349ULL,
++		0x2ae447b8e4be2c26ULL,
++		0x6d4e3d514f59d312ULL,
++		0xde6071ef4cfe8c7dULL,
++		0x15bb4f8be788911cULL,
++		0xa6950335e42fce73ULL,
++		0xe13f79dc4fc83147ULL,
++		0x521135624c6f6e28ULL,
++		0x6e6b8c0f1807cf2fULL,
++		0xdd45c0b11ba09040ULL,
++		0x9aefba58b0476f74ULL,
++		0x29c1f6e6b3e0301bULL,
++		0xc96c5795d7870f42ULL,
++		0x7a421b2bd420502dULL,
++		0x3de861c27fc7af19ULL,
++		0x8ec62d7c7c60f076ULL,
++		0xb2bc941128085171ULL,
++		0x0192d8af2baf0e1eULL,
++		0x4638a2468048f12aULL,
++		0xf516eef883efae45ULL,
++		0x3ecdd09c2899b324ULL,
++		0x8de39c222b3eec4bULL,
++		0xca49e6cb80d9137fULL,
++		0x7967aa75837e4c10ULL,
++		0x451d1318d716ed17ULL,
++		0xf6335fa6d4b1b278ULL,
++		0xb199254f7f564d4cULL,
++		0x02b769f17cf11223ULL,
++		0xb4f7f6ad86b4690bULL,
++		0x07d9ba1385133664ULL,
++		0x4073c0fa2ef4c950ULL,
++		0xf35d8c442d53963fULL,
++		0xcf273529793b3738ULL,
++		0x7c0979977a9c6857ULL,
++		0x3ba3037ed17b9763ULL,
++		0x888d4fc0d2dcc80cULL,
++		0x435671a479aad56dULL,
++		0xf0783d1a7a0d8a02ULL,
++		0xb7d247f3d1ea7536ULL,
++		0x04fc0b4dd24d2a59ULL,
++		0x3886b22086258b5eULL,
++		0x8ba8fe9e8582d431ULL,
++		0xcc0284772e652b05ULL,
++		0x7f2cc8c92dc2746aULL,
++		0x325b15e575e1c3d0ULL,
++		0x8175595b76469cbfULL,
++		0xc6df23b2dda1638bULL,
++		0x75f16f0cde063ce4ULL,
++		0x498bd6618a6e9de3ULL,
++		0xfaa59adf89c9c28cULL,
++		0xbd0fe036222e3db8ULL,
++		0x0e21ac88218962d7ULL,
++		0xc5fa92ec8aff7fb6ULL,
++		0x76d4de52895820d9ULL,
++		0x317ea4bb22bfdfedULL,
++		0x8250e80521188082ULL,
++		0xbe2a516875702185ULL,
++		0x0d041dd676d77eeaULL,
++		0x4aae673fdd3081deULL,
++		0xf9802b81de97deb1ULL,
++		0x4fc0b4dd24d2a599ULL,
++		0xfceef8632775faf6ULL,
++		0xbb44828a8c9205c2ULL,
++		0x086ace348f355aadULL,
++		0x34107759db5dfbaaULL,
++		0x873e3be7d8faa4c5ULL,
++		0xc094410e731d5bf1ULL,
++		0x73ba0db070ba049eULL,
++		0xb86133d4dbcc19ffULL,
++		0x0b4f7f6ad86b4690ULL,
++		0x4ce50583738cb9a4ULL,
++		0xffcb493d702be6cbULL,
++		0xc3b1f050244347ccULL,
++		0x709fbcee27e418a3ULL,
++		0x3735c6078c03e797ULL,
++		0x841b8ab98fa4b8f8ULL,
++		0xadda7c5f3c4488e3ULL,
++		0x1ef430e13fe3d78cULL,
++		0x595e4a08940428b8ULL,
++		0xea7006b697a377d7ULL,
++		0xd60abfdbc3cbd6d0ULL,
++		0x6524f365c06c89bfULL,
++		0x228e898c6b8b768bULL,
++		0x91a0c532682c29e4ULL,
++		0x5a7bfb56c35a3485ULL,
++		0xe955b7e8c0fd6beaULL,
++		0xaeffcd016b1a94deULL,
++		0x1dd181bf68bdcbb1ULL,
++		0x21ab38d23cd56ab6ULL,
++		0x9285746c3f7235d9ULL,
++		0xd52f0e859495caedULL,
++		0x6601423b97329582ULL,
++		0xd041dd676d77eeaaULL,
++		0x636f91d96ed0b1c5ULL,
++		0x24c5eb30c5374ef1ULL,
++		0x97eba78ec690119eULL,
++		0xab911ee392f8b099ULL,
++		0x18bf525d915feff6ULL,
++		0x5f1528b43ab810c2ULL,
++		0xec3b640a391f4fadULL,
++		0x27e05a6e926952ccULL,
++		0x94ce16d091ce0da3ULL,
++		0xd3646c393a29f297ULL,
++		0x604a2087398eadf8ULL,
++		0x5c3099ea6de60cffULL,
++		0xef1ed5546e415390ULL,
++		0xa8b4afbdc5a6aca4ULL,
++		0x1b9ae303c601f3cbULL,
++		0x56ed3e2f9e224471ULL,
++		0xe5c372919d851b1eULL,
++		0xa26908783662e42aULL,
++		0x114744c635c5bb45ULL,
++		0x2d3dfdab61ad1a42ULL,
++		0x9e13b115620a452dULL,
++		0xd9b9cbfcc9edba19ULL,
++		0x6a978742ca4ae576ULL,
++		0xa14cb926613cf817ULL,
++		0x1262f598629ba778ULL,
++		0x55c88f71c97c584cULL,
++		0xe6e6c3cfcadb0723ULL,
++		0xda9c7aa29eb3a624ULL,
++		0x69b2361c9d14f94bULL,
++		0x2e184cf536f3067fULL,
++		0x9d36004b35545910ULL,
++		0x2b769f17cf112238ULL,
++		0x9858d3a9ccb67d57ULL,
++		0xdff2a94067518263ULL,
++		0x6cdce5fe64f6dd0cULL,
++		0x50a65c93309e7c0bULL,
++		0xe388102d33392364ULL,
++		0xa4226ac498dedc50ULL,
++		0x170c267a9b79833fULL,
++		0xdcd7181e300f9e5eULL,
++		0x6ff954a033a8c131ULL,
++		0x28532e49984f3e05ULL,
++		0x9b7d62f79be8616aULL,
++		0xa707db9acf80c06dULL,
++		0x14299724cc279f02ULL,
++		0x5383edcd67c06036ULL,
++		0xe0ada17364673f59ULL
 +	}
-+}
-+
-+static u8 moxart_rtc_read_byte(struct device *dev)
-+{
-+	struct moxart_rtc *moxart_rtc = dev_get_drvdata(dev);
-+	int i;
-+	u8 data = 0;
-+
-+	for (i = 0; i < 8; i++) {
-+		gpio_set_value(moxart_rtc->gpio_sclk, 0);
-+		udelay(GPIO_RTC_DELAY_TIME);
-+		gpio_set_value(moxart_rtc->gpio_sclk, 1);
-+		udelay(GPIO_RTC_DELAY_TIME);
-+		if (gpio_get_value(moxart_rtc->gpio_data))
-+			data |= (1 << i);
-+		udelay(GPIO_RTC_DELAY_TIME);
-+	}
-+	return data;
-+}
-+
-+static u8 moxart_rtc_read_register(struct device *dev, u8 cmd)
-+{
-+	struct moxart_rtc *moxart_rtc = dev_get_drvdata(dev);
-+	u8 data;
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+
-+	gpio_direction_output(moxart_rtc->gpio_data, 0);
-+	gpio_set_value(moxart_rtc->gpio_reset, 1);
-+	udelay(GPIO_RTC_DELAY_TIME);
-+	moxart_rtc_write_byte(dev, cmd);
-+	gpio_direction_input(moxart_rtc->gpio_data);
-+	udelay(GPIO_RTC_DELAY_TIME);
-+	data = moxart_rtc_read_byte(dev);
-+	gpio_set_value(moxart_rtc->gpio_sclk, 0);
-+	gpio_set_value(moxart_rtc->gpio_reset, 0);
-+	udelay(GPIO_RTC_DELAY_TIME);
-+
-+	local_irq_restore(flags);
-+
-+	return data;
-+}
-+
-+static void moxart_rtc_write_register(struct device *dev, u8 cmd, u8 data)
-+{
-+	struct moxart_rtc *moxart_rtc = dev_get_drvdata(dev);
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+
-+	gpio_direction_output(moxart_rtc->gpio_data, 0);
-+	gpio_set_value(moxart_rtc->gpio_reset, 1);
-+	udelay(GPIO_RTC_DELAY_TIME);
-+	moxart_rtc_write_byte(dev, cmd);
-+	moxart_rtc_write_byte(dev, data);
-+	gpio_set_value(moxart_rtc->gpio_sclk, 0);
-+	gpio_set_value(moxart_rtc->gpio_reset, 0);
-+	udelay(GPIO_RTC_DELAY_TIME);
-+
-+	local_irq_restore(flags);
-+}
-+
-+static int moxart_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct moxart_rtc *moxart_rtc = dev_get_drvdata(dev);
-+
-+	spin_lock_irq(&moxart_rtc->rtc_lock);
-+
-+	moxart_rtc_write_register(dev, GPIO_RTC_PROTECT_W, 0);
-+	moxart_rtc_write_register(dev, GPIO_RTC_YEAR_W,
-+				  (((tm->tm_year - 100) / 10) << 4) |
-+				  ((tm->tm_year - 100) % 10));
-+
-+	moxart_rtc_write_register(dev, GPIO_RTC_MONTH_W,
-+				  (((tm->tm_mon + 1) / 10) << 4) |
-+				  ((tm->tm_mon + 1) % 10));
-+
-+	moxart_rtc_write_register(dev, GPIO_RTC_DATE_W,
-+				  ((tm->tm_mday / 10) << 4) |
-+				  (tm->tm_mday % 10));
-+
-+	moxart_rtc_write_register(dev, GPIO_RTC_HOURS_W,
-+				  ((tm->tm_hour / 10) << 4) |
-+				  (tm->tm_hour % 10));
-+
-+	moxart_rtc_write_register(dev, GPIO_RTC_MINUTES_W,
-+				  ((tm->tm_min / 10) << 4) |
-+				  (tm->tm_min % 10));
-+
-+	moxart_rtc_write_register(dev, GPIO_RTC_SECONDS_W,
-+				  ((tm->tm_sec / 10) << 4) |
-+				  (tm->tm_sec % 10));
-+
-+	moxart_rtc_write_register(dev, GPIO_RTC_PROTECT_W, 0x80);
-+
-+	spin_unlock_irq(&moxart_rtc->rtc_lock);
-+
-+	dev_dbg(dev, "%s: success tm_year=%d tm_mon=%d\n"
-+		"tm_mday=%d tm_hour=%d tm_min=%d tm_sec=%d\n",
-+		__func__, tm->tm_year, tm->tm_mon, tm->tm_mday,
-+		tm->tm_hour, tm->tm_min, tm->tm_sec);
-+
-+	return 0;
-+}
-+
-+static int moxart_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct moxart_rtc *moxart_rtc = dev_get_drvdata(dev);
-+	unsigned char v;
-+
-+	spin_lock_irq(&moxart_rtc->rtc_lock);
-+
-+	v = moxart_rtc_read_register(dev, GPIO_RTC_SECONDS_R);
-+	tm->tm_sec = (((v & 0x70) >> 4) * 10) + (v & 0x0F);
-+
-+	v = moxart_rtc_read_register(dev, GPIO_RTC_MINUTES_R);
-+	tm->tm_min = (((v & 0x70) >> 4) * 10) + (v & 0x0F);
-+
-+	v = moxart_rtc_read_register(dev, GPIO_RTC_HOURS_R);
-+	if (v & 0x80) { /* 12-hour mode */
-+		tm->tm_hour = (((v & 0x10) >> 4) * 10) + (v & 0x0F);
-+		if (v & 0x20) { /* PM mode */
-+			tm->tm_hour += 12;
-+			if (tm->tm_hour >= 24)
-+				tm->tm_hour = 0;
-+		}
-+	} else { /* 24-hour mode */
-+		tm->tm_hour = (((v & 0x30) >> 4) * 10) + (v & 0x0F);
-+	}
-+
-+	v = moxart_rtc_read_register(dev, GPIO_RTC_DATE_R);
-+	tm->tm_mday = (((v & 0x30) >> 4) * 10) + (v & 0x0F);
-+
-+	v = moxart_rtc_read_register(dev, GPIO_RTC_MONTH_R);
-+	tm->tm_mon = (((v & 0x10) >> 4) * 10) + (v & 0x0F);
-+	tm->tm_mon--;
-+
-+	v = moxart_rtc_read_register(dev, GPIO_RTC_YEAR_R);
-+	tm->tm_year = (((v & 0xF0) >> 4) * 10) + (v & 0x0F);
-+	tm->tm_year += 100;
-+	if (tm->tm_year <= 69)
-+		tm->tm_year += 100;
-+
-+	v = moxart_rtc_read_register(dev, GPIO_RTC_DAY_R);
-+	tm->tm_wday = (v & 0x0f) - 1;
-+	tm->tm_yday = day_of_year[tm->tm_mon];
-+	tm->tm_yday += (tm->tm_mday - 1);
-+	if (tm->tm_mon >= 2) {
-+		if (!(tm->tm_year % 4) && (tm->tm_year % 100))
-+			tm->tm_yday++;
-+	}
-+
-+	tm->tm_isdst = 0;
-+
-+	spin_unlock_irq(&moxart_rtc->rtc_lock);
-+
-+	return 0;
-+}
-+
-+static const struct rtc_class_ops moxart_rtc_ops = {
-+	.read_time	= moxart_rtc_read_time,
-+	.set_time	= moxart_rtc_set_time,
 +};
 +
-+static int moxart_rtc_probe(struct platform_device *pdev)
++
++/*
++ * crc64_ecma_seed - Initializes the CRC64 ECMA seed.
++ */
++u64 crc64_ecma_seed(void)
 +{
-+	struct moxart_rtc *moxart_rtc;
-+	int ret = 0;
-+
-+	moxart_rtc = devm_kzalloc(&pdev->dev, sizeof(*moxart_rtc), GFP_KERNEL);
-+	if (!moxart_rtc) {
-+		dev_err(&pdev->dev, "devm_kzalloc failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	moxart_rtc->gpio_data = of_get_named_gpio(pdev->dev.of_node,
-+						  "gpio-rtc-data", 0);
-+	if (!gpio_is_valid(moxart_rtc->gpio_data)) {
-+		dev_err(&pdev->dev, "invalid gpio (data): %d\n",
-+			moxart_rtc->gpio_data);
-+		return moxart_rtc->gpio_data;
-+	}
-+
-+	moxart_rtc->gpio_sclk = of_get_named_gpio(pdev->dev.of_node,
-+						  "gpio-rtc-sclk", 0);
-+	if (!gpio_is_valid(moxart_rtc->gpio_sclk)) {
-+		dev_err(&pdev->dev, "invalid gpio (sclk): %d\n",
-+			moxart_rtc->gpio_sclk);
-+		return moxart_rtc->gpio_sclk;
-+	}
-+
-+	moxart_rtc->gpio_reset = of_get_named_gpio(pdev->dev.of_node,
-+						   "gpio-rtc-reset", 0);
-+	if (!gpio_is_valid(moxart_rtc->gpio_reset)) {
-+		dev_err(&pdev->dev, "invalid gpio (reset): %d\n",
-+			moxart_rtc->gpio_reset);
-+		return moxart_rtc->gpio_reset;
-+	}
-+
-+	spin_lock_init(&moxart_rtc->rtc_lock);
-+	platform_set_drvdata(pdev, moxart_rtc);
-+
-+	ret = devm_gpio_request(&pdev->dev, moxart_rtc->gpio_data, "rtc_data");
-+	if (ret) {
-+		dev_err(&pdev->dev, "can't get rtc_data gpio\n");
-+		return ret;
-+	}
-+
-+	ret = devm_gpio_request_one(&pdev->dev, moxart_rtc->gpio_sclk,
-+				    GPIOF_DIR_OUT, "rtc_sclk");
-+	if (ret) {
-+		dev_err(&pdev->dev, "can't get rtc_sclk gpio\n");
-+		return ret;
-+	}
-+
-+	ret = devm_gpio_request_one(&pdev->dev, moxart_rtc->gpio_reset,
-+				    GPIOF_DIR_OUT, "rtc_reset");
-+	if (ret) {
-+		dev_err(&pdev->dev, "can't get rtc_reset gpio\n");
-+		return ret;
-+	}
-+
-+	moxart_rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-+						   &moxart_rtc_ops,
-+						   THIS_MODULE);
-+	if (IS_ERR(moxart_rtc->rtc)) {
-+		dev_err(&pdev->dev, "devm_rtc_device_register failed\n");
-+		return PTR_ERR(moxart_rtc->rtc);
-+	}
-+
-+	return 0;
++	return CRC64_ECMA_182.seed;
 +}
++EXPORT_SYMBOL(crc64_ecma_seed);
 +
-+static const struct of_device_id moxart_rtc_match[] = {
-+	{ .compatible = "moxa,moxart-rtc" },
-+	{ },
-+};
++/*
++ * crc64_ecma - Computes the 64 bit ECMA CRC.
++ *
++ * pdata: pointer to the data to compute checksum for.
++ * nbytes: number of bytes in data buffer.
++ * seed: CRC seed.
++ */
++u64 crc64_ecma(u8 const *pdata, u32 nbytes, u64 seed)
++{
++	unsigned int i;
++	u64 crc = seed;
 +
-+static struct platform_driver moxart_rtc_driver = {
-+	.probe	= moxart_rtc_probe,
-+	.driver	= {
-+		.name		= "moxart-rtc",
-+		.owner		= THIS_MODULE,
-+		.of_match_table	= moxart_rtc_match,
-+	},
-+};
-+module_platform_driver(moxart_rtc_driver);
++	for (i = 0; i < nbytes; i++)
++		crc = CRC64_ECMA_182.table[(crc ^ pdata[i]) & CRC64_BYTE_MASK] ^
++			(crc >> 8);
 +
-+MODULE_DESCRIPTION("MOXART RTC driver");
++	return crc;
++}
++EXPORT_SYMBOL(crc64_ecma);
++
++MODULE_DESCRIPTION("CRC64 ECMA function");
++MODULE_AUTHOR("Freescale Semiconductor Inc.");
 +MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Jonas Jensen <jonas.jensen@gmail.com>");
 _
 
-Patches currently in -mm which might be from jonas.jensen@gmail.com are
+Patches currently in -mm which might be from marian.chereji@freescale.com are
 
-rtc-add-moxa-art-rtc-driver.patch
+lib-add-crc64-ecma-module.patch
 
