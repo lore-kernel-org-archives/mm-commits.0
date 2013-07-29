@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-remove-decrement_hugepage_resv_vma.patch added to
- -mm tree
-Date: Mon, 29 Jul 2013 15:07:57 -0700
-Message-ID: <51f6e7bd.8VET6Psjyo6p2IfH%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch added to -mm tree
+Date: Mon, 29 Jul 2013 15:07:53 -0700
+Message-ID: <51f6e7b9.BbuS3u4ZgCjLAoP7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60068 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753071Ab3G2WH6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:07:58 -0400
+	with ESMTP id S1753071Ab3G2WHy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:07:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, davidlohr.bueso@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-hugetlb-remove-decrement_hugepage_resv_vma.patch added to -mm tree
+Subject: + mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch added to -mm tree
 To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr.bueso@hp.com,dhillf@gmail.com,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 29 Jul 2013 15:07:57 -0700
+Date: Mon, 29 Jul 2013 15:07:53 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: remove decrement_hugepage_resv_vma()
+     Subject: mm, hugetlb: do not use a page in page cache for cow optimization
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+     mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,20 +45,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, hugetlb: remove decrement_hugepage_resv_vma()
+Subject: mm, hugetlb: do not use a page in page cache for cow optimization
 
-Now, Checking condition of decrement_hugepage_resv_vma() and
-vma_has_reserves() is same, so we can clean-up this function with
-vma_has_reserves().  Additionally, decrement_hugepage_resv_vma() has only
-one call site, so we can remove function and embed it into
-dequeue_huge_page_vma() directly.  This patch implement it.
+Currently, we use a page with mapped count 1 in page cache for cow
+optimization.  If we find this condition, we don't allocate a new page and
+copy contents.  Instead, we map this page directly.  This may introduce a
+problem that writting to private mapping overwrite hugetlb file directly. 
+You can find this situation with following code.
+
+        size = 20 * MB;
+        flag = MAP_SHARED;
+        p = mmap(NULL, size, PROT_READ|PROT_WRITE, flag, fd, 0);
+        if (p == MAP_FAILED) {
+                fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
+                return -1;
+        }
+        p[0] = 's';
+        fprintf(stdout, "BEFORE STEAL PRIVATE WRITE: %c\n", p[0]);
+        munmap(p, size);
+
+        flag = MAP_PRIVATE;
+        p = mmap(NULL, size, PROT_READ|PROT_WRITE, flag, fd, 0);
+        if (p == MAP_FAILED) {
+                fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
+        }
+        p[0] = 'c';
+        munmap(p, size);
+
+        flag = MAP_SHARED;
+        p = mmap(NULL, size, PROT_READ|PROT_WRITE, flag, fd, 0);
+        if (p == MAP_FAILED) {
+                fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
+                return -1;
+        }
+        fprintf(stdout, "AFTER STEAL PRIVATE WRITE: %c\n", p[0]);
+        munmap(p, size);
+
+We can see that "AFTER STEAL PRIVATE WRITE: c", not "AFTER STEAL PRIVATE
+WRITE: s".  If we turn off this optimization to a page in page cache, the
+problem is disappeared.
+
+So, I change the trigger condition of optimization.  If this page is not
+AnonPage, we don't do optimization.  This makes this optimization turning
+off for a page cache.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Acked-by: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
@@ -69,68 +105,33 @@ Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   31 ++++++++++---------------------
- 1 file changed, 10 insertions(+), 21 deletions(-)
+ mm/hugetlb.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-remove-decrement_hugepage_resv_vma mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-remove-decrement_hugepage_resv_vma
+diff -puN mm/hugetlb.c~mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization
 +++ a/mm/hugetlb.c
-@@ -434,25 +434,6 @@ static int is_vma_resv_set(struct vm_are
- 	return (get_vma_private_data(vma) & flag) != 0;
- }
- 
--/* Decrement the reserved pages in the hugepage pool by one */
--static void decrement_hugepage_resv_vma(struct hstate *h,
--			struct vm_area_struct *vma)
--{
--	if (vma->vm_flags & VM_NORESERVE)
--		return;
--
--	if (vma->vm_flags & VM_MAYSHARE) {
--		/* Shared mappings always use reserves */
--		h->resv_huge_pages--;
--	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
--		/*
--		 * Only the process that called mmap() has reserves for
--		 * private mappings.
--		 */
--		h->resv_huge_pages--;
--	}
--}
--
- /* Reset counters to 0 and clear all HPAGE_RESV_* flags */
- void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
+@@ -2528,7 +2528,6 @@ static int hugetlb_cow(struct mm_struct
  {
-@@ -466,10 +447,18 @@ static int vma_has_reserves(struct vm_ar
- {
- 	if (vma->vm_flags & VM_NORESERVE)
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct page *old_page, *new_page;
+-	int avoidcopy;
+ 	int outside_reserve = 0;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+ 	unsigned long mmun_end;		/* For mmu_notifiers */
+@@ -2538,10 +2537,8 @@ static int hugetlb_cow(struct mm_struct
+ retry_avoidcopy:
+ 	/* If no-one else is actually using this page, avoid the copy
+ 	 * and just make the page writable */
+-	avoidcopy = (page_mapcount(old_page) == 1);
+-	if (avoidcopy) {
+-		if (PageAnon(old_page))
+-			page_move_anon_rmap(old_page, vma, address);
++	if (page_mapcount(old_page) == 1 && PageAnon(old_page)) {
++		page_move_anon_rmap(old_page, vma, address);
+ 		set_huge_ptep_writable(vma, address, ptep);
  		return 0;
-+
-+	/* Shared mappings always use reserves */
- 	if (vma->vm_flags & VM_MAYSHARE)
- 		return 1;
-+
-+	/*
-+	 * Only the process that called mmap() has reserves for
-+	 * private mappings.
-+	 */
- 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		return 1;
-+
- 	return 0;
- }
- 
-@@ -564,8 +553,8 @@ retry_cpuset:
- 		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask)) {
- 			page = dequeue_huge_page_node(h, zone_to_nid(zone));
- 			if (page) {
--				if (!avoid_reserve)
--					decrement_hugepage_resv_vma(h, vma);
-+				if (!avoid_reserve && vma_has_reserves(vma))
-+					h->resv_huge_pages--;
- 				break;
- 			}
- 		}
+ 	}
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
