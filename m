@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
- added to -mm tree
-Date: Mon, 29 Jul 2013 15:07:59 -0700
-Message-ID: <51f6e7bf.dqni+XPEIvIQ8a50%akpm@linux-foundation.org>
+ mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch added to -mm tree
+Date: Mon, 29 Jul 2013 15:08:01 -0700
+Message-ID: <51f6e7c1.0R5vNA7APMhlIxiF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60101 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60106 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753071Ab3G2WIA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:08:00 -0400
+	with ESMTP id S1753071Ab3G2WIC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:08:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, davidlohr.bueso@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, iamjoonsoo.kim@lge.com, akpm@linux-foundation.org
 
-Subject: + mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr.bueso@hp.com,dhillf@gmail.com,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,riel@redhat.com
+Subject: + mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,iamjoonsoo.kim@lge.com
 From: akpm@linux-foundation.org
-Date: Mon, 29 Jul 2013 15:07:59 -0700
+Date: Mon, 29 Jul 2013 15:08:01 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: decrement reserve count if VM_NORESERVE alloc page cache
+     Subject: mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+     mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,151 +44,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, hugetlb: decrement reserve count if VM_NORESERVE alloc page cache
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix
 
-If a vma with VM_NORESERVE allocate a new page for page cache, we should
-check whether this area is reserved or not.  If this address is already
-reserved by other process(in case of chg == 0), we should decrement
-reserve count, because this allocated page will go into page cache and
-currently, there is no way to know that this page comes from reserved pool
-or not when releasing inode.  This may introduce over-counting problem to
-reserved count.  With following example code, you can easily reproduce
-this situation.
+fix spelling in comment
 
-Assume 2MB, nr_hugepages = 100
-
-        size = 20 * MB;
-        flag = MAP_SHARED;
-        p = mmap(NULL, size, PROT_READ|PROT_WRITE, flag, fd, 0);
-        if (p == MAP_FAILED) {
-                fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
-                return -1;
-        }
-
-        flag = MAP_SHARED | MAP_NORESERVE;
-        q = mmap(NULL, size, PROT_READ|PROT_WRITE, flag, fd, 0);
-        if (q == MAP_FAILED) {
-                fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
-        }
-        q[0] = 'c';
-
-After finish the program, run 'cat /proc/meminfo'.  You can see below
-result.
-
-HugePages_Free:      100
-HugePages_Rsvd:        1
-
-To fix this, we should check our mapping type and tracked region.  If our
-mapping is VM_NORESERVE, VM_MAYSHARE and chg is 0, this imply that current
-allocated page will go into page cache which is already reserved region
-when mapping is created.  In this case, we should decrease reserve count. 
-As implementing above, this patch solve the problem.
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   34 ++++++++++++++++++++++++++--------
- 1 file changed, 26 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache
+diff -puN mm/hugetlb.c~mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix
 +++ a/mm/hugetlb.c
-@@ -443,10 +443,23 @@ void reset_vma_resv_huge_pages(struct vm
- }
- 
- /* Returns true if the VMA has associated reserve pages */
--static int vma_has_reserves(struct vm_area_struct *vma)
-+static int vma_has_reserves(struct vm_area_struct *vma, long chg)
- {
--	if (vma->vm_flags & VM_NORESERVE)
--		return 0;
-+	if (vma->vm_flags & VM_NORESERVE) {
-+		/*
-+		 * This address is already reserved by other process(chg == 0),
-+		 * so, we should decreament reserved count. Without
-+		 * decreamenting, reserve count is remained after releasing
-+		 * inode, because this allocated page will go into page cache
-+		 * and is regarded as coming from reserved pool in releasing
-+		 * step. Currently, we don't have any other solution to deal
-+		 * with this situation properly, so add work-around here.
-+		 */
-+		if (vma->vm_flags & VM_MAYSHARE && chg == 0)
-+			return 1;
-+		else
-+			return 0;
-+	}
- 
- 	/* Shared mappings always use reserves */
- 	if (vma->vm_flags & VM_MAYSHARE)
-@@ -520,7 +533,8 @@ static struct page *dequeue_huge_page_no
- 
- static struct page *dequeue_huge_page_vma(struct hstate *h,
- 				struct vm_area_struct *vma,
--				unsigned long address, int avoid_reserve)
-+				unsigned long address, int avoid_reserve,
-+				long chg)
- {
- 	struct page *page = NULL;
- 	struct mempolicy *mpol;
-@@ -535,7 +549,7 @@ static struct page *dequeue_huge_page_vm
- 	 * have no page reserves. This check ensures that reservations are
- 	 * not "stolen". The child may still get SIGKILLed
- 	 */
--	if (!vma_has_reserves(vma) &&
-+	if (!vma_has_reserves(vma, chg) &&
- 			h->free_huge_pages - h->resv_huge_pages == 0)
- 		goto err;
- 
-@@ -553,8 +567,12 @@ retry_cpuset:
- 		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask)) {
- 			page = dequeue_huge_page_node(h, zone_to_nid(zone));
- 			if (page) {
--				if (!avoid_reserve && vma_has_reserves(vma))
--					h->resv_huge_pages--;
-+				if (avoid_reserve)
-+					break;
-+				if (!vma_has_reserves(vma, chg))
-+					break;
-+
-+				h->resv_huge_pages--;
- 				break;
- 			}
- 		}
-@@ -1155,7 +1173,7 @@ static struct page *alloc_huge_page(stru
- 		return ERR_PTR(-ENOSPC);
- 	}
- 	spin_lock(&hugetlb_lock);
--	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve);
-+	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, chg);
- 	if (!page) {
- 		spin_unlock(&hugetlb_lock);
- 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
+@@ -448,12 +448,12 @@ static int vma_has_reserves(struct vm_ar
+ 	if (vma->vm_flags & VM_NORESERVE) {
+ 		/*
+ 		 * This address is already reserved by other process(chg == 0),
+-		 * so, we should decreament reserved count. Without
+-		 * decreamenting, reserve count is remained after releasing
+-		 * inode, because this allocated page will go into page cache
+-		 * and is regarded as coming from reserved pool in releasing
+-		 * step. Currently, we don't have any other solution to deal
+-		 * with this situation properly, so add work-around here.
++		 * so, we should decrement reserved count. Without decrementing,
++		 * reserve count remains after releasing inode, because this
++		 * allocated page will go into page cache and is regarded as
++		 * coming from reserved pool in releasing step.  Currently, we
++		 * don't have any other solution to deal with this situation
++		 * properly, so add work-around here.
+ 		 */
+ 		if (vma->vm_flags & VM_MAYSHARE && chg == 0)
+ 			return 1;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+linux-next.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
 mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
