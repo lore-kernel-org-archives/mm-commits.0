@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + pktcdvd-consolidate-dprintk-and-vprintk-macros.patch added to
- -mm tree
-Date: Mon, 29 Jul 2013 15:58:26 -0700
-Message-ID: <51f6f392.vxKr+xKYBNmvha6A%akpm@linux-foundation.org>
+Subject: +
+ pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch added to -mm tree
+Date: Mon, 29 Jul 2013 15:58:29 -0700
+Message-ID: <51f6f395.J5nZ41L1d9DQ2que%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60763 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756268Ab3G2W61 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:58:27 -0400
+	with ESMTP id S1756176Ab3G2W6a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:58:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jkosina@suse.cz, joe@perches.com
+To: mm-commits@vger.kernel.org, jkosina@suse.cz, andy.shevchenko@gmail.com, joe@perches.com
 
-Subject: + pktcdvd-consolidate-dprintk-and-vprintk-macros.patch added to -mm tree
-To: joe@perches.com,jkosina@suse.cz
+Subject: + pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch added to -mm tree
+To: joe@perches.com,andy.shevchenko@gmail.com,jkosina@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 29 Jul 2013 15:58:26 -0700
+Date: Mon, 29 Jul 2013 15:58:29 -0700
 
 
 The patch titled
-     Subject: pktcdvd: consolidate DPRINTK and VPRINTK macros
+     Subject: pktcdvd: add struct pktcdvd_device.name to pr_err logging where possible
 has been added to the -mm tree.  Its filename is
-     pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+     pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,393 +45,202 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: pktcdvd: consolidate DPRINTK and VPRINTK macros
+Subject: pktcdvd: add struct pktcdvd_device.name to pr_err logging where possible
 
-Use the more common pkt_dbg(level, fmt, ...) form.
+Add a new pkt_err macro to prefix the name to the logging output.  Convert
+pr_err where there is a non-null struct pktcdvd_device.
 
-These messages are emitted at KERN_NOTICE.
-
-Always emit function name with pkt_dbg(2, ...) uses and remove the
-sometimes abbreviated embedded function name.
-
-This form always verifies the format and arguments.
+Includes improvements from Andy Shevchenko.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |  107 ++++++++++++++++++--------------------
- 1 file changed, 53 insertions(+), 54 deletions(-)
+ drivers/block/pktcdvd.c |   44 ++++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 20 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~pktcdvd-consolidate-dprintk-and-vprintk-macros drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~pktcdvd-consolidate-dprintk-and-vprintk-macros
+diff -puN drivers/block/pktcdvd.c~pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible
 +++ a/drivers/block/pktcdvd.c
-@@ -71,17 +71,13 @@
+@@ -71,6 +71,9 @@
  
  #define DRIVER_NAME	"pktcdvd"
  
--#if PACKET_DEBUG
--#define DPRINTK(fmt, args...) printk(KERN_NOTICE fmt, ##args)
--#else
--#define DPRINTK(fmt, args...)
--#endif
--
--#if PACKET_DEBUG > 1
--#define VPRINTK(fmt, args...) printk(KERN_NOTICE fmt, ##args)
--#else
--#define VPRINTK(fmt, args...)
--#endif
-+#define pkt_dbg(level, fmt, ...)				\
-+do {								\
-+	if (level == 2 && PACKET_DEBUG >= 2)			\
-+		pr_notice("%s: " fmt, __func__, ##__VA_ARGS__);	\
-+	else if (level == 1 && PACKET_DEBUG >= 1)		\
-+		pr_notice(fmt, ##__VA_ARGS__);			\
-+} while (0)
- 
- #define MAX_SPEED 0xffff
- 
-@@ -519,7 +515,7 @@ static void pkt_bio_finished(struct pktc
- {
- 	BUG_ON(atomic_read(&pd->cdrw.pending_bios) <= 0);
- 	if (atomic_dec_and_test(&pd->cdrw.pending_bios)) {
--		VPRINTK(DRIVER_NAME": queue empty\n");
-+		pkt_dbg(2, "queue empty\n");
- 		atomic_set(&pd->iosched.attention, 1);
- 		wake_up(&pd->wqueue);
++#define pkt_err(pd, fmt, ...)						\
++	pr_err("%s: " fmt, pd->name, ##__VA_ARGS__)
++
+ #define pkt_dbg(level, pd, fmt, ...)					\
+ do {									\
+ 	if (level == 2 && PACKET_DEBUG >= 2)				\
+@@ -938,7 +941,7 @@ static int pkt_set_segment_merging(struc
+ 		set_bit(PACKET_MERGE_SEGS, &pd->flags);
+ 		return 0;
+ 	} else {
+-		pr_err("cdrom max_phys_segments too small\n");
++		pkt_err(pd, "cdrom max_phys_segments too small\n");
+ 		return -EIO;
  	}
-@@ -870,7 +866,7 @@ static void pkt_iosched_process_queue(st
- 				need_write_seek = 0;
- 			if (need_write_seek && reads_queued) {
- 				if (atomic_read(&pd->cdrw.pending_bios) > 0) {
--					VPRINTK(DRIVER_NAME": write, waiting\n");
-+					pkt_dbg(2, "write, waiting\n");
- 					break;
- 				}
- 				pkt_flush_cache(pd);
-@@ -879,7 +875,7 @@ static void pkt_iosched_process_queue(st
- 		} else {
- 			if (!reads_queued && writes_queued) {
- 				if (atomic_read(&pd->cdrw.pending_bios) > 0) {
--					VPRINTK(DRIVER_NAME": read, waiting\n");
-+					pkt_dbg(2, "read, waiting\n");
- 					break;
- 				}
- 				pd->iosched.writing = 1;
-@@ -985,8 +981,9 @@ static void pkt_end_io_read(struct bio *
- 	struct pktcdvd_device *pd = pkt->pd;
- 	BUG_ON(!pd);
- 
--	VPRINTK("pkt_end_io_read: bio=%p sec0=%llx sec=%llx err=%d\n", bio,
--		(unsigned long long)pkt->sector, (unsigned long long)bio->bi_sector, err);
-+	pkt_dbg(2, "bio=%p sec0=%llx sec=%llx err=%d\n",
-+		bio, (unsigned long long)pkt->sector,
-+		(unsigned long long)bio->bi_sector, err);
- 
- 	if (err)
- 		atomic_inc(&pkt->io_errors);
-@@ -1003,7 +1000,7 @@ static void pkt_end_io_packet_write(stru
- 	struct pktcdvd_device *pd = pkt->pd;
- 	BUG_ON(!pd);
- 
--	VPRINTK("pkt_end_io_packet_write: id=%d, err=%d\n", pkt->id, err);
-+	pkt_dbg(2, "id=%d, err=%d\n", pkt->id, err);
- 
- 	pd->stats.pkt_ended++;
- 
-@@ -1045,7 +1042,7 @@ static void pkt_gather_data(struct pktcd
- 	spin_unlock(&pkt->lock);
- 
- 	if (pkt->cache_valid) {
--		VPRINTK("pkt_gather_data: zone %llx cached\n",
-+		pkt_dbg(2, "zone %llx cached\n",
- 			(unsigned long long)pkt->sector);
- 		goto out_account;
+ }
+@@ -1743,7 +1746,7 @@ static noinline_for_stack int pkt_set_wr
+ 		/*
+ 		 * paranoia
+ 		 */
+-		pr_err("write mode wrong %d\n", wp->data_block_type);
++		pkt_err(pd, "write mode wrong %d\n", wp->data_block_type);
+ 		return 1;
  	}
-@@ -1068,7 +1065,7 @@ static void pkt_gather_data(struct pktcd
+ 	wp->packet_size = cpu_to_be32(pd->settings.size >> 2);
+@@ -1787,7 +1790,7 @@ static int pkt_writable_track(struct pkt
+ 	if (ti->rt == 1 && ti->blank == 0)
+ 		return 1;
  
- 		p = (f * CD_FRAMESIZE) / PAGE_SIZE;
- 		offset = (f * CD_FRAMESIZE) % PAGE_SIZE;
--		VPRINTK("pkt_gather_data: Adding frame %d, page:%p offs:%d\n",
-+		pkt_dbg(2, "Adding frame %d, page:%p offs:%d\n",
- 			f, pkt->pages[p], offset);
- 		if (!bio_add_page(bio, pkt->pages[p], CD_FRAMESIZE, offset))
- 			BUG();
-@@ -1080,7 +1077,7 @@ static void pkt_gather_data(struct pktcd
+-	pr_err("bad state %d-%d-%d\n", ti->rt, ti->blank, ti->packet);
++	pkt_err(pd, "bad state %d-%d-%d\n", ti->rt, ti->blank, ti->packet);
+ 	return 0;
+ }
+ 
+@@ -1820,7 +1823,7 @@ static int pkt_writable_disc(struct pktc
  	}
  
- out_account:
--	VPRINTK("pkt_gather_data: need %d frames for zone %llx\n",
-+	pkt_dbg(2, "need %d frames for zone %llx\n",
- 		frames_read, (unsigned long long)pkt->sector);
- 	pd->stats.pkt_started++;
- 	pd->stats.secs_rg += frames_read * (CD_FRAMESIZE >> 9);
-@@ -1181,7 +1178,8 @@ static inline void pkt_set_state(struct
- 		"IDLE", "WAITING", "READ_WAIT", "WRITE_WAIT", "RECOVERY", "FINISHED"
- 	};
- 	enum packet_data_state old_state = pkt->state;
--	VPRINTK("pkt %2d : s=%6llx %s -> %s\n", pkt->id, (unsigned long long)pkt->sector,
-+	pkt_dbg(2, "pkt %2d : s=%6llx %s -> %s\n",
-+		pkt->id, (unsigned long long)pkt->sector,
- 		state_name[old_state], state_name[state]);
- #endif
- 	pkt->state = state;
-@@ -1200,12 +1198,12 @@ static int pkt_handle_queue(struct pktcd
- 	struct rb_node *n;
- 	int wakeup;
- 
--	VPRINTK("handle_queue\n");
-+	pkt_dbg(2, "\n");
- 
- 	atomic_set(&pd->scan_queue, 0);
- 
- 	if (list_empty(&pd->cdrw.pkt_free_list)) {
--		VPRINTK("handle_queue: no pkt\n");
-+		pkt_dbg(2, "no pkt\n");
+ 	if (di->disc_type != 0x20 && di->disc_type != 0) {
+-		pr_err("wrong disc type (%x)\n", di->disc_type);
++		pkt_err(pd, "wrong disc type (%x)\n", di->disc_type);
  		return 0;
  	}
  
-@@ -1242,7 +1240,7 @@ try_next_bio:
+@@ -1830,7 +1833,7 @@ static int pkt_writable_disc(struct pktc
  	}
- 	spin_unlock(&pd->lock);
- 	if (!bio) {
--		VPRINTK("handle_queue: no bio\n");
-+		pkt_dbg(2, "no bio\n");
+ 
+ 	if (di->border_status == PACKET_SESSION_RESERVED) {
+-		pr_err("can't write to last track (reserved)\n");
++		pkt_err(pd, "can't write to last track (reserved)\n");
  		return 0;
  	}
  
-@@ -1258,10 +1256,10 @@ try_next_bio:
- 	 * to this packet.
- 	 */
- 	spin_lock(&pd->lock);
--	VPRINTK("pkt_handle_queue: looking for zone %llx\n", (unsigned long long)zone);
-+	pkt_dbg(2, "looking for zone %llx\n", (unsigned long long)zone);
- 	while ((node = pkt_rbtree_find(pd, zone)) != NULL) {
- 		bio = node->bio;
--		VPRINTK("pkt_handle_queue: found zone=%llx\n",
-+		pkt_dbg(2, "found zone=%llx\n",
- 			(unsigned long long)get_zone(bio->bi_sector, pd));
- 		if (get_zone(bio->bi_sector, pd) != zone)
- 			break;
-@@ -1314,7 +1312,7 @@ static void pkt_start_write(struct pktcd
- 		if (!bio_add_page(pkt->w_bio, bvec[f].bv_page, CD_FRAMESIZE, bvec[f].bv_offset))
- 			BUG();
- 	}
--	VPRINTK(DRIVER_NAME": vcnt=%d\n", pkt->w_bio->bi_vcnt);
-+	pkt_dbg(2, "vcnt=%d\n", pkt->w_bio->bi_vcnt);
+@@ -1855,7 +1858,7 @@ static noinline_for_stack int pkt_probe_
+ 	memset(&ti, 0, sizeof(track_information));
  
- 	/*
- 	 * Fill-in bvec with data from orig_bios.
-@@ -1325,7 +1323,7 @@ static void pkt_start_write(struct pktcd
- 	pkt_set_state(pkt, PACKET_WRITE_WAIT_STATE);
- 	spin_unlock(&pkt->lock);
- 
--	VPRINTK("pkt_start_write: Writing %d frames for zone %llx\n",
-+	pkt_dbg(2, "Writing %d frames for zone %llx\n",
- 		pkt->write_size, (unsigned long long)pkt->sector);
- 
- 	if (test_bit(PACKET_MERGE_SEGS, &pd->flags) || (pkt->write_size < pkt->frames)) {
-@@ -1357,7 +1355,7 @@ static void pkt_run_state_machine(struct
- {
- 	int uptodate;
- 
--	VPRINTK("run_state_machine: pkt %d\n", pkt->id);
-+	pkt_dbg(2, "pkt %d\n", pkt->id);
- 
- 	for (;;) {
- 		switch (pkt->state) {
-@@ -1396,7 +1394,7 @@ static void pkt_run_state_machine(struct
- 			if (pkt_start_recovery(pkt)) {
- 				pkt_start_write(pd, pkt);
- 			} else {
--				VPRINTK("No recovery possible\n");
-+				pkt_dbg(2, "No recovery possible\n");
- 				pkt_set_state(pkt, PACKET_FINISHED_STATE);
- 			}
- 			break;
-@@ -1417,7 +1415,7 @@ static void pkt_handle_packets(struct pk
- {
- 	struct packet_data *pkt, *next;
- 
--	VPRINTK("pkt_handle_packets\n");
-+	pkt_dbg(2, "\n");
- 
- 	/*
- 	 * Run state machine for active packets
-@@ -1500,9 +1498,9 @@ static int kcdrwd(void *foobar)
- 			if (PACKET_DEBUG > 1) {
- 				int states[PACKET_NUM_STATES];
- 				pkt_count_states(pd, states);
--				VPRINTK("kcdrwd: i:%d ow:%d rw:%d ww:%d rec:%d fin:%d\n",
--					states[0], states[1], states[2], states[3],
--					states[4], states[5]);
-+				pkt_dbg(2, "i:%d ow:%d rw:%d ww:%d rec:%d fin:%d\n",
-+					states[0], states[1], states[2],
-+					states[3], states[4], states[5]);
- 			}
- 
- 			min_sleep_time = MAX_SCHEDULE_TIMEOUT;
-@@ -1511,9 +1509,9 @@ static int kcdrwd(void *foobar)
- 					min_sleep_time = pkt->sleep_time;
- 			}
- 
--			VPRINTK("kcdrwd: sleeping\n");
-+			pkt_dbg(2, "sleeping\n");
- 			residue = schedule_timeout(min_sleep_time);
--			VPRINTK("kcdrwd: wake up\n");
-+			pkt_dbg(2, "wake up\n");
- 
- 			/* make swsusp happy with our thread */
- 			try_to_freeze();
-@@ -1810,7 +1808,8 @@ static int pkt_writable_disc(struct pktc
- 		case 0x12: /* DVD-RAM */
- 			return 1;
- 		default:
--			VPRINTK(DRIVER_NAME": Wrong disc profile (%x)\n", pd->mmc3_profile);
-+			pkt_dbg(2, "Wrong disc profile (%x)\n",
-+				pd->mmc3_profile);
- 			return 0;
- 	}
- 
-@@ -2125,7 +2124,7 @@ static noinline_for_stack int pkt_perfor
- 	struct request_sense sense;
- 	int ret;
- 
--	VPRINTK(DRIVER_NAME": Performing OPC\n");
-+	pkt_dbg(2, "Performing OPC\n");
- 
- 	init_cdrom_command(&cgc, NULL, 0, CGC_DATA_NONE);
- 	cgc.sense = &sense;
-@@ -2143,12 +2142,12 @@ static int pkt_open_write(struct pktcdvd
- 	unsigned int write_speed, media_write_speed, read_speed;
- 
- 	if ((ret = pkt_probe_settings(pd))) {
--		VPRINTK(DRIVER_NAME": %s failed probe\n", pd->name);
-+		pkt_dbg(2, "%s failed probe\n", pd->name);
+ 	if ((ret = pkt_get_disc_info(pd, &di))) {
+-		pr_err("failed get_disc\n");
++		pkt_err(pd, "failed get_disc\n");
  		return ret;
  	}
  
- 	if ((ret = pkt_set_write_settings(pd))) {
--		DPRINTK(DRIVER_NAME": %s failed saving write settings\n", pd->name);
-+		pkt_dbg(1, "%s failed saving write settings\n", pd->name);
- 		return -EIO;
+@@ -1866,12 +1869,12 @@ static noinline_for_stack int pkt_probe_
+ 
+ 	track = 1; /* (di.last_track_msb << 8) | di.last_track_lsb; */
+ 	if ((ret = pkt_get_track_info(pd, track, 1, &ti))) {
+-		pr_err("failed get_track\n");
++		pkt_err(pd, "failed get_track\n");
+ 		return ret;
  	}
  
-@@ -2160,26 +2159,26 @@ static int pkt_open_write(struct pktcdvd
- 		case 0x13: /* DVD-RW */
- 		case 0x1a: /* DVD+RW */
- 		case 0x12: /* DVD-RAM */
--			DPRINTK(DRIVER_NAME": write speed %ukB/s\n", write_speed);
-+			pkt_dbg(1, "write speed %ukB/s\n", write_speed);
+ 	if (!pkt_writable_track(pd, &ti)) {
+-		pr_err("can't write to this track\n");
++		pkt_err(pd, "can't write to this track\n");
+ 		return -EROFS;
+ 	}
+ 
+@@ -1885,7 +1888,7 @@ static noinline_for_stack int pkt_probe_
+ 		return -ENXIO;
+ 	}
+ 	if (pd->settings.size > PACKET_MAX_SECTORS) {
+-		pr_err("packet size is too big\n");
++		pkt_err(pd, "packet size is too big\n");
+ 		return -EROFS;
+ 	}
+ 	pd->settings.fp = ti.fp;
+@@ -1927,7 +1930,7 @@ static noinline_for_stack int pkt_probe_
+ 			pd->settings.block_mode = PACKET_BLOCK_MODE2;
  			break;
  		default:
- 			if ((ret = pkt_media_speed(pd, &media_write_speed)))
- 				media_write_speed = 16;
- 			write_speed = min(write_speed, media_write_speed * 177);
--			DPRINTK(DRIVER_NAME": write speed %ux\n", write_speed / 176);
-+			pkt_dbg(1, "write speed %ux\n", write_speed / 176);
- 			break;
+-			pr_err("unknown data mode\n");
++			pkt_err(pd, "unknown data mode\n");
+ 			return -EROFS;
  	}
- 	read_speed = write_speed;
- 
- 	if ((ret = pkt_set_speed(pd, write_speed, read_speed))) {
--		DPRINTK(DRIVER_NAME": %s couldn't set write speed\n", pd->name);
-+		pkt_dbg(1, "%s couldn't set write speed\n", pd->name);
- 		return -EIO;
- 	}
- 	pd->write_speed = write_speed;
- 	pd->read_speed = read_speed;
- 
- 	if ((ret = pkt_perform_opc(pd))) {
--		DPRINTK(DRIVER_NAME": %s Optimum Power Calibration failed\n", pd->name);
-+		pkt_dbg(1, "%s Optimum Power Calibration failed\n", pd->name);
- 	}
- 
  	return 0;
-@@ -2256,7 +2255,7 @@ out:
- static void pkt_release_dev(struct pktcdvd_device *pd, int flush)
- {
- 	if (flush && pkt_flush_cache(pd))
--		DPRINTK(DRIVER_NAME": %s not flushing cache\n", pd->name);
-+		pkt_dbg(1, "%s not flushing cache\n", pd->name);
- 
- 	pkt_lock_door(pd, 0);
- 
-@@ -2278,7 +2277,7 @@ static int pkt_open(struct block_device
- 	struct pktcdvd_device *pd = NULL;
- 	int ret;
- 
--	VPRINTK(DRIVER_NAME": entering open\n");
-+	pkt_dbg(2, "entering\n");
- 
- 	mutex_lock(&pktcdvd_mutex);
- 	mutex_lock(&ctl_mutex);
-@@ -2314,7 +2313,7 @@ static int pkt_open(struct block_device
- out_dec:
- 	pd->refcnt--;
- out:
--	VPRINTK(DRIVER_NAME": failed open (%d)\n", ret);
-+	pkt_dbg(2, "failed (%d)\n", ret);
- 	mutex_unlock(&ctl_mutex);
- 	mutex_unlock(&pktcdvd_mutex);
- 	return ret;
-@@ -2395,7 +2394,7 @@ static void pkt_make_request(struct requ
- 	blk_queue_bounce(q, &bio);
- 
- 	zone = get_zone(bio->bi_sector, pd);
--	VPRINTK("pkt_make_request: start = %6llx stop = %6llx\n",
-+	pkt_dbg(2, "start = %6llx stop = %6llx\n",
- 		(unsigned long long)bio->bi_sector,
- 		(unsigned long long)bio_end_sector(bio));
- 
-@@ -2650,7 +2649,7 @@ static int pkt_new_dev(struct pktcdvd_de
- 	}
- 
- 	proc_create_data(pd->name, 0, pkt_proc, &pkt_proc_fops, pd);
--	DPRINTK(DRIVER_NAME": writer %s mapped to %s\n", pd->name, bdevname(bdev, b));
-+	pkt_dbg(1, "writer %s mapped to %s\n", pd->name, bdevname(bdev, b));
- 	return 0;
- 
- out_mem:
-@@ -2665,8 +2664,8 @@ static int pkt_ioctl(struct block_device
- 	struct pktcdvd_device *pd = bdev->bd_disk->private_data;
- 	int ret;
- 
--	VPRINTK("pkt_ioctl: cmd %x, dev %d:%d\n", cmd,
--		MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
-+	pkt_dbg(2, "cmd %x, dev %d:%d\n",
-+		cmd, MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
- 
- 	mutex_lock(&pktcdvd_mutex);
- 	switch (cmd) {
-@@ -2690,7 +2689,7 @@ static int pkt_ioctl(struct block_device
- 		break;
- 
- 	default:
--		VPRINTK(DRIVER_NAME": Unknown ioctl for %s (%x)\n", pd->name, cmd);
-+		pkt_dbg(2, "Unknown ioctl for %s (%x)\n", pd->name, cmd);
- 		ret = -ENOTTY;
- 	}
- 	mutex_unlock(&pktcdvd_mutex);
-@@ -2839,7 +2838,7 @@ static int pkt_remove_dev(dev_t pkt_dev)
- 			break;
- 	}
- 	if (idx == MAX_WRITERS) {
--		DPRINTK(DRIVER_NAME": dev not setup\n");
-+		pkt_dbg(1, "dev not setup\n");
- 		ret = -ENXIO;
+@@ -1961,7 +1964,7 @@ static noinline_for_stack int pkt_write_
+ 	cgc.buflen = cgc.cmd[8] = 2 + ((buf[0] << 8) | (buf[1] & 0xff));
+ 	ret = pkt_mode_select(pd, &cgc);
+ 	if (ret) {
+-		pr_err("write caching control failed\n");
++		pkt_err(pd, "write caching control failed\n");
+ 		pkt_dump_sense(&cgc);
+ 	} else if (!ret && set)
+ 		pr_notice("enabled write caching on %s\n", pd->name);
+@@ -2200,7 +2203,7 @@ static int pkt_open_dev(struct pktcdvd_d
  		goto out;
+ 
+ 	if ((ret = pkt_get_last_written(pd, &lba))) {
+-		pr_err("pkt_get_last_written failed\n");
++		pkt_err(pd, "pkt_get_last_written failed\n");
+ 		goto out_putdev;
  	}
-@@ -2859,7 +2858,7 @@ static int pkt_remove_dev(dev_t pkt_dev)
- 	blkdev_put(pd->bdev, FMODE_READ | FMODE_NDELAY);
  
- 	remove_proc_entry(pd->name, pkt_proc);
--	DPRINTK(DRIVER_NAME": writer %s unmapped\n", pd->name);
-+	pkt_dbg(1, "writer %s unmapped\n", pd->name);
+@@ -2230,7 +2233,7 @@ static int pkt_open_dev(struct pktcdvd_d
  
- 	del_gendisk(pd->disk);
- 	blk_cleanup_queue(pd->disk->queue);
+ 	if (write) {
+ 		if (!pkt_grow_pktlist(pd, CONFIG_CDROM_PKTCDVD_BUFFERS)) {
+-			pr_err("not enough memory for buffers\n");
++			pkt_err(pd, "not enough memory for buffers\n");
+ 			ret = -ENOMEM;
+ 			goto out_putdev;
+ 		}
+@@ -2352,8 +2355,8 @@ static void pkt_make_request(struct requ
+ 
+ 	pd = q->queuedata;
+ 	if (!pd) {
+-		pr_err("%s incorrect request queue\n",
+-		       bdevname(bio->bi_bdev, b));
++		pkt_err(pd, "%s incorrect request queue\n",
++			bdevname(bio->bi_bdev, b));
+ 		goto end_io;
+ 	}
+ 
+@@ -2381,7 +2384,7 @@ static void pkt_make_request(struct requ
+ 	}
+ 
+ 	if (!bio->bi_size || (bio->bi_size % CD_FRAMESIZE)) {
+-		pr_err("wrong bio size\n");
++		pkt_err(pd, "wrong bio size\n");
+ 		goto end_io;
+ 	}
+ 
+@@ -2602,7 +2605,7 @@ static int pkt_new_dev(struct pktcdvd_de
+ 	struct block_device *bdev;
+ 
+ 	if (pd->pkt_dev == dev) {
+-		pr_err("recursive setup not allowed\n");
++		pkt_err(pd, "recursive setup not allowed\n");
+ 		return -EBUSY;
+ 	}
+ 	for (i = 0; i < MAX_WRITERS; i++) {
+@@ -2610,11 +2613,12 @@ static int pkt_new_dev(struct pktcdvd_de
+ 		if (!pd2)
+ 			continue;
+ 		if (pd2->bdev->bd_dev == dev) {
+-			pr_err("%s already setup\n", bdevname(pd2->bdev, b));
++			pkt_err(pd, "%s already setup\n",
++				bdevname(pd2->bdev, b));
+ 			return -EBUSY;
+ 		}
+ 		if (pd2->pkt_dev == dev) {
+-			pr_err("can't chain pktcdvd devices\n");
++			pkt_err(pd, "can't chain pktcdvd devices\n");
+ 			return -EBUSY;
+ 		}
+ 	}
+@@ -2637,7 +2641,7 @@ static int pkt_new_dev(struct pktcdvd_de
+ 	atomic_set(&pd->cdrw.pending_bios, 0);
+ 	pd->cdrw.thread = kthread_run(kcdrwd, pd, "%s", pd->name);
+ 	if (IS_ERR(pd->cdrw.thread)) {
+-		pr_err("can't start kernel thread\n");
++		pkt_err(pd, "can't start kernel thread\n");
+ 		ret = -ENOMEM;
+ 		goto out_mem;
+ 	}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
