@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-fix-clone-syscall.patch added to -mm tree
-Date: Fri, 26 Jul 2013 16:10:08 -0700
-Message-ID: <51f301d0.hbHmTLdU/5VrjZAf%akpm@linux-foundation.org>
+Subject: +
+ mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch added to -mm tree
+Date: Mon, 29 Jul 2013 12:59:56 -0700
+Message-ID: <51f6c9bc.rRF3JbNwVLXejXW4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58923 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758357Ab3GZXKJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Jul 2013 19:10:09 -0400
+	with ESMTP id S1752810Ab3G2T75 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 15:59:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, dalias@aerifal.cx, michal.simek@xilinx.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, psz@maths.usyd.edu.au, minchan@kernel.org, hannes@cmpxchg.org
 
-Subject: + microblaze-fix-clone-syscall.patch added to -mm tree
-To: michal.simek@xilinx.com,dalias@aerifal.cx,viro@ZenIV.linux.org.uk
+Subject: + mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch added to -mm tree
+To: hannes@cmpxchg.org,minchan@kernel.org,psz@maths.usyd.edu.au,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 26 Jul 2013 16:10:08 -0700
+Date: Mon, 29 Jul 2013 12:59:56 -0700
 
 
 The patch titled
-     Subject: microblaze: fix clone syscall
+     Subject: mm: revert "page-writeback.c: subtract min_free_kbytes from dirtyable memory"
 has been added to the -mm tree.  Its filename is
-     microblaze-fix-clone-syscall.patch
+     mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-fix-clone-syscall.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-fix-clone-syscall.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,94 +44,32 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: microblaze: fix clone syscall
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: revert "page-writeback.c: subtract min_free_kbytes from dirtyable memory"
 
-Microblaze was assign to CLONE_BACKWARDS type where parent tid was passed
-via 3rd argument.  Microblaze glibc is using 4th argument for it.
+This reverts 75f7ad8e043.  It was the result of a problem observed with a
+3.2 kernel and merged in 3.9, while the issue had been resolved upstream
+in 3.3 (ab8fabd mm: exclude reserved pages from dirtyable memory).
 
-Create new CLONE_BACKWARDS3 type where stack_size is passed via 3rd
-argument, parent thread id pointer via 4th, child thread id pointer via
-5th and tls value as 6th argument
+The "reserved pages" are a superset of min_free_kbytes, thus this change
+is redundant and confusing.  Revert it.
 
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Rich Felker <dalias@aerifal.cx>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Paul Szabo <psz@maths.usyd.edu.au>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig             |    6 ++++++
- arch/microblaze/Kconfig  |    2 +-
- include/linux/syscalls.h |    5 +++++
- kernel/fork.c            |    6 ++++++
- 4 files changed, 18 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/Kconfig~microblaze-fix-clone-syscall arch/Kconfig
---- a/arch/Kconfig~microblaze-fix-clone-syscall
-+++ a/arch/Kconfig
-@@ -407,6 +407,12 @@ config CLONE_BACKWARDS2
- 	help
- 	  Architecture has the first two arguments of clone(2) swapped.
+diff -puN mm/page-writeback.c~mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory
++++ a/mm/page-writeback.c
+@@ -241,9 +241,6 @@ static unsigned long global_dirtyable_me
+ 	if (!vm_highmem_is_dirtyable)
+ 		x -= highmem_dirtyable_memory(x);
  
-+config CLONE_BACKWARDS3
-+	bool
-+	help
-+	  Architecture has tls passed as the 3rd argument of clone(2),
-+	  not the 5th one.
-+
- config ODD_RT_SIGACTION
- 	bool
- 	help
-diff -puN arch/microblaze/Kconfig~microblaze-fix-clone-syscall arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~microblaze-fix-clone-syscall
-+++ a/arch/microblaze/Kconfig
-@@ -28,7 +28,7 @@ config MICROBLAZE
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_IDLE_POLL_SETUP
- 	select MODULES_USE_ELF_RELA
--	select CLONE_BACKWARDS
-+	select CLONE_BACKWARDS3
- 
- config SWAP
- 	def_bool n
-diff -puN include/linux/syscalls.h~microblaze-fix-clone-syscall include/linux/syscalls.h
---- a/include/linux/syscalls.h~microblaze-fix-clone-syscall
-+++ a/include/linux/syscalls.h
-@@ -802,9 +802,14 @@ asmlinkage long sys_vfork(void);
- asmlinkage long sys_clone(unsigned long, unsigned long, int __user *, int,
- 	       int __user *);
- #else
-+#if CONFIG_CLONE_BACKWARDS3
-+asmlinkage long sys_clone(unsigned long, unsigned long, int, int __user *,
-+			  int __user *, int);
-+#else
- asmlinkage long sys_clone(unsigned long, unsigned long, int __user *,
- 	       int __user *, int);
- #endif
-+#endif
- 
- asmlinkage long sys_execve(const char __user *filename,
- 		const char __user *const __user *argv,
-diff -puN kernel/fork.c~microblaze-fix-clone-syscall kernel/fork.c
---- a/kernel/fork.c~microblaze-fix-clone-syscall
-+++ a/kernel/fork.c
-@@ -1679,6 +1679,12 @@ SYSCALL_DEFINE5(clone, unsigned long, ne
- 		 int __user *, parent_tidptr,
- 		 int __user *, child_tidptr,
- 		 int, tls_val)
-+#elif defined(CONFIG_CLONE_BACKWARDS3)
-+SYSCALL_DEFINE6(clone, unsigned long, clone_flags, unsigned long, newsp,
-+		int, stack_size,
-+		int __user *, parent_tidptr,
-+		int __user *, child_tidptr,
-+		int, tls_val)
- #else
- SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
- 		 int __user *, parent_tidptr,
-_
-
-Patches currently in -mm which might be from michal.simek@xilinx.com are
-
-microblaze-fix-clone-syscall.patch
-linux-next.patch
-
+-	/* Subtract min_free_kbytes */
+-	x -= min_t(unsigned long, x, min_free_kbytes >> (PAGE_SHIFT - 10));
