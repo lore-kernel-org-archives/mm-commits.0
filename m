@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-enforce-sane-perl-version.patch added to -mm tree
-Date: Mon, 29 Jul 2013 15:53:32 -0700
-Message-ID: <51f6f26c.E8xXo6vDrfNnhOwF%akpm@linux-foundation.org>
+Subject: + pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
+ added to -mm tree
+Date: Mon, 29 Jul 2013 15:58:24 -0700
+Message-ID: <51f6f390.ESkj+Ji5/xlUcZcr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60679 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60755 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755706Ab3G2Wxd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:53:33 -0400
+	with ESMTP id S1756215Ab3G2W6Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, apw@shadowen.org, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, jkosina@suse.cz, joe@perches.com
 
-Subject: + checkpatch-enforce-sane-perl-version.patch added to -mm tree
-To: dave.hansen@linux.intel.com,apw@shadowen.org,joe@perches.com
+Subject: + pktcdvd-convert-zone-macro-to-static-function-get_zone.patch added to -mm tree
+To: joe@perches.com,jkosina@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 29 Jul 2013 15:53:32 -0700
+Date: Mon, 29 Jul 2013 15:58:24 -0700
 
 
 The patch titled
-     Subject: checkpatch: enforce sane perl version
+     Subject: pktcdvd: convert ZONE macro to static function get_zone()
 has been added to the -mm tree.  Its filename is
-     checkpatch-enforce-sane-perl-version.patch
+     pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-enforce-sane-perl-version.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-enforce-sane-perl-version.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,94 +44,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: checkpatch: enforce sane perl version
+From: Joe Perches <joe@perches.com>
+Subject: pktcdvd: convert ZONE macro to static function get_zone()
 
-I got a bug report from a couple of users who said checkpatch.pl was
-broken for them.  It was erroring out on fairly random lines most commonly
-with messages like:
+Macros should be converted to functions where feasible to
+verify arguments and the like.
 
-	Nested quantifiers in regex; marked by <--HERE in m/(\((?:[^\(\)]++ <-- HERE |(?-1))*\))/ at ./checkpatch.pl line 340.
-
-The bug reporter was running a version of perl 5.8 which was end-of-lifed
-in 2008: http://www.cpan.org/src/.  Versions of perl this old are at
-_best_ quite untested.  At worst, they are crusty and known to be
-completely broken.
-
-If folks have a system _that_ old, then we should have mercy on them and
-give them a half-decent error message rather than fail with nutty error
-messages.
-
-This patch enforces that checkpatch.pl is run with perl 5.10, which was
-end-of-lifed in 2009.  The new --ignore-perl-version command-line switch
-will let folks override this if they want.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/block/pktcdvd.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-enforce-sane-perl-version scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-enforce-sane-perl-version
-+++ a/scripts/checkpatch.pl
-@@ -37,6 +37,8 @@ my @ignore = ();
- my $help = 0;
- my $configuration_file = ".checkpatch.conf";
- my $max_line_length = 80;
-+my $ignore_perl_version = 0;
-+my $minimum_perl_version = 5.10.0;
+diff -puN drivers/block/pktcdvd.c~pktcdvd-convert-zone-macro-to-static-function-get_zone drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-convert-zone-macro-to-static-function-get_zone
++++ a/drivers/block/pktcdvd.c
+@@ -83,9 +83,6 @@
  
- sub help {
- 	my ($exitcode) = @_;
-@@ -71,6 +73,8 @@ Options:
-                              "<inputfile>.EXPERIMENTAL-checkpatch-fixes"
-                              with potential errors corrected to the preferred
-                              checkpatch style
-+  --ignore-perl-version      override checking of perl version.  expect
-+                             runtime errors.
-   -h, --help, --version      display this help and exit
+ #define MAX_SPEED 0xffff
  
- When FILE is - read standard input.
-@@ -123,6 +127,7 @@ GetOptions(
- 	'mailback!'	=> \$mailback,
- 	'summary-file!'	=> \$summary_file,
- 	'fix!'		=> \$fix,
-+	'ignore-perl-version!' => \$ignore_perl_version,
- 	'debug=s'	=> \%debug,
- 	'test-only=s'	=> \$tst_only,
- 	'h|help'	=> \$help,
-@@ -133,6 +138,13 @@ help(0) if ($help);
+-#define ZONE(sector, pd) (((sector) + (pd)->offset) & \
+-			~(sector_t)((pd)->settings.size - 1))
+-
+ static DEFINE_MUTEX(pktcdvd_mutex);
+ static struct pktcdvd_device *pkt_devs[MAX_WRITERS];
+ static struct proc_dir_entry *pkt_proc;
+@@ -103,7 +100,10 @@ static int pkt_setup_dev(dev_t dev, dev_
+ static int pkt_remove_dev(dev_t pkt_dev);
+ static int pkt_seq_show(struct seq_file *m, void *p);
  
- my $exit = 0;
- 
-+if ($^V && $^V lt $minimum_perl_version) {
-+	printf "$P: requires at least perl version %vd\n", $minimum_perl_version;
-+	if (!$ignore_perl_version) {
-+		exit(1);
-+	}
+-
++static sector_t get_zone(sector_t sector, struct pktcdvd_device *pd)
++{
++	return (sector + pd->offset) & ~(sector_t)(pd->settings.size - 1);
 +}
-+
- if ($#ARGV < 0) {
- 	print "$P: no input files\n";
- 	exit(1);
+ 
+ /*
+  * create and register a pktcdvd kernel object.
+@@ -1224,7 +1224,7 @@ static int pkt_handle_queue(struct pktcd
+ 	node = first_node;
+ 	while (node) {
+ 		bio = node->bio;
+-		zone = ZONE(bio->bi_sector, pd);
++		zone = get_zone(bio->bi_sector, pd);
+ 		list_for_each_entry(p, &pd->cdrw.pkt_active_list, list) {
+ 			if (p->sector == zone) {
+ 				bio = NULL;
+@@ -1264,8 +1264,8 @@ try_next_bio:
+ 	while ((node = pkt_rbtree_find(pd, zone)) != NULL) {
+ 		bio = node->bio;
+ 		VPRINTK("pkt_handle_queue: found zone=%llx\n",
+-			(unsigned long long)ZONE(bio->bi_sector, pd));
+-		if (ZONE(bio->bi_sector, pd) != zone)
++			(unsigned long long)get_zone(bio->bi_sector, pd));
++		if (get_zone(bio->bi_sector, pd) != zone)
+ 			break;
+ 		pkt_rbtree_erase(pd, node);
+ 		spin_lock(&pkt->lock);
+@@ -2394,7 +2394,7 @@ static void pkt_make_request(struct requ
+ 
+ 	blk_queue_bounce(q, &bio);
+ 
+-	zone = ZONE(bio->bi_sector, pd);
++	zone = get_zone(bio->bi_sector, pd);
+ 	VPRINTK("pkt_make_request: start = %6llx stop = %6llx\n",
+ 		(unsigned long long)bio->bi_sector,
+ 		(unsigned long long)bio_end_sector(bio));
+@@ -2405,7 +2405,7 @@ static void pkt_make_request(struct requ
+ 		sector_t last_zone;
+ 		int first_sectors;
+ 
+-		last_zone = ZONE(bio_end_sector(bio) - 1, pd);
++		last_zone = get_zone(bio_end_sector(bio) - 1, pd);
+ 		if (last_zone != zone) {
+ 			BUG_ON(last_zone != zone + pd->settings.size);
+ 			first_sectors = last_zone - bio->bi_sector;
+@@ -2500,7 +2500,7 @@ static int pkt_merge_bvec(struct request
+ 			  struct bio_vec *bvec)
+ {
+ 	struct pktcdvd_device *pd = q->queuedata;
+-	sector_t zone = ZONE(bmd->bi_sector, pd);
++	sector_t zone = get_zone(bmd->bi_sector, pd);
+ 	int used = ((bmd->bi_sector - zone) << 9) + bmd->bi_size;
+ 	int remaining = (pd->settings.size << 9) - used;
+ 	int remaining2;
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_shmem_file_read.patch
-thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
-mm-cleanup-add_to_page_cache_locked.patch
-thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
-thp-do_huge_pmd_anonymous_page-cleanup.patch
-thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
-mm-vmstats-tlb-flush-counters.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too.patch
-thp-mm-locking-tail-page-is-a-bug.patch
+maintainers-dynamic-debug-jasons-not-there.patch
+printk-move-to-separate-directory-for-easier-modification.patch
+printk-move-to-separate-directory-for-easier-modification-fix.patch
+printk-add-console_cmdlineh.patch
+printk-move-braille-console-support-into-separate-braille-files.patch
+printk-use-pointer-for-console_cmdline-indexing.patch
+printk-rename-struct-log-to-struct-printk_log.patch
+linux-next.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-gpio-vt8500-remove-file-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-sirf-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+checkpatch-add-a-few-more-fix-corrections.patch
+checkpatch-check-camelcase-by-word-not-by-lval.patch
 checkpatch-enforce-sane-perl-version.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
+pktcdvd-convert-printk-to-pr_level.patch
+pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
+pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+pktcdvd-convert-pr_notice-to-pkt_notice.patch
+pktcdvd-convert-pr_info-to-pkt_info.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
 
