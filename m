@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch added to -mm tree
-Date: Mon, 29 Jul 2013 15:58:29 -0700
-Message-ID: <51f6f395.J5nZ41L1d9DQ2que%akpm@linux-foundation.org>
+Subject: + pktcdvd-convert-pr_notice-to-pkt_notice.patch added to -mm tree
+Date: Mon, 29 Jul 2013 15:58:30 -0700
+Message-ID: <51f6f396.J47MpzjtvrOTTyn/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60774 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756176Ab3G2W6a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:58:30 -0400
+	with ESMTP id S1756396Ab3G2W6b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 18:58:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jkosina@suse.cz, andy.shevchenko@gmail.com, joe@perches.com
+To: mm-commits@vger.kernel.org, jkosina@suse.cz, joe@perches.com
 
-Subject: + pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch added to -mm tree
-To: joe@perches.com,andy.shevchenko@gmail.com,jkosina@suse.cz
+Subject: + pktcdvd-convert-pr_notice-to-pkt_notice.patch added to -mm tree
+To: joe@perches.com,jkosina@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 29 Jul 2013 15:58:29 -0700
+Date: Mon, 29 Jul 2013 15:58:30 -0700
 
 
 The patch titled
-     Subject: pktcdvd: add struct pktcdvd_device.name to pr_err logging where possible
+     Subject: pktcdvd: convert pr_notice to pkt_notice
 has been added to the -mm tree.  Its filename is
-     pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+     pktcdvd-convert-pr_notice-to-pkt_notice.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-convert-pr_notice-to-pkt_notice.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-convert-pr_notice-to-pkt_notice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,202 +44,108 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: pktcdvd: add struct pktcdvd_device.name to pr_err logging where possible
+Subject: pktcdvd: convert pr_notice to pkt_notice
 
-Add a new pkt_err macro to prefix the name to the logging output.  Convert
-pr_err where there is a non-null struct pktcdvd_device.
-
-Includes improvements from Andy Shevchenko.
+Add a new pkt_notice macro to prefix the name to the logging output.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |   44 ++++++++++++++++++++------------------
- 1 file changed, 24 insertions(+), 20 deletions(-)
+ drivers/block/pktcdvd.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible
+diff -puN drivers/block/pktcdvd.c~pktcdvd-convert-pr_notice-to-pkt_notice drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-convert-pr_notice-to-pkt_notice
 +++ a/drivers/block/pktcdvd.c
-@@ -71,6 +71,9 @@
+@@ -73,6 +73,8 @@
  
- #define DRIVER_NAME	"pktcdvd"
+ #define pkt_err(pd, fmt, ...)						\
+ 	pr_err("%s: " fmt, pd->name, ##__VA_ARGS__)
++#define pkt_notice(pd, fmt, ...)					\
++	pr_notice("%s: " fmt, pd->name, ##__VA_ARGS__)
  
-+#define pkt_err(pd, fmt, ...)						\
-+	pr_err("%s: " fmt, pd->name, ##__VA_ARGS__)
-+
  #define pkt_dbg(level, pd, fmt, ...)					\
  do {									\
- 	if (level == 2 && PACKET_DEBUG >= 2)				\
-@@ -938,7 +941,7 @@ static int pkt_set_segment_merging(struc
- 		set_bit(PACKET_MERGE_SEGS, &pd->flags);
- 		return 0;
- 	} else {
--		pr_err("cdrom max_phys_segments too small\n");
-+		pkt_err(pd, "cdrom max_phys_segments too small\n");
- 		return -EIO;
- 	}
- }
-@@ -1743,7 +1746,7 @@ static noinline_for_stack int pkt_set_wr
- 		/*
- 		 * paranoia
- 		 */
--		pr_err("write mode wrong %d\n", wp->data_block_type);
-+		pkt_err(pd, "write mode wrong %d\n", wp->data_block_type);
- 		return 1;
- 	}
- 	wp->packet_size = cpu_to_be32(pd->settings.size >> 2);
-@@ -1787,7 +1790,7 @@ static int pkt_writable_track(struct pkt
- 	if (ti->rt == 1 && ti->blank == 0)
- 		return 1;
- 
--	pr_err("bad state %d-%d-%d\n", ti->rt, ti->blank, ti->packet);
-+	pkt_err(pd, "bad state %d-%d-%d\n", ti->rt, ti->blank, ti->packet);
- 	return 0;
- }
- 
-@@ -1820,7 +1823,7 @@ static int pkt_writable_disc(struct pktc
- 	}
- 
- 	if (di->disc_type != 0x20 && di->disc_type != 0) {
--		pr_err("wrong disc type (%x)\n", di->disc_type);
-+		pkt_err(pd, "wrong disc type (%x)\n", di->disc_type);
+@@ -1818,7 +1820,7 @@ static int pkt_writable_disc(struct pktc
+ 	 * but i'm not sure, should we leave this to user apps? probably.
+ 	 */
+ 	if (di->disc_type == 0xff) {
+-		pr_notice("unknown disc - no track?\n");
++		pkt_notice(pd, "unknown disc - no track?\n");
  		return 0;
  	}
  
-@@ -1830,7 +1833,7 @@ static int pkt_writable_disc(struct pktc
+@@ -1828,7 +1830,7 @@ static int pkt_writable_disc(struct pktc
  	}
  
- 	if (di->border_status == PACKET_SESSION_RESERVED) {
--		pr_err("can't write to last track (reserved)\n");
-+		pkt_err(pd, "can't write to last track (reserved)\n");
+ 	if (di->erasable == 0) {
+-		pr_notice("disc not erasable\n");
++		pkt_notice(pd, "disc not erasable\n");
  		return 0;
  	}
  
-@@ -1855,7 +1858,7 @@ static noinline_for_stack int pkt_probe_
- 	memset(&ti, 0, sizeof(track_information));
- 
- 	if ((ret = pkt_get_disc_info(pd, &di))) {
--		pr_err("failed get_disc\n");
-+		pkt_err(pd, "failed get_disc\n");
- 		return ret;
- 	}
- 
-@@ -1866,12 +1869,12 @@ static noinline_for_stack int pkt_probe_
- 
- 	track = 1; /* (di.last_track_msb << 8) | di.last_track_lsb; */
- 	if ((ret = pkt_get_track_info(pd, track, 1, &ti))) {
--		pr_err("failed get_track\n");
-+		pkt_err(pd, "failed get_track\n");
- 		return ret;
- 	}
- 
- 	if (!pkt_writable_track(pd, &ti)) {
--		pr_err("can't write to this track\n");
-+		pkt_err(pd, "can't write to this track\n");
- 		return -EROFS;
- 	}
- 
-@@ -1885,7 +1888,7 @@ static noinline_for_stack int pkt_probe_
+@@ -1884,7 +1886,7 @@ static noinline_for_stack int pkt_probe_
+ 	 */
+ 	pd->settings.size = be32_to_cpu(ti.fixed_packet_size) << 2;
+ 	if (pd->settings.size == 0) {
+-		pr_notice("detected zero packet size!\n");
++		pkt_notice(pd, "detected zero packet size!\n");
  		return -ENXIO;
  	}
  	if (pd->settings.size > PACKET_MAX_SECTORS) {
--		pr_err("packet size is too big\n");
-+		pkt_err(pd, "packet size is too big\n");
- 		return -EROFS;
- 	}
- 	pd->settings.fp = ti.fp;
-@@ -1927,7 +1930,7 @@ static noinline_for_stack int pkt_probe_
- 			pd->settings.block_mode = PACKET_BLOCK_MODE2;
- 			break;
- 		default:
--			pr_err("unknown data mode\n");
-+			pkt_err(pd, "unknown data mode\n");
- 			return -EROFS;
- 	}
- 	return 0;
-@@ -1961,7 +1964,7 @@ static noinline_for_stack int pkt_write_
- 	cgc.buflen = cgc.cmd[8] = 2 + ((buf[0] << 8) | (buf[1] & 0xff));
- 	ret = pkt_mode_select(pd, &cgc);
- 	if (ret) {
--		pr_err("write caching control failed\n");
-+		pkt_err(pd, "write caching control failed\n");
+@@ -1967,7 +1969,7 @@ static noinline_for_stack int pkt_write_
+ 		pkt_err(pd, "write caching control failed\n");
  		pkt_dump_sense(&cgc);
  	} else if (!ret && set)
- 		pr_notice("enabled write caching on %s\n", pd->name);
-@@ -2200,7 +2203,7 @@ static int pkt_open_dev(struct pktcdvd_d
- 		goto out;
+-		pr_notice("enabled write caching on %s\n", pd->name);
++		pkt_notice(pd, "enabled write caching\n");
+ 	return ret;
+ }
  
- 	if ((ret = pkt_get_last_written(pd, &lba))) {
--		pr_err("pkt_get_last_written failed\n");
-+		pkt_err(pd, "pkt_get_last_written failed\n");
- 		goto out_putdev;
+@@ -2082,11 +2084,11 @@ static noinline_for_stack int pkt_media_
  	}
  
-@@ -2230,7 +2233,7 @@ static int pkt_open_dev(struct pktcdvd_d
+ 	if (!(buf[6] & 0x40)) {
+-		pr_notice("disc type is not CD-RW\n");
++		pkt_notice(pd, "disc type is not CD-RW\n");
+ 		return 1;
+ 	}
+ 	if (!(buf[6] & 0x4)) {
+-		pr_notice("A1 values on media are not valid, maybe not CDRW?\n");
++		pkt_notice(pd, "A1 values on media are not valid, maybe not CDRW?\n");
+ 		return 1;
+ 	}
  
- 	if (write) {
- 		if (!pkt_grow_pktlist(pd, CONFIG_CDROM_PKTCDVD_BUFFERS)) {
--			pr_err("not enough memory for buffers\n");
-+			pkt_err(pd, "not enough memory for buffers\n");
- 			ret = -ENOMEM;
- 			goto out_putdev;
- 		}
-@@ -2352,8 +2355,8 @@ static void pkt_make_request(struct requ
+@@ -2106,14 +2108,14 @@ static noinline_for_stack int pkt_media_
+ 			*speed = us_clv_to_speed[sp];
+ 			break;
+ 		default:
+-			pr_notice("unknown disc sub-type %d\n", st);
++			pkt_notice(pd, "unknown disc sub-type %d\n", st);
+ 			return 1;
+ 	}
+ 	if (*speed) {
+ 		pr_info("maximum media speed: %d\n", *speed);
+ 		return 0;
+ 	} else {
+-		pr_notice("unknown speed %d for sub-type %d\n", sp, st);
++		pkt_notice(pd, "unknown speed %d for sub-type %d\n", sp, st);
+ 		return 1;
+ 	}
+ }
+@@ -2378,8 +2380,8 @@ static void pkt_make_request(struct requ
+ 	}
  
- 	pd = q->queuedata;
- 	if (!pd) {
--		pr_err("%s incorrect request queue\n",
--		       bdevname(bio->bi_bdev, b));
-+		pkt_err(pd, "%s incorrect request queue\n",
-+			bdevname(bio->bi_bdev, b));
+ 	if (!test_bit(PACKET_WRITABLE, &pd->flags)) {
+-		pr_notice("WRITE for ro device %s (%llu)\n",
+-			  pd->name, (unsigned long long)bio->bi_sector);
++		pkt_notice(pd, "WRITE for ro device (%llu)\n",
++			   (unsigned long long)bio->bi_sector);
  		goto end_io;
  	}
  
-@@ -2381,7 +2384,7 @@ static void pkt_make_request(struct requ
- 	}
- 
- 	if (!bio->bi_size || (bio->bi_size % CD_FRAMESIZE)) {
--		pr_err("wrong bio size\n");
-+		pkt_err(pd, "wrong bio size\n");
- 		goto end_io;
- 	}
- 
-@@ -2602,7 +2605,7 @@ static int pkt_new_dev(struct pktcdvd_de
- 	struct block_device *bdev;
- 
- 	if (pd->pkt_dev == dev) {
--		pr_err("recursive setup not allowed\n");
-+		pkt_err(pd, "recursive setup not allowed\n");
- 		return -EBUSY;
- 	}
- 	for (i = 0; i < MAX_WRITERS; i++) {
-@@ -2610,11 +2613,12 @@ static int pkt_new_dev(struct pktcdvd_de
- 		if (!pd2)
- 			continue;
- 		if (pd2->bdev->bd_dev == dev) {
--			pr_err("%s already setup\n", bdevname(pd2->bdev, b));
-+			pkt_err(pd, "%s already setup\n",
-+				bdevname(pd2->bdev, b));
- 			return -EBUSY;
- 		}
- 		if (pd2->pkt_dev == dev) {
--			pr_err("can't chain pktcdvd devices\n");
-+			pkt_err(pd, "can't chain pktcdvd devices\n");
- 			return -EBUSY;
- 		}
- 	}
-@@ -2637,7 +2641,7 @@ static int pkt_new_dev(struct pktcdvd_de
- 	atomic_set(&pd->cdrw.pending_bios, 0);
- 	pd->cdrw.thread = kthread_run(kcdrwd, pd, "%s", pd->name);
- 	if (IS_ERR(pd->cdrw.thread)) {
--		pr_err("can't start kernel thread\n");
-+		pkt_err(pd, "can't start kernel thread\n");
- 		ret = -ENOMEM;
- 		goto out_mem;
- 	}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
