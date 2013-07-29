@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-add-necessary-declarations-for-posix-acls-support.patch added to -mm tree
-Date: Mon, 29 Jul 2013 13:07:58 -0700
-Message-ID: <51f6cb9e.kqrk5De/2icd9e++%akpm@linux-foundation.org>
+Subject: + hfsplus-implement-posix-acls-support.patch added to -mm tree
+Date: Mon, 29 Jul 2013 13:07:59 -0700
+Message-ID: <51f6cb9f.3/ae7+DSlirJwvd2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565Ab3G2UH7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 16:07:59 -0400
+	with ESMTP id S1754565Ab3G2UIA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 16:08:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: + hfsplus-add-necessary-declarations-for-posix-acls-support.patch added to -mm tree
+Subject: + hfsplus-implement-posix-acls-support.patch added to -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Mon, 29 Jul 2013 13:07:58 -0700
+Date: Mon, 29 Jul 2013 13:07:59 -0700
 
 
 The patch titled
-     Subject: hfsplus: add necessary declarations for POSIX ACLs support
+     Subject: hfsplus: implement POSIX ACLs support
 has been added to the -mm tree.  Its filename is
-     hfsplus-add-necessary-declarations-for-posix-acls-support.patch
+     hfsplus-implement-posix-acls-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-add-necessary-declarations-for-posix-acls-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-posix-acls-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-add-necessary-declarations-for-posix-acls-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-posix-acls-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,27 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: add necessary declarations for POSIX ACLs support
+Subject: hfsplus: implement POSIX ACLs support
 
-This patchset implements POSIX ACLs support in hfsplus driver.
-
-Mac OS X beginning with version 10.4 ("Tiger") support NFSv4 ACLs, which
-are part of the NFSv4 standard.  HFS+ stores ACLs in the form of specially
-named extended attributes (com.apple.system.Security).
-
-But this patchset doesn't use "com.apple.system.Security" extended
-attributes.  It implements support of POSIX ACLs in the form of extended
-attributes with names "system.posix_acl_access" and
-"system.posix_acl_default".  These xattrs are treated only under Linux. 
-POSIX ACLs doesn't mean something under Mac OS X.  Thereby, this patch set
-provides opportunity to use POSIX ACLs under Linux on HFS+ filesystem.
-
-
-This patch:
-
-Add CONFIG_HFSPLUS_FS_POSIX_ACL kernel configuration option, DBG_ACL_MOD
-debugging flag and acl.h file with declaration of essential functions for
-support POSIX ACLs in hfsplus driver.
+Implement POSIX ACLs support in hfsplus driver.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -73,81 +55,287 @@ Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/Kconfig      |   18 ++++++++++++++++++
- fs/hfsplus/acl.h        |   30 ++++++++++++++++++++++++++++++
- fs/hfsplus/hfsplus_fs.h |    1 +
- 3 files changed, 49 insertions(+)
+ fs/hfsplus/posix_acl.c |  274 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 274 insertions(+)
 
-diff -puN fs/hfsplus/Kconfig~hfsplus-add-necessary-declarations-for-posix-acls-support fs/hfsplus/Kconfig
---- a/fs/hfsplus/Kconfig~hfsplus-add-necessary-declarations-for-posix-acls-support
-+++ a/fs/hfsplus/Kconfig
-@@ -11,3 +11,21 @@ config HFSPLUS_FS
- 	  MacOS 8. It includes all Mac specific filesystem data such as
- 	  data forks and creator codes, but it also has several UNIX
- 	  style features such as file ownership and permissions.
-+
-+config HFSPLUS_FS_POSIX_ACL
-+	bool "HFS+ POSIX Access Control Lists"
-+	depends on HFSPLUS_FS
-+	select FS_POSIX_ACL
-+	help
-+	  POSIX Access Control Lists (ACLs) support permissions for users and
-+	  groups beyond the owner/group/world scheme.
-+
-+	  To learn more about Access Control Lists, visit the POSIX ACLs for
-+	  Linux website <http://acl.bestbits.at/>.
-+
-+	  It needs to understand that POSIX ACLs are treated only under
-+	  Linux. POSIX ACLs doesn't mean something under Mac OS X.
-+	  Mac OS X beginning with version 10.4 ("Tiger") support NFSv4 ACLs,
-+	  which are part of the NFSv4 standard.
-+
-+	  If you don't know what Access Control Lists are, say N
-diff -puN /dev/null fs/hfsplus/acl.h
+diff -puN /dev/null fs/hfsplus/posix_acl.c
 --- /dev/null
-+++ a/fs/hfsplus/acl.h
-@@ -0,0 +1,30 @@
++++ a/fs/hfsplus/posix_acl.c
+@@ -0,0 +1,274 @@
 +/*
-+ * linux/fs/hfsplus/acl.h
++ * linux/fs/hfsplus/posix_acl.c
 + *
 + * Vyacheslav Dubeyko <slava@dubeyko.com>
 + *
 + * Handler for Posix Access Control Lists (ACLs) support.
 + */
 +
-+#include <linux/posix_acl_xattr.h>
++#include "hfsplus_fs.h"
++#include "xattr.h"
++#include "acl.h"
 +
-+#ifdef CONFIG_HFSPLUS_FS_POSIX_ACL
-+
-+/* posix_acl.c */
-+struct posix_acl *hfsplus_get_posix_acl(struct inode *inode, int type);
-+extern int hfsplus_posix_acl_chmod(struct inode *);
-+extern int hfsplus_init_posix_acl(struct inode *, struct inode *);
-+
-+#else  /* CONFIG_HFSPLUS_FS_POSIX_ACL */
-+#define hfsplus_get_posix_acl NULL
-+
-+static inline int hfsplus_posix_acl_chmod(struct inode *inode)
++struct posix_acl *hfsplus_get_posix_acl(struct inode *inode, int type)
 +{
-+	return 0;
++	struct posix_acl *acl;
++	char *xattr_name;
++	char *value = NULL;
++	ssize_t size;
++
++	acl = get_cached_acl(inode, type);
++	if (acl != ACL_NOT_CACHED)
++		return acl;
++
++	switch (type) {
++	case ACL_TYPE_ACCESS:
++		xattr_name = POSIX_ACL_XATTR_ACCESS;
++		break;
++	case ACL_TYPE_DEFAULT:
++		xattr_name = POSIX_ACL_XATTR_DEFAULT;
++		break;
++	default:
++		return ERR_PTR(-EINVAL);
++	}
++
++	size = __hfsplus_getxattr(inode, xattr_name, NULL, 0);
++
++	if (size > 0) {
++		value = (char *)hfsplus_alloc_attr_entry();
++		if (unlikely(!value))
++			return ERR_PTR(-ENOMEM);
++		size = __hfsplus_getxattr(inode, xattr_name, value, size);
++	}
++
++	if (size > 0)
++		acl = posix_acl_from_xattr(&init_user_ns, value, size);
++	else if (size == -ENODATA)
++		acl = NULL;
++	else
++		acl = ERR_PTR(size);
++
++	hfsplus_destroy_attr_entry((hfsplus_attr_entry *)value);
++
++	if (!IS_ERR(acl))
++		set_cached_acl(inode, type, acl);
++
++	return acl;
 +}
 +
-+static inline int hfsplus_init_posix_acl(struct inode *inode, struct inode *dir)
++static int hfsplus_set_posix_acl(struct inode *inode,
++					int type,
++					struct posix_acl *acl)
 +{
-+	return 0;
++	int err;
++	char *xattr_name;
++	size_t size = 0;
++	char *value = NULL;
++
++	if (S_ISLNK(inode->i_mode))
++		return -EOPNOTSUPP;
++
++	switch (type) {
++	case ACL_TYPE_ACCESS:
++		xattr_name = POSIX_ACL_XATTR_ACCESS;
++		if (acl) {
++			err = posix_acl_equiv_mode(acl, &inode->i_mode);
++			if (err < 0)
++				return err;
++		}
++		err = 0;
++		break;
++
++	case ACL_TYPE_DEFAULT:
++		xattr_name = POSIX_ACL_XATTR_DEFAULT;
++		if (!S_ISDIR(inode->i_mode))
++			return acl ? -EACCES : 0;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	if (acl) {
++		size = posix_acl_xattr_size(acl->a_count);
++		if (unlikely(size > HFSPLUS_MAX_INLINE_DATA_SIZE))
++			return -ENOMEM;
++		value = (char *)hfsplus_alloc_attr_entry();
++		if (unlikely(!value))
++			return -ENOMEM;
++		err = posix_acl_to_xattr(&init_user_ns, acl, value, size);
++		if (unlikely(err < 0))
++			goto end_set_acl;
++	}
++
++	err = __hfsplus_setxattr(inode, xattr_name, value, size, 0);
++
++end_set_acl:
++	hfsplus_destroy_attr_entry((hfsplus_attr_entry *)value);
++
++	if (!err)
++		set_cached_acl(inode, type, acl);
++
++	return err;
 +}
-+#endif  /* CONFIG_HFSPLUS_FS_POSIX_ACL */
-diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-add-necessary-declarations-for-posix-acls-support fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-add-necessary-declarations-for-posix-acls-support
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -30,6 +30,7 @@
- #define DBG_EXTENT	0x00000020
- #define DBG_BITMAP	0x00000040
- #define DBG_ATTR_MOD	0x00000080
-+#define DBG_ACL_MOD	0x00000100
- 
- #if 0
- #define DBG_MASK	(DBG_EXTENT|DBG_INODE|DBG_BNODE_MOD)
++
++int hfsplus_init_posix_acl(struct inode *inode, struct inode *dir)
++{
++	int err = 0;
++	struct posix_acl *acl = NULL;
++
++	hfs_dbg(ACL_MOD,
++		"[%s]: ino %lu, dir->ino %lu\n",
++		__func__, inode->i_ino, dir->i_ino);
++
++	if (S_ISLNK(inode->i_mode))
++		return 0;
++
++	acl = hfsplus_get_posix_acl(dir, ACL_TYPE_DEFAULT);
++	if (IS_ERR(acl))
++		return PTR_ERR(acl);
++
++	if (acl) {
++		if (S_ISDIR(inode->i_mode)) {
++			err = hfsplus_set_posix_acl(inode,
++							ACL_TYPE_DEFAULT,
++							acl);
++			if (unlikely(err))
++				goto init_acl_cleanup;
++		}
++
++		err = posix_acl_create(&acl, GFP_NOFS, &inode->i_mode);
++		if (unlikely(err < 0))
++			return err;
++
++		if (err > 0)
++			err = hfsplus_set_posix_acl(inode,
++							ACL_TYPE_ACCESS,
++							acl);
++	} else
++		inode->i_mode &= ~current_umask();
++
++init_acl_cleanup:
++	posix_acl_release(acl);
++	return err;
++}
++
++int hfsplus_posix_acl_chmod(struct inode *inode)
++{
++	int err;
++	struct posix_acl *acl;
++
++	hfs_dbg(ACL_MOD, "[%s]: ino %lu\n", __func__, inode->i_ino);
++
++	if (S_ISLNK(inode->i_mode))
++		return -EOPNOTSUPP;
++
++	acl = hfsplus_get_posix_acl(inode, ACL_TYPE_ACCESS);
++	if (IS_ERR(acl) || !acl)
++		return PTR_ERR(acl);
++
++	err = posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
++	if (unlikely(err))
++		return err;
++
++	err = hfsplus_set_posix_acl(inode, ACL_TYPE_ACCESS, acl);
++	posix_acl_release(acl);
++	return err;
++}
++
++static int hfsplus_xattr_get_posix_acl(struct dentry *dentry,
++					const char *name,
++					void *buffer,
++					size_t size,
++					int type)
++{
++	int err = 0;
++	struct posix_acl *acl;
++
++	hfs_dbg(ACL_MOD,
++		"[%s]: ino %lu, buffer %p, size %zu, type %#x\n",
++		__func__, dentry->d_inode->i_ino, buffer, size, type);
++
++	if (strcmp(name, "") != 0)
++		return -EINVAL;
++
++	acl = hfsplus_get_posix_acl(dentry->d_inode, type);
++	if (IS_ERR(acl))
++		return PTR_ERR(acl);
++	if (acl == NULL)
++		return -ENODATA;
++
++	err = posix_acl_to_xattr(&init_user_ns, acl, buffer, size);
++	posix_acl_release(acl);
++
++	return err;
++}
++
++static int hfsplus_xattr_set_posix_acl(struct dentry *dentry,
++					const char *name,
++					const void *value,
++					size_t size,
++					int flags,
++					int type)
++{
++	int err = 0;
++	struct inode *inode = dentry->d_inode;
++	struct posix_acl *acl = NULL;
++
++	hfs_dbg(ACL_MOD,
++		"[%s]: ino %lu, value %p, size %zu, flags %#x, type %#x\n",
++		__func__, inode->i_ino, value, size, flags, type);
++
++	if (strcmp(name, "") != 0)
++		return -EINVAL;
++
++	if (!inode_owner_or_capable(inode))
++		return -EPERM;
++
++	if (value) {
++		acl = posix_acl_from_xattr(&init_user_ns, value, size);
++		if (IS_ERR(acl))
++			return PTR_ERR(acl);
++		else if (acl) {
++			err = posix_acl_valid(acl);
++			if (err)
++				goto end_xattr_set_acl;
++		}
++	}
++
++	err = hfsplus_set_posix_acl(inode, type, acl);
++
++end_xattr_set_acl:
++	posix_acl_release(acl);
++	return err;
++}
++
++static size_t hfsplus_xattr_list_posix_acl(struct dentry *dentry,
++						char *list,
++						size_t list_size,
++						const char *name,
++						size_t name_len,
++						int type)
++{
++	/*
++	 * This method is not used.
++	 * It is used hfsplus_listxattr() instead of generic_listxattr().
++	 */
++	return -EOPNOTSUPP;
++}
++
++const struct xattr_handler hfsplus_xattr_acl_access_handler = {
++	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.flags	= ACL_TYPE_ACCESS,
++	.list	= hfsplus_xattr_list_posix_acl,
++	.get	= hfsplus_xattr_get_posix_acl,
++	.set	= hfsplus_xattr_set_posix_acl,
++};
++
++const struct xattr_handler hfsplus_xattr_acl_default_handler = {
++	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.flags	= ACL_TYPE_DEFAULT,
++	.list	= hfsplus_xattr_list_posix_acl,
++	.get	= hfsplus_xattr_get_posix_acl,
++	.set	= hfsplus_xattr_set_posix_acl,
++};
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
